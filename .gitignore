@@ -1,0 +1,43 @@
+# ADMIN & WEB
+node_modules
+**/src/utils/request-temp.js
+_roadhog-api-doc
+**/dist
+.DS_Store
+npm-debug.log*
+yarn-error.log
+**/coverage
+.idea
+yarn.lock
+package-lock.json
+*bak
+.vscode
+.history
+*.log
+**/functions/*
+**/.temp/**
+
+# umi
+.umi
+.umi-production
+.umi-test
+
+# screenshot
+screenshot
+.firebase
+.eslintcache
+
+build
+
+
+**/deploy_versions/
+**/.rn_temp/
+.DS_Store
+.swc
+*.local
+.env
+__pycache__
+.idea
+.venv
+tmp
+__runtime__

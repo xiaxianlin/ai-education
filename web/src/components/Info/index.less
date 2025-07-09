@@ -1,0 +1,25 @@
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  .item {
+    display: flex;
+    font-size: 14px;
+    line-height: 1.5;
+    > label {
+      color: rgba(0, 0, 0, 0.45);
+      font-weight: normal;
+      text-align: start;
+      margin-right: 6px;
+    }
+    > span {
+      display: inline-flex;
+      align-items: baseline;
+      min-width: 1em;
+      flex: 1;
+      color: rgba(0, 0, 0, 0.88);
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+}

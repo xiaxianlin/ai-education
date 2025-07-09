@@ -1,0 +1,15 @@
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.custom-color {
+  color: #1989fa;
+
+  .taroify-loading__text {
+    color: #1989fa;
+  }
+}

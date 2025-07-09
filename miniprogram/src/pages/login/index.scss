@@ -1,0 +1,14 @@
+.login {
+  .login-content {
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .bottom-button {
+      margin-top: 24px * 2;
+      width: 160px * 2;
+    }
+  }
+}
