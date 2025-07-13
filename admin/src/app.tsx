@@ -17,7 +17,7 @@ export async function getInitialState(): Promise<InitialState> {
 export const layout: RunTimeLayoutConfig = ({ initialState }) => {
   return {
     logo,
-    title: '观澜智科',
+    title: 'AI 教育',
     layout: 'mix',
     theme: 'dark',
     contentWidth: 'Fixed',

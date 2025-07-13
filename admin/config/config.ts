@@ -71,7 +71,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: '观澜智科',
+  title: 'AI 教育',
   layout: {
     locale: false,
   },

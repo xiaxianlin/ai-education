@@ -11,8 +11,8 @@ export default function LoginPage() {
       <div className={styles.container}>
         <LoginForm<LoginFormModel>
           size="large"
-          title="观澜智科"
-          subTitle="观澜管理后台"
+          title="管理员登录"
+          subTitle="请输入您的凭据以访问管理后台"
           onFinish={async (values) => {
             await login(values);
             return true;

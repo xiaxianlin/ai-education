@@ -161,16 +161,18 @@ class Question(BaseModel):
     content = Column(Text, nullable=False)
     # 问题选项
     options = Column(JSON)
+    # 答案
+    answer = Column(Text)
     # 知识点 ID
-    knowledge_id = Column(String(255))
+    knowledge_id = Column(Integer)
+    # 单元 ID
+    course_unit_id = Column(Integer, nullable=False)
     # 分析文本
     analysis_text = Column(Text)
     # 分析音频
     analysis_audio = Column(String(255))
     # 分析视频
     analysis_video = Column(String(255))
-    # 答案
-    answer = Column(Text)
     # 年级
     grade = Column(String(255))
     # 科目
