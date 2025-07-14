@@ -6,11 +6,7 @@ export default function MainView() {
   return (
     <PageContainer header={{ title: '' }} ghost>
       <Row gutter={16}>
-        <Col className="gutter-row" span={6}>
-          <Card>
-            <Meta title="设备数" description="0" />
-          </Card>
-        </Col>
+        <Col className="gutter-row" span={6}></Col>
       </Row>
     </PageContainer>
   );

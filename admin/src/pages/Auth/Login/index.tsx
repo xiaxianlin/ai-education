@@ -1,15 +1,27 @@
-import { LoginForm, ProFormText } from '@ant-design/pro-components';
-import { LoginFormModel, useLogin } from './hooks/useLogin';
+import { useRequest } from 'ahooks';
+import { history, useModel } from '@umijs/max';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
+import { AuthApi } from '@/services/auth';
 import styles from './index.less';
 
 export default function LoginPage() {
-  const { login } = useLogin();
+  const { refresh } = useModel('@@initialState');
+
+  const { runAsync: login } = useRequest(AuthApi.login, {
+    manual: true,
+    onSuccess: (res) => {
+      refresh();
+      localStorage.setItem('token', res);
+      history.replace('/');
+    },
+  });
+
   return (
     <div className={styles.layout}>
       <div className={styles.container}>
-        <LoginForm<LoginFormModel>
+        <LoginForm<LoginModel>
           size="large"
           title="管理员登录"
           subTitle="请输入您的凭据以访问管理后台"

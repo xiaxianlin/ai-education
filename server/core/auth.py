@@ -1,5 +1,6 @@
 from fastapi import Request, HTTPException
 from core import get_logger
+from schema.admin.manager import ManagerStatus
 from util import encrypt
 
 logger = get_logger("ROUTE_AUTH")
@@ -55,11 +56,11 @@ def admin_route_auth(request: Request):
 
     manager = payload["manager"]
 
-    if manager["status"] == 0:
-        raise HTTPException(status_code=400, detail="账号未启用")
+    if manager["status"] == ManagerStatus.InActive.value:
+        raise HTTPException(status_code=499, detail="账号未启用")
 
-    if manager["status"] == -1:
-        raise HTTPException(status_code=400, detail="账号被禁用")
+    if manager["status"] == ManagerStatus.Forbidden.value:
+        raise HTTPException(status_code=423, detail="账号被禁用")
 
     # 审核管理员
     if manager["type"] == 2 and not match_route(admin_audit_routes, path):

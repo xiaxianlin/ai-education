@@ -2,6 +2,7 @@ import uuid
 from sqlalchemy import asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import settings
+from schema.admin.manager import ManagerStatus
 from util import encrypt
 from store.database.models import Manager
 from schema.common import SearchParams
@@ -23,7 +24,7 @@ class ManagerService:
             username=params.username,
             password=encrypt.hash(settings.MANAGER_INIT_PASSWORD),
             type=params.type,
-            status=0,
+            status=ManagerStatus.InActive,
         )
         db.add(manager)
         await db.commit()

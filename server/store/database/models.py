@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Column, String, Integer, Text
+from sqlalchemy import JSON, Column, String, Integer, Text,Enum
 from util import time
 from . import Base
 
@@ -82,6 +82,8 @@ class Subject(BaseModel):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, unique=True)
+    status = Column(Integer, default=1)
+    create_time = Column(Integer, default=time.now)
 
 
 class TextbookVersion(BaseModel):
@@ -91,6 +93,8 @@ class TextbookVersion(BaseModel):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False, unique=True)
+    status = Column(Integer, default=1)
+    create_time = Column(Integer, default=time.now)
 
 
 class Textbook(BaseModel):
@@ -111,6 +115,8 @@ class Textbook(BaseModel):
     semester = Column(Integer, nullable=False)
     # 文件地址
     pdf = Column(String(255))
+    status = Column(Integer, default=1)
+    create_time = Column(Integer, default=time.now)
 
 
 class CourseUnit(BaseModel):
@@ -124,6 +130,9 @@ class CourseUnit(BaseModel):
     name = Column(String(255), nullable=False)
     # 单元总结
     summary = Column(Text, default="")
+
+    status = Column(Integer, default=1)
+    create_time = Column(Integer, default=time.now)
 
 
 class Knowledge(BaseModel):
@@ -143,7 +152,7 @@ class Knowledge(BaseModel):
     # 分析视频
     analysis_video = Column(String(255))
     # 状态
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=1)
 
     create_time = Column(Integer, default=time.now)
     update_time = Column(Integer)
@@ -182,7 +191,7 @@ class Question(BaseModel):
     # 图片
     image = Column(String(255))
     # 状态
-    status = Column(Integer(), default=0)
+    status = Column(Integer(), default=1)
 
     create_time = Column(Integer, default=time.now)
     update_time = Column(Integer)

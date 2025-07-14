@@ -18,35 +18,6 @@ export default [
     icon: 'dashboard',
     component: './Home',
   },
-  {
-    path: '/account',
-    icon: 'idcard',
-    name: '账号管理',
-    routes: [
-      {
-        path: '/account/list',
-        name: '账号列表',
-        component: './Account/List',
-      },
-    ],
-  },
-  {
-    path: '/question',
-    icon: 'book',
-    name: '题库管理',
-    routes: [
-      {
-        path: '/question/list',
-        name: '题库列表',
-        component: './Question/List',
-      },
-      {
-        path: '/question/resolve',
-        name: '添加问题',
-        component: './Question/Resolve',
-      },
-    ],
-  },
   { path: '/login', layout: false, component: './Auth/Login' },
   { path: '/password', component: './Auth/Password' },
   { path: '*', layout: false, component: './404' },

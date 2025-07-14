@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from store.database import GetDB
 from service.admin import ManagerService
 from schema.common import ResponseModel, SearchParams
-from schema.admin import CraeteManager, ManagerStatus
+from schema.admin import CraeteManager, ModifyManagerStatus
 
 
 router = APIRouter(prefix="/manager")
@@ -16,7 +16,7 @@ async def create(params: CraeteManager, db: AsyncSession = GetDB):
 
 
 @router.patch("/status/{id}")
-async def modify_status(id: str, params: ManagerStatus, db: AsyncSession = GetDB):
+async def modify_status(id: str, params: ModifyManagerStatus, db: AsyncSession = GetDB):
     await ManagerService.modify_status(db, id, params.status)
     return ResponseModel()
 

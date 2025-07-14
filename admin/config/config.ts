@@ -121,9 +121,5 @@ export default defineConfig({
   define: {
     'process.env.WS_API': isDev ? 'ws://127.0.0.1:8000/api' : 'wss://ai.ixxl.me/api',
   },
-  plugins: [require.resolve('@umijs/plugins/dist/unocss')],
-  unocss: {
-    // 检测 className 的文件范围，若项目不包含 src 目录，可使用 `pages/**/*.tsx`
-    watch: ['src/**/*.tsx'],
-  },
+  plugins: [],
 });

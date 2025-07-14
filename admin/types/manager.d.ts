@@ -1,21 +1,21 @@
-import { AccountType } from '@/pages/Account/constants';
+import { ManagerType, ManagerStatus } from '@/pages/Account/constants';
 
 declare global {
-  interface Account {
+  interface Manager {
     id: string;
     username: string;
-    type: AccountType;
-    status: number;
+    type: ManagerType;
+    status: ManagerStatus;
     create_time: number;
     update_time?: number;
   }
 
-  interface AccountForm {
+  interface CreateManagerForm {
     username: string;
     type: number;
   }
 
-  interface AccountSearchParams {
+  interface ManagerSearchParams {
     keywords?: string;
     page_num: number;
     page_size: number;

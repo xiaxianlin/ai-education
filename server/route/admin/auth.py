@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
+from schema.admin.manager import ManagerStatus
 from store.database import GetDB
 from util.encrypt import GetManager
 from service.admin import AdminAuthService
@@ -21,6 +22,9 @@ async def check(manager: dict = GetManager, db: AsyncSession = GetDB):
 
     if not data:
         return ResponseModel(status=401)
+
+    if data.status == ManagerStatus.InActive.value:
+        return ResponseModel(status=403)
 
     return ResponseModel(data=data.to_dict({"password"}))
 
