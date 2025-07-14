@@ -1,4 +1,4 @@
-import { ManagerType, ManagerStatus } from '@/pages/Account/constants';
+import { ManagerType, ManagerStatus } from '@/constants/manager';
 
 declare global {
   interface Manager {
@@ -10,15 +10,17 @@ declare global {
     update_time?: number;
   }
 
-  interface CreateManagerForm {
+  interface CreateManagerModel {
     username: string;
     type: number;
   }
 
   interface ManagerSearchParams {
     keywords?: string;
-    page_num: number;
-    page_size: number;
+    type?: ManagerType;
+    status?: ManagerStatus;
+    current_page?: number;
+    page_size?: number;
   }
 
   interface ModifyPasswordForm {

@@ -18,7 +18,19 @@ export default [
     icon: 'dashboard',
     component: './Home',
   },
-  { path: '/login', layout: false, component: './Auth/Login' },
+  {
+    path: '/system',
+    name: '系统管理',
+    icon: 'setting',
+    routes: [
+      {
+        path: '/system/manager',
+        name: '账号管理',
+        component: './System/Manager',
+      },
+    ],
+  },
   { path: '/password', component: './Auth/Password' },
+  { path: '/login', layout: false, component: './Auth/Login' },
   { path: '*', layout: false, component: './404' },
 ];

@@ -3,7 +3,7 @@ declare global {
     manager?: Manager;
   }
 
-  interface ListResult<T> {
+  interface ListData<T> {
     data?: T[];
     total?: number;
   }

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from store.database import GetDB
 from service.admin import ManagerService
-from schema.common import ResponseModel, SearchParams
-from schema.admin import CraeteManager, ModifyManagerStatus
+from schema.common import ResponseModel
+from schema.admin import CraeteManager, ModifyManagerStatus, ManagerSearchParams
 
 
 router = APIRouter(prefix="/manager")
@@ -28,6 +28,6 @@ async def remove(id: str, db: AsyncSession = GetDB):
 
 
 @router.get("/search")
-async def search(params: SearchParams = Depends(), db: AsyncSession = GetDB):
+async def search(params: ManagerSearchParams = Depends(), db: AsyncSession = GetDB):
     res = await ManagerService.search(db, params)
     return ResponseModel(data=res)

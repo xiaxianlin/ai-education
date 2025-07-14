@@ -1,5 +1,9 @@
 from enum import Enum
+from typing import Optional
+from fastapi import Query
 from pydantic import BaseModel, field_validator
+
+from schema.common import SearchParams
 
 
 class ManagerStatus(int, Enum):
@@ -31,3 +35,8 @@ class ModifyManagerStatus(BaseModel):
                 f"状态 '{v}' 无效，只允许: {list(ManagerStatus._value2member_map_.keys())}"
             )
         return v
+
+
+class ManagerSearchParams(SearchParams):
+    type: Optional[int] = None
+    status: Optional[int] = None

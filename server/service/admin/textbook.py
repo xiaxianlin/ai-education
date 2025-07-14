@@ -89,8 +89,8 @@ class TextbookService:
         )
 
         # --- 分页 ---
-        offset = (params.page - 1) * params.size
-        stmt = stmt.offset(offset).limit(params.size)
+        offset = (params.current_page - 1) * params.page_size
+        stmt = stmt.offset(offset).limit(params.page_size)
 
         results = await db.scalars(stmt)
 
