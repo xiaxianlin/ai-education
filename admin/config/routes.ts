@@ -19,6 +19,18 @@ export default [
     component: './Home',
   },
   {
+    path: '/course',
+    name: '课程管理',
+    icon: 'book',
+    routes: [
+      {
+        path: '/course/textbook',
+        name: '教材管理',
+        component: './Course/Textbook',
+      },
+    ],
+  },
+  {
     path: '/system',
     name: '系统管理',
     icon: 'setting',
@@ -32,6 +44,11 @@ export default [
         path: '/system/subject',
         name: '科目管理',
         component: './System/Subject',
+      },
+      {
+        path: '/system/textbook-version',
+        name: '教材版本管理',
+        component: './System/TextbookVersion',
       },
     ],
   },
