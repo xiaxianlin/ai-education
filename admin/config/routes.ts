@@ -28,6 +28,11 @@ export default [
         name: '账号管理',
         component: './System/Manager',
       },
+      {
+        path: '/system/subject',
+        name: '科目管理',
+        component: './System/Subject',
+      },
     ],
   },
   { path: '/password', component: './Auth/Password' },
