@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Modal, Form, Select, InputNumber, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
+import PdfUpload from '@/components/PdfUpload';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookStore } from '@/stores/textbook-store';
 import { fmtTime } from '@/utils/time';
@@ -67,6 +68,16 @@ const TextbookManagement: React.FC = () => {
       ),
     },
     {
+      title: 'PDF文档',
+      dataIndex: 'pdf',
+      width: 100,
+      render: (text) => (
+        text ? 
+          <span style={{ color: 'green' }}>已上传</span> : 
+          <span style={{ color: 'orange' }}>未上传</span>
+      ),
+    },
+    {
       title: '创建时间',
       dataIndex: 'create_time',
       width: 180,
@@ -84,6 +95,17 @@ const TextbookManagement: React.FC = () => {
         <Button key="delete" type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
           删除
         </Button>,
+        <div key="upload" style={{ marginTop: 4 }}>
+          <PdfUpload
+            textbookId={record.id}
+            currentPdf={record.pdf}
+            onUploadSuccess={(pdfUrl) => {
+              message.success('PDF上传成功');
+              actionRef.current?.reload();
+            }}
+            uploadApi={TextbookApi.uploadPdf}
+          />
+        </div>,
       ],
     },
   ];

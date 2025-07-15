@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Column, String, Integer, Text,Enum
+from sqlalchemy import JSON, Column, String, Integer, Text, Enum
 from util import time
 from . import Base
 
@@ -115,6 +115,7 @@ class Textbook(BaseModel):
     semester = Column(Integer, nullable=False)
     # 文件地址
     pdf = Column(String(255))
+
     status = Column(Integer, default=1)
     create_time = Column(Integer, default=time.now)
 
@@ -125,14 +126,16 @@ class CourseUnit(BaseModel):
     __tablename__ = "ah_course_unit"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    # 教材 ID
     textbook_id = Column(Integer, nullable=False)
     # 单元名称
     name = Column(String(255), nullable=False)
-    # 单元总结
-    summary = Column(Text, default="")
-
+    # 单元内容
+    content = Column(Text, default="")
+    # 状态
     status = Column(Integer, default=1)
     create_time = Column(Integer, default=time.now)
+    update_time = Column(Integer)
 
 
 class Knowledge(BaseModel):

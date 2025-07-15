@@ -28,6 +28,16 @@ export default [
         name: '教材管理',
         component: './Course/Textbook',
       },
+      {
+        path: '/course/unit',
+        name: '课程单元',
+        component: './Course/CourseUnit',
+      },
+      {
+        path: '/course/knowledge',
+        name: '知识点',
+        component: './Course/Knowledge',
+      },
     ],
   },
   {

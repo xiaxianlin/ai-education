@@ -45,4 +45,17 @@ export const TextbookApi = {
     const res = await request<ApiData<TextbookVersion[]>>('/textbook_version/all');
     return res.data;
   },
+
+  uploadPdf: async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await request<ApiData<{ pdf: string }>>(`/textbook/${id}/pdf`, {
+      method: 'POST',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
+  },
 };

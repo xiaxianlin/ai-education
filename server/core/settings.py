@@ -38,11 +38,6 @@ class Settings(BaseSettings):
     DOUBAO_VISION_MODEL: str
     DOUBAO_MULTI_MODEL: str
 
-    # DeepSeek 配置
-    DEEPSEEK_AI_BASE_URL: str
-    DEEPSEEK_AI_KEY: str
-    DEEPSEEL_LLM_MODEL: str
-
     # 对象存储平台
     OSS_PLATFORM: str
     ALIYUN_OSS_KEY_ID: str
