@@ -13,6 +13,8 @@ class ResponseModel(BaseModel, Generic[T]):
 
 class SimpleNameParams(BaseModel):
     name: str
+class SimpleStatusParams(BaseModel):
+    status: int
 
 
 class SearchParams(BaseModel):

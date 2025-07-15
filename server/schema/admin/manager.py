@@ -25,7 +25,7 @@ class CraeteManager(BaseModel):
 
 
 class ModifyManagerStatus(BaseModel):
-    status: ManagerStatus
+    status: int
 
     @field_validator("status")
     @classmethod

@@ -63,3 +63,11 @@ class SubjectService:
     async def all(db: AsyncSession):
         results = await db.scalars(select(Subject).order_by(Subject.id))
         return [subject.to_dict() for subject in results.all()]
+
+    async def update_status(db: AsyncSession, id: int, status: int):
+        subject = await db.scalar(select(Subject).where(Subject.id == id))
+        if not subject:
+            raise ValueError("科目不存在")
+
+        subject.status = status
+        await db.commit()

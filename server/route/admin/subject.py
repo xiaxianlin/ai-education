@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from store.database import GetDB
 from service.admin import SubjectService
-from schema.common import ResponseModel, SimpleNameParams
+from schema.common import ResponseModel, SimpleNameParams, SimpleStatusParams
 
 
 router = APIRouter(prefix="/subject")
@@ -29,4 +29,10 @@ async def update(id: str, params: SimpleNameParams, db: AsyncSession = GetDB):
 @router.delete("/{id}")
 async def delete(id: str, db: AsyncSession = GetDB):
     await SubjectService.delete(db, id)
+    return ResponseModel()
+
+
+@router.put("/{id}/status")
+async def update_status(id: str, params: SimpleStatusParams, db: AsyncSession = GetDB):
+    await SubjectService.update_status(db, id, params.status)
     return ResponseModel()

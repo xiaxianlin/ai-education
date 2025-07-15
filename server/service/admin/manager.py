@@ -28,7 +28,21 @@ class ManagerService:
 
         return manager.id
 
-    async def modify_status(db: AsyncSession, id: str, status: int):
+    async def update(db: AsyncSession, id: str, params: CraeteManager):
+        manager = await db.scalar(select(Manager).where(Manager.id == id))
+        if not manager:
+            raise ValueError("账号不存在")
+
+        if manager.username == settings.ADMIN_USERNAME:
+            raise ValueError("初始管理员不能修改")
+
+        if manager.username != params.username:
+            raise ValueError("用户名不能修改")
+
+        manager.type = params.type
+        await db.commit()
+
+    async def update_status(db: AsyncSession, id: str, status: int):
         manager = await db.scalar(select(Manager).where(Manager.id == id))
         if not manager:
             raise ValueError("账号不存在")
@@ -44,7 +58,7 @@ class ManagerService:
         if not manager:
             raise ValueError("账号不存在")
 
-        if manager["username"] == settings.ADMIN_USERNAME:
+        if manager.username == settings.ADMIN_USERNAME:
             raise ValueError("初始管理员不能被删除")
 
         await db.delete(manager)
@@ -56,7 +70,7 @@ class ManagerService:
             stmt = stmt.where(Manager.username.like(f"%{params.keywords}%"))
         if params.type:
             stmt = stmt.where(Manager.type == params.type)
-        if params.status:
+        if params.status is not None:
             stmt = stmt.where(Manager.status == params.status)
 
         # --- 总数 ---

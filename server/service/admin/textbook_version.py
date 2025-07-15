@@ -64,3 +64,11 @@ class TextbookVersionService:
     async def all(db: AsyncSession):
         results = await db.scalars(select(TextbookVersion).order_by(TextbookVersion.id))
         return [version.to_dict() for version in results.all()]
+
+    async def update_status(db: AsyncSession, id: int, status: int):
+        version = await db.scalar(select(TextbookVersion).where(TextbookVersion.id == id))
+        if not version:
+            raise ValueError("教材版本不存在")
+
+        version.status = status
+        await db.commit()

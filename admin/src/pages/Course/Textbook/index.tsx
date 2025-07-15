@@ -14,7 +14,7 @@ const TextbookManagement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTextbook, setEditingTextbook] = useState<Textbook | null>(null);
   const actionRef = React.useRef<ActionType>();
-  
+
   const { subjects, versions, stages, grades, loadSubjects, loadVersions } = useTextbookStore();
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const TextbookManagement: React.FC = () => {
       dataIndex: 'subject',
       width: 120,
       render: (text) => {
-        const subject = subjects.find(s => s.id === text);
+        const subject = subjects.find((s) => s.id === text);
         return subject?.name || text;
       },
     },
@@ -43,7 +43,7 @@ const TextbookManagement: React.FC = () => {
       dataIndex: 'version',
       width: 120,
       render: (text) => {
-        const version = versions.find(v => v.id === text);
+        const version = versions.find((v) => v.id === text);
         return version?.name || text;
       },
     },
@@ -63,9 +63,7 @@ const TextbookManagement: React.FC = () => {
       dataIndex: 'status',
       width: 100,
       render: (text, record) => (
-        <span style={{ color: record.status === 1 ? 'green' : 'red' }}>
-          {record.status === 1 ? '启用' : '禁用'}
-        </span>
+        <span style={{ color: record.status === 1 ? 'green' : 'red' }}>{record.status === 1 ? '启用' : '禁用'}</span>
       ),
     },
     {
@@ -80,21 +78,10 @@ const TextbookManagement: React.FC = () => {
       valueType: 'option',
       width: 120,
       render: (text, record) => [
-        <Button
-          key="edit"
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record)}
-        >
+        <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
           编辑
         </Button>,
-        <Button
-          key="delete"
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleDelete(record)}
-        >
+        <Button key="delete" type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
           删除
         </Button>,
       ],
@@ -185,11 +172,7 @@ const TextbookManagement: React.FC = () => {
         cancelText="取消"
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item
-            label="科目"
-            name="subject"
-            rules={[{ required: true, message: '请选择科目' }]}
-          >
+          <Form.Item label="科目" name="subject" rules={[{ required: true, message: '请选择科目' }]}>
             <Select placeholder="请选择科目">
               {subjects.map((subject) => (
                 <Option key={subject.id} value={subject.id}>
@@ -199,11 +182,7 @@ const TextbookManagement: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="教材版本"
-            name="version"
-            rules={[{ required: true, message: '请选择教材版本' }]}
-          >
+          <Form.Item label="教材版本" name="version" rules={[{ required: true, message: '请选择教材版本' }]}>
             <Select placeholder="请选择教材版本">
               {versions.map((version) => (
                 <Option key={version.id} value={version.id}>
@@ -213,11 +192,7 @@ const TextbookManagement: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="学习阶段"
-            name="stage"
-            rules={[{ required: true, message: '请选择学习阶段' }]}
-          >
+          <Form.Item label="学习阶段" name="stage" rules={[{ required: true, message: '请选择学习阶段' }]}>
             <Select placeholder="请选择学习阶段">
               {stages.map((stage) => (
                 <Option key={stage} value={stage}>
@@ -227,11 +202,7 @@ const TextbookManagement: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="年级"
-            name="grade"
-            rules={[{ required: true, message: '请选择年级' }]}
-          >
+          <Form.Item label="年级" name="grade" rules={[{ required: true, message: '请选择年级' }]}>
             <Select placeholder="请选择年级">
               {grades.map((grade) => (
                 <Option key={grade} value={grade}>

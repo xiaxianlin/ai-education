@@ -11,7 +11,7 @@ export const SubjectApi = {
       method: 'POST',
       data,
     });
-    return res.data;
+    return res.status === 0;
   },
 
   update: async (id: string, data: CreateSubject) => {
@@ -19,13 +19,14 @@ export const SubjectApi = {
       method: 'PATCH',
       data,
     });
-    return res.data;
+    return res.status === 0;
   },
 
   delete: async (id: string) => {
-    await request<ApiData<void>>(`/subject/${id}`, {
+    const res = await request<ApiData<void>>(`/subject/${id}`, {
       method: 'DELETE',
     });
+    return res.status === 0;
   },
 
   toggleStatus: async (id: string, status: number) => {
@@ -33,6 +34,6 @@ export const SubjectApi = {
       method: 'PUT',
       data: { status },
     });
-    return res.data;
+    return res.status === 0;
   },
 };

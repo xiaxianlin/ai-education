@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
+import { ProTable, ProColumns, ActionType, PageContainer } from '@ant-design/pro-components';
 import { Button, Modal, Form, Input, Switch, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { TextbookVersionApi } from '@/services/textbook-version';
 import { fmtTime } from '@/utils/time';
-
-const { confirm } = Modal;
 
 const TextbookVersionManagement: React.FC = () => {
   const [form] = Form.useForm();
@@ -30,7 +28,12 @@ const TextbookVersionManagement: React.FC = () => {
       dataIndex: 'status',
       width: 100,
       render: (text, record) => (
-        <Switch checked={record.status === 1} onChange={(checked) => handleStatusChange(record.id, checked ? 1 : 0)} />
+        <Switch
+          checked={record.status === 1}
+          checkedChildren="启用"
+          unCheckedChildren="停用"
+          onChange={(checked) => handleStatusChange(record.id, checked ? 1 : 0)}
+        />
       ),
     },
     {
@@ -68,72 +71,61 @@ const TextbookVersionManagement: React.FC = () => {
   };
 
   const handleDelete = (version: TextbookVersion) => {
-    confirm({
+    Modal.confirm({
       title: '确认删除',
       content: `确定要删除教材版本 "${version.name}" 吗？`,
       okText: '确认',
       okType: 'danger',
       cancelText: '取消',
       onOk: async () => {
-        try {
-          await TextbookVersionApi.delete(version.id);
-          message.success('删除成功');
-          actionRef.current?.reload();
-        } catch (error) {
-          message.error('删除失败');
-        }
+        const res = await TextbookVersionApi.delete(version.id);
+        if (!res) return;
+        message.success('删除成功');
+        actionRef.current?.reload();
       },
     });
   };
 
   const handleStatusChange = async (id: string, status: number) => {
-    try {
-      await TextbookVersionApi.toggleStatus(id, status);
-      message.success('状态更新成功');
-      actionRef.current?.reload();
-    } catch (error) {
-      message.error('状态更新失败');
-      actionRef.current?.reload();
-    }
+    const res = await TextbookVersionApi.toggleStatus(id, status);
+    if (!res) return;
+    message.success('状态更新成功');
+    actionRef.current?.reload();
   };
 
   const handleSubmit = async (values: CreateTextbookVersion) => {
-    try {
-      if (editingVersion) {
-        await TextbookVersionApi.update(editingVersion.id, values);
-        message.success('更新成功');
-      } else {
-        await TextbookVersionApi.create(values);
-        message.success('创建成功');
-      }
-      setModalVisible(false);
-      actionRef.current?.reload();
-    } catch (error) {
-      message.error(editingVersion ? '更新失败' : '创建失败');
-    }
+    const res = editingVersion
+      ? await TextbookVersionApi.update(editingVersion.id, values)
+      : await TextbookVersionApi.create(values);
+    if (!res) return;
+    message.success(editingVersion ? '更新成功' : '创建成功');
+    setModalVisible(false);
+    actionRef.current?.reload();
   };
 
   return (
-    <div>
+    <PageContainer
+      title="教材版本管理"
+      header={{
+        breadcrumb: {},
+        extra: [
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            新建版本
+          </Button>,
+        ],
+      }}
+    >
       <ProTable<TextbookVersion>
-        headerTitle="教材版本管理"
-        actionRef={actionRef}
         rowKey="id"
+        actionRef={actionRef}
+        cardBordered
         search={false}
         columns={columns}
         request={async () => {
           const data = await TextbookVersionApi.list();
-          return {
-            data,
-            success: true,
-            total: data.length,
-          };
+          return { data, success: true, total: data.length };
         }}
-        toolBarRender={() => [
-          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            新建版本
-          </Button>,
-        ]}
+        toolbar={{ settings: [] }}
         pagination={{ pageSize: 10 }}
       />
 
@@ -145,7 +137,7 @@ const TextbookVersionManagement: React.FC = () => {
         okText="保存"
         cancelText="取消"
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
+        <Form form={form} onFinish={handleSubmit} className="pt-4">
           <Form.Item
             label="版本名称"
             name="name"
@@ -158,7 +150,7 @@ const TextbookVersionManagement: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 

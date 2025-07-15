@@ -37,17 +37,17 @@ export default [
     routes: [
       {
         path: '/system/manager',
-        name: '账号管理',
+        name: '后台账号',
         component: './System/Manager',
       },
       {
         path: '/system/subject',
-        name: '科目管理',
+        name: '学科类目',
         component: './System/Subject',
       },
       {
         path: '/system/textbook-version',
-        name: '教材版本管理',
+        name: '教材版本',
         component: './System/TextbookVersion',
       },
     ],

@@ -15,9 +15,15 @@ async def create(params: CraeteManager, db: AsyncSession = GetDB):
     return ResponseModel(data=id)
 
 
-@router.patch("/status/{id}")
-async def modify_status(id: str, params: ModifyManagerStatus, db: AsyncSession = GetDB):
-    await ManagerService.modify_status(db, id, params.status)
+@router.patch("/{id}")
+async def update(id: str, params: CraeteManager, db: AsyncSession = GetDB):
+    await ManagerService.update(db, id, params)
+    return ResponseModel()
+
+
+@router.put("/{id}/status")
+async def update_status(id: str, params: ModifyManagerStatus, db: AsyncSession = GetDB):
+    await ManagerService.update_status(db, id, params.status)
     return ResponseModel()
 
 
