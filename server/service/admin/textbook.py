@@ -1,10 +1,11 @@
 from fastapi import UploadFile
 from sqlalchemy import asc, desc, func, select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import get_logger
 from store.database.models import Textbook, CourseUnit, Subject, TextbookVersion
 from service.common import FileService
-from schema import TextbookSaveSchema, TextbookSearchSchema
+from schema import TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
 
 
 logger = get_logger("TextbookService")
@@ -67,6 +68,16 @@ class TextbookService:
         await db.delete(textbook)
         await db.commit()
 
+    async def get_by_id(db: AsyncSession, textbook_id: int):
+        textbook = await db.scalar(
+            select(Textbook)
+            .options(joinedload(Textbook.course_units).joinedload(CourseUnit.knowledges))
+            .where(Textbook.id == textbook_id)
+        )
+        if not textbook:
+            raise ValueError("教材不存在")
+        return TextbookSchema.model_validate(textbook)
+
     async def search(db: AsyncSession, params: TextbookSearchSchema):
         stmt = select(Textbook)
         if params.stage:
@@ -96,7 +107,7 @@ class TextbookService:
 
         return {
             "total": total,
-            "data": [manager.to_dict({"password"}) for manager in results.all()],
+            "data": [manager.to_dict({"password"}) for manager in results.unique().all()],
         }
 
     async def upload_pdf(db: AsyncSession, id: int, file: UploadFile):

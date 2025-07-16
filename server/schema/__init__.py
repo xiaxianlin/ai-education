@@ -69,6 +69,20 @@ class TextbookVersionSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class KnowledgeSchema(BaseModel):
+    id: str
+    course_unit_id: int
+    content: str
+    analysis_text: Optional[str] = None
+    analysis_audio: Optional[str] = None
+    analysis_video: Optional[str] = None
+    status: int = 1
+    create_time: int
+    update_time: Optional[int] = None
+
+    model_config = {"from_attributes": True}
+
+
 class CourseUnitSchema(BaseModel):
     id: int
     textbook_id: int
@@ -77,6 +91,7 @@ class CourseUnitSchema(BaseModel):
     status: int = 1
     create_time: int
     update_time: Optional[int] = None
+    knowledges: Optional[List[KnowledgeSchema]] = None
 
     model_config = {"from_attributes": True}
 
@@ -91,21 +106,7 @@ class TextbookSchema(BaseModel):
     pdf: Optional[str] = None
     status: int = 1
     create_time: int
-    units: Optional[List[CourseUnitSchema]] = None
-
-    model_config = {"from_attributes": True}
-
-
-class KnowledgeSchema(BaseModel):
-    id: str
-    course_unit_id: int
-    content: str
-    analysis_text: Optional[str] = None
-    analysis_audio: Optional[str] = None
-    analysis_video: Optional[str] = None
-    status: int = 1
-    create_time: int
-    update_time: Optional[int] = None
+    course_units: Optional[List[CourseUnitSchema]] = None
 
     model_config = {"from_attributes": True}
 

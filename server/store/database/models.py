@@ -1,5 +1,5 @@
-from sqlalchemy import JSON, Column, String, Integer, Text
-from sqlalchemy.orm import foreign, relationship, Mapped, mapped_column, DeclarativeBase
+from sqlalchemy import JSON, String, Text
+from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase
 from util import time
 
 
@@ -93,7 +93,7 @@ class Textbook(BaseModel):
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
 
-    units: Mapped[list["CourseUnit"]] = relationship(
+    course_units: Mapped[list["CourseUnit"]] = relationship(
         "CourseUnit",
         primaryjoin="foreign(CourseUnit.textbook_id) == Textbook.id",
         lazy="joined",
@@ -114,6 +114,12 @@ class CourseUnit(BaseModel):
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
         primaryjoin="foreign(CourseUnit.textbook_id) == Textbook.id",
+        lazy="joined",
+    )
+
+    knowledges: Mapped[list["Knowledge"]] = relationship(
+        "Knowledge",
+        primaryjoin="foreign(Knowledge.course_unit_id) == CourseUnit.id",
         lazy="joined",
     )
 

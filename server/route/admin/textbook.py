@@ -25,6 +25,13 @@ async def create(params: TextbookSaveSchema, db: AsyncSession = GetDB):
     return ResponseSchema(data=id)
 
 
+@router.get("/{id}")
+async def get_course_unit(id: int, db: AsyncSession = GetDB):
+    """获取单个课程单元"""
+    textbook = await TextbookService.get_by_id(db, id)
+    return ResponseSchema(data=textbook)
+
+
 @router.patch("/{id}")
 async def update(id: str, params: TextbookSaveSchema, db: AsyncSession = GetDB):
     await TextbookService.update(db, id, params)
