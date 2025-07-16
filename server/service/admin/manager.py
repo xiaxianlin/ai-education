@@ -2,14 +2,15 @@ import uuid
 from sqlalchemy import asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import settings
+from schema.common import SearchResultSchema
 from util import encrypt
 from store.database.models import Manager
-from schema.admin import CraeteManager, ManagerSearchParams
+from schema import ManagerSaveSchema, ManagerSchema, ManagerSearchSchema
 
 
 class ManagerService:
 
-    async def create(db: AsyncSession, params: CraeteManager):
+    async def create(db: AsyncSession, params: ManagerSaveSchema):
         manager = await db.scalar(
             select(Manager).where(Manager.username == params.username),
         )
@@ -28,7 +29,7 @@ class ManagerService:
 
         return manager.id
 
-    async def update(db: AsyncSession, id: str, params: CraeteManager):
+    async def update(db: AsyncSession, id: str, params: ManagerSaveSchema):
         manager = await db.scalar(select(Manager).where(Manager.id == id))
         if not manager:
             raise ValueError("账号不存在")
@@ -64,7 +65,9 @@ class ManagerService:
         await db.delete(manager)
         await db.commit()
 
-    async def search(db: AsyncSession, params: ManagerSearchParams):
+    async def search(
+        db: AsyncSession, params: ManagerSearchSchema
+    ) -> SearchResultSchema[ManagerSchema]:
         stmt = select(Manager)
         if params.keywords:
             stmt = stmt.where(Manager.username.like(f"%{params.keywords}%"))
@@ -89,7 +92,7 @@ class ManagerService:
 
         results = await db.scalars(stmt)
 
-        return {
-            "total": total,
-            "data": [manager.to_dict({"password"}) for manager in results.all()],
-        }
+        return SearchResultSchema(
+            total=total,
+            data=[ManagerSchema.model_validate(manager) for manager in results.all()],
+        )

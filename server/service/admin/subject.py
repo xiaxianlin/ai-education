@@ -1,5 +1,6 @@
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from schema import SubjectSchema
 from store.database.models import Subject, UserSubject, Textbook
 
 
@@ -62,7 +63,7 @@ class SubjectService:
 
     async def all(db: AsyncSession):
         results = await db.scalars(select(Subject).order_by(Subject.id))
-        return [subject.to_dict() for subject in results.all()]
+        return [SubjectSchema.model_validate(subject) for subject in results.all()]
 
     async def update_status(db: AsyncSession, id: int, status: int):
         subject = await db.scalar(select(Subject).where(Subject.id == id))

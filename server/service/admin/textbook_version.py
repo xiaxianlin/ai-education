@@ -1,5 +1,6 @@
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from schema import TextbookVersionSchema
 from store.database.models import TextbookVersion, UserSubject, Textbook
 
 
@@ -63,7 +64,7 @@ class TextbookVersionService:
 
     async def all(db: AsyncSession):
         results = await db.scalars(select(TextbookVersion).order_by(TextbookVersion.id))
-        return [version.to_dict() for version in results.all()]
+        return [TextbookVersionSchema.model_validate(version) for version in results.all()]
 
     async def update_status(db: AsyncSession, id: int, status: int):
         version = await db.scalar(select(TextbookVersion).where(TextbookVersion.id == id))

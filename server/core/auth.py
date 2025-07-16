@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException
 from core import get_logger
-from schema.admin.manager import ManagerStatus
+from schema import ManagerStatus
 from util import encrypt
 
 logger = get_logger("ROUTE_AUTH")

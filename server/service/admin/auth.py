@@ -1,15 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from core import settings
-from schema.admin.manager import ManagerStatus
 from util import encrypt, time
 from store.database.models import Manager
-from schema.admin import LoginParams, ModifyPasswordParams
+from schema import ManagerStatus, AdminLoginSchema, ModifyPasswordSchema
 
 
 class AdminAuthService:
-    async def login(db: AsyncSession, params: LoginParams):
+    async def login(db: AsyncSession, params: AdminLoginSchema):
         manager = await db.scalar(
             select(Manager).where(
                 Manager.username == params.username,
@@ -38,7 +36,7 @@ class AdminAuthService:
     async def modify_password(
         db: AsyncSession,
         id: str,
-        params: ModifyPasswordParams,
+        params: ModifyPasswordSchema,
     ):
         if params.new_password == settings.MANAGER_INIT_PASSWORD:
             raise ValueError("新密码不能和初始密码相同")

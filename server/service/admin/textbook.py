@@ -3,8 +3,8 @@ from sqlalchemy import asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import get_logger
 from store.database.models import Textbook, CourseUnit, Subject, TextbookVersion
-from schema.admin import TextbookSave, TextbookSearchParams
 from service.common import FileService
+from schema import TextbookSaveSchema, TextbookSearchSchema
 
 
 logger = get_logger("TextbookService")
@@ -12,7 +12,7 @@ logger = get_logger("TextbookService")
 
 class TextbookService:
 
-    async def create(db: AsyncSession, data: TextbookSave):
+    async def create(db: AsyncSession, data: TextbookSaveSchema):
         subject = await db.scalar(select(Subject).where(Subject.name == data.subject))
         if not subject:
             raise ValueError(f"{data.subject}暂时不支持")
@@ -36,7 +36,7 @@ class TextbookService:
 
         return textbook.id
 
-    async def update(db: AsyncSession, id: int, data: TextbookSave):
+    async def update(db: AsyncSession, id: int, data: TextbookSaveSchema):
         textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
         if not textbook:
             raise ValueError("教材不存在")
@@ -67,7 +67,7 @@ class TextbookService:
         await db.delete(textbook)
         await db.commit()
 
-    async def search(db: AsyncSession, params: TextbookSearchParams):
+    async def search(db: AsyncSession, params: TextbookSearchSchema):
         stmt = select(Textbook)
         if params.stage:
             stmt = stmt.where(Textbook.stage == params.stage)
