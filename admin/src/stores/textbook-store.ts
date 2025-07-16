@@ -7,12 +7,12 @@ interface TextbookStore {
   courseUnits: CourseUnit[];
   stages: string[];
   grades: number[];
-  
+
   setSubjects: (subjects: Subject[]) => void;
   setVersions: (versions: TextbookVersion[]) => void;
   setTextbooks: (textbooks: Textbook[]) => void;
   setCourseUnits: (courseUnits: CourseUnit[]) => void;
-  
+
   loadSubjects: () => Promise<void>;
   loadVersions: () => Promise<void>;
   loadTextbooks: () => Promise<void>;
@@ -25,11 +25,11 @@ export const useTextbookStore = create<TextbookStore>((set) => ({
   textbooks: [],
   stages: ['小学', '初中', '高中'],
   grades: Array.from({ length: 12 }, (_, i) => i + 1),
-  
+
   setSubjects: (subjects) => set({ subjects }),
   setVersions: (versions) => set({ versions }),
   setTextbooks: (textbooks) => set({ textbooks }),
-  
+
   loadSubjects: async () => {
     try {
       const { TextbookApi } = await import('@/services/textbook');
@@ -39,7 +39,7 @@ export const useTextbookStore = create<TextbookStore>((set) => ({
       console.error('Failed to load subjects:', error);
     }
   },
-  
+
   loadVersions: async () => {
     try {
       const { TextbookApi } = await import('@/services/textbook');
@@ -49,7 +49,7 @@ export const useTextbookStore = create<TextbookStore>((set) => ({
       console.error('Failed to load versions:', error);
     }
   },
-  
+
   loadTextbooks: async () => {
     try {
       const { CourseUnitApi } = await import('@/services/course-unit');
@@ -61,7 +61,7 @@ export const useTextbookStore = create<TextbookStore>((set) => ({
   },
 
   setCourseUnits: (courseUnits) => set({ courseUnits }),
-  
+
   loadCourseUnits: async () => {
     try {
       const { KnowledgeApi } = await import('@/services/knowledge');

@@ -27,6 +27,7 @@ class KnowledgeService:
 
         knowledge = Knowledge(
             course_unit_id=create.course_unit_id,
+            textbook_id=course_unit.textbook_id,
             name=create.name,
             content=create.content,
         )
