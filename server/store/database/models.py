@@ -68,12 +68,6 @@ class Textbook(BaseModel):
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
 
-    course_units: Mapped[list["CourseUnit"]] = relationship(
-        "CourseUnit",
-        primaryjoin="foreign(CourseUnit.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
 
 class CourseUnit(BaseModel):
     __tablename__ = "ah_course_unit"
@@ -89,12 +83,6 @@ class CourseUnit(BaseModel):
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
         primaryjoin="foreign(CourseUnit.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
-    knowledges: Mapped[list["Knowledge"]] = relationship(
-        "Knowledge",
-        primaryjoin="foreign(Knowledge.course_unit_id) == CourseUnit.id",
         lazy="joined",
     )
 
@@ -117,7 +105,13 @@ class Knowledge(BaseModel):
     course_unit: Mapped["CourseUnit"] = relationship(
         "CourseUnit",
         primaryjoin="foreign(Knowledge.course_unit_id) == CourseUnit.id",
-        lazy="joined",  # 推荐 eager load，性能好
+        lazy="joined",
+    )
+
+    textbook: Mapped["Textbook"] = relationship(
+        "Textbook",
+        primaryjoin="foreign(Knowledge.textbook_id) == Textbook.id",
+        lazy="joined",
     )
 
 
@@ -136,12 +130,30 @@ class Question(BaseModel):
     subject: Mapped[str] = mapped_column(String(255))
     knowledge_id: Mapped[int] = mapped_column()
     course_unit_id: Mapped[int] = mapped_column()
-    booktext_id: Mapped[int] = mapped_column()
+    textbook_id: Mapped[int] = mapped_column()
     source: Mapped[str] = mapped_column(String(255))
     image: Mapped[str] = mapped_column(String(255))
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
     update_time: Mapped[int] = mapped_column()
+
+    knowledge: Mapped["Knowledge"] = relationship(
+        "Knowledge",
+        primaryjoin="foreign(Question.knowledge_id) == Knowledge.id",
+        lazy="joined",
+    )
+
+    course_unit: Mapped["CourseUnit"] = relationship(
+        "CourseUnit",
+        primaryjoin="foreign(Question.course_unit_id) == CourseUnit.id",
+        lazy="joined",  # 推荐 eager load，性能好
+    )
+
+    textbook: Mapped["Textbook"] = relationship(
+        "Textbook",
+        primaryjoin="foreign(Question.textbook_id) == Textbook.id",
+        lazy="joined",
+    )
 
 
 #### ================================= 分割线 ================================= ####

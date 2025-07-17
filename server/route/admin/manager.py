@@ -8,6 +8,12 @@ from schema import ResponseSchema, StatusSchema, ManagerSaveSchema, ManagerSearc
 router = APIRouter(prefix="/manager")
 
 
+@router.get("/search")
+async def search(params: ManagerSearchSchema = Depends(), db: AsyncSession = GetDB):
+    res = await ManagerService.search(db, params)
+    return ResponseSchema(data=res)
+
+
 @router.post("/")
 async def create(params: ManagerSaveSchema, db: AsyncSession = GetDB):
     id = await ManagerService.create(db, params)
@@ -30,9 +36,3 @@ async def update_status(id: str, params: StatusSchema, db: AsyncSession = GetDB)
 async def remove(id: str, db: AsyncSession = GetDB):
     await ManagerService.delete(db, id)
     return ResponseSchema()
-
-
-@router.get("/search")
-async def search(params: ManagerSearchSchema = Depends(), db: AsyncSession = GetDB):
-    res = await ManagerService.search(db, params)
-    return ResponseSchema(data=res)

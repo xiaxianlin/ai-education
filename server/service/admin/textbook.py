@@ -69,11 +69,7 @@ class TextbookService:
         await db.commit()
 
     async def get_by_id(db: AsyncSession, textbook_id: int):
-        textbook = await db.scalar(
-            select(Textbook)
-            .options(joinedload(Textbook.course_units).joinedload(CourseUnit.knowledges))
-            .where(Textbook.id == textbook_id)
-        )
+        textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
         if not textbook:
             raise ValueError("教材不存在")
         return TextbookSchema.model_validate(textbook)

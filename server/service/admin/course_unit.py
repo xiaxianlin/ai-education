@@ -1,16 +1,15 @@
 from sqlalchemy import or_, select, and_, func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List, Tuple
 from schema.common import SearchResultSchema, SearchSchema
-from store.database.models import CourseUnit, Textbook
+from store.database.models import CourseUnit, Knowledge, Textbook
 from util import time
 from schema import CourseUnitCreateSchema, CourseUnitSchema, CourseUnitUpdateSchema
 
 
 class CourseUnitService:
 
-    @staticmethod
     async def create(db: AsyncSession, create: CourseUnitCreateSchema) -> CourseUnit:
         """创建课程单元"""
         # 验证教材是否存在
@@ -29,19 +28,20 @@ class CourseUnitService:
         await db.refresh(course_unit)
         return course_unit.id
 
-    @staticmethod
-    async def get_by_id(db: AsyncSession, unit_id: int) -> Optional[CourseUnit]:
+    async def get_by_id(db: AsyncSession, unit_id: int):
         """根据ID获取课程单元"""
-        unit = await db.scalar(
-            select(CourseUnit, Textbook)
+        result = await db.execute(
+            select(CourseUnit)
             .options(joinedload(CourseUnit.textbook))
             .where(CourseUnit.id == unit_id)
         )
+
+        unit = result.unique().scalar_one_or_none()
         if not unit:
             raise ValueError("课程单元不存在")
-        return unit
+        print(unit.textbook)
+        return CourseUnitSchema.model_validate(unit)
 
-    @staticmethod
     async def get_by_textbook(db: AsyncSession, textbook_id: int, status: int = 1):
         """根据教材ID获取课程单元列表"""
         query = select(CourseUnit).where(
@@ -51,7 +51,6 @@ class CourseUnitService:
         results = await db.scalars(query)
         return [CourseUnitSchema.model_validate(unit) for unit in results.all()]
 
-    @staticmethod
     async def update(db: AsyncSession, unit_id: int, update: CourseUnitUpdateSchema):
         """更新课程单元"""
         unit = await db.scalar(select(CourseUnit).where(CourseUnit.id == unit_id))
@@ -74,7 +73,6 @@ class CourseUnitService:
         unit.update_time = time.now()
         await db.commit()
 
-    @staticmethod
     async def delete(db: AsyncSession, unit_id: int) -> bool:
         """删除课程单元"""
         unit = await db.scalar(select(CourseUnit).where(CourseUnit.id == unit_id))
@@ -84,7 +82,6 @@ class CourseUnitService:
         await db.delete(unit)
         await db.commit()
 
-    @staticmethod
     async def search(db: AsyncSession, params: SearchSchema) -> Tuple[List[CourseUnit], int]:
         """搜索课程单元"""
         query = select(CourseUnit)

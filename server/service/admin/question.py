@@ -1,102 +1,139 @@
-from sqlalchemy import select, and_, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List, Tuple
-from store.database.models import Question, Knowledge, CourseUnit, Textbook
-from schema.admin import QuestionCreateSchema, QuestionUpdateSchema, QuestionSearchSchema
-from util import time
 import uuid
+from sqlalchemy import select, and_, func
+from sqlalchemy.orm import joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+from store.database.models import Question, Knowledge, CourseUnit, Textbook
+from util import time
+from schema import (
+    SearchResultSchema,
+    QuestionCreateSchema,
+    QuestionUpdateSchema,
+    QuestionSearchSchema,
+    QuestionSchema,
+)
 
 
 class QuestionService:
 
     @staticmethod
-    async def create(db: AsyncSession, question_data: QuestionCreateSchema) -> Question:
+    async def create(db: AsyncSession, create: QuestionCreateSchema):
         """创建问题"""
         # 验证关联实体是否存在
-        if question_data.knowledge_id:
+        if create.knowledge_id:
             knowledge = await db.scalar(
-                select(Knowledge).where(Knowledge.id == str(question_data.knowledge_id))
+                select(Knowledge).where(Knowledge.id == str(create.knowledge_id))
             )
             if not knowledge:
                 raise ValueError("知识点不存在")
 
-        if question_data.course_unit_id:
+        if create.course_unit_id:
             course_unit = await db.scalar(
-                select(CourseUnit).where(CourseUnit.id == question_data.course_unit_id)
+                select(CourseUnit).where(CourseUnit.id == create.course_unit_id)
             )
             if not course_unit:
                 raise ValueError("课程单元不存在")
 
-        if question_data.booktext_id:
-            textbook = await db.scalar(
-                select(Textbook).where(Textbook.id == question_data.booktext_id)
-            )
+        if create.textbook_id:
+            textbook = await db.scalar(select(Textbook).where(Textbook.id == create.textbook_id))
             if not textbook:
                 raise ValueError("教材不存在")
 
         question = Question(
             id=str(uuid.uuid4()),
-            type=question_data.type,
-            content=question_data.content,
-            options=question_data.options,
-            answer=question_data.answer,
-            grade=str(question_data.grade),
-            subject=question_data.subject,
-            source=question_data.source,
-            knowledge_id=question_data.knowledge_id,
-            course_unit_id=question_data.course_unit_id,
-            booktext_id=question_data.booktext_id,
-            status=1,
-            create_time=time.now(),
+            type=create.type,
+            content=create.content,
+            options=create.options,
+            answer=create.answer,
+            grade=create.grade,
+            subject=create.subject,
+            source=create.source,
+            knowledge_id=create.knowledge_id,
+            course_unit_id=create.course_unit_id,
+            textbook_id=create.textbook_id,
         )
 
         db.add(question)
         await db.commit()
-        await db.refresh(question)
-        return question
+        return question.id
 
     @staticmethod
-    async def get_by_id(db: AsyncSession, question_id: str) -> Optional[Question]:
+    async def update(db: AsyncSession, question_id: str, update: QuestionUpdateSchema):
+        """更新问题"""
+        question = await db.scalar(select(Question).where(Question.id == question_id))
+        if not question:
+            raise ValueError("问题不存在")
+
+        if update.type is not None:
+            question.type = update.type
+        if update.content is not None:
+            question.content = update.content
+        if update.options is not None:
+            question.options = update.options
+        if update.answer is not None:
+            question.answer = update.answer
+        if update.grade is not None:
+            question.grade = str(update.grade)
+        if update.subject is not None:
+            question.subject = update.subject
+        if update.knowledge_id is not None:
+            question.knowledge_id = update.knowledge_id
+        if update.course_unit_id is not None:
+            question.course_unit_id = update.course_unit_id
+        if update.textbook_id is not None:
+            question.textbook_id = update.textbook_id
+        if update.source is not None:
+            question.source = update.source
+        if update.status is not None:
+            question.status = update.status
+
+        question.update_time = time.now()
+        await db.commit()
+
+    @staticmethod
+    async def delete(db: AsyncSession, question_id: str):
+        """删除问题"""
+        question = await db.scalar(select(Question).where(Question.id == question_id))
+        if not question:
+            raise ValueError("问题不存在")
+
+        await db.delete(question)
+        await db.commit()
+
+    @staticmethod
+    async def get_by_id(db: AsyncSession, question_id: str):
         """根据ID获取问题"""
-        return await db.scalar(select(Question).where(Question.id == question_id))
+        result = await db.execute(
+            select(Question)
+            .options(
+                joinedload(Question.knowledge)
+                .joinedload(Question.course_unit)
+                .joinedload(Question.textbook)
+            )
+            .where(Question.id == question_id)
+        )
+        question = result.scalar_one_or_none()
+        if not question:
+            raise ValueError("问题不存在")
+        return QuestionSchema.model_validate(question)
 
     @staticmethod
     async def get_by_knowledge(
-        db: AsyncSession, knowledge_id: int, status: Optional[int] = None
-    ) -> List[Question]:
-        """根据知识点ID获取问题列表(全量获取)"""
-        query = select(Question).where(Question.knowledge_id == knowledge_id)
-
-        if status is not None:
-            query = query.where(Question.status == status)
-
-        query = query.order_by(Question.create_time.desc())
-
-        result = await db.execute(query)
-        questions = result.scalars().all()
-
-        return list(questions)
-
-    @staticmethod
-    async def get_by_course_unit(
         db: AsyncSession,
-        course_unit_id: int,
+        knowledge_id: int,
         page: int = 1,
         size: int = 10,
-        status: Optional[int] = None,
-    ) -> Tuple[List[Question], int]:
-        """根据课程单元ID获取问题列表"""
-        query = select(Question).where(Question.course_unit_id == course_unit_id)
-
-        if status is not None:
-            query = query.where(Question.status == status)
+    ):
+        """根据知识点ID获取问题列表(全量获取)"""
+        query = select(Question).where(
+            Question.knowledge_id == knowledge_id,
+            Question.status == 1,
+        )
 
         # 获取总数
         count_query = select(func.count(Question.id)).where(
-            Question.course_unit_id == course_unit_id
+            Question.knowledge_id == knowledge_id,
+            Question.status == 1,
         )
-        if status is not None:
-            count_query = count_query.where(Question.status == status)
 
         total = await db.scalar(count_query) or 0
 
@@ -104,63 +141,79 @@ class QuestionService:
         offset = (page - 1) * size
         query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
 
-        result = await db.execute(query)
-        questions = result.scalars().all()
+        result = await db.scalars(query)
 
-        return list(questions), total
-
-    @staticmethod
-    async def update(
-        db: AsyncSession, question_id: str, question_data: QuestionUpdateSchema
-    ) -> Optional[Question]:
-        """更新问题"""
-        question = await db.scalar(select(Question).where(Question.id == question_id))
-        if not question:
-            return None
-
-        if question_data.type is not None:
-            question.type = question_data.type
-        if question_data.content is not None:
-            question.content = question_data.content
-        if question_data.options is not None:
-            question.options = question_data.options
-        if question_data.answer is not None:
-            question.answer = question_data.answer
-        if question_data.grade is not None:
-            question.grade = str(question_data.grade)
-        if question_data.subject is not None:
-            question.subject = question_data.subject
-        if question_data.knowledge_id is not None:
-            question.knowledge_id = question_data.knowledge_id
-        if question_data.course_unit_id is not None:
-            question.course_unit_id = question_data.course_unit_id
-        if question_data.booktext_id is not None:
-            question.booktext_id = question_data.booktext_id
-        if question_data.source is not None:
-            question.source = question_data.source
-        if question_data.status is not None:
-            question.status = question_data.status
-
-        question.update_time = time.now()
-        await db.commit()
-        await db.refresh(question)
-        return question
+        return SearchResultSchema(
+            total=total,
+            data=[QuestionSchema.model_validate(question) for question in result.all()],
+        )
 
     @staticmethod
-    async def delete(db: AsyncSession, question_id: str) -> bool:
-        """删除问题"""
-        question = await db.scalar(select(Question).where(Question.id == question_id))
-        if not question:
-            return False
+    async def get_by_course_unit(
+        db: AsyncSession,
+        course_unit_id: int,
+        page: int = 1,
+        size: int = 10,
+    ):
+        """根据课程单元ID获取问题列表"""
+        query = select(Question).where(
+            Question.course_unit_id == course_unit_id,
+            Question.status == 1,
+        )
 
-        await db.delete(question)
-        await db.commit()
-        return True
+        # 获取总数
+        count_query = select(func.count(Question.id)).where(
+            Question.course_unit_id == course_unit_id,
+            Question.status == 1,
+        )
+
+        total = await db.scalar(count_query) or 0
+
+        # 分页查询
+        offset = (page - 1) * size
+        query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
+
+        result = await db.scalars(query)
+
+        return SearchResultSchema(
+            total=total,
+            data=[QuestionSchema.model_validate(question) for question in result.all()],
+        )
 
     @staticmethod
-    async def search(
-        db: AsyncSession, search_data: QuestionSearchSchema
-    ) -> Tuple[List[Question], int]:
+    async def get_by_textbook(
+        db: AsyncSession,
+        textbook_id: int,
+        page: int = 1,
+        size: int = 10,
+    ):
+        """根据教材获取问题列表"""
+        query = select(Question).where(
+            Question.textbook_id == textbook_id,
+            Question.status == 1,
+        )
+
+        # 获取总数
+        count_query = select(func.count(Question.id)).where(
+            Question.textbook_id == textbook_id,
+            Question.status == 1,
+        )
+
+        total = await db.scalar(count_query) or 0
+
+        # 分页查询
+        offset = (page - 1) * size
+        query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
+
+        result = await db.scalars(query)
+
+        return SearchResultSchema(
+            total=total,
+            data=[QuestionSchema.model_validate(question) for question in result.all()],
+        )
+
+    @staticmethod
+    async def search(db: AsyncSession, search_data: QuestionSearchSchema):
         """搜索问题"""
         query = select(Question)
 
@@ -201,7 +254,9 @@ class QuestionService:
         )
         query = query.offset(offset).limit(search_data.page_size)
 
-        result = await db.execute(query)
-        questions = result.scalars().all()
+        result = await db.scalars(query)
 
-        return list(questions), total
+        return SearchResultSchema(
+            total=total,
+            data=[QuestionSchema.model_validate(question) for question in result.all()],
+        )

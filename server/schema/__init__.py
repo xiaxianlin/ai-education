@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 
 from .common import *
@@ -67,7 +67,8 @@ class CourseUnitSchema(BaseModel):
     status: int = 1
     create_time: int
     update_time: Optional[int] = None
-    knowledges: Optional[List[KnowledgeSchema]] = None
+    textbook: Optional["TextbookSchema"] = None
+    knowledges: Optional[List["KnowledgeSchema"]] = None
 
     model_config = {"from_attributes": True}
 
@@ -82,7 +83,7 @@ class TextbookSchema(BaseModel):
     pdf: Optional[str] = None
     status: int = 1
     create_time: int
-    course_units: Optional[List[CourseUnitSchema]] = None
+    course_units: Optional[List["CourseUnitSchema"]] = None
 
     model_config = {"from_attributes": True}
 
@@ -100,12 +101,16 @@ class QuestionSchema(BaseModel):
     subject: Optional[str] = None
     knowledge_id: Optional[int] = None
     course_unit_id: Optional[int] = None
-    booktext_id: Optional[int] = None
+    textbook_id: Optional[int] = None
     source: Optional[str] = None
     image: Optional[str] = None
     status: int = 1
     create_time: int
     update_time: Optional[int] = None
+
+    knowledge: Optional["KnowledgeSchema"] = None
+    course_unit: Optional["CourseUnitSchema"] = None
+    textbook: Optional["TextbookSchema"] = None
 
     model_config = {"from_attributes": True}
 

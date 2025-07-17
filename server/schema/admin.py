@@ -130,7 +130,7 @@ class QuestionCreateSchema(BaseModel):
     # 课程单元 ID
     course_unit_id: Optional[int] = None
     # 教材 ID
-    booktext_id: Optional[int] = None
+    textbook_id: Optional[int] = None
     # 问题来源：AI生成 | 后台创建 ｜ 用户上传
     source: str
 
@@ -144,7 +144,7 @@ class QuestionUpdateSchema(BaseModel):
     subject: Optional[str] = None
     knowledge_id: Optional[int] = None
     course_unit_id: Optional[int] = None
-    booktext_id: Optional[int] = None
+    textbook_id: Optional[int] = None
     source: Optional[str] = None
     status: Optional[int] = None
 
