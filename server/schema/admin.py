@@ -96,6 +96,7 @@ class CourseUnitUpdateSchema(BaseModel):
 
 
 class KnowledgeCreateSchema(BaseModel):
+    textbook_id: int
     course_unit_id: int
     name: str
     content: str
@@ -157,3 +158,82 @@ class QuestionSearchSchema(SearchSchema):
     course_unit_id: Optional[int] = None
     source: Optional[str] = None
     status: Optional[int] = None
+
+
+class UserStatus(int, Enum):
+    Forbidden = -1
+    InActive = 0
+    Active = 1
+
+
+class UserCreateSchema(BaseModel):
+    username: str
+    password: str
+    phone: str
+
+    @field_validator("username")
+    @classmethod
+    def valid_username(cls, v):
+        return valid.username(v)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v):
+        return valid.password(v)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v):
+        return valid.phone(v)
+
+
+class UserUpdateSchema(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+    phone: Optional[str] = None
+    status: Optional[int] = None
+
+    @field_validator("username")
+    @classmethod
+    def valid_username(cls, v):
+        if v:
+            return valid.username(v)
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v):
+        if v:
+            return valid.password(v)
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v):
+        if v:
+            return valid.phone(v)
+        return v
+
+
+class UserSearchSchema(SearchSchema):
+    phone: Optional[str] = None
+    status: Optional[int] = None
+
+
+class UserSubjectCreateSchema(BaseModel):
+    textbook_version: str
+    subject: str
+
+    @field_validator("textbook_version")
+    @classmethod
+    def validate_textbook_version(cls, v):
+        if not v or not v.strip():
+            raise ValueError("教材版本不能为空")
+        return v.strip()
+
+    @field_validator("subject")
+    @classmethod
+    def validate_subject(cls, v):
+        if not v or not v.strip():
+            raise ValueError("科目不能为空")
+        return v.strip()

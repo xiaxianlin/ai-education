@@ -115,4 +115,17 @@ class TextbookService:
         filepath = f"textbook/{id}.pdf"
         filepath = await FileService.multipart_upload(filepath, file)
         textbook.pdf = filepath
+        # 重置处理状态
+        textbook.processing_status = "pending"
+        textbook.processing_task_id = None
+        textbook.processing_error = None
         await db.commit()
+        
+        # 自动启动单元提取任务
+        from service.admin.unit_extraction import UnitExtractionService
+        try:
+            task_id = await UnitExtractionService.start_extraction(db, id)
+            logger.info(f"Auto-started unit extraction task {task_id} for textbook {id}")
+        except Exception as e:
+            logger.error(f"Failed to auto-start unit extraction: {str(e)}")
+            # 不抛出异常，PDF上传仍然成功

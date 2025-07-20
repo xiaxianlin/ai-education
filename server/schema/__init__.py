@@ -46,8 +46,10 @@ class TextbookVersionSchema(BaseModel):
 
 
 class KnowledgeSchema(BaseModel):
-    id: str
+    id: int
+    textbook_id: int
     course_unit_id: int
+    name: str
     content: str
     analysis_text: Optional[str] = None
     analysis_audio: Optional[str] = None
@@ -55,6 +57,9 @@ class KnowledgeSchema(BaseModel):
     status: int = 1
     create_time: int
     update_time: Optional[int] = None
+
+    textbook: Optional["TextbookSchema"] = None
+    course_unit: Optional["CourseUnitSchema"] = None
 
     model_config = {"from_attributes": True}
 
@@ -68,7 +73,6 @@ class CourseUnitSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
     textbook: Optional["TextbookSchema"] = None
-    knowledges: Optional[List["KnowledgeSchema"]] = None
 
     model_config = {"from_attributes": True}
 

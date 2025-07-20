@@ -6,7 +6,6 @@ from schema import (
     SearchSchema,
     ResponseSchema,
     CourseUnitCreateSchema,
-    CourseUnitSchema,
     CourseUnitUpdateSchema,
 )
 
@@ -16,7 +15,7 @@ router = APIRouter(prefix="/course_unit", tags=["课程单元管理"])
 @router.get("/search")
 async def list_course_units(params: SearchSchema = Depends(), db: AsyncSession = GetDB):
     """获取课程单元列表"""
-    data = CourseUnitService.search(db, params)
+    data = await CourseUnitService.search(db, params)
     return ResponseSchema(data=data)
 
 

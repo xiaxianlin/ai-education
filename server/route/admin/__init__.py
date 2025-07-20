@@ -8,7 +8,7 @@ from core.exceptions import (
     value_error_handler,
     validation_exception_handler,
 )
-from . import auth, manager, subject, textbook_version, textbook, course_unit, knowledge, question
+from . import auth, manager, user, subject, textbook_version, textbook, course_unit, knowledge, question
 
 
 admin_app = FastAPI(
@@ -23,6 +23,7 @@ admin_app = FastAPI(
 
 admin_app.include_router(auth.router)
 admin_app.include_router(manager.router)
+admin_app.include_router(user.router)
 admin_app.include_router(subject.router)
 admin_app.include_router(textbook_version.router)
 admin_app.include_router(textbook.router)

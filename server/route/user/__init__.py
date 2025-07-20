@@ -8,7 +8,7 @@ from core.exceptions import (
     validation_exception_handler,
     value_error_handler,
 )
-from . import auth
+from . import auth, question
 
 user_app = FastAPI(
     dependencies=[Depends(user_route_auth)],
@@ -21,6 +21,7 @@ user_app = FastAPI(
 )
 
 user_app.include_router(auth.router)
+user_app.include_router(question.router)
 
 
 __all__ = ["user_app"]

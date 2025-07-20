@@ -53,7 +53,17 @@ async def lifespan(_: FastAPI):
     logger.info(">" * 10 + "服务启动" + "<" * 10)
     await init_db()
     await init_run_enviroment()
+    
+    # 启动后台任务队列
+    from core.task_queue import task_queue
+    await task_queue.start()
+    logger.info("Background task queue started")
+    
     yield
+    
+    # 关闭后台任务队列
+    await task_queue.stop()
+    logger.info("Background task queue stopped")
 
 
 app = FastAPI(lifespan=lifespan)

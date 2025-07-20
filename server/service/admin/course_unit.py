@@ -100,8 +100,8 @@ class CourseUnitService:
         total = await db.scalar(count_query) or 0
 
         # 分页查询
-        offset = (params.page - 1) * params.size
-        query = query.order_by(CourseUnit.id).offset(offset).limit(params.size)
+        offset = (params.current_page - 1) * params.page_size
+        query = query.order_by(CourseUnit.id).offset(offset).limit(params.page_size)
         units = await db.scalars(query)
 
         return SearchResultSchema(

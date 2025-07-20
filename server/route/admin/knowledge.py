@@ -13,6 +13,13 @@ from schema import (
 router = APIRouter(prefix="/knowledge")
 
 
+@router.get("/search")
+async def search_knowledge(params: SearchSchema, db: AsyncSession = GetDB):
+    """获取知识点列表"""
+    res = KnowledgeService.search(db, params)
+    return ResponseSchema(data=res)
+
+
 @router.post("/")
 async def create_knowledge(knowledge: KnowledgeCreateSchema, db: AsyncSession = GetDB):
     """创建知识点"""
@@ -21,27 +28,19 @@ async def create_knowledge(knowledge: KnowledgeCreateSchema, db: AsyncSession = 
 
 
 @router.get("/{knowledge_id}")
-async def get_knowledge(knowledge_id: str, db: AsyncSession = GetDB):
+async def get_knowledge(knowledge_id: int, db: AsyncSession = GetDB):
     """获取单个知识点"""
-    knowledge = await KnowledgeService.get_by_id(db=db, knowledge_id=knowledge_id)
+    knowledge = await KnowledgeService.get_by_id(db, knowledge_id)
     return ResponseSchema(data=knowledge)
 
 
 @router.patch("/{knowledge_id}")
 async def update_knowledge(
-    knowledge_id: str,
-    knowledge: KnowledgeUpdateSchema,
-    db: AsyncSession = GetDB,
+    knowledge_id: str, knowledge: KnowledgeUpdateSchema, db: AsyncSession = GetDB
 ):
     """更新知识点"""
-    knowledge = await KnowledgeService.update(db, knowledge_id, knowledge)
-
+    await KnowledgeService.update(db, knowledge_id, knowledge)
     return ResponseSchema()
-
-    if not knowledge:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="知识点不存在")
-
-    return knowledge
 
 
 @router.delete("/{knowledge_id}")
@@ -49,10 +48,3 @@ async def delete_knowledge(knowledge_id: str, db: AsyncSession = GetDB):
     """删除知识点"""
     await KnowledgeService.delete(db=db, knowledge_id=knowledge_id)
     return ResponseSchema()
-
-
-@router.get("/search")
-async def search_knowledge(params: SearchSchema, db: AsyncSession = GetDB):
-    """获取知识点列表"""
-    res = KnowledgeService.search(db, params)
-    return ResponseSchema(data=res)

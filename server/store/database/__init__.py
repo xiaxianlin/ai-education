@@ -27,4 +27,9 @@ async def get_db():
         yield session
 
 
+def get_async_session():
+    """获取异步数据库会话（用于后台任务）"""
+    return AsyncSessionLocal()
+
+
 GetDB = Depends(get_db)

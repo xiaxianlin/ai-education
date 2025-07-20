@@ -65,6 +65,9 @@ class Textbook(BaseModel):
     grade: Mapped[int] = mapped_column(nullable=False)
     semester: Mapped[int] = mapped_column(nullable=False)
     pdf: Mapped[str] = mapped_column(String(255))
+    processing_status: Mapped[str] = mapped_column(String(50), default="pending")
+    processing_task_id: Mapped[str] = mapped_column(String(255))
+    processing_error: Mapped[str] = mapped_column(Text)
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
 
@@ -229,3 +232,65 @@ class SolutionMessage(BaseModel):
     output_tokens: Mapped[int] = mapped_column()
     ai_summary_video: Mapped[str] = mapped_column(String(255))
     create_time: Mapped[int] = mapped_column(default=time.now)
+
+
+class UserSubmission(BaseModel):
+    """用户答题提交记录"""
+    __tablename__ = "ah_user_submission"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    question_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    user_answer: Mapped[str] = mapped_column(Text, nullable=False)
+    is_correct: Mapped[int] = mapped_column(default=0)  # 0-错误, 1-正确, 2-部分正确
+    score: Mapped[int] = mapped_column(default=0)  # 得分
+    time_spent: Mapped[int] = mapped_column(default=0)  # 答题用时(秒)
+    submit_time: Mapped[int] = mapped_column(default=time.now)
+    create_time: Mapped[int] = mapped_column(default=time.now)
+
+    # 关联关系
+    question: Mapped["Question"] = relationship(
+        "Question",
+        primaryjoin="foreign(UserSubmission.question_id) == Question.id",
+        lazy="joined"
+    )
+
+
+class TestSession(BaseModel):
+    """测试会话"""
+    __tablename__ = "ah_test_session"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    session_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255))
+    grade: Mapped[int] = mapped_column()
+    total_questions: Mapped[int] = mapped_column(default=0)
+    correct_count: Mapped[int] = mapped_column(default=0)
+    total_score: Mapped[int] = mapped_column(default=0)
+    max_score: Mapped[int] = mapped_column(default=0)
+    start_time: Mapped[int] = mapped_column(default=time.now)
+    end_time: Mapped[int] = mapped_column()
+    duration: Mapped[int] = mapped_column(default=0)  # 总用时(秒)
+    status: Mapped[str] = mapped_column(String(50), default="active")  # active, completed, abandoned
+    create_time: Mapped[int] = mapped_column(default=time.now)
+
+
+class TestReport(BaseModel):
+    """测试报告"""
+    __tablename__ = "ah_test_report"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    session_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    report_data: Mapped[str] = mapped_column(Text)  # JSON格式的详细报告数据
+    analysis: Mapped[str] = mapped_column(Text)  # AI分析结果
+    recommendations: Mapped[str] = mapped_column(Text)  # 学习建议
+    create_time: Mapped[int] = mapped_column(default=time.now)
+
+    # 关联关系
+    test_session: Mapped["TestSession"] = relationship(
+        "TestSession",
+        primaryjoin="foreign(TestReport.session_id) == TestSession.id",
+        lazy="joined"
+    )

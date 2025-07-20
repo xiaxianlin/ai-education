@@ -1,8 +1,8 @@
 from sqlalchemy import or_, select, and_, func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List, Tuple
-from store.database.models import Knowledge, CourseUnit
+from typing import List, Tuple
+from store.database.models import Knowledge, CourseUnit, Textbook
 from util import time
 from schema import (
     SearchSchema,
@@ -15,7 +15,6 @@ from schema import (
 
 class KnowledgeService:
 
-    @staticmethod
     async def create(db: AsyncSession, create: KnowledgeCreateSchema):
         """创建知识点"""
         # 验证课程单元是否存在
@@ -37,12 +36,11 @@ class KnowledgeService:
         await db.refresh(knowledge)
         return knowledge.id
 
-    @staticmethod
-    async def get_by_id(db: AsyncSession, knowledge_id: str):
+    async def get_by_id(db: AsyncSession, knowledge_id: int):
         """根据ID获取知识点"""
         result = await db.execute(
             select(Knowledge)
-            .options(joinedload(Knowledge.course_unit).joinedload(CourseUnit.textbook))
+            .options(joinedload(Knowledge.course_unit), joinedload(Knowledge.textbook))
             .where(Knowledge.id == knowledge_id)
         )
         knowledge = result.scalar_one_or_none()
@@ -50,7 +48,6 @@ class KnowledgeService:
             raise ValueError("知识点不存在")
         return KnowledgeSchema.model_validate(knowledge)
 
-    @staticmethod
     async def get_by_course_unit(
         db: AsyncSession,
         course_unit_id: int,
@@ -64,7 +61,6 @@ class KnowledgeService:
 
         return [KnowledgeSchema.model_validate(knowledge) for knowledge in knowledges.all()]
 
-    @staticmethod
     async def update(db: AsyncSession, knowledge_id: int, update: KnowledgeUpdateSchema):
         """更新知识点"""
         knowledge = await db.scalar(select(Knowledge).where(Knowledge.id == knowledge_id))
@@ -72,7 +68,7 @@ class KnowledgeService:
             raise ValueError("知识点不存在")
 
         if update.name is not None:
-            knowledge.content = update.content
+            knowledge.name = update.name
         if update.content is not None:
             knowledge.content = update.content
         if update.analysis_text is not None:
@@ -87,7 +83,6 @@ class KnowledgeService:
         knowledge.update_time = time.now()
         await db.commit()
 
-    @staticmethod
     async def delete(db: AsyncSession, knowledge_id: str) -> bool:
         """删除知识点"""
         knowledge = await db.scalar(select(Knowledge).where(Knowledge.id == knowledge_id))
@@ -97,7 +92,6 @@ class KnowledgeService:
         await db.delete(knowledge)
         await db.commit()
 
-    @staticmethod
     async def search(db: AsyncSession, params: SearchSchema) -> Tuple[List[CourseUnit], int]:
         """搜索课程单元"""
         query = select(CourseUnit)

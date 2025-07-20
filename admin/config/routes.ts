@@ -38,6 +38,11 @@ export default [
         name: '知识点',
         component: './Course/Knowledge',
       },
+      {
+        path: '/course/question',
+        name: '题库',
+        component: './Course/Question',
+      },
     ],
   },
   {
@@ -59,6 +64,18 @@ export default [
         path: '/system/textbook-version',
         name: '教材版本',
         component: './System/TextbookVersion',
+      },
+    ],
+  },
+  {
+    path: '/user',
+    name: '用户管理',
+    icon: 'user',
+    routes: [
+      {
+        path: '/user/account',
+        name: '账号管理',
+        component: './UserManagement/Account',
       },
     ],
   },
