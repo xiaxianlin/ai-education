@@ -1,5 +1,5 @@
 from sqlalchemy import or_, select, and_, func
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List, Tuple
 from schema.common import SearchResultSchema, SearchSchema

@@ -25,3 +25,6 @@ class FileService:
         logger.info(f"platform: {platform}, filepath: {filepath}")
         oss: OSS = OSSFactory.get_service(platform)
         return oss.delete(filepath)
+
+    async def download(filepath: str):
+        pass

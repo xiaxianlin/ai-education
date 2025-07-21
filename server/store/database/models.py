@@ -65,11 +65,30 @@ class Textbook(BaseModel):
     grade: Mapped[int] = mapped_column(nullable=False)
     semester: Mapped[int] = mapped_column(nullable=False)
     pdf: Mapped[str] = mapped_column(String(255))
-    processing_status: Mapped[str] = mapped_column(String(50), default="pending")
-    processing_task_id: Mapped[str] = mapped_column(String(255))
-    processing_error: Mapped[str] = mapped_column(Text)
+
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
+
+
+class TextbookExtractTask(BaseModel):
+    """教材解析任务表"""
+
+    __tablename__ = "ah_textbook_extract_task"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, comment="任务 ID")
+    textbook_id: Mapped[int] = mapped_column(nullable=False, comment="教材 ID")
+    status: Mapped[str] = mapped_column(String(50), default="pending", comment="任务状态")
+    error: Mapped[str] = mapped_column(Text, comment="任务错误信息")
+    result: Mapped[str] = mapped_column(Text, comment="执行结果")
+    create_time: Mapped[int] = mapped_column(default=time.now, comment="任务创建时间")
+    start_time: Mapped[int] = mapped_column(comment="任务开始时间")
+    complete_time: Mapped[int] = mapped_column(comment="任务结束时间")
+
+    textbook: Mapped["Textbook"] = relationship(
+        "Textbook",
+        primaryjoin="foreign(TextbookExtractTask.textbook_id) == Textbook.id",
+        lazy="joined",
+    )
 
 
 class CourseUnit(BaseModel):
@@ -236,6 +255,7 @@ class SolutionMessage(BaseModel):
 
 class UserSubmission(BaseModel):
     """用户答题提交记录"""
+
     __tablename__ = "ah_user_submission"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
@@ -250,14 +270,13 @@ class UserSubmission(BaseModel):
 
     # 关联关系
     question: Mapped["Question"] = relationship(
-        "Question",
-        primaryjoin="foreign(UserSubmission.question_id) == Question.id",
-        lazy="joined"
+        "Question", primaryjoin="foreign(UserSubmission.question_id) == Question.id", lazy="joined"
     )
 
 
 class TestSession(BaseModel):
     """测试会话"""
+
     __tablename__ = "ah_test_session"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
@@ -272,12 +291,15 @@ class TestSession(BaseModel):
     start_time: Mapped[int] = mapped_column(default=time.now)
     end_time: Mapped[int] = mapped_column()
     duration: Mapped[int] = mapped_column(default=0)  # 总用时(秒)
-    status: Mapped[str] = mapped_column(String(50), default="active")  # active, completed, abandoned
+    status: Mapped[str] = mapped_column(
+        String(50), default="active"
+    )  # active, completed, abandoned
     create_time: Mapped[int] = mapped_column(default=time.now)
 
 
 class TestReport(BaseModel):
     """测试报告"""
+
     __tablename__ = "ah_test_report"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
@@ -290,7 +312,5 @@ class TestReport(BaseModel):
 
     # 关联关系
     test_session: Mapped["TestSession"] = relationship(
-        "TestSession",
-        primaryjoin="foreign(TestReport.session_id) == TestSession.id",
-        lazy="joined"
+        "TestSession", primaryjoin="foreign(TestReport.session_id) == TestSession.id", lazy="joined"
     )

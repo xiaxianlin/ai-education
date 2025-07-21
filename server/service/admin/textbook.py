@@ -1,11 +1,11 @@
 from fastapi import UploadFile
 from sqlalchemy import asc, desc, func, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import get_logger
 from store.database.models import Textbook, CourseUnit, Subject, TextbookVersion
 from service.common import FileService
-from schema import TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
+from schema import CourseUnitSchema, TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
 
 
 logger = get_logger("TextbookService")
@@ -72,7 +72,15 @@ class TextbookService:
         textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
         if not textbook:
             raise ValueError("教材不存在")
-        return TextbookSchema.model_validate(textbook)
+        data = TextbookSchema.model_validate(textbook)
+
+        result = await db.scalars(
+            select(CourseUnit)
+            .options(noload(CourseUnit.textbook))
+            .where(CourseUnit.textbook_id == textbook_id)
+        )
+        data.course_units = [CourseUnitSchema.model_validate(unit) for unit in result.all()]
+        return data
 
     async def search(db: AsyncSession, params: TextbookSearchSchema):
         stmt = select(Textbook)
@@ -120,9 +128,10 @@ class TextbookService:
         textbook.processing_task_id = None
         textbook.processing_error = None
         await db.commit()
-        
+
         # 自动启动单元提取任务
         from service.admin.unit_extraction import UnitExtractionService
+
         try:
             task_id = await UnitExtractionService.start_extraction(db, id)
             logger.info(f"Auto-started unit extraction task {task_id} for textbook {id}")

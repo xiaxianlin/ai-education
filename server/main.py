@@ -9,8 +9,8 @@ from contextlib import asynccontextmanager
 from sqlalchemy import select
 
 ##################################
-from core import settings, get_logger, init_logger
-from store.database import init_db, AsyncSessionLocal
+from core import settings, get_logger
+from store.database import init_db, get_async_session
 from store.database.models import Manager
 from util import encrypt
 
@@ -28,10 +28,8 @@ async def init_run_enviroment():
         logger.info(f"创建运行目录：{settings.RUNTIME_DIR}")
         os.makedirs(settings.RUNTIME_DIR)
 
-    init_logger()
-
     if settings.ADMIN_USERNAME and settings.ADMIN_PASSWORD:
-        async with AsyncSessionLocal() as db:
+        async with get_async_session() as db:
             manager = await db.scalar(
                 select(Manager).where(Manager.username == settings.ADMIN_USERNAME),
             )
@@ -50,17 +48,20 @@ async def init_run_enviroment():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    from core import task_queue, init_logger
+
     logger.info(">" * 10 + "服务启动" + "<" * 10)
+
+    init_logger()
     await init_db()
     await init_run_enviroment()
-    
+
     # 启动后台任务队列
-    from core.task_queue import task_queue
     await task_queue.start()
     logger.info("Background task queue started")
-    
+
     yield
-    
+
     # 关闭后台任务队列
     await task_queue.stop()
     logger.info("Background task queue stopped")

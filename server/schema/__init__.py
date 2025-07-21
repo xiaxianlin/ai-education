@@ -92,6 +92,19 @@ class TextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TextbookExtractTaskSchema(BaseModel):
+    id: int
+    status: str
+    error: str
+    result: str
+    create_time: int
+    start_time: int
+    complete_time: int
+    textbook: Optional["TextbookSchema"] = None
+
+    model_config = {"from_attributes": True}
+
+
 class QuestionSchema(BaseModel):
     id: str
     type: Optional[str] = None

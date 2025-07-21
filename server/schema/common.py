@@ -1,5 +1,5 @@
 from typing import Generic, TypeVar, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from fastapi import Query
 
 from util import valid
@@ -11,6 +11,8 @@ class ResponseSchema(BaseModel, Generic[T]):
     status: int = 0
     message: str = "success"
     data: Optional[T] = None
+
+    model_config = ConfigDict(extra="ignore", exclude_none=True)
 
 
 class NameSchema(BaseModel):

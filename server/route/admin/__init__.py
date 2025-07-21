@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
-
+from core.middleware import ExcludeNoneJSONResponse
 from core.auth import admin_route_auth
 from core.exceptions import (
     global_exception_handler,
@@ -8,10 +8,21 @@ from core.exceptions import (
     value_error_handler,
     validation_exception_handler,
 )
-from . import auth, manager, user, subject, textbook_version, textbook, course_unit, knowledge, question
+from . import (
+    auth,
+    manager,
+    user,
+    subject,
+    textbook_version,
+    textbook,
+    course_unit,
+    knowledge,
+    question,
+)
 
 
 admin_app = FastAPI(
+    default_response_class=ExcludeNoneJSONResponse,
     dependencies=[Depends(admin_route_auth)],
     exception_handlers={
         RequestValidationError: validation_exception_handler,

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from store.database import GetDB
 from service.admin import TextbookService
-from service.admin.unit_extraction import UnitExtractionService
+from service.admin.course_unit_extraction import UnitExtractionService
 from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema
 
 router = APIRouter(prefix="/textbook")
@@ -45,15 +45,15 @@ async def delete(id: str, db: AsyncSession = GetDB):
     return ResponseSchema()
 
 
-@router.post("/{id}/extract-units")
+@router.post("/{id}/extract")
 async def extract_units(id: int, db: AsyncSession = GetDB):
     """启动PDF单元提取任务"""
     task_id = await UnitExtractionService.start_extraction(db, id)
     return ResponseSchema(data={"task_id": task_id})
 
 
-@router.get("/{id}/processing-status")
+@router.get("/{id}/task")
 async def get_processing_status(id: int, db: AsyncSession = GetDB):
     """获取PDF处理状态"""
-    status = await UnitExtractionService.get_processing_status(db, id)
-    return ResponseSchema(data=status)
+    task = await UnitExtractionService.get_task(db, id)
+    return ResponseSchema(data=task)
