@@ -1,5 +1,5 @@
 from sqlalchemy import or_, select, and_, func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from store.database.models import Knowledge, CourseUnit, Textbook
@@ -40,7 +40,10 @@ class KnowledgeService:
         """根据ID获取知识点"""
         result = await db.execute(
             select(Knowledge)
-            .options(joinedload(Knowledge.course_unit), joinedload(Knowledge.textbook))
+            .options(
+                joinedload(Knowledge.course_unit).noload(CourseUnit.textbook),
+                joinedload(Knowledge.textbook),
+            )
             .where(Knowledge.id == knowledge_id)
         )
         knowledge = result.scalar_one_or_none()
@@ -48,14 +51,23 @@ class KnowledgeService:
             raise ValueError("知识点不存在")
         return KnowledgeSchema.model_validate(knowledge)
 
-    async def get_by_course_unit(
-        db: AsyncSession,
-        course_unit_id: int,
-        status: int = 1,
-    ):
+    async def get_by_textbook(db: AsyncSession, textbook_id: int):
+        """根据教材ID获取知识点列表"""
+        query = (
+            select(Knowledge)
+            .options(noload(Knowledge.textbook), noload(Knowledge.course_unit))
+            .where(Knowledge.textbook_id == textbook_id, Knowledge.status == 1)
+        )
+        knowledges = await db.scalars(query)
+
+        return [KnowledgeSchema.model_validate(knowledge) for knowledge in knowledges.all()]
+
+    async def get_by_course_unit(db: AsyncSession, course_unit_id: int):
         """根据课程单元ID获取知识点列表"""
-        query = select(Knowledge).where(
-            Knowledge.course_unit_id == course_unit_id, Knowledge.status == status
+        query = (
+            select(Knowledge)
+            .options(noload(Knowledge.textbook), noload(Knowledge.course_unit))
+            .where(Knowledge.course_unit_id == course_unit_id, Knowledge.status == 1)
         )
         knowledges = await db.scalars(query)
 
@@ -92,26 +104,25 @@ class KnowledgeService:
         await db.delete(knowledge)
         await db.commit()
 
-    async def search(db: AsyncSession, params: SearchSchema) -> Tuple[List[CourseUnit], int]:
+    async def search(db: AsyncSession, params: SearchSchema):
         """搜索课程单元"""
-        query = select(CourseUnit)
+        query = select(Knowledge).options(noload(Knowledge.textbook), noload(Knowledge.course_unit))
 
-        conditions = []
         if params.keywords:
             query.where(
                 or_(
-                    CourseUnit.name.contains(params.keywords),
-                    CourseUnit.content.contains(params.keywords),
+                    Knowledge.name.contains(params.keywords),
+                    Knowledge.content.contains(params.keywords),
                 )
             )
 
         # 获取总数
-        count_query = select(func.count(CourseUnit.id)).where(and_(*conditions))
+        count_query = select(func.count()).select_from(query.subquery())
         total = await db.scalar(count_query) or 0
 
         # 分页查询
-        offset = (params.page - 1) * params.size
-        query = query.order_by(CourseUnit.id).offset(offset).limit(params.size)
+        offset = (params.current_page - 1) * params.page_size
+        query = query.order_by(Knowledge.id).offset(offset).limit(params.page_size)
         units = await db.scalars(query)
 
         return SearchResultSchema(

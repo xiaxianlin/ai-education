@@ -130,7 +130,7 @@ class TextbookService:
         await db.commit()
 
         # 自动启动单元提取任务
-        from service.admin.unit_extraction import UnitExtractionService
+        from service.admin.course_unit_extraction import UnitExtractionService
 
         try:
             task_id = await UnitExtractionService.start_extraction(db, id)

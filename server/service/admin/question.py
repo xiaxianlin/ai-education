@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import select, and_, func
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from store.database.models import Question, Knowledge, CourseUnit, Textbook
 from util import time
@@ -15,7 +15,6 @@ from schema import (
 
 class QuestionService:
 
-    @staticmethod
     async def create(db: AsyncSession, create: QuestionCreateSchema):
         """创建问题"""
         # 验证关联实体是否存在
@@ -56,7 +55,6 @@ class QuestionService:
         await db.commit()
         return question.id
 
-    @staticmethod
     async def update(db: AsyncSession, question_id: str, update: QuestionUpdateSchema):
         """更新问题"""
         question = await db.scalar(select(Question).where(Question.id == question_id))
@@ -89,7 +87,6 @@ class QuestionService:
         question.update_time = time.now()
         await db.commit()
 
-    @staticmethod
     async def delete(db: AsyncSession, question_id: str):
         """删除问题"""
         question = await db.scalar(select(Question).where(Question.id == question_id))
@@ -99,7 +96,6 @@ class QuestionService:
         await db.delete(question)
         await db.commit()
 
-    @staticmethod
     async def get_by_id(db: AsyncSession, question_id: str):
         """根据ID获取问题"""
         result = await db.execute(
@@ -116,7 +112,6 @@ class QuestionService:
             raise ValueError("问题不存在")
         return QuestionSchema.model_validate(question)
 
-    @staticmethod
     async def get_by_knowledge(
         db: AsyncSession,
         knowledge_id: int,
@@ -124,9 +119,17 @@ class QuestionService:
         size: int = 10,
     ):
         """根据知识点ID获取问题列表(全量获取)"""
-        query = select(Question).where(
-            Question.knowledge_id == knowledge_id,
-            Question.status == 1,
+        query = (
+            select(Question)
+            .options(
+                noload(Question.textbook),
+                noload(Question.course_unit),
+                noload(Question.knowledge),
+            )
+            .where(
+                Question.knowledge_id == knowledge_id,
+                Question.status == 1,
+            )
         )
 
         # 获取总数
@@ -148,7 +151,6 @@ class QuestionService:
             data=[QuestionSchema.model_validate(question) for question in result.all()],
         )
 
-    @staticmethod
     async def get_by_course_unit(
         db: AsyncSession,
         course_unit_id: int,
@@ -156,9 +158,17 @@ class QuestionService:
         size: int = 10,
     ):
         """根据课程单元ID获取问题列表"""
-        query = select(Question).where(
-            Question.course_unit_id == course_unit_id,
-            Question.status == 1,
+        query = (
+            select(Question)
+            .options(
+                noload(Question.textbook),
+                noload(Question.course_unit),
+                noload(Question.knowledge),
+            )
+            .where(
+                Question.course_unit_id == course_unit_id,
+                Question.status == 1,
+            )
         )
 
         # 获取总数
@@ -180,17 +190,19 @@ class QuestionService:
             data=[QuestionSchema.model_validate(question) for question in result.all()],
         )
 
-    @staticmethod
-    async def get_by_textbook(
-        db: AsyncSession,
-        textbook_id: int,
-        page: int = 1,
-        size: int = 10,
-    ):
+    async def get_by_textbook(db: AsyncSession, textbook_id: int, page: int = 1, size: int = 10):
         """根据教材获取问题列表"""
-        query = select(Question).where(
-            Question.textbook_id == textbook_id,
-            Question.status == 1,
+        query = (
+            select(Question)
+            .options(
+                noload(Question.textbook),
+                noload(Question.course_unit),
+                noload(Question.knowledge),
+            )
+            .where(
+                Question.textbook_id == textbook_id,
+                Question.status == 1,
+            )
         )
 
         # 获取总数
@@ -212,7 +224,6 @@ class QuestionService:
             data=[QuestionSchema.model_validate(question) for question in result.all()],
         )
 
-    @staticmethod
     async def search(db: AsyncSession, search_data: QuestionSearchSchema):
         """搜索问题"""
         query = select(Question)

@@ -114,14 +114,14 @@ class QuestionSchema(BaseModel):
     analysis_text: Optional[str] = None
     analysis_audio: Optional[str] = None
     analysis_video: Optional[str] = None
-    grade: Optional[str] = None
+    grade: Optional[int] = None
     subject: Optional[str] = None
     knowledge_id: Optional[int] = None
     course_unit_id: Optional[int] = None
     textbook_id: Optional[int] = None
     source: Optional[str] = None
     image: Optional[str] = None
-    status: int = 1
+    status: int
     create_time: int
     update_time: Optional[int] = None
 

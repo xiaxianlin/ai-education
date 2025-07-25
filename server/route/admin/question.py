@@ -9,17 +9,7 @@ from schema import (
 )
 from store.database import GetDB
 
-router = APIRouter(prefix="/questions", tags=["问题管理"])
-
-
-@router.get("/search")
-async def list_questions(
-    params: QuestionSearchSchema = Depends(),
-    db: AsyncSession = GetDB,
-):
-    """获取问题列表"""
-    data = await QuestionService.search(db, params)
-    return ResponseSchema(data=data)
+router = APIRouter(prefix="/question", tags=["问题管理"])
 
 
 @router.post("/")
@@ -48,54 +38,13 @@ async def delete_question(question_id: str, db: AsyncSession = GetDB):
     return ResponseSchema()
 
 
-@router.get("/knowledge/{knowledge_id}")
-async def get_questions_by_knowledge(
-    knowledge_id: int,
-    current_page: int = 1,
-    page_size: int = 10,
+@router.get("/search")
+async def list_questions(
+    params: QuestionSearchSchema = Depends(),
     db: AsyncSession = GetDB,
 ):
-    """根据知识点获取问题列表(全量获取)"""
-    data = await QuestionService.get_by_knowledge(
-        db,
-        knowledge_id,
-        current_page,
-        page_size,
-    )
-    return ResponseSchema(data=data)
-
-
-@router.get("/course_unit/{course_unit_id}")
-async def get_questions_by_course_unit(
-    course_unit_id: int,
-    current_page: int = 1,
-    page_size: int = 10,
-    db: AsyncSession = GetDB,
-):
-    """根据课程单元获取问题列表"""
-    data = await QuestionService.get_by_course_unit(
-        db,
-        course_unit_id,
-        current_page,
-        page_size,
-    )
-    return ResponseSchema(data=data)
-
-
-@router.get("/textbook/{course_unit_id}")
-async def get_questions_by_course_unit(
-    textbook_id: int,
-    current_page: int = 1,
-    page_size: int = 10,
-    db: AsyncSession = GetDB,
-):
-    """根据课程单元获取问题列表"""
-    data = await QuestionService.get_by_textbook(
-        db,
-        textbook_id,
-        current_page,
-        page_size,
-    )
+    """获取问题列表"""
+    data = await QuestionService.search(db, params)
     return ResponseSchema(data=data)
 
 

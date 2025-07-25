@@ -57,13 +57,13 @@ async def lifespan(_: FastAPI):
     await init_run_enviroment()
 
     # 启动后台任务队列
-    await task_queue.start()
+    # await task_queue.start()
     logger.info("Background task queue started")
 
     yield
 
     # 关闭后台任务队列
-    await task_queue.stop()
+    # await task_queue.stop()
     logger.info("Background task queue stopped")
 
 

@@ -1,7 +1,7 @@
-from sqlalchemy import or_, select, and_, func
+from sqlalchemy import or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 from schema.common import SearchResultSchema, SearchSchema
 from store.database.models import CourseUnit, Knowledge, Textbook
 from util import time
@@ -44,9 +44,13 @@ class CourseUnitService:
 
     async def get_by_textbook(db: AsyncSession, textbook_id: int, status: int = 1):
         """根据教材ID获取课程单元列表"""
-        query = select(CourseUnit).where(
-            CourseUnit.textbook_id == textbook_id,
-            CourseUnit.status == status,
+        query = (
+            select(CourseUnit)
+            .where(
+                CourseUnit.textbook_id == textbook_id,
+                CourseUnit.status == status,
+            )
+            .options(noload(CourseUnit.textbook))
         )
         results = await db.scalars(query)
         return [CourseUnitSchema.model_validate(unit) for unit in results.all()]
@@ -86,7 +90,6 @@ class CourseUnitService:
         """搜索课程单元"""
         query = select(CourseUnit)
 
-        conditions = []
         if params.keywords:
             query.where(
                 or_(
@@ -96,7 +99,7 @@ class CourseUnitService:
             )
 
         # 获取总数
-        count_query = select(func.count(CourseUnit.id)).where(and_(*conditions))
+        count_query = select(func.count()).select_from(query.subquery())
         total = await db.scalar(count_query) or 0
 
         # 分页查询
