@@ -79,14 +79,18 @@ class CourseUnitSchema(BaseModel):
 
 class TextbookSchema(BaseModel):
     id: int
+    name: Optional[str] = None
     subject: str
     version: str
     stage: str
     grade: int
     semester: int
-    pdf: Optional[str] = None
+    index_file_id: Optional[str] = None
+    is_parsed: int = 0
     status: int = 1
     create_time: int
+    update_time: Optional[int] = None
+
     course_units: Optional[List["CourseUnitSchema"]] = None
 
     model_config = {"from_attributes": True}

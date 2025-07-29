@@ -12,11 +12,11 @@ from util import time
 logger = get_logger("UnitExtractionService")
 
 
-class UnitExtractionService:
+class TextbookParserService:
     """单元提取服务"""
 
-    @staticmethod
-    async def _save_units(db: AsyncSession, textbook_id: int, units: List[Dict[str, Any]]):
+    @classmethod
+    async def _save_units(cls, db: AsyncSession, textbook_id: int, units: List[Dict[str, Any]]):
         """保存提取的单元到数据库"""
         for unit_data in units:
             # 检查是否已存在相同名称的单元
@@ -43,8 +43,8 @@ class UnitExtractionService:
 
         await db.commit()
 
-    @staticmethod
-    async def _process_textbook(task_id: int):
+    @classmethod
+    async def _process_textbook(cls, task_id: int):
         """处理教材PDF的后台任务"""
         from store.database import get_async_session
 
@@ -73,7 +73,7 @@ class UnitExtractionService:
 
                 # 保存单元到数据库
                 logger.info(f"Saving {len(units)} units for textbook {task.textbook_id}")
-                await UnitExtractionService._save_units(db, task.textbook_id, units)
+                await cls._save_units(db, task.textbook_id, units)
 
                 # 更新处理状态为完成
                 task.status = "completed"
@@ -100,8 +100,8 @@ class UnitExtractionService:
 
                 raise
 
-    @staticmethod
-    async def start_extraction(db: AsyncSession, textbook_id: int):
+    @classmethod
+    async def start_extraction(cls, db: AsyncSession, textbook_id: int):
         """启动PDF单元提取任务"""
         textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
         if not textbook:
@@ -125,7 +125,7 @@ class UnitExtractionService:
         await task_queue.add_task(
             task_id=task.id,
             name=f"extract_units_textbook_{textbook_id}",
-            func=UnitExtractionService._process_textbook,
+            func=cls._process_textbook,
         )
 
         logger.info(f"Started unit extraction task {task.id} for textbook {textbook_id}")

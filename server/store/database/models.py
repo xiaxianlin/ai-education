@@ -59,36 +59,17 @@ class Textbook(BaseModel):
     __tablename__ = "ah_textbook"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255))
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(255), nullable=False)
     stage: Mapped[str] = mapped_column(String(255), nullable=False)
     grade: Mapped[int] = mapped_column(nullable=False)
     semester: Mapped[int] = mapped_column(nullable=False)
-    pdf: Mapped[str] = mapped_column(String(255))
-
+    is_parsed: Mapped[int] = mapped_column(default=0)
+    index_file_id: Mapped[str] = mapped_column(String(255))
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)
-
-
-class TextbookExtractTask(BaseModel):
-    """教材解析任务表"""
-
-    __tablename__ = "ah_textbook_extract_task"
-
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, comment="任务 ID")
-    textbook_id: Mapped[int] = mapped_column(nullable=False, comment="教材 ID")
-    status: Mapped[str] = mapped_column(String(50), default="pending", comment="任务状态")
-    error: Mapped[str] = mapped_column(Text, comment="任务错误信息")
-    result: Mapped[str] = mapped_column(Text, comment="执行结果")
-    create_time: Mapped[int] = mapped_column(default=time.now, comment="任务创建时间")
-    start_time: Mapped[int] = mapped_column(comment="任务开始时间")
-    complete_time: Mapped[int] = mapped_column(comment="任务结束时间")
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(TextbookExtractTask.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
+    update_time: Mapped[int] = mapped_column(default=time.now)
 
 
 class CourseUnit(BaseModel):

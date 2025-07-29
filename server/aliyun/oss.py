@@ -1,15 +1,13 @@
-from datetime import timedelta
 import alibabacloud_oss_v2 as oss
-
+from datetime import timedelta
 from core import settings
-from ._base import OSS
 
 
-class AliOSS(OSS):
+class AliyunOSS:
     def __init__(self):
         credentials_provider = oss.credentials.StaticCredentialsProvider(
-            access_key_id=settings.ALIYUN_OSS_KEY_ID,
-            access_key_secret=settings.ALIYUN_OSS_KEY_SECRET,
+            access_key_id=settings.ALIYUN_ACCESS_KEY_ID,
+            access_key_secret=settings.ALIYUN_ACCESS_KEY_SECRET,
         )
 
         cfg = oss.config.load_default()
@@ -26,9 +24,8 @@ class AliOSS(OSS):
     def upload(self, filepath: str, data: bytes) -> str:
         req = oss.PutObjectRequest(bucket=self.bucket, key=filepath, body=data)
         self.client.put_object(req)
-        return f"ali::{filepath}"
 
-    def multipart_upload(self, filepath: str, data: bytes) -> str:
+    async def multipart_upload(self, filepath: str, data: bytes) -> str:
         # 初始化分片上传请求，获取upload_id用于后续分片上传
         result = self.client.initiate_multipart_upload(
             oss.InitiateMultipartUploadRequest(bucket=self.bucket, key=filepath)
@@ -64,8 +61,6 @@ class AliOSS(OSS):
                 complete_multipart_upload=oss.CompleteMultipartUpload(parts=parts),
             )
         )
-
-        return f"ali::{filepath}"
 
     def delete(self, filepath: str):
         if not self.exist(filepath):
