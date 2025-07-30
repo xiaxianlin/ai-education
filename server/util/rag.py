@@ -5,7 +5,7 @@ from core.logger import get_logger
 logger = get_logger("util.rag")
 
 
-def update_rag(file_name: str, file_path: str, old_file_id=None) -> str:
+def update(file_name: str, file_path: str, old_file_id=None) -> str:
     try:
         logger.info(f"上传文件：{file_path}")
         service = AliyunRag()

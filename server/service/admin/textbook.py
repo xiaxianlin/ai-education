@@ -1,13 +1,7 @@
-import asyncio
-import os
-from pathlib import Path
-import shutil
-from fastapi import UploadFile
 from sqlalchemy import asc, desc, func, select
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
-from core import get_logger, settings
-from util.rag import update_rag
+from core import get_logger
 from store.database.models import Textbook, CourseUnit, Subject, TextbookVersion
 from schema import CourseUnitSchema, TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
 from aliyun import AliyunOSS
@@ -120,42 +114,3 @@ class TextbookService:
             "total": total,
             "data": [manager.to_dict({"password"}) for manager in results.unique().all()],
         }
-
-    async def upload_pdf(db: AsyncSession, id: int, file: UploadFile):
-        logger.info(f"upload - {file.filename} - {file.size}")
-
-        textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
-        if not textbook:
-            raise ValueError("教材不存在")
-        textbook.name = file.filename
-
-        # 上传到 oss
-        oss = AliyunOSS()
-        data = await file.read()
-
-        # 提前创建任务（协程对象）
-        task = asyncio.create_task(oss.multipart_upload(f"textbook/{file.filename}", data))
-
-        try:
-            tmp_dir = f"{settings.RUNTIME_DIR}/tmp"
-            os.makedirs(tmp_dir, exist_ok=True)
-            tmp_file_path = Path(tmp_dir) / file.filename
-
-            with open(tmp_file_path, "wb") as buffer:
-                buffer.write(data)
-
-            # 更新索引（同步）
-            textbook.index_file_id = update_rag(
-                file.filename,
-                tmp_file_path,
-                textbook.index_file_id,
-            )
-
-            # 等待 OSS 上传完成
-            await task
-
-            textbook.update_time = time.now()
-            await db.commit()
-        except ValueError as e:
-            os.remove(tmp_file_path)
-            raise e

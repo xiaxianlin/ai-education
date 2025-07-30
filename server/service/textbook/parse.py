@@ -7,7 +7,7 @@ from aliyun import AliyunAgent
 logger = get_logger("UnitExtractionService")
 
 
-class TextbookParserService:
+class TextbookParseService:
     """单元提取服务"""
 
     @classmethod
@@ -39,7 +39,7 @@ class TextbookParserService:
         await db.commit()
 
     @classmethod
-    async def start(cls, db: AsyncSession, textbook_id: int):
+    async def run(cls, db: AsyncSession, textbook_id: int):
         """启动PDF单元提取任务"""
         textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
         if not textbook:
@@ -62,4 +62,6 @@ class TextbookParserService:
         for unit in units:
             await cls.save_unit(db, textbook_id, unit)
 
+        textbook.is_parsed = 1
+        await db.commit()
         return units

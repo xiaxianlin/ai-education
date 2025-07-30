@@ -48,21 +48,21 @@ class TextbookSaveSchema(BaseModel):
     stage: str
     subject: str
     version: str
-    grade: int
-    semester: int
+    grade: str
+    semester: str
 
     @field_validator("grade")
     @classmethod
     def valid_grade(clas, v):
-        if v and v not in range(1, 13):
-            raise ValueError("年级只能选择一年级到十二年级")
+        if v and v not in ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级"]:
+            raise ValueError("年级只能选择一年级到六年级")
         return v
 
     @field_validator("semester")
     @classmethod
     def valid_semester(clas, v):
-        if v and v not in range(4):
-            raise ValueError("学期不合法")
+        if v and v not in ["上学期", "下学期", "整学期"]:
+            raise ValueError("学期只能选择上学期、下学期、整学期")
         return v
 
     @field_validator("stage")
@@ -77,7 +77,7 @@ class TextbookSearchSchema(SearchSchema):
     subject: Optional[str] = None
     version: Optional[str] = None
     stage: Optional[str] = None
-    grade: Optional[int] = None
+    grade: Optional[str] = None
 
 
 class CourseUnitCreateSchema(BaseModel):

@@ -83,8 +83,8 @@ class TextbookSchema(BaseModel):
     subject: str
     version: str
     stage: str
-    grade: int
-    semester: int
+    grade: str
+    semester: str
     index_file_id: Optional[str] = None
     is_parsed: int = 0
     status: int = 1
