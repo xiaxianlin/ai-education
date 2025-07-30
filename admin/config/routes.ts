@@ -19,6 +19,18 @@ export default [
     component: './Home',
   },
   {
+    path: '/user',
+    name: '用户管理',
+    icon: 'user',
+    routes: [
+      {
+        path: '/user/account',
+        name: '账号管理',
+        component: './UserManagement/Account',
+      },
+    ],
+  },
+  {
     path: '/course',
     name: '课程管理',
     icon: 'book',
@@ -26,17 +38,7 @@ export default [
       {
         path: '/course/textbook',
         name: '教材管理',
-        component: './Course/Textbook',
-      },
-      {
-        path: '/course/unit',
-        name: '课程单元',
-        component: './Course/CourseUnit',
-      },
-      {
-        path: '/course/knowledge',
-        name: '知识点',
-        component: './Course/Knowledge',
+        component: './Course/Textbook/List',
       },
       {
         path: '/course/question',
@@ -64,18 +66,6 @@ export default [
         path: '/system/textbook-version',
         name: '教材版本',
         component: './System/TextbookVersion',
-      },
-    ],
-  },
-  {
-    path: '/user',
-    name: '用户管理',
-    icon: 'user',
-    routes: [
-      {
-        path: '/user/account',
-        name: '账号管理',
-        component: './UserManagement/Account',
       },
     ],
   },

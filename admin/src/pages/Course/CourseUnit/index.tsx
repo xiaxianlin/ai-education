@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Modal, Form, Select, Input, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { CourseUnitApi } from '@/services/course-unit';
-import { useTextbookStore } from '@/stores/textbook-store';
 import { fmtTime } from '@/utils/time';
 
 const { Option } = Select;
@@ -16,12 +15,6 @@ const CourseUnitManagement: React.FC = () => {
   const [editingUnit, setEditingUnit] = useState<CourseUnit | null>(null);
   const actionRef = React.useRef<ActionType>();
 
-  const { textbooks, loadTextbooks } = useTextbookStore();
-
-  useEffect(() => {
-    loadTextbooks();
-  }, [loadTextbooks]);
-
   const columns: ProColumns<CourseUnit>[] = [
     {
       title: 'ID',
@@ -30,24 +23,12 @@ const CourseUnitManagement: React.FC = () => {
       hideInSearch: true,
     },
     {
-      title: '教材',
-      dataIndex: ['textbook', 'id'],
-      width: 200,
-      render: (text, record) => {
-        const textbook = textbooks.find(t => t.id === record.textbook.id);
-        if (!textbook) return record.textbook.id;
-        
-        const subject = textbooks.find(t => t.id === record.textbook.id);
-        return `${subject?.subject || ''} ${subject?.stage || ''}${subject?.grade || ''}级`;
-      },
-    },
-    {
-      title: '课程单元名称',
+      title: '单元名称',
       dataIndex: 'name',
       width: 200,
     },
     {
-      title: '内容',
+      title: '单元内容',
       dataIndex: 'content',
       width: 300,
       ellipsis: true,
@@ -57,9 +38,7 @@ const CourseUnitManagement: React.FC = () => {
       dataIndex: 'status',
       width: 100,
       render: (text, record) => (
-        <span style={{ color: record.status === 1 ? 'green' : 'red' }}>
-          {record.status === 1 ? '启用' : '禁用'}
-        </span>
+        <span style={{ color: record.status === 1 ? 'green' : 'red' }}>{record.status === 1 ? '启用' : '禁用'}</span>
       ),
     },
     {
@@ -81,21 +60,10 @@ const CourseUnitManagement: React.FC = () => {
       valueType: 'option',
       width: 120,
       render: (text, record) => [
-        <Button
-          key="edit"
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record)}
-        >
+        <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
           编辑
         </Button>,
-        <Button
-          key="delete"
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleDelete(record)}
-        >
+        <Button key="delete" type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
           删除
         </Button>,
       ],
@@ -137,26 +105,18 @@ const CourseUnitManagement: React.FC = () => {
     });
   };
 
-  const handleSubmit = async (values: { textbook_id: string; name: string; content: string }) => {
+  const handleSubmit = async (values: { textbook_id: number; name: string; content: string }) => {
     try {
-      const unitData = {
-        textbook_id: Number(values.textbook_id),
-        content: values.content,
-      };
-
       if (editingUnit) {
         // 更新时不传name，使用UpdateCourseUnit接口
-        await CourseUnitApi.update(editingUnit.id, { content: values.content });
+        await CourseUnitApi.update(editingUnit.id, { name: values.name, content: values.content });
         message.success('更新成功');
       } else {
         // 创建时需要name
-        await CourseUnitApi.create({
-          ...unitData,
-          content: `${values.name}\n${values.content}`,
-        });
+        await CourseUnitApi.create(values);
         message.success('创建成功');
       }
-      
+
       setModalVisible(false);
       actionRef.current?.reload();
     } catch (error) {
@@ -197,48 +157,14 @@ const CourseUnitManagement: React.FC = () => {
         width={600}
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item
-            label="教材"
-            name="textbook_id"
-            rules={[{ required: true, message: '请选择教材' }]}
-          >
-            <Select placeholder="请选择教材" disabled={!!editingUnit}>
-              {textbooks.map((textbook) => {
-                const subject = textbooks.find(t => t.id === textbook.id);
-                const label = subject 
-                  ? `${subject.subject} ${subject.stage}${subject.grade}级`
-                  : textbook.id;
-                
-                return (
-                  <Option key={textbook.id} value={textbook.id}>
-                    {label}
-                  </Option>
-                );
-              })}
-            </Select>
-          </Form.Item>
-
           {!editingUnit && (
-            <Form.Item
-              label="课程单元名称"
-              name="name"
-              rules={[{ required: true, message: '请输入课程单元名称' }]}
-            >
+            <Form.Item label="课程单元名称" name="name" rules={[{ required: true, message: '请输入课程单元名称' }]}>
               <Input placeholder="请输入课程单元名称" maxLength={100} />
             </Form.Item>
           )}
 
-          <Form.Item
-            label="内容"
-            name="content"
-            rules={[{ required: true, message: '请输入课程内容' }]}
-          >
-            <TextArea
-              rows={6}
-              placeholder="请输入课程内容"
-              maxLength={2000}
-              showCount
-            />
+          <Form.Item label="内容" name="content" rules={[{ required: true, message: '请输入课程内容' }]}>
+            <TextArea rows={6} placeholder="请输入课程内容" maxLength={2000} showCount />
           </Form.Item>
         </Form>
       </Modal>

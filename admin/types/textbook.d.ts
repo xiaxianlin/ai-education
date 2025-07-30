@@ -11,7 +11,8 @@ declare global {
   }
 
   interface Textbook {
-    id: string;
+    id: number;
+    name?: string;
     /** 科目 */
     subject: string;
     /** 教材版本 */
@@ -19,18 +20,21 @@ declare global {
     /** 学习阶段：小、初、高 */
     stage: string;
     /** 年级：1～12 */
-    grade: number;
-    /** 文档 */
-    pdf?: string;
+    grade: string;
+    semester: string;
+    is_parsed?: number;
+    index_file_id?: string;
     status: number;
     create_time: number;
+    update_time?: number;
   }
 
-  interface CreateTextbook {
+  interface TextbookFormModel {
     subject: string;
     version: string;
     stage: string;
-    grade: number;
+    grade: string;
+    semester: string;
   }
 }
 

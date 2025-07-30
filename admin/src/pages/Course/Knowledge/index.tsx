@@ -3,7 +3,7 @@ import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Modal, Form, Select, Input, message, Space, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SoundOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import { KnowledgeApi } from '@/services/knowledge';
-import { useTextbookStore } from '@/stores/textbook-store';
+import { useTextbookStore } from '@/pages/Course/Textbook/List/store';
 import { fmtTime } from '@/utils/time';
 
 const { Option } = Select;
@@ -17,7 +17,7 @@ const KnowledgeManagement: React.FC = () => {
   const [audioModalVisible, setAudioModalVisible] = useState(false);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [uploadingKnowledgeId, setUploadingKnowledgeId] = useState<string | null>(null);
-  
+
   const actionRef = React.useRef<ActionType>();
   const { courseUnits, loadCourseUnits } = useTextbookStore();
 
@@ -233,7 +233,7 @@ const KnowledgeManagement: React.FC = () => {
         await KnowledgeApi.create(knowledgeData);
         message.success('创建成功');
       }
-      
+
       setModalVisible(false);
       actionRef.current?.reload();
     } catch (error) {

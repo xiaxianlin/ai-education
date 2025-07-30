@@ -16,8 +16,8 @@ declare global {
   }
 
   interface UpdateCourseUnit {
-    name: string;
-    content: string;
+    name?: string;
+    content?: string;
   }
 }
 

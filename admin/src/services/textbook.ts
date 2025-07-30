@@ -1,12 +1,12 @@
 import { request } from '@@/plugin-request';
 
 export const TextbookApi = {
-  list: async () => {
-    const res = await request<ApiData<Textbook[]>>('/textbook/all');
+  search: async () => {
+    const res = await request<ListApiData<Textbook>>('/textbook/search');
     return res.data;
   },
 
-  create: async (data: CreateTextbook) => {
+  create: async (data: TextbookFormModel) => {
     const res = await request<ApiData<Textbook>>('/textbook', {
       method: 'POST',
       data,
@@ -14,7 +14,7 @@ export const TextbookApi = {
     return res.data;
   },
 
-  update: async (id: string, data: CreateTextbook) => {
+  update: async (id: number, data: TextbookFormModel) => {
     const res = await request<ApiData<Textbook>>(`/textbook/${id}`, {
       method: 'PATCH',
       data,
@@ -22,7 +22,7 @@ export const TextbookApi = {
     return res.data;
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     await request<ApiData<void>>(`/textbook/${id}`, {
       method: 'DELETE',
     });

@@ -13,6 +13,12 @@ declare global {
     message?: string;
     status?: number;
   }
+
+  interface ListApiData<T = any> {
+    data: ListData<T>;
+    message?: string;
+    status?: number;
+  }
 }
 
 export {};
