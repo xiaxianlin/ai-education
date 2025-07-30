@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from service.admin.course_unit import CourseUnitService
 from service.admin.knowledge import KnowledgeService
 from service.admin.question import QuestionService
+from service.textbook import TextbookParserService
 from store.database import GetDB
 from service.admin import TextbookService
 from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema
@@ -17,10 +18,11 @@ async def upload(id: int, file: UploadFile, db: AsyncSession = GetDB):
     return ResponseSchema()
 
 
-@router.post("/{id}/extract")
+@router.post("/{id}/parse")
 async def extract_units(id: int, db: AsyncSession = GetDB):
     """启动PDF单元提取任务"""
-    return ResponseSchema()
+    res = await TextbookParserService.start(db, id)
+    return ResponseSchema(data=res)
 
 
 @router.post("/")

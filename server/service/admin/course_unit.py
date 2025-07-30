@@ -88,7 +88,7 @@ class CourseUnitService:
 
     async def search(db: AsyncSession, params: SearchSchema) -> Tuple[List[CourseUnit], int]:
         """搜索课程单元"""
-        query = select(CourseUnit)
+        query = select(CourseUnit).options(noload(CourseUnit.textbook))
 
         if params.keywords:
             query.where(
