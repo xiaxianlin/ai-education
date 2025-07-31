@@ -12,7 +12,7 @@ export default function MainView() {
   return (
     <PageContainer
       loading={loading}
-      header={{ title: '' }}
+      header={{ title: '教材详情', breadcrumb: {} }}
       footer={[]}
       footerToolBarProps={{ renderContent: () => <Footer /> }}
     >

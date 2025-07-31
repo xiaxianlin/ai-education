@@ -9,7 +9,17 @@ export default function MainView() {
   const { actionRef, formRes } = useTextbookListModel();
   const columns = useColumns();
   return (
-    <PageContainer header={{ title: '' }}>
+    <PageContainer
+      header={{
+        breadcrumb: {},
+        title: '教材管理',
+        extra: [
+          <Button type="primary" onClick={() => formRes.showForm()}>
+            新增教材
+          </Button>,
+        ],
+      }}
+    >
       <ProTable<Textbook>
         actionRef={actionRef}
         rowKey="id"
@@ -18,11 +28,7 @@ export default function MainView() {
         scroll={{ x: 'max-content' }}
         toolbar={{
           settings: [],
-          actions: [
-            <Button type="primary" onClick={() => formRes.showForm()}>
-              新增教材
-            </Button>,
-          ],
+          actions: [],
         }}
         request={async () => {
           const data = await TextbookApi.search();
