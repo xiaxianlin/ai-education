@@ -2,6 +2,7 @@ declare global {
   interface Knowledge {
     id: string;
     course_unit: CourseUnit;
+    name: string;
     content: string;
     analysis_text?: string;
     analysis_audio?: string;
