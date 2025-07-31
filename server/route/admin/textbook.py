@@ -6,7 +6,7 @@ from service.admin.question import QuestionService
 from service.textbook import TextbookParseService, TextbookUploadService
 from store.database import GetDB
 from service.admin import TextbookService
-from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema
+from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema, StatusSchema
 
 router = APIRouter(prefix="/textbook")
 
@@ -43,6 +43,12 @@ async def update(id: str, params: TextbookSaveSchema, db: AsyncSession = GetDB):
 async def delete(id: str, db: AsyncSession = GetDB):
     """删除教材"""
     await TextbookService.delete(db, id)
+    return ResponseSchema()
+
+
+@router.put("/{id}/status")
+async def update_status(id: str, params: StatusSchema, db: AsyncSession = GetDB):
+    await TextbookService.update_status(db, id, params.status)
     return ResponseSchema()
 
 

@@ -1,6 +1,11 @@
-import { request } from '@@/plugin-request';
+import { request } from '@umijs/max';
 
 export const TextbookApi = {
+  get: async (id: number) => {
+    const res = await request<ApiData<Textbook>>(`/textbook/${id}`, {});
+    return res.data;
+  },
+
   search: async () => {
     const res = await request<ListApiData<Textbook>>('/textbook/search');
     return res.data;
@@ -28,7 +33,7 @@ export const TextbookApi = {
     });
   },
 
-  toggleStatus: async (id: string, status: number) => {
+  toggleStatus: async (id: number, status: number) => {
     const res = await request<ApiData<Textbook>>(`/textbook/${id}/status`, {
       method: 'PUT',
       data: { status },
@@ -46,7 +51,17 @@ export const TextbookApi = {
     return res.data;
   },
 
-  uploadPdf: async (id: string, file: File) => {
+  getUnits: async (id: number) => {
+    const res = await request<ApiData<CourseUnit[]>>(`/textbook/${id}/course_units`);
+    return res.data;
+  },
+
+  getKnowledges: async (id: number) => {
+    const res = await request<ApiData<Knowledge[]>>(`/textbook/${id}/knowledges`);
+    return res.data;
+  },
+
+  uploadPdf: async (id: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     const res = await request<ApiData<{ pdf: string }>>(`/textbook/${id}/pdf`, {

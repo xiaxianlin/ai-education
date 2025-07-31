@@ -1,9 +1,8 @@
 from sqlalchemy import asc, desc, func, select
-from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from core import get_logger
 from store.database.models import Textbook, CourseUnit, Subject, TextbookVersion
-from schema import CourseUnitSchema, TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
+from schema import TextbookSaveSchema, TextbookSchema, TextbookSearchSchema
 from aliyun import AliyunOSS
 from util import time
 
@@ -73,15 +72,7 @@ class TextbookService:
         textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
         if not textbook:
             raise ValueError("教材不存在")
-        data = TextbookSchema.model_validate(textbook)
-
-        result = await db.scalars(
-            select(CourseUnit)
-            .options(noload(CourseUnit.textbook))
-            .where(CourseUnit.textbook_id == textbook_id)
-        )
-        data.course_units = [CourseUnitSchema.model_validate(unit) for unit in result.all()]
-        return data
+        return TextbookSchema.model_validate(textbook)
 
     async def search(db: AsyncSession, params: TextbookSearchSchema):
         stmt = select(Textbook)
@@ -114,3 +105,12 @@ class TextbookService:
             "total": total,
             "data": [manager.to_dict({"password"}) for manager in results.unique().all()],
         }
+
+    async def update_status(db: AsyncSession, id: int, status: int):
+        logger.info(f"id: {id}, status: {status}")
+        textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
+        if not textbook:
+            raise ValueError("教材不存在")
+
+        textbook.status = status
+        await db.commit()

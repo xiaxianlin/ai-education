@@ -1,5 +1,5 @@
 import { ManagerStatus } from '@/constants/manager';
-import { request } from '@@/plugin-request';
+import { request } from '@umijs/max';
 
 export const ManagerApi = {
   create: async (data: CreateManagerModel) => {

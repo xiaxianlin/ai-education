@@ -1,7 +1,6 @@
 declare global {
   interface CourseUnit {
     id: string;
-    textbook: Textbook;
     name: string;
     content: string;
     status: number;

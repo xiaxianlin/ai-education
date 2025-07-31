@@ -1,74 +1,39 @@
-import { useRef, useState } from 'react';
-import { Form, message } from 'antd';
-import { useRequest } from 'ahooks';
+import { useRef } from 'react';
 import { createContainer } from 'unstated-next';
-import { TextbookApi } from '@/services/textbook';
 import { ActionType } from '@ant-design/pro-components';
+import { useTextbookForm } from '@/hooks';
+import { useRequest } from 'ahooks';
+import { TextbookApi } from '@/services/textbook';
+import { message, Modal } from 'antd';
 
 const useContainer = () => {
-  const [form] = Form.useForm();
-  const [editId, setEditId] = useState<number>();
-  const [visible, setVisible] = useState(false);
   const actionRef = useRef<ActionType>();
+  const formRes = useTextbookForm({
+    onSubmit: () => actionRef.current?.reload(),
+  });
 
-  const { data: versions } = useRequest(TextbookApi.getVersions);
-  const { data: subjects } = useRequest(TextbookApi.getSubjects);
-
-  const { runAsync: deleteTextbook } = useRequest(TextbookApi.delete, {
+  const { runAsync } = useRequest(TextbookApi.toggleStatus, {
     manual: true,
-    onSuccess: () => {
-      message.success('删除成功');
+    onSuccess: (_, [_id, status]) => {
+      message.success(status ? '启用成功' : '停用成功');
       actionRef.current?.reload();
     },
   });
 
-  const { runAsync: handleSubmit } = useRequest(
-    async (values: TextbookFormModel) => {
-      if (editId) {
-        await TextbookApi.update(editId, values);
-      } else {
-        await TextbookApi.create(values);
-      }
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success(editId ? '更新成功' : '新增成功');
-        actionRef.current?.reload();
-        handleCancel();
-      },
-    },
-  );
-
-  const handleCancel = () => {
-    form.resetFields();
-    setEditId(undefined);
-    setVisible(false);
-  };
-
-  const handleAdd = () => {
-    setEditId(undefined);
-    setVisible(true);
-  };
-
-  const handleEdit = (item: Textbook) => {
-    form.setFieldsValue({ ...item });
-    setEditId(item.id);
-    setVisible(true);
+  const updateStatus = (textbook: Textbook) => {
+    Modal.confirm({
+      title: '状态变更',
+      content: `确定要${textbook.status ? '停用' : '启用'}该教材吗？`,
+      okText: '确定',
+      cancelText: '取消',
+      onOk: () => runAsync(textbook.id, textbook.status ? 0 : 1),
+    });
   };
 
   return {
-    form,
-    isEdit: !!editId,
-    visible,
-    versions,
-    subjects,
+    formRes,
     actionRef,
-    deleteTextbook,
-    handleEdit,
-    handleCancel,
-    handleAdd,
-    handleSubmit,
+    updateStatus,
   };
 };
 

@@ -1,4 +1,4 @@
-import { request } from '@@/plugin-request';
+import { request } from '@umijs/max';
 
 export const CourseUnitApi = {
   list: async () => {

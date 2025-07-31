@@ -1,16 +1,16 @@
-import { defineConfig } from "@umijs/max";
-import proxy from "./proxy";
-import routes from "./routes";
+import { defineConfig } from '@umijs/max';
+import proxy from './proxy';
+import routes from './routes';
 
-const { REACT_APP_ENV = "dev" } = process.env;
-const isDev = process.env.NODE_ENV === "development";
+const { REACT_APP_ENV = 'dev' } = process.env;
+const isDev = process.env.NODE_ENV === 'development';
 
 export default defineConfig({
   history: {
-    type: "hash",
+    type: 'hash',
   },
   codeSplitting: {
-    jsStrategy: "granularChunks",
+    jsStrategy: 'granularChunks',
   },
   /**
    * @name 开启 hash 模式
@@ -34,7 +34,7 @@ export default defineConfig({
   theme: {
     // 如果不想要 configProvide 动态设置主题需要把这个设置为 default
     // 只有设置为 variable， 才能使用 configProvide 动态设置主色调
-    "root-entry-name": "variable",
+    'root-entry-name': 'variable',
   },
   /**
    * @name moment 的国际化配置
@@ -71,7 +71,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: "AI 教育",
+  title: 'AI 教育',
   layout: {
     locale: false,
   },
@@ -81,8 +81,8 @@ export default defineConfig({
    * @doc https://umijs.org/docs/max/moment2dayjs
    */
   moment2dayjs: {
-    preset: "antd",
-    plugins: ["duration"],
+    preset: 'antd',
+    plugins: ['duration'],
   },
   /**
    * @name antd 插件
@@ -108,21 +108,19 @@ export default defineConfig({
    */
   headScripts: [
     // 解决首次加载时白屏的问题
-    { src: "/scripts/loading.js", async: true },
+    { src: '/scripts/loading.js', async: true },
   ],
 
   //================ pro 插件配置 =================
-  presets: ["umi-presets-pro"],
+  presets: ['umi-presets-pro'],
   mfsu: {
-    strategy: "normal",
+    strategy: 'normal',
   },
   esbuildMinifyIIFE: true,
   requestRecord: {},
-  jsMinifier: "terser",
+  jsMinifier: 'terser',
   define: {
-    "process.env.WS_API": isDev
-      ? "ws://127.0.0.1:8000/api"
-      : "wss://ai.ixxl.me/api",
+    'process.env.WS_API': isDev ? 'ws://127.0.0.1:8000/api' : 'wss://ai.ixxl.me/api',
   },
   plugins: [],
   tailwindcss: {},
