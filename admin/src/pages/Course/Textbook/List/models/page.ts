@@ -1,14 +1,14 @@
 import { useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
-import { useTextbookForm } from '@/hooks';
+import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { TextbookApi } from '@/services/textbook';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const formRes = useTextbookForm({
+  const formRes = useSimpleForm<TextbookForm, Textbook>({
     onSubmit: () => actionRef.current?.reload(),
   });
 
@@ -22,10 +22,9 @@ const useContainer = () => {
 
   const updateStatus = (textbook: Textbook) => {
     Modal.confirm({
+      centered: true,
       title: '状态变更',
       content: `确定要${textbook.status ? '停用' : '启用'}该教材吗？`,
-      okText: '确定',
-      cancelText: '取消',
       onOk: () => runAsync(textbook.id, textbook.status ? 0 : 1),
     });
   };

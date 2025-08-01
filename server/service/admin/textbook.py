@@ -54,16 +54,19 @@ class TextbookService:
         if not textbook:
             return True
 
-        count = await db.scalar(
-            select(func.count()).select_from(CourseUnit).where(CourseUnit.textbook_id == id)
+        count = (
+            await db.scalar(
+                select(func.count()).select_from(CourseUnit).where(CourseUnit.textbook_id == id)
+            )
+            or 0
         )
 
-        if not count and count > 0:
-            raise ValueError("教材已经被使用")
+        if count > 0:
+            raise ValueError("教材已经被使用，不能被删除")
 
-        if textbook.name:
+        if textbook.file:
             oss = AliyunOSS()
-            await oss.delete(f"textbook/{textbook.name}")
+            await oss.delete(f"textbook/{textbook.file}")
 
         await db.delete(textbook)
         await db.commit()
@@ -75,6 +78,7 @@ class TextbookService:
         return TextbookSchema.model_validate(textbook)
 
     async def search(db: AsyncSession, params: TextbookSearchSchema):
+        logger.info(params)
         stmt = select(Textbook)
         if params.stage:
             stmt = stmt.where(Textbook.stage == params.stage)

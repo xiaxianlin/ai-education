@@ -1,4 +1,4 @@
-from sqlalchemy import or_, select, func
+from sqlalchemy import or_, select, func, update
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
@@ -42,14 +42,11 @@ class CourseUnitService:
         print(unit.textbook)
         return CourseUnitSchema.model_validate(unit)
 
-    async def get_by_textbook(db: AsyncSession, textbook_id: int, status: int = 1):
+    async def get_by_textbook(db: AsyncSession, textbook_id: int):
         """根据教材ID获取课程单元列表"""
         query = (
             select(CourseUnit)
-            .where(
-                CourseUnit.textbook_id == textbook_id,
-                CourseUnit.status == status,
-            )
+            .where(CourseUnit.textbook_id == textbook_id)
             .options(noload(CourseUnit.textbook))
         )
         results = await db.scalars(query)
@@ -71,8 +68,6 @@ class CourseUnitService:
             unit.analysis_audio = update.analysis_audio
         if update.analysis_video is not None:
             unit.analysis_video = update.analysis_video
-        if update.status is not None:
-            unit.status = update.status
 
         unit.update_time = time.now()
         await db.commit()
@@ -82,6 +77,15 @@ class CourseUnitService:
         unit = await db.scalar(select(CourseUnit).where(CourseUnit.id == unit_id))
         if not unit:
             raise ValueError("课程单元不存在")
+
+        total = (
+            await db.scalar(
+                select(func.count(Knowledge.id)).where(Knowledge.course_unit_id == unit_id)
+            )
+            or 0
+        )
+        if total > 0:
+            raise ValueError("课程单元已关联了知识点，不能被删除")
 
         await db.delete(unit)
         await db.commit()
@@ -111,3 +115,20 @@ class CourseUnitService:
             total=total,
             data=[CourseUnitSchema.model_validate(unit) for unit in units.all()],
         )
+
+    async def update_status(db: AsyncSession, unit_id: int, status: int):
+        unit = await db.scalar(select(CourseUnit).where(CourseUnit.id == unit_id))
+        if not unit:
+            raise ValueError("课程单元不存在")
+        unit.status = status
+
+        if status == 0:
+            stmt = (
+                update(Knowledge)
+                .where(Knowledge.course_unit_id == unit_id)
+                .values({"status": 0, "update_time": time.now()})
+            )
+            await db.execute(stmt)
+
+        unit.update_time = time.now()
+        await db.commit()

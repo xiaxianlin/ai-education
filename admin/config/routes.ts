@@ -1,4 +1,6 @@
-﻿export default [
+﻿import { layout } from '@/app';
+
+export default [
   { path: '/', redirect: '/home' },
   {
     path: '/home',
@@ -22,6 +24,7 @@
     path: '/course',
     name: '课程管理',
     icon: 'book',
+    wrappers: ['@/layouts/CourseLayout'],
     routes: [
       {
         path: '/course/textbook',

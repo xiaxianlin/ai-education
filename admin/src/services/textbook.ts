@@ -6,12 +6,12 @@ export const TextbookApi = {
     return res.data;
   },
 
-  search: async () => {
-    const res = await request<ListApiData<Textbook>>('/textbook/search');
+  search: async (params: Record<string, any>) => {
+    const res = await request<ListApiData<Textbook>>('/textbook/search', { params });
     return res.data;
   },
 
-  create: async (data: TextbookFormModel) => {
+  create: async (data: TextbookForm) => {
     const res = await request<ApiData<Textbook>>('/textbook', {
       method: 'POST',
       data,
@@ -19,9 +19,9 @@ export const TextbookApi = {
     return res.data;
   },
 
-  update: async (id: number, data: TextbookFormModel) => {
+  update: async (id: number, data: TextbookForm) => {
     const res = await request<ApiData<Textbook>>(`/textbook/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       data,
     });
     return res.data;
@@ -33,21 +33,17 @@ export const TextbookApi = {
     });
   },
 
-  toggleStatus: async (id: number, status: number) => {
-    const res = await request<ApiData<Textbook>>(`/textbook/${id}/status`, {
-      method: 'PUT',
-      data: { status },
+  parse: async (id: number) => {
+    const res = await request<ApiData<Textbook>>(`/textbook/${id}/parse`, {
+      method: 'POST',
     });
     return res.data;
   },
 
-  getSubjects: async () => {
-    const res = await request<ApiData<Subject[]>>('/subject/all');
-    return res.data;
-  },
-
-  getVersions: async () => {
-    const res = await request<ApiData<TextbookVersion[]>>('/textbook_version/all');
+  toggleStatus: async (id: number, status: number) => {
+    const res = await request<ApiData<Textbook>>(`/textbook/${id}/status/${status}`, {
+      method: 'PATCH',
+    });
     return res.data;
   },
 
@@ -61,15 +57,11 @@ export const TextbookApi = {
     return res.data;
   },
 
-  uploadPdf: async (id: number, file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await request<ApiData<{ pdf: string }>>(`/textbook/${id}/pdf`, {
+  upload: async (id: number, data: FormData) => {
+    const res = await request<ApiData<any>>(`/textbook/${id}/upload`, {
       method: 'POST',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      data,
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
   },

@@ -1,8 +1,7 @@
-from sqlalchemy import or_, select, and_, func
+from sqlalchemy import or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Tuple
-from store.database.models import Knowledge, CourseUnit, Textbook
+from store.database.models import Knowledge, CourseUnit, Question
 from util import time
 from schema import (
     SearchSchema,
@@ -55,8 +54,8 @@ class KnowledgeService:
         """根据教材ID获取知识点列表"""
         query = (
             select(Knowledge)
-            .options(noload(Knowledge.textbook), noload(Knowledge.course_unit))
-            .where(Knowledge.textbook_id == textbook_id, Knowledge.status == 1)
+            .options(noload(Knowledge.textbook))
+            .where(Knowledge.textbook_id == textbook_id)
         )
         knowledges = await db.scalars(query)
 
@@ -67,7 +66,7 @@ class KnowledgeService:
         query = (
             select(Knowledge)
             .options(noload(Knowledge.textbook), noload(Knowledge.course_unit))
-            .where(Knowledge.course_unit_id == course_unit_id, Knowledge.status == 1)
+            .where(Knowledge.course_unit_id == course_unit_id)
         )
         knowledges = await db.scalars(query)
 
@@ -100,6 +99,15 @@ class KnowledgeService:
         knowledge = await db.scalar(select(Knowledge).where(Knowledge.id == knowledge_id))
         if not knowledge:
             raise ValueError("知识点不存在")
+
+        total = (
+            await db.scalar(
+                select(func.count(Question.id)).where(Question.knowledge_id == knowledge_id)
+            )
+            or 0
+        )
+        if total > 0:
+            raise ValueError("知识点已关联了问题，不能被删除")
 
         await db.delete(knowledge)
         await db.commit()

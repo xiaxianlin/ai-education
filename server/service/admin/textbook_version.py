@@ -62,8 +62,11 @@ class TextbookVersionService:
         await db.delete(version)
         await db.commit()
 
-    async def all(db: AsyncSession):
-        results = await db.scalars(select(TextbookVersion).order_by(TextbookVersion.id))
+    async def find(db: AsyncSession, status: int = None):
+        stmt = select(TextbookVersion)
+        if status:
+            stmt = stmt.where(TextbookVersion.status == status)
+        results = await db.scalars(stmt.order_by(TextbookVersion.id))
         return [TextbookVersionSchema.model_validate(version) for version in results.all()]
 
     async def update_status(db: AsyncSession, id: int, status: int):

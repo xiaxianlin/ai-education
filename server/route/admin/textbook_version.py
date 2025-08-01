@@ -10,7 +10,13 @@ router = APIRouter(prefix="/textbook_version")
 
 @router.get("/all")
 async def search(db: AsyncSession = GetDB):
-    res = await TextbookVersionService.all(db)
+    res = await TextbookVersionService.find(db)
+    return ResponseSchema(data=res)
+
+
+@router.get("/actives")
+async def search(db: AsyncSession = GetDB):
+    res = await TextbookVersionService.find(db, 1)
     return ResponseSchema(data=res)
 
 

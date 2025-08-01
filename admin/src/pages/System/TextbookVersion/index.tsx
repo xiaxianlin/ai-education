@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ProTable, ProColumns, ActionType, PageContainer } from '@ant-design/pro-components';
 import { Button, Modal, Form, Input, Switch, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { TextbookVersionApi } from '@/services/textbook-version';
+import { TextbookVersionApi } from '@/services/textbook_version';
 import { fmtTime } from '@/utils/time';
 
 const TextbookVersionManagement: React.FC = () => {
@@ -51,7 +51,13 @@ const TextbookVersionManagement: React.FC = () => {
         <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
           编辑
         </Button>,
-        <Button key="delete" type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
+        <Button
+          key="delete"
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDelete(record)}
+        >
           删除
         </Button>,
       ],
@@ -93,7 +99,7 @@ const TextbookVersionManagement: React.FC = () => {
     actionRef.current?.reload();
   };
 
-  const handleSubmit = async (values: CreateTextbookVersion) => {
+  const handleSubmit = async (values: { name: string }) => {
     const res = editingVersion
       ? await TextbookVersionApi.update(editingVersion.id, values)
       : await TextbookVersionApi.create(values);

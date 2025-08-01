@@ -59,13 +59,13 @@ class Textbook(BaseModel):
     __tablename__ = "ah_textbook"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(255))
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(255), nullable=False)
     stage: Mapped[str] = mapped_column(String(255), nullable=False)
     grade: Mapped[str] = mapped_column(String(255), nullable=False)
     semester: Mapped[str] = mapped_column(String(255), nullable=False)
     is_parsed: Mapped[int] = mapped_column(default=0)
+    file: Mapped[str] = mapped_column(String(255))
     index_file_id: Mapped[str] = mapped_column(String(255))
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=time.now)

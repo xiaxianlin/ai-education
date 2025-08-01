@@ -21,11 +21,9 @@ async def create_course_unit(create: CourseUnitCreateSchema, db: AsyncSession = 
     return ResponseSchema(data=res)
 
 
-@router.patch("/{unit_id}")
+@router.put("/{unit_id}")
 async def update_course_unit(
-    unit_id: int,
-    unit_update: CourseUnitUpdateSchema,
-    db: AsyncSession = GetDB,
+    unit_id: int, unit_update: CourseUnitUpdateSchema, db: AsyncSession = GetDB
 ):
     """更新课程单元"""
     await CourseUnitService.update(db, unit_id, unit_update)
@@ -36,6 +34,12 @@ async def update_course_unit(
 async def delete_course_unit(unit_id: int, db: AsyncSession = GetDB):
     """删除课程单元"""
     await CourseUnitService.delete(db=db, unit_id=unit_id)
+    return ResponseSchema()
+
+
+@router.patch("/{id}/status/{status}")
+async def update_status(id: int, status: int, db: AsyncSession = GetDB):
+    await CourseUnitService.update_status(db, id, status)
     return ResponseSchema()
 
 

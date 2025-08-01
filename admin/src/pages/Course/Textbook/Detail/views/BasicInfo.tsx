@@ -1,10 +1,10 @@
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
 import React from 'react';
 import { useTextbookDetailModel } from '../models/page';
-import { Tag } from 'antd';
+import { Switch, Tag } from 'antd';
 
 export const BasicInfo = () => {
-  const { textbook } = useTextbookDetailModel();
+  const { textbook, updateStatus } = useTextbookDetailModel();
   return (
     <ProCard>
       <ProDescriptions column={3} title="基本信息">
@@ -13,14 +13,17 @@ export const BasicInfo = () => {
         <ProDescriptions.Item label="阶段">{textbook?.stage}</ProDescriptions.Item>
         <ProDescriptions.Item label="年级">{textbook?.grade}</ProDescriptions.Item>
         <ProDescriptions.Item label="学期">{textbook?.semester}</ProDescriptions.Item>
-        <ProDescriptions.Item label="文件上传">
-          {textbook?.name ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>}
-        </ProDescriptions.Item>
+        <ProDescriptions.Item label="文件">{textbook?.file}</ProDescriptions.Item>
         <ProDescriptions.Item label="单元解析">
           {textbook?.is_parsed ? <Tag color="success">已解析</Tag> : <Tag>未解析</Tag>}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="状态">
-          {textbook?.status ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>}
+          <Switch
+            checked={!!textbook?.status}
+            checkedChildren="启用"
+            unCheckedChildren="停用"
+            onChange={updateStatus}
+          />
         </ProDescriptions.Item>
         <ProDescriptions.Item label="创建时间" valueType="dateTime">
           {(textbook?.create_time || 0) * 1000}

@@ -1,1 +1,1 @@
-export * from './PdfUpload';
+export * from './UploadButton';

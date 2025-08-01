@@ -6,7 +6,12 @@ export const TextbookVersionApi = {
     return res.data;
   },
 
-  create: async (data: CreateTextbookVersion) => {
+  actives: async () => {
+    const res = await request<ApiData<TextbookVersion[]>>('/textbook_version/actives');
+    return res.data;
+  },
+
+  create: async (data: { name: string }) => {
     const res = await request<ApiData<TextbookVersion>>('/textbook_version', {
       method: 'POST',
       data,
@@ -14,7 +19,7 @@ export const TextbookVersionApi = {
     return res.status === 0;
   },
 
-  update: async (id: string, data: CreateTextbookVersion) => {
+  update: async (id: number, data: { name: string }) => {
     const res = await request<ApiData<TextbookVersion>>(`/textbook_version/${id}`, {
       method: 'PATCH',
       data,
@@ -22,7 +27,7 @@ export const TextbookVersionApi = {
     return res.status === 0;
   },
 
-  delete: async (id: string) => {
+  delete: async (id: number) => {
     const res = await request<ApiData<void>>(`/textbook_version/${id}`, {
       method: 'DELETE',
     });

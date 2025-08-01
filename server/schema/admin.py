@@ -92,7 +92,6 @@ class CourseUnitUpdateSchema(BaseModel):
     analysis_text: Optional[str] = None
     analysis_audio: Optional[str] = None
     analysis_video: Optional[str] = None
-    status: Optional[int] = None
 
 
 class KnowledgeCreateSchema(BaseModel):

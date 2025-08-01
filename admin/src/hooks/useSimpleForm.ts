@@ -1,33 +1,34 @@
 import { useState } from 'react';
 import { Form } from 'antd';
 
-export const useTextbookForm = (options?: { onSubmit?: () => void }) => {
-  const [form] = Form.useForm();
-  const [editId, setEditId] = useState<number>();
+export function useSimpleForm<Values, Entity>(options?: { onSubmit?: () => void }) {
+  const [form] = Form.useForm<Values>();
+  const [editingItem, setEditingItem] = useState<Entity>();
   const [visible, setVisible] = useState(false);
 
-  const showForm = (item?: Textbook) => {
+  const showForm = (item?: Entity) => {
     setVisible(true);
     if (item) {
       form.setFieldsValue({ ...item });
-      setEditId(item.id);
+      setEditingItem(item);
     }
   };
 
   const onCancel = () => {
-    setEditId(undefined);
+    setEditingItem(undefined);
     setVisible(false);
   };
 
   const onSubmit = () => {
     options?.onSubmit?.();
   };
+
   return {
     form,
-    editId,
+    editingItem,
     visible,
     showForm,
     onCancel,
     onSubmit,
   };
-};
+}

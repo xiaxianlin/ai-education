@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
-import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Modal, Form, Input, message } from 'antd';
-import { CourseUnitApi } from '@/services/course-unit';
+import React from 'react';
+import {
+  ProTable,
+  ProColumns,
+  ModalForm,
+  ProFormText,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
+import { Button, Switch } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookDetailModel } from '../models/page';
-import { StatusTag } from '@/components/ui';
 import { PlusOutlined } from '@ant-design/icons';
+import { useTextbookUnitModel } from '../models/unit';
 
 export const UnitView: React.FC = () => {
-  const [form] = Form.useForm();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingUnit, setEditingUnit] = useState<CourseUnit | null>(null);
-  const actionRef = React.useRef<ActionType>();
-  const { id } = useTextbookDetailModel();
+  const { id, setUnits } = useTextbookDetailModel();
+  const {
+    actionRef,
+    formProps: { form, visible, editingItem, showForm, onCancel },
+    updateStatus,
+    handleDelete,
+    handleSubmit,
+  } = useTextbookUnitModel();
 
   const columns: ProColumns<CourseUnit>[] = [
     { title: '单元名称', dataIndex: 'name' },
@@ -21,24 +29,35 @@ export const UnitView: React.FC = () => {
     {
       title: '状态',
       dataIndex: 'status',
-      render: (status) => <StatusTag status={!!status} />,
+      width: 90,
+      render: (_, record) => (
+        <Switch
+          checked={!!record.status}
+          checkedChildren="启用"
+          unCheckedChildren="停用"
+          onChange={() => updateStatus(record)}
+        />
+      ),
     },
     {
       title: '创建时间',
       dataIndex: 'create_time',
+      width: 160,
       renderText: (time) => fmtTime(time),
     },
     {
       title: '更新时间',
       dataIndex: 'update_time',
+      width: 160,
       renderText: (time) => fmtTime(time),
     },
     {
       title: '操作',
       valueType: 'option',
       width: 120,
-      render: (text, record) => [
-        <Button key="edit" type="link" onClick={() => handleEdit(record)}>
+      fixed: 'right',
+      render: (_, record) => [
+        <Button key="edit" type="link" onClick={() => showForm(record)}>
           编辑
         </Button>,
         <Button key="delete" type="link" danger onClick={() => handleDelete(record)}>
@@ -48,60 +67,6 @@ export const UnitView: React.FC = () => {
     },
   ];
 
-  const handleAdd = () => {
-    setEditingUnit(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleEdit = (unit: CourseUnit) => {
-    setEditingUnit(unit);
-    form.setFieldsValue({
-      textbook_id: id,
-      name: unit.name,
-      content: unit.content,
-    });
-    setModalVisible(true);
-  };
-
-  const handleDelete = (unit: CourseUnit) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除课程单元 "${unit.name}" 吗？`,
-      okText: '确认',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await CourseUnitApi.delete(unit.id);
-          message.success('删除成功');
-          actionRef.current?.reload();
-        } catch (error) {
-          message.error('删除失败');
-        }
-      },
-    });
-  };
-
-  const handleSubmit = async (values: { textbook_id: number; name: string; content: string }) => {
-    try {
-      if (editingUnit) {
-        // 更新时不传name，使用UpdateCourseUnit接口
-        await CourseUnitApi.update(editingUnit.id, { name: values.name, content: values.content });
-        message.success('更新成功');
-      } else {
-        // 创建时需要name
-        await CourseUnitApi.create(values);
-        message.success('创建成功');
-      }
-
-      setModalVisible(false);
-      actionRef.current?.reload();
-    } catch (error) {
-      message.error(editingUnit ? '更新失败' : '创建失败');
-    }
-  };
-
   return (
     <div className="custom-table">
       <Button
@@ -109,7 +74,7 @@ export const UnitView: React.FC = () => {
         type="primary"
         className="absolute right-0 top-[-48px]"
         icon={<PlusOutlined />}
-        onClick={() => handleAdd()}
+        onClick={() => showForm()}
       >
         添加单元
       </Button>
@@ -122,30 +87,36 @@ export const UnitView: React.FC = () => {
         toolbar={{ settings: [] }}
         request={async () => {
           const data = await TextbookApi.getUnits(id);
+          setUnits(data);
           return { data, success: true, total: data.length };
         }}
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 7 }}
       />
-
-      <Modal
-        title={editingUnit ? '编辑单元' : '新程单元'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        onOk={() => form.submit()}
-        okText="保存"
-        cancelText="取消"
+      <ModalForm<CoureSimpleForm>
         width={600}
+        form={form}
+        open={visible}
+        title={editingItem ? '更新单元' : '新增单元'}
+        onFinish={handleSubmit}
+        modalProps={{ destroyOnClose: true, onCancel }}
+        size="large"
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item label="单元名称" name="name" rules={[{ required: true }]}>
-            <Input placeholder="请输入单元名称" maxLength={100} />
-          </Form.Item>
-
-          <Form.Item label="单元内容" name="content" rules={[{ required: true }]}>
-            <Input.TextArea rows={6} placeholder="请输入单元内容" maxLength={2000} showCount />
-          </Form.Item>
-        </Form>
-      </Modal>
+        <div className="pt-3" />
+        <ProFormText
+          name="name"
+          label="单元名称"
+          placeholder="请输入单元名称"
+          rules={[{ required: true }]}
+          fieldProps={{ maxLength: 100 }}
+        />
+        <ProFormTextArea
+          name="content"
+          label="单元内容"
+          placeholder="请输入单元内容"
+          rules={[{ required: true }]}
+          fieldProps={{ rows: 6, maxLength: 2000 }}
+        />
+      </ModalForm>
     </div>
   );
 };

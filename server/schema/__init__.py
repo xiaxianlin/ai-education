@@ -79,12 +79,12 @@ class CourseUnitSchema(BaseModel):
 
 class TextbookSchema(BaseModel):
     id: int
-    name: Optional[str] = None
     subject: str
     version: str
     stage: str
     grade: str
     semester: str
+    file: Optional[str] = None
     index_file_id: Optional[str] = None
     is_parsed: int = 0
     status: int = 1

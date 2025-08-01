@@ -20,8 +20,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
   return {
     logo,
     title: 'AI 教育',
-    layout: 'mix',
-    theme: 'dark',
+    layout: 'side',
     contentWidth: 'Fixed',
     fixedHeader: true,
     fixSiderbar: true,
@@ -39,7 +38,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
 };
 
 export const request: RequestConfig<ApiData<any>> = {
-  timeout: 10000,
+  timeout: 10 * 60 * 1000,
   baseURL: '/api/admin',
   requestInterceptors: [
     (url, options) => {
@@ -59,6 +58,7 @@ export const request: RequestConfig<ApiData<any>> = {
         history.push('/password');
       } else if (data.status !== 0) {
         message.error(data.message || '网络异常');
+        throw data.message || '网络异常';
       }
       return response;
     },

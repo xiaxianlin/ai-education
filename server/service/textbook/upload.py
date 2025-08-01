@@ -16,7 +16,7 @@ class TextbookUploadService:
         textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
         if not textbook:
             raise ValueError("教材不存在")
-        textbook.name = file.filename
+        textbook.file = file.filename
 
         # 上传到 oss
         oss = AliyunOSS()
@@ -34,7 +34,7 @@ class TextbookUploadService:
                 buffer.write(data)
 
             # 更新索引（同步）
-            textbook.index_file_id = rag.update_rag(
+            textbook.index_file_id = rag.update(
                 file.filename,
                 tmp_file_path,
                 textbook.index_file_id,

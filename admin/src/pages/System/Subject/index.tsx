@@ -30,7 +30,10 @@ const SubjectManagement: React.FC = () => {
       dataIndex: 'status',
       width: 100,
       render: (text, record) => (
-        <Switch checked={record.status === 1} onChange={(checked) => handleStatusChange(record.id, checked ? 1 : 0)} />
+        <Switch
+          checked={record.status === 1}
+          onChange={(checked) => handleStatusChange(record.id, checked ? 1 : 0)}
+        />
       ),
     },
     {
@@ -48,7 +51,13 @@ const SubjectManagement: React.FC = () => {
         <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
           编辑
         </Button>,
-        <Button key="delete" type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>
+        <Button
+          key="delete"
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => handleDelete(record)}
+        >
           删除
         </Button>,
       ],
@@ -83,15 +92,17 @@ const SubjectManagement: React.FC = () => {
     });
   };
 
-  const handleStatusChange = async (id: string, status: number) => {
+  const handleStatusChange = async (id: number, status: number) => {
     const res = await SubjectApi.toggleStatus(id, status);
     if (!res) return;
     message.success('状态更新成功');
     actionRef.current?.reload();
   };
 
-  const handleSubmit = async (values: CreateSubject) => {
-    const res = editingSubject ? await SubjectApi.update(editingSubject.id, values) : await SubjectApi.create(values);
+  const handleSubmit = async (values: { name: string }) => {
+    const res = editingSubject
+      ? await SubjectApi.update(editingSubject.id, values)
+      : await SubjectApi.create(values);
     if (!res) return;
     message.success(editingSubject ? '更新成功' : '创建成功');
     setModalVisible(false);
@@ -133,7 +144,11 @@ const SubjectManagement: React.FC = () => {
         cancelText="取消"
       >
         <Form form={form} onFinish={handleSubmit} className="pt-4">
-          <Form.Item label="科目名称" name="name" rules={[{ required: true, message: '请输入科目名称' }]}>
+          <Form.Item
+            label="科目名称"
+            name="name"
+            rules={[{ required: true, message: '请输入科目名称' }]}
+          >
             <Input placeholder="请输入科目名称" />
           </Form.Item>
         </Form>

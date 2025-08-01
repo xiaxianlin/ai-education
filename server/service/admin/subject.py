@@ -61,8 +61,11 @@ class SubjectService:
         await db.delete(subject)
         await db.commit()
 
-    async def all(db: AsyncSession):
-        results = await db.scalars(select(Subject).order_by(Subject.id))
+    async def find(db: AsyncSession, status: int = None):
+        stmt = select(Subject)
+        if status:
+            stmt = stmt.where(Subject.status == status)
+        results = await db.scalars(stmt.order_by(Subject.id))
         return [SubjectSchema.model_validate(subject) for subject in results.all()]
 
     async def update_status(db: AsyncSession, id: int, status: int):

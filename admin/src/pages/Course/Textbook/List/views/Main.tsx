@@ -1,9 +1,9 @@
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { TextbookForm } from '@/components/view';
 import { useTextbookListModel } from '../models/page';
 import { useColumns } from '../hooks/useColumns';
 import { Button } from 'antd';
 import { TextbookApi } from '@/services/textbook';
+import { TextbookForm } from '../../Components/TextbookForm';
 
 export default function MainView() {
   const { actionRef, formRes } = useTextbookListModel();
@@ -23,21 +23,30 @@ export default function MainView() {
       <ProTable<Textbook>
         actionRef={actionRef}
         rowKey="id"
-        search={false}
         columns={columns}
+        search={{
+          labelWidth: 'auto',
+          layout: 'inline',
+          defaultColsNumber: 3,
+          defaultCollapsed: false,
+        }}
         scroll={{ x: 'max-content' }}
         toolbar={{
-          settings: [],
           actions: [],
         }}
-        request={async () => {
-          const data = await TextbookApi.search();
+        request={async ({ pageSize, current, ...filter }) => {
+          const data = await TextbookApi.search({
+            current_page: current,
+            page_size: pageSize,
+            ...filter,
+          });
           return {
             data: data.data || [],
             success: true,
             total: data.total,
           };
         }}
+        pagination={{ pageSize: 10 }}
       />
       <TextbookForm {...formRes} />
     </PageContainer>

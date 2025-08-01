@@ -1,14 +1,26 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { TextbookForm } from '@/components/view';
 import { useTextbookDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
 import { Footer } from './Footer';
-import { Tabs } from 'antd';
+import { Spin, Tabs } from 'antd';
 import { UnitView } from './Unit';
 import { KnowledgeView } from './Knowledge';
+import { TextbookUnitModel } from '../models/unit';
+import { TextbookForm } from '../../Components/TextbookForm';
+import { TextbookKnowledgeModel } from '../models/knowledge';
+import { useMemo } from 'react';
 
 export default function MainView() {
-  const { loading, formProps } = useTextbookDetailModel();
+  const { loading, parsing, uploading, textbook, formProps } = useTextbookDetailModel();
+
+  const spinTip = useMemo(() => {
+    if (parsing) {
+      return '教材解析时间较长，一般在 30s 左右，请耐心等候';
+    }
+    if (uploading) {
+      return '上传中...';
+    }
+  }, [parsing, uploading]);
   return (
     <PageContainer
       loading={loading}
@@ -19,15 +31,32 @@ export default function MainView() {
       <BasicInfo />
       <div className="mt-3 bg-white px-3 rounded-md">
         <Tabs
-          defaultActiveKey="knowledge"
+          defaultActiveKey="unit"
           items={[
-            { label: '单元管理', key: 'unit', children: <UnitView /> },
-            { label: '知识点管理', key: 'knowledge', children: <KnowledgeView /> },
+            {
+              label: '单元管理',
+              key: 'unit',
+              children: (
+                <TextbookUnitModel.Provider>
+                  <UnitView />
+                </TextbookUnitModel.Provider>
+              ),
+            },
+            {
+              label: '知识点管理',
+              key: 'knowledge',
+              children: (
+                <TextbookKnowledgeModel.Provider>
+                  {' '}
+                  <KnowledgeView />
+                </TextbookKnowledgeModel.Provider>
+              ),
+            },
           ]}
         />
       </div>
-
-      <TextbookForm {...formProps} />
+      <TextbookForm editId={textbook?.id} {...formProps} />
+      <Spin fullscreen size="large" spinning={parsing || uploading} tip={spinTip} />
     </PageContainer>
   );
 }

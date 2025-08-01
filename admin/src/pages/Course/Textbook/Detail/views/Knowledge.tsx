@@ -1,44 +1,75 @@
-import React, { useState } from 'react';
-import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Modal, Form, Input, message } from 'antd';
-import { CourseUnitApi } from '@/services/course-unit';
+import React from 'react';
+import {
+  ProTable,
+  ProColumns,
+  ModalForm,
+  ProFormText,
+  ProFormTextArea,
+  ProFormSelect,
+} from '@ant-design/pro-components';
+import { Button, Switch } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookDetailModel } from '../models/page';
-import { StatusTag } from '@/components/ui';
 import { PlusOutlined } from '@ant-design/icons';
+import { useTextbookKnowledgeModel } from '../models/knowledge';
 
 export const KnowledgeView: React.FC = () => {
-  const [form] = Form.useForm();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [knowledge, setKnowledge] = useState<Knowledge | null>(null);
-  const actionRef = React.useRef<ActionType>();
-  const { id } = useTextbookDetailModel();
+  const { id, units } = useTextbookDetailModel();
+  const {
+    actionRef,
+    formProps: { form, visible, editingItem, showForm, onCancel },
+    updateStatus,
+    handleDelete,
+    handleSubmit,
+  } = useTextbookKnowledgeModel();
 
   const columns: ProColumns<Knowledge>[] = [
-    { title: '知识点名称', dataIndex: 'name' },
-    { title: '知识点内容', dataIndex: 'content', ellipsis: true },
+    { title: '知识点名称', width: 120, hideInSearch: true, dataIndex: 'name' },
+    { title: '知识点内容', hideInSearch: true, dataIndex: 'content', ellipsis: true },
+    {
+      key: 'unit',
+      title: '单元名称',
+      valueType: 'select',
+      valueEnum: units?.reduce((prev, curr) => ({ ...prev, [curr.id]: curr.name }), {}),
+      renderText: (_, record) => record.course_unit?.name,
+    },
     {
       title: '状态',
       dataIndex: 'status',
-      render: (status) => <StatusTag status={!!status} />,
+      valueType: 'select',
+      valueEnum: { 1: '启用', 0: '停用' },
+      width: 90,
+      render: (_, record) => (
+        <Switch
+          checked={!!record.status}
+          checkedChildren="启用"
+          unCheckedChildren="停用"
+          onChange={() => updateStatus(record)}
+        />
+      ),
     },
     {
       title: '创建时间',
       dataIndex: 'create_time',
+      hideInSearch: true,
+      width: 160,
       renderText: (time) => fmtTime(time),
     },
     {
       title: '更新时间',
       dataIndex: 'update_time',
+      hideInSearch: true,
+      width: 160,
       renderText: (time) => fmtTime(time),
     },
     {
       title: '操作',
       valueType: 'option',
       width: 120,
-      render: (text, record) => [
-        <Button key="edit" type="link" onClick={() => handleEdit(record)}>
+      fixed: 'right',
+      render: (_, record) => [
+        <Button key="edit" type="link" onClick={() => showForm(record)}>
           编辑
         </Button>,
         <Button key="delete" type="link" danger onClick={() => handleDelete(record)}>
@@ -48,60 +79,6 @@ export const KnowledgeView: React.FC = () => {
     },
   ];
 
-  const handleAdd = () => {
-    setKnowledge(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleEdit = (unit: Knowledge) => {
-    setKnowledge(unit);
-    form.setFieldsValue({
-      textbook_id: id,
-      name: unit.name,
-      content: unit.content,
-    });
-    setModalVisible(true);
-  };
-
-  const handleDelete = (unit: Knowledge) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除知识点 "${unit.name}" 吗？`,
-      okText: '确认',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          await CourseUnitApi.delete(unit.id);
-          message.success('删除成功');
-          actionRef.current?.reload();
-        } catch (error) {
-          message.error('删除失败');
-        }
-      },
-    });
-  };
-
-  const handleSubmit = async (values: { textbook_id: number; name: string; content: string }) => {
-    try {
-      if (knowledge) {
-        // 更新时不传name，使用UpdateCourseUnit接口
-        await CourseUnitApi.update(knowledge.id, { name: values.name, content: values.content });
-        message.success('更新成功');
-      } else {
-        // 创建时需要name
-        await CourseUnitApi.create(values);
-        message.success('创建成功');
-      }
-
-      setModalVisible(false);
-      actionRef.current?.reload();
-    } catch (error) {
-      message.error(knowledge ? '更新失败' : '创建失败');
-    }
-  };
-
   return (
     <div className="custom-table">
       <Button
@@ -109,43 +86,71 @@ export const KnowledgeView: React.FC = () => {
         type="primary"
         className="absolute right-0 top-[-48px]"
         icon={<PlusOutlined />}
-        onClick={() => handleAdd()}
+        onClick={() => showForm()}
       >
         添加知识点
       </Button>
       <ProTable<Knowledge>
+        form={{ style: { padding: 0, marginBlock: 8 } }}
         actionRef={actionRef}
         rowKey="id"
-        search={false}
         columns={columns}
+        search={{ labelWidth: 'auto' }}
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
-        request={async () => {
+        request={async (params) => {
           const data = await TextbookApi.getKnowledges(id);
-          return { data, success: true, total: data.length };
+          const filtered = data.filter((item) => {
+            const results = ['unit', 'status']
+              .filter((key) => Boolean(params[key]))
+              .map((key) => {
+                const value = params[key];
+                switch (key) {
+                  case 'unit':
+                    return item.course_unit?.id === Number(value);
+                  case 'status':
+                    return item.status === Number(value);
+                }
+              });
+            return results.every(Boolean);
+          });
+
+          return { data: filtered, success: true, total: filtered.length };
         }}
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 7 }}
       />
-
-      <Modal
-        title={knowledge ? '编辑知识点' : '新程知识点'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        onOk={() => form.submit()}
-        okText="保存"
-        cancelText="取消"
+      <ModalForm<CoureSimpleForm>
         width={600}
+        form={form}
+        open={visible}
+        title={editingItem ? '更新知识点' : '新增知识点'}
+        onFinish={handleSubmit}
+        modalProps={{ destroyOnClose: true, onCancel }}
+        size="large"
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item label="知识点名称" name="name" rules={[{ required: true }]}>
-            <Input placeholder="请输入知识点名称" maxLength={100} />
-          </Form.Item>
-
-          <Form.Item label="知识点内容" name="content" rules={[{ required: true }]}>
-            <Input.TextArea rows={6} placeholder="请输入知识点内容" maxLength={2000} showCount />
-          </Form.Item>
-        </Form>
-      </Modal>
+        <div className="pt-3" />
+        <ProFormSelect
+          name="course_unit_id"
+          label="课程单元"
+          placeholder="请选择课程单元"
+          rules={[{ required: true }]}
+          request={async () => units?.map((i) => ({ label: i.name, value: i.id }))}
+        />
+        <ProFormText
+          name="name"
+          label="知识点名称"
+          placeholder="请输入知识点名称"
+          rules={[{ required: true }]}
+          fieldProps={{ maxLength: 100 }}
+        />
+        <ProFormTextArea
+          name="content"
+          label="知识点内容"
+          placeholder="请输入知识点内容"
+          rules={[{ required: true }]}
+          fieldProps={{ rows: 6, maxLength: 2000 }}
+        />
+      </ModalForm>
     </div>
   );
 };

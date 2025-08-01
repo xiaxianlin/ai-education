@@ -1,14 +1,15 @@
 import React, { FC, useMemo } from 'react';
 import { Form, FormInstance, message } from 'antd';
 import { ModalForm, ProFormSelect } from '@ant-design/pro-components';
-import { GRADES, SEMETERS, STAGES } from '@/utils/constants';
+import { GRADES, SEMETERS, STAGES } from '@/constants/course';
 import { useRequest } from 'ahooks';
 import { TextbookApi } from '@/services/textbook';
+import { useCourseModel } from '@/models/course';
 
 interface TextbookFormProps {
   editId?: number;
   visible?: boolean;
-  form: FormInstance<TextbookFormModel>;
+  form: FormInstance<TextbookForm>;
   onSubmit?: () => void;
   onCancel?: () => void;
 }
@@ -19,10 +20,9 @@ export const TextbookForm: FC<TextbookFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const { data: versions } = useRequest(TextbookApi.getVersions);
-  const { data: subjects } = useRequest(TextbookApi.getSubjects);
+  const { versions, subjects } = useCourseModel();
   const { runAsync: handleSubmit } = useRequest(
-    async (values: TextbookFormModel) => {
+    async (values: TextbookForm) => {
       if (editId) {
         await TextbookApi.update(editId, values);
       } else {
@@ -43,8 +43,8 @@ export const TextbookForm: FC<TextbookFormProps> = ({
   const grades = useMemo(() => (stage ? GRADES[stage] : []), [stage]);
 
   return (
-    <ModalForm<TextbookFormModel>
-      width={450}
+    <ModalForm<TextbookForm>
+      width={600}
       form={form}
       open={visible}
       title={editId ? '更新教材' : '新增教材'}
@@ -53,7 +53,7 @@ export const TextbookForm: FC<TextbookFormProps> = ({
       layout="horizontal"
       size="large"
       labelAlign="left"
-      labelCol={{ span: 4 }}
+      labelCol={{ span: 3 }}
     >
       <div className="pt-3" />
       <ProFormSelect

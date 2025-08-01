@@ -10,7 +10,13 @@ router = APIRouter(prefix="/subject")
 
 @router.get("/all")
 async def search(db: AsyncSession = GetDB):
-    res = await SubjectService.all(db)
+    res = await SubjectService.find(db)
+    return ResponseSchema(data=res)
+
+
+@router.get("/actives")
+async def search(db: AsyncSession = GetDB):
+    res = await SubjectService.find(db, 1)
     return ResponseSchema(data=res)
 
 

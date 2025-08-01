@@ -6,12 +6,19 @@ from service.admin.question import QuestionService
 from service.textbook import TextbookParseService, TextbookUploadService
 from store.database import GetDB
 from service.admin import TextbookService
-from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema, StatusSchema
+from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema
 
 router = APIRouter(prefix="/textbook")
 
 
-@router.post("/upload/{id}")
+@router.post("/")
+async def create(params: TextbookSaveSchema, db: AsyncSession = GetDB):
+    """创建教材"""
+    id = await TextbookService.create(db, params)
+    return ResponseSchema(data=id)
+
+
+@router.post("/{id}/upload")
 async def upload(id: int, file: UploadFile, db: AsyncSession = GetDB):
     """上传教材文档"""
     await TextbookUploadService.run(db, id, file)
@@ -25,14 +32,13 @@ async def extract_units(id: int, db: AsyncSession = GetDB):
     return ResponseSchema(data=res)
 
 
-@router.post("/")
-async def create(params: TextbookSaveSchema, db: AsyncSession = GetDB):
-    """创建教材"""
-    id = await TextbookService.create(db, params)
-    return ResponseSchema(data=id)
+@router.patch("/{id}/status/{status}")
+async def update_status(id: int, status: int, db: AsyncSession = GetDB):
+    await TextbookService.update_status(db, id, status)
+    return ResponseSchema()
 
 
-@router.patch("/{id}")
+@router.put("/{id}")
 async def update(id: str, params: TextbookSaveSchema, db: AsyncSession = GetDB):
     """更新教材信息"""
     await TextbookService.update(db, id, params)
@@ -43,12 +49,6 @@ async def update(id: str, params: TextbookSaveSchema, db: AsyncSession = GetDB):
 async def delete(id: str, db: AsyncSession = GetDB):
     """删除教材"""
     await TextbookService.delete(db, id)
-    return ResponseSchema()
-
-
-@router.put("/{id}/status")
-async def update_status(id: str, params: StatusSchema, db: AsyncSession = GetDB):
-    await TextbookService.update_status(db, id, params.status)
     return ResponseSchema()
 
 
