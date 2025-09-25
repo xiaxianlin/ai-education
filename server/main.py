@@ -20,12 +20,10 @@ from route.admin import admin_app
 dotenv.load_dotenv()
 os.environ["NO_PROXY"] = "*"
 
-logger = get_logger("Main")
-
 
 async def init_run_enviroment():
     if not os.path.exists(settings.RUNTIME_DIR):
-        logger.info(f"创建运行目录：{settings.RUNTIME_DIR}")
+        print(f"创建运行目录：{settings.RUNTIME_DIR}")
         os.makedirs(settings.RUNTIME_DIR)
 
     if settings.ADMIN_USERNAME and settings.ADMIN_PASSWORD:
@@ -34,7 +32,7 @@ async def init_run_enviroment():
                 select(Manager).where(Manager.username == settings.ADMIN_USERNAME),
             )
             if not manager:
-                logger.info(f"创建初始管理员：{settings.ADMIN_USERNAME}")
+                print(f"创建初始管理员：{settings.ADMIN_USERNAME}")
                 manager = Manager(
                     id=uuid.uuid4(),
                     username=settings.ADMIN_USERNAME,
@@ -48,23 +46,12 @@ async def init_run_enviroment():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    from core import task_queue, init_logger
 
-    logger.info(">" * 10 + "服务启动" + "<" * 10)
+    print(">" * 10 + "服务启动" + "<" * 10)
 
-    init_logger()
     await init_db()
     await init_run_enviroment()
-
-    # 启动后台任务队列
-    # await task_queue.start()
-    logger.info("Background task queue started")
-
     yield
-
-    # 关闭后台任务队列
-    # await task_queue.stop()
-    logger.info("Background task queue stopped")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -79,7 +66,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 
-app.mount("/api/user", user_app)
+app.mount("/st", user_app)
 app.mount("/api/admin", admin_app)
 
 
