@@ -1,167 +1,122 @@
 import uuid
-from sqlalchemy import asc, desc, func, select
+from sqlalchemy import and_, delete, func, select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
-from schema.common import SearchResultSchema
-from util import encrypt
-from store.database.models import User, UserProfile, UserSubject
-from schema.admin import UserCreateSchema, UserUpdateSchema, UserSearchSchema, UserSubjectCreateSchema
-from schema import UserSchema
+from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
+from common.database import Student, StudentTextbook
+from common.schema import SearchResultSchema, StudentSchema, StudentTextbookSchema
+from utils import encrypt
+from utils.time import now
 
 
-class UserService:
+async def create_student(db: AsyncSession, params: CreateStudentSchema):
+    """创建学生"""
+    student = await db.scalar(select(Student).where(Student.phone == params.phone))
 
-    async def get_by_id(db: AsyncSession, id: str):
-        user = await db.scalar(select(User).where(User.id == id))
-        if not user:
-            raise ValueError("用户不存在")
-        
-        profile = await db.scalar(select(UserProfile).where(UserProfile.user_id == id))
-        subjects = await db.scalars(select(UserSubject).where(UserSubject.user_id == id))
-        
-        user_data = UserSchema.model_validate(user).model_dump()
-        user_data['profile'] = profile.to_dict() if profile else None
-        user_data['subjects'] = [subject.to_dict() for subject in subjects.all()]
-        
-        return user_data
+    if student:
+        raise ValueError("该学生已经注册")
+    password = encrypt.generate_password()
+    student = Student(
+        id=str(uuid.uuid4()),
+        name=params.username,
+        phone=params.phone,
+        password=encrypt.hash(password),
+        status=1,
+    )
+    db.add(student)
+    await db.commit()
 
-    async def create(db: AsyncSession, params: UserCreateSchema):
-        existing_user = await db.scalar(
-            select(User).where(User.phone == params.phone),
-        )
+    return password
 
-        if existing_user:
-            raise ValueError("手机号已经存在")
 
-        if params.username:
-            username_user = await db.scalar(
-                select(User).where(User.username == params.username),
-            )
-            if username_user:
-                raise ValueError("用户名已经存在")
+async def update_student(db: AsyncSession, id: str, params: UpdateStudentSchema):
+    """更新学生信息"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
 
-        user = User(
-            id=str(uuid.uuid4()),
-            username=params.username,
-            password=encrypt.hash(params.password),
-            phone=params.phone,
-            status=1
-        )
-        db.add(user)
-        await db.commit()
+    if params.status is not None:
+        student.status = params.status
+    if params.type is not None:
+        student.type = params.type
+    if params.phone is not None:
+        student.phone = params.phone
 
-        return user.id
+    student.update_time = now()
+    await db.commit()
 
-    async def update(db: AsyncSession, id: str, params: UserUpdateSchema):
-        user = await db.scalar(select(User).where(User.id == id))
-        if not user:
-            raise ValueError("用户不存在")
 
-        if params.phone and params.phone != user.phone:
-            existing_user = await db.scalar(
-                select(User).where(User.phone == params.phone, User.id != id),
-            )
-            if existing_user:
-                raise ValueError("手机号已经存在")
+async def delete_student(db: AsyncSession, id: str):
+    """删除学生"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
 
-        if params.username and params.username != user.username:
-            username_user = await db.scalar(
-                select(User).where(User.username == params.username, User.id != id),
-            )
-            if username_user:
-                raise ValueError("用户名已经存在")
+    await db.delete(student)
+    await db.commit()
 
-        if params.username is not None:
-            user.username = params.username
-        if params.password is not None:
-            user.password = encrypt.hash(params.password)
-        if params.phone is not None:
-            user.phone = params.phone
-        if params.status is not None:
-            user.status = params.status
 
-        await db.commit()
+async def search_student(db: AsyncSession, params: SearchStudentSchema):
+    """搜索学生"""
+    query = select(Student)
 
-    async def update_status(db: AsyncSession, id: str, status: int):
-        user = await db.scalar(select(User).where(User.id == id))
-        if not user:
-            raise ValueError("用户不存在")
+    conditions = []
+    if params.keywords:
+        conditions.append(Student.name.contains(params.keywords))
+    if params.phone:
+        conditions.append(Student.phone == params.phone)
+    if params.status is not None:
+        conditions.append(Student.status == params.status)
 
-        user.status = status
-        await db.commit()
+    if len(conditions) > 0:
+        query = query.where(and_(*conditions))
 
-    async def delete(db: AsyncSession, id: str):
-        user = await db.scalar(select(User).where(User.id == id))
-        if not user:
-            raise ValueError("用户不存在")
+    # 获取总数
+    count_query = select(func.count(Student.id))
+    if conditions:
+        count_query = count_query.where(and_(*conditions))
 
-        await db.delete(user)
-        await db.commit()
+    total = await db.scalar(count_query) or 0
 
-    async def search(
-        db: AsyncSession, params: UserSearchSchema
-    ) -> SearchResultSchema[UserSchema]:
-        stmt = select(User)
-        if params.keywords:
-            stmt = stmt.where(
-                User.username.like(f"%{params.keywords}%") |
-                User.phone.like(f"%{params.keywords}%")
-            )
-        if params.phone:
-            stmt = stmt.where(User.phone.like(f"%{params.phone}%"))
-        if params.status is not None:
-            stmt = stmt.where(User.status == params.status)
+    # 分页查询
+    offset = (params.page - 1) * params.size
+    query = query.order_by(
+        getattr(Student, params.sort, Student.create_time).desc()
+        if params.order == "desc"
+        else getattr(Student, params.sort, Student.create_time).asc()
+    )
+    query = query.offset(offset).limit(params.size)
 
-        count_stmt = select(func.count()).select_from(stmt.subquery())
-        total = await db.scalar(count_stmt)
+    result = await db.scalars(query)
 
-        sort_column = getattr(User, params.sort, User.create_time)
-        stmt = stmt.order_by(
-            desc(sort_column) if params.order == "desc" else asc(sort_column),
-        )
+    return SearchResultSchema(
+        total=total,
+        data=[StudentSchema.model_validate(student) for student in result.all()],
+    )
 
-        offset = (params.current_page - 1) * params.page_size
-        stmt = stmt.offset(offset).limit(params.page_size)
 
-        results = await db.scalars(stmt)
+async def save_student_textbook(db: AsyncSession, id: str, textbook_ids: list[str]):
+    """保存学生的教材"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
 
-        return SearchResultSchema(
-            total=total,
-            data=[UserSchema.model_validate(user) for user in results.all()],
-        )
+    db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == id))
+    await db.commit()
 
-    async def add_subject(db: AsyncSession, user_id: str, params: UserSubjectCreateSchema):
-        user = await db.scalar(select(User).where(User.id == user_id))
-        if not user:
-            raise ValueError("用户不存在")
+    models = [
+        StudentTextbook(student_id=id, textbook_id=textbook_id) for textbook_id in textbook_ids
+    ]
 
-        existing_subject = await db.scalar(
-            select(UserSubject).where(
-                UserSubject.user_id == user_id,
-                UserSubject.textbook_version == params.textbook_version,
-                UserSubject.subject == params.subject
-            )
-        )
-        if existing_subject:
-            raise ValueError("用户已订阅该科目")
+    db.add_all(models)
+    await db.commit()
 
-        user_subject = UserSubject(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            textbook_version=params.textbook_version,
-            subject=params.subject
-        )
-        db.add(user_subject)
-        await db.commit()
 
-    async def remove_subject(db: AsyncSession, user_id: str, subject_id: str):
-        user_subject = await db.scalar(
-            select(UserSubject).where(
-                UserSubject.user_id == user_id,
-                UserSubject.id == subject_id
-            )
-        )
-        if not user_subject:
-            raise ValueError("用户科目订阅不存在")
-
-        await db.delete(user_subject)
-        await db.commit()
+async def query_student_textbook(db: AsyncSession, id: str):
+    """查询学生的教材"""
+    result = await db.scalars(
+        select(StudentTextbook)
+        .options(joinedload(StudentTextbook.textbook))
+        .where(Student.id == id)
+    )
+    return [StudentTextbookSchema.model_validate(item) for item in result.all()]

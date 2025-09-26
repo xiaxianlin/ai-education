@@ -30,18 +30,12 @@ class Settings(BaseSettings):
     ALIYUN_RAG_CATEGORY_ID: str
     # 数据库配置
     DATABASE_URL: str
-    # Redis 缓存配置
-    REDIS_HOST: str
-    REDIS_PORT: int
-    REDIS_PASSWORD: str
-    REDIS_CACHE_THRESHOLD: float
     # 微信配置
     WECHAT_APP_ID: str
     WECHAT_APP_SECRET: str
     # 管理系统配置
     ADMIN_USERNAME: str
     ADMIN_PASSWORD: str
-    MANAGER_INIT_PASSWORD: str
     # 教育系统配置
     QUESTION_MAX_UPLOAD: int
 

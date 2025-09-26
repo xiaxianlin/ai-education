@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from store.database import GetDB
+from store.database import Database
 from service.user.question import UserQuestionService
 from schema import ResponseSchema
 from schema.user import QuestionRequestSchema
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/question")
 @router.post("/get-questions")
 async def get_questions(
     params: QuestionRequestSchema, 
-    db: AsyncSession = GetDB,
+    db: AsyncSession = Database,
     current_user: dict = Depends(get_current_user)
 ):
     """获取问题（优先数据库，不足时AI生成）"""
@@ -40,7 +40,7 @@ async def get_questions_by_subject(
     grade: int = None,
     question_type: str = None,
     difficulty: str = None,
-    db: AsyncSession = GetDB,
+    db: AsyncSession = Database,
     current_user: dict = Depends(get_current_user)
 ):
     """根据科目获取问题"""
@@ -61,7 +61,7 @@ async def get_questions_by_unit(
     count: int = 10,
     question_type: str = None,
     difficulty: str = None,
-    db: AsyncSession = GetDB,
+    db: AsyncSession = Database,
     current_user: dict = Depends(get_current_user)
 ):
     """根据课程单元获取问题"""
@@ -81,7 +81,7 @@ async def get_questions_by_knowledge(
     count: int = 10,
     question_type: str = None,
     difficulty: str = None,
-    db: AsyncSession = GetDB,
+    db: AsyncSession = Database,
     current_user: dict = Depends(get_current_user)
 ):
     """根据知识点获取问题"""
@@ -101,7 +101,7 @@ async def get_questions_by_textbook(
     count: int = 10,
     question_type: str = None,
     difficulty: str = None,
-    db: AsyncSession = GetDB,
+    db: AsyncSession = Database,
     current_user: dict = Depends(get_current_user)
 ):
     """根据教材获取问题"""

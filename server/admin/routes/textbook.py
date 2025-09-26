@@ -1,89 +1,84 @@
 from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from service.admin.course_unit import CourseUnitService
-from service.admin.knowledge import KnowledgeService
-from service.admin.question import QuestionService
-from service.textbook import TextbookParseService, TextbookUploadService
-from store.database import GetDB
-from service.admin import TextbookService
-from schema import ResponseSchema, TextbookSaveSchema, TextbookSearchSchema
+from admin.services.knowledge import query_knowledge_by_textbook
+from admin.services.question import query_question_by_textbook
+from admin.services.unit import query_unit_by_textbook
+from common.database import Database
+from common.schema import ResponseSchema
+from admin.schema import SaveTextbookSchema, SearchTextbookSchema
+from admin.services import textbook
 
 router = APIRouter(prefix="/textbook")
 
 
 @router.post("/")
-async def create(params: TextbookSaveSchema, db: AsyncSession = GetDB):
+async def create_textbook(params: SaveTextbookSchema, db: AsyncSession = Database):
     """创建教材"""
-    id = await TextbookService.create(db, params)
+    id = await textbook.create_textbook(db, params)
     return ResponseSchema(data=id)
 
 
 @router.post("/{id}/upload")
-async def upload(id: int, file: UploadFile, db: AsyncSession = GetDB):
+async def upload_textbook(id: int, file: UploadFile, db: AsyncSession = Database):
     """上传教材文档"""
-    await TextbookUploadService.run(db, id, file)
+    await textbook.upload_textbook(db, id, file)
     return ResponseSchema()
 
 
 @router.post("/{id}/parse")
-async def extract_units(id: int, db: AsyncSession = GetDB):
+async def parse_textbook(id: int, db: AsyncSession = Database):
     """启动PDF单元提取任务"""
-    res = await TextbookParseService.run(db, id)
+    res = await textbook.parse_textbook(db, id)
     return ResponseSchema(data=res)
 
 
 @router.patch("/{id}/status/{status}")
-async def update_status(id: int, status: int, db: AsyncSession = GetDB):
-    await TextbookService.update_status(db, id, status)
+async def update_textbook_status(id: int, status: int, db: AsyncSession = Database):
+    await textbook.update_textbook_status(db, id, status)
     return ResponseSchema()
 
 
 @router.put("/{id}")
-async def update(id: str, params: TextbookSaveSchema, db: AsyncSession = GetDB):
+async def modify_textbook(id: str, params: SaveTextbookSchema, db: AsyncSession = Database):
     """更新教材信息"""
-    await TextbookService.update(db, id, params)
+    await textbook.modify_textbook(db, id, params)
     return ResponseSchema()
 
 
 @router.delete("/{id}")
-async def delete(id: str, db: AsyncSession = GetDB):
+async def delete_textbook(id: str, db: AsyncSession = Database):
     """删除教材"""
-    await TextbookService.delete(db, id)
+    await textbook.delete_textbook(db, id)
     return ResponseSchema()
 
 
 @router.get("/search")
-async def search(params: TextbookSearchSchema = Depends(), db: AsyncSession = GetDB):
+async def search(params: SearchTextbookSchema = Depends(), db: AsyncSession = Database):
     """搜索教材"""
-    res = await TextbookService.search(db, params)
+    res = await textbook.search_textbook(db, params)
     return ResponseSchema(data=res)
 
 
-@router.get("/{id}/course_units")
-async def get_course_units(id: int, db: AsyncSession = GetDB):
-    data = await CourseUnitService.get_by_textbook(db, id)
+@router.get("/{id}/units")
+async def query_unit(id: int, db: AsyncSession = Database):
+    data = await query_unit_by_textbook(db, id)
     return ResponseSchema(data=data)
 
 
 @router.get("/{id}/knowledges")
-async def get_knowledges(id: int, db: AsyncSession = GetDB):
-    data = await KnowledgeService.get_by_textbook(db, id)
+async def query_knowledge(id: int, db: AsyncSession = Database):
+    data = await query_knowledge_by_textbook(db, id)
     return ResponseSchema(data=data)
 
 
 @router.get("/{id}/questions")
-async def get_questions(
-    id: int,
-    current_page: int = 1,
-    page_size: int = 10,
-    db: AsyncSession = GetDB,
-):
-    data = await QuestionService.get_by_textbook(db, id, current_page, page_size)
+async def query_question(id: int, page: int = 1, size: int = 10, db: AsyncSession = Database):
+    data = await query_question_by_textbook(db, id, page, size)
     return ResponseSchema(data=data)
 
 
 @router.get("/{id}")
-async def get_course_unit(id: int, db: AsyncSession = GetDB):
+async def get_textbook(id: int, db: AsyncSession = Database):
     """获取单个课程单元"""
-    textbook = await TextbookService.get_by_id(db, id)
-    return ResponseSchema(data=textbook)
+    data = await textbook.get_textbook(db, id)
+    return ResponseSchema(data=data)
