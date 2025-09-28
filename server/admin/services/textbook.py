@@ -152,7 +152,7 @@ async def parse_textbook(db: AsyncSession, id: int):
 
         knowledges = [
             Knowledge(
-                course_unit_id=unit.id,
+                unit_id=unit.id,
                 textbook_id=id,
                 name=item.get("topic_name"),
                 content=item.get("topic_content"),

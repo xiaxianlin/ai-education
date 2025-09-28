@@ -2,13 +2,9 @@ import json
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from common import get_logger
-
-logger = get_logger("CustomException")
 
 
 async def http_exception_handler(_: Request, exc: HTTPException):
-    logger.error(f"HTTPException: {exc}")
     return JSONResponse(
         status_code=200,
         content={"status": exc.status_code, "message": exc.detail},
@@ -16,7 +12,6 @@ async def http_exception_handler(_: Request, exc: HTTPException):
 
 
 async def value_error_handler(_: Request, exc: ValueError):
-    logger.error(f"ValueError: {exc}")
     return JSONResponse(
         status_code=200,
         content={"status": 400, "message": str(exc)},
@@ -24,7 +19,6 @@ async def value_error_handler(_: Request, exc: ValueError):
 
 
 async def global_exception_handler(_: Request, exc: Exception):
-    logger.error(f"Exception: {exc}")
     return JSONResponse(
         status_code=200,
         content={"status": 500, "message": "服务器异常"},

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
-from admin.services.auth import admin_route_auth
+from admin.services.auth import admin_route_filter
 from common.middleware import ExcludeNoneJSONResponse
 from common.exception import (
     global_exception_handler,
@@ -10,11 +10,18 @@ from common.exception import (
 )
 
 from .routes.auth import auth_router
+from .routes.knowledge import knowledge_router
+from .routes.manager import manager_router
+from .routes.question import question_router
+from .routes.student import student_router
+from .routes.textbook import textbook_router
+from .routes.unit import unit_router
+from .routes.config import config_router
 
 
-manage_app = FastAPI(
+admin_app = FastAPI(
     default_response_class=ExcludeNoneJSONResponse,
-    dependencies=[Depends(admin_route_auth)],
+    dependencies=[Depends(admin_route_filter)],
     exception_handlers={
         RequestValidationError: validation_exception_handler,
         HTTPException: http_exception_handler,
@@ -23,14 +30,13 @@ manage_app = FastAPI(
     },
 )
 
-manage_app.include_router(auth_router)
-# manage_app.include_router(user.router)
-# manage_app.include_router(student.router)
-# manage_app.include_router(subject.router)
-# manage_app.include_router(textbook_version.router)
-# manage_app.include_router(textbook.router)
-# manage_app.include_router(course_unit.router)
-# manage_app.include_router(knowledge.router)
-# manage_app.include_router(question.router)
+admin_app.include_router(auth_router)
+admin_app.include_router(knowledge_router)
+admin_app.include_router(manager_router)
+admin_app.include_router(question_router)
+admin_app.include_router(student_router)
+admin_app.include_router(textbook_router)
+admin_app.include_router(unit_router)
+admin_app.include_router(config_router)
 
-__all__ = ["manage_app"]
+__all__ = ["admin_app"]

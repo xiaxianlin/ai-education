@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import ModifyPasswordSchema, CreateManangeSchema, UpdateManangeSchema
-from common.database import Manager
+from common.database import Manager, get_async_session
 from common.schema import ManagerSchema
 from common.settings import envs
 from utils import encrypt
@@ -19,7 +19,8 @@ def _valid_exist_manager(manager: Manager | None):
         raise ValueError("账号已经存在")
 
 
-async def init_super_manager(db: AsyncSession):
+async def init_super_manager():
+    db = get_async_session()
     """初始化超级管理员"""
     manager = await db.scalar(select(Manager).where(Manager.username == envs.ADMIN_USERNAME))
     if manager is not None:

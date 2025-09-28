@@ -1,15 +1,15 @@
 import jwt, json, hashlib, datetime, string, secrets, math
-from common import settings
+from common.settings import envs
 
 
 def encode(data: dict) -> str:
     data["exp"] = datetime.datetime.now() + datetime.timedelta(days=360)
-    return jwt.encode(data, settings.APP_SECRET_KEY, algorithm="HS256")
+    return jwt.encode(data, envs.APP_SECRET_KEY, algorithm="HS256")
 
 
 def decode(token: str) -> dict | None:
     try:
-        payload = jwt.decode(token, settings.APP_SECRET_KEY, algorithms=["HS256"])
+        payload = jwt.decode(token, envs.APP_SECRET_KEY, algorithms=["HS256"])
     except jwt.exceptions.InvalidTokenError:
         return None
     return payload

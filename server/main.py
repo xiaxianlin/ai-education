@@ -1,56 +1,40 @@
 import os
-import uuid
 import dotenv
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
-from sqlalchemy import select
 
 ##################################
-from core import settings, get_logger
-from store.database import init_db, get_async_session
-from store.database.models import Manager
-from util import encrypt
+from common.database import init_database
+from common.settings import envs
+from common.logger import *
 
-from route.user import user_app
-from route.admin import admin_app
+from admin import admin_app
+from admin.services.manager import init_super_manager
+from student import student_app
 
 dotenv.load_dotenv()
 os.environ["NO_PROXY"] = "*"
 
 
-async def init_run_enviroment():
-    if not os.path.exists(settings.RUNTIME_DIR):
-        print(f"创建运行目录：{settings.RUNTIME_DIR}")
-        os.makedirs(settings.RUNTIME_DIR)
-
-    if settings.ADMIN_USERNAME and settings.ADMIN_PASSWORD:
-        async with get_async_session() as db:
-            manager = await db.scalar(
-                select(Manager).where(Manager.username == settings.ADMIN_USERNAME),
-            )
-            if not manager:
-                print(f"创建初始管理员：{settings.ADMIN_USERNAME}")
-                manager = Manager(
-                    id=uuid.uuid4(),
-                    username=settings.ADMIN_USERNAME,
-                    password=encrypt.hash(settings.ADMIN_PASSWORD),
-                    type=0,
-                    status=1,
-                )
-                db.add(manager)
-                await db.commit()
-
-
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    logger.info(">" * 10 + "服务启动" + "<" * 10)
+    # 初始化数据库
+    await init_database()
 
-    print(">" * 10 + "服务启动" + "<" * 10)
+    # 初始化运行目录
+    if not os.path.exists(envs.TMP_DIR):
+        os.makedirs(envs.TMP_DIR)
+    # 初始化运行目录
+    if not os.path.exists(envs.LOG_DIR):
+        os.makedirs(envs.LOG_DIR)
 
-    await init_db()
-    await init_run_enviroment()
+    # 初始化超级管理员
+    if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
+        await init_super_manager()
     yield
 
 
@@ -66,9 +50,9 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 
-app.mount("/st", user_app)
-app.mount("/api/admin", admin_app)
+app.mount("/admin_api", admin_app)
+app.mount("/student_api", student_app)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, reload=True, log_level="info")
+    uvicorn.run("main:app", port=7890, reload=True, log_level="info")

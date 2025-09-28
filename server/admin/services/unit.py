@@ -26,24 +26,6 @@ async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
     return unit.id
 
 
-async def get_unit(db: AsyncSession, id: int):
-    """根据ID获取课程单元"""
-    result = await db.execute(select(Unit).options(joinedload(Unit.textbook)).where(Unit.id == id))
-
-    unit = result.unique().scalar_one_or_none()
-    if not unit:
-        raise ValueError("课程单元不存在")
-    print(unit.textbook)
-    return UnitSchema.model_validate(unit)
-
-
-async def query_unit_by_textbook(db: AsyncSession, textbook_id: int):
-    """根据教材ID获取课程单元列表"""
-    query = select(Unit).where(Unit.textbook_id == textbook_id).options(noload(Unit.textbook))
-    results = await db.scalars(query)
-    return [UnitSchema.model_validate(unit) for unit in results.all()]
-
-
 async def update_unit(db: AsyncSession, id: int, update: UpdateUnitSchema):
     """更新课程单元"""
     unit = await db.scalar(select(Unit).where(Unit.id == id))
@@ -116,3 +98,10 @@ async def update_unit_status(db: AsyncSession, id: int, status: int):
 
     unit.update_time = now()
     await db.commit()
+
+
+async def query_unit_by_textbook(db: AsyncSession, textbook_id: int):
+    """根据教材ID获取课程单元列表"""
+    query = select(Unit).where(Unit.textbook_id == textbook_id).options(noload(Unit.textbook))
+    results = await db.scalars(query)
+    return [UnitSchema.model_validate(unit) for unit in results.all()]

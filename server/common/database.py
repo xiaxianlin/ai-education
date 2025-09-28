@@ -3,11 +3,11 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from common import settings
+from common.settings import envs
 from utils.time import now
 
 async_engine = create_async_engine(
-    settings.DATABASE_URL,
+    envs.DATABASE_URL,
     echo=True,
     pool_pre_ping=True,
 )
@@ -19,7 +19,7 @@ AsyncSessionLocal = sessionmaker(
 )
 
 
-async def init_db():
+async def init_database():
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -86,7 +86,7 @@ class Unit(BaseModel):
 
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
-        primaryjoin="foreign(CourseUnit.textbook_id) == Textbook.id",
+        primaryjoin="foreign(Unit.textbook_id) == Textbook.id",
         lazy="joined",
     )
 
@@ -141,7 +141,7 @@ class Question(BaseModel):
 
     course_unit: Mapped["Unit"] = relationship(
         "Unit",
-        primaryjoin="foreign(Question.course_unit_id) == Unit.id",
+        primaryjoin="foreign(Question.unit_id) == Unit.id",
         lazy="joined",  # 推荐 eager load，性能好
     )
 

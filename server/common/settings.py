@@ -5,7 +5,9 @@ class Settings(BaseSettings):
     # 运行环境
     RUN_ENV: str
     # 临时目录
-    RUNTIME_DIR: str
+    TMP_DIR: str
+    # 日志目录
+    LOG_DIR: str
     # APP 运行密钥
     APP_SECRET_KEY: str
     # 阿里云访问配置
@@ -30,14 +32,9 @@ class Settings(BaseSettings):
     ALIYUN_RAG_CATEGORY_ID: str
     # 数据库配置
     DATABASE_URL: str
-    # 微信配置
-    WECHAT_APP_ID: str
-    WECHAT_APP_SECRET: str
     # 管理系统配置
     ADMIN_USERNAME: str
     ADMIN_PASSWORD: str
-    # 教育系统配置
-    QUESTION_MAX_UPLOAD: int
 
     class Config:
         env_file = ".env"

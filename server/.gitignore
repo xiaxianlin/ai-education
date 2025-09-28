@@ -5,3 +5,5 @@ __pycache__
 .venv
 tmp
 __runtime__
+.tmp
+.logs

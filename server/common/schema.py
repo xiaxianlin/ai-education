@@ -103,7 +103,7 @@ class QuestionSchema(BaseModel):
     resource: Optional[str] = None
     textbook_id: Optional[int] = None
     knowledge_id: Optional[int] = None
-    course_unit_id: Optional[int] = None
+    unit_id: Optional[int] = None
     status: int
     create_time: int
     update_time: Optional[int] = None

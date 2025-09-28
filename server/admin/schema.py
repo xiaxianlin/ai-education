@@ -100,7 +100,7 @@ class UpdateUnitSchema(BaseModel):
 
 class CreateKnowledgeSchema(BaseModel):
     textbook_id: int
-    course_unit_id: int
+    unit_id: int
     name: str
     content: str
 
@@ -120,7 +120,7 @@ class UpdateQuestionSchema(BaseModel):
     answer: Optional[str] = None
     resource: Optional[str] = None
     knowledge_id: Optional[int] = None
-    course_unit_id: Optional[int] = None
+    unit_id: Optional[int] = None
     textbook_id: Optional[int] = None
     status: Optional[int] = None
 
@@ -134,6 +134,10 @@ class SearchQuestionSchema(SearchSchema):
 class CreateStudentSchema(BaseModel):
     name: str
     phone: str
+
+
+class SaveStudentSubjectSchema(BaseModel):
+    ids: list[str]
 
 
 class UpdateStudentSchema(BaseModel):

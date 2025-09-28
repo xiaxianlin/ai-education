@@ -1,48 +1,45 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
-from store.database import Database
-from service.admin import ManagerService
-from schema import ResponseSchema, StatusSchema, ManagerSaveSchema, ManagerSearchSchema
+from admin.schema import CreateManangeSchema, UpdateManangeSchema
+from admin.services import manager
+from common.database import Database
+from common.schema import ResponseSchema
 
 
-router = APIRouter(prefix="/manager")
+manager_router = APIRouter(prefix="/manager")
 
 
-@router.get("/search")
-async def search(params: ManagerSearchSchema = Depends(), db: AsyncSession = Database):
-    res = await ManagerService.search(db, params)
+@manager_router.get("/all")
+async def find_all(db: AsyncSession = Database):
+    res = await manager.find_all(db)
     return ResponseSchema(data=res)
 
 
-@router.post("/")
-async def create(params: ManagerSaveSchema, db: AsyncSession = Database):
-    id = await ManagerService.create(db, params)
-    return ResponseSchema(data=id)
+@manager_router.post("/")
+async def create_manager(params: CreateManangeSchema, db: AsyncSession = Database):
+    password = await manager.create_manager(db, params)
+    return ResponseSchema(data=password)
 
 
-@router.patch("/{id}")
-async def update(id: str, params: ManagerSaveSchema, db: AsyncSession = Database):
-    await ManagerService.update(db, id, params)
+@manager_router.post("/{id}/reset")
+async def reset_manager_password(id: str, db: AsyncSession = Database):
+    await manager.reset_manager_password(db, id)
     return ResponseSchema()
 
 
-@router.put("/{id}/status")
-async def update_status(id: str, params: StatusSchema, db: AsyncSession = Database):
-    await ManagerService.update_status(db, id, params.status)
+@manager_router.patch("/{id}/{type}")
+async def update_manager_type(id: str, type: int, db: AsyncSession = Database):
+    await manager.update_manager(db, id, UpdateManangeSchema(type=type))
     return ResponseSchema()
 
 
-@router.delete("/{id}")
+@manager_router.patch("/{id}/{status}")
+async def update_manager_status(id: str, status: int, db: AsyncSession = Database):
+    await manager.update_manager(db, id, UpdateManangeSchema(status=status))
+    return ResponseSchema()
+
+
+@manager_router.delete("/{id}")
 async def remove(id: str, db: AsyncSession = Database):
-    await ManagerService.delete(db, id)
-    return ResponseSchema()
-
-
-@router.post("/modify_password")
-async def modify_password(
-    params: ModifyPasswordSchema,
-    manager: dict = auth.CurrentManager,
-    db: AsyncSession = Database,
-):
-    await modify_password(db, manager["id"], params)
+    await manager.delete_manager(db, id)
     return ResponseSchema()

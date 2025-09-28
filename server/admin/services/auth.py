@@ -9,8 +9,8 @@ from admin.schema import LoginSchema
 
 
 admin_ignore_routes = [
-    "/api/admin/login",
-    "/api/admin/modify_password",
+    "/admin_api/login",
+    "/admin_api/modify_password",
 ]
 
 
@@ -19,6 +19,25 @@ def match_route(routes: list[str], path: str):
         if path.startswith(route):
             return True
     return False
+
+
+def admin_route_filter(request: Request):
+    if request.url.path in admin_ignore_routes:
+        return
+
+    token = request.headers.get("x-access-token")
+    if not token:
+        raise HTTPException(status_code=401, detail="登录失效")
+
+    payload = encrypt.decode(token)
+
+    if not payload or not payload.get("manager"):
+        raise HTTPException(status_code=401, detail="登录失效")
+
+    manager = payload["manager"]
+
+    if manager["status"] == 0:
+        raise HTTPException(status_code=499, detail="账号未启用")
 
 
 async def login(db: AsyncSession, params: LoginSchema):
@@ -38,31 +57,10 @@ async def login(db: AsyncSession, params: LoginSchema):
     await db.commit()
     await db.refresh(manager)
 
-    return encrypt.encode({"manager": ManagerSchema.model_validate(manager)})
+    return encrypt.encode({"manager": ManagerSchema.model_validate(manager).model_dump()})
 
 
-def admin_route_auth(request: Request):
-    path = request.url.path
-    token = request.headers.get("x-access-token")
-
-    if match_route(admin_ignore_routes, path):
-        return
-
-    if not token:
-        raise HTTPException(status_code=401, detail="登录失效")
-
-    payload = encrypt.decode(token)
-
-    if not payload or not payload.get("manager"):
-        raise HTTPException(status_code=401, detail="登录失效")
-
-    manager = payload["manager"]
-
-    if manager["status"] == 0:
-        raise HTTPException(status_code=499, detail="账号未启用")
-
-
-def check_manager(request: Request) -> dict:
+def get_current_manager(request: Request) -> dict:
     token = request.headers.get("x-access-token")
     payload = encrypt.decode(token)
 
@@ -72,4 +70,4 @@ def check_manager(request: Request) -> dict:
     return payload.get("manager")
 
 
-CurrentManager = Depends(check_manager)
+CurrentManager = Depends(get_current_manager)

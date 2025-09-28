@@ -1,55 +1,32 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from service.admin.question import QuestionService
-from schema import (
-    ResponseSchema,
-    QuestionCreateSchema,
-    QuestionUpdateSchema,
-    QuestionSearchSchema,
-)
+from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
+from admin.services import question
 from common.database import Database
+from common.schema import ResponseSchema
 
-router = APIRouter(prefix="/question", tags=["问题管理"])
-
-
-@router.post("/")
-async def create_question(create: QuestionCreateSchema, db: AsyncSession = Database):
-    """创建问题"""
-    id = await QuestionService.create(db, create)
-    return ResponseSchema(data=id)
+question_router = APIRouter(prefix="/question")
 
 
-@router.patch("/{question_id}")
-async def update_question(
-    question_id: str,
-    update: QuestionUpdateSchema,
-    db: AsyncSession = Database,
-):
-    """更新问题"""
-    await QuestionService.update(db, question_id, update)
-
+@question_router.patch("/{id}")
+async def update_question(id: str, update: UpdateQuestionSchema, db: AsyncSession = Database):
+    await question.update_question(db, id, update)
     return ResponseSchema()
 
 
-@router.delete("/{question_id}")
-async def delete_question(question_id: str, db: AsyncSession = Database):
-    """删除问题"""
-    await QuestionService.delete(db, question_id)
+@question_router.delete("/{id}")
+async def delete_question(id: str, db: AsyncSession = Database):
+    await question.delete_question(db, id)
     return ResponseSchema()
 
 
-@router.get("/search")
-async def list_questions(
-    params: QuestionSearchSchema = Depends(),
-    db: AsyncSession = Database,
-):
-    """获取问题列表"""
-    data = await QuestionService.search(db, params)
+@question_router.get("/search")
+async def list_questions(params: SearchQuestionSchema = Depends(), db: AsyncSession = Database):
+    data = await question.search_question(db, params)
     return ResponseSchema(data=data)
 
 
-@router.get("/{question_id}")
-async def get_question(question_id: str, db: AsyncSession = Database):
-    """获取单个问题"""
-    question = await QuestionService.get_by_id(db, question_id)
-    return ResponseSchema(data=question)
+@question_router.get("/{id}")
+async def get_question(id: str, db: AsyncSession = Database):
+    data = await question.get_question(db, id)
+    return ResponseSchema(data=data)

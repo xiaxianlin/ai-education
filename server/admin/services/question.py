@@ -100,7 +100,7 @@ async def query_question_by_knowledge(db: AsyncSession, knowledge_id: int, page:
     )
 
 
-async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int = 1, size: int = 10):
+async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size: int):
     """根据课程单元ID获取问题列表"""
     query = (
         select(Question)

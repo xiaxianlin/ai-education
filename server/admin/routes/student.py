@@ -1,57 +1,50 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from store.database import Database
-from service.admin.user import UserService
-from schema import ResponseSchema, StatusSchema
-from schema.admin import UserCreateSchema, UserUpdateSchema, UserSearchSchema, UserSubjectCreateSchema
+from admin.schema import (
+    CreateStudentSchema,
+    SaveStudentSubjectSchema,
+    SearchStudentSchema,
+    UpdateStudentSchema,
+)
+from admin.services import student
+from common.database import Database
+from common.schema import ResponseSchema
 
 
-router = APIRouter(prefix="/user")
+student_router = APIRouter(prefix="/student")
 
 
-@router.get("/search")
-async def search(params: UserSearchSchema = Depends(), db: AsyncSession = Database):
-    res = await UserService.search(db, params)
+@student_router.get("/search")
+async def search_student(params: SearchStudentSchema = Depends(), db: AsyncSession = Database):
+    res = await student.search_student(db, params)
     return ResponseSchema(data=res)
 
 
-@router.get("/{id}")
-async def get_by_id(id: str, db: AsyncSession = Database):
-    res = await UserService.get_by_id(db, id)
-    return ResponseSchema(data=res)
+@student_router.get("/{id}/subjects")
+async def query_student_textbook(id: str, db: AsyncSession = Database):
+    data = await student.query_student_textbook(db, id)
+    return ResponseSchema(data=data)
 
 
-@router.post("/")
-async def create(params: UserCreateSchema, db: AsyncSession = Database):
-    id = await UserService.create(db, params)
-    return ResponseSchema(data=id)
+@student_router.post("/")
+async def create_student(params: CreateStudentSchema, db: AsyncSession = Database):
+    password = await student.create_student(db, params)
+    return ResponseSchema(data=password)
 
 
-@router.patch("/{id}")
-async def update(id: str, params: UserUpdateSchema, db: AsyncSession = Database):
-    await UserService.update(db, id, params)
+@student_router.post("/{id}/subjects")
+async def create_student(id: str, params: SaveStudentSubjectSchema, db: AsyncSession = Database):
+    await student.save_student_textbook(db, id, params.ids)
     return ResponseSchema()
 
 
-@router.put("/{id}/status")
-async def update_status(id: str, params: StatusSchema, db: AsyncSession = Database):
-    await UserService.update_status(db, id, params.status)
+@student_router.patch("/{id}")
+async def update_student(id: str, params: UpdateStudentSchema, db: AsyncSession = Database):
+    await student.update_student(db, id, params)
     return ResponseSchema()
 
 
-@router.delete("/{id}")
-async def remove(id: str, db: AsyncSession = Database):
-    await UserService.delete(db, id)
-    return ResponseSchema()
-
-
-@router.post("/{id}/subject")
-async def add_subject(id: str, params: UserSubjectCreateSchema, db: AsyncSession = Database):
-    await UserService.add_subject(db, id, params)
-    return ResponseSchema()
-
-
-@router.delete("/{id}/subject/{subject_id}")
-async def remove_subject(id: str, subject_id: str, db: AsyncSession = Database):
-    await UserService.remove_subject(db, id, subject_id)
+@student_router.delete("/{id}")
+async def delete_student(id: str, db: AsyncSession = Database):
+    await student.delete_student(db, id)
     return ResponseSchema()
