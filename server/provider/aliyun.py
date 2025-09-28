@@ -2,6 +2,7 @@ import json
 import os
 import hashlib
 import time
+from loguru import logger
 import requests
 import alibabacloud_oss_v2 as oss
 from alibabacloud_tea_util.models import RuntimeOptions
@@ -71,7 +72,6 @@ class AliyunOSS:
             part_number += 1
 
         parts = sorted(upload_parts, key=lambda p: p.part_number)
-        print(parts)
         # 发送完成分片上传请求，合并所有分片为一个完整的对象
         self.client.complete_multipart_upload(
             oss.CompleteMultipartUploadRequest(
@@ -274,58 +274,57 @@ class AliyunRag:
             runtime,
         )
 
-    def update_file(self, file_name: str, file_path: str, old_file_id=None) -> str:
-        """更新知识库文件"""
+    def exec_upload(self, file_name: str, file_path: str, old_file_id=None) -> str:
+        """上传知识库文件，如果已经存在，则更新"""
         try:
-            print(f"上传文件：{file_path}")
-
-            print("向阿里云百炼申请上传租约")
+            logger.info(f"上传文件：{file_path}")
+            logger.info("向阿里云百炼申请上传租约")
             lease_response = self.apply_lease(file_name, file_path)
             lease_id = lease_response.body.data.file_upload_lease_id
             upload_url = lease_response.body.data.param.url
             upload_headers = lease_response.body.data.param.headers
 
-            print("上传文档到阿里云百炼")
+            logger.info("上传文档到阿里云百炼")
             self.upload_file(upload_url, upload_headers, file_path)
 
-            print("将文档添加到阿里云百炼服务器")
+            logger.info("将文档添加到阿里云百炼服务器")
             add_response = self.add_file(lease_id)
             file_id = add_response.body.data.file_id
 
-            print("检查阿里云百炼中的文档状态")
+            logger.info("检查阿里云百炼中的文档状态")
             while True:
                 describe_response = self.describe_file(file_id)
                 status = describe_response.body.data.status
-                print(f"当前文档状态：{status}")
+                logger.info(f"当前文档状态：{status}")
                 if status == "INIT":
-                    print("文档待解析，请稍候...")
+                    logger.info("文档待解析，请稍候...")
                 elif status == "PARSING":
-                    print("文档解析中，请稍候...")
+                    logger.info("文档解析中，请稍候...")
                 elif status == "PARSE_SUCCESS":
-                    print("文档解析完成！")
+                    logger.info("文档解析完成！")
                     break
                 else:
-                    print(f"未知的文档状态：{status}，请联系技术支持。")
+                    logger.info(f"未知的文档状态：{status}，请联系技术支持。")
                     break
                 time.sleep(1)
 
-            print(f"提交追加文档任务: {file_id}")
+            logger.info(f"提交追加文档任务: {file_id}")
             index_add_response = self.submit_index_add_documents_job(file_id)
 
             job_id = index_add_response.body.data.id
 
-            print(f"获取阿里云百炼索引任务状态: {job_id}")
+            logger.info(f"获取阿里云百炼索引任务状态: {job_id}")
             while True:
                 get_index_job_status_response = self.get_index_job_status(job_id)
                 status = get_index_job_status_response.body.data.status
-                print(f"当前索引任务状态：{status}")
+                logger.info(f"当前索引任务状态：{status}")
                 if status == "COMPLETED":
                     break
                 time.sleep(1)
             if old_file_id:
-                print("删除旧文档")
+                logger.info("删除旧文档")
                 self.delete_index_document(old_file_id)
-            print("阿里云百炼知识库创建成功！")
+            logger.info("阿里云百炼知识库创建成功！")
             return file_id
         except Exception as e:
             raise ValueError("文档上传知识库异常")

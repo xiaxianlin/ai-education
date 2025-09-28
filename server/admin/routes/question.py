@@ -11,13 +11,13 @@ question_router = APIRouter(prefix="/question")
 @question_router.patch("/{id}")
 async def update_question(id: str, update: UpdateQuestionSchema, db: AsyncSession = Database):
     await question.update_question(db, id, update)
-    return ResponseSchema()
+    
 
 
 @question_router.delete("/{id}")
 async def delete_question(id: str, db: AsyncSession = Database):
     await question.delete_question(db, id)
-    return ResponseSchema()
+    
 
 
 @question_router.get("/search")

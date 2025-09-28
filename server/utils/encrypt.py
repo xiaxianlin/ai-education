@@ -1,9 +1,8 @@
-import jwt, json, hashlib, datetime, string, secrets, math
+import jwt, json, hashlib, string, secrets
 from common.settings import envs
 
 
 def encode(data: dict) -> str:
-    data["exp"] = datetime.datetime.now() + datetime.timedelta(days=360)
     return jwt.encode(data, envs.APP_SECRET_KEY, algorithm="HS256")
 
 
@@ -25,7 +24,7 @@ def generate_password() -> str:
     """
     生成强密码（保证每个被启用的类别至少出现一次）。
     """
-    length = range(12, 17)
+    length = 16
     pools = [
         string.ascii_lowercase,
         string.ascii_uppercase,

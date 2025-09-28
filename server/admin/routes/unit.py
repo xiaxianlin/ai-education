@@ -19,19 +19,19 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
 @unit_router.put("/{id}")
 async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession = Database):
     await unit.update_unit(db, id, unit_update)
-    return ResponseSchema()
+    
 
 
 @unit_router.delete("/{id}")
 async def delete_unit(id: int, db: AsyncSession = Database):
     await unit.delete_unit(db=db, id=id)
-    return ResponseSchema()
+    
 
 
 @unit_router.patch("/{id}/status/{status}")
 async def update_status(id: int, status: int, db: AsyncSession = Database):
     await unit.update_unit_status(db, id, status)
-    return ResponseSchema()
+    
 
 
 @unit_router.get("/search")

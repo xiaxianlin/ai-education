@@ -1,14 +1,13 @@
-from sqlalchemy import String, Text
-from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase
 from fastapi import Depends
+from sqlalchemy import String, Text
+from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 from common.settings import envs
 from utils.time import now
 
 async_engine = create_async_engine(
     envs.DATABASE_URL,
-    echo=True,
+    echo=False,
     pool_pre_ping=True,
 )
 
@@ -51,6 +50,7 @@ class Manager(BaseModel):
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(255), nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
+    token: Mapped[str] = mapped_column(String(255))
     type: Mapped[int] = mapped_column(default=0)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
@@ -103,7 +103,7 @@ class Knowledge(BaseModel):
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()
 
-    course_unit: Mapped["Unit"] = relationship(
+    unit: Mapped["Unit"] = relationship(
         "Unit",
         primaryjoin="foreign(Knowledge.unit_id) == Unit.id",
         lazy="joined",
@@ -139,7 +139,7 @@ class Question(BaseModel):
         lazy="joined",
     )
 
-    course_unit: Mapped["Unit"] = relationship(
+    unit: Mapped["Unit"] = relationship(
         "Unit",
         primaryjoin="foreign(Question.unit_id) == Unit.id",
         lazy="joined",  # 推荐 eager load，性能好

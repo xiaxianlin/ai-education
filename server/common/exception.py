@@ -1,4 +1,4 @@
-import json
+from loguru import logger
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -26,13 +26,10 @@ async def global_exception_handler(_: Request, exc: Exception):
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    print(exc.errors())
+    logger.error(exc.errors())
     data = []
     for err in exc.errors():
-        if err["type"] == "value_error":
-            data.append({"field": err["loc"][1], "error": err["msg"].replace("Value error, ", "")})
-        else:
-            data.append({"error": err["msg"].replace("Value error, ", "")})
+        data.append({"field": err["loc"][1], "error": err["msg"].replace("Value error, ", "")})
 
     return JSONResponse(
         status_code=200,

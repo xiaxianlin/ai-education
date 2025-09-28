@@ -35,16 +35,16 @@ async def create_student(params: CreateStudentSchema, db: AsyncSession = Databas
 @student_router.post("/{id}/subjects")
 async def create_student(id: str, params: SaveStudentSubjectSchema, db: AsyncSession = Database):
     await student.save_student_textbook(db, id, params.ids)
-    return ResponseSchema()
+    
 
 
 @student_router.patch("/{id}")
 async def update_student(id: str, params: UpdateStudentSchema, db: AsyncSession = Database):
     await student.update_student(db, id, params)
-    return ResponseSchema()
+    
 
 
 @student_router.delete("/{id}")
 async def delete_student(id: str, db: AsyncSession = Database):
     await student.delete_student(db, id)
-    return ResponseSchema()
+    

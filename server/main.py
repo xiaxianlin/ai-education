@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 ##################################
 from common.database import init_database
 from common.settings import envs
-from common.logger import *
+from common.logger import logger
 
 from admin import admin_app
 from admin.services.manager import init_super_manager
@@ -24,14 +24,10 @@ async def lifespan(_: FastAPI):
     logger.info(">" * 10 + "服务启动" + "<" * 10)
     # 初始化数据库
     await init_database()
-
     # 初始化运行目录
-    if not os.path.exists(envs.TMP_DIR):
-        os.makedirs(envs.TMP_DIR)
+    os.makedirs(envs.TMP_DIR, exist_ok=True)
     # 初始化运行目录
-    if not os.path.exists(envs.LOG_DIR):
-        os.makedirs(envs.LOG_DIR)
-
+    os.makedirs(envs.LOG_DIR, exist_ok=True)
     # 初始化超级管理员
     if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
         await init_super_manager()
@@ -50,8 +46,8 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 
-app.mount("/admin_api", admin_app)
-app.mount("/student_api", student_app)
+app.mount("/api/admin", admin_app)
+app.mount("/api/student", student_app)
 
 
 if __name__ == "__main__":

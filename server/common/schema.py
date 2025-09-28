@@ -50,8 +50,7 @@ class TextbookSchema(BaseModel):
     id: int
     subject: str
     version: str
-    stage: str
-    grade: str
+    grade: int
     semester: str
     file: Optional[str] = None
     index_file_id: Optional[str] = None
@@ -89,7 +88,7 @@ class KnowledgeSchema(BaseModel):
     update_time: Optional[int] = None
 
     textbook: Optional["TextbookSchema"] = None
-    course_unit: Optional["UnitSchema"] = None
+    unit: Optional["UnitSchema"] = None
 
     model_config = {"from_attributes": True}
 
@@ -109,7 +108,7 @@ class QuestionSchema(BaseModel):
     update_time: Optional[int] = None
 
     knowledge: Optional["KnowledgeSchema"] = None
-    course_unit: Optional["UnitSchema"] = None
+    unit: Optional["UnitSchema"] = None
     textbook: Optional["TextbookSchema"] = None
 
     model_config = {"from_attributes": True}

@@ -45,24 +45,22 @@ async def get_knowledge(db: AsyncSession, id: int):
 
 async def query_knowledge_by_textbook(db: AsyncSession, textbook_id: int):
     """根据教材ID获取知识点列表"""
-    query = (
+    knowledges = await db.scalars(
         select(Knowledge)
-        .options(noload(Knowledge.textbook))
+        .options(noload(Knowledge.textbook), noload(Knowledge.unit))
         .where(Knowledge.textbook_id == textbook_id)
     )
-    knowledges = await db.scalars(query)
 
     return [KnowledgeSchema.model_validate(knowledge) for knowledge in knowledges.all()]
 
 
 async def query_knowledge_by_unit(db: AsyncSession, unit_id: int):
     """根据课程单元ID获取知识点列表"""
-    query = (
+    knowledges = await db.scalars(
         select(Knowledge)
         .options(noload(Knowledge.textbook), noload(Knowledge.unit))
         .where(Knowledge.unit_id == unit_id)
     )
-    knowledges = await db.scalars(query)
 
     return [KnowledgeSchema.model_validate(knowledge) for knowledge in knowledges.all()]
 

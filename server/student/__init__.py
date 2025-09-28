@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from student.services.auth import student_router_filter
-from common.middleware import ExcludeNoneJSONResponse
+from common.middleware import WrappedResponse
 from common.exception import (
     global_exception_handler,
     http_exception_handler,
@@ -14,7 +14,7 @@ from .routes.config import config_router
 
 
 student_app = FastAPI(
-    default_response_class=ExcludeNoneJSONResponse,
+    default_response_class=WrappedResponse,
     dependencies=[Depends(student_router_filter)],
     exception_handlers={
         RequestValidationError: validation_exception_handler,

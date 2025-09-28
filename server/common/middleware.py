@@ -1,19 +1,23 @@
-from fastapi.responses import JSONResponse
-from typing import Any
 import json
+from typing import Any
+from fastapi.responses import JSONResponse, Response
 
 
-class ExcludeNoneJSONResponse(JSONResponse):
+def drop_none(d):
+    if isinstance(d, dict):
+        return {k: drop_none(v) for k, v in d.items() if v is not None}
+    elif isinstance(d, list):
+        return [drop_none(v) for v in d]
+    else:
+        return d
+
+
+class WrappedResponse(Response):
     def render(self, content: Any) -> bytes:
-        # 使用 dict 排除 None，再转 JSON
-        def exclude_none(obj):
-            if isinstance(obj, dict):
-                return {k: exclude_none(v) for k, v in obj.items() if v is not None}
-            elif isinstance(obj, list):
-                return [exclude_none(i) for i in obj]
-            return obj
-
-        filtered = exclude_none(content)
         return json.dumps(
-            filtered, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")
+            drop_none({"status": 0, "message": "success", "data": content}),
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
         ).encode("utf-8")

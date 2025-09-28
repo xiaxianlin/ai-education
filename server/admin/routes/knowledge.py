@@ -21,14 +21,14 @@ async def create_knowledge(params: CreateKnowledgeSchema, db: AsyncSession = Dat
 async def update_knowledge(id: str, params: UpdateKnowledgeSchema, db: AsyncSession = Database):
     """更新知识点"""
     await knowledge.update_knowledge(db, id, params)
-    return ResponseSchema()
+    
 
 
 @knowledge_router.delete("/{id}")
 async def delete_knowledge(id: str, db: AsyncSession = Database):
     """删除知识点"""
     await knowledge.delete_knowledge(db, id=id)
-    return ResponseSchema()
+    
 
 
 @knowledge_router.get("/search")

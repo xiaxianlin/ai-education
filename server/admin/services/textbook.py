@@ -1,23 +1,55 @@
-import asyncio
 import os
 from pathlib import Path
 from fastapi import UploadFile
+from loguru import logger
 from sqlalchemy import asc, delete, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
-from provider.aliyun import AliyunOSS, AliyunRag, call_app
+from provider.aliyun import AliyunRag, call_app
 from common.database import Knowledge, Question, Textbook, Unit
 from common.schema import TextbookSchema
 from utils.time import now
 from common.settings import envs
 
 
+async def _clean_textbook(db: AsyncSession, id: int):
+    # 删除单元
+    stmt = delete(Unit).where(Unit.textbook_id == id)
+    await db.execute(stmt)
+    # 删除知识点
+    stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
+    await db.execute(stmt)
+    # 更新所有问题关联
+    stmt = (
+        update(Question)
+        .where(Question.textbook_id == id)
+        .values({"unit_id": None, "knowledge_id": None})
+    )
+    await db.execute(stmt)
+    await db.commit()
+
+
 async def create_textbook(db: AsyncSession, data: SaveTextbookSchema):
+    subject = data.subject.strip()
+    version = data.version.strip()
+    grade = data.grade
+    semester = data.semester.strip()
+
+    exists_stmt = select(Textbook).where(
+        Textbook.subject == subject,
+        Textbook.version == version,
+        Textbook.grade == grade,
+        Textbook.semester == semester,
+    )
+    textbook_exists = await db.scalar(exists_stmt)
+    if textbook_exists:
+        raise ValueError("教材已存在")
+
     textbook = Textbook(
-        subject=data.subject.strip(),
-        version=data.version.strip(),
-        grade=data.grade.strip(),
-        semester=data.semester.strip(),
+        subject=subject,
+        version=version,
+        grade=grade,
+        semester=semester,
     )
     db.add(textbook)
     await db.commit()
@@ -31,10 +63,10 @@ async def modify_textbook(db: AsyncSession, id: int, data: SaveTextbookSchema):
     if not textbook:
         raise ValueError("教材不存在")
 
-    textbook.subject = data.subject
-    textbook.version = data.version
+    textbook.subject = data.subject.strip()
+    textbook.version = data.version.strip()
     textbook.grade = data.grade
-    textbook.semester = data.semester
+    textbook.semester = data.semester.strip()
     textbook.update_time = now()
     await db.commit()
 
@@ -42,18 +74,23 @@ async def modify_textbook(db: AsyncSession, id: int, data: SaveTextbookSchema):
 async def delete_textbook(db: AsyncSession, id: int):
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
-        return True
+        raise ValueError("教材不存在")
 
     count = (
-        await db.scalar(select(func.count()).select_from(Unit).where(Unit.textbook_id == id)) or 0
+        await db.scalar(
+            select(func.count()).select_from(Question).where(Question.textbook_id == id)
+        )
+        or 0
     )
 
     if count > 0:
         raise ValueError("教材已经被使用，不能被删除")
 
-    if textbook.file:
-        oss = AliyunOSS()
-        await oss.delete(f"textbook/{textbook.file}")
+    await _clean_textbook(db, id)
+
+    if textbook.index_file_id:
+        rag = AliyunRag()
+        rag.delete_index_document(textbook.index_file_id)
 
     await db.delete(textbook)
     await db.commit()
@@ -93,7 +130,7 @@ async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
 
     return {
         "total": total,
-        "data": [manager.to_dict({"password"}) for manager in results.unique().all()],
+        "data": [TextbookSchema.model_validate(item) for item in results.unique().all()],
     }
 
 
@@ -115,20 +152,8 @@ async def parse_textbook(db: AsyncSession, id: int):
     if not textbook.index_file_id:
         raise ValueError("教材文件还未被解析")
 
-    # 删除单元
-    stmt = delete(Unit).where(Unit.textbook_id == id)
-    await db.execute(stmt)
-    # 删除知识点
-    stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
-    await db.execute(stmt)
-    # 更新所有问题关联
-    stmt = (
-        update(Question)
-        .where(Question.textbook_id == id)
-        .values({"unit_id": None, "knowledge_id": None})
-    )
-    await db.execute(stmt)
-    await db.commit()
+    # 重新解析，需要清理教材相关数据
+    await _clean_textbook(db, id)
 
     data = call_app(
         query=f"解析教材{textbook.file}",
@@ -140,13 +165,13 @@ async def parse_textbook(db: AsyncSession, id: int):
     if not units:
         raise ValueError("教材解析格式错误")
 
-    for unit in units:
-        unit = Unit(textbook_id=id, name=unit.get("unit_name"), content=unit.get("unit_content"))
+    for item in units:
+        unit = Unit(textbook_id=id, name=item.get("unit_name"), content=item.get("unit_content"))
         db.add(unit)
         await db.commit()
         await db.refresh(unit)
 
-        knowledges = unit.get("topics")
+        knowledges = item.get("topics")
         if not knowledges:
             return
 
@@ -174,15 +199,10 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
         raise ValueError("教材不存在")
     textbook.file = file.filename
 
-    # 上传到 oss
-    oss = AliyunOSS()
     data = await file.read()
 
-    # 提前创建任务（协程对象）
-    task = asyncio.create_task(oss.multipart_upload(f"textbook/{file.filename}", data))
-
     try:
-        tmp_dir = f"{envs.RUNTIME_DIR}/tmp"
+        tmp_dir = f"{envs.TMP_DIR}/textbook"
         os.makedirs(tmp_dir, exist_ok=True)
         tmp_file_path = Path(tmp_dir) / file.filename
 
@@ -191,14 +211,9 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
 
         rag = AliyunRag()
         # 更新索引（同步）
-        textbook.index_file_id = rag.update_file(
-            file.filename,
-            tmp_file_path,
-            textbook.index_file_id,
+        textbook.index_file_id = rag.exec_upload(
+            file.filename, tmp_file_path, textbook.index_file_id
         )
-
-        # 等待 OSS 上传完成
-        await task
 
         textbook.update_time = now()
         await db.commit()

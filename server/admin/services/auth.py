@@ -1,28 +1,20 @@
-from time import time
-from fastapi import Depends, HTTPException, Request
+from fastapi import HTTPException, Request
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils import encrypt
-from common.database import Manager
+from common.database import AsyncSessionLocal, Manager
 from common.schema import ManagerSchema
 from admin.schema import LoginSchema
+from utils.time import now
 
 
-admin_ignore_routes = [
-    "/admin_api/login",
-    "/admin_api/modify_password",
-]
+admin_ignore_routes = ["/api/admin/login"]
 
 
-def match_route(routes: list[str], path: str):
-    for route in routes:
-        if path.startswith(route):
-            return True
-    return False
-
-
-def admin_route_filter(request: Request):
-    if request.url.path in admin_ignore_routes:
+async def admin_route_filter(request: Request):
+    path = request.url.path
+    if path in admin_ignore_routes:
         return
 
     token = request.headers.get("x-access-token")
@@ -31,16 +23,27 @@ def admin_route_filter(request: Request):
 
     payload = encrypt.decode(token)
 
-    if not payload or not payload.get("manager"):
+    if not payload:
         raise HTTPException(status_code=401, detail="登录失效")
 
-    manager = payload["manager"]
+    async with AsyncSessionLocal() as db:
+        manager: Manager = await db.scalar(select(Manager).where(Manager.token == token))
+        logger.info(f"当前登录账户：{ManagerSchema.model_validate(manager)}")
 
-    if manager["status"] == 0:
-        raise HTTPException(status_code=499, detail="账号未启用")
+    if not manager or manager.id != payload.get("id"):
+        raise HTTPException(status_code=401, detail="登录失效")
+
+    if manager.status == 0:
+        raise HTTPException(status_code=403, detail="账号被禁用")
+
+    # 超级管理员权限
+    if path.startswith("/admin_api/manager") and manager.type != 0:
+        raise HTTPException(status_code=403, detail="权限不足")
+
+    request.state.manager = ManagerSchema.model_validate(manager)
 
 
-async def login(db: AsyncSession, params: LoginSchema):
+async def admin_login(db: AsyncSession, params: LoginSchema):
     manager = await db.scalar(select(Manager).where(Manager.username == params.username))
 
     if not manager:
@@ -49,25 +52,19 @@ async def login(db: AsyncSession, params: LoginSchema):
     if manager.password != encrypt.hash(params.password):
         raise ValueError("用户名或密码错误")
 
-    if manager.status == -1:
-        raise ValueError("账号已被禁用")
+    if manager.status == 0:
+        raise ValueError("账号被禁用")
 
-    manager.update_time = int(time())
+    manager.update_time = now()
 
+    token = encrypt.encode({"id": manager.id, "update_time": manager.update_time})
+    manager.token = token
     await db.commit()
-    await db.refresh(manager)
-
-    return encrypt.encode({"manager": ManagerSchema.model_validate(manager).model_dump()})
+    return token
 
 
-def get_current_manager(request: Request) -> dict:
-    token = request.headers.get("x-access-token")
-    payload = encrypt.decode(token)
-
-    if not payload or not payload.get("manager"):
-        raise HTTPException(status_code=401, detail="登录失效")
-
-    return payload.get("manager")
-
-
-CurrentManager = Depends(get_current_manager)
+def check_super_permission(request: Request):
+    """检查炒股管理员权限"""
+    manager: ManagerSchema = request.state.manager
+    if manager.type != 0:
+        raise HTTPException(status_code=403, detail="权限不足")

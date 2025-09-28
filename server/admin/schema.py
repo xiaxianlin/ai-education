@@ -40,6 +40,13 @@ class CreateManangeSchema(BaseModel):
     username: str
     type: int
 
+    @field_validator("type")
+    @classmethod
+    def validate_type(cls, v):
+        if v < 1:
+            raise ValueError("管理员类型异常")
+        return v
+
 
 class UpdateManangeSchema(BaseModel):
     type: Optional[int] = None

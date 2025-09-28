@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from loguru import logger
 from admin.services.auth import admin_route_filter
-from common.middleware import ExcludeNoneJSONResponse
+from common.middleware import WrappedResponse
 from common.exception import (
     global_exception_handler,
     http_exception_handler,
@@ -20,7 +22,7 @@ from .routes.config import config_router
 
 
 admin_app = FastAPI(
-    default_response_class=ExcludeNoneJSONResponse,
+    default_response_class=WrappedResponse,
     dependencies=[Depends(admin_route_filter)],
     exception_handlers={
         RequestValidationError: validation_exception_handler,
@@ -29,6 +31,7 @@ admin_app = FastAPI(
         Exception: global_exception_handler,
     },
 )
+
 
 admin_app.include_router(auth_router)
 admin_app.include_router(knowledge_router)

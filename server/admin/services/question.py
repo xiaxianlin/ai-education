@@ -143,19 +143,15 @@ async def query_question_by_textbook(
         select(Question)
         .options(
             noload(Question.textbook),
-            noload(Question.course_unit),
+            noload(Question.unit),
             noload(Question.knowledge),
         )
-        .where(
-            Question.textbook_id == textbook_id,
-            Question.status == 1,
-        )
+        .where(Question.textbook_id == textbook_id)
     )
 
     # 获取总数
     count_query = select(func.count(Question.id)).where(
         Question.textbook_id == textbook_id,
-        Question.status == 1,
     )
 
     total = await db.scalar(count_query) or 0
