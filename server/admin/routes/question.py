@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from admin.services import question
 from common.database import Database
-from common.schema import ResponseSchema
 
 question_router = APIRouter(prefix="/question")
 
@@ -20,11 +19,9 @@ async def delete_question(id: str, db: AsyncSession = Database):
 
 @question_router.get("/search")
 async def search_question(params: SearchQuestionSchema = Depends(), db: AsyncSession = Database):
-    data = await question.search_question(db, params)
-    return ResponseSchema(data=data)
+    return await question.search_question(db, params)
 
 
 @question_router.get("/{id}")
 async def get_question(id: str, db: AsyncSession = Database):
-    data = await question.get_question(db, id)
-    return ResponseSchema(data=data)
+    return await question.get_question(db, id)

@@ -33,7 +33,6 @@ dependencies = [
     "asyncmy>=0.2.10",
     "langchain>=0.3.7",
     "langchain-community>=0.3.7",
-    "langchain-core>=0.3.76",
     "langchain-openai>=0.3.33",
 ]
 

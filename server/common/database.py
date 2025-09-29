@@ -125,6 +125,7 @@ class Question(BaseModel):
     content: Mapped[str] = mapped_column(Text, comment="题目内容")
     options: Mapped[str] = mapped_column(Text, comment="选项")
     answer: Mapped[str] = mapped_column(Text, comment="问题答案")
+    difficulty: Mapped[str] = mapped_column(String(255), comment="问题难度")
     resource: Mapped[str] = mapped_column(String(255), comment="资源路径")
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column()

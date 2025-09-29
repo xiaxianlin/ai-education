@@ -138,6 +138,7 @@ class UpdateQuestionSchema(BaseModel):
     options: Optional[list[str]] = None
     answer: Optional[str] = None
     resource: Optional[str] = None
+    difficulty: Optional[str] = None
     knowledge_id: Optional[int] = None
     unit_id: Optional[int] = None
     textbook_id: Optional[int] = None

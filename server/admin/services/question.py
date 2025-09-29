@@ -2,7 +2,7 @@ from sqlalchemy import select, and_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
-from common.database import Question
+from common.database import Question, Unit
 from common.schema import QuestionSchema, SearchResultSchema
 from utils.time import now
 
@@ -25,6 +25,8 @@ async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchem
         question.options = update.options
     if update.answer is not None:
         question.answer = update.answer
+    if update.difficulty is not None:
+        question.ansdifficultywer = update.difficulty
     if update.knowledge_id is not None:
         question.knowledge_id = update.knowledge_id
     if update.unit_id is not None:
@@ -53,9 +55,9 @@ async def get_question(db: AsyncSession, id: str):
     result = await db.execute(
         select(Question)
         .options(
-            joinedload(Question.knowledge)
-            .joinedload(Question.course_unit)
-            .joinedload(Question.textbook)
+            joinedload(Question.knowledge),
+            joinedload(Question.unit).noload(Unit.textbook),
+            joinedload(Question.textbook),
         )
         .where(Question.id == id)
     )
@@ -71,7 +73,7 @@ async def query_question_by_knowledge(db: AsyncSession, knowledge_id: int, page:
         select(Question)
         .options(
             noload(Question.textbook),
-            noload(Question.course_unit),
+            noload(Question.unit),
             noload(Question.knowledge),
         )
         .where(
@@ -167,7 +169,11 @@ async def query_question_by_textbook(
 
 async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     """搜索问题"""
-    query = select(Question)
+    query = select(Question).options(
+        noload(Question.textbook),
+        noload(Question.unit),
+        noload(Question.knowledge),
+    )
 
     conditions = []
     if params.keywords:

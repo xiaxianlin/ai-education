@@ -18,7 +18,7 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
 
 @unit_router.post("/{id}/generate")
 async def create_unit(id: int, db: AsyncSession = Database):
-    return await generate_question_by_unit(db, id, 5)
+    return await generate_question_by_unit(db, id, 30)
 
 
 @unit_router.put("/{id}")

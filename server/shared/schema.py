@@ -1,24 +1,21 @@
-from typing import Optional
-from pydantic import BaseModel
+from typing import List
+from pydantic import BaseModel, Field
 
 
-class CreateQuestionSchema(BaseModel):
-    type: str
-    # 问题内容
-    content: str
-    # 选项
-    options: Optional[list[str]] = None
-    # 答案
-    answer: str
-    # 年级（1 ～ 12）
-    grade: int
-    # 科目
-    subject: str
-    # 知识点 ID
-    knowledge_id: Optional[int] = None
-    # 课程单元 ID
-    unit_id: Optional[int] = None
-    # 教材 ID
-    textbook_id: Optional[int] = None
-    # 问题来源：AI生成 | 后台创建 ｜ 用户上传
-    source: str
+class QuestionOption(BaseModel):
+    label: str = Field(description="选项标签，如 A/B/C/D")
+    text: str = Field(description="选项内容")
+
+
+class GeneratedQuestion(BaseModel):
+    question_type: str = Field(description="题型")
+    question: str = Field(description="题干内容")
+    options: List[QuestionOption] = Field(
+        description="题目选项列表，非选择题时可为空数组", default=[]
+    )
+    answer: str = Field(description="标准答案")
+    difficulty: str = Field(description="题目难度，如 简单/中等/较难")
+
+
+class QuestionGenerationResult(BaseModel):
+    questions: List[GeneratedQuestion] = []
