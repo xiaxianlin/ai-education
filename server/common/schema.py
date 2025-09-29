@@ -129,7 +129,7 @@ class StudentSchema(BaseModel):
 
 
 class StudentTextbookSchema(BaseModel):
-    id: str
+    id: int
     create_time: int
     textbook: Optional["TextbookSchema"] = None
 

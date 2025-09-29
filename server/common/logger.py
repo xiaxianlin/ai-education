@@ -55,3 +55,34 @@ for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
 #     level="ERROR",
 #     encoding="utf-8",
 # )
+
+from sqlalchemy.sql import Select
+from sqlalchemy.orm import Query
+
+
+def print_sql(query, engine=None):
+    """
+    打印 SQLAlchemy 生成的 SQL 语句（带实参）
+
+    参数:
+        query: 可以是 ORM 的 Query 或 Core 的 Select 对象
+        engine: 可选，用于获取方言 dialect；如果不传会尝试 query.session.bind
+    """
+    # 获取 engine / dialect
+    dialect = None
+    if engine is not None:
+        dialect = engine.dialect
+    elif hasattr(query, "session") and query.session is not None:
+        dialect = query.session.bind.dialect
+
+    # 处理 ORM 1.x 的 Query 对象
+    if isinstance(query, Query):
+        stmt = query.statement
+    # 处理 ORM 2.x 的 select()
+    elif isinstance(query, Select):
+        stmt = query
+    else:
+        raise TypeError("不支持的 query 类型，请传入 ORM Query 或 select()")
+
+    compiled = stmt.compile(dialect=dialect, compile_kwargs={"literal_binds": True})
+    logger.info(str(compiled))

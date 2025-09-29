@@ -162,6 +162,7 @@ class Student(BaseModel):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(255), nullable=False)
     password: Mapped[str] = mapped_column(String(255), default="")
+    token: Mapped[str] = mapped_column(String(255))
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()

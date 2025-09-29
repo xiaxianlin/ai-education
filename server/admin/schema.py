@@ -144,7 +144,7 @@ class CreateStudentSchema(BaseModel):
 
 
 class SaveStudentSubjectSchema(BaseModel):
-    ids: list[str]
+    ids: list[int]
 
 
 class UpdateStudentSchema(BaseModel):

@@ -1,10 +1,9 @@
 import uuid
 from sqlalchemy import and_, delete, func, select
-from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
-from common.database import Student, StudentTextbook
-from common.schema import SearchResultSchema, StudentSchema, StudentTextbookSchema
+from common.database import Student, StudentTextbook, Textbook
+from common.schema import SearchResultSchema, StudentSchema, TextbookSchema
 from utils import encrypt
 from utils.time import now
 
@@ -15,10 +14,11 @@ async def create_student(db: AsyncSession, params: CreateStudentSchema):
 
     if student:
         raise ValueError("该学生已经注册")
+
     password = encrypt.generate_password()
     student = Student(
         id=str(uuid.uuid4()),
-        name=params.username,
+        name=params.name,
         phone=params.phone,
         password=encrypt.hash(password),
         status=1,
@@ -35,12 +35,12 @@ async def update_student(db: AsyncSession, id: str, params: UpdateStudentSchema)
     if not student:
         raise ValueError("学生不存在")
 
-    if params.status is not None:
-        student.status = params.status
-    if params.type is not None:
-        student.type = params.type
+    if params.name:
+        student.name = params.name
     if params.phone is not None:
         student.phone = params.phone
+    if params.status is not None:
+        student.status = params.status
 
     student.update_time = now()
     await db.commit()
@@ -101,8 +101,7 @@ async def save_student_textbook(db: AsyncSession, id: str, textbook_ids: list[st
     if not student:
         raise ValueError("学生不存在")
 
-    db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == id))
-    await db.commit()
+    await db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == id))
 
     models = [
         StudentTextbook(student_id=id, textbook_id=textbook_id) for textbook_id in textbook_ids
@@ -115,8 +114,8 @@ async def save_student_textbook(db: AsyncSession, id: str, textbook_ids: list[st
 async def query_student_textbook(db: AsyncSession, id: str):
     """查询学生的教材"""
     result = await db.scalars(
-        select(StudentTextbook)
-        .options(joinedload(StudentTextbook.textbook))
-        .where(Student.id == id)
+        select(Textbook)
+        .join(StudentTextbook, StudentTextbook.textbook_id == Textbook.id)
+        .where(StudentTextbook.student_id == id)
     )
-    return [StudentTextbookSchema.model_validate(item) for item in result.all()]
+    return [TextbookSchema.model_validate(item) for item in result.all()]

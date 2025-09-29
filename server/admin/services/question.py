@@ -106,13 +106,10 @@ async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size
         select(Question)
         .options(
             noload(Question.textbook),
-            noload(Question.course_unit),
+            noload(Question.unit),
             noload(Question.knowledge),
         )
-        .where(
-            Question.unit_id == unit_id,
-            Question.status == 1,
-        )
+        .where(Question.unit_id == unit_id)
     )
 
     # 获取总数

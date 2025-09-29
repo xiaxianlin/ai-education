@@ -1,5 +1,5 @@
 from sqlalchemy import or_, select, func, update
-from sqlalchemy.orm import joinedload, noload
+from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from common.schema import SearchResultSchema, SearchSchema, UnitSchema
@@ -47,7 +47,7 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     if not unit:
         raise ValueError("课程单元不存在")
 
-    total = await db.scalar(select(func.count(Knowledge.id)).where(Knowledge.id == id)) or 0
+    total = await db.scalar(select(func.count(Knowledge.id)).where(Knowledge.unit_id == id)) or 0
     if total > 0:
         raise ValueError("课程单元已关联了知识点，不能被删除")
 
@@ -60,7 +60,7 @@ async def search_unit(db: AsyncSession, params: SearchSchema) -> Tuple[List[Unit
     query = select(Unit).options(noload(Unit.textbook))
 
     if params.keywords:
-        query.where(
+        query = query.where(
             or_(
                 Unit.name.contains(params.keywords),
                 Unit.content.contains(params.keywords),
@@ -87,21 +87,18 @@ async def update_unit_status(db: AsyncSession, id: int, status: int):
     if not unit:
         raise ValueError("课程单元不存在")
     unit.status = status
-
-    if status == 0:
-        stmt = (
-            update(Knowledge)
-            .where(Knowledge.unit_id == id)
-            .values({"status": 0, "update_time": now()})
-        )
-        await db.execute(stmt)
-
     unit.update_time = now()
+
+    stmt = (
+        update(Knowledge)
+        .where(Knowledge.unit_id == id)
+        .values({"status": status, "update_time": now()})
+    )
+    await db.execute(stmt)
     await db.commit()
 
 
 async def query_unit_by_textbook(db: AsyncSession, textbook_id: int):
-    """根据教材ID获取课程单元列表"""
     query = select(Unit).where(Unit.textbook_id == textbook_id).options(noload(Unit.textbook))
     results = await db.scalars(query)
     return [UnitSchema.model_validate(unit) for unit in results.all()]

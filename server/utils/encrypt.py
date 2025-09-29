@@ -29,7 +29,7 @@ def generate_password() -> str:
         string.ascii_lowercase,
         string.ascii_uppercase,
         string.digits,
-        "!@#$%^&*()-_=+[]{}|;:,.<>?/~`",
+        "!@#$%^&*",
     ]
     password_chars = [secrets.choice(p) for p in pools]
     full_pool = "".join(pools)

@@ -101,7 +101,7 @@ async def search_knowledge(db: AsyncSession, params: SearchSchema):
     query = select(Knowledge).options(noload(Knowledge.textbook), noload(Knowledge.unit))
 
     if params.keywords:
-        query.where(
+        query = query.where(
             or_(
                 Knowledge.name.contains(params.keywords),
                 Knowledge.content.contains(params.keywords),

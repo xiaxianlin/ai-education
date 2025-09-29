@@ -218,5 +218,6 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
         textbook.update_time = now()
         await db.commit()
     except ValueError as e:
-        os.remove(tmp_file_path)
         raise e
+    finally:
+        os.remove(tmp_file_path)
