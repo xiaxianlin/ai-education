@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, field_validator
 from utils import validation
-from common.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
+from common.constants import QUESTION_TYPES, SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
 from common.schema import SearchSchema
 
 
@@ -98,6 +98,18 @@ class CreateUnitSchema(BaseModel):
     textbook_id: int
     name: str
     content: str
+
+
+class UnitGenerateQuestionSchema(BaseModel):
+    question_type: str
+    count: int
+
+    @field_validator("question_type")
+    @classmethod
+    def valid_subject(clas, v):
+        if v and v not in QUESTION_TYPES:
+            raise ValueError(f"题型只能选择{"、".join(QUESTION_TYPES)}")
+        return v
 
 
 class UpdateUnitSchema(BaseModel):
