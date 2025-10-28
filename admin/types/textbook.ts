@@ -1,25 +1,9 @@
 declare global {
-  interface Subject {
-    id: number;
-    name: string;
-    status: number;
-    create_time: number;
-  }
-
-  interface TextbookVersion {
-    id: number;
-    name: string;
-    status: number;
-    create_time: number;
-  }
-
   interface Textbook {
     id: number;
-
     subject: string;
     version: string;
-    stage: string;
-    grade: string;
+    grade: number;
     semester: string;
     file?: string;
     index_file_id?: string;
@@ -27,10 +11,9 @@ declare global {
     status: number;
     create_time: number;
     update_time?: number;
-    course_units?: CourseUnit[];
   }
 
-  interface CourseUnit {
+  interface Unit {
     id: number;
     name: string;
     content: string;
@@ -49,7 +32,7 @@ declare global {
     status: number;
     create_time: number;
     update_time?: number;
-    course_unit?: CourseUnit;
+    course_unit?: Unit;
   }
 
   interface TextbookForm {
@@ -65,6 +48,14 @@ declare global {
     content: string;
     textbook_id?: number;
     course_unit_id?: number;
+  }
+
+  interface TextbookSearch {
+    page: number;
+    size: number;
+    subject?: string;
+    version?: string;
+    grade?: number;
   }
 }
 

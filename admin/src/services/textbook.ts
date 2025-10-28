@@ -6,7 +6,7 @@ export const TextbookApi = {
     return res.data;
   },
 
-  search: async (params: Record<string, any>) => {
+  search: async (params: TextbookSearch) => {
     const res = await request<ListApiData<Textbook>>('/textbook/search', { params });
     return res.data;
   },
@@ -48,7 +48,7 @@ export const TextbookApi = {
   },
 
   getUnits: async (id: number) => {
-    const res = await request<ApiData<CourseUnit[]>>(`/textbook/${id}/course_units`);
+    const res = await request<ApiData<Unit[]>>(`/textbook/${id}/course_units`);
     return res.data;
   },
 

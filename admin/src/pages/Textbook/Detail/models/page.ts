@@ -9,7 +9,7 @@ import { useState } from 'react';
 const useContainer = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [units, setUnits] = useState<CourseUnit[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
   const {
     data: textbook,
     loading,
@@ -51,8 +51,6 @@ const useContainer = () => {
       },
     },
   );
-
-  const formProps = useSimpleForm<TextbookForm, Textbook>({ onSubmit: refresh });
 
   const handleDelete = () => {
     if (!textbook) return;
@@ -97,7 +95,6 @@ const useContainer = () => {
     loading,
     parsing,
     textbook,
-    formProps,
     uploading,
     upload,
     setUnits,

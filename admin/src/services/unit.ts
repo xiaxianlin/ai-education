@@ -2,14 +2,14 @@ import { request } from '@umijs/max';
 
 export const CourseUnitApi = {
   create: async (data: CoureSimpleForm) => {
-    await request<ApiData<CourseUnit>>('/course_unit', {
+    await request<ApiData<Unit>>('/course_unit', {
       method: 'POST',
       data,
     });
   },
 
   update: async (id: number, data: CoureSimpleForm) => {
-    await request<ApiData<CourseUnit>>(`/course_unit/${id}`, {
+    await request<ApiData<Unit>>(`/course_unit/${id}`, {
       method: 'PUT',
       data,
     });
@@ -20,7 +20,7 @@ export const CourseUnitApi = {
   },
 
   toggleStatus: async (id: number, status: number) => {
-    await request<ApiData<CourseUnit>>(`/course_unit/${id}/status/${status}`, {
+    await request<ApiData<Unit>>(`/course_unit/${id}/status/${status}`, {
       method: 'PATCH',
     });
   },

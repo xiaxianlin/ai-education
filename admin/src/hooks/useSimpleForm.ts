@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { Form } from 'antd';
 
 export function useSimpleForm<Values, Entity>(options?: { onSubmit?: () => void }) {
-  const [form] = Form.useForm<Values>();
-  const [editingItem, setEditingItem] = useState<Entity>();
+  const [instance] = Form.useForm<Values>();
+  const [item, setItem] = useState<Entity>();
   const [visible, setVisible] = useState(false);
 
   const showForm = (item?: Entity) => {
     setVisible(true);
     if (item) {
-      form.setFieldsValue({ ...item });
-      setEditingItem(item);
+      instance.setFieldsValue({ ...item });
+      setItem(item);
     }
   };
 
   const onCancel = () => {
-    setEditingItem(undefined);
+    setItem(undefined);
     setVisible(false);
   };
 
@@ -24,8 +24,8 @@ export function useSimpleForm<Values, Entity>(options?: { onSubmit?: () => void 
   };
 
   return {
-    form,
-    editingItem,
+    instance,
+    edited: item,
     visible,
     showForm,
     onCancel,

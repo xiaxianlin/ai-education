@@ -8,7 +8,7 @@ import { message, Modal } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const formRes = useSimpleForm<TextbookForm, Textbook>({
+  const form = useSimpleForm<TextbookForm, Textbook>({
     onSubmit: () => actionRef.current?.reload(),
   });
 
@@ -20,6 +20,24 @@ const useContainer = () => {
     },
   });
 
+  const { runAsync: handleSubmit } = useRequest(
+    async (values: TextbookForm) => {
+      if (form.edited) {
+        await TextbookApi.update(form.edited.id, values);
+      } else {
+        await TextbookApi.create(values);
+      }
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success(form.edited ? '更新成功' : '新增成功');
+        form.onCancel();
+        form.onSubmit();
+      },
+    },
+  );
+
   const updateStatus = (textbook: Textbook) => {
     Modal.confirm({
       centered: true,
@@ -30,9 +48,10 @@ const useContainer = () => {
   };
 
   return {
-    formRes,
+    ...form,
     actionRef,
     updateStatus,
+    handleSubmit,
   };
 };
 

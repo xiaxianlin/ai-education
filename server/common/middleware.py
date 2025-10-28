@@ -1,6 +1,7 @@
 import json
 from typing import Any
 from fastapi.responses import JSONResponse, Response
+from loguru import logger
 
 
 def drop_none(d):
@@ -14,6 +15,7 @@ def drop_none(d):
 
 class WrappedResponse(Response):
     def render(self, content: Any) -> bytes:
+        logger.info(f"Response: {content}")
         return json.dumps(
             drop_none({"status": 0, "message": "success", "data": content}),
             ensure_ascii=False,

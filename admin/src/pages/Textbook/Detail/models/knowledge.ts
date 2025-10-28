@@ -22,8 +22,8 @@ const useContainer = () => {
 
   const { runAsync: handleSubmit } = useRequest(
     async (values: CoureSimpleForm) => {
-      if (formProps.editingItem) {
-        await KnowledgeApi.update(formProps.editingItem.id, values);
+      if (formProps.edited) {
+        await KnowledgeApi.update(formProps.edited.id, values);
       } else {
         await KnowledgeApi.create({ ...values, textbook_id: id });
       }
@@ -31,7 +31,7 @@ const useContainer = () => {
     {
       manual: true,
       onSuccess: () => {
-        message.success(formProps.editingItem?.id ? '更新成功' : '新增成功');
+        message.success(formProps.edited?.id ? '更新成功' : '新增成功');
         formProps.onCancel?.();
         actionRef.current?.reload();
       },

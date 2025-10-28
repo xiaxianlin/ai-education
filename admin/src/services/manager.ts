@@ -1,29 +1,23 @@
-import { ManagerStatus } from '@/constants/manager';
 import { request } from '@umijs/max';
 
 export const ManagerApi = {
-  create: async (data: CreateManagerModel) => {
+  add: async (data: CreateManagerModel) => {
     const res = await request<ApiData<string>>('/manager', { method: 'POST', data });
-    return res.status === 0;
-  },
-
-  update: async (id: string, data: CreateManagerModel) => {
-    const res = await request<ApiData<string>>(`/manager/${id}`, { method: 'PATCH', data });
-    return res.status === 0;
+    return res.data;
   },
 
   delete: async (id: string) => {
-    const res = await request<ApiData<string>>(`/manager/${id}`, { method: 'DELETE' });
-    return res.status === 0;
+    await request<ApiData<string>>(`/manager/${id}`, { method: 'DELETE' });
   },
 
-  updateStatus: async (id: string, status: ManagerStatus) => {
-    const res = await request<ApiData<string>>(`/manager/${id}/status`, { method: 'PUT', data: { status } });
-    return res.status === 0;
+  updateStatus: async (id: string, status: number) => {
+    await request<ApiData<string>>(`/manager/${id}/status/${status}`, {
+      method: 'PATCH',
+    });
   },
 
-  search: async (params: ManagerSearchParams) => {
-    const res = await request<ApiData<ListData<Manager>>>(`/manager/search`, { params });
+  all: async () => {
+    const res = await request<ApiData<Manager[]>>(`/manager/all`);
     return res.data;
   },
 };

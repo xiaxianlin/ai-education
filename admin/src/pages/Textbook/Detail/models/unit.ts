@@ -4,13 +4,13 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { CourseUnitApi } from '@/services/course_unit';
+import { CourseUnitApi } from '@/services/unit';
 import { useTextbookDetailModel } from './page';
 
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<CoureSimpleForm, CourseUnit>();
+  const formProps = useSimpleForm<CoureSimpleForm, Unit>();
 
   const { runAsync: deleteUnit } = useRequest(CourseUnitApi.delete, {
     manual: true,
@@ -22,8 +22,8 @@ const useContainer = () => {
 
   const { runAsync: handleSubmit } = useRequest(
     async (values: CoureSimpleForm) => {
-      if (formProps.editingItem) {
-        await CourseUnitApi.update(formProps.editingItem.id, values);
+      if (formProps.edited) {
+        await CourseUnitApi.update(formProps.edited.id, values);
       } else {
         await CourseUnitApi.create({ ...values, textbook_id: id });
       }
@@ -31,7 +31,7 @@ const useContainer = () => {
     {
       manual: true,
       onSuccess: () => {
-        message.success(formProps.editingItem?.id ? '更新成功' : '新增成功');
+        message.success(formProps.edited?.id ? '更新成功' : '新增成功');
         formProps.onCancel?.();
         actionRef.current?.reload();
       },
@@ -46,7 +46,7 @@ const useContainer = () => {
     },
   });
 
-  const updateStatus = (unit: CourseUnit) => {
+  const updateStatus = (unit: Unit) => {
     Modal.confirm({
       centered: true,
       title: '状态变更',
@@ -55,7 +55,7 @@ const useContainer = () => {
     });
   };
 
-  const handleDelete = (unit: CourseUnit) => {
+  const handleDelete = (unit: Unit) => {
     Modal.confirm({
       centered: true,
       title: '删除确认',

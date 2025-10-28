@@ -4,11 +4,13 @@ import { AvatarDropdown } from './components/ui';
 import logo from '@/assets/logo.png';
 import { message } from 'antd';
 import { AuthApi } from './services/auth';
+import { CommonApi } from './services/common';
 
 export async function getInitialState(): Promise<InitialState> {
   try {
-    const manager = await AuthApi.check();
-    return { manager };
+    const [manager, configs] = await Promise.all([AuthApi.check(), CommonApi.configs()]);
+    console.log(configs);
+    return { manager, configs };
   } catch (e) {
     history.push('/login');
   }

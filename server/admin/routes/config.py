@@ -8,7 +8,7 @@ config_router = APIRouter()
 async def configs():
     return {
         "subjects": SUBJECTS,
-        "textbook_version": TEXTBOOK_VERSIONS,
+        "textbook_versions": TEXTBOOK_VERSIONS,
         "semesters": SEMESTERS,
         "question_types": QUESTION_TYPES,
     }

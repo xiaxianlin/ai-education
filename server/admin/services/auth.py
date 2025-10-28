@@ -28,7 +28,8 @@ async def admin_route_filter(request: Request):
 
     async with AsyncSessionLocal() as db:
         manager: Manager = await db.scalar(select(Manager).where(Manager.token == token))
-        logger.info(f"当前登录账户：{ManagerSchema.model_validate(manager)}")
+        if manager:
+            logger.info(f"当前登录账户：{manager.username}")
 
     if not manager or manager.id != payload.get("id"):
         raise HTTPException(status_code=401, detail="登录失效")

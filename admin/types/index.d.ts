@@ -1,6 +1,7 @@
 declare global {
   interface InitialState {
     manager?: Manager;
+    configs?: Configs;
   }
 
   interface ListData<T> {
@@ -18,6 +19,13 @@ declare global {
     data: ListData<T>;
     message?: string;
     status?: number;
+  }
+
+  interface Configs {
+    subjects: string[];
+    textbook_versions: string[];
+    semesters: string[];
+    question_types: string[];
   }
 }
 

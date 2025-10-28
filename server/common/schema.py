@@ -38,8 +38,8 @@ class SearchResultSchema(BaseModel, Generic[T]):
 class ManagerSchema(BaseModel):
     id: str
     username: str
-    type: int = 0
-    status: int = 0
+    type: int
+    status: int
     create_time: int
     update_time: Optional[int] = None
 

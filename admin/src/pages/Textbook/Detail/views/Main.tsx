@@ -6,12 +6,11 @@ import { Spin, Tabs } from 'antd';
 import { UnitView } from './Unit';
 import { KnowledgeView } from './Knowledge';
 import { TextbookUnitModel } from '../models/unit';
-import { TextbookForm } from '../../Components/TextbookForm';
 import { TextbookKnowledgeModel } from '../models/knowledge';
 import { useMemo } from 'react';
 
 export default function MainView() {
-  const { loading, parsing, uploading, textbook, formProps } = useTextbookDetailModel();
+  const { loading, parsing, uploading } = useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
     if (parsing) {
@@ -55,7 +54,6 @@ export default function MainView() {
           ]}
         />
       </div>
-      <TextbookForm editId={textbook?.id} {...formProps} />
       <Spin fullscreen size="large" spinning={parsing || uploading} tip={spinTip} />
     </PageContainer>
   );

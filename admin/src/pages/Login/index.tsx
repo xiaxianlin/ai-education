@@ -5,9 +5,10 @@ import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
 import { AuthApi } from '@/services/auth';
 import styles from './index.less';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
-  const { refresh } = useModel('@@initialState');
+  const { initialState, refresh } = useModel('@@initialState');
 
   const { runAsync: login } = useRequest(AuthApi.login, {
     manual: true,
@@ -17,6 +18,12 @@ export default function LoginPage() {
       history.replace('/');
     },
   });
+
+  useEffect(() => {
+    if (initialState?.manager) {
+      history.replace('/');
+    }
+  }, [initialState]);
 
   return (
     <div className={styles.layout}>
