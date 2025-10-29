@@ -10,7 +10,7 @@ import { useTextbookDetailModel } from './page';
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<CoureSimpleForm, Unit>();
+  const formProps = useSimpleForm<TextbookContentForm, Unit>();
 
   const { runAsync: deleteUnit } = useRequest(CourseUnitApi.delete, {
     manual: true,
@@ -21,7 +21,7 @@ const useContainer = () => {
   });
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: CoureSimpleForm) => {
+    async (values: TextbookContentForm) => {
       if (formProps.edited) {
         await CourseUnitApi.update(formProps.edited.id, values);
       } else {
@@ -38,23 +38,6 @@ const useContainer = () => {
     },
   );
 
-  const { runAsync } = useRequest(CourseUnitApi.toggleStatus, {
-    manual: true,
-    onSuccess: (_, [_id, status]) => {
-      message.success(status ? '启用成功' : '停用成功');
-      actionRef.current?.reload();
-    },
-  });
-
-  const updateStatus = (unit: Unit) => {
-    Modal.confirm({
-      centered: true,
-      title: '状态变更',
-      content: `确定要${unit.status ? '停用' : '启用'}单元「${unit.name}」吗？`,
-      onOk: () => runAsync(unit.id, unit.status ? 0 : 1),
-    });
-  };
-
   const handleDelete = (unit: Unit) => {
     Modal.confirm({
       centered: true,
@@ -70,7 +53,6 @@ const useContainer = () => {
   return {
     formProps,
     actionRef,
-    updateStatus,
     handleDelete,
     handleSubmit,
   };

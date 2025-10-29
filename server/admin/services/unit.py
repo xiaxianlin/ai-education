@@ -1,4 +1,4 @@
-from sqlalchemy import or_, select, func, update
+from sqlalchemy import or_, select, func
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
@@ -36,6 +36,8 @@ async def update_unit(db: AsyncSession, id: int, update: UpdateUnitSchema):
         unit.name = update.name
     if update.content is not None:
         unit.content = update.content
+    if update.status is not None:
+        unit.status = update.status
 
     unit.update_time = now()
     await db.commit()
@@ -80,22 +82,6 @@ async def search_unit(db: AsyncSession, params: SearchSchema) -> Tuple[List[Unit
         total=total,
         data=[UnitSchema.model_validate(unit) for unit in units.all()],
     )
-
-
-async def update_unit_status(db: AsyncSession, id: int, status: int):
-    unit = await db.scalar(select(Unit).where(Unit.id == id))
-    if not unit:
-        raise ValueError("课程单元不存在")
-    unit.status = status
-    unit.update_time = now()
-
-    stmt = (
-        update(Knowledge)
-        .where(Knowledge.unit_id == id)
-        .values({"status": status, "update_time": now()})
-    )
-    await db.execute(stmt)
-    await db.commit()
 
 
 async def query_unit_by_textbook(db: AsyncSession, textbook_id: int):

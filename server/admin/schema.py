@@ -115,6 +115,7 @@ class UnitGenerateQuestionSchema(BaseModel):
 class UpdateUnitSchema(BaseModel):
     name: Optional[str] = None
     content: Optional[str] = None
+    status: Optional[int] = None
 
 
 class CreateKnowledgeSchema(BaseModel):

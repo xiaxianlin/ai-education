@@ -6,39 +6,24 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Switch } from 'antd';
+import { Button } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookDetailModel } from '../models/page';
-import { PlusOutlined } from '@ant-design/icons';
 import { useTextbookUnitModel } from '../models/unit';
 
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
   const {
     actionRef,
-    formProps: { form, visible, editingItem, showForm, onCancel },
-    updateStatus,
+    formProps: { instance, visible, edited, showForm, onCancel },
     handleDelete,
     handleSubmit,
   } = useTextbookUnitModel();
 
-  const columns: ProColumns<CourseUnit>[] = [
+  const columns: ProColumns<Unit>[] = [
     { title: '单元名称', dataIndex: 'name' },
     { title: '单元内容', dataIndex: 'content', ellipsis: true },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 90,
-      render: (_, record) => (
-        <Switch
-          checked={!!record.status}
-          checkedChildren="启用"
-          unCheckedChildren="停用"
-          onChange={() => updateStatus(record)}
-        />
-      ),
-    },
     {
       title: '创建时间',
       dataIndex: 'create_time',
@@ -73,12 +58,12 @@ export const UnitView: React.FC = () => {
         size="small"
         type="primary"
         className="absolute right-0 top-[-48px]"
-        icon={<PlusOutlined />}
         onClick={() => showForm()}
       >
         添加单元
       </Button>
-      <ProTable<CourseUnit>
+      <ProTable<Unit>
+        size="small"
         actionRef={actionRef}
         rowKey="id"
         search={false}
@@ -90,13 +75,13 @@ export const UnitView: React.FC = () => {
           setUnits(data);
           return { data, success: true, total: data.length };
         }}
-        pagination={{ pageSize: 7 }}
+        pagination={{ pageSize: 10 }}
       />
-      <ModalForm<CoureSimpleForm>
+      <ModalForm<TextbookContentForm>
         width={600}
-        form={form}
+        form={instance}
         open={visible}
-        title={editingItem ? '更新单元' : '新增单元'}
+        title={edited ? '更新单元' : '新增单元'}
         onFinish={handleSubmit}
         modalProps={{ destroyOnClose: true, onCancel }}
         size="large"

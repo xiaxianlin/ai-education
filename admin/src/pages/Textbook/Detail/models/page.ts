@@ -2,7 +2,6 @@ import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
 import { TextbookApi } from '@/services/textbook';
-import { useSimpleForm } from '@/hooks';
 import { useNavigate, useParams } from '@umijs/max';
 import { useState } from 'react';
 

@@ -21,7 +21,7 @@ async def create_unit(id: int, db: AsyncSession = Database):
     return await generate_question_by_unit(db, id, 30)
 
 
-@unit_router.put("/{id}")
+@unit_router.patch("/{id}")
 async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession = Database):
     await unit.update_unit(db, id, unit_update)
 
@@ -29,11 +29,6 @@ async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession =
 @unit_router.delete("/{id}")
 async def delete_unit(id: int, db: AsyncSession = Database):
     await unit.delete_unit(db=db, id=id)
-
-
-@unit_router.patch("/{id}/status/{status}")
-async def update_status(id: int, status: int, db: AsyncSession = Database):
-    await unit.update_unit_status(db, id, status)
 
 
 @unit_router.get("/search")

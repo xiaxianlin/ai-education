@@ -13,6 +13,22 @@ declare global {
     update_time?: number;
   }
 
+  interface TextbookSearch {
+    page: number;
+    size: number;
+    subject?: string;
+    version?: string;
+    grade?: number;
+  }
+
+  interface TextbookForm {
+    subject: string;
+    version: string;
+    stage: string;
+    grade: string;
+    semester: string;
+  }
+
   interface Unit {
     id: number;
     name: string;
@@ -26,36 +42,18 @@ declare global {
     id: number;
     name: string;
     content: string;
-    analysis_text?: string;
-    analysis_audio?: string;
-    analysis_video?: string;
     status: number;
     create_time: number;
     update_time?: number;
-    course_unit?: Unit;
+    unit_id?: number;
+    textbook_id?: number;
   }
 
-  interface TextbookForm {
-    subject: string;
-    version: string;
-    stage: string;
-    grade: string;
-    semester: string;
-  }
-
-  interface CoureSimpleForm {
+  interface TextbookContentForm {
     name: string;
     content: string;
+    unit_id?: number;
     textbook_id?: number;
-    course_unit_id?: number;
-  }
-
-  interface TextbookSearch {
-    page: number;
-    size: number;
-    subject?: string;
-    version?: string;
-    grade?: number;
   }
 }
 

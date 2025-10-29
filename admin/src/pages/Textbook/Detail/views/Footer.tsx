@@ -6,18 +6,18 @@ import { UploadButton } from '@/components/util';
 
 export const Footer = () => {
   const navigate = useNavigate();
-  const { textbook, formProps, upload, handleParse, handleDelete } = useTextbookDetailModel();
+  const { textbook, upload, handleParse, handleDelete, updateStatus } = useTextbookDetailModel();
   return (
     <div className="grow flex justify-center items-center py-3 gap-3">
-      <Button type="primary" onClick={() => formProps.showForm(textbook)}>
-        编辑
-      </Button>
       <Button type="primary" disabled={!textbook?.file} onClick={handleParse}>
         解析
       </Button>
       <UploadButton type="primary" disabled={!textbook} action={upload}>
         上传
       </UploadButton>
+      <Button danger disabled={!textbook?.file} onClick={updateStatus}>
+        {textbook?.status === 1 ? '禁用' : '启用'}
+      </Button>
       <Button danger onClick={handleDelete}>
         删除
       </Button>
