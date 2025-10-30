@@ -95,15 +95,14 @@ class KnowledgeSchema(BaseModel):
 
 class QuestionSchema(BaseModel):
     id: int
-    type: Optional[str] = None
+    type: str
+    subject: str
+    grade: int
     content: str
     options: Optional[str] = None
     answer: Optional[str] = None
     resource: Optional[str] = None
     difficulty: Optional[str] = None
-    textbook_id: Optional[int] = None
-    knowledge_id: Optional[int] = None
-    unit_id: Optional[int] = None
     status: int
     create_time: int
     update_time: Optional[int] = None

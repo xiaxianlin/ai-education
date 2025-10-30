@@ -11,4 +11,5 @@ async def configs():
         "textbook_versions": TEXTBOOK_VERSIONS,
         "semesters": SEMESTERS,
         "question_types": QUESTION_TYPES,
+        "difficulty_levels": DIFFICULTY_LEVELS,
     }

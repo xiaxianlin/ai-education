@@ -23,13 +23,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
     logo,
     title: 'AI 教育',
     layout: 'side',
+    theme: 'dark',
     contentWidth: 'Fixed',
     fixedHeader: true,
     fixSiderbar: true,
     colorWeak: false,
-    menu: {
-      defaultOpenAll: true,
-    },
     avatarProps: {
       title: initialState?.manager?.username,
       render: (_, avatarChildren) => {

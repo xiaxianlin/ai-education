@@ -2,7 +2,7 @@ from sqlalchemy import select, and_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
-from common.database import Question, Unit
+from common.database import Knowledge, Question, Unit
 from common.schema import QuestionSchema, SearchResultSchema
 from utils.time import now
 
@@ -170,9 +170,9 @@ async def query_question_by_textbook(
 async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     """搜索问题"""
     query = select(Question).options(
-        noload(Question.textbook),
-        noload(Question.unit),
-        noload(Question.knowledge),
+        joinedload(Question.textbook),
+        joinedload(Question.unit).noload(Unit.textbook),
+        joinedload(Question.knowledge).noload(Knowledge.unit).noload(Unit.textbook),
     )
 
     conditions = []

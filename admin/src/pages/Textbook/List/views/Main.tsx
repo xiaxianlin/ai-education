@@ -12,19 +12,13 @@ import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
 import { fmtTime } from '@/utils/time';
-import { Link, useModel } from '@umijs/max';
+import { Link } from '@umijs/max';
+import { useConfigs } from '@/hooks';
 
 export default function MainView() {
-  const { initialState } = useModel('@@initialState');
+  const { semesters, textbook_versions, subjectEnum, gradeEnum } = useConfigs();
   const { actionRef, instance, edited, visible, showForm, onCancel, updateStatus, handleSubmit } =
     useTextbookListModel();
-
-  const { semesters, subjects, textbook_versions } = initialState?.configs || {};
-  const subjectEnum = subjects?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
-  const gradeEnum = Object.keys(GRADES).reduce(
-    (prev, key) => ({ ...prev, [key]: GRADES[Number(key)].grade }),
-    {},
-  );
 
   const columns = useMemo<ProColumns<Textbook>[]>(
     () => [
