@@ -136,7 +136,7 @@ class UpdateQuestionSchema(BaseModel):
     grade: Optional[int] = None
     type: Optional[str] = None
     content: Optional[str] = None
-    options: Optional[list[str]] = None
+    options: Optional[str] = None
     answer: Optional[str] = None
     resource: Optional[str] = None
     difficulty: Optional[str] = None

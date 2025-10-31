@@ -5,6 +5,8 @@
   { path: '/textbook', name: '教材管理', icon: 'book', component: './Textbook/List' },
   { path: '/textbook/detail/:id', component: './Textbook/Detail' },
   { path: '/question', name: '题目管理', icon: 'question', component: './Question/List' },
+  { path: '/question/edit/:id', component: './Question/Edit' },
+  { path: '/question/detail/:id', component: './Question/Detail' },
   { path: '/password', component: './ModifyPassword' },
   { path: '/login', layout: false, component: './Login' },
   { path: '*', layout: false, component: './404' },
