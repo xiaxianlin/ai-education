@@ -1,5 +1,12 @@
 import { useParams, history } from '@umijs/max';
-import { PageContainer, ProForm, ProFormSelect, ProFormTextArea, ProFormText, ProDescriptions } from '@ant-design/pro-components';
+import {
+  PageContainer,
+  ProForm,
+  ProFormSelect,
+  ProFormTextArea,
+  ProFormText,
+  ProDescriptions,
+} from '@ant-design/pro-components';
 import { QuestionApi } from '@/services/question';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
@@ -13,38 +20,17 @@ export default function QuestionEditPage() {
   const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun } = useConfigs();
   const [form] = ProForm.useForm<QuestionUpdateForm>();
 
-  const { data: question, loading } = useRequest(
-    () => QuestionApi.get(id!),
-    {
-      ready: !!id,
-      onError: () => {
-        message.error('加载问题失败');
-        history.back();
-      },
-    }
-  );
+  const { data: question, loading } = useRequest(() => QuestionApi.get(id!), {
+    ready: !!id,
+    onError: () => {
+      message.error('加载问题失败');
+      history.back();
+    },
+  });
 
   const { runAsync: handleSubmit, loading: submitting } = useRequest(
     async (values: QuestionUpdateForm) => {
-      // 处理options，如果是数组则转为JSON字符串
       const submitData: QuestionUpdateForm = { ...values };
-      if (values.options) {
-        if (Array.isArray(values.options)) {
-          submitData.options = JSON.stringify(values.options);
-        } else if (typeof values.options === 'string') {
-          // 如果已经是字符串，检查是否是JSON格式
-          try {
-            JSON.parse(values.options);
-            // 已经是有效的JSON，保持不变
-          } catch {
-            // 不是JSON，按换行符分割后转为JSON数组
-            const lines = values.options.split('\n').filter(line => line.trim());
-            if (lines.length > 0) {
-              submitData.options = JSON.stringify(lines);
-            }
-          }
-        }
-      }
       await QuestionApi.update(id!, submitData);
     },
     {
@@ -56,27 +42,12 @@ export default function QuestionEditPage() {
       onError: () => {
         message.error('更新失败');
       },
-    }
+    },
   );
 
   useEffect(() => {
     if (question) {
-      // 处理options，如果是JSON字符串则解析为数组或换行分隔的字符串
-      const formValues: any = { ...question };
-      if (question.options) {
-        try {
-          const parsed = JSON.parse(question.options);
-          if (Array.isArray(parsed)) {
-            // 将数组转换为换行分隔的字符串，更易编辑
-            formValues.options = parsed.join('\n');
-          } else {
-            formValues.options = question.options;
-          }
-        } catch {
-          // 如果解析失败，保持原值（可能是换行分隔的文本）
-          formValues.options = question.options;
-        }
-      }
+      const formValues: any = { ...question, grade: String(question.grade) };
       form.setFieldsValue(formValues);
     }
   }, [question, form]);
@@ -107,43 +78,25 @@ export default function QuestionEditPage() {
         {/* 基本信息卡片 */}
         <Card title="题目信息">
           <ProDescriptions column={3}>
-            <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
-            <ProDescriptions.Item label="状态">
-              <StatusTag status={question.status === 1} />
+            <ProDescriptions.Item label="教材" span={3}>
+              {question?.textbook?.file}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
             <ProDescriptions.Item label="阶段">{gradeInfo?.stage || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo?.grade || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
-            {question.difficulty && (
-              <ProDescriptions.Item label="难度">{question.difficulty}</ProDescriptions.Item>
-            )}
-            {question.resource && (
-              <ProDescriptions.Item label="资源路径">{question.resource}</ProDescriptions.Item>
-            )}
-            {question.textbook && (
-              <ProDescriptions.Item label="所属教材" span={3}>
-                {question.textbook.subject} - {question.textbook.version} - {gradeInfo?.grade} - {question.textbook.semester}
-              </ProDescriptions.Item>
-            )}
-            {question.unit && (
-              <ProDescriptions.Item label="所属单元" span={3}>
-                {question.unit.name}
-              </ProDescriptions.Item>
-            )}
-            {question.knowledge && (
-              <ProDescriptions.Item label="所属知识点" span={3}>
-                {question.knowledge.name}
-              </ProDescriptions.Item>
-            )}
+            <ProDescriptions.Item label="难度">{question.difficulty}</ProDescriptions.Item>
+            <ProDescriptions.Item label="单元">{question?.unit?.name}</ProDescriptions.Item>
+            <ProDescriptions.Item label="知识点">{question?.knowledge?.name}</ProDescriptions.Item>
+            <ProDescriptions.Item label="状态">
+              <StatusTag status={question.status === 1} />
+            </ProDescriptions.Item>
             <ProDescriptions.Item label="创建时间" valueType="dateTime">
               {question.create_time * 1000}
             </ProDescriptions.Item>
-            {question.update_time && (
-              <ProDescriptions.Item label="更新时间" valueType="dateTime">
-                {question.update_time * 1000}
-              </ProDescriptions.Item>
-            )}
+            <ProDescriptions.Item label="更新时间" valueType="dateTime">
+              {question?.update_time ? question.update_time * 1000 : undefined}
+            </ProDescriptions.Item>
           </ProDescriptions>
         </Card>
 
@@ -155,11 +108,15 @@ export default function QuestionEditPage() {
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
             submitter={{
-              render: (props, doms) => {
+              render: (props) => {
                 return (
                   <Space style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                     <Button onClick={() => history.back()}>取消</Button>
-                    <Button type="primary" loading={submitting} onClick={() => props.form?.submit?.()}>
+                    <Button
+                      type="primary"
+                      loading={submitting}
+                      onClick={() => props.form?.submit?.()}
+                    >
                       保存
                     </Button>
                   </Space>
@@ -168,20 +125,6 @@ export default function QuestionEditPage() {
             }}
             onFinish={handleSubmit}
           >
-            <ProFormSelect
-              name="subject"
-              label="科目"
-              placeholder="请选择科目"
-              valueEnum={subjectEnum}
-              rules={[{ required: true, message: '请选择科目' }]}
-            />
-            <ProFormSelect
-              name="grade"
-              label="年级"
-              placeholder="请选择年级"
-              valueEnum={gradeEnum}
-              rules={[{ required: true, message: '请选择年级' }]}
-            />
             <ProFormSelect
               name="type"
               label="题型"
@@ -215,24 +158,9 @@ export default function QuestionEditPage() {
               placeholder="请选择难度"
               valueEnum={difficultyLevelEmun}
             />
-            <ProFormText
-              name="resource"
-              label="资源路径"
-              placeholder="请输入资源路径（如图片、音频等）"
-              fieldProps={{ maxLength: 255 }}
-            />
-            <ProFormSelect
-              name="status"
-              label="状态"
-              options={[
-                { label: '启用', value: 1 },
-                { label: '停用', value: 0 },
-              ]}
-            />
           </ProForm>
         </Card>
       </Space>
     </PageContainer>
   );
 }
-

@@ -3,7 +3,6 @@ import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { QuestionApi } from '@/services/question';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag } from 'antd';
-import { fmtTime } from '@/utils/time';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
 
