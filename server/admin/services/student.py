@@ -119,3 +119,17 @@ async def query_student_textbook(db: AsyncSession, id: str):
         .where(StudentTextbook.student_id == id)
     )
     return [TextbookSchema.model_validate(item) for item in result.all()]
+
+
+async def reset_student_password(db: AsyncSession, id: str):
+    """重置学生密码"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
+
+    password = encrypt.generate_password()
+    student.password = encrypt.hash(password)
+    student.update_time = now()
+    await db.commit()
+
+    return password

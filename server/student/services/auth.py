@@ -1,19 +1,19 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, HTTPException, Depends
-from common.database import Student
+from loguru import logger
+from common.database import AsyncSessionLocal, Student
+from common.schema import StudentSchema
 from utils import encrypt
 from utils.time import now
 
 
-user_ignore_routes = [
-    "/user_api/login",
-]
+student_ignore_routes = ["/api/student/login"]
 
 
-def student_router_filter(request: Request):
+async def student_router_filter(request: Request):
     path = request.url.path
-    if path in user_ignore_routes:
+    if path in student_ignore_routes:
         return
 
     token = request.headers.get("x-access-token")
@@ -22,8 +22,22 @@ def student_router_filter(request: Request):
 
     payload = encrypt.decode(token)
 
-    if not payload or not payload.get("id"):
+    if not payload:
         raise HTTPException(status_code=401, detail="登录失效")
+
+    student = None
+    async with AsyncSessionLocal() as db:
+        student = await db.scalar(select(Student).where(Student.token == token))
+        if student:
+            logger.info(f"当前登录学生：{student.name}")
+
+    if not student or student.id != payload.get("id"):
+        raise HTTPException(status_code=401, detail="登录失效")
+
+    if student.status == 0:
+        raise HTTPException(status_code=403, detail="账号被禁用")
+
+    request.state.student = StudentSchema.model_validate(student)
 
 
 async def get_current_student(request: Request):
@@ -36,19 +50,25 @@ async def get_current_student(request: Request):
     return payload
 
 
-async def login(db: AsyncSession, phone: str, password: str):
+async def student_login(db: AsyncSession, phone: str, password: str):
     student = await db.scalar(select(Student).where(Student.phone == phone))
     if not student:
-        raise ValueError("当前用户名或密码错误")
+        raise ValueError("手机号或密码错误")
 
     # 校验密码
     if student.password != encrypt.hash(password):
-        raise ValueError("当前用户名或密码错误")
+        raise ValueError("手机号或密码错误")
+
+    if student.status == 0:
+        raise ValueError("账号被禁用")
 
     student.update_time = now()
+
+    token = encrypt.encode({"id": student.id, "update_time": student.update_time})
+    student.token = token
     await db.commit()
 
-    return encrypt.encode({"id": student.id, "status": student.status})
+    return token
 
 
 async def get_student(db: AsyncSession, id: str):

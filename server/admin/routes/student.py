@@ -41,3 +41,8 @@ async def create_student(id: str, params: SaveStudentSubjectSchema, db: AsyncSes
 @student_router.get("/{id}/subjects")
 async def query_student_textbook(id: str, db: AsyncSession = Database):
     return await student.query_student_textbook(db, id)
+
+
+@student_router.post("/{id}/reset_password")
+async def reset_student_password(id: str, db: AsyncSession = Database):
+    return await student.reset_student_password(db, id)

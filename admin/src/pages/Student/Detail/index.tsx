@@ -72,6 +72,35 @@ export default function StudentDetailPage() {
     });
   };
 
+  // 重置密码
+  const { runAsync: handleResetPassword, loading: resetting } = useRequest(
+    async () => {
+      return await StudentApi.resetPassword(id!);
+    },
+    {
+      manual: true,
+      onSuccess: (password) => {
+        Modal.success({
+          title: '密码重置成功',
+          content: `新密码：${password}，请妥善保管`,
+          okText: '确定',
+        });
+      },
+      onError: () => {
+        message.error('重置失败');
+      },
+    },
+  );
+
+  const handleResetPasswordClick = () => {
+    Modal.confirm({
+      centered: true,
+      title: '重置密码',
+      content: '确定要重置该学生的密码吗？重置后系统将生成新密码。',
+      onOk: () => handleResetPassword(),
+    });
+  };
+
   const { loading: loadingTextbooks, run: refreshTextbooks } = useRequest(
     () => StudentApi.getTextbooks(id!),
     {
@@ -202,6 +231,13 @@ export default function StudentDetailPage() {
       header={{
         breadcrumb: {},
         extra: [
+          <Button
+            key="reset"
+            loading={resetting}
+            onClick={handleResetPasswordClick}
+          >
+            重置密码
+          </Button>,
           <Button
             key="status"
             type={student?.status === 1 ? 'default' : 'primary'}

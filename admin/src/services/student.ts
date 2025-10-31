@@ -39,5 +39,12 @@ export const StudentApi = {
       data: { ids: textbookIds },
     });
   },
+
+  resetPassword: async (id: string) => {
+    const res = await request<ApiData<string>>(`/student/${id}/reset_password`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
 };
 
