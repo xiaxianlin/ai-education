@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Form, Input, message, Modal, Select, Space, Table, TableProps } from 'antd';
-import type { User, UserCreateSchema, UserUpdateSchema } from '../../../types/student';
+// 类型已在全局声明，无需导入
 import { fmtTime } from '@/utils/time';
 import { ManagerApi } from '@/services/manager';
 import { ManagerType, ManagerTypeText } from '@/constants/manager';

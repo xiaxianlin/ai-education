@@ -1,16 +1,20 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { useTextbookDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
-import { Footer } from './Footer';
 import { Spin, Tabs } from 'antd';
 import { UnitView } from './Unit';
 import { KnowledgeView } from './Knowledge';
 import { TextbookUnitModel } from '../models/unit';
 import { TextbookKnowledgeModel } from '../models/knowledge';
 import { useMemo } from 'react';
+import { Button } from 'antd';
+import { useNavigate } from '@umijs/max';
+import { UploadButton } from '@/components/util';
 
 export default function MainView() {
-  const { loading, parsing, uploading } = useTextbookDetailModel();
+  const navigate = useNavigate();
+  const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete, updateStatus } =
+    useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
     if (parsing) {
@@ -23,9 +27,38 @@ export default function MainView() {
   return (
     <PageContainer
       loading={loading}
-      header={{ title: '教材详情', breadcrumb: {} }}
-      footer={[]}
-      footerToolBarProps={{ renderContent: () => <Footer /> }}
+      header={{
+        title: '教材详情',
+        breadcrumb: {},
+        extra: [
+          <Button
+            key="parse"
+            type="primary"
+            disabled={!textbook?.file}
+            loading={parsing}
+            onClick={handleParse}
+          >
+            解析
+          </Button>,
+          <UploadButton key="upload" type="primary" disabled={!textbook} action={upload}>
+            上传
+          </UploadButton>,
+          <Button
+            key="status"
+            danger={textbook?.status === 1}
+            disabled={!textbook?.file}
+            onClick={updateStatus}
+          >
+            {textbook?.status === 1 ? '禁用' : '启用'}
+          </Button>,
+          <Button key="delete" danger onClick={handleDelete}>
+            删除
+          </Button>,
+          <Button key="back" onClick={() => navigate(-1)}>
+            返回
+          </Button>,
+        ],
+      }}
     >
       <BasicInfo />
       <div className="mt-3 bg-white px-3 rounded-md">
@@ -46,7 +79,6 @@ export default function MainView() {
               key: 'knowledge',
               children: (
                 <TextbookKnowledgeModel.Provider>
-                  {' '}
                   <KnowledgeView />
                 </TextbookKnowledgeModel.Provider>
               ),

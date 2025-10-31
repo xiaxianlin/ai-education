@@ -7,6 +7,8 @@
   { path: '/question', name: '题目管理', icon: 'question', component: './Question/List' },
   { path: '/question/edit/:id', component: './Question/Edit' },
   { path: '/question/detail/:id', component: './Question/Detail' },
+  { path: '/student', name: '学生管理', icon: 'user', component: './Student/List' },
+  { path: '/student/detail/:id', component: './Student/Detail' },
   { path: '/password', component: './ModifyPassword' },
   { path: '/login', layout: false, component: './Login' },
   { path: '*', layout: false, component: './404' },
