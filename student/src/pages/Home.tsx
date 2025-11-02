@@ -32,9 +32,9 @@ export function Home() {
           }}
         />
       )}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
         {/* 问候语 */}
-        <div className="space-y-2">
+        <div className="space-y-1 pb-2">
           <h1 className="text-2xl font-bold">你好！</h1>
           <p className="text-muted-foreground">今天也要加油学习哦~</p>
         </div>
@@ -90,7 +90,7 @@ export function Home() {
 
         {/* 单元练习卡片 */}
         <Link to="/unit-practice">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer mt-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -111,7 +111,7 @@ export function Home() {
 
         {/* 能力评测卡片 */}
         <Link to="/assessment">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer mt-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-purple-500" />
@@ -131,7 +131,7 @@ export function Home() {
         </Link>
 
         {/* 成就提示 */}
-        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 mt-2">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <TrendingUp className="h-6 w-6 text-yellow-600" />

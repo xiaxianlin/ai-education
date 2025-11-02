@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { Target, Clock, Award, TrendingUp, Play } from 'lucide-react';
 
 export function Assessment() {
@@ -23,6 +24,11 @@ export function Assessment() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* 返回首页按钮 */}
+          <div className="flex justify-end">
+            <BackToHomeButton />
+          </div>
+          
           {/* 报告头部 */}
           <div className="text-center py-6">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
@@ -108,6 +114,11 @@ export function Assessment() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* 返回首页按钮 */}
+        <div className="flex justify-end">
+          <BackToHomeButton />
+        </div>
+        
         {/* 头部 */}
         <div className="text-center py-6">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">

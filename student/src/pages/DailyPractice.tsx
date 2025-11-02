@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -70,6 +71,11 @@ export function DailyPractice() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* 返回首页按钮 */}
+        <div className="flex justify-end">
+          <BackToHomeButton />
+        </div>
+        
         {/* 进度条 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">

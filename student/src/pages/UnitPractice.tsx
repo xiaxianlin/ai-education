@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { BookOpen, Play } from 'lucide-react';
 
 export function UnitPractice() {
@@ -25,9 +26,12 @@ export function UnitPractice() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 头部 */}
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">单元练习</h1>
-          <p className="text-muted-foreground">选择单元进行集中训练</p>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">单元练习</h1>
+            <p className="text-muted-foreground">选择单元进行集中训练</p>
+          </div>
+          <BackToHomeButton />
         </div>
 
         {/* 科目标签 */}
