@@ -6,15 +6,32 @@ import {
   ProColumns,
   ModalForm,
   ProFormSelect,
+  ProFormDigit,
+  ProFormText,
+  StatisticCard,
 } from '@ant-design/pro-components';
 import { StudentApi } from '@/services/student';
 import { TextbookApi } from '@/services/textbook';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Modal } from 'antd';
+import {
+  message,
+  Button,
+  Card,
+  Space,
+  Modal,
+  Tabs,
+  Tag,
+  Row,
+  Col,
+  Descriptions,
+} from 'antd';
 import { StatusTag } from '@/components/ui';
-import { GRADES } from '@/constants/course';
+import { GRADES, TEXTBOOK_VERSIONS, SEMESTERS } from '@/constants/course';
 import { useState } from 'react';
 import { ProForm } from '@ant-design/pro-components';
+import { useRef } from 'react';
+
+const { Statistic } = StatisticCard;
 
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +39,7 @@ export default function StudentDetailPage() {
   const [visible, setVisible] = useState(false);
   const [form] = ProForm.useForm<{ id: number }>();
   const [allTextbooks, setAllTextbooks] = useState<Textbook[]>([]);
+  const [activeTab, setActiveTab] = useState('profile');
 
   const { runAsync: loadStudent } = useRequest(
     async () => {
@@ -41,9 +59,12 @@ export default function StudentDetailPage() {
     },
   );
 
-  const { data: student, loading, refresh: refreshStudent } = useRequest(() => loadStudent(), {
-    ready: !!id,
-  });
+  const { data: student, loading, refresh: refreshStudent } = useRequest(
+    () => loadStudent(),
+    {
+      ready: !!id,
+    }
+  );
 
   // 启用/禁用学生
   const { runAsync: handleToggleStatus, loading: toggling } = useRequest(
@@ -116,9 +137,8 @@ export default function StudentDetailPage() {
     async () => {
       const res = await TextbookApi.search({ page: 1, size: 1000 });
       const allBooks = res.data || [];
-      // 过滤掉已经关联的教材
       const availableBooks = allBooks.filter(
-        (book) => !textbooks.some((tb) => tb.id === book.id),
+        (book) => !textbooks.some((tb) => tb.id === book.id)
       );
       setAllTextbooks(availableBooks);
       return availableBooks;
@@ -132,7 +152,6 @@ export default function StudentDetailPage() {
   // 添加单个教材
   const { runAsync: handleAddTextbook, loading: adding } = useRequest(
     async (values: { id: number }) => {
-      // 将新教材添加到现有列表
       const newTextbookIds = [...textbooks.map((t) => t.id), values.id];
       await StudentApi.saveTextbooks(id!, newTextbookIds);
     },
@@ -159,8 +178,9 @@ export default function StudentDetailPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          // 从列表中移除该教材
-          const newTextbookIds = textbooks.filter((t) => t.id !== textbookId).map((t) => t.id);
+          const newTextbookIds = textbooks
+            .filter((t) => t.id !== textbookId)
+            .map((t) => t.id);
           await StudentApi.saveTextbooks(id!, newTextbookIds);
           message.success('删除成功');
           refreshTextbooks();
@@ -170,6 +190,93 @@ export default function StudentDetailPage() {
       },
     });
   };
+
+  // 获取学生配置
+  const { data: profile, loading: loadingProfile } = useRequest(
+    () => StudentApi.getProfile(id!),
+    {
+      ready: !!id && activeTab === 'profile',
+    }
+  );
+
+  // 获取学习统计
+  const { data: stats, loading: loadingStats } = useRequest(
+    () => StudentApi.getStats(id!),
+    {
+      ready: !!id && activeTab === 'stats',
+    }
+  );
+
+  // 获取学习记录
+  const { data: records, loading: loadingRecords, run: refreshRecords } = useRequest(
+    (params?: any) => StudentApi.getRecords(id!, params),
+    {
+      ready: !!id && activeTab === 'records',
+    }
+  );
+
+  // 获取错题列表
+  const {
+    data: wrongQuestions,
+    loading: loadingWrongQuestions,
+    run: refreshWrongQuestions,
+  } = useRequest(
+    (params?: any) => StudentApi.getWrongQuestions(id!, params),
+    {
+      ready: !!id && activeTab === 'wrong',
+    }
+  );
+
+  // 保存学习配置
+  const { runAsync: handleSaveProfile, loading: savingProfile } = useRequest(
+    async (values: any) => {
+      await StudentApi.saveProfile(id!, values);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('配置保存成功');
+        refreshRecords(); // 刷新以重新获取数据
+      },
+      onError: () => {
+        message.error('保存失败');
+      },
+    },
+  );
+
+  // 标记错题为已掌握
+  const { runAsync: handleMarkAsMastered, loading: marking } = useRequest(
+    async (questionId: number) => {
+      await StudentApi.markQuestionAsMastered(id!, questionId);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('已标记为已掌握');
+        refreshWrongQuestions();
+      },
+      onError: () => {
+        message.error('操作失败');
+      },
+    },
+  );
+
+  // 取消错题掌握状态
+  const { runAsync: handleUnmarkAsMastered, loading: unmarking } = useRequest(
+    async (questionId: number) => {
+      await StudentApi.unmarkQuestionAsMastered(id!, questionId);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('已标记为未掌握');
+        refreshWrongQuestions();
+      },
+      onError: () => {
+        message.error('操作失败');
+      },
+    },
+  );
 
   if (loading) {
     return <PageContainer loading={loading} />;
@@ -225,17 +332,219 @@ export default function StudentDetailPage() {
     },
   ];
 
+  const recordColumns: ProColumns<StudyRecord>[] = [
+    {
+      title: '题目ID',
+      dataIndex: 'question_id',
+      width: 100,
+    },
+    {
+      title: '是否正确',
+      dataIndex: 'is_correct',
+      width: 100,
+      render: (is_correct) => (
+        <Tag color={is_correct === 1 ? 'green' : 'red'}>
+          {is_correct === 1 ? '正确' : '错误'}
+        </Tag>
+      ),
+    },
+    {
+      title: '得分',
+      dataIndex: 'score',
+      width: 100,
+    },
+    {
+      title: '用时（秒）',
+      dataIndex: 'time_spent',
+      width: 100,
+    },
+    {
+      title: '教材ID',
+      dataIndex: 'textbook_id',
+      width: 100,
+    },
+    {
+      title: '学习时间',
+      dataIndex: 'study_date',
+      width: 150,
+      valueType: 'dateTime',
+      renderText: (timestamp) => timestamp * 1000,
+    },
+  ];
+
+  const wrongQuestionColumns: ProColumns<StudentWrongQuestion>[] = [
+    {
+      title: '题目ID',
+      dataIndex: 'question_id',
+      width: 100,
+    },
+    {
+      title: '错题内容',
+      dataIndex: 'question_content',
+      width: 300,
+      ellipsis: true,
+    },
+    {
+      title: '错误次数',
+      dataIndex: 'wrong_count',
+      width: 100,
+    },
+    {
+      title: '掌握状态',
+      dataIndex: 'is_mastered',
+      width: 100,
+      render: (is_mastered) => (
+        <Tag color={is_mastered === 1 ? 'green' : 'orange'}>
+          {is_mastered === 1 ? '已掌握' : '未掌握'}
+        </Tag>
+      ),
+    },
+    {
+      title: '最后错误时间',
+      dataIndex: 'last_wrong_time',
+      width: 150,
+      valueType: 'dateTime',
+      renderText: (timestamp) => timestamp * 1000,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 120,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space>
+          {record.is_mastered === 0 ? (
+            <Button
+              size="small"
+              type="link"
+              loading={marking}
+              onClick={() => handleMarkAsMastered(record.question_id)}
+            >
+              标记掌握
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              type="link"
+              loading={unmarking}
+              onClick={() => handleUnmarkAsMastered(record.question_id)}
+            >
+              取消掌握
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  const tabItems = [
+    {
+      key: 'profile',
+      label: '学习配置',
+      children: (
+        <Card loading={loadingProfile}>
+          {profile ? (
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="年级">
+                {GRADES[profile.grade]?.grade || profile.grade}
+              </Descriptions.Item>
+              <Descriptions.Item label="教材版本">
+                {profile.textbook_version}
+              </Descriptions.Item>
+              <Descriptions.Item label="学期">
+                {profile.semester}
+              </Descriptions.Item>
+            </Descriptions>
+          ) : (
+            <div>暂无配置信息</div>
+          )}
+        </Card>
+      ),
+    },
+    {
+      key: 'stats',
+      label: '学习统计',
+      children: (
+        <Card loading={loadingStats}>
+          {stats ? (
+            <Row gutter={16}>
+              <Col span={6}>
+                <Statistic
+                  title="练习次数"
+                  value={stats.total_practice}
+                  prefix="📚"
+                />
+              </Col>
+              <Col span={6}>
+                <Statistic
+                  title="完成题目"
+                  value={stats.total_questions}
+                  prefix="✏️"
+                />
+              </Col>
+              <Col span={6}>
+                <Statistic
+                  title="平均正确率"
+                  value={Math.round(stats.accuracy)}
+                  suffix="%"
+                  prefix="✅"
+                />
+              </Col>
+              <Col span={6}>
+                <Statistic
+                  title="连续天数"
+                  value={stats.current_streak}
+                  prefix="🔥"
+                />
+              </Col>
+            </Row>
+          ) : (
+            <div>暂无统计信息</div>
+          )}
+        </Card>
+      ),
+    },
+    {
+      key: 'records',
+      label: '学习记录',
+      children: (
+        <ProTable<StudyRecord>
+          rowKey="id"
+          columns={recordColumns}
+          search={false}
+          pagination={{ pageSize: 10 }}
+          dataSource={records?.data || []}
+          loading={loadingRecords}
+          options={false}
+          toolbar={{ actions: [] }}
+        />
+      ),
+    },
+    {
+      key: 'wrong',
+      label: '错题本',
+      children: (
+        <ProTable<StudentWrongQuestion>
+          rowKey="id"
+          columns={wrongQuestionColumns}
+          search={false}
+          pagination={{ pageSize: 10 }}
+          dataSource={wrongQuestions?.data || []}
+          loading={loadingWrongQuestions}
+          options={false}
+          toolbar={{ actions: [] }}
+        />
+      ),
+    },
+  ];
+
   return (
     <PageContainer
       title="学生详情"
       header={{
         breadcrumb: {},
         extra: [
-          <Button
-            key="reset"
-            loading={resetting}
-            onClick={handleResetPasswordClick}
-          >
+          <Button key="reset" loading={resetting} onClick={handleResetPasswordClick}>
             重置密码
           </Button>,
           <Button
@@ -253,7 +562,7 @@ export default function StudentDetailPage() {
         ],
       }}
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="large" className="simple-list-page">
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="学生ID">{student.id}</ProDescriptions.Item>
@@ -292,6 +601,14 @@ export default function StudentDetailPage() {
             toolbar={{ actions: [] }}
           />
         </Card>
+
+        <Card>
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+          />
+        </Card>
       </Space>
 
       <ModalForm<{ id: number }>
@@ -324,7 +641,9 @@ export default function StudentDetailPage() {
           }}
           options={allTextbooks.map((textbook) => {
             const gradeInfo = GRADES[textbook.grade];
-            const label = `${textbook.subject} - ${textbook.version} - ${gradeInfo?.grade || textbook.grade}年级 - ${textbook.semester}`;
+            const label = `${textbook.subject} - ${textbook.version} - ${
+              gradeInfo?.grade || textbook.grade
+            }年级 - ${textbook.semester}`;
             return {
               label,
               value: textbook.id,
@@ -336,4 +655,3 @@ export default function StudentDetailPage() {
     </PageContainer>
   );
 }
-

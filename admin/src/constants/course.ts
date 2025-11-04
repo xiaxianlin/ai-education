@@ -12,3 +12,15 @@ export const GRADES: Record<number, { stage: string; grade: string }> = {
   11: { stage: '高中', grade: '高二' },
   12: { stage: '高中', grade: '高三' },
 };
+
+export const TEXTBOOK_VERSIONS = [
+  '人教版',
+  '苏教版',
+  '北师大版',
+  '冀教版',
+  '部编版',
+  '外研版',
+  '牛津版',
+];
+
+export const SEMESTERS = ['上册', '下册'];

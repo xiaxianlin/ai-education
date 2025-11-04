@@ -5,15 +5,30 @@ import { Button } from '@/components/ui/button';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { profileApi } from '@/services/profile';
+import { toast } from 'sonner';
+
+interface Question {
+  id: number;
+  type: string;
+  subject: string;
+  stem: string;
+  options: string[];
+  answer: string;
+  textbook_id?: number;
+  unit_id?: number;
+  knowledge_id?: number;
+}
 
 export function DailyPractice() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // 模拟题目数据
-  const questions = [
+  const questions: Question[] = [
     {
       id: 1,
       type: 'single',
@@ -21,6 +36,7 @@ export function DailyPractice() {
       stem: '计算：15 + 27 = ?',
       options: ['42', '43', '44', '45'],
       answer: '42',
+      textbook_id: 1,
     },
     {
       id: 2,
@@ -29,6 +45,7 @@ export function DailyPractice() {
       stem: '下列哪个分数最大？',
       options: ['1/3', '1/4', '1/2', '1/5'],
       answer: '1/2',
+      textbook_id: 1,
     },
     {
       id: 3,
@@ -37,6 +54,7 @@ export function DailyPractice() {
       stem: 'I ___ to school every day.',
       options: ['go', 'goes', 'went', 'going'],
       answer: 'go',
+      textbook_id: 2,
     },
   ];
 
@@ -44,17 +62,35 @@ export function DailyPractice() {
   const totalQuestions = questions.length;
   const progress = ((currentIndex + 1) / totalQuestions) * 100;
 
-  const handleAnswer = (answer: string) => {
+  const handleAnswer = async (answer: string) => {
+    if (showResult) return;
+
     setAnswers({ ...answers, [currentIndex]: answer });
     setShowResult(true);
+
+    // 自动提交学习记录
+    try {
+      const isCorrect = answer === currentQuestion.answer;
+      await profileApi.createRecord({
+        textbook_id: currentQuestion.textbook_id || 1,
+        question_id: currentQuestion.id,
+        is_correct: isCorrect ? 1 : 0,
+        score: isCorrect ? 100 : 0,
+        time_spent: 30, // 默认30秒
+      });
+    } catch (error) {
+      console.error('Failed to create study record:', error);
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowResult(false);
     } else {
       // 完成所有题目，跳转到完成页
+      setSubmitting(true);
+      toast.success('练习完成！');
       navigate({ to: '/daily-practice/result' });
     }
   };
@@ -75,7 +111,7 @@ export function DailyPractice() {
         <div className="flex justify-end">
           <BackToHomeButton />
         </div>
-        
+
         {/* 进度条 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
@@ -125,15 +161,16 @@ export function DailyPractice() {
                   return (
                     <button
                       key={index}
-                      onClick={() => !showResult && handleAnswer(option)}
-                      disabled={showResult}
+                      onClick={() => handleAnswer(option)}
+                      disabled={showResult || submitting}
                       className={cn(
                         'w-full p-4 text-left rounded-lg border-2 transition-all',
                         isSelected && !showResult && 'border-primary bg-primary/5',
                         isAnswerCorrect && 'border-green-500 bg-green-50',
                         isAnswerWrong && 'border-red-500 bg-red-50',
                         !showResult && 'hover:border-primary/50 cursor-pointer',
-                        showResult && 'cursor-not-allowed'
+                        showResult && 'cursor-not-allowed',
+                        submitting && 'opacity-50 cursor-not-allowed'
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -155,7 +192,9 @@ export function DailyPractice() {
                   )}
                 >
                   <p className="font-medium">
-                    {isCorrect ? '✓ 回答正确！' : `✗ 回答错误，正确答案是：${currentQuestion.answer}`}
+                    {isCorrect
+                      ? '✓ 回答正确！已记录学习记录'
+                      : `✗ 回答错误，正确答案是：${currentQuestion.answer}，已加入错题本`}
                   </p>
                 </div>
               )}
@@ -168,7 +207,7 @@ export function DailyPractice() {
           <Button
             variant="outline"
             onClick={handlePrev}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 0 || submitting}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             上一题
@@ -176,10 +215,14 @@ export function DailyPractice() {
 
           <Button
             onClick={handleNext}
-            disabled={!showResult && !answers[currentIndex]}
+            disabled={(!showResult && !answers[currentIndex]) || submitting}
           >
-            下一题
-            <ChevronRight className="h-4 w-4 ml-2" />
+            {submitting
+              ? '提交中...'
+              : currentIndex === totalQuestions - 1
+              ? '完成练习'
+              : '下一题'}
+            {!submitting && <ChevronRight className="h-4 w-4 ml-2" />}
           </Button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-from sqlalchemy import and_, select, desc
+from sqlalchemy import and_, select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import (
     CreateStudyRecordSchema,

@@ -1,30 +1,59 @@
+import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { User, LogOut, Settings, Award, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useSettingsStore, GRADES } from '@/stores/useSettingsStore';
+import { GRADES } from '@/stores/useSettingsStore';
+import { profileApi, StudentProfile, StudentStats } from '@/services/profile';
+import { toast } from 'sonner';
 
 export function Profile() {
   const { logout } = useAuthStore();
-  const { settings } = useSettingsStore();
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [stats, setStats] = useState<StudentStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [profileData, statsData] = await Promise.all([
+        profileApi.getProfile(),
+        profileApi.getStats(),
+      ]);
+      setProfile(profileData);
+      setStats(statsData);
+    } catch (error: any) {
+      console.error('Failed to load data:', error);
+      toast.error('加载数据失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
     window.location.href = '/login';
   };
 
-  // 模拟统计数据
-  const stats = {
-    totalPractice: 45,
-    totalQuestions: 520,
-    accuracy: 82,
-    streakDays: 7,
-  };
-
-  const currentGrade = GRADES.find((g) => g.id === settings.grade);
+  const currentGrade = profile?.grade ? GRADES.find((g) => g.id === profile.grade) : null;
   const gradeLabel = currentGrade ? currentGrade.label : '未设置';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -52,19 +81,19 @@ export function Profile() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{stats.totalPractice}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats?.total_practice || 0}</p>
                 <p className="text-sm text-muted-foreground mt-1">练习次数</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{stats.totalQuestions}</p>
+                <p className="text-2xl font-bold text-green-600">{stats?.total_questions || 0}</p>
                 <p className="text-sm text-muted-foreground mt-1">完成题目</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{stats.accuracy}%</p>
+                <p className="text-2xl font-bold text-purple-600">{Math.round(stats?.accuracy || 0)}%</p>
                 <p className="text-sm text-muted-foreground mt-1">平均正确率</p>
               </div>
               <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{stats.streakDays}</p>
+                <p className="text-2xl font-bold text-orange-600">{stats?.current_streak || 0}</p>
                 <p className="text-sm text-muted-foreground mt-1">连续天数</p>
               </div>
             </div>
