@@ -170,3 +170,90 @@ class UpdateStudentSchema(BaseModel):
 class SearchStudentSchema(SearchSchema):
     phone: Optional[str] = None
     status: Optional[int] = None
+
+
+class StudentProfileSchema(BaseModel):
+    id: int
+    student_id: str
+    grade: int = 0
+    textbook_version: str = ""
+    semester: str = ""
+    preferred_subjects: str = ""
+    difficulty_preference: str = "中等"
+    create_time: int
+    update_time: Optional[int] = None
+
+    model_config = {"from_attributes": True}
+
+
+class StudentStatsSchema(BaseModel):
+    id: int
+    student_id: str
+    total_practice: int = 0
+    total_questions: int = 0
+    correct_questions: int = 0
+    accuracy: float = 0.0
+    current_streak: int = 0
+    max_streak: int = 0
+    last_study_date: int = 0
+    total_study_duration: int = 0
+    achievements: str = ""
+    create_time: int
+    update_time: Optional[int] = None
+
+    model_config = {"from_attributes": True}
+
+
+class StudyRecordSchema(BaseModel):
+    id: int
+    student_id: str
+    textbook_id: int
+    unit_id: Optional[int] = None
+    knowledge_id: Optional[int] = None
+    question_id: Optional[int] = None
+    is_correct: int = 0
+    score: float = 0.0
+    time_spent: int = 0
+    study_date: int
+    create_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class CreateStudentProfileSchema(BaseModel):
+    grade: int = 0
+    textbook_version: str = ""
+    semester: str = ""
+    preferred_subjects: str = ""
+    difficulty_preference: str = "中等"
+
+
+class UpdateStudentProfileSchema(BaseModel):
+    grade: Optional[int] = None
+    textbook_version: Optional[str] = None
+    semester: Optional[str] = None
+    preferred_subjects: Optional[str] = None
+    difficulty_preference: Optional[str] = None
+
+
+class UpdateStudentStatsSchema(BaseModel):
+    total_practice: Optional[int] = None
+    total_questions: Optional[int] = None
+    correct_questions: Optional[int] = None
+    current_streak: Optional[int] = None
+    max_streak: Optional[int] = None
+    last_study_date: Optional[int] = None
+    total_study_duration: Optional[int] = None
+    achievements: Optional[str] = None
+
+
+class CreateStudyRecordSchema(BaseModel):
+    student_id: str
+    textbook_id: int
+    unit_id: Optional[int] = None
+    knowledge_id: Optional[int] = None
+    question_id: Optional[int] = None
+    is_correct: int = 0
+    score: float = 0.0
+    time_spent: int = 0
+    study_date: Optional[int] = None

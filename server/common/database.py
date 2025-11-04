@@ -182,3 +182,78 @@ class StudentTextbook(BaseModel):
         primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
         lazy="joined",
     )
+
+
+class StudentWrongQuestion(BaseModel):
+    __tablename__ = "ah_student_wrong_question"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    question_id: Mapped[int] = mapped_column(nullable=False)
+
+    wrong_count: Mapped[int] = mapped_column(default=1)
+    last_wrong_time: Mapped[int] = mapped_column(default=now)
+    is_mastered: Mapped[int] = mapped_column(default=0)
+    mastered_time: Mapped[int] = mapped_column(default=0)
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+
+class StudentProfile(BaseModel):
+    __tablename__ = "ah_student_profile"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+
+    grade: Mapped[int] = mapped_column(default=0)
+    textbook_version: Mapped[str] = mapped_column(String(255), default="")
+    semester: Mapped[str] = mapped_column(String(50), default="")
+
+    preferred_subjects: Mapped[str] = mapped_column(String(500), default="")
+    difficulty_preference: Mapped[str] = mapped_column(String(50), default="中等")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+
+class StudentStats(BaseModel):
+    __tablename__ = "ah_student_stats"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+
+    total_practice: Mapped[int] = mapped_column(default=0)
+    total_questions: Mapped[int] = mapped_column(default=0)
+    correct_questions: Mapped[int] = mapped_column(default=0)
+    accuracy: Mapped[float] = mapped_column(default=0.0)
+
+    current_streak: Mapped[int] = mapped_column(default=0)
+    max_streak: Mapped[int] = mapped_column(default=0)
+    last_study_date: Mapped[int] = mapped_column(default=0)
+
+    total_study_duration: Mapped[int] = mapped_column(default=0)
+
+    achievements: Mapped[str] = mapped_column(Text, default="")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+
+class StudyRecord(BaseModel):
+    __tablename__ = "ah_study_record"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    textbook_id: Mapped[int] = mapped_column(nullable=False)
+    unit_id: Mapped[int] = mapped_column(nullable=True)
+    knowledge_id: Mapped[int] = mapped_column(nullable=True)
+    question_id: Mapped[int] = mapped_column(nullable=True)
+
+    is_correct: Mapped[int] = mapped_column(default=0)
+    score: Mapped[float] = mapped_column(default=0.0)
+    time_spent: Mapped[int] = mapped_column(default=0)
+
+    study_date: Mapped[int] = mapped_column(default=now)
+    create_time: Mapped[int] = mapped_column(default=now)
