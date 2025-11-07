@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Header } from '@/components/layout/Header';
 import { Trophy, RefreshCw, BookOpen, TrendingUp } from 'lucide-react';
 
 export function DailyPracticeResult() {
@@ -20,6 +21,7 @@ export function DailyPracticeResult() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* 完成动画提示 */}
         <div className="text-center py-8">

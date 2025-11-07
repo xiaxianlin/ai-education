@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { LogOut, Settings, Award, BookOpen, TrendingUp, Target, Calendar, ChevronRight } from 'lucide-react';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { Header } from '@/components/layout/Header';
+import { Settings, Award, BookOpen, TrendingUp, Target, Calendar, ChevronRight } from 'lucide-react';
 import { profileApi, StudentProfile, StudentStats } from '@/services/profile';
 import { toast } from 'sonner';
 
 export function Profile() {
-  const { logout } = useAuthStore();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [stats, setStats] = useState<StudentStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,11 +33,6 @@ export function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/login';
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
@@ -53,6 +46,7 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
         {/* 数据统计 - 优化设计 */}
         <Card>
@@ -142,16 +136,6 @@ export function Profile() {
             </Card>
           </Link>
         </div>
-
-        {/* 退出登录 - 优化设计 */}
-        <Button
-          variant="outline"
-          className="w-full mt-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          退出登录
-        </Button>
       </div>
 
       <BottomNav />

@@ -4,6 +4,8 @@ from common.database import Database
 from student.services import auth
 from student.services import student as student_service
 from admin.services import profile, stats, study_record, wrong_question
+from admin.services import unit as unit_service
+from admin.services import knowledge as knowledge_service
 from admin.schema import (
     CreateStudentProfileSchema,
     UpdateStudentStatsSchema,
@@ -105,4 +107,37 @@ async def get_textbooks(
 ):
     textbooks = await student_service.query_student_textbook(db, student.id)
     return textbooks
+
+
+@profile_router.get("/units")
+async def get_units(
+    textbook_id: int | None = None,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """获取单元列表，如果指定了textbook_id则获取该教材的单元，否则获取当前教材的单元"""
+    # 如果没有指定textbook_id，从profile中获取当前教材
+    if not textbook_id:
+        profile_data = await profile.get_student_profile(db, student.id)
+        if not profile_data or not profile_data.current_textbook_id:
+            return []
+        textbook_id = profile_data.current_textbook_id
+
+    # 验证该教材是否属于该学生
+    textbooks = await student_service.query_student_textbook(db, student.id)
+    if not any(t.id == textbook_id for t in textbooks):
+        return []
+
+    units = await unit_service.query_unit_by_textbook(db, textbook_id)
+
+    units_with_knowledge: list[dict] = []
+    for unit in units:
+        knowledge_list = await knowledge_service.query_knowledge_by_unit(db, unit.id)
+        unit_dict = unit.model_dump()
+        unit_dict["knowledges"] = [
+            knowledge.model_dump() for knowledge in knowledge_list if knowledge.status == 1
+        ]
+        units_with_knowledge.append(unit_dict)
+
+    return units_with_knowledge
 

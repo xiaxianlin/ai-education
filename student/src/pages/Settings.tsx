@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { Header } from '@/components/layout/Header';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { GRADES } from '@/stores/useSettingsStore';
 import { BookOpen, ArrowLeft, Check } from 'lucide-react';
@@ -97,6 +98,7 @@ export function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      <Header />
       <AlertDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}

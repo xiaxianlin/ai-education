@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { Header } from '@/components/layout/Header';
 import { CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { profileApi, StudyRecord, StudentStats } from '@/services/profile';
@@ -82,6 +83,7 @@ export function PracticeHistory() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 头部 */}
         <div className="space-y-2">

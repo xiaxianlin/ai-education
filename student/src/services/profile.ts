@@ -53,6 +53,11 @@ export const profileApi = {
   getTextbooks: async () => {
     return api.get<Textbook[]>('/profile/textbooks');
   },
+
+  getUnits: async (textbookId?: number) => {
+    const params = textbookId ? `?textbook_id=${textbookId}` : '';
+    return api.get<Unit[]>(`/profile/units${params}`);
+  },
 };
 
 export interface StudentStats {
@@ -121,4 +126,26 @@ export interface Textbook {
   status: number;
   create_time: number;
   update_time?: number;
+}
+
+export interface Knowledge {
+  id: number;
+  textbook_id: number;
+  unit_id: number;
+  name: string;
+  content: string;
+  status: number;
+  create_time: number;
+  update_time?: number;
+}
+
+export interface Unit {
+  id: number;
+  textbook_id: number;
+  name: string;
+  content: string;
+  status: number;
+  create_time: number;
+  update_time?: number;
+  knowledges?: Knowledge[];
 }

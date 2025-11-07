@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { Header } from '@/components/layout/Header';
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { profileApi } from '@/services/profile';
@@ -106,6 +107,7 @@ export function DailyPractice() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* 返回首页按钮 */}
         <div className="flex justify-end">

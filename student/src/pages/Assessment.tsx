@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { Header } from '@/components/layout/Header';
 import { Target, Clock, Award, TrendingUp, Play } from 'lucide-react';
 
 export function Assessment() {
@@ -23,6 +24,7 @@ export function Assessment() {
   if (hasCompleted) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <Header />
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           {/* 返回首页按钮 */}
           <div className="flex justify-end">
@@ -113,6 +115,7 @@ export function Assessment() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* 返回首页按钮 */}
         <div className="flex justify-end">
