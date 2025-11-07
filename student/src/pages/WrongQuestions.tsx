@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Header } from '@/components/layout/Header';
 import { RefreshCw, Filter, BookOpen, Check, X } from 'lucide-react';
 import { profileApi, WrongQuestion } from '@/services/profile';
@@ -69,7 +68,7 @@ export function WrongQuestions() {
   const getUnmasteredCount = () => wrongQuestions.filter(q => q.is_mastered === 0).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 头部统计 */}
@@ -202,8 +201,6 @@ export function WrongQuestions() {
           </Card>
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }

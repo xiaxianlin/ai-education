@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Header } from '@/components/layout/Header';
 import { Settings, Award, BookOpen, TrendingUp, Target, Calendar, ChevronRight } from 'lucide-react';
 import { profileApi, StudentProfile, StudentStats } from '@/services/profile';
@@ -35,7 +34,7 @@ export function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 pb-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">加载中...</p>
@@ -45,7 +44,7 @@ export function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-12">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
         {/* 数据统计 - 优化设计 */}
@@ -137,8 +136,6 @@ export function Profile() {
           </Link>
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

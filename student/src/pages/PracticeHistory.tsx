@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Header } from '@/components/layout/Header';
 import { CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -72,7 +71,7 @@ export function PracticeHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 pb-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">加载中...</p>
@@ -82,7 +81,7 @@ export function PracticeHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 头部 */}
@@ -184,8 +183,6 @@ export function PracticeHistory() {
           )}
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

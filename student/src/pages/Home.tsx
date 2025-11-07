@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Header } from '@/components/layout/Header';
 import { TextbookSetupModal } from '@/components/TextbookSetupModal';
 import { profileApi, StudentStats } from '@/services/profile';
-import { BookOpen, Target, TrendingUp, Clock } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Clock, AlertCircle, History } from 'lucide-react';
 
 export function Home() {
   const [showTextbookModal, setShowTextbookModal] = useState(false);
@@ -50,7 +49,7 @@ export function Home() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 pb-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">加载中...</p>
@@ -60,7 +59,7 @@ export function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
       {showTextbookModal && (
         <TextbookSetupModal
@@ -182,9 +181,44 @@ export function Home() {
             </Card>
           </Link>
         </div>
-      </div>
 
-      <BottomNav />
+        {/* 错题集 & 练习记录 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/wrong">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  错题集
+                </CardTitle>
+                <CardDescription className="text-xs">整理错题，巩固薄弱知识点</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" size="sm" className="w-full">
+                  查看详情
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/history">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <History className="h-4 w-4 text-green-600" />
+                  练习记录
+                </CardTitle>
+                <CardDescription className="text-xs">回顾练习历程，查漏补缺</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" size="sm" className="w-full">
+                  前往查看
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

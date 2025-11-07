@@ -105,47 +105,27 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white shadow-sm">
-      <div className="h-14 flex items-center justify-between px-4">
-        {/* 左侧：学生姓名 */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <User className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-medium text-gray-900 truncate">
-            {studentInfo?.name || '学生'}
-          </span>
-        </div>
-
-        {/* 右侧：教材信息和操作 */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* 首页按钮 */}
-          {!isHomePage && (
-            <Link to="/home">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-gray-600 hover:text-primary hover:bg-primary/10"
-                title="返回首页"
-              >
-                <Home className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-
-          {/* 教材切换下拉菜单 */}
+      <div className="h-14 flex items-center justify-between px-4 gap-4">
+        {/* 左侧：教材信息 */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <Dropdown
             trigger={
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors cursor-pointer max-w-[200px]">
-                <BookOpen className="h-4 w-4 text-gray-600 flex-shrink-0" />
-                <span className="text-sm text-gray-700 truncate">
-                  {currentTextbook 
-                    ? getTextbookDisplayName(currentTextbook)
-                    : '未设置教材'}
-                </span>
+              <div className="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors cursor-pointer max-w-full">
+                <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs text-muted-foreground">当前教材</span>
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    {currentTextbook
+                      ? getTextbookDisplayName(currentTextbook)
+                      : '未设置教材'}
+                  </span>
+                </div>
                 <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
               </div>
             }
-            align="right"
+            align="start"
           >
             <div className="py-1 max-h-[300px] overflow-y-auto">
               {textbooks.length > 0 ? (
@@ -157,9 +137,7 @@ export function Header() {
                         key={textbook.id}
                         onClick={() => !isCurrent && handleSwitchTextbook(textbook.id)}
                         disabled={isCurrent || switching}
-                        className={cn(
-                          isCurrent && 'bg-blue-50 text-blue-700 font-medium'
-                        )}
+                        className={cn(isCurrent && 'bg-blue-50 text-blue-700 font-medium')}
                       >
                         <div className="flex items-center justify-between w-full">
                           <div className="flex-1 min-w-0">
@@ -183,8 +161,38 @@ export function Header() {
               )}
             </div>
           </Dropdown>
+        </div>
 
-          {/* 退出登录按钮 */}
+        {/* 右侧：个人信息和操作 */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            to="/home"
+            title="返回首页"
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10',
+              isHomePage && 'pointer-events-none opacity-50'
+            )}
+          >
+            <Home className="h-4 w-4" />
+          </Link>
+
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
+          >
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <User className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-sm font-medium text-gray-900 truncate">
+                {studentInfo?.name || '学生'}
+              </span>
+              {studentInfo?.phone && (
+                <span className="text-xs text-gray-500 truncate">{studentInfo.phone}</span>
+              )}
+            </div>
+          </Link>
+
           <Button
             variant="ghost"
             size="sm"

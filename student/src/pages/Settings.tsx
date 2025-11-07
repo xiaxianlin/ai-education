@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Header } from '@/components/layout/Header';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import { GRADES } from '@/stores/useSettingsStore';
@@ -87,7 +86,7 @@ export function Settings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 pb-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">加载中...</p>
@@ -97,7 +96,7 @@ export function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <Header />
       <AlertDialog
         open={confirmDialog.open}
@@ -220,8 +219,6 @@ export function Settings() {
           </Card>
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }
