@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from common.database import Database
 from student.services import auth
+from student.services import student as student_service
 from admin.services import profile, stats, study_record, wrong_question
 from admin.schema import (
     CreateStudentProfileSchema,
@@ -21,7 +22,7 @@ async def get_current_student(request: Request, db: AsyncSession = Database):
 
 @profile_router.get("/")
 async def get_profile(student=Depends(get_current_student), db: AsyncSession = Database):
-    profile_data = await profile.get_student_profile(db, student["id"])
+    profile_data = await profile.get_student_profile(db, student.id)
     return profile_data
 
 
@@ -31,13 +32,13 @@ async def update_profile(
     student=Depends(get_current_student),
     db: AsyncSession = Database,
 ):
-    profile_data = await profile.create_or_update_student_profile(db, student["id"], params)
+    profile_data = await profile.create_or_update_student_profile(db, student.id, params)
     return profile_data
 
 
 @profile_router.get("/stats")
 async def get_stats(student=Depends(get_current_student), db: AsyncSession = Database):
-    stats_data = await stats.get_student_stats(db, student["id"])
+    stats_data = await stats.get_student_stats(db, student.id)
     return stats_data
 
 
@@ -48,7 +49,7 @@ async def get_wrong_questions(
     db: AsyncSession = Database,
 ):
     wrong_questions = await wrong_question.get_student_wrong_questions(
-        db, student["id"], mastered
+        db, student.id, mastered
     )
     return wrong_questions
 
@@ -59,7 +60,7 @@ async def mark_question_as_mastered(
     student=Depends(get_current_student),
     db: AsyncSession = Database,
 ):
-    await wrong_question.mark_as_mastered(db, student["id"], question_id)
+    await wrong_question.mark_as_mastered(db, student.id, question_id)
     return {"success": True}
 
 
@@ -69,7 +70,7 @@ async def unmark_question_as_mastered(
     student=Depends(get_current_student),
     db: AsyncSession = Database,
 ):
-    await wrong_question.unmark_as_mastered(db, student["id"], question_id)
+    await wrong_question.unmark_as_mastered(db, student.id, question_id)
     return {"success": True}
 
 
@@ -77,7 +78,7 @@ async def unmark_question_as_mastered(
 async def get_records(
     student=Depends(get_current_student), db: AsyncSession = Database
 ):
-    records = await study_record.get_student_study_records(db, student["id"], 50)
+    records = await study_record.get_student_study_records(db, student.id, 50)
     return records
 
 
@@ -87,13 +88,21 @@ async def create_record(
     student=Depends(get_current_student),
     db: AsyncSession = Database,
 ):
-    params.student_id = student["id"]
+    params.student_id = student.id
     record = await study_record.create_study_record(db, params)
 
-    await stats.increment_student_stats(db, student["id"], params.is_correct == 1)
+    await stats.increment_student_stats(db, student.id, params.is_correct == 1)
 
     if params.is_correct == 0 and params.question_id:
-        await wrong_question.add_wrong_question(db, student["id"], params.question_id)
+        await wrong_question.add_wrong_question(db, student.id, params.question_id)
 
     return record
+
+
+@profile_router.get("/textbooks")
+async def get_textbooks(
+    student=Depends(get_current_student), db: AsyncSession = Database
+):
+    textbooks = await student_service.query_student_textbook(db, student.id)
+    return textbooks
 

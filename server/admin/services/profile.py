@@ -6,7 +6,6 @@ from admin.schema import (
     StudentProfileSchema,
 )
 from common.database import StudentProfile, Student
-from common.constants import TEXTBOOK_VERSIONS, SEMESTERS
 from common.schema import ResponseSchema
 from utils.time import now
 
@@ -34,9 +33,7 @@ async def create_or_update_student_profile(
     if not profile:
         profile = StudentProfile(
             student_id=student_id,
-            grade=params.grade,
-            textbook_version=params.textbook_version,
-            semester=params.semester,
+            current_textbook_id=params.current_textbook_id,
             preferred_subjects=params.preferred_subjects,
             difficulty_preference=params.difficulty_preference,
             create_time=now(),
@@ -44,12 +41,8 @@ async def create_or_update_student_profile(
         )
         db.add(profile)
     else:
-        if params.grade is not None:
-            profile.grade = params.grade
-        if params.textbook_version is not None:
-            profile.textbook_version = params.textbook_version
-        if params.semester is not None:
-            profile.semester = params.semester
+        if params.current_textbook_id is not None:
+            profile.current_textbook_id = params.current_textbook_id
         if params.preferred_subjects is not None:
             profile.preferred_subjects = params.preferred_subjects
         if params.difficulty_preference is not None:
@@ -72,12 +65,8 @@ async def update_student_profile(
     if not profile:
         raise ValueError("学生配置不存在")
 
-    if params.grade is not None:
-        profile.grade = params.grade
-    if params.textbook_version is not None:
-        profile.textbook_version = params.textbook_version
-    if params.semester is not None:
-        profile.semester = params.semester
+    if params.current_textbook_id is not None:
+        profile.current_textbook_id = params.current_textbook_id
     if params.preferred_subjects is not None:
         profile.preferred_subjects = params.preferred_subjects
     if params.difficulty_preference is not None:

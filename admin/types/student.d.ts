@@ -28,9 +28,9 @@ declare global {
   interface StudentProfile {
     id?: number;
     student_id: string;
-    grade: number;
-    textbook_version: string;
-    semester: string;
+    current_textbook_id?: number;
+    preferred_subjects?: string;
+    difficulty_preference?: string;
     created_at?: number;
     updated_at?: number;
   }
@@ -80,9 +80,9 @@ declare global {
 
   // 学生配置表单
   interface StudentProfileForm {
-    grade: number;
-    textbook_version: string;
-    semester: string;
+    current_textbook_id?: number;
+    preferred_subjects?: string;
+    difficulty_preference?: string;
   }
 
   // 学习记录查询参数

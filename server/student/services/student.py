@@ -10,6 +10,6 @@ async def query_student_textbook(db: AsyncSession, id: str):
     result = await db.scalars(
         select(StudentTextbook)
         .options(joinedload(StudentTextbook.textbook))
-        .where(Student.id == id)
+        .where(StudentTextbook.student_id == id)
     )
     return [TextbookSchema.model_validate(item.textbook) for item in result.all()]

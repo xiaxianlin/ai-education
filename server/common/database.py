@@ -206,9 +206,7 @@ class StudentProfile(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
 
-    grade: Mapped[int] = mapped_column(default=0)
-    textbook_version: Mapped[str] = mapped_column(String(255), default="")
-    semester: Mapped[str] = mapped_column(String(50), default="")
+    current_textbook_id: Mapped[int] = mapped_column(nullable=True)
 
     preferred_subjects: Mapped[str] = mapped_column(String(500), default="")
     difficulty_preference: Mapped[str] = mapped_column(String(50), default="中等")

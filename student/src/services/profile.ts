@@ -3,9 +3,7 @@ import { api } from '@/lib/api';
 export interface StudentProfile {
   id: number;
   student_id: string;
-  grade: number;
-  textbook_version: string;
-  semester: string;
+  current_textbook_id?: number;
   preferred_subjects: string;
   difficulty_preference: string;
   create_time: number;
@@ -13,9 +11,7 @@ export interface StudentProfile {
 }
 
 export interface UpdateProfileParams {
-  grade?: number;
-  textbook_version?: string;
-  semester?: string;
+  current_textbook_id?: number;
   preferred_subjects?: string;
   difficulty_preference?: string;
 }
@@ -52,6 +48,10 @@ export const profileApi = {
 
   createRecord: async (params: CreateStudyRecordParams) => {
     return api.post<StudyRecord>('/profile/records', params);
+  },
+
+  getTextbooks: async () => {
+    return api.get<Textbook[]>('/profile/textbooks');
   },
 };
 
@@ -107,4 +107,18 @@ export interface CreateStudyRecordParams {
   score?: number;
   time_spent?: number;
   study_date?: number;
+}
+
+export interface Textbook {
+  id: number;
+  subject: string;
+  version: string;
+  grade: number;
+  semester: string;
+  file?: string;
+  index_file_id?: string;
+  is_parsed: number;
+  status: number;
+  create_time: number;
+  update_time?: number;
 }

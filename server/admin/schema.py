@@ -175,9 +175,7 @@ class SearchStudentSchema(SearchSchema):
 class StudentProfileSchema(BaseModel):
     id: int
     student_id: str
-    grade: int = 0
-    textbook_version: str = ""
-    semester: str = ""
+    current_textbook_id: Optional[int] = None
     preferred_subjects: str = ""
     difficulty_preference: str = "中等"
     create_time: int
@@ -221,17 +219,13 @@ class StudyRecordSchema(BaseModel):
 
 
 class CreateStudentProfileSchema(BaseModel):
-    grade: int = 0
-    textbook_version: str = ""
-    semester: str = ""
+    current_textbook_id: Optional[int] = None
     preferred_subjects: str = ""
     difficulty_preference: str = "中等"
 
 
 class UpdateStudentProfileSchema(BaseModel):
-    grade: Optional[int] = None
-    textbook_version: Optional[str] = None
-    semester: Optional[str] = None
+    current_textbook_id: Optional[int] = None
     preferred_subjects: Optional[str] = None
     difficulty_preference: Optional[str] = None
 

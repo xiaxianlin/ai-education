@@ -3,9 +3,8 @@ import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { User, LogOut, Settings, Award, BookOpen } from 'lucide-react';
+import { LogOut, Settings, Award, BookOpen, TrendingUp, Target, Calendar, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { GRADES } from '@/stores/useSettingsStore';
 import { profileApi, StudentProfile, StudentStats } from '@/services/profile';
 import { toast } from 'sonner';
 
@@ -41,9 +40,6 @@ export function Profile() {
     window.location.href = '/login';
   };
 
-  const currentGrade = profile?.grade ? GRADES.find((g) => g.id === profile.grade) : null;
-  const gradeLabel = currentGrade ? currentGrade.label : '未设置';
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
@@ -56,101 +52,101 @@ export function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* 用户信息卡片 */}
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        {/* 数据统计 - 优化设计 */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold">学生</h2>
-                <p className="text-sm text-muted-foreground">{gradeLabel}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 数据统计 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">学习统计</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              学习统计
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{stats?.total_practice || 0}</p>
-                <p className="text-sm text-muted-foreground mt-1">练习次数</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 border border-blue-200/50">
+                <div className="absolute top-2 right-2 opacity-20">
+                  <Target className="h-8 w-8 text-blue-600" />
+                </div>
+                <p className="text-3xl font-bold text-blue-700 mb-1">{stats?.total_practice || 0}</p>
+                <p className="text-xs font-medium text-blue-600/80">练习次数</p>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{stats?.total_questions || 0}</p>
-                <p className="text-sm text-muted-foreground mt-1">完成题目</p>
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 p-5 border border-green-200/50">
+                <div className="absolute top-2 right-2 opacity-20">
+                  <BookOpen className="h-8 w-8 text-green-600" />
+                </div>
+                <p className="text-3xl font-bold text-green-700 mb-1">{stats?.total_questions || 0}</p>
+                <p className="text-xs font-medium text-green-600/80">完成题目</p>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{Math.round(stats?.accuracy || 0)}%</p>
-                <p className="text-sm text-muted-foreground mt-1">平均正确率</p>
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 p-5 border border-purple-200/50">
+                <div className="absolute top-2 right-2 opacity-20">
+                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+                <p className="text-3xl font-bold text-purple-700 mb-1">{Math.round(stats?.accuracy || 0)}%</p>
+                <p className="text-xs font-medium text-purple-600/80">平均正确率</p>
               </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{stats?.current_streak || 0}</p>
-                <p className="text-sm text-muted-foreground mt-1">连续天数</p>
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100/50 p-5 border border-orange-200/50">
+                <div className="absolute top-2 right-2 opacity-20">
+                  <Calendar className="h-8 w-8 text-orange-600" />
+                </div>
+                <p className="text-3xl font-bold text-orange-700 mb-1">{stats?.current_streak || 0}</p>
+                <p className="text-xs font-medium text-orange-600/80">连续天数</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* 功能列表 */}
-        <div className="space-y-2">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6">
+        {/* 功能列表 - 优化设计 */}
+        <div className="space-y-2.5">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Award className="h-5 w-5 text-yellow-500" />
-                  <span className="font-medium">我的成就</span>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                    <Award className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <span className="font-medium text-gray-800">我的成就</span>
                 </div>
-                <Button variant="ghost" size="sm">
-                  &gt;
-                </Button>
+                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="pt-6">
+          <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-5 w-5 text-blue-500" />
-                  <span className="font-medium">评测报告</span>
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="font-medium text-gray-800">评测报告</span>
                 </div>
-                <Button variant="ghost" size="sm">
-                  &gt;
-                </Button>
+                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
             </CardContent>
           </Card>
 
           <Link to="/settings">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="pt-6">
+            <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group mt-3">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Settings className="h-5 w-5 text-gray-500" />
-                    <span className="font-medium">学习设置</span>
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                      <Settings className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <span className="font-medium text-gray-800">信息设置</span>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    &gt;
-                  </Button>
+                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
                 </div>
               </CardContent>
             </Card>
           </Link>
         </div>
 
-        {/* 退出登录 */}
+        {/* 退出登录 - 优化设计 */}
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full mt-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-2" />

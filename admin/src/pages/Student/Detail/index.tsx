@@ -27,7 +27,7 @@ import {
 } from 'antd';
 import { StatusTag } from '@/components/ui';
 import { GRADES, TEXTBOOK_VERSIONS, SEMESTERS } from '@/constants/course';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ProForm } from '@ant-design/pro-components';
 import { useRef } from 'react';
 
@@ -37,9 +37,9 @@ export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [textbooks, setTextbooks] = useState<Textbook[]>([]);
   const [visible, setVisible] = useState(false);
-  const [form] = ProForm.useForm<{ id: number }>();
+  const [form] = ProForm.useForm<{ ids: number[] }>();
   const [allTextbooks, setAllTextbooks] = useState<Textbook[]>([]);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('stats');
 
   const { runAsync: loadStudent } = useRequest(
     async () => {
@@ -149,10 +149,11 @@ export default function StudentDetailPage() {
     },
   );
 
-  // 添加单个教材
+  // 批量添加教材
   const { runAsync: handleAddTextbook, loading: adding } = useRequest(
-    async (values: { id: number }) => {
-      const newTextbookIds = [...textbooks.map((t) => t.id), values.id];
+    async (values: { ids: number[] }) => {
+      const existingIds = textbooks.map((t) => t.id);
+      const newTextbookIds = [...existingIds, ...values.ids.filter(id => !existingIds.includes(id))];
       await StudentApi.saveTextbooks(id!, newTextbookIds);
     },
     {
@@ -191,13 +192,76 @@ export default function StudentDetailPage() {
     });
   };
 
-  // 获取学生配置
-  const { data: profile, loading: loadingProfile } = useRequest(
+  // 获取学生配置（用于标识当前教材）
+  const { data: profile, loading: loadingProfile, refresh: refreshProfile } = useRequest(
     () => StudentApi.getProfile(id!),
     {
-      ready: !!id && activeTab === 'profile',
+      ready: !!id,
     }
   );
+
+  // 获取当前学习教材的详细信息
+  const currentTextbook = profile?.current_textbook_id
+    ? textbooks.find((t) => t.id === profile.current_textbook_id)
+    : null;
+
+  // 定义教材列表列（使用 useMemo 确保响应 profile 变化）
+  const textbookColumns: ProColumns<Textbook>[] = useMemo(() => [
+    {
+      title: '科目',
+      dataIndex: 'subject',
+      width: 100,
+      render: (text, record) => {
+        const isCurrent = profile?.current_textbook_id === record.id;
+        return (
+          <div className="flex items-center gap-2">
+            <span>{text}</span>
+            {isCurrent && (
+              <Tag color="blue">当前学习</Tag>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      title: '版本',
+      dataIndex: 'version',
+      width: 100,
+    },
+    {
+      title: '年级',
+      dataIndex: 'grade',
+      width: 100,
+      renderText: (grade) => GRADES[grade]?.grade || grade,
+    },
+    {
+      title: '学期',
+      dataIndex: 'semester',
+      width: 100,
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      width: 80,
+      render: (status) => <StatusTag status={status === 1} />,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      fixed: 'right',
+      render: (_, record) => (
+        <Button
+          size="small"
+          type="link"
+          danger
+          onClick={() => handleDeleteTextbook(record.id)}
+        >
+          删除
+        </Button>
+      ),
+    },
+  ], [profile]);
 
   // 获取学习统计
   const { data: stats, loading: loadingStats } = useRequest(
@@ -285,52 +349,6 @@ export default function StudentDetailPage() {
   if (!student) {
     return null;
   }
-
-  const textbookColumns: ProColumns<Textbook>[] = [
-    {
-      title: '科目',
-      dataIndex: 'subject',
-      width: 100,
-    },
-    {
-      title: '版本',
-      dataIndex: 'version',
-      width: 100,
-    },
-    {
-      title: '年级',
-      dataIndex: 'grade',
-      width: 100,
-      renderText: (grade) => GRADES[grade]?.grade || grade,
-    },
-    {
-      title: '学期',
-      dataIndex: 'semester',
-      width: 100,
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 80,
-      render: (status) => <StatusTag status={status === 1} />,
-    },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 80,
-      fixed: 'right',
-      render: (_, record) => (
-        <Button
-          size="small"
-          type="link"
-          danger
-          onClick={() => handleDeleteTextbook(record.id)}
-        >
-          删除
-        </Button>
-      ),
-    },
-  ];
 
   const recordColumns: ProColumns<StudyRecord>[] = [
     {
@@ -438,29 +456,6 @@ export default function StudentDetailPage() {
   ];
 
   const tabItems = [
-    {
-      key: 'profile',
-      label: '学习配置',
-      children: (
-        <Card loading={loadingProfile}>
-          {profile ? (
-            <Descriptions bordered column={2}>
-              <Descriptions.Item label="年级">
-                {GRADES[profile.grade]?.grade || profile.grade}
-              </Descriptions.Item>
-              <Descriptions.Item label="教材版本">
-                {profile.textbook_version}
-              </Descriptions.Item>
-              <Descriptions.Item label="学期">
-                {profile.semester}
-              </Descriptions.Item>
-            </Descriptions>
-          ) : (
-            <div>暂无配置信息</div>
-          )}
-        </Card>
-      ),
-    },
     {
       key: 'stats',
       label: '学习统计',
@@ -599,6 +594,9 @@ export default function StudentDetailPage() {
             dataSource={textbooks}
             options={false}
             toolbar={{ actions: [] }}
+            rowClassName={(record) => {
+              return profile?.current_textbook_id === record.id ? 'bg-blue-50' : '';
+            }}
           />
         </Card>
 
@@ -611,11 +609,11 @@ export default function StudentDetailPage() {
         </Card>
       </Space>
 
-      <ModalForm<{ id: number }>
+      <ModalForm<{ ids: number[] }>
         width={600}
         form={form}
         open={visible}
-        title="添加教材"
+        title="批量添加教材"
         onFinish={handleAddTextbook}
         modalProps={{
           destroyOnClose: true,
@@ -631,13 +629,15 @@ export default function StudentDetailPage() {
       >
         <div className="pt-3" />
         <ProFormSelect
-          name="id"
+          name="ids"
           label="教材"
-          placeholder={loadingAllTextbooks ? '加载中...' : '请选择教材'}
+          placeholder={loadingAllTextbooks ? '加载中...' : '请选择教材（可多选）'}
           fieldProps={{
+            mode: 'multiple',
             showSearch: true,
             loading: loadingAllTextbooks,
             disabled: loadingAllTextbooks,
+            maxTagCount: 'responsive',
           }}
           options={allTextbooks.map((textbook) => {
             const gradeInfo = GRADES[textbook.grade];
@@ -649,7 +649,7 @@ export default function StudentDetailPage() {
               value: textbook.id,
             };
           })}
-          rules={[{ required: true, message: '请选择教材' }]}
+          rules={[{ required: true, message: '请至少选择一个教材' }]}
         />
       </ModalForm>
     </PageContainer>

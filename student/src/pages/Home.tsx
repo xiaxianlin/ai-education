@@ -3,32 +3,56 @@ import { Link } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { SettingsModal } from '@/components/SettingsModal';
-import { useSettingsStore } from '@/stores/useSettingsStore';
+import { TextbookSetupModal } from '@/components/TextbookSetupModal';
+import { profileApi } from '@/services/profile';
 import { BookOpen, Target, TrendingUp, Clock } from 'lucide-react';
 
 export function Home() {
-  const { isSettingsComplete, init } = useSettingsStore();
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showTextbookModal, setShowTextbookModal] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    init();
-    if (!isSettingsComplete()) {
-      setShowSettingsModal(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    checkTextbookSetup();
   }, []);
+
+  const checkTextbookSetup = async () => {
+    try {
+      setChecking(true);
+      const profile = await profileApi.getProfile();
+      // 如果没有设置当前学习教材，显示弹窗
+      if (!profile || !profile.current_textbook_id) {
+        setShowTextbookModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to check textbook setup:', error);
+      // 如果获取失败，也显示弹窗让用户去设置
+      setShowTextbookModal(true);
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const todayProgress = 60; // 今日练习进度百分比
   const dailyQuestions = 12; // 今日题目数
   const completedQuestions = 7; // 已完成题目数
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {showSettingsModal && (
-        <SettingsModal
-          onComplete={() => {
-            setShowSettingsModal(false);
+      {showTextbookModal && (
+        <TextbookSetupModal
+          onClose={() => {
+            setShowTextbookModal(false);
           }}
         />
       )}
