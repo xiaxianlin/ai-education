@@ -4,6 +4,7 @@ from admin.schema import CreateUnitSchema, UnitGenerateQuestionSchema, UpdateUni
 from admin.services import unit
 from admin.services.knowledge import query_knowledge_by_unit
 from admin.services.question import query_question_by_unit
+from admin.services.unit import query_unit_by_textbook
 from common.database import Database
 from common.schema import SearchSchema
 from shared.services.question import generate_question_by_unit
@@ -34,6 +35,11 @@ async def delete_unit(id: int, db: AsyncSession = Database):
 @unit_router.get("/search")
 async def search_unit(params: SearchSchema = Depends(), db: AsyncSession = Database):
     return await unit.search_unit(db, params)
+
+
+@unit_router.get("/textbook/{id}")
+async def query_unit_by_textbook_id(id: int, db: AsyncSession = Database):
+    return await query_unit_by_textbook(db, id)
 
 
 @unit_router.get("/{id}/knowledges")
