@@ -4,6 +4,7 @@ from common.settings import envs
 
 class AliyunAIService:
 
+    @staticmethod
     def asr(file_url: str, language: str = "zh"):
         response = dashscope.MultiModalConversation.call(
             api_key=envs.AI_PLATFORM_KEY,
@@ -18,6 +19,7 @@ class AliyunAIService:
 
         return response.output.choices[0].message.content.text
 
+    @staticmethod
     def tts(text: str, voice: str = "Cherry", language: str = "English"):
         response = dashscope.MultiModalConversation.call(
             api_key=envs.AI_PLATFORM_KEY,
@@ -33,6 +35,7 @@ class AliyunAIService:
 
         return response.output.audio.url
 
+    @staticmethod
     def generate_image(text: str, width: int = None, height: int = None):
         response = dashscope.ImageSynthesis.call(
             api_key=envs.AI_PLATFORM_KEY,
