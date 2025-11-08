@@ -13,14 +13,9 @@ class Settings(BaseSettings):
     # 阿里云访问配置
     ALIYUN_ACCESS_KEY_ID: str
     ALIYUN_ACCESS_KEY_SECRET: str
-    # 阿里云 AI 配置
-    ALIYUN_AI_BASE_URL: str
-    ALIYUN_AI_KEY: str
-    ALIYUN_LLM_MODEL: str
-    ALIYUN_TTS_MODEL: str
-    ALIYUN_ASR_MODEL: str
-    ALIYUN_OCR_MODEL: str
-    ALIYUN_MULTI_MODEL: str
+    # AI 配置
+    AI_PLATFORM: str
+    AI_PLATFORM_KEY: str
     # 对象存储平台
     ALIYUN_OSS_ENDPOINT: str
     ALIYUN_OSS_BUCKET: str

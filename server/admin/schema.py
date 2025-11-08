@@ -100,18 +100,6 @@ class CreateUnitSchema(BaseModel):
     content: str
 
 
-class UnitGenerateQuestionSchema(BaseModel):
-    question_type: str
-    count: int
-
-    @field_validator("question_type")
-    @classmethod
-    def valid_subject(clas, v):
-        if v and v not in QUESTION_TYPES:
-            raise ValueError(f"题型只能选择{"、".join(QUESTION_TYPES)}")
-        return v
-
-
 class UpdateUnitSchema(BaseModel):
     name: Optional[str] = None
     content: Optional[str] = None

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from admin.schema import CreateUnitSchema, UnitGenerateQuestionSchema, UpdateUnitSchema
+from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from admin.services import unit
 from admin.services.knowledge import query_knowledge_by_unit
 from admin.services.question import query_question_by_unit
 from admin.services.unit import query_unit_by_textbook
 from common.database import Database
 from common.schema import SearchSchema
-from shared.services.question import generate_question_by_unit
+from ai.services.question import generate_question_by_unit
 
 unit_router = APIRouter(prefix="/unit")
 

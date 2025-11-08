@@ -1,9 +1,12 @@
-import json
 import os
-import hashlib
+import json
 import time
-from loguru import logger
+import hashlib
 import requests
+from loguru import logger
+from http import HTTPStatus
+from datetime import timedelta
+from dashscope import Application
 import alibabacloud_oss_v2 as oss
 from alibabacloud_tea_util.models import RuntimeOptions
 from alibabacloud_tea_openapi.models import Config
@@ -18,85 +21,7 @@ from alibabacloud_bailian20231229.models import (
     ApplyFileUploadLeaseRequest,
     SubmitIndexAddDocumentsJobRequest,
 )
-from http import HTTPStatus
-from dashscope import Application
-from datetime import timedelta
 from common.settings import envs
-
-
-class AliyunOSS:
-    def __init__(self):
-        credentials_provider = oss.credentials.StaticCredentialsProvider(
-            access_key_id=envs.ALIYUN_ACCESS_KEY_ID,
-            access_key_secret=envs.ALIYUN_ACCESS_KEY_SECRET,
-        )
-
-        cfg = oss.config.load_default()
-        cfg.credentials_provider = credentials_provider
-        cfg.region = envs.ALIYUN_OSS_REGION
-        cfg.endpoint = envs.ALIYUN_OSS_ENDPOINT
-
-        self.bucket = envs.ALIYUN_OSS_BUCKET
-        self.client = oss.Client(cfg)
-
-    def exist(self, filepath: str):
-        return self.client.is_object_exist(bucket=self.bucket, key=filepath)
-
-    def upload(self, filepath: str, data: bytes) -> str:
-        req = oss.PutObjectRequest(bucket=self.bucket, key=filepath, body=data)
-        self.client.put_object(req)
-
-    async def multipart_upload(self, filepath: str, data: bytes) -> str:
-        # 初始化分片上传请求，获取upload_id用于后续分片上传
-        result = self.client.initiate_multipart_upload(
-            oss.InitiateMultipartUploadRequest(bucket=self.bucket, key=filepath)
-        )
-
-        part_size = 5 * 1024 * 1024
-        upload_parts = []
-        part_number = 1
-        offset = 0
-        while offset < len(data):
-            chunk = data[offset : offset + part_size]
-            up_result = self.client.upload_part(
-                oss.UploadPartRequest(
-                    bucket=self.bucket,
-                    key=filepath,
-                    upload_id=result.upload_id,
-                    part_number=part_number,
-                    body=chunk,
-                )
-            )
-            upload_parts.append(oss.UploadPart(part_number=part_number, etag=up_result.etag))
-            offset += part_size
-            part_number += 1
-
-        parts = sorted(upload_parts, key=lambda p: p.part_number)
-        # 发送完成分片上传请求，合并所有分片为一个完整的对象
-        self.client.complete_multipart_upload(
-            oss.CompleteMultipartUploadRequest(
-                bucket=self.bucket,
-                key=filepath,
-                upload_id=result.upload_id,
-                complete_multipart_upload=oss.CompleteMultipartUpload(parts=parts),
-            )
-        )
-
-    def delete(self, filepath: str):
-        if not self.exist(filepath):
-            return
-        req = oss.DeleteObjectRequest(bucket=self.bucket, key=filepath)
-        self.client.delete_object(req)
-
-    def get_file(self, filepath: str):
-        req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
-        res = self.client.get_object(req)
-        return res.body.read()
-
-    def get_access_url(self, filepath: str, days: int = 7):
-        req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
-        res = self.client.presign(req, expires=timedelta(days=days))
-        return res.url
 
 
 class AliyunRag:
@@ -330,23 +255,99 @@ class AliyunRag:
             raise ValueError("文档上传知识库异常")
 
 
-def call_app(query: str, app_id: str, file_id: str) -> dict:
-    """调用阿里百炼平台应用"""
-    response = Application.call(
-        api_key=envs.ALIYUN_AI_KEY,
-        app_id=app_id,
-        prompt=query,
-        rag_options={"file_ids": [file_id]},
-    )
-    if response.status_code != HTTPStatus.OK:
-        raise ValueError(response.message)
+class AliyunOSS:
+    def __init__(self):
+        credentials_provider = oss.credentials.StaticCredentialsProvider(
+            access_key_id=envs.ALIYUN_ACCESS_KEY_ID,
+            access_key_secret=envs.ALIYUN_ACCESS_KEY_SECRET,
+        )
 
-    raw_text = response.output.text
-    if not raw_text:
-        raise ValueError("提取数据失败")
+        cfg = oss.config.load_default()
+        cfg.credentials_provider = credentials_provider
+        cfg.region = envs.ALIYUN_OSS_REGION
+        cfg.endpoint = envs.ALIYUN_OSS_ENDPOINT
 
-    try:
-        json_data = json.loads(raw_text)
-        return json_data
-    except json.JSONDecodeError:
-        raise ValueError("提取的 JSON 格式错误")
+        self.bucket = envs.ALIYUN_OSS_BUCKET
+        self.client = oss.Client(cfg)
+
+    def exist(self, filepath: str):
+        return self.client.is_object_exist(bucket=self.bucket, key=filepath)
+
+    def upload(self, filepath: str, data: bytes) -> str:
+        req = oss.PutObjectRequest(bucket=self.bucket, key=filepath, body=data)
+        self.client.put_object(req)
+
+    async def multipart_upload(self, filepath: str, data: bytes) -> str:
+        # 初始化分片上传请求，获取upload_id用于后续分片上传
+        result = self.client.initiate_multipart_upload(
+            oss.InitiateMultipartUploadRequest(bucket=self.bucket, key=filepath)
+        )
+
+        part_size = 5 * 1024 * 1024
+        upload_parts = []
+        part_number = 1
+        offset = 0
+        while offset < len(data):
+            chunk = data[offset : offset + part_size]
+            up_result = self.client.upload_part(
+                oss.UploadPartRequest(
+                    bucket=self.bucket,
+                    key=filepath,
+                    upload_id=result.upload_id,
+                    part_number=part_number,
+                    body=chunk,
+                )
+            )
+            upload_parts.append(oss.UploadPart(part_number=part_number, etag=up_result.etag))
+            offset += part_size
+            part_number += 1
+
+        parts = sorted(upload_parts, key=lambda p: p.part_number)
+        # 发送完成分片上传请求，合并所有分片为一个完整的对象
+        self.client.complete_multipart_upload(
+            oss.CompleteMultipartUploadRequest(
+                bucket=self.bucket,
+                key=filepath,
+                upload_id=result.upload_id,
+                complete_multipart_upload=oss.CompleteMultipartUpload(parts=parts),
+            )
+        )
+
+    def delete(self, filepath: str):
+        if not self.exist(filepath):
+            return
+        req = oss.DeleteObjectRequest(bucket=self.bucket, key=filepath)
+        self.client.delete_object(req)
+
+    def get_file(self, filepath: str):
+        req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
+        res = self.client.get_object(req)
+        return res.body.read()
+
+    def get_access_url(self, filepath: str, days: int = 7):
+        req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
+        res = self.client.presign(req, expires=timedelta(days=days))
+        return res.url
+
+
+class AliyunApp:
+    def invoke(query: str, app_id: str, file_id: str) -> dict:
+        """调用阿里百炼平台应用"""
+        response = Application.call(
+            api_key=envs.ALIYUN_AI_KEY,
+            app_id=app_id,
+            prompt=query,
+            rag_options={"file_ids": [file_id]},
+        )
+        if response.status_code != HTTPStatus.OK:
+            raise ValueError(response.message)
+
+        raw_text = response.output.text
+        if not raw_text:
+            raise ValueError("提取数据失败")
+
+        try:
+            json_data = json.loads(raw_text)
+            return json_data
+        except json.JSONDecodeError:
+            raise ValueError("提取的 JSON 格式错误")

@@ -1,11 +1,10 @@
 import os
 from pathlib import Path
 from fastapi import UploadFile
-from loguru import logger
 from sqlalchemy import asc, delete, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
-from provider.aliyun import AliyunRag, call_app
+from provider.aliyun import AliyunRag, AliyunApp
 from common.database import Knowledge, Question, Textbook, Unit
 from common.schema import TextbookSchema
 from utils.time import now
@@ -155,7 +154,7 @@ async def parse_textbook(db: AsyncSession, id: int):
     # 重新解析，需要清理教材相关数据
     await _clean_textbook(db, id)
 
-    data = call_app(
+    data = AliyunApp.invoke(
         query=f"解析教材{textbook.file}",
         app_id="e18385d4dd3e4801938b6f68024466b3",
         file_id=textbook.index_file_id,
