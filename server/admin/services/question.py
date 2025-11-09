@@ -319,7 +319,7 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
         else:
             # 构建完整的问题内容（包含题目、选项、答案）
             text_to_speak = build_full_question_text(question)
-            logger.info(f"使用完整问题内容生成语音")
+            logger.info("使用完整问题内容生成语音")
 
         # 生成语音
         logger.info(f"开始为问题 {question_id} 生成语音")

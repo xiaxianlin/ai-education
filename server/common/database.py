@@ -252,3 +252,41 @@ class StudyRecord(BaseModel):
 
     study_date: Mapped[int] = mapped_column(default=now)
     create_time: Mapped[int] = mapped_column(default=now)
+
+
+class UnitPracticeSession(BaseModel):
+    __tablename__ = "ah_unit_practice_session"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    unit_id: Mapped[int] = mapped_column(nullable=False)
+    practice_date: Mapped[int] = mapped_column(default=now)
+
+    # 练习统计
+    total_questions: Mapped[int] = mapped_column(default=0)
+    correct_questions: Mapped[int] = mapped_column(default=0)
+    total_time: Mapped[int] = mapped_column(default=0)
+    score: Mapped[float] = mapped_column(default=0.0)
+
+    # 知识点掌握情况 - JSON格式
+    knowledge_scores: Mapped[str] = mapped_column(Text, default="{}")
+
+    # 难度级别
+    difficulty: Mapped[str] = mapped_column(String(50), default="adaptive")
+
+    # 题目列表 - JSON格式存储题目ID数组
+    question_ids: Mapped[str] = mapped_column(Text, default="[]")
+
+    # 答案记录 - JSON格式，记录每道题的答题情况
+    answers: Mapped[str] = mapped_column(Text, default="{}")
+
+    status: Mapped[str] = mapped_column(String(50), default="in_progress")  # in_progress/completed
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+    # 关联关系
+    unit: Mapped["Unit"] = relationship(
+        "Unit",
+        primaryjoin="foreign(UnitPracticeSession.unit_id) == Unit.id",
+        lazy="joined",
+    )

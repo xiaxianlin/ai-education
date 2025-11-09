@@ -242,3 +242,41 @@ class CreateStudyRecordSchema(BaseModel):
     score: float = 0.0
     time_spent: int = 0
     study_date: Optional[int] = None
+
+
+# ===== 单元练习相关 Schema =====
+class UnitPracticeSessionSchema(BaseModel):
+    id: int
+    student_id: str
+    unit_id: int
+    practice_date: int
+    total_questions: int = 0
+    correct_questions: int = 0
+    total_time: int = 0
+    score: float = 0.0
+    knowledge_scores: str = "{}"
+    difficulty: str = "adaptive"
+    question_ids: str = "[]"
+    answers: str = "{}"
+    status: str = "in_progress"
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class CreateUnitPracticeSchema(BaseModel):
+    unit_id: int
+    difficulty: str = "adaptive"
+    count: int = 10
+
+
+class SubmitUnitPracticeAnswerSchema(BaseModel):
+    session_id: int
+    question_id: int
+    answer: str
+    time_spent: int = 0
+
+
+class CompleteUnitPracticeSchema(BaseModel):
+    session_id: int

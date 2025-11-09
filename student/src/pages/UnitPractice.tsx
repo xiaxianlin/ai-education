@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
 import { BookOpen, Play, Sparkles, X, Lightbulb } from 'lucide-react';
 import { profileApi, Unit, Textbook, Knowledge } from '@/services/profile';
+import { practiceApi } from '@/services/practice';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function UnitPractice() {
+  const navigate = useNavigate();
   const [units, setUnits] = useState<Unit[]>([]);
   const [currentTextbook, setCurrentTextbook] = useState<Textbook | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +19,14 @@ export function UnitPractice() {
     unitName: string;
     knowledges: Knowledge[];
   }>({ open: false, unitName: '', knowledges: [] });
+  const [practiceModal, setPracticeModal] = useState<{
+    open: boolean;
+    unitId: number;
+    unitName: string;
+  }>({ open: false, unitId: 0, unitName: '' });
+  const [difficulty, setDifficulty] = useState<string>('adaptive');
+  const [questionCount, setQuestionCount] = useState<number>(10);
+  const [creating, setCreating] = useState(false);
   const knowledgePreviewLimit = 6;
 
   useEffect(() => {
@@ -68,6 +79,34 @@ export function UnitPractice() {
   ];
 
   const getColorTheme = (index: number) => colorThemes[index % colorThemes.length];
+
+  const handleStartPractice = (unit: Unit) => {
+    setPracticeModal({
+      open: true,
+      unitId: unit.id,
+      unitName: unit.name,
+    });
+    setDifficulty('adaptive');
+    setQuestionCount(10);
+  };
+
+  const handleCreatePractice = async () => {
+    try {
+      setCreating(true);
+      const session = await practiceApi.createUnitPractice({
+        unit_id: practiceModal.unitId,
+        difficulty,
+        count: questionCount,
+      });
+      toast.success('练习已创建，开始答题！');
+      navigate(`/unit-practice/${session.id}`);
+    } catch (error: any) {
+      console.error('Failed to create practice:', error);
+      toast.error(error.message || '创建练习失败');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -149,6 +188,7 @@ export function UnitPractice() {
                       </div>
                       <div className="flex-shrink-0">
                         <Button
+                          onClick={() => handleStartPractice(unit)}
                           className={cn(
                             'rounded-full w-12 h-12 text-base font-semibold text-white shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center p-0',
                             theme.button
@@ -245,6 +285,7 @@ export function UnitPractice() {
         )}
       </div>
 
+      {/* 知识点弹窗 */}
       {knowledgeModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden">
@@ -287,6 +328,88 @@ export function UnitPractice() {
             <div className="px-6 py-4 border-t border-gray-100 bg-white flex justify-end">
               <Button onClick={() => setKnowledgeModal((prev) => ({ ...prev, open: false }))}>
                 知道了
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 开始练习弹窗 */}
+      {practiceModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50/80 to-purple-50/80">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">开始练习</h2>
+                <p className="text-sm text-gray-500 mt-1">{practiceModal.unitName}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setPracticeModal({ open: false, unitId: 0, unitName: '' })}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              {/* 难度选择 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">难度级别</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'easy', label: '简单', color: 'bg-green-50 border-green-200 text-green-700' },
+                    { value: 'medium', label: '普通', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+                    { value: 'hard', label: '困难', color: 'bg-red-50 border-red-200 text-red-700' },
+                    { value: 'adaptive', label: '自适应', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setDifficulty(option.value)}
+                      className={cn(
+                        'px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all',
+                        difficulty === option.value
+                          ? option.color
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 题目数量 */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">题目数量</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[5, 10, 15, 20].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => setQuestionCount(count)}
+                      className={cn(
+                        'px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all',
+                        questionCount === count
+                          ? 'bg-purple-50 border-purple-200 text-purple-700'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                      )}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 bg-white flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setPracticeModal({ open: false, unitId: 0, unitName: '' })}
+                className="flex-1"
+              >
+                取消
+              </Button>
+              <Button onClick={handleCreatePractice} disabled={creating} className="flex-1">
+                {creating ? '创建中...' : '开始练习'}
               </Button>
             </div>
           </div>
