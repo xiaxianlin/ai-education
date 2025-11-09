@@ -118,13 +118,16 @@ async def convert_data_node(state: QuestionGenerationState) -> QuestionGeneratio
 
 
 async def handle_image_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """图片处理节点：为辨识题生成图片"""
+    """图片处理节点：根据 resource_type 标识生成图片"""
     image_questions = state.get("image_questions", [])
-    if not image_questions:
-        logger.info("跳过图片处理（没有图片题）")
+    
+    # 检查是否有需要生成图片的题目
+    needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
+    if needs_image_count == 0:
+        logger.info("跳过图片处理（没有需要生成图片的题目）")
         return state
 
-    logger.info("开始生成图片")
+    logger.info(f"开始为 {needs_image_count} 道题目生成图片")
     result = await generate_images(state)
     state.update(result)
     logger.info("图片生成完成")
@@ -132,13 +135,16 @@ async def handle_image_node(state: QuestionGenerationState) -> QuestionGeneratio
 
 
 async def handle_audio_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """音频处理节点：为跟读题和听力题生成语音"""
+    """音频处理节点：根据 resource_type 标识生成语音"""
     audio_questions = state.get("audio_questions", [])
-    if not audio_questions:
-        logger.info("跳过音频处理（没有音频题）")
+    
+    # 检查是否有需要生成语音的题目
+    needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
+    if needs_audio_count == 0:
+        logger.info("跳过音频处理（没有需要生成语音的题目）")
         return state
 
-    logger.info("开始生成语音")
+    logger.info(f"开始为 {needs_audio_count} 道题目生成语音")
     result = await generate_audio(state)
     state.update(result)
     logger.info("语音生成完成")
@@ -200,8 +206,8 @@ def create_question_generation_graph() -> StateGraph:
     # 定义流程
     workflow.add_edge("check_params", "load_data")
     workflow.add_edge("load_data", "create_prompt")
-    workflow.add_edge("create_prompt", "optimize_prompt")
-    workflow.add_edge("optimize_prompt", "call_llm")
+    workflow.add_edge("create_prompt", "call_llm")
+    # workflow.add_edge("optimize_prompt", "call_llm")
     workflow.add_edge("call_llm", "convert_data")
 
     # 从 convert_data 节点直接并行连接到 3 个处理节点

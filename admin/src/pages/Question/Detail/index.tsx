@@ -2,7 +2,7 @@ import { useParams, history } from '@umijs/max';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { QuestionApi } from '@/services/question';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Tag, Image } from 'antd';
+import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
 
@@ -56,6 +56,24 @@ export default function QuestionDetailPage() {
     }
   );
 
+  // 删除题目
+  const { runAsync: handleDelete, loading: deleting } = useRequest(
+    async () => {
+      if (!id) return;
+      await QuestionApi.delete(id);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('删除成功');
+        history.push('/question/list');
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '删除失败');
+      },
+    }
+  );
+
   if (loading) {
     return <PageContainer loading={loading} />;
   }
@@ -67,8 +85,15 @@ export default function QuestionDetailPage() {
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
 
   // 判断题型，决定显示哪个按钮
-  const isImageQuestion = question.type === '辨识题';
-  const isAudioQuestion = question.type === '跟读题' || question.type === '听力题';
+  // 需要图片的题目：辨识题、选择题中的看图类、识图题等
+  // 需要音频的题目：跟读题、听力题、选择题中的听音类、拼写题中的听音类、口语题等
+  const imageSubtypes = ['看图选词', '看图选句', '看图写单词', '看图列式', '数图形', '数位看图', '看图口头描述'];
+  const audioSubtypes = ['听音选词', '听音选句', '听音写单词', '单词精准模仿', '句子情绪模仿', '朗读小挑战', '听问题口头回答'];
+  
+  const isImageQuestion = question.type === '辨识题' || 
+    (question.subtype && imageSubtypes.includes(question.subtype));
+  const isAudioQuestion = question.type === '跟读题' || question.type === '听力题' || question.type === '口语题' ||
+    (question.subtype && audioSubtypes.includes(question.subtype));
 
   // 构建资源 URL
   // OSS 基础 URL
@@ -106,6 +131,19 @@ export default function QuestionDetailPage() {
           <Button key="edit" type="primary" onClick={() => history.push(`/question/edit/${question.id}`)}>
             编辑
           </Button>,
+          <Popconfirm
+            key="delete"
+            title="确定要删除这道题目吗？"
+            description="删除后无法恢复，请谨慎操作。"
+            onConfirm={handleDelete}
+            okText="确定"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+          >
+            <Button danger loading={deleting}>
+              删除
+            </Button>
+          </Popconfirm>,
           <Button key="back" onClick={() => history.back()}>
             返回
           </Button>,
@@ -147,6 +185,9 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="阶段">{gradeInfo?.stage || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo?.grade || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
+            {question.subtype && (
+              <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>
+            )}
             <ProDescriptions.Item label="难度">
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}
             </ProDescriptions.Item>
@@ -218,7 +259,7 @@ export default function QuestionDetailPage() {
                 />
               </div>
             )}
-            {isAudioQuestion && (
+            {isAudioQuestion && !isImageQuestion && (
               <div style={{ textAlign: 'center', padding: '20px' }}>
                 <audio controls style={{ width: '100%', maxWidth: '600px' }}>
                   <source src={resourceUrl} type="audio/mpeg" />
@@ -228,6 +269,33 @@ export default function QuestionDetailPage() {
                   <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
                     下载音频文件
                   </a>
+                </div>
+              </div>
+            )}
+            {isImageQuestion && isAudioQuestion && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <h4>图片资源</h4>
+                  <Image
+                    src={resourceUrl}
+                    alt="题目图片"
+                    style={{ maxWidth: '100%', maxHeight: '500px' }}
+                    preview={{
+                      mask: '预览',
+                    }}
+                  />
+                </div>
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <h4>音频资源</h4>
+                  <audio controls style={{ width: '100%', maxWidth: '600px' }}>
+                    <source src={resourceUrl} type="audio/mpeg" />
+                    您的浏览器不支持音频播放。
+                  </audio>
+                  <div style={{ marginTop: '10px', color: '#666', fontSize: '12px' }}>
+                    <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
+                      下载音频文件
+                    </a>
+                  </div>
                 </div>
               </div>
             )}

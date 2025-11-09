@@ -96,6 +96,7 @@ class KnowledgeSchema(BaseModel):
 class QuestionSchema(BaseModel):
     id: int
     type: str
+    subtype: Optional[str] = None
     subject: str
     grade: int
     content: str
@@ -103,6 +104,8 @@ class QuestionSchema(BaseModel):
     answer: Optional[str] = None
     resource: Optional[str] = None
     difficulty: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_content: Optional[str] = None
     status: int
     create_time: int
     update_time: Optional[int] = None

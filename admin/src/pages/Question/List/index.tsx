@@ -5,10 +5,30 @@ import { fmtTime } from '@/utils/time';
 import { GRADES } from '@/constants/course';
 import { Link } from '@umijs/max';
 import { useConfigs } from '@/hooks';
-import { Space } from 'antd';
+import { Space, Button, Popconfirm, message } from 'antd';
+import { useRequest } from 'ahooks';
 
 export default function QuestionListPage() {
   const { questionTypeEmun, subjectEnum, gradeEnum, difficultyLevelEmun } = useConfigs();
+  const actionRef = React.useRef<any>();
+
+  // 删除题目
+  const { runAsync: handleDelete } = useRequest(
+    async (id: string) => {
+      await QuestionApi.delete(id);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('删除成功');
+        actionRef.current?.reload();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '删除失败');
+      },
+    }
+  );
+
   const columns: ProColumns<Question>[] = [
     {
       title: '题目',
@@ -21,6 +41,12 @@ export default function QuestionListPage() {
       minWidth: 70,
       valueType: 'select',
       valueEnum: questionTypeEmun,
+      renderText: (type, record) => {
+        if (record.subtype) {
+          return `${type}（${record.subtype}）`;
+        }
+        return type;
+      },
     },
     {
       title: '学科',
@@ -69,15 +95,27 @@ export default function QuestionListPage() {
       key: 'option',
       fixed: 'right',
       hideInSearch: true,
-      width: 100,
+      width: 180,
       render: (_, record) => (
         <Space>
-          <Link className="umi-link" key="edit" to={`/question/detail/${record.id}`}>
+          <Link className="umi-link" key="detail" to={`/question/detail/${record.id}`}>
             详情
           </Link>
           <Link className="umi-link" key="edit" to={`/question/edit/${record.id}`}>
             编辑
           </Link>
+          <Popconfirm
+            title="确定要删除这道题目吗？"
+            description="删除后无法恢复，请谨慎操作。"
+            onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger size="small">
+              删除
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -86,6 +124,7 @@ export default function QuestionListPage() {
   return (
     <PageContainer title="题目管理" header={{ breadcrumb: {} }} className="simple-list-page">
       <ProTable<Question>
+        actionRef={actionRef}
         rowKey="id"
         columns={columns}
         request={async (params) => {

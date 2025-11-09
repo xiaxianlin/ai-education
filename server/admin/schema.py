@@ -123,11 +123,14 @@ class UpdateQuestionSchema(BaseModel):
     subject: Optional[str] = None
     grade: Optional[int] = None
     type: Optional[str] = None
+    subtype: Optional[str] = None
     content: Optional[str] = None
     options: Optional[str] = None
     answer: Optional[str] = None
     resource: Optional[str] = None
     difficulty: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_content: Optional[str] = None
     knowledge: Optional[str] = None
     unit_id: Optional[int] = None
     textbook_id: Optional[int] = None
@@ -165,7 +168,7 @@ class StudentProfileSchema(BaseModel):
     student_id: str
     current_textbook_id: Optional[int] = None
     preferred_subjects: str = ""
-    difficulty_preference: str = "中等"
+    difficulty_preference: str = "普通"
     create_time: int
     update_time: Optional[int] = None
 
@@ -209,7 +212,7 @@ class StudyRecordSchema(BaseModel):
 class CreateStudentProfileSchema(BaseModel):
     current_textbook_id: Optional[int] = None
     preferred_subjects: str = ""
-    difficulty_preference: str = "中等"
+    difficulty_preference: str = "普通"
 
 
 class UpdateStudentProfileSchema(BaseModel):

@@ -11,14 +11,24 @@ import { QuestionApi } from '@/services/question';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Button, Space, Card } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
 
 export default function QuestionEditPage() {
   const { id } = useParams<{ id: string }>();
-  const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun } = useConfigs();
+  const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } = useConfigs();
   const [form] = ProForm.useForm<QuestionUpdateForm>();
+  
+  // 获取当前选择的题型，用于动态显示子类型选项
+  const selectedType = ProForm.useWatch('type', form);
+  
+  // 根据选择的题型获取对应的子类型选项
+  const subtypeOptions = useMemo(() => {
+    if (!selectedType || !question_subtypes) return {};
+    const subtypes = question_subtypes[selectedType] || [];
+    return subtypes.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {});
+  }, [selectedType, question_subtypes]);
 
   const { data: question, loading } = useRequest(() => QuestionApi.get(id!), {
     ready: !!id,
@@ -85,6 +95,9 @@ export default function QuestionEditPage() {
             <ProDescriptions.Item label="阶段">{gradeInfo?.stage || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo?.grade || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
+            {question.subtype && (
+              <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>
+            )}
             <ProDescriptions.Item label="难度">{question.difficulty}</ProDescriptions.Item>
             <ProDescriptions.Item label="单元">{question?.unit?.name}</ProDescriptions.Item>
             <ProDescriptions.Item label="知识点">{question?.knowledge?.name}</ProDescriptions.Item>
@@ -132,6 +145,15 @@ export default function QuestionEditPage() {
               valueEnum={questionTypeEmun}
               rules={[{ required: true, message: '请选择题型' }]}
             />
+            {selectedType && Object.keys(subtypeOptions).length > 0 && (
+              <ProFormSelect
+                name="subtype"
+                label="子类型"
+                placeholder="请选择子类型（可选）"
+                valueEnum={subtypeOptions}
+                allowClear
+              />
+            )}
             <ProFormTextArea
               name="content"
               label="题目内容"

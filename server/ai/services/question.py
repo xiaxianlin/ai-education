@@ -2,6 +2,7 @@ from typing import List, Dict, Any
 import re
 import requests
 import os
+import asyncio
 from pathlib import Path
 
 from loguru import logger
@@ -9,7 +10,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.constants import QUESTION_TYPES, get_question_types
+from common.constants import QUESTION_TYPES, get_question_types, get_question_subtypes, QUESTION_SUBTYPES
 from common.database import Knowledge, Question, Textbook, Unit
 from common.settings import envs
 
@@ -30,13 +31,15 @@ class QuestionOption(BaseModel):
 
 
 class GeneratedQuestion(BaseModel):
-    question_type: str = Field(description="题型")
+    question_type: str = Field(description="题型（主类型）")
+    question_subtype: str = Field(description="题目子类型", default="")
     question: str = Field(description="题干内容")
+    resource_content: str = Field(description="资源内容（录音文本等，仅录音题需要）", default="")
     options: List[QuestionOption] = Field(
         description="题目选项列表，非选择题时可为空数组", default=[]
     )
     answer: str = Field(description="标准答案")
-    difficulty: str = Field(description="题目难度，如 简单/中等/较难")
+    difficulty: str = Field(description="题目难度：简单、普通、困难")
     knowledge: str = Field(description="知识点")
 
 
@@ -109,14 +112,31 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
+    
+    # 验证题型列表不为空
+    if not question_types:
+        raise ValueError(
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
+            f"目前仅支持一年级的英语和数学。"
+        )
+    
     # 将题型列表转换为字符串，用逗号分隔
     question_types_str = "、".join(question_types)
+
+    # 构建子类型说明信息
+    subtype_info_lines = []
+    for qtype in question_types:
+        subtypes = get_question_subtypes(qtype)
+        if subtypes:
+            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
+    subtype_info = "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
 
     prompt_input = {
         "subject": textbook.subject,
         "grade": textbook.grade,
         "semester": textbook.semester,
         "question_types": question_types_str,
+        "subtype_info": subtype_info,
         "unit_name": unit.name,
         "unit_summary": unit.content or "",
         "knowledge_text": knowledge_text,
@@ -220,6 +240,13 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
+    
+    # 验证题型列表不为空（虽然 generate_prompt 已经验证过，但这里再次验证以确保安全）
+    if not question_types:
+        raise ValueError(
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
+            f"目前仅支持一年级的英语和数学。"
+        )
 
     for item in generated_questions:
         question_type = item.question_type
@@ -230,11 +257,27 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
             )
             question_type = question_types[0]
 
+        # 获取子类型，如果为空字符串则设为 None
+        question_subtype = getattr(item, "question_subtype", None)
+        if question_subtype and question_subtype.strip():
+            question_subtype = question_subtype.strip()
+        else:
+            question_subtype = None
+
+        # 获取 resource_content，如果为空字符串则设为 None
+        resource_content = getattr(item, "resource_content", None)
+        if resource_content and resource_content.strip():
+            resource_content = resource_content.strip()
+        else:
+            resource_content = None
+
         question = Question(
             subject=textbook.subject,
             grade=textbook.grade,
             type=question_type,
+            subtype=question_subtype,
             content=item.question,
+            resource_content=resource_content,
             options=TypeAdapter(List[QuestionOption])
             .dump_json(item.options, by_alias=True, exclude_none=True)
             .decode(),
@@ -247,12 +290,27 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 
         questions.append(question)
 
-        # 根据问题类型分流
-        if question_type == "辨识题":
+        # 根据问题类型和子类型判断资源类型
+        # 需要图片的题目：辨识题、选择题中的看图类、识图题等
+        # 需要音频的题目：跟读题、听力题、选择题中的听音类、拼写题中的听音类、口语题等
+        needs_image = (
+            question_type == "辨识题"
+            or question_subtype in ["看图选词", "看图选句", "看图写单词", "看图列式", "数图形", "数位看图", "看图口头描述"]
+        )
+        needs_audio = (
+            question_type in ["跟读题", "听力题", "口语题"]
+            or question_subtype in ["听音选词", "听音选句", "听音写单词", "单词精准模仿", "句子情绪模仿", "朗读小挑战", "听问题口头回答"]
+        )
+        
+        # 设置资源类型字段
+        if needs_image:
+            question.resource_type = "image"
             image_questions.append(question)
-        elif question_type in ["跟读题", "听力题"]:
+        elif needs_audio:
+            question.resource_type = "audio"
             audio_questions.append(question)
         else:
+            question.resource_type = None
             text_questions.append(question)
 
     if len(questions) == 0:
@@ -268,10 +326,20 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
-    """图片生成节点 - 为辨识题生成图片"""
+    """图片生成节点 - 根据 resource_type 标识为题目生成图片（并行生成）"""
     image_questions: List[Question] = params.get("image_questions", [])
+    
+    # 过滤出需要生成图片的题目
+    questions_to_generate = [q for q in image_questions if q.resource_type == "image"]
+    
+    if not questions_to_generate:
+        logger.info("没有需要生成图片的题目")
+        return {"image_questions": image_questions}
 
-    for question in image_questions:
+    logger.info(f"开始为 {len(questions_to_generate)} 道题目并行生成图片")
+    
+    # 并行生成图片
+    async def generate_single_image(question: Question):
         try:
             # 生成图片
             # 使用允许的尺寸：1328*1328（最接近正方形的尺寸）
@@ -280,9 +348,15 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
             )
             # 将图片URL保存到临时字段，后续上传时使用
             question._temp_image_url = image_url
+            logger.info(f"题目 {question.id} 图片生成成功")
         except Exception as e:
             logger.error(f"为问题 {question.content[:50]} 生成图片失败: {e}")
             question._temp_image_url = None
+    
+    # 并行执行所有图片生成任务
+    await asyncio.gather(*[generate_single_image(q) for q in questions_to_generate])
+    
+    logger.info(f"图片生成完成，共处理 {len(questions_to_generate)} 道题目")
 
     # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
     return {
@@ -291,20 +365,37 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def generate_audio(params: Dict[str, Any]) -> Dict[str, Any]:
-    """语音生成节点 - 为跟读题和听力题生成语音"""
+    """语音生成节点 - 根据 resource_type 标识为题目生成语音（并行生成）"""
     audio_questions: List[Question] = params.get("audio_questions", [])
+    
+    # 过滤出需要生成语音的题目
+    questions_to_generate = [q for q in audio_questions if q.resource_type == "audio"]
+    
+    if not questions_to_generate:
+        logger.info("没有需要生成语音的题目")
+        return {"audio_questions": audio_questions}
 
-    for question in audio_questions:
+    logger.info(f"开始为 {len(questions_to_generate)} 道题目并行生成语音")
+    
+    # 并行生成语音
+    async def generate_single_audio(question: Question):
         try:
-            # 生成语音，使用题目内容作为文本
+            # 生成语音，优先使用 resource_content，如果没有则使用 content
+            text_to_speak = question.resource_content if question.resource_content else question.content
             audio_url = AliyunAIService.tts(
-                text=question.content, voice="Cherry", language="Chinese"
+                text=text_to_speak, voice="Cherry", language="Chinese"
             )
             # 将音频URL保存到临时字段，后续上传时使用
             question._temp_audio_url = audio_url
+            logger.info(f"题目 {question.id} 语音生成成功")
         except Exception as e:
             logger.error(f"为问题 {question.content[:50]} 生成语音失败: {e}")
             question._temp_audio_url = None
+    
+    # 并行执行所有语音生成任务
+    await asyncio.gather(*[generate_single_audio(q) for q in questions_to_generate])
+    
+    logger.info(f"语音生成完成，共处理 {len(questions_to_generate)} 道题目")
 
     # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
     return {

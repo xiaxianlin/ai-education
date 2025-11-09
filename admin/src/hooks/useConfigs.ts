@@ -3,7 +3,7 @@ import { useModel } from '@umijs/max';
 
 export const useConfigs = () => {
   const { initialState } = useModel('@@initialState');
-  const { semesters, subjects, textbook_versions, question_types, difficulty_levels } =
+  const { semesters, subjects, textbook_versions, question_types, question_subtypes, difficulty_levels } =
     initialState?.configs || {};
   const subjectEnum = subjects?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
@@ -22,6 +22,7 @@ export const useConfigs = () => {
     subjects,
     textbook_versions,
     question_types,
+    question_subtypes,
     difficulty_levels,
     subjectEnum,
     gradeEnum,

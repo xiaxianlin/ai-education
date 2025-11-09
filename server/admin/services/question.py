@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from pathlib import Path
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, delete
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
@@ -27,6 +27,8 @@ async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchem
         question.grade = update.grade
     if update.type is not None:
         question.type = update.type
+    if update.subtype is not None:
+        question.subtype = update.subtype
     if update.content is not None:
         question.content = update.content
     if update.options is not None:
@@ -35,6 +37,10 @@ async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchem
         question.answer = update.answer
     if update.difficulty is not None:
         question.difficulty = update.difficulty
+    if update.resource_type is not None:
+        question.resource_type = update.resource_type
+    if update.resource_content is not None:
+        question.resource_content = update.resource_content
     if update.knowledge is not None:
         question.knowledge = update.knowledge
     if update.unit_id is not None:
@@ -270,6 +276,10 @@ async def generate_question_image(db: AsyncSession, question_id: str) -> Questio
 
     if not question.content:
         raise ValueError("问题内容为空，无法生成图片")
+    
+    # 检查是否需要生成图片
+    if question.resource_type != "image":
+        raise ValueError(f"该题目不需要生成图片（resource_type={question.resource_type}）。只有 resource_type 为 'image' 的题目才能生成图片。")
 
     try:
         # 构建完整的问题内容（包含题目、选项、答案）
@@ -329,14 +339,24 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
 
     if not question.content:
         raise ValueError("问题内容为空，无法生成语音")
+    
+    # 检查是否需要生成语音
+    if question.resource_type != "audio":
+        raise ValueError(f"该题目不需要生成语音（resource_type={question.resource_type}）。只有 resource_type 为 'audio' 的题目才能生成语音。")
 
     try:
-        # 构建完整的问题内容（包含题目、选项、答案）
-        full_question_text = _build_full_question_text(question)
+        # 生成语音，优先使用 resource_content，如果没有则使用完整的问题内容
+        if question.resource_content:
+            text_to_speak = question.resource_content
+            logger.info(f"使用 resource_content 生成语音: {text_to_speak[:50]}...")
+        else:
+            # 构建完整的问题内容（包含题目、选项、答案）
+            text_to_speak = _build_full_question_text(question)
+            logger.info(f"使用完整问题内容生成语音")
 
         # 生成语音
         logger.info(f"开始为问题 {question_id} 生成语音")
-        audio_url = AliyunAIService.tts(text=full_question_text, voice="Cherry", language="Chinese")
+        audio_url = AliyunAIService.tts(text=text_to_speak, voice="Cherry", language="Chinese")
 
         # 下载音频到临时目录
         oss = AliyunOSS()
