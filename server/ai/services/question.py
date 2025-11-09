@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from loguru import logger
-from pydantic import TypeAdapter
+from pydantic import BaseModel, Field, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,10 +16,28 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
-from common.schema import QuestionGenerationResult, QuestionOption, GeneratedQuestion
 from ai.prompts.question import GENERATE_QUESTION_PROMPT
 from ai.services.aliyun import AliyunAIService
 from provider.aliyun import AliyunOSS
+
+
+class QuestionOption(BaseModel):
+    label: str = Field(description="选项标签，如 A/B/C/D")
+    text: str = Field(description="选项内容")
+
+
+class GeneratedQuestion(BaseModel):
+    question_type: str = Field(description="题型")
+    question: str = Field(description="题干内容")
+    options: List[QuestionOption] = Field(
+        description="题目选项列表，非选择题时可为空数组", default=[]
+    )
+    answer: str = Field(description="标准答案")
+    difficulty: str = Field(description="题目难度，如 简单/中等/较难")
+
+
+class QuestionGenerationResult(BaseModel):
+    questions: List[GeneratedQuestion] = []
 
 
 async def validate_question_params(unit_id: int, count: int) -> Dict[str, Any]:
@@ -133,7 +151,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
     questions: List[Question] = []
     image_questions: List[Question] = []
     audio_questions: List[Question] = []
-    direct_questions: List[Question] = []
+    text_questions: List[Question] = []
 
     for item in generated_questions:
         question_type = item.question_type
@@ -164,7 +182,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
         elif question_type in ["跟读题", "听力题"]:
             audio_questions.append(question)
         else:
-            direct_questions.append(question)
+            text_questions.append(question)
 
     if len(questions) == 0:
         raise ValueError("题目生成失败")
@@ -174,7 +192,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
         "questions": questions,
         "image_questions": image_questions,
         "audio_questions": audio_questions,
-        "direct_questions": direct_questions,
+        "text_questions": text_questions,
     }
 
 
@@ -290,21 +308,28 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
     return params
 
 
-async def save_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str, Any]:
-    """数据存储节点 - 将问题保存到数据库"""
-    # 合并所有问题：直接存储的、图片的、音频的
-    direct_questions: List[Question] = params.get("direct_questions", [])
+async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str, Any]:
+    """数据更新节点 - 更新已保存的问题（如 resource 字段等）"""
+    from utils.time import now
+
+    # 所有问题已在 convert_data 节点中保存，这里只需要更新（如 resource 字段）
     image_questions: List[Question] = params.get("image_questions", [])
     audio_questions: List[Question] = params.get("audio_questions", [])
+    text_questions: List[Question] = params.get("text_questions", [])
 
-    all_questions = direct_questions + image_questions + audio_questions
+    all_questions = image_questions + audio_questions + text_questions
 
     if all_questions:
-        db.add_all(all_questions)
+        # 更新所有问题的 update_time（resource 字段已在 upload_files 节点中设置）
+        for question in all_questions:
+            question.update_time = now()
+
         await db.commit()
-        logger.info(f"成功保存 {len(all_questions)} 道题目到数据库")
+        logger.info(
+            f"成功更新 {len(all_questions)} 道题目（图片题：{len(image_questions)}，音频题：{len(audio_questions)}，文本题：{len(text_questions)}）"
+        )
     else:
-        logger.warning("没有需要保存的题目")
+        logger.info("没有需要更新的题目")
 
     return {
         **params,

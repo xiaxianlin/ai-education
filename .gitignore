@@ -41,3 +41,5 @@ __pycache__
 .venv
 tmp
 __runtime__
+.langgraph_api
+.claude

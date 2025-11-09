@@ -1,0 +1,11 @@
+{
+  "graphs": {
+    "generate_question": "ai.graphs.generate_question:get_question_generation_graph"
+  },
+  "dependencies": [
+    "."
+  ],
+  "env": ".env",
+  "python_version": "3.12"
+}
+

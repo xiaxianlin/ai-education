@@ -14,12 +14,13 @@ from ai.services.question import (
     generate_images,
     generate_audio,
     upload_files,
-    save_questions,
+    upload_questions,
 )
 
 
 class QuestionGenerationState(TypedDict):
     """问题生成流程的状态"""
+
     unit_id: int
     count: int
     unit: Any
@@ -32,7 +33,7 @@ class QuestionGenerationState(TypedDict):
     questions: List[Question]
     image_questions: List[Question]
     audio_questions: List[Question]
-    direct_questions: List[Question]
+    text_questions: List[Question]
     saved_questions: List[Question]
     db: AsyncSession
 
@@ -72,38 +73,46 @@ async def call_llm_node(state: QuestionGenerationState) -> QuestionGenerationSta
     return state
 
 
-async def convert_and_route_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点5: 将内容转换成 Question 数组，并根据问题类型分流"""
+async def convert_data_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """节点5: 将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
     result = await convert_to_question_objects(state)
     state.update(result)
-    
+
     logger.info(
         f"问题转换完成: 辨识题 {len(state['image_questions'])}, "
         f"音频题 {len(state['audio_questions'])}, "
-        f"其他题目 {len(state['direct_questions'])}"
+        f"其他题目 {len(state['text_questions'])}"
     )
+
+    # 保存所有问题到数据库
+    all_questions = (
+        state.get("image_questions", [])
+        + state.get("audio_questions", [])
+        + state.get("text_questions", [])
+    )
+
+    if all_questions:
+        db = state["db"]
+        db.add_all(all_questions)
+        await db.commit()
+        # 刷新对象以获取数据库生成的 ID
+        for question in all_questions:
+            await db.refresh(question)
+        logger.info(f"成功保存 {len(all_questions)} 道题目到数据库")
+    else:
+        logger.warning("没有需要保存的题目")
+
     return state
 
 
-async def route_after_convert(state: QuestionGenerationState) -> str:
-    """路由函数：根据问题类型决定下一步"""
+async def handle_image_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """图片处理节点：为辨识题生成图片"""
     image_questions = state.get("image_questions", [])
-    audio_questions = state.get("audio_questions", [])
-    
-    # 如果有图片题，先进入图片生成节点
-    if image_questions:
-        return "generate_images"
-    # 如果有音频题，进入音频生成节点
-    elif audio_questions:
-        return "generate_audio"
-    # 如果都没有，直接进入存储节点
-    else:
-        return "save_questions"
+    if not image_questions:
+        logger.info("跳过图片处理（没有图片题）")
+        return state
 
-
-async def generate_images_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点6: 图片生成节点"""
     logger.info("开始生成图片")
     result = await generate_images(state)
     state.update(result)
@@ -111,12 +120,30 @@ async def generate_images_node(state: QuestionGenerationState) -> QuestionGenera
     return state
 
 
-async def generate_audio_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点7: 语音生成节点"""
+async def handle_audio_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """音频处理节点：为跟读题和听力题生成语音"""
+    audio_questions = state.get("audio_questions", [])
+    if not audio_questions:
+        logger.info("跳过音频处理（没有音频题）")
+        return state
+
     logger.info("开始生成语音")
     result = await generate_audio(state)
     state.update(result)
     logger.info("语音生成完成")
+    return state
+
+
+async def handle_text_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """文本处理节点：处理文本题目"""
+    text_questions = state.get("text_questions", [])
+    if not text_questions:
+        logger.info("跳过文本处理（没有文本题）")
+        return state
+
+    logger.info("开始处理文本题目")
+    # 文本题目已在 convert_data 节点中保存，这里不需要额外处理
+    logger.info(f"文本题目处理完成，共 {len(text_questions)} 道题目")
     return state
 
 
@@ -129,12 +156,12 @@ async def upload_files_node(state: QuestionGenerationState) -> QuestionGeneratio
     return state
 
 
-async def save_questions_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点9: 数据存储节点"""
-    logger.info("开始保存问题到数据库")
-    result = await save_questions(state["db"], state)
+async def upload_questions_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """节点9: 数据更新节点"""
+    logger.info("开始更新问题数据")
+    result = await upload_questions(state["db"], state)
     state.update(result)
-    logger.info(f"问题保存完成，共保存 {len(state['saved_questions'])} 道题目")
+    logger.info(f"问题更新完成，共更新 {len(state['saved_questions'])} 道题目")
     return state
 
 
@@ -147,11 +174,12 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("load_data", load_data_node)
     workflow.add_node("create_prompt", create_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
-    workflow.add_node("convert_and_route", convert_and_route_node)
-    workflow.add_node("generate_images", generate_images_node)
-    workflow.add_node("generate_audio", generate_audio_node)
+    workflow.add_node("convert_data", convert_data_node)
+    workflow.add_node("handle_image", handle_image_node)
+    workflow.add_node("handle_audio", handle_audio_node)
+    workflow.add_node("handle_text", handle_text_node)
     workflow.add_node("upload_files", upload_files_node)
-    workflow.add_node("save_questions", save_questions_node)
+    workflow.add_node("upload_questions", upload_questions_node)
 
     # 设置入口
     workflow.set_entry_point("check_params")
@@ -160,37 +188,28 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("check_params", "load_data")
     workflow.add_edge("load_data", "create_prompt")
     workflow.add_edge("create_prompt", "call_llm")
-    workflow.add_edge("call_llm", "convert_and_route")
-    
-    # 根据问题类型分流
-    workflow.add_conditional_edges(
-        "convert_and_route",
-        route_after_convert,
-        {
-            "generate_images": "generate_images",
-            "generate_audio": "generate_audio",
-            "save_questions": "save_questions",
-        }
-    )
-    
-    # 图片生成后，检查是否需要生成音频，或直接上传
-    workflow.add_conditional_edges(
-        "generate_images",
-        lambda state: "generate_audio" if state.get("audio_questions") else "upload_files",
-        {
-            "generate_audio": "generate_audio",
-            "upload_files": "upload_files",
-        }
-    )
-    
-    # 音频生成后进入上传节点
-    workflow.add_edge("generate_audio", "upload_files")
-    
-    # 上传完成后进入存储节点
-    workflow.add_edge("upload_files", "save_questions")
-    
-    # 存储节点完成后结束
-    workflow.add_edge("save_questions", END)
+    workflow.add_edge("call_llm", "convert_data")
+
+    # 从 convert_data 节点直接并行连接到 3 个处理节点
+    # LangGraph 支持从同一节点添加多条边，这些边会并行执行
+    workflow.add_edge("convert_data", "handle_image")
+    workflow.add_edge("convert_data", "handle_audio")
+    workflow.add_edge("convert_data", "handle_text")
+
+    # 图片处理完成后，进入上传节点
+    workflow.add_edge("handle_image", "upload_files")
+
+    # 音频处理完成后，进入上传节点（多个边指向同一节点，会等待所有前驱节点完成）
+    workflow.add_edge("handle_audio", "upload_files")
+
+    # 上传完成后进入更新节点（等待所有上传任务完成）
+    workflow.add_edge("upload_files", "upload_questions")
+
+    # 文本处理完成后，也进入最终更新节点（合并所有结果）
+    workflow.add_edge("handle_text", "upload_questions")
+
+    # 更新节点完成后结束
+    workflow.add_edge("upload_questions", END)
 
     return workflow.compile()
 
@@ -207,18 +226,36 @@ def get_question_generation_graph() -> StateGraph:
     return _question_generation_graph
 
 
-async def generate_question_graph(
-    db: AsyncSession, unit_id: int, count: int
-) -> Dict[str, Any]:
-    """执行问题生成流程"""
+# LangGraph CLI 入口点
+# 这个函数会被 LangGraph CLI 调用，用于在开发环境中测试图
+async def create_graph_with_db():
+    """为 LangGraph CLI 创建带数据库连接的图"""
+    from common.database import AsyncSessionLocal
+    
+    # 创建一个数据库会话
+    db = AsyncSessionLocal()
+    
+    # 创建一个包装图，在调用时自动注入数据库会话
     graph = get_question_generation_graph()
     
+    # 返回一个包装函数，用于 LangGraph CLI
+    async def invoke_with_db(state: Dict[str, Any]) -> Dict[str, Any]:
+        """包装函数，自动注入数据库会话"""
+        state["db"] = db
+        return await graph.ainvoke(state)
+    
+    return invoke_with_db
+
+
+async def generate_question_graph(db: AsyncSession, unit_id: int, count: int) -> Dict[str, Any]:
+    """执行问题生成流程"""
+    graph = get_question_generation_graph()
+
     initial_state: QuestionGenerationState = {
         "unit_id": unit_id,
         "count": count,
         "db": db,
     }
-    
+
     result = await graph.ainvoke(initial_state)
     return result
-
