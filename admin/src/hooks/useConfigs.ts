@@ -4,7 +4,7 @@ import { useModel } from '@umijs/max';
 export const useConfigs = () => {
   const { initialState } = useModel('@@initialState');
   const { semesters, subjects, textbook_versions, question_types, question_subtypes, difficulty_levels } =
-    initialState?.configs || {};
+    (initialState?.configs || {}) as Configs;
   const subjectEnum = subjects?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   const gradeEnum = Object.keys(GRADES).reduce(

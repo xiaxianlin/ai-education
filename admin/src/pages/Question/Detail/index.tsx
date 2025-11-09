@@ -4,7 +4,7 @@ import { QuestionApi } from '@/services/question';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
 import { GRADES } from '@/constants/course';
-import { StatusTag } from '@/components/ui';
+import { StatusTag, AudioPlayer } from '@/components/ui';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -84,16 +84,9 @@ export default function QuestionDetailPage() {
 
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
 
-  // 判断题型，决定显示哪个按钮
-  // 需要图片的题目：辨识题、选择题中的看图类、识图题等
-  // 需要音频的题目：跟读题、听力题、选择题中的听音类、拼写题中的听音类、口语题等
-  const imageSubtypes = ['看图选词', '看图选句', '看图写单词', '看图列式', '数图形', '数位看图', '看图口头描述'];
-  const audioSubtypes = ['听音选词', '听音选句', '听音写单词', '单词精准模仿', '句子情绪模仿', '朗读小挑战', '听问题口头回答'];
-  
-  const isImageQuestion = question.type === '辨识题' || 
-    (question.subtype && imageSubtypes.includes(question.subtype));
-  const isAudioQuestion = question.type === '跟读题' || question.type === '听力题' || question.type === '口语题' ||
-    (question.subtype && audioSubtypes.includes(question.subtype));
+  // 根据 resource_type 判断资源类型
+  const isImageQuestion = question.resource_type === 'image';
+  const isAudioQuestion = question.resource_type === 'audio';
 
   // 构建资源 URL
   // OSS 基础 URL
@@ -191,7 +184,15 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="难度">
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}
             </ProDescriptions.Item>
+            <ProDescriptions.Item label="资源类型">
+              {question.resource_type ? <Tag color={question.resource_type === 'image' ? 'blue' : 'green'}>{question.resource_type === 'image' ? '图片' : '音频'}</Tag> : '-'}
+            </ProDescriptions.Item>
             <ProDescriptions.Item label="资源路径">{question.resource || '-'}</ProDescriptions.Item>
+            {question.resource_content && (
+              <ProDescriptions.Item label="录音文本" span={2}>
+                {question.resource_content}
+              </ProDescriptions.Item>
+            )}
             {question.textbook && (
               <ProDescriptions.Item label="所属教材" span={2}>
                 {question.textbook.subject} - {question.textbook.version} - {gradeInfo?.grade} - {question.textbook.semester}
@@ -222,6 +223,49 @@ export default function QuestionDetailPage() {
           <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', lineHeight: '1.8' }}>
             {question.content}
           </div>
+          
+          {/* 图片组件 */}
+          {isImageQuestion && resourceUrl && (
+            <div style={{ marginTop: '20px' }}>
+              <Image
+                src={resourceUrl}
+                alt="题目图片"
+                width={96}
+                height={96}
+                style={{ objectFit: 'contain' }}
+                preview={{
+                  mask: '预览',
+                }}
+              />
+              {question.resource_content && (
+                <div style={{ marginTop: '12px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
+                  <strong>录音文本：</strong>{question.resource_content}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* 音频组件 */}
+          {isAudioQuestion && resourceUrl && (
+            <div style={{ marginTop: '20px' }}>
+              <AudioPlayer src={resourceUrl} resourceContent={question.resource_content} />
+            </div>
+          )}
+          
+          {/* 资源未生成提示 */}
+          {!resourceUrl && (isImageQuestion || isAudioQuestion) && (
+            <div style={{ marginTop: '20px', padding: '12px', background: '#fffbe6', borderRadius: '4px', border: '1px solid #ffe58f' }}>
+              <div style={{ marginBottom: '8px', color: '#666' }}>
+                {isImageQuestion && '该题目需要图片资源，但尚未生成。'}
+                {isAudioQuestion && '该题目需要音频资源，但尚未生成。'}
+              </div>
+              {question.resource_content && (
+                <div style={{ marginTop: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
+                  <strong>录音文本：</strong>{question.resource_content}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
         {optionsList.length > 0 && (
@@ -241,79 +285,6 @@ export default function QuestionDetailPage() {
             <div style={{ fontSize: '14px', padding: '12px', background: '#e6f7ff', borderRadius: '4px' }}>
               {question.answer}
             </div>
-          </Card>
-        )}
-
-        {/* 资源展示模块 */}
-        {resourceUrl && (
-          <Card title="资源">
-            {isImageQuestion && (
-              <div style={{ textAlign: 'center' }}>
-                <Image
-                  src={resourceUrl}
-                  alt="题目图片"
-                  style={{ maxWidth: '100%', maxHeight: '500px' }}
-                  preview={{
-                    mask: '预览',
-                  }}
-                />
-              </div>
-            )}
-            {isAudioQuestion && !isImageQuestion && (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <audio controls style={{ width: '100%', maxWidth: '600px' }}>
-                  <source src={resourceUrl} type="audio/mpeg" />
-                  您的浏览器不支持音频播放。
-                </audio>
-                <div style={{ marginTop: '10px', color: '#666', fontSize: '12px' }}>
-                  <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
-                    下载音频文件
-                  </a>
-                </div>
-              </div>
-            )}
-            {isImageQuestion && isAudioQuestion && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <h4>图片资源</h4>
-                  <Image
-                    src={resourceUrl}
-                    alt="题目图片"
-                    style={{ maxWidth: '100%', maxHeight: '500px' }}
-                    preview={{
-                      mask: '预览',
-                    }}
-                  />
-                </div>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <h4>音频资源</h4>
-                  <audio controls style={{ width: '100%', maxWidth: '600px' }}>
-                    <source src={resourceUrl} type="audio/mpeg" />
-                    您的浏览器不支持音频播放。
-                  </audio>
-                  <div style={{ marginTop: '10px', color: '#666', fontSize: '12px' }}>
-                    <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
-                      下载音频文件
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-            {!isImageQuestion && !isAudioQuestion && (
-              <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>资源路径：</strong>
-                  <span style={{ wordBreak: 'break-all' }}>{question.resource}</span>
-                </div>
-                {resourceUrl && (
-                  <div>
-                    <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
-                      查看资源
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
           </Card>
         )}
       </Space>

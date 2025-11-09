@@ -107,7 +107,7 @@ export default function QuestionListPage() {
           <Popconfirm
             title="确定要删除这道题目吗？"
             description="删除后无法恢复，请谨慎操作。"
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(String(record.id))}
             okText="确定"
             cancelText="取消"
             okButtonProps={{ danger: true }}
@@ -129,9 +129,9 @@ export default function QuestionListPage() {
         columns={columns}
         request={async (params) => {
           const res = await QuestionApi.search({
-            page: params.page || 1,
-            size: params.pageSize || 10,
             ...params,
+            page: params.current || 1,
+            size: params.pageSize || 10,
             keywords: params.content,
           });
           return {

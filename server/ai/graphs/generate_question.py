@@ -125,13 +125,13 @@ async def handle_image_node(state: QuestionGenerationState) -> QuestionGeneratio
     needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
     if needs_image_count == 0:
         logger.info("跳过图片处理（没有需要生成图片的题目）")
-        return state
+        return {}  # 返回空字典，避免并发更新冲突
 
     logger.info(f"开始为 {needs_image_count} 道题目生成图片")
     result = await generate_images(state)
-    state.update(result)
     logger.info("图片生成完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def handle_audio_node(state: QuestionGenerationState) -> QuestionGenerationState:
@@ -142,13 +142,13 @@ async def handle_audio_node(state: QuestionGenerationState) -> QuestionGeneratio
     needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
     if needs_audio_count == 0:
         logger.info("跳过音频处理（没有需要生成语音的题目）")
-        return state
+        return {}  # 返回空字典，避免并发更新冲突
 
     logger.info(f"开始为 {needs_audio_count} 道题目生成语音")
     result = await generate_audio(state)
-    state.update(result)
     logger.info("语音生成完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def handle_text_node(state: QuestionGenerationState) -> QuestionGenerationState:

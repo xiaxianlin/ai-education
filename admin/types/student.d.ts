@@ -3,6 +3,7 @@ declare global {
     id: string;
     name: string;
     phone: string;
+    grade?: number;
     status: number;
     create_time: number;
     update_time?: number;

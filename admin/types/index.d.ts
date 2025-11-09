@@ -26,6 +26,7 @@ declare global {
     textbook_versions: string[];
     semesters: string[];
     question_types: string[];
+    question_subtypes?: Record<string, string[]>;
     difficulty_levels: string[];
   }
 

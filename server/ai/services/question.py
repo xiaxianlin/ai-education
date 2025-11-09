@@ -198,17 +198,41 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
     parser = params["parser"]
 
     llm = ChatOpenAI(
-        model_name="qwen-plus-latest",
+        model_name="qwen3-max",
         temperature=0.7,
         openai_api_key=envs.AI_PLATFORM_KEY,
         openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
     chain = prompt | llm | parser
-    result = chain.invoke(prompt_input)
+    
+    try:
+        result = chain.invoke(prompt_input)
+    except Exception as e:
+        logger.error(f"LLM 调用失败: {e}")
+        raise ValueError(f"大模型调用失败: {str(e)}")
+
+    # 检查结果是否为 None
+    if result is None:
+        logger.error("LLM 返回结果为 None")
+        raise ValueError("大模型返回结果为空，请检查 prompt 或重试")
+
+    # 确保 result 是字典类型
+    if not isinstance(result, dict):
+        logger.error(f"LLM 返回结果类型错误: {type(result)}, 内容: {result}")
+        raise ValueError(f"大模型返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
 
     # 处理 knowledge 字段：如果 LLM 返回的是列表，转换为字符串
-    if isinstance(result, dict) and "questions" in result:
+    if "questions" in result:
+        # 确保 questions 是列表
+        if not isinstance(result["questions"], list):
+            logger.error(f"questions 字段类型错误: {type(result['questions'])}")
+            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
+        
         for question in result["questions"]:
+            if not isinstance(question, dict):
+                logger.warning(f"题目项类型错误: {type(question)}, 跳过处理")
+                continue
+                
             if "knowledge" in question and isinstance(question["knowledge"], list):
                 # 将列表转换为字符串，用顿号分隔
                 question["knowledge"] = "、".join(str(k) for k in question["knowledge"])
@@ -218,12 +242,20 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
             elif "knowledge" not in question:
                 # 如果没有 knowledge 字段，设置为空字符串
                 question["knowledge"] = ""
+    else:
+        logger.warning("LLM 返回结果中没有 questions 字段，尝试创建空列表")
+        result["questions"] = []
 
-    result = QuestionGenerationResult.model_validate(result)
+    # 验证并转换结果
+    try:
+        validated_result = QuestionGenerationResult.model_validate(result)
+    except Exception as e:
+        logger.error(f"结果验证失败: {e}, 原始结果: {result}")
+        raise ValueError(f"题目生成结果验证失败: {str(e)}，请检查 prompt 或重试")
 
     return {
         **params,
-        "generated_questions": result.questions,
+        "generated_questions": validated_result.questions,
     }
 
 

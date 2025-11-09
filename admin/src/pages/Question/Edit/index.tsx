@@ -27,7 +27,7 @@ export default function QuestionEditPage() {
   const subtypeOptions = useMemo(() => {
     if (!selectedType || !question_subtypes) return {};
     const subtypes = question_subtypes[selectedType] || [];
-    return subtypes.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {});
+    return subtypes.reduce((prev: Record<string, string>, curr: string) => ({ ...prev, [curr]: curr }), {});
   }, [selectedType, question_subtypes]);
 
   const { data: question, loading } = useRequest(() => QuestionApi.get(id!), {
@@ -100,7 +100,7 @@ export default function QuestionEditPage() {
             )}
             <ProDescriptions.Item label="难度">{question.difficulty}</ProDescriptions.Item>
             <ProDescriptions.Item label="单元">{question?.unit?.name}</ProDescriptions.Item>
-            <ProDescriptions.Item label="知识点">{question?.knowledge?.name}</ProDescriptions.Item>
+            <ProDescriptions.Item label="知识点">{question?.knowledge || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
               <StatusTag status={question.status === 1} />
             </ProDescriptions.Item>
