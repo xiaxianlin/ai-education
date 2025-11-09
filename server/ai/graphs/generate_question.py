@@ -150,12 +150,13 @@ async def handle_text_node(state: QuestionGenerationState) -> QuestionGeneration
     text_questions = state.get("text_questions", [])
     if not text_questions:
         logger.info("跳过文本处理（没有文本题）")
-        return state
+        return {}
 
     logger.info("开始处理文本题目")
     # 文本题目已在 convert_data 节点中保存，这里不需要额外处理
     logger.info(f"文本题目处理完成，共 {len(text_questions)} 道题目")
-    return state
+    # 返回空字典，不更新任何状态字段，避免并发更新冲突
+    return {}
 
 
 async def upload_files_node(state: QuestionGenerationState) -> QuestionGenerationState:

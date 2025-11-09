@@ -15,12 +15,15 @@ class AliyunAIService:
         )
 
         if response.status_code != 200 or not response.code:
-            raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
+            raise ValueError(
+                f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+            )
 
         return response.output.choices[0].message.content.text
 
     @staticmethod
     def tts(text: str, voice: str = "Cherry", language: str = "English"):
+        # qwen3-tts-flash 需要使用 input.text 参数
         response = dashscope.MultiModalConversation.call(
             api_key=envs.AI_PLATFORM_KEY,
             model="qwen3-tts-flash",
@@ -31,7 +34,9 @@ class AliyunAIService:
         )
 
         if response.status_code != 200 or not response.code:
-            raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
+            raise ValueError(
+                f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+            )
 
         return response.output.audio.url
 
@@ -40,13 +45,15 @@ class AliyunAIService:
         response = dashscope.ImageSynthesis.call(
             api_key=envs.AI_PLATFORM_KEY,
             model="qwen-image-plus",
-            messages=[{"role": "user", "content": [{"type": "text", "text": text}]}],
+            prompt=text,
             result_format="message",
             stream=False,
             size=f"{width}*{height}" if width and height else None,
         )
 
         if response.status_code != 200 or not response.code:
-            raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
+            raise ValueError(
+                f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+            )
 
         return response.output.choices[0].message.content.image

@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+import re
 import requests
 import os
 from pathlib import Path
@@ -16,7 +17,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
-from ai.prompts.question import GENERATE_QUESTION_PROMPT
+from ai.prompts.question import (
+    GENERATE_QUESTION_PROMPT,
+    PROMPT_OPTIMIZATION_INSTRUCTION,
+)
 from ai.services.aliyun import AliyunAIService
 from provider.aliyun import AliyunOSS
 
@@ -106,12 +110,14 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
-    
+    # 将题型列表转换为字符串，用逗号分隔
+    question_types_str = "、".join(question_types)
+
     prompt_input = {
         "subject": textbook.subject,
         "grade": textbook.grade,
         "semester": textbook.semester,
-        "question_types": question_types,
+        "question_types": question_types_str,
         "unit_name": unit.name,
         "unit_summary": unit.content or "",
         "knowledge_text": knowledge_text,
@@ -127,43 +133,41 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-PROMPT_OPTIMIZATION_INSTRUCTION = """
-你是一名专业的 Prompt 工程专家。请分析并优化以下 Prompt，使其：
-1. 更加清晰明确，减少歧义
-2. 更好地引导模型生成高质量题目
-3. 确保所有要求都被明确表达
-4. 优化语言表达，使其更专业、更易理解
-5. 保持原有的核心要求和格式要求不变
-
-请直接返回优化后的 Prompt 内容，不要添加任何解释或说明。
-"""
-
-
 async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """优化生成的 prompt，使其更清晰、更有效"""
-    logger.info("开始优化 prompt")
-    
+
     prompt_input = params["prompt_input"]
-    
+
     # 获取原始 prompt 模板的文本内容（保留变量占位符）
     original_prompt_text = GENERATE_QUESTION_PROMPT
-    
+
     # 为了优化效果更好，先填充变量获取完整内容用于优化
     filled_prompt_text = GENERATE_QUESTION_PROMPT.format(**prompt_input)
-    
+
     # 创建优化 prompt，要求保留变量占位符
-    optimization_instruction = PROMPT_OPTIMIZATION_INSTRUCTION + "\n\n重要：优化后的 Prompt 必须保留所有变量占位符（如 {subject}、{grade}、{count} 等），不要替换为具体值。"
-    
+    # 注意：使用双大括号转义，避免被 ChatPromptTemplate 解析为变量
+    optimization_instruction = (
+        PROMPT_OPTIMIZATION_INSTRUCTION
+        + "\n\n重要要求：\n"
+        + "1. 优化后的 Prompt 必须保留所有变量占位符，格式为：{{subject}}、{{grade}}、{{semester}}、{{question_types}}、{{unit_name}}、{{unit_summary}}、{{knowledge_text}}、{{count}}\n"
+        + "2. 占位符必须使用单大括号格式，例如 {{subject}}，不要使用 JSON 格式或其他格式\n"
+        + "3. 不要将占位符替换为具体值，保持占位符原样\n"
+        + "4. 优化后的文本应该可以直接用于 Python 的 .format() 方法"
+    )
+
     optimization_prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
                 optimization_instruction,
             ),
-            ("human", "请优化以下 Prompt（保留所有变量占位符）：\n\n{original_prompt}\n\n注意：优化后的 Prompt 必须保留所有 {{variable}} 格式的占位符。"),
+            (
+                "human",
+                "请优化以下 Prompt（必须保留所有变量占位符，格式为 {{variable_name}}）：\n\n{original_prompt}\n\n注意：优化后的 Prompt 必须保留所有 {{variable}} 格式的占位符，不要使用 JSON 格式。",
+            ),
         ]
     )
-    
+
     # 调用 LLM 优化 prompt
     llm = ChatOpenAI(
         model_name="qwen-plus-latest",
@@ -171,10 +175,10 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         openai_api_key=envs.AI_PLATFORM_KEY,
         openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
-    
+
     optimization_chain = optimization_prompt | llm
     optimized_text = optimization_chain.invoke({"original_prompt": filled_prompt_text})
-    
+
     # 提取优化后的文本（去除可能的 markdown 代码块标记）
     optimized_text_str = optimized_text.content.strip()
     if optimized_text_str.startswith("```"):
@@ -185,9 +189,21 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         if lines[-1].strip() == "```":
             lines = lines[:-1]
         optimized_text_str = "\n".join(lines).strip()
+
+    # 后处理：确保占位符格式正确
+    # 修复可能的 JSON 格式占位符（如 {\n  "subject"}）为正确的格式（{subject}）
+    # 处理多行 JSON 格式：{\n  "subject"} -> {subject}
+    optimized_text_str = re.sub(
+        r'\{\s*\n\s*["\'](\w+)["\']\s*\}', r'{\1}', optimized_text_str, flags=re.MULTILINE
+    )
+    # 处理单行 JSON 格式：{"subject"} -> {subject}
+    optimized_text_str = re.sub(r'\{\s*["\'](\w+)["\']\s*\}', r'{\1}', optimized_text_str)
     
-    logger.info(f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}")
-    
+    logger.info(
+        f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}"
+    )
+
+
     # 使用优化后的 prompt 文本创建新的 prompt template
     # 注意：优化后的文本应该包含变量占位符，这样可以在后续调用时填充
     optimized_prompt = ChatPromptTemplate.from_messages(
@@ -199,7 +215,9 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
             ("human", optimized_text_str),
         ]
     )
-    
+
+    logger.info(f"优化后的 Prompt: {optimized_text_str}")
+
     return {
         **params,
         "prompt": optimized_prompt,
@@ -223,6 +241,19 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
     chain = prompt | llm | parser
     result = chain.invoke(prompt_input)
 
+    # 处理 knowledge 字段：如果 LLM 返回的是列表，转换为字符串
+    if isinstance(result, dict) and "questions" in result:
+        for question in result["questions"]:
+            if "knowledge" in question and isinstance(question["knowledge"], list):
+                # 将列表转换为字符串，用顿号分隔
+                question["knowledge"] = "、".join(str(k) for k in question["knowledge"])
+            elif "knowledge" in question and not isinstance(question["knowledge"], str):
+                # 如果不是字符串也不是列表，转换为字符串
+                question["knowledge"] = str(question["knowledge"]) if question["knowledge"] else ""
+            elif "knowledge" not in question:
+                # 如果没有 knowledge 字段，设置为空字符串
+                question["knowledge"] = ""
+
     result = QuestionGenerationResult.model_validate(result)
 
     return {
@@ -244,7 +275,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
-    
+
     for item in generated_questions:
         question_type = item.question_type
         if question_type not in question_types:
@@ -307,7 +338,10 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
             logger.error(f"为问题 {question.content[:50]} 生成图片失败: {e}")
             question._temp_image_url = None
 
-    return params
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return {
+        "image_questions": image_questions,
+    }
 
 
 async def generate_audio(params: Dict[str, Any]) -> Dict[str, Any]:
@@ -326,7 +360,10 @@ async def generate_audio(params: Dict[str, Any]) -> Dict[str, Any]:
             logger.error(f"为问题 {question.content[:50]} 生成语音失败: {e}")
             question._temp_audio_url = None
 
-    return params
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return {
+        "audio_questions": audio_questions,
+    }
 
 
 async def download_file(url: str, file_path: str) -> None:
@@ -432,7 +469,9 @@ async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str
     }
 
 
-async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) -> List[Question]:
+async def generate_question_by_unit(
+    db: AsyncSession, unit_id: int, count: int
+) -> List[Question]:
     """根据单元 ID 生成指定数量的题目并入库（旧接口，保持兼容）"""
     from ai.graphs.generate_question import generate_question_graph
 
