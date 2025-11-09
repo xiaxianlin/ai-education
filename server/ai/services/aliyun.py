@@ -3,7 +3,6 @@ from loguru import logger
 from common.settings import envs
 from ai.services.prompt import PromptOptimizationService
 
-
 class AliyunAIService:
 
     @staticmethod
@@ -31,15 +30,14 @@ class AliyunAIService:
         return result_text
 
     @staticmethod
-    def tts(text: str, voice: str = "Cherry", language: str = "English"):
+    def tts(text: str, voice: str = "Elias", language: str = "English"):
         logger.info(f"开始文本转语音，文本长度: {len(text)}, 语音: {voice}, 语言: {language}")
         logger.debug(f"文本内容: {text[:200]}...")
 
-        # qwen3-tts-flash 需要使用 input.text 参数
         response = dashscope.MultiModalConversation.call(
             api_key=envs.AI_PLATFORM_KEY,
             model="qwen3-tts-flash",
-            messages=[{"role": "user", "content": [{"text": text}]}],
+            text=text,
             voice=voice,
             language_type=language,
             stream=False,

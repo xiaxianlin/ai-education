@@ -51,7 +51,7 @@ requires-dist = [
     { name = "asyncmy", specifier = ">=0.2.10" },
     { name = "chardet", specifier = ">=5.2.0" },
     { name = "crcmod", specifier = ">=1.7" },
-    { name = "dashscope", specifier = ">=1.23.1" },
+    { name = "dashscope", specifier = ">=1.25.0" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "fastrand", specifier = ">=3.0.6" },
     { name = "ffmpeg-python", specifier = ">=0.2.0" },
@@ -473,15 +473,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/e5/c5/e8f1fb60d2cd39943
 
 [[package]]
 name = "dashscope"
-version = "1.23.1"
+version = "1.25.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
+    { name = "certifi" },
+    { name = "cryptography" },
     { name = "requests" },
     { name = "websocket-client" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/59/44d437c31cea0799617eb00862b17f4795ad4a3c19d24c65166e24ba783a/dashscope-1.23.1-py3-none-any.whl", hash = "sha256:2c3bd6ed909de72cc4833ada0f7fdae670031738d01969a76f3676a6bbb56026", size = 1277878, upload-time = "2025-04-07T11:47:17.898Z" },
+    { url = "https://files.pythonhosted.org/packages/69/8e/1d18b2813fdd2046d9940e6332fd774f07cf2f05208c1f0944a747d9de8d/dashscope-1.25.0-py3-none-any.whl", hash = "sha256:3e3ed2f56592be50ac281f315b8ba2969a603c625db40de6ac201b55ea659254", size = 1317650, upload-time = "2025-11-05T11:15:14.055Z" },
 ]
 
 [[package]]

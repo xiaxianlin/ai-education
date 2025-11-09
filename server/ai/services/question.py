@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
-import re
 import requests
 import os
+import json
 import asyncio
 from pathlib import Path
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.constants import QUESTION_TYPES, get_question_types, get_question_subtypes, QUESTION_SUBTYPES
+from common.constants import get_question_types, get_question_subtypes
 from common.database import Knowledge, Question, Textbook, Unit
 from common.settings import envs
 
@@ -23,6 +23,7 @@ from ai.services.aliyun import AliyunAIService
 from ai.services.prompt import PromptOptimizationService
 from provider.aliyun import AliyunOSS
 from utils.time import now
+from utils.question import build_full_question_text
 
 
 class QuestionOption(BaseModel):
@@ -112,14 +113,14 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
-    
+
     # 验证题型列表不为空
     if not question_types:
         raise ValueError(
             f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
             f"目前仅支持一年级的英语和数学。"
         )
-    
+
     # 将题型列表转换为字符串，用逗号分隔
     question_types_str = "、".join(question_types)
 
@@ -168,7 +169,6 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}"
     )
 
-
     # 使用优化后的 prompt 文本创建新的 prompt template
     # 注意：优化后的文本应该包含变量占位符，这样可以在后续调用时填充
     optimized_prompt = ChatPromptTemplate.from_messages(
@@ -204,7 +204,7 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
         openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
     chain = prompt | llm | parser
-    
+
     try:
         result = chain.invoke(prompt_input)
     except Exception as e:
@@ -226,13 +226,15 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
         # 确保 questions 是列表
         if not isinstance(result["questions"], list):
             logger.error(f"questions 字段类型错误: {type(result['questions'])}")
-            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
-        
+            raise ValueError(
+                f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
+            )
+
         for question in result["questions"]:
             if not isinstance(question, dict):
                 logger.warning(f"题目项类型错误: {type(question)}, 跳过处理")
                 continue
-                
+
             if "knowledge" in question and isinstance(question["knowledge"], list):
                 # 将列表转换为字符串，用顿号分隔
                 question["knowledge"] = "、".join(str(k) for k in question["knowledge"])
@@ -272,7 +274,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
-    
+
     # 验证题型列表不为空（虽然 generate_prompt 已经验证过，但这里再次验证以确保安全）
     if not question_types:
         raise ValueError(
@@ -325,15 +327,25 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
         # 根据问题类型和子类型判断资源类型
         # 需要图片的题目：辨识题、选择题中的看图类、识图题等
         # 需要音频的题目：跟读题、听力题、选择题中的听音类、拼写题中的听音类、口语题等
-        needs_image = (
-            question_type == "辨识题"
-            or question_subtype in ["看图选词", "看图选句", "看图写单词", "看图列式", "数图形", "数位看图", "看图口头描述"]
-        )
-        needs_audio = (
-            question_type in ["跟读题", "听力题", "口语题"]
-            or question_subtype in ["听音选词", "听音选句", "听音写单词", "单词精准模仿", "句子情绪模仿", "朗读小挑战", "听问题口头回答"]
-        )
-        
+        needs_image = question_type == "辨识题" or question_subtype in [
+            "看图选词",
+            "看图选句",
+            "看图写单词",
+            "看图列式",
+            "数图形",
+            "数位看图",
+            "看图口头描述",
+        ]
+        needs_audio = question_type in ["跟读题", "听力题", "口语题"] or question_subtype in [
+            "听音选词",
+            "听音选句",
+            "听音写单词",
+            "单词精准模仿",
+            "句子情绪模仿",
+            "朗读小挑战",
+            "听问题口头回答",
+        ]
+
         # 设置资源类型字段
         if needs_image:
             question.resource_type = "image"
@@ -360,34 +372,40 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
 async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
     """图片生成节点 - 根据 resource_type 标识为题目生成图片（并行生成）"""
     image_questions: List[Question] = params.get("image_questions", [])
-    
+
     # 过滤出需要生成图片的题目
     questions_to_generate = [q for q in image_questions if q.resource_type == "image"]
-    
+
     if not questions_to_generate:
         logger.info("没有需要生成图片的题目")
         return {"image_questions": image_questions}
 
     logger.info(f"开始为 {len(questions_to_generate)} 道题目并行生成图片")
-    
+
     # 并行生成图片
     async def generate_single_image(question: Question):
         try:
+            # 构建完整的问题内容（包含题目、选项、答案）
+            full_question_text = build_full_question_text(question)
+
             # 生成图片
             # 使用允许的尺寸：1328*1328（最接近正方形的尺寸）
+            # 使用 optimize_prompt=True 优化提示词
             image_url = AliyunAIService.generate_image(
-                text=question.content, width=1328, height=1328
+                text=full_question_text, width=1328, height=1328, optimize_prompt=True
             )
             # 将图片URL保存到临时字段，后续上传时使用
             question._temp_image_url = image_url
             logger.info(f"题目 {question.id} 图片生成成功")
         except Exception as e:
-            logger.error(f"为问题 {question.content[:50]} 生成图片失败: {e}")
+            logger.error(
+                f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}"
+            )
             question._temp_image_url = None
-    
+
     # 并行执行所有图片生成任务
     await asyncio.gather(*[generate_single_image(q) for q in questions_to_generate])
-    
+
     logger.info(f"图片生成完成，共处理 {len(questions_to_generate)} 道题目")
 
     # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
@@ -399,34 +417,34 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
 async def generate_audio(params: Dict[str, Any]) -> Dict[str, Any]:
     """语音生成节点 - 根据 resource_type 标识为题目生成语音（并行生成）"""
     audio_questions: List[Question] = params.get("audio_questions", [])
-    
+
     # 过滤出需要生成语音的题目
     questions_to_generate = [q for q in audio_questions if q.resource_type == "audio"]
-    
+
     if not questions_to_generate:
         logger.info("没有需要生成语音的题目")
         return {"audio_questions": audio_questions}
 
     logger.info(f"开始为 {len(questions_to_generate)} 道题目并行生成语音")
-    
+
     # 并行生成语音
     async def generate_single_audio(question: Question):
         try:
             # 生成语音，优先使用 resource_content，如果没有则使用 content
-            text_to_speak = question.resource_content if question.resource_content else question.content
-            audio_url = AliyunAIService.tts(
-                text=text_to_speak, voice="Cherry", language="Chinese"
+            text_to_speak = (
+                question.resource_content if question.resource_content else question.content
             )
+            audio_url = AliyunAIService.tts(text=text_to_speak, voice="Cherry", language="Chinese")
             # 将音频URL保存到临时字段，后续上传时使用
             question._temp_audio_url = audio_url
             logger.info(f"题目 {question.id} 语音生成成功")
         except Exception as e:
             logger.error(f"为问题 {question.content[:50]} 生成语音失败: {e}")
             question._temp_audio_url = None
-    
+
     # 并行执行所有语音生成任务
     await asyncio.gather(*[generate_single_audio(q) for q in questions_to_generate])
-    
+
     logger.info(f"语音生成完成，共处理 {len(questions_to_generate)} 道题目")
 
     # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
@@ -470,12 +488,12 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
 
                 # 上传到 OSS
                 oss_path = f"questions/{unit_id}/images/{idx}.jpg"
-                
+
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
                     logger.info(f"OSS 文件已存在，先删除: {oss_path}")
                     oss.delete(oss_path)
-                
+
                 oss.upload(oss_path, file_data)
 
                 # 保存资源路径
@@ -501,12 +519,12 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
 
                 # 上传到 OSS
                 oss_path = f"questions/{unit_id}/audio/{idx}.mp3"
-                
+
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
                     logger.info(f"OSS 文件已存在，先删除: {oss_path}")
                     oss.delete(oss_path)
-                
+
                 oss.upload(oss_path, file_data)
 
                 # 保存资源路径
@@ -548,12 +566,10 @@ async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str
     }
 
 
-async def generate_question_by_unit(
-    db: AsyncSession, unit_id: int, count: int
-) -> List[Question]:
+async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) -> List[Question]:
     """根据单元 ID 生成指定数量的题目并入库（旧接口，保持兼容）"""
     # 延迟导入以避免循环导入
     from ai.graphs.generate_question import generate_question_graph
-    
+
     result = await generate_question_graph(db, unit_id, count)
     return result.get("saved_questions", [])
