@@ -4,7 +4,7 @@ from langgraph.graph import StateGraph, END
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.database import Question
+from common.database import Question, AsyncSessionLocal
 from ai.services.question import (
     validate_question_params,
     load_unit_data,
@@ -244,8 +244,6 @@ def get_question_generation_graph() -> StateGraph:
 # 这个函数会被 LangGraph CLI 调用，用于在开发环境中测试图
 async def create_graph_with_db():
     """为 LangGraph CLI 创建带数据库连接的图"""
-    from common.database import AsyncSessionLocal
-    
     # 创建一个数据库会话
     db = AsyncSessionLocal()
     

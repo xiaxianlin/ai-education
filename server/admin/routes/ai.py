@@ -21,9 +21,10 @@ class TTSRequest(BaseModel):
 
 class GenerateImageRequest(BaseModel):
     """图片生成请求"""
-    text: str = Field(description="图片生成提示词")
+    text: str = Field(description="问题内容或图片生成提示词")
     width: Optional[int] = Field(default=None, description="图片宽度，默认不指定")
     height: Optional[int] = Field(default=None, description="图片高度，默认不指定")
+    optimize_prompt: bool = Field(default=True, description="是否使用 LLM 优化提示词，默认为 True")
 
 
 @ai_router.post("/asr")
@@ -53,10 +54,11 @@ async def generate_image(request: GenerateImageRequest):
     """
     图片生成接口
     
-    根据文本提示词生成图片
+    根据问题内容或文本提示词生成图片。
+    如果 optimize_prompt 为 True，会使用 LLM 将问题内容优化为适合图片生成的提示词。
     """
     image_url = AliyunAIService.generate_image(
-        request.text, request.width, request.height
+        request.text, request.width, request.height, request.optimize_prompt
     )
     return {"image_url": image_url}
 

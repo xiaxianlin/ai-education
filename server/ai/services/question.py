@@ -17,12 +17,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
-from ai.prompts.question import (
-    GENERATE_QUESTION_PROMPT,
-    PROMPT_OPTIMIZATION_INSTRUCTION,
-)
+from ai.prompts.question import GENERATE_QUESTION_PROMPT
 from ai.services.aliyun import AliyunAIService
+from ai.services.prompt import PromptOptimizationService
 from provider.aliyun import AliyunOSS
+from utils.time import now
 
 
 class QuestionOption(BaseModel):
@@ -135,70 +134,16 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
 
 async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """优化生成的 prompt，使其更清晰、更有效"""
+    logger.info("开始优化 prompt")
 
     prompt_input = params["prompt_input"]
-
-    # 获取原始 prompt 模板的文本内容（保留变量占位符）
-    original_prompt_text = GENERATE_QUESTION_PROMPT
 
     # 为了优化效果更好，先填充变量获取完整内容用于优化
     filled_prompt_text = GENERATE_QUESTION_PROMPT.format(**prompt_input)
 
-    # 创建优化 prompt，要求保留变量占位符
-    # 注意：使用双大括号转义，避免被 ChatPromptTemplate 解析为变量
-    optimization_instruction = (
-        PROMPT_OPTIMIZATION_INSTRUCTION
-        + "\n\n重要要求：\n"
-        + "1. 优化后的 Prompt 必须保留所有变量占位符，格式为：{{subject}}、{{grade}}、{{semester}}、{{question_types}}、{{unit_name}}、{{unit_summary}}、{{knowledge_text}}、{{count}}\n"
-        + "2. 占位符必须使用单大括号格式，例如 {{subject}}，不要使用 JSON 格式或其他格式\n"
-        + "3. 不要将占位符替换为具体值，保持占位符原样\n"
-        + "4. 优化后的文本应该可以直接用于 Python 的 .format() 方法"
-    )
+    # 使用提示词优化服务
+    optimized_text_str = PromptOptimizationService.optimize_question_prompt(filled_prompt_text)
 
-    optimization_prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                optimization_instruction,
-            ),
-            (
-                "human",
-                "请优化以下 Prompt（必须保留所有变量占位符，格式为 {{variable_name}}）：\n\n{original_prompt}\n\n注意：优化后的 Prompt 必须保留所有 {{variable}} 格式的占位符，不要使用 JSON 格式。",
-            ),
-        ]
-    )
-
-    # 调用 LLM 优化 prompt
-    llm = ChatOpenAI(
-        model_name="qwen-plus-latest",
-        temperature=0.3,  # 使用较低温度以确保优化的一致性
-        openai_api_key=envs.AI_PLATFORM_KEY,
-        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    )
-
-    optimization_chain = optimization_prompt | llm
-    optimized_text = optimization_chain.invoke({"original_prompt": filled_prompt_text})
-
-    # 提取优化后的文本（去除可能的 markdown 代码块标记）
-    optimized_text_str = optimized_text.content.strip()
-    if optimized_text_str.startswith("```"):
-        # 移除 markdown 代码块标记
-        lines = optimized_text_str.split("\n")
-        if lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines[-1].strip() == "```":
-            lines = lines[:-1]
-        optimized_text_str = "\n".join(lines).strip()
-
-    # 后处理：确保占位符格式正确
-    # 修复可能的 JSON 格式占位符（如 {\n  "subject"}）为正确的格式（{subject}）
-    # 处理多行 JSON 格式：{\n  "subject"} -> {subject}
-    optimized_text_str = re.sub(
-        r'\{\s*\n\s*["\'](\w+)["\']\s*\}', r'{\1}', optimized_text_str, flags=re.MULTILINE
-    )
-    # 处理单行 JSON 格式：{"subject"} -> {subject}
-    optimized_text_str = re.sub(r'\{\s*["\'](\w+)["\']\s*\}', r'{\1}', optimized_text_str)
-    
     logger.info(
         f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}"
     )
@@ -442,8 +387,6 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
 
 async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str, Any]:
     """数据更新节点 - 更新已保存的问题（如 resource 字段等）"""
-    from utils.time import now
-
     # 所有问题已在 convert_data 节点中保存，这里只需要更新（如 resource 字段）
     image_questions: List[Question] = params.get("image_questions", [])
     audio_questions: List[Question] = params.get("audio_questions", [])
@@ -473,7 +416,8 @@ async def generate_question_by_unit(
     db: AsyncSession, unit_id: int, count: int
 ) -> List[Question]:
     """根据单元 ID 生成指定数量的题目并入库（旧接口，保持兼容）"""
+    # 延迟导入以避免循环导入
     from ai.graphs.generate_question import generate_question_graph
-
+    
     result = await generate_question_graph(db, unit_id, count)
     return result.get("saved_questions", [])

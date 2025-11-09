@@ -10,7 +10,7 @@ from admin.schema import (
     CreateStudyRecordSchema,
 )
 from common.schema import SearchSchema
-from admin.services import student
+from admin.services import student, profile, stats, study_record, wrong_question
 from common.database import Database
 
 
@@ -54,7 +54,6 @@ async def reset_student_password(id: str, db: AsyncSession = Database):
 
 @student_router.get("/{id}/profile")
 async def get_student_profile(id: str, db: AsyncSession = Database):
-    from admin.services import profile
     return await profile.get_student_profile(db, id)
 
 
@@ -62,13 +61,11 @@ async def get_student_profile(id: str, db: AsyncSession = Database):
 async def create_or_update_student_profile(
     id: str, params: CreateStudentProfileSchema, db: AsyncSession = Database
 ):
-    from admin.services import profile
     return await profile.create_or_update_student_profile(db, id, params)
 
 
 @student_router.get("/{id}/stats")
 async def get_student_stats(id: str, db: AsyncSession = Database):
-    from admin.services import stats
     return await stats.get_student_stats(db, id)
 
 
@@ -76,7 +73,6 @@ async def get_student_stats(id: str, db: AsyncSession = Database):
 async def update_student_stats(
     id: str, params: UpdateStudentStatsSchema, db: AsyncSession = Database
 ):
-    from admin.services import stats
     return await stats.update_student_stats(db, id, params)
 
 
@@ -84,7 +80,6 @@ async def update_student_stats(
 async def create_study_record(
     id: str, params: CreateStudyRecordSchema, db: AsyncSession = Database
 ):
-    from admin.services import study_record
     return await study_record.create_study_record(db, params)
 
 
@@ -92,7 +87,6 @@ async def create_study_record(
 async def search_study_records(
     id: str, params: SearchSchema = Depends(), db: AsyncSession = Database
 ):
-    from admin.services import study_record
     return await study_record.search_study_records(db, id, params)
 
 
@@ -100,7 +94,6 @@ async def search_study_records(
 async def get_student_wrong_questions(
     id: str, mastered: int | None = None, db: AsyncSession = Database
 ):
-    from admin.services import wrong_question
     return await wrong_question.get_student_wrong_questions(db, id, mastered)
 
 
@@ -108,7 +101,6 @@ async def get_student_wrong_questions(
 async def mark_question_as_mastered(
     id: str, question_id: int, db: AsyncSession = Database
 ):
-    from admin.services import wrong_question
     return await wrong_question.mark_as_mastered(db, id, question_id)
 
 
@@ -116,6 +108,5 @@ async def mark_question_as_mastered(
 async def unmark_question_as_mastered(
     id: str, question_id: int, db: AsyncSession = Database
 ):
-    from admin.services import wrong_question
     return await wrong_question.unmark_as_mastered(db, id, question_id)
 
