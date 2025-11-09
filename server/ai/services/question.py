@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.constants import QUESTION_TYPES
+from common.constants import QUESTION_TYPES, get_question_types
 from common.database import Knowledge, Question, Textbook, Unit
 from common.settings import envs
 
@@ -104,11 +104,14 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         ]
     )
 
+    # 根据科目和年级获取对应的题型
+    question_types = get_question_types(textbook.subject, textbook.grade)
+    
     prompt_input = {
         "subject": textbook.subject,
         "grade": textbook.grade,
         "semester": textbook.semester,
-        "question_types": QUESTION_TYPES,
+        "question_types": question_types,
         "unit_name": unit.name,
         "unit_summary": unit.content or "",
         "knowledge_text": knowledge_text,
@@ -239,11 +242,17 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
     audio_questions: List[Question] = []
     text_questions: List[Question] = []
 
+    # 根据科目和年级获取对应的题型
+    question_types = get_question_types(textbook.subject, textbook.grade)
+    
     for item in generated_questions:
         question_type = item.question_type
-        if question_type not in QUESTION_TYPES:
-            logger.warning(f"生成的题型 {question_type} 不在预期列表中，将使用默认题型")
-            question_type = QUESTION_TYPES[0]
+        if question_type not in question_types:
+            logger.warning(
+                f"生成的题型 {question_type} 不在预期列表中（科目: {textbook.subject}, 年级: {textbook.grade}），"
+                f"将使用默认题型 {question_types[0]}"
+            )
+            question_type = question_types[0]
 
         question = Question(
             subject=textbook.subject,
