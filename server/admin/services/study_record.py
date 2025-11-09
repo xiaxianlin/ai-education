@@ -19,7 +19,7 @@ async def create_study_record(db: AsyncSession, params: CreateStudyRecordSchema)
         student_id=params.student_id,
         textbook_id=params.textbook_id,
         unit_id=params.unit_id,
-        knowledge_id=params.knowledge_id,
+        knowledge=params.knowledge,
         question_id=params.question_id,
         is_correct=params.is_correct,
         score=params.score,

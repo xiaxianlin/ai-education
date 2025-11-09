@@ -128,7 +128,7 @@ class UpdateQuestionSchema(BaseModel):
     answer: Optional[str] = None
     resource: Optional[str] = None
     difficulty: Optional[str] = None
-    knowledge_id: Optional[int] = None
+    knowledge: Optional[str] = None
     unit_id: Optional[int] = None
     textbook_id: Optional[int] = None
     status: Optional[int] = None
@@ -195,7 +195,7 @@ class StudyRecordSchema(BaseModel):
     student_id: str
     textbook_id: int
     unit_id: Optional[int] = None
-    knowledge_id: Optional[int] = None
+    knowledge: Optional[str] = None
     question_id: Optional[int] = None
     is_correct: int = 0
     score: float = 0.0
@@ -233,7 +233,7 @@ class CreateStudyRecordSchema(BaseModel):
     student_id: str
     textbook_id: int
     unit_id: Optional[int] = None
-    knowledge_id: Optional[int] = None
+    knowledge: Optional[str] = None
     question_id: Optional[int] = None
     is_correct: int = 0
     score: float = 0.0

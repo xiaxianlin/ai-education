@@ -34,6 +34,7 @@ class GeneratedQuestion(BaseModel):
     )
     answer: str = Field(description="标准答案")
     difficulty: str = Field(description="题目难度，如 简单/中等/较难")
+    knowledge: str = Field(description="知识点")
 
 
 class QuestionGenerationResult(BaseModel):
@@ -64,18 +65,22 @@ async def load_unit_data(db: AsyncSession, unit_id: int) -> Dict[str, Any]:
     knowledge_list = knowledge_rows.all()
 
     knowledge_lines = []
+    knowledge_names = []
     for item in knowledge_list:
         snippet = item.content.strip() if item.content else ""
         if len(snippet) > 200:
             snippet = snippet[:200] + "..."
         knowledge_lines.append(f"- {item.name}: {snippet}")
+        knowledge_names.append(item.name)
 
     knowledge_text = "\n".join(knowledge_lines) if knowledge_lines else "(未提供知识点)"
+    knowledge_names = "、".join(knowledge_names) if knowledge_names else ""
 
     return {
         "unit": unit,
         "textbook": textbook,
         "knowledge_text": knowledge_text,
+        "knowledge_names": knowledge_names,
     }
 
 
@@ -116,6 +121,87 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "prompt": prompt,
         "prompt_input": prompt_input,
         "parser": parser,
+    }
+
+
+PROMPT_OPTIMIZATION_INSTRUCTION = """
+你是一名专业的 Prompt 工程专家。请分析并优化以下 Prompt，使其：
+1. 更加清晰明确，减少歧义
+2. 更好地引导模型生成高质量题目
+3. 确保所有要求都被明确表达
+4. 优化语言表达，使其更专业、更易理解
+5. 保持原有的核心要求和格式要求不变
+
+请直接返回优化后的 Prompt 内容，不要添加任何解释或说明。
+"""
+
+
+async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """优化生成的 prompt，使其更清晰、更有效"""
+    logger.info("开始优化 prompt")
+    
+    prompt_input = params["prompt_input"]
+    
+    # 获取原始 prompt 模板的文本内容（保留变量占位符）
+    original_prompt_text = GENERATE_QUESTION_PROMPT
+    
+    # 为了优化效果更好，先填充变量获取完整内容用于优化
+    filled_prompt_text = GENERATE_QUESTION_PROMPT.format(**prompt_input)
+    
+    # 创建优化 prompt，要求保留变量占位符
+    optimization_instruction = PROMPT_OPTIMIZATION_INSTRUCTION + "\n\n重要：优化后的 Prompt 必须保留所有变量占位符（如 {subject}、{grade}、{count} 等），不要替换为具体值。"
+    
+    optimization_prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                optimization_instruction,
+            ),
+            ("human", "请优化以下 Prompt（保留所有变量占位符）：\n\n{original_prompt}\n\n注意：优化后的 Prompt 必须保留所有 {{variable}} 格式的占位符。"),
+        ]
+    )
+    
+    # 调用 LLM 优化 prompt
+    llm = ChatOpenAI(
+        model_name="qwen-plus-latest",
+        temperature=0.3,  # 使用较低温度以确保优化的一致性
+        openai_api_key=envs.AI_PLATFORM_KEY,
+        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    
+    optimization_chain = optimization_prompt | llm
+    optimized_text = optimization_chain.invoke({"original_prompt": filled_prompt_text})
+    
+    # 提取优化后的文本（去除可能的 markdown 代码块标记）
+    optimized_text_str = optimized_text.content.strip()
+    if optimized_text_str.startswith("```"):
+        # 移除 markdown 代码块标记
+        lines = optimized_text_str.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines[-1].strip() == "```":
+            lines = lines[:-1]
+        optimized_text_str = "\n".join(lines).strip()
+    
+    logger.info(f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}")
+    
+    # 使用优化后的 prompt 文本创建新的 prompt template
+    # 注意：优化后的文本应该包含变量占位符，这样可以在后续调用时填充
+    optimized_prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业教研员，负责根据教材内容命题。请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", optimized_text_str),
+        ]
+    )
+    
+    return {
+        **params,
+        "prompt": optimized_prompt,
+        "original_prompt_text": filled_prompt_text,
+        "optimized_prompt_text": optimized_text_str,
     }
 
 
@@ -171,7 +257,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
             difficulty=item.difficulty,
             textbook_id=textbook.id,
             unit_id=unit.id,
-            knowledge_id=None,
+            knowledge=item.knowledge if item.knowledge else "",
         )
 
         questions.append(question)

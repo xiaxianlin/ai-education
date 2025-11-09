@@ -129,16 +129,10 @@ class Question(BaseModel):
     resource: Mapped[str] = mapped_column(String(255), comment="资源路径")
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column()
-    knowledge_id: Mapped[int] = mapped_column()
+    knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()
-
-    knowledge: Mapped["Knowledge"] = relationship(
-        "Knowledge",
-        primaryjoin="foreign(Question.knowledge_id) == Knowledge.id",
-        lazy="joined",
-    )
 
     unit: Mapped["Unit"] = relationship(
         "Unit",
@@ -246,7 +240,7 @@ class StudyRecord(BaseModel):
 
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column(nullable=True)
-    knowledge_id: Mapped[int] = mapped_column(nullable=True)
+    knowledge: Mapped[str] = mapped_column(String(255), comment="知识点", nullable=True)
     question_id: Mapped[int] = mapped_column(nullable=True)
 
     is_correct: Mapped[int] = mapped_column(default=0)

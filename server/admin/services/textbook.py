@@ -22,7 +22,7 @@ async def _clean_textbook(db: AsyncSession, id: int):
     stmt = (
         update(Question)
         .where(Question.textbook_id == id)
-        .values({"unit_id": None, "knowledge_id": None})
+        .values({"unit_id": None, "knowledge": None})
     )
     await db.execute(stmt)
     await db.commit()

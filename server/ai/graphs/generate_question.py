@@ -9,6 +9,7 @@ from ai.services.question import (
     validate_question_params,
     load_unit_data,
     generate_prompt,
+    optimize_prompt,
     call_llm,
     convert_to_question_objects,
     generate_images,
@@ -26,6 +27,7 @@ class QuestionGenerationState(TypedDict):
     unit: Any
     textbook: Any
     knowledge_text: str
+    knowledge: str
     prompt: Any
     prompt_input: Dict[str, Any]
     parser: Any
@@ -64,8 +66,17 @@ async def create_prompt_node(state: QuestionGenerationState) -> QuestionGenerati
     return state
 
 
+async def optimize_prompt_node(state: QuestionGenerationState) -> QuestionGenerationState:
+    """节点4: 优化生成的 prompt"""
+    logger.info("开始优化 prompt")
+    result = await optimize_prompt(state)
+    state.update(result)
+    logger.info("Prompt 优化完成")
+    return state
+
+
 async def call_llm_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点4: 调用大模型结构化输出内容"""
+    """节点5: 调用大模型结构化输出内容"""
     logger.info("开始调用大模型生成题目")
     result = await call_llm(state)
     state.update(result)
@@ -74,7 +85,7 @@ async def call_llm_node(state: QuestionGenerationState) -> QuestionGenerationSta
 
 
 async def convert_data_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点5: 将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
+    """节点6: 将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
     result = await convert_to_question_objects(state)
     state.update(result)
@@ -173,6 +184,7 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("check_params", check_params_node)
     workflow.add_node("load_data", load_data_node)
     workflow.add_node("create_prompt", create_prompt_node)
+    workflow.add_node("optimize_prompt", optimize_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
     workflow.add_node("convert_data", convert_data_node)
     workflow.add_node("handle_image", handle_image_node)
@@ -187,7 +199,8 @@ def create_question_generation_graph() -> StateGraph:
     # 定义流程
     workflow.add_edge("check_params", "load_data")
     workflow.add_edge("load_data", "create_prompt")
-    workflow.add_edge("create_prompt", "call_llm")
+    workflow.add_edge("create_prompt", "optimize_prompt")
+    workflow.add_edge("optimize_prompt", "call_llm")
     workflow.add_edge("call_llm", "convert_data")
 
     # 从 convert_data 节点直接并行连接到 3 个处理节点

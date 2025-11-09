@@ -2,7 +2,7 @@ from sqlalchemy import select, and_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
-from common.database import Knowledge, Question, Unit
+from common.database import Question, Unit
 from common.schema import QuestionSchema, SearchResultSchema
 from utils.time import now
 
@@ -26,9 +26,9 @@ async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchem
     if update.answer is not None:
         question.answer = update.answer
     if update.difficulty is not None:
-        question.ansdifficultywer = update.difficulty
-    if update.knowledge_id is not None:
-        question.knowledge_id = update.knowledge_id
+        question.difficulty = update.difficulty
+    if update.knowledge is not None:
+        question.knowledge = update.knowledge
     if update.unit_id is not None:
         question.unit_id = update.unit_id
     if update.textbook_id is not None:
@@ -55,7 +55,6 @@ async def get_question(db: AsyncSession, id: str):
     result = await db.execute(
         select(Question)
         .options(
-            joinedload(Question.knowledge),
             joinedload(Question.unit).noload(Unit.textbook),
             joinedload(Question.textbook),
         )
@@ -67,24 +66,23 @@ async def get_question(db: AsyncSession, id: str):
     return QuestionSchema.model_validate(question)
 
 
-async def query_question_by_knowledge(db: AsyncSession, knowledge_id: int, page: int, size: int):
-    """根据知识点ID获取问题列表"""
+async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: int, size: int):
+    """根据知识点获取问题列表"""
     query = (
         select(Question)
         .options(
             noload(Question.textbook),
             noload(Question.unit),
-            noload(Question.knowledge),
         )
         .where(
-            Question.knowledge_id == knowledge_id,
+            Question.knowledge == knowledge,
             Question.status == 1,
         )
     )
 
     # 获取总数
     count_query = select(func.count(Question.id)).where(
-        Question.knowledge_id == knowledge_id,
+        Question.knowledge == knowledge,
         Question.status == 1,
     )
 
@@ -109,7 +107,6 @@ async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size
         .options(
             noload(Question.textbook),
             noload(Question.unit),
-            noload(Question.knowledge),
         )
         .where(Question.unit_id == unit_id)
     )
@@ -143,7 +140,6 @@ async def query_question_by_textbook(
         .options(
             noload(Question.textbook),
             noload(Question.unit),
-            noload(Question.knowledge),
         )
         .where(Question.textbook_id == textbook_id)
     )
@@ -172,7 +168,6 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     query = select(Question).options(
         joinedload(Question.textbook),
         joinedload(Question.unit).noload(Unit.textbook),
-        joinedload(Question.knowledge).noload(Knowledge.unit).noload(Unit.textbook),
     )
 
     conditions = []

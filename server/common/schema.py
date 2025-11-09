@@ -107,7 +107,7 @@ class QuestionSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
 
-    knowledge: Optional["KnowledgeSchema"] = None
+    knowledge: Optional[str] = None
     unit: Optional["UnitSchema"] = None
     textbook: Optional["TextbookSchema"] = None
 
