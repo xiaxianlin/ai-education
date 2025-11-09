@@ -318,7 +318,7 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
             logger.info(f"使用 resource_content 生成语音: {text_to_speak[:50]}...")
         else:
             # 构建完整的问题内容（包含题目、选项、答案）
-            text_to_speak = _build_full_question_text(question)
+            text_to_speak = build_full_question_text(question)
             logger.info(f"使用完整问题内容生成语音")
 
         # 生成语音
