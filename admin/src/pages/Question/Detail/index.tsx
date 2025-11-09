@@ -2,20 +2,56 @@ import { useParams, history } from '@umijs/max';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { QuestionApi } from '@/services/question';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Tag } from 'antd';
+import { message, Button, Card, Space, Tag, Image } from 'antd';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: question, loading } = useRequest(
+  const { data: question, loading, refresh } = useRequest(
     () => QuestionApi.get(id!),
     {
       ready: !!id,
       onError: () => {
         message.error('加载问题失败');
         history.back();
+      },
+    }
+  );
+
+  // 生成图片
+  const { runAsync: handleGenerateImage, loading: generatingImage } = useRequest(
+    async () => {
+      if (!id) return;
+      await QuestionApi.generateImage(id);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('图片生成成功');
+        refresh();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '图片生成失败');
+      },
+    }
+  );
+
+  // 生成语音
+  const { runAsync: handleGenerateAudio, loading: generatingAudio } = useRequest(
+    async () => {
+      if (!id) return;
+      await QuestionApi.generateAudio(id);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('语音生成成功');
+        refresh();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '语音生成失败');
       },
     }
   );
@@ -29,6 +65,20 @@ export default function QuestionDetailPage() {
   }
 
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
+
+  // 判断题型，决定显示哪个按钮
+  const isImageQuestion = question.type === '辨识题';
+  const isAudioQuestion = question.type === '跟读题' || question.type === '听力题';
+
+  // 构建资源 URL
+  // OSS 基础 URL
+  const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
+  
+  const resourceUrl = question.resource 
+    ? (question.resource.startsWith('http://') || question.resource.startsWith('https://'))
+      ? question.resource
+      : `${OSS_BASE_URL}/${question.resource}`
+    : null;
 
   // 解析选项
   let optionsList: string[] = [];
@@ -63,7 +113,31 @@ export default function QuestionDetailPage() {
       }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Card title="基本信息">
+        <Card 
+          title="基本信息"
+          extra={
+            <Space>
+              {isImageQuestion && (
+                <Button
+                  type="primary"
+                  onClick={handleGenerateImage}
+                  loading={generatingImage}
+                >
+                  生成图片
+                </Button>
+              )}
+              {isAudioQuestion && (
+                <Button
+                  type="primary"
+                  onClick={handleGenerateAudio}
+                  loading={generatingAudio}
+                >
+                  生成语音
+                </Button>
+              )}
+            </Space>
+          }
+        >
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
@@ -89,7 +163,7 @@ export default function QuestionDetailPage() {
             )}
             {question.knowledge && (
               <ProDescriptions.Item label="所属知识点" span={2}>
-                {question.knowledge.name}
+                {String(question.knowledge)}
               </ProDescriptions.Item>
             )}
             <ProDescriptions.Item label="创建时间" valueType="dateTime">
@@ -126,6 +200,52 @@ export default function QuestionDetailPage() {
             <div style={{ fontSize: '14px', padding: '12px', background: '#e6f7ff', borderRadius: '4px' }}>
               {question.answer}
             </div>
+          </Card>
+        )}
+
+        {/* 资源展示模块 */}
+        {resourceUrl && (
+          <Card title="资源">
+            {isImageQuestion && (
+              <div style={{ textAlign: 'center' }}>
+                <Image
+                  src={resourceUrl}
+                  alt="题目图片"
+                  style={{ maxWidth: '100%', maxHeight: '500px' }}
+                  preview={{
+                    mask: '预览',
+                  }}
+                />
+              </div>
+            )}
+            {isAudioQuestion && (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <audio controls style={{ width: '100%', maxWidth: '600px' }}>
+                  <source src={resourceUrl} type="audio/mpeg" />
+                  您的浏览器不支持音频播放。
+                </audio>
+                <div style={{ marginTop: '10px', color: '#666', fontSize: '12px' }}>
+                  <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
+                    下载音频文件
+                  </a>
+                </div>
+              </div>
+            )}
+            {!isImageQuestion && !isAudioQuestion && (
+              <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>资源路径：</strong>
+                  <span style={{ wordBreak: 'break-all' }}>{question.resource}</span>
+                </div>
+                {resourceUrl && (
+                  <div>
+                    <a href={resourceUrl} target="_blank" rel="noopener noreferrer">
+                      查看资源
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         )}
       </Space>

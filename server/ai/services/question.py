@@ -274,8 +274,9 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
     for question in image_questions:
         try:
             # 生成图片
+            # 使用允许的尺寸：1328*1328（最接近正方形的尺寸）
             image_url = AliyunAIService.generate_image(
-                text=question.content, width=1024, height=1024
+                text=question.content, width=1328, height=1328
             )
             # 将图片URL保存到临时字段，后续上传时使用
             question._temp_image_url = image_url
@@ -346,6 +347,12 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
 
                 # 上传到 OSS
                 oss_path = f"questions/{unit_id}/images/{idx}.jpg"
+                
+                # 检查文件是否存在，如果存在则先删除
+                if oss.exist(oss_path):
+                    logger.info(f"OSS 文件已存在，先删除: {oss_path}")
+                    oss.delete(oss_path)
+                
                 oss.upload(oss_path, file_data)
 
                 # 保存资源路径
@@ -371,6 +378,12 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
 
                 # 上传到 OSS
                 oss_path = f"questions/{unit_id}/audio/{idx}.mp3"
+                
+                # 检查文件是否存在，如果存在则先删除
+                if oss.exist(oss_path):
+                    logger.info(f"OSS 文件已存在，先删除: {oss_path}")
+                    oss.delete(oss_path)
+                
                 oss.upload(oss_path, file_data)
 
                 # 保存资源路径

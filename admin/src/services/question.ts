@@ -24,4 +24,18 @@ export const QuestionApi = {
       method: 'DELETE',
     });
   },
+
+  generateImage: async (id: string) => {
+    const res = await request<ApiData<Question>>(`/question/${id}/generate_image`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  generateAudio: async (id: string) => {
+    const res = await request<ApiData<Question>>(`/question/${id}/generate_audio`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
 };

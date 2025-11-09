@@ -1,9 +1,17 @@
+import os
+import json
+import requests
+from pathlib import Path
 from sqlalchemy import select, and_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from common.database import Question, Unit
 from common.schema import QuestionSchema, SearchResultSchema
+from common.settings import envs
+from ai.services.aliyun import AliyunAIService
+from provider.aliyun import AliyunOSS
 from utils.time import now
 
 
@@ -205,3 +213,165 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
         total=total,
         data=[QuestionSchema.model_validate(question) for question in result.all()],
     )
+
+
+async def _download_file(url: str, file_path: str) -> None:
+    """下载文件到本地"""
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+
+def _build_full_question_text(question: Question) -> str:
+    """构建完整的问题内容，包含题目、选项、答案"""
+    parts = []
+
+    # 题目内容
+    if question.content:
+        parts.append(f"题目：{question.content}")
+
+    # 选项
+    if question.options:
+        try:
+            parsed = json.loads(question.options)
+            if isinstance(parsed, list):
+                options_text = "\n".join(
+                    [
+                        f"{chr(65 + i)}. {opt if isinstance(opt, str) else opt.get('text', opt.get('label', str(opt)))}"
+                        for i, opt in enumerate(parsed)
+                    ]
+                )
+            else:
+                # 如果不是数组，尝试按换行符分割
+                options_text = question.options
+            if options_text:
+                parts.append(f"选项：\n{options_text}")
+        except (json.JSONDecodeError, Exception):
+            # 如果解析失败，直接使用原始文本
+            if question.options.strip():
+                parts.append(f"选项：\n{question.options}")
+
+    # 答案
+    if question.answer:
+        parts.append(f"答案：{question.answer}")
+
+    return "\n\n".join(parts) if parts else question.content or ""
+
+
+async def generate_question_image(db: AsyncSession, question_id: str) -> QuestionSchema:
+    """为单个问题生成图片并上传到 OSS"""
+    question = await db.scalar(select(Question).where(Question.id == question_id))
+    if not question:
+        raise ValueError("问题不存在")
+
+    if not question.content:
+        raise ValueError("问题内容为空，无法生成图片")
+
+    try:
+        # 构建完整的问题内容（包含题目、选项、答案）
+        full_question_text = _build_full_question_text(question)
+
+        # 生成图片
+        logger.info(f"开始为问题 {question_id} 生成图片")
+        # 使用允许的尺寸：1328*1328（最接近正方形的尺寸）
+        image_url = AliyunAIService.generate_image(
+            text=full_question_text, width=1328, height=1328, optimize_prompt=True
+        )
+
+        # 下载图片到临时目录
+        oss = AliyunOSS()
+        tmp_dir = Path(envs.TMP_DIR)
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        image_path = tmp_dir / f"question_{question_id}_image.jpg"
+
+        await _download_file(image_url, str(image_path))
+
+        # 读取文件内容
+        with open(image_path, "rb") as f:
+            file_data = f.read()
+
+        # 上传到 OSS
+        unit_id = question.unit_id or 0
+        oss_path = f"questions/{unit_id}/images/{question_id}.jpg"
+
+        # 检查文件是否存在，如果存在则先删除
+        if oss.exist(oss_path):
+            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
+            oss.delete(oss_path)
+
+        oss.upload(oss_path, file_data)
+
+        # 更新问题的 resource 字段
+        question.resource = oss_path
+        question.update_time = now()
+        await db.commit()
+
+        # 清理临时文件
+        os.remove(image_path)
+
+        logger.info(f"成功为问题 {question_id} 生成并上传图片: {oss_path}")
+
+    except Exception as e:
+        logger.error(f"为问题 {question_id} 生成图片失败: {e}")
+        await db.rollback()
+        raise
+
+
+async def generate_question_audio(db: AsyncSession, question_id: str) -> QuestionSchema:
+    """为单个问题生成语音并上传到 OSS"""
+    question = await db.scalar(select(Question).where(Question.id == question_id))
+    if not question:
+        raise ValueError("问题不存在")
+
+    if not question.content:
+        raise ValueError("问题内容为空，无法生成语音")
+
+    try:
+        # 构建完整的问题内容（包含题目、选项、答案）
+        full_question_text = _build_full_question_text(question)
+
+        # 生成语音
+        logger.info(f"开始为问题 {question_id} 生成语音")
+        audio_url = AliyunAIService.tts(text=full_question_text, voice="Cherry", language="Chinese")
+
+        # 下载音频到临时目录
+        oss = AliyunOSS()
+        tmp_dir = Path(envs.TMP_DIR)
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        audio_path = tmp_dir / f"question_{question_id}_audio.mp3"
+
+        await _download_file(audio_url, str(audio_path))
+
+        # 读取文件内容
+        with open(audio_path, "rb") as f:
+            file_data = f.read()
+
+        # 上传到 OSS
+        unit_id = question.unit_id or 0
+        oss_path = f"questions/{unit_id}/audio/{question_id}.mp3"
+
+        # 检查文件是否存在，如果存在则先删除
+        if oss.exist(oss_path):
+            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
+            oss.delete(oss_path)
+
+        oss.upload(oss_path, file_data)
+
+        # 更新问题的 resource 字段
+        question.resource = oss_path
+        question.update_time = now()
+        await db.commit()
+
+        # 清理临时文件
+        os.remove(audio_path)
+
+        logger.info(f"成功为问题 {question_id} 生成并上传语音: {oss_path}")
+
+    except Exception as e:
+        logger.error(f"为问题 {question_id} 生成语音失败: {e}")
+        await db.rollback()
+        raise
