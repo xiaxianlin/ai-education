@@ -1,4 +1,4 @@
-"""练习路由（今日练习 + 单元练习）"""
+"""练习路由（今日练习 + 单元练习 + 能力评测）"""
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
@@ -7,6 +7,7 @@ from common.database import Database
 from student.routes.profile import get_current_student
 from student.services.unit_practice import UnitPracticeService
 from student.services.daily_practice import DailyPracticeService
+from student.services.assessment import AssessmentService
 from admin.schema import (
     CreateUnitPracticeSchema,
     SubmitUnitPracticeAnswerSchema,
@@ -14,6 +15,9 @@ from admin.schema import (
     CreateDailyPracticeSchema,
     SubmitDailyPracticeAnswerSchema,
     CompleteDailyPracticeSchema,
+    CreateAssessmentSchema,
+    SubmitAssessmentAnswerSchema,
+    CompleteAssessmentSchema,
 )
 
 practice_router = APIRouter(prefix="/practice")
@@ -263,5 +267,143 @@ async def get_practice_history(
     - limit: 返回记录数，默认20
     """
     history = await UnitPracticeService.get_practice_history(db, student.id, limit)
+    return history
+
+
+# ==================== 能力评测 API ====================
+
+@practice_router.post("/assessment")
+async def create_assessment(
+    params: CreateAssessmentSchema,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    创建能力评测
+    
+    请求参数：
+    - assessment_type: 评测类型 (unit/comprehensive/topic)
+    - target_id: 目标ID（可选，单元ID或知识点ID）
+    - max_questions: 最大题目数（默认20）
+    - min_questions: 最小题目数（默认10）
+    
+    自适应算法：
+    - 根据答题情况动态调整题目难度
+    - 快速定位能力边界
+    - 提高测试精度
+    """
+    test = await AssessmentService.create_assessment(
+        db,
+        student.id,
+        params.assessment_type,
+        params.target_id,
+        params.max_questions,
+        params.min_questions,
+    )
+    return test
+
+
+@practice_router.get("/assessment/{assessment_id}/next")
+async def get_next_assessment_question(
+    assessment_id: int,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取下一道评测题目（自适应）
+    
+    返回：
+    - question: 题目信息
+    - progress: 进度信息
+    - current_ability: 当前能力估计
+    - confidence: 置信度
+    
+    如果返回null，表示评测已达到终止条件
+    """
+    next_question = await AssessmentService.get_next_question(
+        db, assessment_id, student.id
+    )
+    return next_question
+
+
+@practice_router.post("/assessment/answer")
+async def submit_assessment_answer(
+    params: SubmitAssessmentAnswerSchema,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    提交评测答案
+    
+    请求参数：
+    - assessment_id: 评测ID
+    - question_id: 题目ID
+    - answer: 答案
+    - time_spent: 耗时（秒）
+    
+    返回：
+    - is_correct: 是否正确
+    - correct_answer: 正确答案
+    - current_ability: 更新后的能力值
+    - confidence: 更新后的置信度
+    - answered_count: 已答题目数
+    """
+    result = await AssessmentService.submit_answer(
+        db,
+        student.id,
+        params.assessment_id,
+        params.question_id,
+        params.answer,
+        params.time_spent,
+    )
+    return result
+
+
+@practice_router.post("/assessment/complete")
+async def complete_assessment(
+    params: CompleteAssessmentSchema,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    完成能力评测
+    
+    请求参数：
+    - assessment_id: 评测ID
+    
+    返回：
+    - assessment_id: 评测ID
+    - overall_score: 总分（0-100）
+    - ability_level: 能力等级（beginner/intermediate/advanced）
+    - answered_count: 答题数
+    - total_time: 总用时
+    - report: 详细报告
+        - knowledge_mastery: 知识点掌握情况
+        - ability_breakdown: 能力分解（按难度）
+        - learning_speed: 学习速度
+        - consistency: 稳定性
+        - strengths: 优势
+        - weaknesses: 薄弱点
+        - recommendations: 学习建议
+    """
+    report = await AssessmentService.complete_assessment(
+        db, student.id, params.assessment_id
+    )
+    return report
+
+
+@practice_router.get("/assessment/history")
+async def get_assessment_history(
+    limit: Optional[int] = 10,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取能力评测历史
+    
+    参数：
+    - limit: 返回记录数，默认10
+    """
+    history = await AssessmentService.get_assessment_history(db, student.id, limit)
     return history
 

@@ -162,7 +162,7 @@ export function DailyPracticeSession() {
 
     if (question.type === '选择题') {
       return (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {options.map((option, index) => {
             const optionLabel = String.fromCharCode(65 + index);
             const isSelected = answer === optionLabel;
@@ -173,39 +173,39 @@ export function DailyPracticeSession() {
                 onClick={() => !hasAnswered && handleAnswerChange(optionLabel)}
                 disabled={hasAnswered}
                 className={cn(
-                  'w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
+                  'w-full text-left p-6 rounded-2xl border-3 transition-all duration-300 shadow-md hover:shadow-lg',
                   isSelected
                     ? hasAnswered
                       ? answerResults[question.id]
-                        ? 'border-green-400 bg-green-50'
-                        : 'border-red-400 bg-red-50'
-                      : 'border-blue-400 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50',
-                  hasAnswered && 'cursor-not-allowed opacity-75'
+                        ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-105'
+                        : 'border-red-500 bg-gradient-to-r from-red-50 to-rose-50 scale-105'
+                      : 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 scale-105'
+                    : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50/30',
+                  hasAnswered && 'cursor-not-allowed opacity-80'
                 )}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-4">
                   <div
                     className={cn(
-                      'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm',
+                      'flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-md',
                       isSelected
                         ? hasAnswered
                           ? answerResults[question.id]
-                            ? 'bg-green-400 text-white'
-                            : 'bg-red-400 text-white'
-                          : 'bg-blue-400 text-white'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
+                          : 'bg-blue-500 text-white'
                         : 'bg-gray-200 text-gray-600'
                     )}
                   >
                     {optionLabel}
                   </div>
-                  <div className="flex-1 pt-1 text-gray-700">{option}</div>
+                  <div className="flex-1 pt-2 text-lg text-gray-800 font-medium">{option}</div>
                   {isSelected && hasAnswered && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 mt-2">
                       {answerResults[question.id] ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-8 w-8 text-green-600" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
+                        <XCircle className="h-8 w-8 text-red-600" />
                       )}
                     </div>
                   )}
@@ -217,8 +217,11 @@ export function DailyPracticeSession() {
       );
     } else if (question.type === '判断题') {
       return (
-        <div className="space-y-3">
-          {['正确', '错误'].map((option) => {
+        <div className="space-y-4">
+          {[
+            { value: '正确', emoji: '✅' },
+            { value: '错误', emoji: '❌' },
+          ].map(({ value: option, emoji }) => {
             const isSelected = answer === option;
             return (
               <button
@@ -226,25 +229,28 @@ export function DailyPracticeSession() {
                 onClick={() => !hasAnswered && handleAnswerChange(option)}
                 disabled={hasAnswered}
                 className={cn(
-                  'w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
+                  'w-full p-6 rounded-2xl border-3 transition-all duration-300 shadow-md hover:shadow-lg',
                   isSelected
                     ? hasAnswered
                       ? answerResults[question.id]
-                        ? 'border-green-400 bg-green-50'
-                        : 'border-red-400 bg-red-50'
-                      : 'border-blue-400 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50',
-                  hasAnswered && 'cursor-not-allowed opacity-75'
+                        ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-105'
+                        : 'border-red-500 bg-gradient-to-r from-red-50 to-rose-50 scale-105'
+                      : 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 scale-105'
+                    : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50/30',
+                  hasAnswered && 'cursor-not-allowed opacity-80'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-700">{option}</span>
+                  <span className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                    <span className="text-4xl">{emoji}</span>
+                    {option}
+                  </span>
                   {isSelected && hasAnswered && (
                     <div className="flex-shrink-0">
                       {answerResults[question.id] ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-8 w-8 text-green-600" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
+                        <XCircle className="h-8 w-8 text-red-600" />
                       )}
                     </div>
                   )}
@@ -263,30 +269,30 @@ export function DailyPracticeSession() {
             disabled={hasAnswered}
             placeholder="请输入你的答案..."
             className={cn(
-              'w-full p-4 border-2 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all',
+              'w-full p-6 border-3 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all text-lg',
               hasAnswered
                 ? answerResults[question.id]
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-red-400 bg-red-50'
-                : 'border-gray-200 focus:border-blue-400',
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-red-500 bg-red-50'
+                : 'border-gray-300 focus:border-blue-400',
               hasAnswered && 'cursor-not-allowed'
             )}
-            rows={4}
+            rows={6}
           />
           {hasAnswered && (
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-gray-50">
               {answerResults[question.id] ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
+                <CheckCircle className="h-7 w-7 text-green-600" />
               ) : (
-                <XCircle className="h-5 w-5 text-red-500" />
+                <XCircle className="h-7 w-7 text-red-600" />
               )}
               <span
                 className={cn(
-                  'text-sm font-medium',
-                  answerResults[question.id] ? 'text-green-600' : 'text-red-600'
+                  'text-lg font-bold',
+                  answerResults[question.id] ? 'text-green-700' : 'text-red-700'
                 )}
               >
-                {answerResults[question.id] ? '回答正确' : '回答错误'}
+                {answerResults[question.id] ? '回答正确！✨' : '回答错误'}
               </span>
             </div>
           )}
@@ -509,38 +515,41 @@ export function DailyPracticeSession() {
 
             <div>{renderQuestionContent(currentQuestion)}</div>
 
-            <div className="flex gap-3 pt-4 border-t">
+            <div className="flex gap-4 pt-6 border-t-2 border-gray-200">
               <Button
                 variant="outline"
                 onClick={goToPreviousQuestion}
                 disabled={currentQuestionIndex === 0}
-                className="flex-1"
+                className="flex-1 h-16 text-lg font-bold rounded-2xl border-2"
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
+                <ChevronLeft className="h-6 w-6 mr-2" />
                 上一题
               </Button>
               {!hasAnswered ? (
                 <Button
                   onClick={handleSubmitAnswer}
                   disabled={!userAnswers[currentQuestion.id] || submitting}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600"
+                  className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-2xl shadow-lg"
                 >
-                  <Send className="h-4 w-4 mr-1" />
-                  {submitting ? '提交中...' : '提交答案'}
+                  <Send className="h-6 w-6 mr-2" />
+                  {submitting ? '提交中...' : '提交答案 ✓'}
                 </Button>
               ) : currentQuestionIndex < totalQuestions - 1 ? (
-                <Button onClick={goToNextQuestion} className="flex-1">
+                <Button 
+                  onClick={goToNextQuestion} 
+                  className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-2xl shadow-lg"
+                >
                   下一题
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-6 w-6 ml-2" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleCompletePractice}
                   disabled={submitting}
-                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl shadow-lg"
                 >
-                  <Trophy className="h-4 w-4 mr-1" />
-                  {submitting ? '完成中...' : '完成练习'}
+                  <Trophy className="h-6 w-6 mr-2" />
+                  {submitting ? '完成中...' : '完成练习 🎉'}
                 </Button>
               )}
             </div>

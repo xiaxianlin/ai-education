@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
-import { CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { CheckCircle, Clock, TrendingUp, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { profileApi, StudyRecord, StudentStats } from '@/services/profile';
 import { toast } from 'sonner';
@@ -71,43 +71,56 @@ export function PracticeHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-12 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-12 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">加载中...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-500 mx-auto"></div>
+          <p className="mt-6 text-lg font-medium text-gray-600 animate-pulse">正在加载...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* 头部 */}
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">练习记录</h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                连续练习 <span className="font-semibold text-foreground">{streakDays}</span> 天
-              </span>
+        {/* 头部卡片 - 一行内展示 */}
+        <Card className="border-2 border-blue-300 shadow-2xl rounded-3xl overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-6">
+              {/* 标题 */}
+              <div className="flex items-center gap-4">
+                <div className="text-6xl">📝</div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800">练习记录</h1>
+                  <p className="text-base text-gray-600">回顾学习历程</p>
+                </div>
+              </div>
+              
+              {/* 统计信息 */}
+              <div className="flex items-center gap-6">
+                <div className="text-center px-4 py-2 rounded-xl bg-orange-50 border-2 border-orange-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    <p className="text-2xl font-bold text-orange-600">{streakDays}</p>
+                  </div>
+                  <p className="text-xs text-orange-600">连续天数</p>
+                </div>
+                <div className="text-center px-4 py-2 rounded-xl bg-blue-50 border-2 border-blue-200">
+                  <p className="text-2xl font-bold text-blue-600">{getTodayRecords().length}</p>
+                  <p className="text-xs text-blue-600">今日次数</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                今日练习 <span className="font-semibold text-foreground">{getTodayRecords().length}</span> 次
-              </span>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* 周视图（简化） */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <CardContent className="pt-6">
+        {/* 周视图 - 更漂亮 */}
+        <Card className="bg-gradient-to-r from-purple-100 via-blue-100 to-cyan-100 border-2 border-purple-300 shadow-2xl rounded-3xl">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="font-medium">本周完成</span>
-              <span className="text-2xl font-bold">
+              <span className="text-lg font-bold text-gray-800">本周完成</span>
+              <span className="text-4xl font-bold text-purple-700">
                 {Object.keys(groupedRecords).length} 天
               </span>
             </div>
@@ -118,8 +131,10 @@ export function PracticeHistory() {
                   <div
                     key={index}
                     className={cn(
-                      'flex-1 h-8 rounded',
-                      isCompleted ? 'bg-primary' : 'bg-gray-200'
+                      'flex-1 h-12 rounded-2xl transition-all duration-300 shadow-md',
+                      isCompleted 
+                        ? 'bg-gradient-to-br from-green-400 to-emerald-500 scale-105' 
+                        : 'bg-gray-300'
                     )}
                   />
                 );
@@ -128,7 +143,7 @@ export function PracticeHistory() {
           </CardContent>
         </Card>
 
-        {/* 时间轴记录 */}
+        {/* 时间轴记录 - 更漂亮 */}
         <div className="space-y-4">
           {Object.keys(groupedRecords).length > 0 ? (
             Object.entries(groupedRecords).map(([date, dayRecords]) => {
@@ -138,34 +153,47 @@ export function PracticeHistory() {
               const accuracy = Math.round((correctCount / totalQuestions) * 100);
 
               return (
-                <Card key={date} className="hover:shadow-md transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
+                <Card key={date} className="hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 rounded-3xl hover:scale-[1.02]">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="p-3 rounded-2xl bg-green-100 shadow-md">
+                            <CheckCircle className="h-7 w-7 text-green-600" />
+                          </div>
                           <div>
-                            <p className="font-medium">{date}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xl font-bold text-gray-800">{date}</p>
+                            <p className="text-sm text-gray-500 font-medium">
                               教材 #{dayRecords[0].textbook_id}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground ml-8">
-                          <span>{totalQuestions} 道题</span>
-                          <span>{formatTime(totalTime)}</span>
+                        <div className="flex items-center gap-6 text-base font-medium ml-2">
+                          <span className="text-blue-600">
+                            📝 {totalQuestions} 题
+                          </span>
+                          <span className="text-purple-600">
+                            ⏱️ {formatTime(totalTime)}
+                          </span>
                           <span
                             className={cn(
-                              'font-semibold',
-                              accuracy >= 80 ? 'text-green-600' : accuracy >= 60 ? 'text-orange-600' : 'text-red-600'
+                              'font-bold px-3 py-1 rounded-xl',
+                              accuracy >= 80 
+                                ? 'bg-green-100 text-green-700' 
+                                : accuracy >= 60 
+                                ? 'bg-orange-100 text-orange-700' 
+                                : 'bg-red-100 text-red-700'
                             )}
                           >
-                            正确率 {accuracy}%
+                            {accuracy >= 80 ? '✅' : accuracy >= 60 ? '😊' : '💪'} {accuracy}%
                           </span>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm">
-                        查看详情
+                      <Button 
+                        variant="outline" 
+                        className="h-12 px-6 text-base font-bold rounded-2xl border-2 hover:bg-blue-50"
+                      >
+                        查看
                       </Button>
                     </div>
                   </CardContent>
@@ -173,11 +201,11 @@ export function PracticeHistory() {
               );
             })
           ) : (
-            <Card>
-              <CardContent className="pt-6 pb-6 text-center">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">暂无练习记录</p>
-                <p className="text-sm text-muted-foreground mt-2">开始你的第一次练习吧！</p>
+            <Card className="border-2 border-gray-300 shadow-2xl rounded-3xl">
+              <CardContent className="py-16 text-center">
+                <div className="text-7xl mb-6">📚</div>
+                <p className="text-2xl font-bold text-gray-800 mb-3">还没有记录哦</p>
+                <p className="text-base text-gray-600">开始你的第一次练习吧！🚀</p>
               </CardContent>
             </Card>
           )}

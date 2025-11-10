@@ -1,182 +1,122 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { Header } from '@/components/layout/Header';
-import { Target, Clock, Award, TrendingUp, Play } from 'lucide-react';
+import { Target, Clock, Award, Play, Loader2, Brain } from 'lucide-react';
+import { practiceApi } from '@/services/practice';
+import { toast } from 'sonner';
 
 export function Assessment() {
-  const [hasCompleted, setHasCompleted] = useState(false);
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
 
-  // 模拟评测报告数据
-  const report = {
-    level: '良好',
-    accuracy: 78,
-    totalQuestions: 25,
-    duration: 22,
-    weakPoints: [
-      { knowledge: '分数的加减', accuracy: 60 },
-      { knowledge: '小数的乘法', accuracy: 65 },
-    ],
+  const handleStartAssessment = async () => {
+    try {
+      setCreating(true);
+      const assessment = await practiceApi.createAssessment({
+        assessment_type: 'comprehensive',
+        max_questions: 20,
+        min_questions: 10,
+      });
+      toast.success('能力评测已创建，开始答题！');
+      navigate({ to: `/assessment/${assessment.id}` });
+    } catch (error: any) {
+      console.error('Failed to create assessment:', error);
+      toast.error(error.message || '创建评测失败');
+    } finally {
+      setCreating(false);
+    }
   };
 
-  if (hasCompleted) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-          {/* 返回首页按钮 */}
-          <div className="flex justify-end">
-            <BackToHomeButton />
-          </div>
-          
-          {/* 报告头部 */}
-          <div className="text-center py-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
-              <Award className="h-10 w-10 text-purple-600" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">评测完成</h1>
-            <p className="text-muted-foreground">你的能力等级：{report.level}</p>
-          </div>
-
-          {/* 总体成绩 */}
-          <Card className="border-2 border-purple-200">
-            <CardHeader>
-              <CardTitle className="text-center">总体成绩</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-4">
-                <p className="text-5xl font-bold text-purple-600 mb-2">{report.accuracy}%</p>
-                <p className="text-muted-foreground">
-                  完成 {report.totalQuestions} 道题，用时 {report.duration} 分钟
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 薄弱知识点 */}
-          {report.weakPoints.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">薄弱知识点</CardTitle>
-                <CardDescription>建议加强以下知识点的练习</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {report.weakPoints.map((point, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-orange-50 rounded-lg"
-                    >
-                      <span className="font-medium">{point.knowledge}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">
-                          正确率 {point.accuracy}%
-                        </span>
-                        <Button variant="outline" size="sm">
-                          去练习
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* 建议 */}
-          <Card className="bg-gradient-to-r from-purple-50 to-blue-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
-                <p className="font-medium">练习建议</p>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                建议继续加强薄弱知识点的练习，可以通过单元练习针对性地提高。
-              </p>
-              <Link to="/unit-practice">
-                <Button variant="outline" className="w-full">
-                  开始单元练习
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Link to="/home">
-            <Button className="w-full" size="lg">
-              返回首页
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50/50 via-blue-50/50 to-pink-50/50">
       <Header />
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* 返回首页按钮 */}
-        <div className="flex justify-end">
-          <BackToHomeButton />
-        </div>
-        
-        {/* 头部 */}
-        <div className="text-center py-6">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
-            <Target className="h-10 w-10 text-purple-600" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">能力评测</h1>
-          <p className="text-muted-foreground">了解你的知识掌握情况</p>
-        </div>
-
-        {/* 信息卡 */}
-        <Card className="border-2 border-purple-200">
-          <CardHeader>
-            <CardTitle>评测说明</CardTitle>
-            <CardDescription>完成评测后，系统会生成你的能力报告</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Target className="h-5 w-5 text-purple-500" />
-              <div className="flex-1">
-                <p className="font-medium">题量</p>
-                <p className="text-sm text-muted-foreground">20-30 道题</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-purple-500" />
-              <div className="flex-1">
-                <p className="font-medium">预计时间</p>
-                <p className="text-sm text-muted-foreground">15-20 分钟</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Award className="h-5 w-5 text-purple-500" />
-              <div className="flex-1">
-                <p className="font-medium">奖励</p>
-                <p className="text-sm text-muted-foreground">完成评测可获得成就徽章</p>
+        {/* 头部卡片 - 一行内展示 */}
+        <Card className="border-2 border-purple-300 shadow-2xl rounded-3xl overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-6xl animate-bounce">🎯</div>
+              <div className="text-center">
+                <h1 className="text-3xl font-bold text-gray-800">能力测试</h1>
+                <p className="text-base text-gray-600">让AI帮你找到学习的方向！</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* 开始按钮 */}
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={() => setHasCompleted(true)}
-        >
-          <Play className="h-5 w-5 mr-2" />
-          开始评测
-        </Button>
+        {/* 信息卡 - 简化版 */}
+        <Card className="border-2 border-purple-300 shadow-2xl overflow-hidden rounded-3xl">
+          <div className="bg-gradient-to-r from-purple-100 via-blue-100 to-cyan-100 p-8 text-center">
+            <div className="text-7xl mb-4">🎯</div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              智能测试
+            </h2>
+            <p className="text-base text-gray-600">
+              看看你学得怎么样！
+            </p>
+          </div>
 
-        <Link to="/home">
-          <Button variant="outline" className="w-full">
-            稍后再来
+          <CardContent className="p-8 space-y-6">
+            {/* 简化的4个特点 - 使用表情符号 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 text-center">
+                <div className="text-5xl mb-3">🤖</div>
+                <p className="text-lg font-bold text-gray-800 mb-1">智能选题</p>
+                <p className="text-sm text-gray-600">根据你的表现选题</p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 text-center">
+                <div className="text-5xl mb-3">⏱️</div>
+                <p className="text-lg font-bold text-gray-800 mb-1">10-20 题</p>
+                <p className="text-sm text-gray-600">大约 15 分钟</p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-teal-50 border-2 border-green-200 text-center">
+                <div className="text-5xl mb-3">📊</div>
+                <p className="text-lg font-bold text-gray-800 mb-1">详细报告</p>
+                <p className="text-sm text-gray-600">看看哪里学得好</p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 text-center">
+                <div className="text-5xl mb-3">💡</div>
+                <p className="text-lg font-bold text-gray-800 mb-1">学习建议</p>
+                <p className="text-sm text-gray-600">告诉你怎么学更好</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 开始按钮 - 更大更明显 */}
+        <div className="space-y-4">
+          <Button
+            className="w-full h-20 text-2xl font-bold bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 hover:from-purple-600 hover:via-blue-600 hover:to-cyan-600 shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 rounded-3xl"
+            onClick={handleStartAssessment}
+            disabled={creating}
+          >
+            {creating ? (
+              <>
+                <Loader2 className="h-8 w-8 mr-3 animate-spin" />
+                准备测试中...
+              </>
+            ) : (
+              <>
+                <Play className="h-8 w-8 mr-3" fill="currentColor" />
+                开始测试 🚀
+              </>
+            )}
           </Button>
-        </Link>
+
+          <Button
+            variant="outline"
+            className="w-full h-16 text-xl rounded-2xl border-2 hover:bg-gray-50"
+            onClick={() => navigate({ to: '/home' })}
+          >
+            我再想想
+          </Button>
+        </div>
       </div>
     </div>
   );

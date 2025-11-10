@@ -94,29 +94,27 @@ export function Header() {
 
   if (loading) {
     return (
-      <header className="sticky top-0 z-40 w-full border-b bg-white">
-        <div className="h-14 flex items-center justify-between px-4">
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
+        <div className="h-16 flex items-center justify-between px-4">
           <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
         </div>
       </header>
     );
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white shadow-sm">
-      <div className="h-14 flex items-center justify-between px-4 gap-4">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
+      <div className="h-16 flex items-center justify-between px-4 gap-4">
         {/* 左侧：教材信息 */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Dropdown
             trigger={
-              <div className="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors cursor-pointer max-w-full">
-                <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer max-w-full">
+                <span className="text-xl">📚</span>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs text-muted-foreground">当前教材</span>
-                  <span className="text-sm font-medium text-gray-900 truncate">
+                  <span className="text-xs text-gray-500">当前教材</span>
+                  <span className="text-sm font-semibold text-gray-900 truncate">
                     {currentTextbook
                       ? getTextbookDisplayName(currentTextbook)
                       : '未设置教材'}
@@ -137,17 +135,23 @@ export function Header() {
                         key={textbook.id}
                         onClick={() => !isCurrent && handleSwitchTextbook(textbook.id)}
                         disabled={isCurrent || switching}
-                        className={cn(isCurrent && 'bg-blue-50 text-blue-700 font-medium')}
+                        className={cn(
+                          'py-2 px-3',
+                          isCurrent && 'bg-blue-50 text-blue-700 font-semibold'
+                        )}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{textbook.subject}</div>
-                            <div className="text-xs text-gray-500 truncate">
-                              {textbook.version} · {getGradeLabel(textbook.grade)} · {textbook.semester}
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-base">{isCurrent ? '✨' : '📖'}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{textbook.subject}</div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {textbook.version} · {getGradeLabel(textbook.grade)} · {textbook.semester}
+                              </div>
                             </div>
                           </div>
                           {isCurrent && (
-                            <span className="ml-2 text-xs text-blue-600">当前</span>
+                            <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">当前</span>
                           )}
                         </div>
                       </DropdownItem>
@@ -155,8 +159,11 @@ export function Header() {
                   })}
                 </>
               ) : (
-                <DropdownItem disabled className="text-gray-500 text-center">
-                  暂无教材
+                <DropdownItem disabled className="text-gray-500 text-center py-3">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">📚</span>
+                    <span className="text-xs">暂无教材</span>
+                  </div>
                 </DropdownItem>
               )}
             </div>
@@ -165,31 +172,27 @@ export function Header() {
 
         {/* 右侧：个人信息和操作 */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link
-            to="/home"
-            title="返回首页"
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/10',
-              isHomePage && 'pointer-events-none opacity-50'
-            )}
-          >
-            <Home className="h-4 w-4" />
-          </Link>
+          {!isHomePage && (
+            <Link
+              to="/home"
+              title="返回首页"
+              className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Home className="h-4 w-4 text-gray-600" />
+            </Link>
+          )}
 
           <Link
             to="/profile"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <User className="h-4 w-4 text-blue-600" />
             </div>
             <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-sm font-medium text-gray-900 truncate">
+              <span className="text-sm font-semibold text-gray-900 truncate">
                 {studentInfo?.name || '学生'}
               </span>
-              {studentInfo?.phone && (
-                <span className="text-xs text-gray-500 truncate">{studentInfo.phone}</span>
-              )}
             </div>
           </Link>
 
@@ -197,7 +200,7 @@ export function Header() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="h-8 px-2 text-gray-600 hover:text-red-600 hover:bg-red-50"
+            className="h-9 px-2 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
             title="退出登录"
           >
             <LogOut className="h-4 w-4" />

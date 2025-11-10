@@ -27,193 +27,122 @@ export function DailyPractice() {
     try {
       setCreating(true);
       const session = await practiceApi.createDailyPractice({ count: selectedCount });
-      toast.success('今日练习已创建，开始答题！');
+      toast.success('🎉 太好了！开始答题吧！');
       navigate({ to: `/daily-practice/${session.id}` });
     } catch (error: any) {
       console.error('Failed to create daily practice:', error);
-      toast.error(error.message || '创建练习失败');
+      toast.error(error.message || '哎呀，出错了，再试一次吧');
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
       <Header />
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {/* 头部 */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <Calendar className="h-8 w-8 text-blue-500" />
-            今日练习
-          </h1>
-          <p className="text-gray-600 text-base">
-            智能推荐，个性化学习 - 每天进步一点点
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
+        {/* 头部卡片 - 一行内展示 */}
+        <Card className="border-2 border-blue-300 shadow-2xl rounded-3xl overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-6xl">📅</div>
+              <div className="text-center">
+                <h1 className="text-3xl font-bold text-gray-800">今日练习</h1>
+                <p className="text-base text-gray-600">每天10分钟，轻松学知识！✨</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 主卡片 */}
-        <Card className="border-2 border-blue-200 shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  <Sparkles className="h-7 w-7 text-yellow-500" />
-                  开始今日练习
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  基于你的学习情况，智能推荐最适合的题目
-                </p>
-              </div>
-              <div className="hidden md:block">
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shadow-lg">
-                    <Brain className="h-12 w-12 text-white" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center shadow-md">
-                    <Zap className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-              </div>
-            </div>
+        <Card className="border-2 border-blue-300 shadow-2xl overflow-hidden rounded-3xl">
+          <div className="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 p-8 text-center">
+            <div className="text-7xl mb-4">🤖</div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              智能推荐题目
+            </h2>
+            <p className="text-base text-gray-600">
+              根据你的学习情况，为你选最合适的题目！
+            </p>
           </div>
 
-          <CardContent className="pt-6 pb-8 space-y-6">
-            {/* 智能推荐算法说明 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100">
-                <div className="p-2 rounded-lg bg-red-100">
-                  <BookCheck className="h-5 w-5 text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm">错题复习</div>
-                  <div className="text-xs text-gray-600 mt-1">30% - 巩固薄弱知识点</div>
-                </div>
+          <CardContent className="p-8 space-y-8">
+            {/* 简化的题目组成说明 - 用表情符号 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 text-center">
+                <div className="text-5xl mb-3">📕</div>
+                <p className="text-lg font-bold text-gray-800">错题复习</p>
+                <p className="text-sm text-gray-600 mt-1">巩固一下</p>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <Target className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm">巩固练习</div>
-                  <div className="text-xs text-gray-600 mt-1">40% - 强化已学内容</div>
-                </div>
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 text-center">
+                <div className="text-5xl mb-3">📘</div>
+                <p className="text-lg font-bold text-gray-800">巩固练习</p>
+                <p className="text-sm text-gray-600 mt-1">多练练</p>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50 border border-orange-100">
-                <div className="p-2 rounded-lg bg-orange-100">
-                  <TrendingUp className="h-5 w-5 text-orange-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm">挑战题目</div>
-                  <div className="text-xs text-gray-600 mt-1">20% - 提升解题能力</div>
-                </div>
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200 text-center">
+                <div className="text-5xl mb-3">🚀</div>
+                <p className="text-lg font-bold text-gray-800">挑战题目</p>
+                <p className="text-sm text-gray-600 mt-1">试试看</p>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-green-50 border border-green-100">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <Sparkles className="h-5 w-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800 text-sm">新知识点</div>
-                  <div className="text-xs text-gray-600 mt-1">10% - 拓展学习范围</div>
-                </div>
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-teal-50 border-2 border-green-200 text-center">
+                <div className="text-5xl mb-3">✨</div>
+                <p className="text-lg font-bold text-gray-800">新知识</p>
+                <p className="text-sm text-gray-600 mt-1">学新的</p>
               </div>
             </div>
 
-            {/* 题目数量选择 */}
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-gray-700">选择题目数量</label>
-              <div className="grid grid-cols-4 gap-3">
+            {/* 题目数量选择 - 更大更明显 */}
+            <div className="space-y-4">
+              <label className="text-xl font-bold text-gray-800 text-center block">选几道题？</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[5, 10, 15, 20].map((count) => (
                   <button
                     key={count}
                     onClick={() => setSelectedCount(count)}
                     className={cn(
-                      'px-4 py-3 rounded-xl border-2 font-semibold text-sm transition-all',
+                      'h-24 rounded-2xl border-3 font-bold text-2xl transition-all duration-200',
                       selectedCount === count
-                        ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:bg-blue-50/50'
+                        ? 'border-blue-500 bg-gradient-to-br from-blue-400 to-purple-500 text-white shadow-xl scale-110'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50 shadow-md'
                     )}
                   >
-                    {count} 题
+                    <div>{count}</div>
+                    <div className="text-sm font-normal">题</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 开始按钮 */}
+            {/* 开始按钮 - 超大 */}
             <Button
               onClick={handleStartPractice}
               disabled={creating}
-              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all"
+              className="w-full h-20 text-2xl font-bold rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02]"
             >
               {creating ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2" />
-                  创建中...
+                  <div className="animate-spin rounded-full h-7 w-7 border-3 border-white border-t-transparent mr-3" />
+                  准备中...
                 </>
               ) : (
                 <>
-                  <Play className="h-5 w-5 mr-2" fill="currentColor" />
-                  开始今日练习
+                  <span className="text-3xl mr-2">🚀</span>
+                  开始答题
                 </>
               )}
             </Button>
 
-            {/* 提示 */}
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <Award className="h-4 w-4" />
-              <span>坚持每日练习，养成良好学习习惯</span>
+            {/* 鼓励提示 */}
+            <div className="text-center py-4 px-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl border-2 border-yellow-200">
+              <p className="text-lg font-bold text-gray-800">
+                坚持每天练习，你会越来越棒！⭐
+              </p>
             </div>
           </CardContent>
         </Card>
-
-        {/* 功能特色 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <Brain className="h-6 w-6 text-blue-600" />
-                </div>
-                <CardTitle className="text-base">智能推荐</CardTitle>
-              </div>
-              <CardDescription className="text-sm">
-                基于学习历史和错题情况，智能推荐最适合你的题目
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-purple-100">
-                  <Target className="h-6 w-6 text-purple-600" />
-                </div>
-                <CardTitle className="text-base">精准定位</CardTitle>
-              </div>
-              <CardDescription className="text-sm">
-                准确识别薄弱知识点，针对性强化训练
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-                <CardTitle className="text-base">持续进步</CardTitle>
-              </div>
-              <CardDescription className="text-sm">
-                实时跟踪学习效果，见证每一天的成长
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

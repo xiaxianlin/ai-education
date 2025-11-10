@@ -323,3 +323,79 @@ class DailyPracticeSession(BaseModel):
     status: Mapped[str] = mapped_column(String(50), default="in_progress")  # in_progress/completed
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now)
+
+
+class AssessmentTest(BaseModel):
+    __tablename__ = "ah_assessment_test"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    assessment_type: Mapped[str] = mapped_column(String(50))  # unit/comprehensive/topic
+    target_id: Mapped[int] = mapped_column(nullable=True)  # 评测目标ID（单元ID、知识点ID等）
+
+    status: Mapped[str] = mapped_column(String(50), default="in_progress")  # in_progress/completed
+    start_time: Mapped[int] = mapped_column(default=now)
+    end_time: Mapped[int] = mapped_column(nullable=True)
+    total_time: Mapped[int] = mapped_column(default=0)
+
+    # 评测配置
+    adaptive: Mapped[int] = mapped_column(default=1)  # 是否自适应
+    max_questions: Mapped[int] = mapped_column(default=20)
+    min_questions: Mapped[int] = mapped_column(default=10)
+    difficulty_range: Mapped[str] = mapped_column(String(100), default="all")  # 难度范围
+
+    # 当前能力评估（-3到+3）
+    current_ability: Mapped[float] = mapped_column(default=0.0)
+    confidence: Mapped[float] = mapped_column(default=0.0)  # 置信度
+
+    # 评测结果
+    overall_score: Mapped[float] = mapped_column(default=0.0)
+    ability_level: Mapped[str] = mapped_column(String(50), default="")  # beginner/intermediate/advanced
+    
+    # 已答题目数
+    answered_count: Mapped[int] = mapped_column(default=0)
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+
+class AssessmentQuestion(BaseModel):
+    __tablename__ = "ah_assessment_question"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    assessment_id: Mapped[int] = mapped_column(nullable=False)
+    question_id: Mapped[int] = mapped_column(nullable=False)
+
+    question_order: Mapped[int] = mapped_column(default=0)
+    difficulty: Mapped[str] = mapped_column(String(50))
+    is_correct: Mapped[int] = mapped_column(default=0)
+    time_spent: Mapped[int] = mapped_column(default=0)
+    knowledge_tag: Mapped[str] = mapped_column(String(255), default="")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+
+
+class AssessmentReport(BaseModel):
+    __tablename__ = "ah_assessment_report"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    assessment_id: Mapped[int] = mapped_column(nullable=False)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    # 总体评估
+    overall_score: Mapped[float] = mapped_column(default=0.0)
+    ability_level: Mapped[str] = mapped_column(String(50))
+    percentile: Mapped[int] = mapped_column(default=0)  # 百分位排名
+
+    # 详细分析 - JSON格式
+    knowledge_mastery: Mapped[str] = mapped_column(Text, default="{}")  # 知识点掌握情况
+    ability_breakdown: Mapped[str] = mapped_column(Text, default="{}")  # 能力分解
+    learning_speed: Mapped[float] = mapped_column(default=0.0)
+    consistency: Mapped[float] = mapped_column(default=0.0)  # 稳定性
+
+    # 建议 - JSON格式
+    strengths: Mapped[str] = mapped_column(Text, default="[]")  # 优势
+    weaknesses: Mapped[str] = mapped_column(Text, default="[]")  # 薄弱点
+    recommendations: Mapped[str] = mapped_column(Text, default="[]")  # 学习建议
+
+    create_time: Mapped[int] = mapped_column(default=now)

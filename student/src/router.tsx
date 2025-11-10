@@ -10,6 +10,7 @@ import { DailyPracticeResult } from './pages/DailyPracticeResult';
 import { UnitPractice } from './pages/UnitPractice';
 import { UnitPracticeSession } from './pages/UnitPracticeSession';
 import { Assessment } from './pages/Assessment';
+import { AssessmentSession } from './pages/AssessmentSession';
 import { Settings } from './pages/Settings';
 import { useAuthStore } from './stores/useAuthStore';
 
@@ -159,6 +160,18 @@ const assessmentRoute = createRoute({
   },
 });
 
+const assessmentSessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/assessment/$assessmentId',
+  component: AssessmentSession,
+  beforeLoad: () => {
+    const { isAuthenticated } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      throw redirect({ to: '/login' });
+    }
+  },
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
@@ -184,6 +197,7 @@ const routeTree = rootRoute.addChildren([
   unitPracticeRoute,
   unitPracticeSessionRoute,
   assessmentRoute,
+  assessmentSessionRoute,
   settingsRoute,
 ]);
 

@@ -317,3 +317,65 @@ class SubmitDailyPracticeAnswerSchema(BaseModel):
 
 class CompleteDailyPracticeSchema(BaseModel):
     session_id: int
+
+
+# ===== 能力评测相关 Schema =====
+class AssessmentTestSchema(BaseModel):
+    id: int
+    student_id: str
+    assessment_type: str
+    target_id: Optional[int] = None
+    status: str
+    start_time: int
+    end_time: Optional[int] = None
+    total_time: int
+    adaptive: int
+    max_questions: int
+    min_questions: int
+    difficulty_range: str
+    current_ability: float
+    confidence: float
+    overall_score: float
+    ability_level: str
+    answered_count: int
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class CreateAssessmentSchema(BaseModel):
+    assessment_type: str = "comprehensive"  # unit/comprehensive/topic
+    target_id: Optional[int] = None
+    max_questions: int = 20
+    min_questions: int = 10
+
+
+class SubmitAssessmentAnswerSchema(BaseModel):
+    assessment_id: int
+    question_id: int
+    answer: str
+    time_spent: int = 0
+
+
+class CompleteAssessmentSchema(BaseModel):
+    assessment_id: int
+
+
+class AssessmentReportSchema(BaseModel):
+    id: int
+    assessment_id: int
+    student_id: str
+    overall_score: float
+    ability_level: str
+    percentile: int
+    knowledge_mastery: str
+    ability_breakdown: str
+    learning_speed: float
+    consistency: float
+    strengths: str
+    weaknesses: str
+    recommendations: str
+    create_time: int
+
+    model_config = {"from_attributes": True}

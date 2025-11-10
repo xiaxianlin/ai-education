@@ -167,6 +167,84 @@ export interface PracticeHistoryItem {
   status: string;
 }
 
+// ===== 能力评测类型定义 =====
+export interface AssessmentTest {
+  id: number;
+  student_id: string;
+  assessment_type: string;
+  target_id?: number;
+  status: string;
+  start_time: number;
+  end_time?: number;
+  total_time: number;
+  adaptive: number;
+  max_questions: number;
+  min_questions: number;
+  difficulty_range: string;
+  current_ability: float;
+  confidence: number;
+  overall_score: number;
+  ability_level: string;
+  answered_count: number;
+  create_time: number;
+  update_time: number;
+}
+
+export interface CreateAssessmentParams {
+  assessment_type?: string;
+  target_id?: number;
+  max_questions?: number;
+  min_questions?: number;
+}
+
+export interface AssessmentNextQuestion {
+  question: Question;
+  progress: {
+    current: number;
+    max: number;
+    min: number;
+  };
+  current_ability: number;
+  confidence: number;
+}
+
+export interface AssessmentAnswerResult {
+  is_correct: boolean;
+  correct_answer: string;
+  current_ability: number;
+  confidence: number;
+  answered_count: number;
+}
+
+export interface AssessmentReport {
+  assessment_id: number;
+  overall_score: number;
+  ability_level: string;
+  answered_count: number;
+  total_time: number;
+  report: {
+    knowledge_mastery: Record<string, KnowledgeScore>;
+    ability_breakdown: Record<string, KnowledgeScore>;
+    learning_speed: number;
+    consistency: number;
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
+  };
+}
+
+export interface AssessmentHistoryItem {
+  id: number;
+  assessment_type: string;
+  target_id?: number;
+  start_time: number;
+  end_time?: number;
+  answered_count: number;
+  overall_score: number;
+  ability_level: string;
+  status: string;
+}
+
 // ===== API 函数 =====
 export const practiceApi = {
   // ===== 今日练习 API =====
@@ -257,6 +335,49 @@ export const practiceApi = {
   getPracticeHistory: async (limit?: number): Promise<PracticeHistoryItem[]> => {
     const params = limit ? `?limit=${limit}` : '';
     return api.get<PracticeHistoryItem[]>(`/practice/history${params}`);
+  },
+
+  // ===== 能力评测 API =====
+
+  /**
+   * 创建能力评测
+   */
+  createAssessment: async (params: CreateAssessmentParams = {}): Promise<AssessmentTest> => {
+    return api.post<AssessmentTest>('/practice/assessment', {
+      assessment_type: params.assessment_type || 'comprehensive',
+      target_id: params.target_id,
+      max_questions: params.max_questions || 20,
+      min_questions: params.min_questions || 10,
+    });
+  },
+
+  /**
+   * 获取下一道评测题目（自适应）
+   */
+  getNextAssessmentQuestion: async (assessmentId: number): Promise<AssessmentNextQuestion | null> => {
+    return api.get<AssessmentNextQuestion | null>(`/practice/assessment/${assessmentId}/next`);
+  },
+
+  /**
+   * 提交评测答案
+   */
+  submitAssessmentAnswer: async (params: SubmitAnswerParams & { assessment_id: number }): Promise<AssessmentAnswerResult> => {
+    return api.post<AssessmentAnswerResult>('/practice/assessment/answer', params);
+  },
+
+  /**
+   * 完成能力评测
+   */
+  completeAssessment: async (assessmentId: number): Promise<AssessmentReport> => {
+    return api.post<AssessmentReport>('/practice/assessment/complete', { assessment_id: assessmentId });
+  },
+
+  /**
+   * 获取能力评测历史
+   */
+  getAssessmentHistory: async (limit?: number): Promise<AssessmentHistoryItem[]> => {
+    const params = limit ? `?limit=${limit}` : '';
+    return api.get<AssessmentHistoryItem[]>(`/practice/assessment/history${params}`);
   },
 };
 
