@@ -141,6 +141,8 @@ class SearchQuestionSchema(SearchSchema):
     subject: Optional[str] = None
     grade: Optional[int] = None
     type: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_generated: Optional[bool] = None
 
 
 class CreateStudentSchema(BaseModel):

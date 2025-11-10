@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from pathlib import Path
-from sqlalchemy import select, and_, func, delete
+from sqlalchemy import select, and_, or_, func, delete
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
@@ -194,6 +194,34 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
         conditions.append(Question.grade == params.grade)
     if params.subject:
         conditions.append(Question.subject == params.subject)
+    if params.resource_type is not None:
+        if params.resource_type == '':
+            # 筛选无资源类型的题目（resource_type 为 None 或空字符串）
+            conditions.append(
+                or_(
+                    Question.resource_type.is_(None),
+                    Question.resource_type == ''
+                )
+            )
+        else:
+            conditions.append(Question.resource_type == params.resource_type)
+    if params.resource_generated is not None:
+        if params.resource_generated:
+            # 资源已生成：resource 不为空且不为空字符串
+            conditions.append(
+                and_(
+                    Question.resource.isnot(None),
+                    Question.resource != ''
+                )
+            )
+        else:
+            # 资源未生成：resource 为空或空字符串
+            conditions.append(
+                or_(
+                    Question.resource.is_(None),
+                    Question.resource == ''
+                )
+            )
 
     if len(conditions) > 0:
         query = query.where(and_(*conditions))

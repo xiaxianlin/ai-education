@@ -187,6 +187,13 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="资源类型">
               {question.resource_type ? <Tag color={question.resource_type === 'image' ? 'blue' : 'green'}>{question.resource_type === 'image' ? '图片' : '音频'}</Tag> : '-'}
             </ProDescriptions.Item>
+            <ProDescriptions.Item label="资源状态">
+              {question.resource_type ? (
+                <Tag color={question.resource && question.resource.trim() !== '' ? 'success' : 'warning'}>
+                  {question.resource && question.resource.trim() !== '' ? '已生成' : '未生成'}
+                </Tag>
+              ) : '-'}
+            </ProDescriptions.Item>
             <ProDescriptions.Item label="资源路径">{question.resource || '-'}</ProDescriptions.Item>
             {question.resource_content && (
               <ProDescriptions.Item label="录音文本" span={2}>

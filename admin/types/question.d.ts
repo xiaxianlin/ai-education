@@ -59,6 +59,8 @@ declare global {
     type?: string;
     subject?: string;
     grade?: number;
+    resource_type?: string;
+    resource_generated?: boolean;
   }
 }
 

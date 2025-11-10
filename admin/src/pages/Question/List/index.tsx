@@ -5,7 +5,7 @@ import { fmtTime } from '@/utils/time';
 import { GRADES } from '@/constants/course';
 import { Link } from '@umijs/max';
 import { useConfigs } from '@/hooks';
-import { Space, Button, Popconfirm, message } from 'antd';
+import { Space, Button, Popconfirm, message, Tag } from 'antd';
 import { useRequest } from 'ahooks';
 
 export default function QuestionListPage() {
@@ -77,6 +77,50 @@ export default function QuestionListPage() {
       hideInSearch: true,
     },
     {
+      title: '资源类型',
+      dataIndex: 'resource_type',
+      minWidth: 90,
+      valueType: 'select',
+      valueEnum: {
+        image: { text: '图片' },
+        audio: { text: '音频' },
+        '': { text: '无' },
+      },
+      render: (resourceType: string) => {
+        if (!resourceType) {
+          return <Tag>无</Tag>;
+        }
+        if (resourceType === 'image') {
+          return <Tag color="blue">图片</Tag>;
+        }
+        if (resourceType === 'audio') {
+          return <Tag color="green">音频</Tag>;
+        }
+        return <Tag>{resourceType}</Tag>;
+      },
+    },
+    {
+      title: '资源状态',
+      dataIndex: 'resource_generated',
+      minWidth: 90,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: '已生成' },
+        false: { text: '未生成' },
+      },
+      render: (_, record: Question) => {
+        if (!record.resource_type) {
+          return <Tag>-</Tag>;
+        }
+        const isGenerated = record.resource && record.resource.trim() !== '';
+        return (
+          <Tag color={isGenerated ? 'success' : 'warning'}>
+            {isGenerated ? '已生成' : '未生成'}
+          </Tag>
+        );
+      },
+    },
+    {
       title: '创建时间',
       dataIndex: 'create_time',
       hideInSearch: true,
@@ -128,12 +172,29 @@ export default function QuestionListPage() {
         rowKey="id"
         columns={columns}
         request={async (params) => {
-          const res = await QuestionApi.search({
+          // 处理筛选参数
+          const searchParams: QuestionSearchParams = {
             ...params,
             page: params.current || 1,
             size: params.pageSize || 10,
             keywords: params.content,
-          });
+          };
+          
+          // 处理 resource_type：保留空字符串用于筛选"无资源类型"
+          if (params.resource_type !== undefined) {
+            searchParams.resource_type = params.resource_type;
+          }
+          
+          // 处理 resource_generated：字符串转为布尔值
+          if (params.resource_generated !== undefined && params.resource_generated !== null) {
+            if (typeof params.resource_generated === 'string') {
+              searchParams.resource_generated = params.resource_generated === 'true';
+            } else {
+              searchParams.resource_generated = Boolean(params.resource_generated);
+            }
+          }
+          
+          const res = await QuestionApi.search(searchParams);
           return {
             data: res?.data || [],
             total: res?.total || 0,
