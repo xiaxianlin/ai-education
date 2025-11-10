@@ -146,7 +146,6 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     }
 
     return {
-        **params,
         "prompt": prompt,
         "prompt_input": prompt_input,
         "parser": parser,
@@ -184,7 +183,6 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     logger.info(f"优化后的 Prompt: {optimized_text_str}")
 
     return {
-        **params,
         "prompt": optimized_prompt,
         "original_prompt_text": filled_prompt_text,
         "optimized_prompt_text": optimized_text_str,
@@ -256,7 +254,6 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
         raise ValueError(f"题目生成结果验证失败: {str(e)}，请检查 prompt 或重试")
 
     return {
-        **params,
         "generated_questions": validated_result.questions,
     }
 
@@ -361,7 +358,6 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
         raise ValueError("题目生成失败")
 
     return {
-        **params,
         "questions": questions,
         "image_questions": image_questions,
         "audio_questions": audio_questions,
@@ -536,7 +532,11 @@ async def upload_files(params: Dict[str, Any]) -> Dict[str, Any]:
                 logger.error(f"上传音频失败: {e}")
                 question.resource = None
 
-    return params
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return {
+        "image_questions": image_questions,
+        "audio_questions": audio_questions,
+    }
 
 
 async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -561,7 +561,6 @@ async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str
         logger.info("没有需要更新的题目")
 
     return {
-        **params,
         "saved_questions": all_questions,
     }
 

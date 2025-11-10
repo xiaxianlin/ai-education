@@ -1,7 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from loguru import logger
 from admin.services.auth import admin_route_filter
 from common.middleware import WrappedResponse
 from common.exception import (
@@ -20,6 +18,7 @@ from .routes.textbook import textbook_router
 from .routes.unit import unit_router
 from .routes.config import config_router
 from .routes.ai import ai_router
+from .routes.task import task_router
 
 
 admin_app = FastAPI(
@@ -43,5 +42,6 @@ admin_app.include_router(textbook_router)
 admin_app.include_router(unit_router)
 admin_app.include_router(config_router)
 admin_app.include_router(ai_router)
+admin_app.include_router(task_router)
 
 __all__ = ["admin_app"]

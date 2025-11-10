@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from admin.services import unit
 from admin.services.knowledge import query_knowledge_by_unit
 from admin.services.question import query_question_by_unit
 from admin.services.unit import query_unit_by_textbook
+from shared.services.task import TaskService
+from ai.services.question import generate_question_by_unit
 from common.database import Database
 from common.schema import SearchSchema
-from ai.services.question import generate_question_by_unit
 
 unit_router = APIRouter(prefix="/unit")
 
@@ -18,8 +19,55 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
 
 
 @unit_router.post("/{id}/generate/{count}")
-async def create_unit(id: int, count: int, db: AsyncSession = Database):
-    return await generate_question_by_unit(db, id, count)
+async def generate_question(
+    id: int,
+    count: int,
+    async_exec: bool = Query(True, description="是否后台异步执行，默认true"),
+    db: AsyncSession = Database,
+):
+    """生成题目接口
+    
+    Args:
+        id: 单元ID
+        count: 生成题目数量
+        async_exec: 是否后台异步执行，默认true。如果为false，则同步执行并返回生成的题目列表
+    """
+    if async_exec:
+        # 后台异步执行
+        task = await TaskService.create_task(
+            db=db,
+            task_type="generate_question",
+            task_name=f"为单元 {id} 生成 {count} 道题目",
+            params={
+                "unit_id": id,
+                "count": count,
+            },
+            handler_module="admin.services.task_handlers",
+            handler_function="generate_question_handler",
+        )
+        return {
+            "task_id": task.id,
+            "status": task.status,
+            "message": "任务已提交，正在后台执行",
+        }
+    else:
+        # 同步执行
+        questions = await generate_question_by_unit(db, id, count)
+        return {
+            "questions": [
+                {
+                    "id": q.id,
+                    "type": q.type,
+                    "subtype": q.subtype,
+                    "content": q.content,
+                    "answer": q.answer,
+                    "difficulty": q.difficulty,
+                }
+                for q in questions
+            ],
+            "count": len(questions),
+            "message": "题目生成完成",
+        }
 
 
 @unit_router.patch("/{id}")

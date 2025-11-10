@@ -45,63 +45,63 @@ async def check_params_node(state: QuestionGenerationState) -> QuestionGeneratio
     logger.info("开始检查问题生成参数")
     await validate_question_params(state["unit_id"], state["count"])
     logger.info("参数检查通过")
-    return state
+    # 不更新任何字段，只做验证
+    return {}
 
 
 async def load_data_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点2: 加载单元数据"""
     logger.info("开始加载单元数据")
     data = await load_unit_data(state["db"], state["unit_id"])
-    state.update(data)
     logger.info("单元数据加载完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return data
 
 
 async def create_prompt_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点3: 根据传入参数生成对应的 prompt"""
     logger.info("开始生成 prompt")
     result = await generate_prompt(state)
-    state.update(result)
     logger.info("Prompt 生成完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def optimize_prompt_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点4: 优化生成的 prompt"""
     logger.info("开始优化 prompt")
     result = await optimize_prompt(state)
-    state.update(result)
     logger.info("Prompt 优化完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def call_llm_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点5: 调用大模型结构化输出内容"""
     logger.info("开始调用大模型生成题目")
     result = await call_llm(state)
-    state.update(result)
-    logger.info(f"大模型生成完成，共生成 {len(state['generated_questions'])} 道题目")
-    return state
+    logger.info(f"大模型生成完成，共生成 {len(result.get('generated_questions', []))} 道题目")
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def convert_data_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点6: 将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
     result = await convert_to_question_objects(state)
-    state.update(result)
+    
+    image_questions = result.get("image_questions", [])
+    audio_questions = result.get("audio_questions", [])
+    text_questions = result.get("text_questions", [])
 
     logger.info(
-        f"问题转换完成: 辨识题 {len(state['image_questions'])}, "
-        f"音频题 {len(state['audio_questions'])}, "
-        f"其他题目 {len(state['text_questions'])}"
+        f"问题转换完成: 辨识题 {len(image_questions)}, "
+        f"音频题 {len(audio_questions)}, "
+        f"其他题目 {len(text_questions)}"
     )
 
     # 保存所有问题到数据库
-    all_questions = (
-        state.get("image_questions", [])
-        + state.get("audio_questions", [])
-        + state.get("text_questions", [])
-    )
+    all_questions = image_questions + audio_questions + text_questions
 
     if all_questions:
         db = state["db"]
@@ -114,7 +114,8 @@ async def convert_data_node(state: QuestionGenerationState) -> QuestionGeneratio
     else:
         logger.warning("没有需要保存的题目")
 
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def handle_image_node(state: QuestionGenerationState) -> QuestionGenerationState:
@@ -169,18 +170,18 @@ async def upload_files_node(state: QuestionGenerationState) -> QuestionGeneratio
     """节点8: 文件上传节点"""
     logger.info("开始上传文件到 OSS")
     result = await upload_files(state)
-    state.update(result)
     logger.info("文件上传完成")
-    return state
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 async def upload_questions_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点9: 数据更新节点"""
     logger.info("开始更新问题数据")
     result = await upload_questions(state["db"], state)
-    state.update(result)
-    logger.info(f"问题更新完成，共更新 {len(state['saved_questions'])} 道题目")
-    return state
+    logger.info(f"问题更新完成，共更新 {len(result.get('saved_questions', []))} 道题目")
+    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
+    return result
 
 
 def create_question_generation_graph() -> StateGraph:

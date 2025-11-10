@@ -128,8 +128,12 @@ class Question(BaseModel):
     answer: Mapped[str] = mapped_column(Text, comment="问题答案")
     difficulty: Mapped[str] = mapped_column(String(255), comment="问题难度")
     resource: Mapped[str] = mapped_column(String(255), comment="资源路径")
-    resource_type: Mapped[str] = mapped_column(String(50), comment="资源类型：image-图片，audio-语音，空-无资源", nullable=True)
-    resource_content: Mapped[str] = mapped_column(Text, comment="资源内容（录音文本等）", nullable=True)
+    resource_type: Mapped[str] = mapped_column(
+        String(50), comment="资源类型：image-图片，audio-语音，空-无资源", nullable=True
+    )
+    resource_content: Mapped[str] = mapped_column(
+        Text, comment="资源内容（录音文本等）", nullable=True
+    )
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column()
     knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
@@ -148,9 +152,6 @@ class Question(BaseModel):
         primaryjoin="foreign(Question.textbook_id) == Textbook.id",
         lazy="joined",
     )
-
-
-#### ================================= 分割线 ================================= ####
 
 
 class Student(BaseModel):
@@ -350,8 +351,10 @@ class AssessmentTest(BaseModel):
 
     # 评测结果
     overall_score: Mapped[float] = mapped_column(default=0.0)
-    ability_level: Mapped[str] = mapped_column(String(50), default="")  # beginner/intermediate/advanced
-    
+    ability_level: Mapped[str] = mapped_column(
+        String(50), default=""
+    )  # beginner/intermediate/advanced
+
     # 已答题目数
     answered_count: Mapped[int] = mapped_column(default=0)
 
@@ -399,3 +402,36 @@ class AssessmentReport(BaseModel):
     recommendations: Mapped[str] = mapped_column(Text, default="[]")  # 学习建议
 
     create_time: Mapped[int] = mapped_column(default=now)
+
+
+class Task(BaseModel):
+    """后台任务表"""
+
+    __tablename__ = "ah_task"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    task_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="任务类型")
+    task_name: Mapped[str] = mapped_column(String(255), nullable=False, comment="任务名称")
+    status: Mapped[str] = mapped_column(
+        String(50), default="pending", comment="任务状态: pending/running/completed/failed"
+    )
+    progress: Mapped[int] = mapped_column(default=0, comment="任务进度 0-100")
+
+    # 任务处理器信息
+    handler_module: Mapped[str] = mapped_column(
+        String(255), nullable=False, comment="处理器模块路径"
+    )
+    handler_function: Mapped[str] = mapped_column(
+        String(255), nullable=False, comment="处理器函数名"
+    )
+
+    # 任务参数和结果（JSON格式）
+    params: Mapped[str] = mapped_column(Text, default="{}", comment="任务参数")
+    result: Mapped[str] = mapped_column(Text, default="{}", comment="任务结果")
+    error_message: Mapped[str] = mapped_column(Text, nullable=True, comment="错误信息")
+
+    # 时间戳
+    start_time: Mapped[int] = mapped_column(nullable=True, comment="开始时间")
+    end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
