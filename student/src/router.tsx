@@ -5,6 +5,7 @@ import { WrongQuestions } from './pages/WrongQuestions';
 import { PracticeHistory } from './pages/PracticeHistory';
 import { Profile } from './pages/Profile';
 import { DailyPractice } from './pages/DailyPractice';
+import { DailyPracticeSession } from './pages/DailyPracticeSession';
 import { DailyPracticeResult } from './pages/DailyPracticeResult';
 import { UnitPractice } from './pages/UnitPractice';
 import { UnitPracticeSession } from './pages/UnitPracticeSession';
@@ -98,6 +99,18 @@ const dailyPracticeRoute = createRoute({
   },
 });
 
+const dailyPracticeSessionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/daily-practice/$sessionId',
+  component: DailyPracticeSession,
+  beforeLoad: () => {
+    const { isAuthenticated } = useAuthStore.getState();
+    if (!isAuthenticated) {
+      throw redirect({ to: '/login' });
+    }
+  },
+});
+
 const dailyPracticeResultRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/daily-practice/result',
@@ -166,6 +179,7 @@ const routeTree = rootRoute.addChildren([
   historyRoute,
   profileRoute,
   dailyPracticeRoute,
+  dailyPracticeSessionRoute,
   dailyPracticeResultRoute,
   unitPracticeRoute,
   unitPracticeSessionRoute,

@@ -1,231 +1,218 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { Header } from '@/components/layout/Header';
-import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
+import {
+  Calendar,
+  Target,
+  TrendingUp,
+  Zap,
+  Play,
+  Sparkles,
+  Award,
+  BookCheck,
+  Brain,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { profileApi } from '@/services/profile';
+import { practiceApi } from '@/services/practice';
 import { toast } from 'sonner';
-
-interface Question {
-  id: number;
-  type: string;
-  subject: string;
-  stem: string;
-  options: string[];
-  answer: string;
-  textbook_id?: number;
-  unit_id?: number;
-  knowledge_id?: number;
-}
 
 export function DailyPractice() {
   const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [showResult, setShowResult] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(10);
 
-  // 模拟题目数据
-  const questions: Question[] = [
-    {
-      id: 1,
-      type: 'single',
-      subject: '数学',
-      stem: '计算：15 + 27 = ?',
-      options: ['42', '43', '44', '45'],
-      answer: '42',
-      textbook_id: 1,
-    },
-    {
-      id: 2,
-      type: 'single',
-      subject: '数学',
-      stem: '下列哪个分数最大？',
-      options: ['1/3', '1/4', '1/2', '1/5'],
-      answer: '1/2',
-      textbook_id: 1,
-    },
-    {
-      id: 3,
-      type: 'single',
-      subject: '英语',
-      stem: 'I ___ to school every day.',
-      options: ['go', 'goes', 'went', 'going'],
-      answer: 'go',
-      textbook_id: 2,
-    },
-  ];
-
-  const currentQuestion = questions[currentIndex];
-  const totalQuestions = questions.length;
-  const progress = ((currentIndex + 1) / totalQuestions) * 100;
-
-  const handleAnswer = async (answer: string) => {
-    if (showResult) return;
-
-    setAnswers({ ...answers, [currentIndex]: answer });
-    setShowResult(true);
-
-    // 自动提交学习记录
+  const handleStartPractice = async () => {
     try {
-      const isCorrect = answer === currentQuestion.answer;
-      await profileApi.createRecord({
-        textbook_id: currentQuestion.textbook_id || 1,
-        question_id: currentQuestion.id,
-        is_correct: isCorrect ? 1 : 0,
-        score: isCorrect ? 100 : 0,
-        time_spent: 30, // 默认30秒
-      });
-    } catch (error) {
-      console.error('Failed to create study record:', error);
+      setCreating(true);
+      const session = await practiceApi.createDailyPractice({ count: selectedCount });
+      toast.success('今日练习已创建，开始答题！');
+      navigate({ to: `/daily-practice/${session.id}` });
+    } catch (error: any) {
+      console.error('Failed to create daily practice:', error);
+      toast.error(error.message || '创建练习失败');
+    } finally {
+      setCreating(false);
     }
   };
-
-  const handleNext = async () => {
-    if (currentIndex < totalQuestions - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setShowResult(false);
-    } else {
-      // 完成所有题目，跳转到完成页
-      setSubmitting(true);
-      toast.success('练习完成！');
-      navigate({ to: '/daily-practice/result' });
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setShowResult(false);
-    }
-  };
-
-  const isCorrect = answers[currentIndex] === currentQuestion.answer;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-20">
       <Header />
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* 返回首页按钮 */}
-        <div className="flex justify-end">
-          <BackToHomeButton />
-        </div>
-
-        {/* 进度条 */}
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {/* 头部 */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              第 {currentIndex + 1} / {totalQuestions} 题
-            </span>
-            <span className="text-muted-foreground">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <Calendar className="h-8 w-8 text-blue-500" />
+            今日练习
+          </h1>
+          <p className="text-gray-600 text-base">
+            智能推荐，个性化学习 - 每天进步一点点
+          </p>
         </div>
 
-        {/* 题目卡片 */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              {/* 科目标签 */}
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'text-xs px-3 py-1 rounded-full',
-                    currentQuestion.subject === '数学'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-green-100 text-green-700'
-                  )}
-                >
-                  {currentQuestion.subject}
-                </span>
+        {/* 主卡片 */}
+        <Card className="border-2 border-blue-200 shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <Sparkles className="h-7 w-7 text-yellow-500" />
+                  开始今日练习
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  基于你的学习情况，智能推荐最适合的题目
+                </p>
               </div>
-
-              {/* 题干 */}
-              <div className="text-xl font-medium leading-relaxed">
-                {currentQuestion.stem}
-              </div>
-
-              {/* 选项 */}
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => {
-                  const isSelected = answers[currentIndex] === option;
-                  const isAnswerCorrect = showResult && option === currentQuestion.answer;
-                  const isAnswerWrong = showResult && isSelected && !isCorrect;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleAnswer(option)}
-                      disabled={showResult || submitting}
-                      className={cn(
-                        'w-full p-4 text-left rounded-lg border-2 transition-all',
-                        isSelected && !showResult && 'border-primary bg-primary/5',
-                        isAnswerCorrect && 'border-green-500 bg-green-50',
-                        isAnswerWrong && 'border-red-500 bg-red-50',
-                        !showResult && 'hover:border-primary/50 cursor-pointer',
-                        showResult && 'cursor-not-allowed',
-                        submitting && 'opacity-50 cursor-not-allowed'
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="flex-1">{option}</span>
-                        {isAnswerCorrect && <CheckCircle className="h-5 w-5 text-green-500" />}
-                        {isAnswerWrong && <XCircle className="h-5 w-5 text-red-500" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* 结果反馈 */}
-              {showResult && (
-                <div
-                  className={cn(
-                    'p-4 rounded-lg',
-                    isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                  )}
-                >
-                  <p className="font-medium">
-                    {isCorrect
-                      ? '✓ 回答正确！已记录学习记录'
-                      : `✗ 回答错误，正确答案是：${currentQuestion.answer}，已加入错题本`}
-                  </p>
+              <div className="hidden md:block">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shadow-lg">
+                    <Brain className="h-12 w-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center shadow-md">
+                    <Zap className="h-5 w-5 text-white" />
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <CardContent className="pt-6 pb-8 space-y-6">
+            {/* 智能推荐算法说明 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-100">
+                <div className="p-2 rounded-lg bg-red-100">
+                  <BookCheck className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-sm">错题复习</div>
+                  <div className="text-xs text-gray-600 mt-1">30% - 巩固薄弱知识点</div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Target className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-sm">巩固练习</div>
+                  <div className="text-xs text-gray-600 mt-1">40% - 强化已学内容</div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-orange-50 border border-orange-100">
+                <div className="p-2 rounded-lg bg-orange-100">
+                  <TrendingUp className="h-5 w-5 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-sm">挑战题目</div>
+                  <div className="text-xs text-gray-600 mt-1">20% - 提升解题能力</div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-green-50 border border-green-100">
+                <div className="p-2 rounded-lg bg-green-100">
+                  <Sparkles className="h-5 w-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800 text-sm">新知识点</div>
+                  <div className="text-xs text-gray-600 mt-1">10% - 拓展学习范围</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 题目数量选择 */}
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700">选择题目数量</label>
+              <div className="grid grid-cols-4 gap-3">
+                {[5, 10, 15, 20].map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => setSelectedCount(count)}
+                    className={cn(
+                      'px-4 py-3 rounded-xl border-2 font-semibold text-sm transition-all',
+                      selectedCount === count
+                        ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-md'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:bg-blue-50/50'
+                    )}
+                  >
+                    {count} 题
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 开始按钮 */}
+            <Button
+              onClick={handleStartPractice}
+              disabled={creating}
+              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all"
+            >
+              {creating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2" />
+                  创建中...
+                </>
+              ) : (
+                <>
+                  <Play className="h-5 w-5 mr-2" fill="currentColor" />
+                  开始今日练习
+                </>
               )}
+            </Button>
+
+            {/* 提示 */}
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <Award className="h-4 w-4" />
+              <span>坚持每日练习，养成良好学习习惯</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* 操作按钮 */}
-        <div className="flex items-center justify-between gap-4">
-          <Button
-            variant="outline"
-            onClick={handlePrev}
-            disabled={currentIndex === 0 || submitting}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            上一题
-          </Button>
+        {/* 功能特色 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Brain className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-base">智能推荐</CardTitle>
+              </div>
+              <CardDescription className="text-sm">
+                基于学习历史和错题情况，智能推荐最适合你的题目
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <Button
-            onClick={handleNext}
-            disabled={(!showResult && !answers[currentIndex]) || submitting}
-          >
-            {submitting
-              ? '提交中...'
-              : currentIndex === totalQuestions - 1
-              ? '完成练习'
-              : '下一题'}
-            {!submitting && <ChevronRight className="h-4 w-4 ml-2" />}
-          </Button>
+          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <Target className="h-6 w-6 text-purple-600" />
+                </div>
+                <CardTitle className="text-base">精准定位</CardTitle>
+              </div>
+              <CardDescription className="text-sm">
+                准确识别薄弱知识点，针对性强化训练
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-green-100">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle className="text-base">持续进步</CardTitle>
+              </div>
+              <CardDescription className="text-sm">
+                实时跟踪学习效果，见证每一天的成长
+              </CardDescription>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

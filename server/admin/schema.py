@@ -280,3 +280,40 @@ class SubmitUnitPracticeAnswerSchema(BaseModel):
 
 class CompleteUnitPracticeSchema(BaseModel):
     session_id: int
+
+
+# ===== 今日练习相关 Schema =====
+class DailyPracticeSessionSchema(BaseModel):
+    id: int
+    student_id: str
+    date: int
+    total_questions: int = 0
+    correct_questions: int = 0
+    total_time: int = 0
+    score: float = 0.0
+    practice_type: str = "daily"
+    knowledge_coverage: str = "{}"
+    question_distribution: str = "{}"
+    question_ids: str = "[]"
+    answers: str = "{}"
+    status: str = "in_progress"
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class CreateDailyPracticeSchema(BaseModel):
+    count: int = 10
+    practice_type: str = "daily"
+
+
+class SubmitDailyPracticeAnswerSchema(BaseModel):
+    session_id: int
+    question_id: int
+    answer: str
+    time_spent: int = 0
+
+
+class CompleteDailyPracticeSchema(BaseModel):
+    session_id: int

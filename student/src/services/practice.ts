@@ -1,6 +1,58 @@
 import { api } from '@/lib/api';
 
-// ===== 类型定义 =====
+// ===== 今日练习类型定义 =====
+export interface DailyPracticeSession {
+  id: number;
+  student_id: string;
+  date: number;
+  total_questions: number;
+  correct_questions: number;
+  total_time: number;
+  score: number;
+  practice_type: string;
+  knowledge_coverage: string;
+  question_distribution: string;
+  question_ids: string;
+  answers: string;
+  status: string;
+  create_time: number;
+  update_time: number;
+}
+
+export interface CreateDailyPracticeParams {
+  count?: number;
+  practice_type?: string;
+}
+
+export interface DailyPracticeSessionDetail {
+  session: DailyPracticeSession;
+  questions: Question[];
+}
+
+export interface DailyPracticeReport {
+  session_id: number;
+  date: number;
+  total_questions: number;
+  correct_questions: number;
+  score: number;
+  total_time: number;
+  knowledge_coverage: Record<string, KnowledgeScore>;
+  question_distribution: Record<string, number>;
+  status: string;
+}
+
+export interface DailyPracticeHistoryItem {
+  id: number;
+  date: number;
+  total_questions: number;
+  correct_questions: number;
+  score: number;
+  total_time: number;
+  practice_type: string;
+  status: string;
+}
+
+// ===== 单元练习类型定义 =====
 export interface UnitPracticeSession {
   id: number;
   student_id: string;
@@ -117,6 +169,49 @@ export interface PracticeHistoryItem {
 
 // ===== API 函数 =====
 export const practiceApi = {
+  // ===== 今日练习 API =====
+  
+  /**
+   * 创建今日练习会话
+   */
+  createDailyPractice: async (params: CreateDailyPracticeParams = {}): Promise<DailyPracticeSession> => {
+    return api.post<DailyPracticeSession>('/practice/daily', {
+      count: params.count || 10,
+      practice_type: params.practice_type || 'daily',
+    });
+  },
+
+  /**
+   * 获取今日练习会话详情
+   */
+  getDailyPracticeSession: async (sessionId: number): Promise<DailyPracticeSessionDetail> => {
+    return api.get<DailyPracticeSessionDetail>(`/practice/daily/${sessionId}`);
+  },
+
+  /**
+   * 提交今日练习答案
+   */
+  submitDailyAnswer: async (params: SubmitAnswerParams): Promise<AnswerResult> => {
+    return api.post<AnswerResult>('/practice/daily/answer', params);
+  },
+
+  /**
+   * 完成今日练习
+   */
+  completeDailyPractice: async (sessionId: number): Promise<DailyPracticeReport> => {
+    return api.post<DailyPracticeReport>('/practice/daily/complete', { session_id: sessionId });
+  },
+
+  /**
+   * 获取今日练习历史
+   */
+  getDailyPracticeHistory: async (limit?: number): Promise<DailyPracticeHistoryItem[]> => {
+    const params = limit ? `?limit=${limit}` : '';
+    return api.get<DailyPracticeHistoryItem[]>(`/practice/daily/history${params}`);
+  },
+
+  // ===== 单元练习 API =====
+
   /**
    * 创建单元练习会话
    */

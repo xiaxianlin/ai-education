@@ -290,3 +290,36 @@ class UnitPracticeSession(BaseModel):
         primaryjoin="foreign(UnitPracticeSession.unit_id) == Unit.id",
         lazy="joined",
     )
+
+
+class DailyPracticeSession(BaseModel):
+    __tablename__ = "ah_daily_practice_session"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    date: Mapped[int] = mapped_column(nullable=False)  # 练习日期 YYYYMMDD
+
+    # 练习统计
+    total_questions: Mapped[int] = mapped_column(default=0)
+    correct_questions: Mapped[int] = mapped_column(default=0)
+    total_time: Mapped[int] = mapped_column(default=0)
+    score: Mapped[float] = mapped_column(default=0.0)
+
+    # 练习类型
+    practice_type: Mapped[str] = mapped_column(String(50), default="daily")  # daily/adaptive
+
+    # 知识点覆盖 - JSON格式
+    knowledge_coverage: Mapped[str] = mapped_column(Text, default="{}")
+
+    # 题目来源分布 - JSON格式，记录错题、巩固、挑战、新知各占比
+    question_distribution: Mapped[str] = mapped_column(Text, default="{}")
+
+    # 题目列表 - JSON格式存储题目ID数组
+    question_ids: Mapped[str] = mapped_column(Text, default="[]")
+
+    # 答案记录 - JSON格式，记录每道题的答题情况
+    answers: Mapped[str] = mapped_column(Text, default="{}")
+
+    status: Mapped[str] = mapped_column(String(50), default="in_progress")  # in_progress/completed
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
