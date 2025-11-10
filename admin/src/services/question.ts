@@ -11,6 +11,11 @@ export const QuestionApi = {
     return res.data;
   },
 
+  searchResource: async (params: QuestionSearchParams) => {
+    const res = await request<ListApiData<Question>>('/question/resource/search', { params });
+    return res.data;
+  },
+
   update: async (id: string, data: QuestionUpdateForm) => {
     const res = await request<ApiData<Question>>(`/question/${id}`, {
       method: 'PATCH',

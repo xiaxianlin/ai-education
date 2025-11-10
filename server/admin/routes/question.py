@@ -22,6 +22,11 @@ async def search_question(params: SearchQuestionSchema = Depends(), db: AsyncSes
     return await question.search_question(db, params)
 
 
+@question_router.get("/resource/search")
+async def search_resource_question(params: SearchQuestionSchema = Depends(), db: AsyncSession = Database):
+    return await question.search_resource_questions(db, params)
+
+
 @question_router.get("/{id}")
 async def get_question(id: str, db: AsyncSession = Database):
     return await question.get_question(db, id)

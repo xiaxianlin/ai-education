@@ -250,6 +250,63 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     )
 
 
+async def search_resource_questions(db: AsyncSession, params: SearchQuestionSchema):
+    """搜索需要处理资源的问题"""
+    query = select(Question).options(
+        joinedload(Question.textbook),
+        joinedload(Question.unit).noload(Unit.textbook),
+    )
+
+    base_conditions = [
+        Question.resource_type.isnot(None),
+        Question.resource_type != "",
+    ]
+    conditions = base_conditions.copy()
+
+    if params.keywords:
+        conditions.append(Question.content.contains(params.keywords))
+    if params.type:
+        conditions.append(Question.type == params.type)
+    if params.grade is not None:
+        conditions.append(Question.grade == params.grade)
+    if params.subject:
+        conditions.append(Question.subject == params.subject)
+    if params.resource_type:
+        conditions.append(Question.resource_type == params.resource_type)
+    if params.resource_generated is not None:
+        if params.resource_generated:
+            conditions.append(
+                and_(
+                    Question.resource.isnot(None),
+                    Question.resource != "",
+                )
+            )
+        else:
+            conditions.append(
+                or_(
+                    Question.resource.is_(None),
+                    Question.resource == "",
+                )
+            )
+
+    query = query.where(and_(*conditions))
+
+    count_query = select(func.count(Question.id)).where(and_(*conditions))
+    total = await db.scalar(count_query) or 0
+
+    offset = (params.page - 1) * params.size
+    order_field = getattr(Question, params.sort, Question.update_time)
+    query = query.order_by(order_field.desc() if params.order == "desc" else order_field.asc())
+    query = query.offset(offset).limit(params.size)
+
+    result = await db.scalars(query)
+
+    return SearchResultSchema(
+        total=total,
+        data=[QuestionSchema.model_validate(question) for question in result.all()],
+    )
+
+
 async def _download_file(url: str, file_path: str) -> None:
     """下载文件到本地"""
     response = requests.get(url, stream=True)
