@@ -2,10 +2,10 @@ import uuid
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
-from common.database import Student, StudentTextbook, Textbook
-from common.schema import SearchResultSchema, StudentSchema, TextbookSchema
-from utils import encrypt
-from utils.time import now
+from core.database import Student, StudentTextbook, Textbook
+from core.schema import SearchResultSchema, StudentSchema, TextbookSchema
+from shared.utils import encrypt
+from shared.utils.time import now
 
 
 async def create_student(db: AsyncSession, params: CreateStudentSchema):

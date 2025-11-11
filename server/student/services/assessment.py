@@ -6,7 +6,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from common.database import (
+from core.database import (
     AssessmentTest,
     AssessmentQuestion,
     AssessmentReport,
@@ -20,7 +20,7 @@ from admin.schema import (
     SubmitAssessmentAnswerSchema,
     AssessmentReportSchema,
 )
-from utils.time import now
+from shared.utils.time import now
 
 
 class AdaptiveAlgorithm:

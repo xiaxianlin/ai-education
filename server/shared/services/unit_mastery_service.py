@@ -4,8 +4,8 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
 
-from common.database import StudentUnitMastery, Unit
-from utils.time import now
+from core.database import StudentUnitMastery, Unit
+from shared.utils.time import now
 
 
 class UnitMasteryService:

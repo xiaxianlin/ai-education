@@ -1,9 +1,9 @@
 from sqlalchemy import and_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from common.database import StudentWrongQuestion, Student, Question
-from common.schema import SearchResultSchema
+from core.database import StudentWrongQuestion, Student, Question
+from core.schema import SearchResultSchema
 from admin.schema import SearchSchema
-from utils.time import now
+from shared.utils.time import now
 
 
 class WrongQuestionSchema:

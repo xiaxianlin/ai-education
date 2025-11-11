@@ -2,8 +2,8 @@ from fastapi import Depends
 from sqlalchemy import String, Text, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from common.settings import envs
-from utils.time import now
+from core.settings import envs
+from shared.utils.time import now
 
 async_engine = create_async_engine(
     envs.DATABASE_URL,

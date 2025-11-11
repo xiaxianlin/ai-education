@@ -2,9 +2,9 @@ from sqlalchemy import or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
-from common.database import Knowledge, Unit, Question
-from common.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
-from utils.time import now
+from core.database import Knowledge, Unit, Question
+from core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
+from shared.utils.time import now
 
 
 async def create_knowledge(db: AsyncSession, create: CreateKnowledgeSchema):

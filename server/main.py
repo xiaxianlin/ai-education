@@ -7,9 +7,9 @@ from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
 
 ##################################
-from common.database import init_database
-from common.settings import envs
-from common.logger import logger
+from core.database import init_database
+from core.settings import envs
+from core.logger import logger
 
 from admin import admin_app
 from admin.services.manager import init_super_manager

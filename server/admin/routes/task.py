@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.services.task import TaskService
 from shared.services.task_executor import task_executor
-from common.database import Database
+from core.database import Database
 from typing import Optional
 
 task_router = APIRouter(prefix="/task")

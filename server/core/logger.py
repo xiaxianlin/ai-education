@@ -1,6 +1,6 @@
 import logging
 from loguru import logger
-from common.settings import envs
+from core.settings import envs
 
 
 class InterceptHandler(logging.Handler):

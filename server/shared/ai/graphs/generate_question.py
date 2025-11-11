@@ -4,8 +4,8 @@ from langgraph.graph import StateGraph, END
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.database import Question, AsyncSessionLocal
-from ai.services.question import (
+from core.database import Question, AsyncSessionLocal
+from shared.ai.services.question import (
     validate_question_params,
     load_unit_data,
     generate_prompt,

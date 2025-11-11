@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query
-from common.constants import *
+from core.constants import *
 
 config_router = APIRouter()
 

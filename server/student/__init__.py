@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from student.services.auth import student_router_filter
-from common.middleware import WrappedResponse
-from common.exception import (
+from core.middleware import WrappedResponse
+from core.exception import (
     global_exception_handler,
     http_exception_handler,
     value_error_handler,

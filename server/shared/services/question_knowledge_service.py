@@ -3,8 +3,8 @@ from typing import List, Dict, Optional, Any
 from sqlalchemy import select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.database import QuestionKnowledge
-from utils.time import now
+from core.database import QuestionKnowledge
+from shared.utils.time import now
 
 
 class QuestionKnowledgeService:
@@ -52,7 +52,7 @@ class QuestionKnowledgeService:
         limit: int = 100
     ) -> List[int]:
         """根据知识点获取题目ID列表"""
-        from common.database import Question
+        from core.database import Question
         
         query = (
             select(Question.id)

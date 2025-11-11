@@ -21,7 +21,7 @@ from alibabacloud_bailian20231229.models import (
     ApplyFileUploadLeaseRequest,
     SubmitIndexAddDocumentsJobRequest,
 )
-from common.settings import envs
+from core.settings import envs
 
 
 class AliyunRag:

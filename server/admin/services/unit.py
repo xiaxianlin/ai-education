@@ -2,10 +2,10 @@ from sqlalchemy import or_, select, func
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
-from common.schema import SearchResultSchema, SearchSchema, UnitSchema
-from common.database import Unit, Knowledge, Textbook
+from core.schema import SearchResultSchema, SearchSchema, UnitSchema
+from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
-from utils.time import now
+from shared.utils.time import now
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:

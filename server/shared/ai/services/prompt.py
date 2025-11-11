@@ -5,9 +5,9 @@ import re
 from typing import Any
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from common.settings import envs
-from ai.prompts.image import IMAGE_GENERATION_PROMPT
-from ai.prompts.question import PROMPT_OPTIMIZATION_INSTRUCTION
+from core.settings import envs
+from shared.ai.prompts.image import IMAGE_GENERATION_PROMPT
+from shared.ai.prompts.question import PROMPT_OPTIMIZATION_INSTRUCTION
 
 
 class PromptOptimizationService:

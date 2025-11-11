@@ -5,9 +5,9 @@ from admin.schema import (
     UpdateStudentProfileSchema,
     StudentProfileSchema,
 )
-from common.database import StudentProfile, Student
-from common.schema import ResponseSchema
-from utils.time import now
+from core.database import StudentProfile, Student
+from core.schema import ResponseSchema
+from shared.utils.time import now
 
 
 async def get_student_profile(db: AsyncSession, student_id: str):

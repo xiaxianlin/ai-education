@@ -8,7 +8,7 @@ from sqlalchemy import select, func, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from common.database import (
+from core.database import (
     DailyPracticeSession,
     Question,
     StudentWrongQuestion,
@@ -17,8 +17,9 @@ from common.database import (
     Task,
 )
 from admin.schema import DailyPracticeSessionSchema
-from utils.time import now
+from shared.utils.time import now
 from shared.services.task import TaskService
+from shared.services.daily_practice_generation import DailyPracticeGenerationService
 
 
 class DailyPracticeService:
@@ -98,11 +99,9 @@ class DailyPracticeService:
     @staticmethod
     async def _select_daily_questions(db: AsyncSession, student_id: str, textbook_id: int, count: int) -> List[int]:
         """
-        智能选择今日练习题目（基于单元掌握度，优化SQL查询）
+        智能选择今日练习题目（优先召回数据库题目，再调用生成流程）
         """
-        from common.services.unit_based_question_service import UnitBasedQuestionService
-
-        question_ids = await UnitBasedQuestionService.generate_daily_practice_questions(
+        question_ids = await DailyPracticeGenerationService.generate_daily_practice_questions(
             db, student_id, textbook_id, count
         )
 
@@ -490,7 +489,7 @@ class DailyPracticeService:
         await db.commit()
 
         # 更新单元掌握度（按单元分组更新）
-        from common.services.unit_mastery_service import UnitMasteryService
+        from shared.services.unit_mastery_service import UnitMasteryService
 
         for unit_id, unit_stats in unit_questions.items():
             unit_score = (unit_stats["correct"] / unit_stats["total"] * 100) if unit_stats["total"] > 0 else 0
@@ -784,7 +783,7 @@ async def generate_daily_practice_task(db, params):
     # 注意：DailyPracticeService 已经在模块级别可用，不需要重新导入
     import json
     from sqlalchemy import select
-    from common.database import DailyPracticeSession, StudentProfile
+    from core.database import DailyPracticeSession, StudentProfile
     from shared.services.task import TaskService
     from loguru import logger
     

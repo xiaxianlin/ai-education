@@ -4,16 +4,16 @@ from fastapi import UploadFile
 from sqlalchemy import asc, delete, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
-from provider.aliyun import AliyunRag, AliyunApp
-from common.database import Knowledge, Question, Textbook, Unit
-from common.schema import TextbookSchema
-from utils.time import now
-from common.settings import envs
+from shared.provider.aliyun import AliyunRag, AliyunApp
+from core.database import Knowledge, Question, Textbook, Unit
+from core.schema import TextbookSchema
+from shared.utils.time import now
+from core.settings import envs
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
     """清理教材相关数据（优化版，包含QuestionKnowledge关联）"""
-    from common.database import QuestionKnowledge
+    from core.database import QuestionKnowledge
     
     # 1. 删除问题-知识点关联
     stmt = delete(QuestionKnowledge).where(

@@ -6,9 +6,9 @@ from admin.services.knowledge import query_knowledge_by_unit
 from admin.services.question import query_question_by_unit
 from admin.services.unit import query_unit_by_textbook
 from shared.services.task import TaskService
-from ai.services.question import generate_question_by_unit
-from common.database import Database
-from common.schema import SearchSchema
+from shared.ai.services.question import generate_question_by_unit
+from core.database import Database
+from core.schema import SearchSchema
 
 unit_router = APIRouter(prefix="/unit")
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from typing import Optional
-from ai.services.aliyun import AliyunAIService
+from shared.ai.services.aliyun import AliyunAIService
 
 ai_router = APIRouter(prefix="/ai")
 

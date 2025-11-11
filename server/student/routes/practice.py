@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
-from common.database import Database
+from core.database import Database
 from student.routes.profile import get_current_student
 from student.services.unit_practice import UnitPracticeService
 from student.services.daily_practice import DailyPracticeService

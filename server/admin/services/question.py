@@ -7,13 +7,13 @@ from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
-from common.database import Question, Unit
-from common.schema import QuestionSchema, SearchResultSchema
-from common.settings import envs
-from ai.services.aliyun import AliyunAIService
-from provider.aliyun import AliyunOSS
-from utils.time import now
-from utils.question import build_full_question_text
+from core.database import Question, Unit
+from core.schema import QuestionSchema, SearchResultSchema
+from core.settings import envs
+from shared.ai.services.aliyun import AliyunAIService
+from shared.provider.aliyun import AliyunOSS
+from shared.utils.time import now
+from shared.utils.question import build_full_question_text
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):

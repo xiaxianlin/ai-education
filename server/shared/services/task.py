@@ -2,8 +2,8 @@ import json
 from typing import Dict, Any, Optional, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, desc, func
-from common.database import Task
-from utils.time import now
+from core.database import Task
+from shared.utils.time import now
 from loguru import logger
 
 

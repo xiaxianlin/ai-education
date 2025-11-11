@@ -4,8 +4,8 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from functools import lru_cache
 
-from common.database import Knowledge, Unit
-from utils.time import now
+from core.database import Knowledge, Unit
+from shared.utils.time import now
 
 
 class KnowledgeService:
@@ -93,7 +93,7 @@ class KnowledgeService:
         knowledge_id: int
     ) -> int:
         """获取知识点关联的题目数量（使用缓存避免实时计算）"""
-        from common.database import QuestionKnowledge
+        from core.database import QuestionKnowledge
         
         result = await db.execute(
             select(func.count(QuestionKnowledge.id)).where(

@@ -5,9 +5,9 @@ from admin.schema import (
     StudyRecordSchema,
     SearchSchema,
 )
-from common.database import StudyRecord, Student
-from common.schema import SearchResultSchema
-from utils.time import now
+from core.database import StudyRecord, Student
+from core.schema import SearchResultSchema
+from shared.utils.time import now
 
 
 async def create_study_record(db: AsyncSession, params: CreateStudyRecordSchema):

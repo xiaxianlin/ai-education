@@ -1,5 +1,5 @@
 import json
-from common.database import Question
+from core.database import Question
 
 
 def build_full_question_text(question: Question) -> str:

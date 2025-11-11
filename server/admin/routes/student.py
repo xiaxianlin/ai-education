@@ -9,10 +9,10 @@ from admin.schema import (
     UpdateStudentStatsSchema,
     CreateStudyRecordSchema,
 )
-from common.schema import SearchSchema
+from core.schema import SearchSchema
 from admin.services import student, profile, stats, study_record, wrong_question
 from student.services.daily_practice import DailyPracticeService
-from common.database import Database
+from core.database import Database
 
 
 student_router = APIRouter(prefix="/student")

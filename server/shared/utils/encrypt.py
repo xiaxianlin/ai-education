@@ -1,5 +1,5 @@
 import jwt, json, hashlib, string, secrets
-from common.settings import envs
+from core.settings import envs
 
 
 def encode(data: dict) -> str:

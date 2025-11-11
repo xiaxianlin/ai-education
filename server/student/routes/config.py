@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
-from common.schema import ResponseSchema
-from common.constants import *
+from core.schema import ResponseSchema
+from core.constants import *
 
 config_router = APIRouter()
 

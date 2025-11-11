@@ -1,7 +1,7 @@
 """任务处理器"""
 from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from ai.graphs.generate_question import generate_question_graph
+from shared.ai.graphs.generate_question import generate_question_graph
 from loguru import logger
 
 

@@ -3,10 +3,10 @@ from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.database import Question, Unit, StudentUnitMastery
-from common.services.unit_mastery_service import UnitMasteryService
-from common.services.improved_question_selector import ImprovedQuestionSelector
-from utils.time import now
+from core.database import Question, Unit, StudentUnitMastery
+from shared.services.unit_mastery_service import UnitMasteryService
+from shared.services.improved_question_selector import ImprovedQuestionSelector
+from shared.utils.time import now
 
 
 class UnitBasedQuestionService:

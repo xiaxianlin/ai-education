@@ -1,7 +1,7 @@
 import dashscope
 from loguru import logger
-from common.settings import envs
-from ai.services.prompt import PromptOptimizationService
+from core.settings import envs
+from shared.ai.services.prompt import PromptOptimizationService
 
 class AliyunAIService:
 

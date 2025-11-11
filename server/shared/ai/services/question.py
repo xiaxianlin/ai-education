@@ -10,20 +10,20 @@ from pydantic import BaseModel, Field, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.constants import get_question_types, get_question_subtypes
-from common.database import Knowledge, Question, Textbook, Unit
-from common.settings import envs
+from core.constants import get_question_types, get_question_subtypes
+from core.database import Knowledge, Question, Textbook, Unit
+from core.settings import envs
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
-from ai.prompts.question import GENERATE_QUESTION_PROMPT
-from ai.services.aliyun import AliyunAIService
-from ai.services.prompt import PromptOptimizationService
-from provider.aliyun import AliyunOSS
-from utils.time import now
-from utils.question import build_full_question_text
+from shared.ai.prompts.question import GENERATE_QUESTION_PROMPT
+from shared.ai.services.aliyun import AliyunAIService
+from shared.ai.services.prompt import PromptOptimizationService
+from shared.provider.aliyun import AliyunOSS
+from shared.utils.time import now
+from shared.utils.question import build_full_question_text
 
 
 class QuestionOption(BaseModel):
@@ -568,7 +568,7 @@ async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str
 async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) -> List[Question]:
     """根据单元 ID 生成指定数量的题目并入库（旧接口，保持兼容）"""
     # 延迟导入以避免循环导入
-    from ai.graphs.generate_question import generate_question_graph
+    from shared.ai.graphs.generate_question import generate_question_graph
 
     result = await generate_question_graph(db, unit_id, count)
     return result.get("saved_questions", [])

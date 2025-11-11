@@ -3,8 +3,8 @@ from typing import List
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.database import Question, StudentWrongQuestion
-from common.services.unit_mastery_service import UnitMasteryService
+from core.database import Question, StudentWrongQuestion
+from shared.services.unit_mastery_service import UnitMasteryService
 
 
 class ImprovedQuestionSelector:

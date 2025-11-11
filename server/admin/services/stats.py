@@ -4,9 +4,9 @@ from admin.schema import (
     UpdateStudentStatsSchema,
     StudentStatsSchema,
 )
-from common.database import StudentStats, Student, StudyRecord
-from common.schema import ResponseSchema
-from utils.time import now
+from core.database import StudentStats, Student, StudyRecord
+from core.schema import ResponseSchema
+from shared.utils.time import now
 
 
 async def get_student_stats(db: AsyncSession, student_id: str):

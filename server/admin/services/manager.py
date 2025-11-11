@@ -2,11 +2,11 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import ModifyPasswordSchema, CreateManangeSchema, UpdateManangeSchema
-from common.database import AsyncSessionLocal, Manager
-from common.schema import ManagerSchema
-from common.settings import envs
-from utils import encrypt
-from utils.time import now
+from core.database import AsyncSessionLocal, Manager
+from core.schema import ManagerSchema
+from core.settings import envs
+from shared.utils import encrypt
+from shared.utils.time import now
 
 
 async def init_super_manager():

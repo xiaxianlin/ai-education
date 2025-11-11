@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from common.database import Database
+from core.database import Database
 from student.schema import LoginSchema
 from student.services import auth
 

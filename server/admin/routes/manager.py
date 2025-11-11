@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateManangeSchema, UpdateManangeSchema
 from admin.services import manager
-from common.database import Database
+from core.database import Database
 
 
 manager_router = APIRouter(prefix="/manager")

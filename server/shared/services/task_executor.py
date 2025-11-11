@@ -17,7 +17,7 @@ import os
 import traceback
 from typing import Dict, Optional
 from dataclasses import dataclass
-from common.database import AsyncSessionLocal, Task
+from core.database import AsyncSessionLocal, Task
 from shared.services.task import TaskService
 from loguru import logger
 

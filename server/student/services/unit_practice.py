@@ -6,13 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from loguru import logger
 
-from common.database import UnitPracticeSession, Question, Unit, Knowledge, StudyRecord
+from core.database import UnitPracticeSession, Question, Unit, Knowledge, StudyRecord
 from admin.schema import (
     UnitPracticeSessionSchema,
     CreateUnitPracticeSchema,
     SubmitUnitPracticeAnswerSchema,
 )
-from utils.time import now
+from shared.utils.time import now
 
 
 class UnitPracticeService:
@@ -39,7 +39,7 @@ class UnitPracticeService:
             raise ValueError(f"单元 {unit_id} 不存在")
         
         # 选择题目（基于单元掌握度）
-        from common.services.unit_based_question_service import UnitBasedQuestionService
+        from shared.services.unit_based_question_service import UnitBasedQuestionService
         
         question_ids = await UnitBasedQuestionService.generate_unit_practice_questions(
             db, student_id, unit_id, count
@@ -384,7 +384,7 @@ class UnitPracticeService:
         await db.commit()
         
         # 更新单元掌握度
-        from common.services.unit_mastery_service import UnitMasteryService
+        from shared.services.unit_mastery_service import UnitMasteryService
         
         await UnitMasteryService.update_mastery(
             db,
