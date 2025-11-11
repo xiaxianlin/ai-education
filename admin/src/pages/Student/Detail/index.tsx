@@ -33,9 +33,8 @@ import {
 import { DeleteOutlined } from '@ant-design/icons';
 import { StatusTag } from '@/components/ui';
 import { GRADES, TEXTBOOK_VERSIONS, SEMESTERS } from '@/constants/course';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ProForm } from '@ant-design/pro-components';
-import { useRef } from 'react';
 import { fmtTime } from '@/utils/time';
 
 const { Statistic } = StatisticCard;
@@ -356,6 +355,40 @@ export default function StudentDetailPage() {
       setLoadingHistory(false);
     }
   };
+
+  // 轮询任务进度：当状态为 pending 或 running 时，每3秒查询一次
+  useEffect(() => {
+    if (!id || !todayPractice?.status) {
+      return;
+    }
+
+    // 只有在任务正在生成时才轮询（pending 或 running 状态）
+    const isGenerating = ['pending', 'running'].includes(todayPractice.status);
+    if (!isGenerating) {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await StudentApi.generateDailyPractice(id);
+        setTodayPractice(data);
+
+        // 如果任务完成（有 session 或状态不再是 pending/running），停止轮询
+        if (data.session || !['pending', 'running'].includes(data.status)) {
+          clearInterval(pollInterval);
+          if (data.session) {
+            message.success('今日练习生成完成！');
+          } else if (data.status === 'failed') {
+            message.error('今日练习生成失败，请重试');
+          }
+        }
+      } catch (error) {
+        console.error('查询任务进度失败:', error);
+      }
+    }, 3000); // 每3秒查询一次
+
+    return () => clearInterval(pollInterval);
+  }, [id, todayPractice?.status]);
 
   // 保存学习配置
   const { runAsync: handleSaveProfile, loading: savingProfile } = useRequest(
@@ -901,8 +934,8 @@ export default function StudentDetailPage() {
                 创建时间：{fmtTime(todayPractice.session.create_time)}
               </div>
             </div>
-          ) : todayPractice?.status === 'generating' ? (
-            // 正在生成
+          ) : todayPractice && ['pending', 'running'].includes(todayPractice.status) ? (
+            // 正在生成（任务状态为 pending 或 running）
             <div style={{
               textAlign: 'center',
               padding: '40px 0',
@@ -912,7 +945,7 @@ export default function StudentDetailPage() {
               <Spin size="large" />
               <div style={{ marginTop: 20 }}>
                 <Progress
-                  percent={todayPractice.progress}
+                  percent={todayPractice.progress || 0}
                   status="active"
                   strokeColor={{
                     '0%': '#667eea',
@@ -920,7 +953,7 @@ export default function StudentDetailPage() {
                   }}
                 />
                 <div style={{ marginTop: 12, color: '#666', fontSize: '14px' }}>
-                  正在生成今日练习，请稍候...
+                  正在生成今日练习，请稍候...（进度: {todayPractice.progress || 0}%）
                 </div>
               </div>
             </div>

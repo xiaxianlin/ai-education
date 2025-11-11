@@ -340,7 +340,7 @@ export function AssessmentSession() {
 
   const question = nextQuestionData.question;
   const progress = nextQuestionData.progress;
-  const options = question.options ? JSON.parse(question.options) : [];
+  const options: Array<string | { label: string; text: string }> = question.options ? JSON.parse(question.options) : [];
   const isAnswered = userAnswer !== '';
 
   // 能力值可视化
@@ -457,16 +457,20 @@ export function AssessmentSession() {
               {/* 选项 - 更大更明显 */}
               {options.length > 0 && (
                 <div className="space-y-4">
-                  {options.map((option: string, index: number) => {
-                    const isSelected = userAnswer === option;
-                    const isCorrect = showResult && option === question.answer;
+                  {options.map((option, index: number) => {
+                    // 处理选项可能是对象或字符串的情况
+                    const optionText = typeof option === 'object' && option !== null && 'text' in option
+                      ? option.text
+                      : String(option);
+                    const isSelected = userAnswer === optionText;
+                    const isCorrect = showResult && optionText === question.answer;
                     const isWrong = showResult && isSelected && userAnswer !== question.answer;
                     const optionLabel = String.fromCharCode(65 + index); // A, B, C, D
 
                     return (
                       <button
                         key={index}
-                        onClick={() => !showResult && !submitting && handleAnswer(option)}
+                        onClick={() => !showResult && !submitting && handleAnswer(optionText)}
                         disabled={showResult || submitting}
                         className={cn(
                           'w-full p-6 text-left rounded-2xl border-3 transition-all duration-300 flex items-start gap-4 shadow-md hover:shadow-lg',
@@ -488,7 +492,7 @@ export function AssessmentSession() {
                         >
                           {optionLabel}
                         </div>
-                        <span className="flex-1 pt-2 text-lg text-gray-800 font-medium">{option}</span>
+                        <span className="flex-1 pt-2 text-lg text-gray-800 font-medium">{optionText}</span>
                         {isCorrect && <CheckCircle className="h-8 w-8 text-green-600 mt-2" />}
                         {isWrong && <XCircle className="h-8 w-8 text-red-600 mt-2" />}
                       </button>

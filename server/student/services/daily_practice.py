@@ -604,15 +604,17 @@ class DailyPracticeService:
 
         # 检查今天是否已有30道题的练习
         today_result = await db.execute(
-            select(DailyPracticeSession).where(
+            select(DailyPracticeSession)
+            .where(
                 and_(
                     DailyPracticeSession.student_id == student_id,
                     DailyPracticeSession.date == today,
                     DailyPracticeSession.total_questions == 30,
                 )
             )
+            .order_by(DailyPracticeSession.create_time.desc())
         )
-        today_session = today_result.scalar_one_or_none()
+        today_session = today_result.scalars().first()
 
         if today_session:
             # 如果已完成，直接返回
@@ -644,7 +646,7 @@ class DailyPracticeService:
             )
             .order_by(DailyPracticeSession.date.desc())
         )
-        old_session = old_result.scalar_one_or_none()
+        old_session = old_result.scalars().first()
 
         if old_session:
             # 更新为今日练习，重置进度

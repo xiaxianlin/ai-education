@@ -153,7 +153,7 @@ export function DailyPracticeSession() {
     const answer = userAnswers[question.id];
     const hasAnswered = answerResults[question.id] !== undefined;
 
-    let options: string[] = [];
+    let options: Array<string | { label: string; text: string }> = [];
     try {
       options = question.options ? JSON.parse(question.options) : [];
     } catch {
@@ -166,6 +166,10 @@ export function DailyPracticeSession() {
           {options.map((option, index) => {
             const optionLabel = String.fromCharCode(65 + index);
             const isSelected = answer === optionLabel;
+            // 处理选项可能是对象或字符串的情况
+            const optionText = typeof option === 'object' && option !== null && 'text' in option
+              ? option.text
+              : String(option);
 
             return (
               <button
@@ -199,7 +203,7 @@ export function DailyPracticeSession() {
                   >
                     {optionLabel}
                   </div>
-                  <div className="flex-1 pt-2 text-lg text-gray-800 font-medium">{option}</div>
+                  <div className="flex-1 pt-2 text-lg text-gray-800 font-medium">{optionText}</div>
                   {isSelected && hasAnswered && (
                     <div className="flex-shrink-0 mt-2">
                       {answerResults[question.id] ? (
