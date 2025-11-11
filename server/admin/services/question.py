@@ -251,15 +251,19 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
 
 
 async def search_resource_questions(db: AsyncSession, params: SearchQuestionSchema):
-    """搜索需要处理资源的问题"""
+    """搜索需要处理资源的问题 - 只查询 resource_type 不为空的数据"""
     query = select(Question).options(
         joinedload(Question.textbook),
         joinedload(Question.unit).noload(Unit.textbook),
     )
 
+    # 确保只查询 resource_type 不为空的数据（不为 None 且不为空字符串）
     base_conditions = [
-        Question.resource_type.isnot(None),
-        Question.resource_type != "",
+        and_(
+            Question.resource_type.isnot(None),
+            Question.resource_type != "",
+            func.trim(Question.resource_type) != "",
+        )
     ]
     conditions = base_conditions.copy()
 

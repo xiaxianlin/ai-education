@@ -39,7 +39,7 @@ export default function QuestionListPage() {
       onError: (error: any) => {
         message.error(error?.message || '删除失败');
       },
-    }
+    },
   );
 
   const renderResourceTypeTag = React.useCallback((resourceType?: string) => {
@@ -61,9 +61,7 @@ export default function QuestionListPage() {
     }
     const isGenerated = record.resource && record.resource.trim() !== '';
     return (
-      <Tag color={isGenerated ? 'success' : 'warning'}>
-        {isGenerated ? '已生成' : '未生成'}
-      </Tag>
+      <Tag color={isGenerated ? 'success' : 'warning'}>{isGenerated ? '已生成' : '未生成'}</Tag>
     );
   }, []);
 
@@ -247,8 +245,7 @@ export default function QuestionListPage() {
       hideInSearch: true,
       width: 200,
       render: (_, record) => {
-        const isSupported =
-          record.resource_type === 'image' || record.resource_type === 'audio';
+        const isSupported = record.resource_type === 'image' || record.resource_type === 'audio';
         const isGenerating = generateLoadingId === String(record.id);
         return (
           <Space>
@@ -270,40 +267,35 @@ export default function QuestionListPage() {
     },
   ];
 
-  const buildSearchParams = React.useCallback(
-    (params: any): QuestionSearchParams => {
-      const searchParams: QuestionSearchParams = {
-        page: params.current || 1,
-        size: params.pageSize || 10,
-        keywords: params.content,
-      };
+  const buildSearchParams = React.useCallback((params: any): QuestionSearchParams => {
+    console.log(params);
+    const searchParams: QuestionSearchParams = {
+      page: params.current || 1,
+      size: params.pageSize || 10,
+      keywords: params.content,
+    };
 
-      if (params.type !== undefined) {
-        searchParams.type = params.type;
+    if (params.type !== undefined) {
+      searchParams.type = params.type;
+    }
+    if (params.subject !== undefined) {
+      searchParams.subject = params.subject;
+    }
+    if (params.grade !== undefined) {
+      searchParams.grade = params.grade;
+    }
+    if (params.resource_type !== undefined) {
+      searchParams.resource_type = params.resource_type;
+    }
+    if (params.resource_generated !== undefined && params.resource_generated !== null) {
+      if (typeof params.resource_generated === 'string') {
+        searchParams.resource_generated = params.resource_generated === 'true';
+      } else {
+        searchParams.resource_generated = Boolean(params.resource_generated);
       }
-      if (params.subject !== undefined) {
-        searchParams.subject = params.subject;
-      }
-      if (params.grade !== undefined) {
-        searchParams.grade = params.grade;
-      }
-      if (params.resource_type !== undefined) {
-        searchParams.resource_type = params.resource_type;
-      }
-      if (
-        params.resource_generated !== undefined &&
-        params.resource_generated !== null
-      ) {
-        if (typeof params.resource_generated === 'string') {
-          searchParams.resource_generated = params.resource_generated === 'true';
-        } else {
-          searchParams.resource_generated = Boolean(params.resource_generated);
-        }
-      }
-      return searchParams;
-    },
-    []
-  );
+    }
+    return searchParams;
+  }, []);
 
   return (
     <PageContainer
@@ -355,7 +347,6 @@ export default function QuestionListPage() {
           options={false}
           toolbar={{ settings: [] }}
           scroll={{ x: 'max-content' }}
-          pagination={{ pageSize: 10 }}
         />
       )}
     </PageContainer>
