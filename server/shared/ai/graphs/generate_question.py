@@ -9,7 +9,6 @@ from shared.ai.services.question import (
     validate_question_params,
     load_unit_data,
     generate_prompt,
-    optimize_prompt,
     call_llm,
     convert_to_question_objects,
     generate_images,
@@ -69,15 +68,6 @@ async def create_prompt_node(state: QuestionGenerationState) -> QuestionGenerati
     return result
 
 
-async def optimize_prompt_node(state: QuestionGenerationState) -> QuestionGenerationState:
-    """节点4: 优化生成的 prompt"""
-    logger.info("开始优化 prompt")
-    result = await optimize_prompt(state)
-    logger.info("Prompt 优化完成")
-    # 只返回需要更新的字段，避免更新 unit_id 等不应该被更新的字段
-    return result
-
-
 async def call_llm_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """节点5: 调用大模型结构化输出内容"""
     logger.info("开始调用大模型生成题目")
@@ -91,7 +81,7 @@ async def convert_data_node(state: QuestionGenerationState) -> QuestionGeneratio
     """节点6: 将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
     result = await convert_to_question_objects(state)
-    
+
     image_questions = result.get("image_questions", [])
     audio_questions = result.get("audio_questions", [])
     text_questions = result.get("text_questions", [])
@@ -123,7 +113,7 @@ async def convert_data_node(state: QuestionGenerationState) -> QuestionGeneratio
 async def handle_image_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """图片处理节点：根据 resource_type 标识生成图片"""
     image_questions = state.get("image_questions", [])
-    
+
     # 检查是否有需要生成图片的题目
     needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
     if needs_image_count == 0:
@@ -140,7 +130,7 @@ async def handle_image_node(state: QuestionGenerationState) -> QuestionGeneratio
 async def handle_audio_node(state: QuestionGenerationState) -> QuestionGenerationState:
     """音频处理节点：根据 resource_type 标识生成语音"""
     audio_questions = state.get("audio_questions", [])
-    
+
     # 检查是否有需要生成语音的题目
     needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
     if needs_audio_count == 0:
@@ -194,7 +184,6 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("check_params", check_params_node)
     workflow.add_node("load_data", load_data_node)
     workflow.add_node("create_prompt", create_prompt_node)
-    workflow.add_node("optimize_prompt", optimize_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
     workflow.add_node("convert_data", convert_data_node)
     workflow.add_node("handle_image", handle_image_node)
@@ -210,7 +199,6 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("check_params", "load_data")
     workflow.add_edge("load_data", "create_prompt")
     workflow.add_edge("create_prompt", "call_llm")
-    # workflow.add_edge("optimize_prompt", "call_llm")
     workflow.add_edge("call_llm", "convert_data")
 
     # 从 convert_data 节点直接并行连接到 3 个处理节点
@@ -255,16 +243,16 @@ async def create_graph_with_db():
     """为 LangGraph CLI 创建带数据库连接的图"""
     # 创建一个数据库会话
     db = AsyncSessionLocal()
-    
+
     # 创建一个包装图，在调用时自动注入数据库会话
     graph = get_question_generation_graph()
-    
+
     # 返回一个包装函数，用于 LangGraph CLI
     async def invoke_with_db(state: Dict[str, Any]) -> Dict[str, Any]:
         """包装函数，自动注入数据库会话"""
         state["db"] = db
         return await graph.ainvoke(state)
-    
+
     return invoke_with_db
 
 

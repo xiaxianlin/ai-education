@@ -21,6 +21,7 @@ from admin.schema import (
     AssessmentReportSchema,
 )
 from shared.utils.time import now
+from shared.services.assessment_generation import AssessmentGenerationService
 
 
 class AdaptiveAlgorithm:
@@ -348,10 +349,49 @@ class AssessmentService:
                 )
                 question = alt_result.scalar_one_or_none()
                 if question:
+                    logger.info(f"使用备选难度 {alt_diff} 的题目")
                     break
-        
+
+            # 如果仍然没有找到，尝试触发题目生成
+            if not question:
+                logger.warning(f"数据库中没有合适的题目，尝试生成新题目")
+                try:
+                    # 使用 AssessmentGenerationService 生成新题目
+                    generated_ids = await AssessmentGenerationService.generate_assessment_questions_new(
+                        db, textbook_id, generate_count=5  # 一次生成5道题备用
+                    )
+
+                    if generated_ids:
+                        # 从生成的题目中选择符合难度要求的
+                        generated_result = await db.execute(
+                            select(Question).where(
+                                and_(
+                                    Question.id.in_(generated_ids),
+                                    Question.difficulty == target_difficulty,
+                                    Question.id.not_in(answered_ids) if answered_ids else True,
+                                )
+                            ).limit(1)
+                        )
+                        question = generated_result.scalar_one_or_none()
+
+                        if not question:
+                            # 如果生成的题目中没有目标难度，选择任意一个生成的题目
+                            any_generated = await db.execute(
+                                select(Question).where(
+                                    and_(
+                                        Question.id.in_(generated_ids),
+                                        Question.id.not_in(answered_ids) if answered_ids else True,
+                                    )
+                                ).limit(1)
+                            )
+                            question = any_generated.scalar_one_or_none()
+                            if question:
+                                logger.info(f"使用生成的题目，难度为 {question.difficulty}")
+                except Exception as e:
+                    logger.error(f"生成题目失败: {e}")
+
         if not question:
-            logger.error("没有可用题目，结束评测")
+            logger.error("没有可用题目（包括生成），结束评测")
             return None
         
         return {

@@ -40,9 +40,7 @@ class GeneratedQuestion(BaseModel):
     question_subtype: str = Field(description="题目子类型", default="")
     question: str = Field(description="题干内容")
     resource_content: str = Field(description="资源内容（录音文本等，仅录音题需要）", default="")
-    options: List[QuestionOption] = Field(
-        description="题目选项列表，非选择题时可为空数组", default=[]
-    )
+    options: List[QuestionOption] = Field(description="题目选项列表，非选择题时可为空数组", default=[])
     answer: str = Field(description="标准答案")
     difficulty: str = Field(description="题目难度：简单、普通、困难")
     knowledge: str = Field(description="知识点")
@@ -70,9 +68,7 @@ async def load_unit_data(db: AsyncSession, unit_id: int) -> Dict[str, Any]:
     if not textbook:
         raise ValueError("教材不存在")
 
-    knowledge_rows = await db.scalars(
-        select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id)
-    )
+    knowledge_rows = await db.scalars(select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id))
     knowledge_list = knowledge_rows.all()
 
     knowledge_lines = []
@@ -112,8 +108,7 @@ def _build_common_prompt_inputs(
     question_types = get_question_types(textbook.subject, textbook.grade)
     if not question_types:
         raise ValueError(
-            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
     question_types_str = "、".join(question_types)
@@ -141,194 +136,18 @@ def _build_common_prompt_inputs(
     return prompt_input, parser
 
 
-async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
-    """根据传入参数生成单元练习 prompt"""
-    prompt_input, parser = _build_common_prompt_inputs(params)
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "你是一名专业教研员，负责根据教材内容命题。请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
-            ("human", GENERIC_UNIT_PROMPT),
-        ]
-    )
-
-    return {
-        "prompt": prompt,
-        "prompt_input": prompt_input,
-        "parser": parser,
-        "prompt_template": GENERIC_UNIT_PROMPT,
-    }
-
-
-async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
-    """根据传入参数生成今日练习 prompt"""
-    prompt_input, parser = _build_common_prompt_inputs(params)
-
-    knowledge_overview = params.get(
-        "knowledge_overview",
-        prompt_input.get("knowledge_text") or "(近期练习未关联具体知识点)",
-    )
-
-    practice_focus = params.get(
-        "practice_focus",
-        "30% 错题复习、40% 巩固练习、20% 挑战题、10% 新知识点。"
-        "请在题目中通过难度与知识点选择体现该分布。",
-    )
-    strategy_notes = params.get(
-        "practice_strategy",
-        (
-            "根据学生历史表现优先使用错题巩固；巩固题强调基础理解；"
-            "挑战题可以适度提高难度或引入综合应用；新知识点题目用于引入尚未覆盖的内容，"
-            "注意通过题干提供必要的提示。"
-        ),
-    )
-
-    daily_prompt_input = {
-        key: prompt_input[key]
-        for key in (
-            "subject",
-            "grade",
-            "semester",
-            "question_types",
-            "subtype_info",
-            "count",
-            "format_instructions",
-        )
-    }
-
-    daily_prompt_input.update(
-        {
-            "knowledge_overview": knowledge_overview,
-        "practice_focus": practice_focus,
-        "strategy_notes": strategy_notes,
-        }
-    )
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "你是一名专业教研员，负责设计学生的日常练习。请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
-            ("human", DAILY_PRACTICE_PROMPT),
-        ]
-    )
-
-    return {
-        "prompt": prompt,
-        "prompt_input": daily_prompt_input,
-        "parser": parser,
-        "prompt_template": DAILY_PRACTICE_PROMPT,
-    }
-
-
-async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
-    """根据传入参数生成能力评测 prompt"""
-    prompt_input, parser = _build_common_prompt_inputs(params)
-
-    assessment_goal = params.get(
-        "assessment_goal",
-        (
-            "通过题目正确率快速估计学生能力水平，覆盖核心知识点，"
-            "确保题目能够区分不同能力段。"
-        ),
-    )
-    assessment_strategy = params.get(
-        "assessment_strategy",
-        (
-            "按自适应评测策略准备题目：开局使用普通难度探测，"
-            "根据表现提供更高或更低难度题目。整体包含简单、普通、困难题，"
-            "题目类型需有利于快速判定正确与否。"
-        ),
-    )
-
-    prompt_input = {
-        **prompt_input,
-        "assessment_goal": assessment_goal,
-        "assessment_strategy": assessment_strategy,
-    }
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "你是一名专业测评设计师，负责生成自适应能力评测题目。请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
-            ("human", ASSESSMENT_GENERATION_PROMPT),
-        ]
-    )
-
-    return {
-        "prompt": prompt,
-        "prompt_input": prompt_input,
-        "parser": parser,
-        "prompt_template": ASSESSMENT_GENERATION_PROMPT,
-    }
-
-
-PROMPT_BUILDERS = {
-    "unit": unit_generate_prompt,
-    "daily": daily_generate_prompt,
-    "assessment": assessment_generate_prompt,
-}
-
-
 async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """根据生成类型选择合适的 prompt 生成器"""
     generation_type = params.get("generation_type", "unit")
     builder = PROMPT_BUILDERS.get(generation_type)
 
     if builder is None:
-        logger.warning(
-            "未知的题目生成类型: %s，回退到 unit 生成逻辑", generation_type
-        )
+        logger.warning("未知的题目生成类型: %s，回退到 unit 生成逻辑", generation_type)
         builder = PROMPT_BUILDERS["unit"]
 
     result = await builder(params)
     result["generation_type"] = generation_type
     return result
-
-
-async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
-    """优化生成的 prompt，使其更清晰、更有效"""
-    logger.info("开始优化 prompt")
-
-    prompt_input = params["prompt_input"]
-    prompt_template = params.get("prompt_template", GENERIC_UNIT_PROMPT)
-
-    # 为了优化效果更好，先填充变量获取完整内容用于优化
-    filled_prompt_text = prompt_template.format(**prompt_input)
-
-    # 使用提示词优化服务
-    optimized_text_str = PromptOptimizationService.optimize_question_prompt(filled_prompt_text)
-
-    logger.info(
-        f"Prompt 优化完成，原始长度: {len(filled_prompt_text)}, 优化后长度: {len(optimized_text_str)}"
-    )
-
-    # 使用优化后的 prompt 文本创建新的 prompt template
-    # 注意：优化后的文本应该包含变量占位符，这样可以在后续调用时填充
-    optimized_prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "你是一名专业教研员，负责根据教材内容命题。请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
-            ("human", optimized_text_str),
-        ]
-    )
-
-    logger.info(f"优化后的 Prompt: {optimized_text_str}")
-
-    return {
-        "prompt": optimized_prompt,
-        "original_prompt_text": filled_prompt_text,
-        "optimized_prompt_text": optimized_text_str,
-        "prompt_template": optimized_text_str,
-    }
 
 
 async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
@@ -366,9 +185,7 @@ async def call_llm(params: Dict[str, Any]) -> Dict[str, Any]:
         # 确保 questions 是列表
         if not isinstance(result["questions"], list):
             logger.error(f"questions 字段类型错误: {type(result['questions'])}")
-            raise ValueError(
-                f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
-            )
+            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
 
         for question in result["questions"]:
             if not isinstance(question, dict):
@@ -417,8 +234,7 @@ async def convert_to_question_objects(params: Dict[str, Any]) -> Dict[str, Any]:
     # 验证题型列表不为空（虽然 generate_prompt 已经验证过，但这里再次验证以确保安全）
     if not question_types:
         raise ValueError(
-            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
     for item in generated_questions:
@@ -536,9 +352,7 @@ async def generate_images(params: Dict[str, Any]) -> Dict[str, Any]:
             question._temp_image_url = image_url
             logger.info(f"题目 {question.id} 图片生成成功")
         except Exception as e:
-            logger.error(
-                f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}"
-            )
+            logger.error(f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}")
             question._temp_image_url = None
 
     # 并行执行所有图片生成任务
@@ -569,9 +383,7 @@ async def generate_audio(params: Dict[str, Any]) -> Dict[str, Any]:
     async def generate_single_audio(question: Question):
         try:
             # 生成语音，优先使用 resource_content，如果没有则使用 content
-            text_to_speak = (
-                question.resource_content if question.resource_content else question.content
-            )
+            text_to_speak = question.resource_content if question.resource_content else question.content
             audio_url = AliyunAIService.tts(text=text_to_speak, voice="Cherry", language="Chinese")
             # 将音频URL保存到临时字段，后续上传时使用
             question._temp_audio_url = audio_url
@@ -705,6 +517,265 @@ async def upload_questions(db: AsyncSession, params: Dict[str, Any]) -> Dict[str
     return {
         "saved_questions": all_questions,
     }
+
+
+# ============================================================================
+# 优化版本 Prompt 构建器（V2）
+# ============================================================================
+
+
+async def _get_knowledge_names_by_units(db: AsyncSession, unit_ids: List[int]) -> List[str]:
+    """根据单元ID列表获取知识点名称"""
+    if not unit_ids:
+        return []
+
+    result = await db.execute(select(Knowledge.name).where(Knowledge.unit_id.in_(unit_ids)).order_by(Knowledge.id))
+    return [row[0] for row in result.all()]
+
+
+def _format_weak_knowledge_analysis(weak_points: List[str], mastery_details: List[Dict[str, Any]] = None) -> str:
+    """格式化薄弱知识点分析"""
+    if not weak_points:
+        return "（暂无明显薄弱知识点，学生整体掌握良好）"
+
+    lines = []
+    for i, point in enumerate(weak_points[:5]):  # 最多显示5个
+        if mastery_details and i < len(mastery_details):
+            detail = mastery_details[i]
+            mastery_level = int(detail.get("mastery_level", 0) * 100)
+            error_rate = int(detail.get("error_rate", 0) * 100)
+            lines.append(f"- **{point}**：掌握度 {mastery_level}%，历史错误率 {error_rate}%")
+        else:
+            lines.append(f"- **{point}**")
+
+    return "\n".join(lines)
+
+
+def _format_mastered_knowledge(knowledge_list: List[str]) -> str:
+    """格式化已掌握知识点列表"""
+    if not knowledge_list:
+        return "（暂无已掌握知识点数据）"
+
+    return "、".join(knowledge_list[:10])  # 最多显示10个
+
+
+def _format_review_reminder(review_units: List[Dict[str, Any]]) -> str:
+    """格式化遗忘曲线复习提醒"""
+    if not review_units:
+        return "（近期无需复习的单元）"
+
+    lines = []
+    for unit in review_units[:3]:  # 最多显示3个
+        unit_name = unit.get("unit_name", "未知单元")
+        days_since = unit.get("days_since_last_practice", 0)
+        lines.append(f"- **{unit_name}**：已 {days_since} 天未练习，建议复习")
+
+    return "\n".join(lines)
+
+
+def _format_new_knowledge(new_knowledge: List[str]) -> str:
+    """格式化新知识预览"""
+    if not new_knowledge:
+        return "（暂无新知识点安排）"
+
+    return "、".join(new_knowledge[:5])
+
+
+async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成单元练习 prompt"""
+    prompt_input, parser = _build_common_prompt_inputs(params)
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业教研员，负责根据教材内容命题。"
+                "你的目标是生成高质量、符合学生认知水平、紧扣知识点的题目。"
+                "请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", GENERIC_UNIT_PROMPT),
+        ]
+    )
+
+    return {
+        "prompt": prompt,
+        "prompt_input": prompt_input,
+        "parser": parser,
+        "prompt_template": GENERIC_UNIT_PROMPT,
+    }
+
+
+async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成今日练习 prompt"""
+    from shared.services.unit_mastery_service import UnitMasteryService
+
+    prompt_input, parser = _build_common_prompt_inputs(params)
+
+    # 从参数中获取学生相关信息
+    student_id = params.get("student_id")
+    textbook_id = params.get("textbook_id")
+    db = params.get("db")
+
+    # 初始化默认值
+    weak_knowledge_points = []
+    mastered_knowledge = []
+    review_units = []
+
+    # 如果有学生数据，则加载真实的掌握度信息
+    if student_id and textbook_id and db:
+        try:
+            # 获取学生单元掌握度数据
+            mastery_map = await UnitMasteryService.get_student_unit_mastery_map(db, student_id, textbook_id)
+
+            # 提取薄弱知识点（mastery_level < 0.6）
+            weak_units = [unit_id for unit_id, data in mastery_map.items() if data.get("mastery_level", 0) < 0.6]
+            if weak_units:
+                weak_knowledge_points = await _get_knowledge_names_by_units(db, weak_units)
+
+            # 提取已掌握知识点（0.6 <= mastery_level < 0.8）
+            mastered_units = [
+                unit_id for unit_id, data in mastery_map.items() if 0.6 <= data.get("mastery_level", 0) < 0.8
+            ]
+            if mastered_units:
+                mastered_knowledge = await _get_knowledge_names_by_units(db, mastered_units)
+
+            # 提取需要复习的单元（基于遗忘曲线）
+            review_units = (
+                await UnitMasteryService.get_units_need_review(db, student_id, textbook_id)
+                if hasattr(UnitMasteryService, "get_units_need_review")
+                else []
+            )
+        except Exception as e:
+            logger.warning(f"加载学生学习数据失败，将使用默认策略: {e}")
+
+    # 计算题目分布
+    total_count = params["count"]
+    wrong_count = max(1, int(total_count * 0.3))
+    consolidation_count = int(total_count * 0.4)
+    challenge_count = int(total_count * 0.2)
+    new_count = total_count - wrong_count - consolidation_count - challenge_count
+
+    # 如果没有真实数据，使用通用知识点
+    if not weak_knowledge_points:
+        weak_knowledge_points = params.get("knowledge_names", "").split("、")[:3]
+    if not mastered_knowledge:
+        mastered_knowledge = params.get("knowledge_names", "").split("、")[3:8]
+
+    # 构建富文本的学生画像
+    weak_knowledge_analysis = _format_weak_knowledge_analysis(weak_knowledge_points)
+    mastered_knowledge_list = _format_mastered_knowledge(mastered_knowledge)
+    review_units_reminder = _format_review_reminder(review_units)
+    new_knowledge_preview = _format_new_knowledge(
+        params.get("new_knowledge", mastered_knowledge[-3:] if mastered_knowledge else [])
+    )
+
+    daily_prompt_input = {
+        **{
+            k: prompt_input[k]
+            for k in ("subject", "grade", "semester", "question_types", "subtype_info", "count", "format_instructions")
+        },
+        "weak_knowledge_analysis": weak_knowledge_analysis,
+        "mastered_knowledge_list": mastered_knowledge_list,
+        "review_units_reminder": review_units_reminder,
+        "weak_knowledge_points": "、".join(weak_knowledge_points[:5]) or "（无）",
+        "mastered_knowledge": "、".join(mastered_knowledge[:8]) or "（无）",
+        "challenge_knowledge": "、".join(mastered_knowledge[-3:]) if mastered_knowledge else "（无）",
+        "new_knowledge": new_knowledge_preview,
+        "wrong_count": wrong_count,
+        "consolidation_count": consolidation_count,
+        "challenge_count": challenge_count,
+        "new_count": new_count,
+    }
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。"
+                "你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。"
+                "请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", DAILY_PRACTICE_PROMPT),
+        ]
+    )
+
+    return {
+        "prompt": prompt,
+        "prompt_input": daily_prompt_input,
+        "parser": parser,
+        "prompt_template": DAILY_PRACTICE_PROMPT,
+    }
+
+
+async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成能力评测 prompt - 整体能力评测"""
+    # 能力评测不需要单元和知识点信息，只需要基础的科目、年级、学期
+    textbook = params["textbook"]
+    count = params["count"]
+
+    parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
+    format_instructions = parser.get_format_instructions()
+
+    question_types = get_question_types(textbook.subject, textbook.grade)
+    if not question_types:
+        raise ValueError(
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
+        )
+
+    question_types_str = "、".join(question_types)
+
+    subtype_info_lines = []
+    for qtype in question_types:
+        subtypes = get_question_subtypes(qtype)
+        if subtypes:
+            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
+    subtype_info = "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
+
+    # 计算难度分布
+    simple_count = max(1, int(count * 0.3))
+    medium_count = max(1, int(count * 0.5))
+    hard_count = count - simple_count - medium_count
+
+    assessment_prompt_input = {
+        "subject": textbook.subject,
+        "grade": textbook.grade,
+        "semester": textbook.semester,
+        "question_types": question_types_str,
+        "subtype_info": subtype_info,
+        "count": count,
+        "simple_count": simple_count,
+        "medium_count": medium_count,
+        "hard_count": hard_count,
+        "format_instructions": format_instructions,
+    }
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业的测评设计师，精通IRT（项目反应理论）自适应评测。"
+                "你的任务是生成具有良好区分度的题目，用于评估学生在该年级的整体能力水平。"
+                "题目应覆盖该年级的核心能力维度，不局限于特定单元或知识点。"
+                "请确保题目答案唯一、便于判分、能力维度覆盖均衡。"
+                "请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", ASSESSMENT_GENERATION_PROMPT),
+        ]
+    )
+
+    return {
+        "prompt": prompt,
+        "prompt_input": assessment_prompt_input,
+        "parser": parser,
+        "prompt_template": ASSESSMENT_GENERATION_PROMPT,
+    }
+
+
+PROMPT_BUILDERS = {
+    "unit": unit_generate_prompt,
+    "daily": daily_generate_prompt,
+    "assessment": assessment_generate_prompt,
+}
 
 
 async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) -> List[Question]:
