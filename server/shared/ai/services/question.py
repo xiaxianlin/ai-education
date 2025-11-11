@@ -22,6 +22,7 @@ from shared.ai.prompts.question import (
     GENERIC_UNIT_PROMPT,
     DAILY_PRACTICE_PROMPT,
     ASSESSMENT_GENERATION_PROMPT,
+    get_prompt_by_subject,
 )
 from shared.ai.services.aliyun import AliyunAIService
 from shared.ai.services.prompt import PromptOptimizationService
@@ -584,6 +585,10 @@ def _format_new_knowledge(new_knowledge: List[str]) -> str:
 async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """根据传入参数生成单元练习 prompt"""
     prompt_input, parser = _build_common_prompt_inputs(params)
+    
+    # 根据科目自动选择对应的 prompt 模板
+    textbook = params["textbook"]
+    unit_prompt_template = get_prompt_by_subject('unit', textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -593,7 +598,7 @@ async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
                 "你的目标是生成高质量、符合学生认知水平、紧扣知识点的题目。"
                 "请严格按照 {format_instructions} 生成 JSON 输出。",
             ),
-            ("human", GENERIC_UNIT_PROMPT),
+            ("human", unit_prompt_template),
         ]
     )
 
@@ -601,7 +606,7 @@ async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "prompt": prompt,
         "prompt_input": prompt_input,
         "parser": parser,
-        "prompt_template": GENERIC_UNIT_PROMPT,
+        "prompt_template": unit_prompt_template,
     }
 
 
@@ -686,6 +691,10 @@ async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "challenge_count": challenge_count,
         "new_count": new_count,
     }
+    
+    # 根据科目自动选择对应的 prompt 模板
+    textbook = params["textbook"]
+    daily_prompt_template = get_prompt_by_subject('daily', textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -695,7 +704,7 @@ async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
                 "你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。"
                 "请严格按照 {format_instructions} 生成 JSON 输出。",
             ),
-            ("human", DAILY_PRACTICE_PROMPT),
+            ("human", daily_prompt_template),
         ]
     )
 
@@ -703,7 +712,7 @@ async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "prompt": prompt,
         "prompt_input": daily_prompt_input,
         "parser": parser,
-        "prompt_template": DAILY_PRACTICE_PROMPT,
+        "prompt_template": daily_prompt_template,
     }
 
 
@@ -748,6 +757,9 @@ async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "hard_count": hard_count,
         "format_instructions": format_instructions,
     }
+    
+    # 根据科目自动选择对应的 prompt 模板
+    assessment_prompt_template = get_prompt_by_subject('assessment', textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -759,7 +771,7 @@ async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
                 "请确保题目答案唯一、便于判分、能力维度覆盖均衡。"
                 "请严格按照 {format_instructions} 生成 JSON 输出。",
             ),
-            ("human", ASSESSMENT_GENERATION_PROMPT),
+            ("human", assessment_prompt_template),
         ]
     )
 
@@ -767,7 +779,7 @@ async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "prompt": prompt,
         "prompt_input": assessment_prompt_input,
         "parser": parser,
-        "prompt_template": ASSESSMENT_GENERATION_PROMPT,
+        "prompt_template": assessment_prompt_template,
     }
 
 
