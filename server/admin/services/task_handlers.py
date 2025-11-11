@@ -16,7 +16,9 @@ async def generate_question_handler(db: AsyncSession, params: Dict[str, Any]) ->
     logger.info(f"开始执行生成题目任务: unit_id={unit_id}, count={count}")
 
     # 执行题目生成流程
-    result = await generate_question_graph(db, unit_id, count)
+    generation_type = params.get("generation_type", "unit")
+
+    result = await generate_question_graph(db, unit_id, count, generation_type)
 
     # 提取保存的题目
     saved_questions = result.get("saved_questions", [])

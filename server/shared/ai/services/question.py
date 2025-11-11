@@ -18,7 +18,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
-from shared.ai.prompts.question import GENERATE_QUESTION_PROMPT
+from shared.ai.prompts.question import (
+    GENERIC_UNIT_PROMPT,
+    DAILY_PRACTICE_PROMPT,
+    ASSESSMENT_GENERATION_PROMPT,
+)
 from shared.ai.services.aliyun import AliyunAIService
 from shared.ai.services.prompt import PromptOptimizationService
 from shared.provider.aliyun import AliyunOSS
@@ -91,8 +95,12 @@ async def load_unit_data(db: AsyncSession, unit_id: int) -> Dict[str, Any]:
     }
 
 
-async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
-    """根据传入参数生成对应的 prompt"""
+def _build_common_prompt_inputs(
+    params: Dict[str, Any],
+) -> tuple[Dict[str, Any], JsonOutputParser]:
+    """
+    构建题目生成所需的公共输入内容，并返回对应的解析器
+    """
     unit = params["unit"]
     textbook = params["textbook"]
     knowledge_text = params["knowledge_text"]
@@ -101,30 +109,15 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "你是一名专业教研员，负责根据教材内容命题。请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
-            ("human", GENERATE_QUESTION_PROMPT),
-        ]
-    )
-
-    # 根据科目和年级获取对应的题型
     question_types = get_question_types(textbook.subject, textbook.grade)
-
-    # 验证题型列表不为空
     if not question_types:
         raise ValueError(
             f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
             f"目前仅支持一年级的英语和数学。"
         )
 
-    # 将题型列表转换为字符串，用逗号分隔
     question_types_str = "、".join(question_types)
 
-    # 构建子类型说明信息
     subtype_info_lines = []
     for qtype in question_types:
         subtypes = get_question_subtypes(qtype)
@@ -145,11 +138,158 @@ async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "format_instructions": format_instructions,
     }
 
+    return prompt_input, parser
+
+
+async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成单元练习 prompt"""
+    prompt_input, parser = _build_common_prompt_inputs(params)
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业教研员，负责根据教材内容命题。请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", GENERIC_UNIT_PROMPT),
+        ]
+    )
+
     return {
         "prompt": prompt,
         "prompt_input": prompt_input,
         "parser": parser,
+        "prompt_template": GENERIC_UNIT_PROMPT,
     }
+
+
+async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成今日练习 prompt"""
+    prompt_input, parser = _build_common_prompt_inputs(params)
+
+    knowledge_overview = params.get(
+        "knowledge_overview",
+        prompt_input.get("knowledge_text") or "(近期练习未关联具体知识点)",
+    )
+
+    practice_focus = params.get(
+        "practice_focus",
+        "30% 错题复习、40% 巩固练习、20% 挑战题、10% 新知识点。"
+        "请在题目中通过难度与知识点选择体现该分布。",
+    )
+    strategy_notes = params.get(
+        "practice_strategy",
+        (
+            "根据学生历史表现优先使用错题巩固；巩固题强调基础理解；"
+            "挑战题可以适度提高难度或引入综合应用；新知识点题目用于引入尚未覆盖的内容，"
+            "注意通过题干提供必要的提示。"
+        ),
+    )
+
+    daily_prompt_input = {
+        key: prompt_input[key]
+        for key in (
+            "subject",
+            "grade",
+            "semester",
+            "question_types",
+            "subtype_info",
+            "count",
+            "format_instructions",
+        )
+    }
+
+    daily_prompt_input.update(
+        {
+            "knowledge_overview": knowledge_overview,
+        "practice_focus": practice_focus,
+        "strategy_notes": strategy_notes,
+        }
+    )
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业教研员，负责设计学生的日常练习。请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", DAILY_PRACTICE_PROMPT),
+        ]
+    )
+
+    return {
+        "prompt": prompt,
+        "prompt_input": daily_prompt_input,
+        "parser": parser,
+        "prompt_template": DAILY_PRACTICE_PROMPT,
+    }
+
+
+async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据传入参数生成能力评测 prompt"""
+    prompt_input, parser = _build_common_prompt_inputs(params)
+
+    assessment_goal = params.get(
+        "assessment_goal",
+        (
+            "通过题目正确率快速估计学生能力水平，覆盖核心知识点，"
+            "确保题目能够区分不同能力段。"
+        ),
+    )
+    assessment_strategy = params.get(
+        "assessment_strategy",
+        (
+            "按自适应评测策略准备题目：开局使用普通难度探测，"
+            "根据表现提供更高或更低难度题目。整体包含简单、普通、困难题，"
+            "题目类型需有利于快速判定正确与否。"
+        ),
+    )
+
+    prompt_input = {
+        **prompt_input,
+        "assessment_goal": assessment_goal,
+        "assessment_strategy": assessment_strategy,
+    }
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业测评设计师，负责生成自适应能力评测题目。请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            ("human", ASSESSMENT_GENERATION_PROMPT),
+        ]
+    )
+
+    return {
+        "prompt": prompt,
+        "prompt_input": prompt_input,
+        "parser": parser,
+        "prompt_template": ASSESSMENT_GENERATION_PROMPT,
+    }
+
+
+PROMPT_BUILDERS = {
+    "unit": unit_generate_prompt,
+    "daily": daily_generate_prompt,
+    "assessment": assessment_generate_prompt,
+}
+
+
+async def generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
+    """根据生成类型选择合适的 prompt 生成器"""
+    generation_type = params.get("generation_type", "unit")
+    builder = PROMPT_BUILDERS.get(generation_type)
+
+    if builder is None:
+        logger.warning(
+            "未知的题目生成类型: %s，回退到 unit 生成逻辑", generation_type
+        )
+        builder = PROMPT_BUILDERS["unit"]
+
+    result = await builder(params)
+    result["generation_type"] = generation_type
+    return result
 
 
 async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
@@ -157,9 +297,10 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("开始优化 prompt")
 
     prompt_input = params["prompt_input"]
+    prompt_template = params.get("prompt_template", GENERIC_UNIT_PROMPT)
 
     # 为了优化效果更好，先填充变量获取完整内容用于优化
-    filled_prompt_text = GENERATE_QUESTION_PROMPT.format(**prompt_input)
+    filled_prompt_text = prompt_template.format(**prompt_input)
 
     # 使用提示词优化服务
     optimized_text_str = PromptOptimizationService.optimize_question_prompt(filled_prompt_text)
@@ -186,6 +327,7 @@ async def optimize_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "prompt": optimized_prompt,
         "original_prompt_text": filled_prompt_text,
         "optimized_prompt_text": optimized_text_str,
+        "prompt_template": optimized_text_str,
     }
 
 
@@ -570,5 +712,5 @@ async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) 
     # 延迟导入以避免循环导入
     from shared.ai.graphs.generate_question import generate_question_graph
 
-    result = await generate_question_graph(db, unit_id, count)
+    result = await generate_question_graph(db, unit_id, count, generation_type="unit")
     return result.get("saved_questions", [])

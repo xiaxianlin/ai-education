@@ -105,7 +105,9 @@ class DailyPracticeGenerationService:
                 logger.info(
                     "调用题目生成流程：unit_id=%s, count=%s", unit_id, share
                 )
-                result = await generate_question_graph(db, unit_id, share)
+                result = await generate_question_graph(
+                    db, unit_id, share, generation_type="daily"
+                )
             except Exception as exc:
                 logger.error(
                     "题目生成流程失败：unit_id=%s, count=%s, error=%s",

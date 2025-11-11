@@ -24,12 +24,14 @@ class QuestionGenerationState(TypedDict):
 
     unit_id: int
     count: int
+    generation_type: str
     unit: Any
     textbook: Any
     knowledge_text: str
     knowledge: str
     prompt: Any
     prompt_input: Dict[str, Any]
+    prompt_template: str
     parser: Any
     generated_questions: List[Any]
     questions: List[Question]
@@ -266,7 +268,12 @@ async def create_graph_with_db():
     return invoke_with_db
 
 
-async def generate_question_graph(db: AsyncSession, unit_id: int, count: int) -> Dict[str, Any]:
+async def generate_question_graph(
+    db: AsyncSession,
+    unit_id: int,
+    count: int,
+    generation_type: str = "unit",
+) -> Dict[str, Any]:
     """执行问题生成流程"""
     graph = get_question_generation_graph()
 
@@ -274,6 +281,7 @@ async def generate_question_graph(db: AsyncSession, unit_id: int, count: int) ->
         "unit_id": unit_id,
         "count": count,
         "db": db,
+        "generation_type": generation_type,
     }
 
     result = await graph.ainvoke(initial_state)
