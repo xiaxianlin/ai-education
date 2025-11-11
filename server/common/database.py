@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, UniqueConstraint, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from common.settings import envs
@@ -92,13 +92,20 @@ class Unit(BaseModel):
 
 
 class Knowledge(BaseModel):
+    """知识点模型（简化版，两级结构：单元 -> 知识点）"""
     __tablename__ = "ah_knowledge"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    textbook_id: Mapped[int] = mapped_column(nullable=False)
-    unit_id: Mapped[int] = mapped_column(nullable=False)
+    textbook_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    unit_id: Mapped[int] = mapped_column(nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, index=True)
+    
+    # 知识点属性（简化）
+    difficulty: Mapped[str] = mapped_column(String(50), nullable=True, comment="知识点难度（简单/普通/困难）")
+    importance: Mapped[int] = mapped_column(default=5, comment="重要性（1-10，10最重要）")
+    order: Mapped[int] = mapped_column(default=0, comment="同级知识点排序")
+    
     status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()
@@ -113,6 +120,13 @@ class Knowledge(BaseModel):
         "Textbook",
         primaryjoin="foreign(Knowledge.textbook_id) == Textbook.id",
         lazy="joined",
+    )
+    
+    # 关联关系
+    questions: Mapped[list["QuestionKnowledge"]] = relationship(
+        "QuestionKnowledge",
+        back_populates="knowledge",
+        cascade="all, delete-orphan"
     )
 
 
@@ -152,6 +166,13 @@ class Question(BaseModel):
         primaryjoin="foreign(Question.textbook_id) == Textbook.id",
         lazy="joined",
     )
+    
+    # 关联关系（多对多）
+    knowledge_points: Mapped[list["QuestionKnowledge"]] = relationship(
+        "QuestionKnowledge",
+        back_populates="question",
+        cascade="all, delete-orphan"
+    )
 
 
 class Student(BaseModel):
@@ -179,6 +200,86 @@ class StudentTextbook(BaseModel):
         "Textbook",
         primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
         lazy="joined",
+    )
+
+
+class QuestionKnowledge(BaseModel):
+    """问题-知识点关联表（多对多）"""
+    __tablename__ = "ah_question_knowledge"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("ah_question.id"), nullable=False, index=True)
+    knowledge_id: Mapped[int] = mapped_column(ForeignKey("ah_knowledge.id"), nullable=False, index=True)
+
+    # 关联属性
+    is_primary: Mapped[int] = mapped_column(default=1, comment="是否主要知识点（1-主要，0-次要）")
+    weight: Mapped[float] = mapped_column(default=1.0, comment="权重（0-1，用于计算掌握度）")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+
+    # 关联关系
+    question: Mapped["Question"] = relationship(
+        "Question",
+        back_populates="knowledge_points"
+    )
+    knowledge: Mapped["Knowledge"] = relationship(
+        "Knowledge",
+        back_populates="questions"
+    )
+
+    # 唯一约束：同一问题不能重复关联同一知识点
+    __table_args__ = (
+        UniqueConstraint('question_id', 'knowledge_id', name='uq_question_knowledge'),
+    )
+
+
+class StudentUnitMastery(BaseModel):
+    """学生单元掌握度表（以单元为维度）"""
+    __tablename__ = "ah_student_unit_mastery"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    unit_id: Mapped[int] = mapped_column(ForeignKey("ah_unit.id"), nullable=False, index=True)
+    textbook_id: Mapped[int] = mapped_column(ForeignKey("ah_textbook.id"), nullable=False, index=True)
+
+    # 掌握度指标
+    mastery_level: Mapped[float] = mapped_column(default=0.0, comment="掌握度（0-1）")
+    mastery_score: Mapped[float] = mapped_column(default=0.0, comment="掌握分数（0-100）")
+
+    # 统计信息
+    total_practiced: Mapped[int] = mapped_column(default=0, comment="总练习次数")
+    correct_count: Mapped[int] = mapped_column(default=0, comment="正确次数")
+    wrong_count: Mapped[int] = mapped_column(default=0, comment="错误次数")
+    total_questions: Mapped[int] = mapped_column(default=0, comment="总题目数")
+
+    # 最近练习信息
+    last_practice_time: Mapped[int] = mapped_column(nullable=True, comment="最近练习时间")
+    last_score: Mapped[float] = mapped_column(default=0.0, comment="最近一次得分")
+
+    # 掌握状态
+    is_mastered: Mapped[int] = mapped_column(default=0, comment="是否已掌握")
+    mastery_threshold: Mapped[float] = mapped_column(default=0.8, comment="掌握阈值")
+
+    # 复习机制（基于遗忘曲线）
+    next_review_time: Mapped[int] = mapped_column(nullable=True, comment="下次复习时间")
+    review_count: Mapped[int] = mapped_column(default=0, comment="复习次数")
+
+    # 知识点分解情况（JSON格式）
+    knowledge_breakdown: Mapped[str] = mapped_column(Text, nullable=True, comment="各知识点掌握情况（JSON）")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now)
+
+    # 关联关系
+    unit: Mapped["Unit"] = relationship(
+        "Unit",
+        primaryjoin="foreign(StudentUnitMastery.unit_id) == Unit.id",
+        lazy="joined"
+    )
+
+    # 唯一约束：同一学生对同一单元只能有一条掌握度记录
+    __table_args__ = (
+        UniqueConstraint('student_id', 'unit_id', name='uq_student_unit'),
     )
 
 

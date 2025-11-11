@@ -12,19 +12,33 @@ from common.settings import envs
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
-    # 删除单元
-    stmt = delete(Unit).where(Unit.textbook_id == id)
+    """清理教材相关数据（优化版，包含QuestionKnowledge关联）"""
+    from common.database import QuestionKnowledge
+    
+    # 1. 删除问题-知识点关联
+    stmt = delete(QuestionKnowledge).where(
+        QuestionKnowledge.knowledge_id.in_(
+            select(Knowledge.id).where(Knowledge.textbook_id == id)
+        )
+    )
     await db.execute(stmt)
-    # 删除知识点
+    
+    # 2. 删除知识点
     stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
     await db.execute(stmt)
-    # 更新所有问题关联
+    
+    # 3. 删除单元
+    stmt = delete(Unit).where(Unit.textbook_id == id)
+    await db.execute(stmt)
+    
+    # 4. 更新所有问题关联（清理旧的字符串字段）
     stmt = (
         update(Question)
         .where(Question.textbook_id == id)
         .values({"unit_id": None, "knowledge": None})
     )
     await db.execute(stmt)
+    
     await db.commit()
 
 
@@ -164,26 +178,38 @@ async def parse_textbook(db: AsyncSession, id: int):
     if not units:
         raise ValueError("教材解析格式错误")
 
-    for item in units:
-        unit = Unit(textbook_id=id, name=item.get("unit_name"), content=item.get("unit_content"))
+    # 解析单元和知识点
+    for unit_index, item in enumerate(units):
+        # 创建单元
+        unit = Unit(
+            textbook_id=id,
+            name=item.get("unit_name"),
+            content=item.get("unit_content")
+        )
         db.add(unit)
         await db.commit()
         await db.refresh(unit)
 
+        # 创建知识点（带排序和默认属性）
         knowledges = item.get("topics")
         if not knowledges:
-            return
+            continue
 
-        knowledges = [
-            Knowledge(
+        knowledge_objects = []
+        for knowledge_index, topic in enumerate(knowledges):
+            # ✅ 优化：设置知识点排序（order）
+            knowledge = Knowledge(
                 unit_id=unit.id,
                 textbook_id=id,
-                name=item.get("topic_name"),
-                content=item.get("topic_content"),
+                name=topic.get("topic_name"),
+                content=topic.get("topic_content"),
+                order=knowledge_index,  # 按解析顺序设置排序
+                difficulty=None,  # 可后续手动设置或通过AI分析
+                importance=5  # 默认重要性
             )
-            for item in knowledges
-        ]
-        db.add_all(knowledges)
+            knowledge_objects.append(knowledge)
+        
+        db.add_all(knowledge_objects)
         await db.commit()
 
     textbook.is_parsed = 1

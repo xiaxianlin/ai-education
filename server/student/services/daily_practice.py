@@ -106,57 +106,15 @@ class DailyPracticeService:
         db: AsyncSession, student_id: str, textbook_id: int, count: int
     ) -> List[int]:
         """
-        智能选择今日练习题目
-        
-        分配策略：
-        - 30% 错题复习
-        - 40% 巩固练习（最近学过但不是错题）
-        - 20% 挑战题目（高难度）
-        - 10% 新知识点
+        智能选择今日练习题目（基于单元掌握度，优化SQL查询）
         """
-        question_ids = []
+        from common.services.unit_based_question_service import UnitBasedQuestionService
         
-        # 1. 选择错题（30%）
-        wrong_count = int(count * 0.3)
-        wrong_questions = await DailyPracticeService._get_wrong_questions(
-            db, student_id, textbook_id, wrong_count
+        question_ids = await UnitBasedQuestionService.generate_daily_practice_questions(
+            db, student_id, textbook_id, count
         )
-        question_ids.extend(wrong_questions)
-        logger.info(f"选择了 {len(wrong_questions)} 道错题")
         
-        # 2. 选择巩固题目（40%）- 最近练习过但答对的题目
-        consolidate_count = int(count * 0.4)
-        consolidate_questions = await DailyPracticeService._get_consolidate_questions(
-            db, student_id, textbook_id, consolidate_count, exclude_ids=question_ids
-        )
-        question_ids.extend(consolidate_questions)
-        logger.info(f"选择了 {len(consolidate_questions)} 道巩固题")
-        
-        # 3. 选择挑战题目（20%）- 困难题
-        challenge_count = int(count * 0.2)
-        challenge_questions = await DailyPracticeService._get_challenge_questions(
-            db, textbook_id, challenge_count, exclude_ids=question_ids
-        )
-        question_ids.extend(challenge_questions)
-        logger.info(f"选择了 {len(challenge_questions)} 道挑战题")
-        
-        # 4. 选择新知识点题目（10%）- 从未练习过的
-        new_count = count - len(question_ids)
-        new_questions = await DailyPracticeService._get_new_questions(
-            db, student_id, textbook_id, new_count, exclude_ids=question_ids
-        )
-        question_ids.extend(new_questions)
-        logger.info(f"选择了 {len(new_questions)} 道新题")
-        
-        # 如果还不够，用随机题目补充
-        if len(question_ids) < count:
-            remaining = count - len(question_ids)
-            extra_questions = await DailyPracticeService._get_random_questions(
-                db, textbook_id, remaining, exclude_ids=question_ids
-            )
-            question_ids.extend(extra_questions)
-            logger.info(f"补充了 {len(extra_questions)} 道随机题")
-        
+        logger.info(f"基于单元掌握度选择了 {len(question_ids)} 道题目")
         return question_ids
 
     @staticmethod
@@ -495,6 +453,11 @@ class DailyPracticeService:
         
         # 记录学习记录并更新错题库
         question_ids = json.loads(session.question_ids)
+        
+        # 统计知识点掌握情况（用于单元掌握度更新）
+        knowledge_breakdown = {}
+        unit_questions = {}  # 按单元分组统计
+        
         for qid in question_ids:
             answer_data = answers.get(str(qid), {})
             if answer_data:
@@ -516,8 +479,56 @@ class DailyPracticeService:
                         study_date=now(),
                     )
                     db.add(study_record)
+                    
+                    # 统计知识点掌握情况
+                    if question.knowledge:
+                        knowledge = question.knowledge
+                        if knowledge not in knowledge_breakdown:
+                            knowledge_breakdown[knowledge] = {"total": 0, "correct": 0}
+                        knowledge_breakdown[knowledge]["total"] += 1
+                        if answer_data.get("is_correct"):
+                            knowledge_breakdown[knowledge]["correct"] += 1
+                    
+                    # 按单元分组统计
+                    if question.unit_id:
+                        if question.unit_id not in unit_questions:
+                            unit_questions[question.unit_id] = {
+                                "total": 0,
+                                "correct": 0,
+                                "knowledge_breakdown": {}
+                            }
+                        unit_questions[question.unit_id]["total"] += 1
+                        if answer_data.get("is_correct"):
+                            unit_questions[question.unit_id]["correct"] += 1
+                        
+                        # 单元内的知识点分解
+                        if question.knowledge:
+                            if question.knowledge not in unit_questions[question.unit_id]["knowledge_breakdown"]:
+                                unit_questions[question.unit_id]["knowledge_breakdown"][question.knowledge] = {
+                                    "total": 0,
+                                    "correct": 0
+                                }
+                            unit_questions[question.unit_id]["knowledge_breakdown"][question.knowledge]["total"] += 1
+                            if answer_data.get("is_correct"):
+                                unit_questions[question.unit_id]["knowledge_breakdown"][question.knowledge]["correct"] += 1
         
         await db.commit()
+        
+        # 更新单元掌握度（按单元分组更新）
+        from common.services.unit_mastery_service import UnitMasteryService
+        
+        for unit_id, unit_stats in unit_questions.items():
+            unit_score = (unit_stats["correct"] / unit_stats["total"] * 100) if unit_stats["total"] > 0 else 0
+            await UnitMasteryService.update_mastery(
+                db,
+                student_id=student_id,
+                unit_id=unit_id,
+                score=unit_score,
+                total_questions=unit_stats["total"],
+                correct_count=unit_stats["correct"],
+                knowledge_breakdown=unit_stats["knowledge_breakdown"]
+            )
+        
         await db.refresh(session)
         
         logger.info(

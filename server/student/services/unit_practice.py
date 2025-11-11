@@ -38,9 +38,11 @@ class UnitPracticeService:
         if not unit:
             raise ValueError(f"单元 {unit_id} 不存在")
         
-        # 选择题目
-        question_ids = await UnitPracticeService._select_questions(
-            db, unit_id, difficulty, count, student_id
+        # 选择题目（基于单元掌握度）
+        from common.services.unit_based_question_service import UnitBasedQuestionService
+        
+        question_ids = await UnitBasedQuestionService.generate_unit_practice_questions(
+            db, student_id, unit_id, count
         )
         
         if not question_ids:
@@ -346,24 +348,54 @@ class UnitPracticeService:
         session.status = "completed"
         session.update_time = now()
         
-        # 记录每道题的学习记录
+        # 记录每道题的学习记录并统计知识点掌握情况
         question_ids = json.loads(session.question_ids)
+        knowledge_breakdown = {}  # 知识点分解情况
+        
         for qid in question_ids:
             answer_data = answers.get(str(qid), {})
             if answer_data:  # 只记录已答的题
+                # 获取题目信息
+                q_result = await db.execute(select(Question).where(Question.id == qid))
+                question = q_result.scalar_one_or_none()
+                
                 study_record = StudyRecord(
                     student_id=student_id,
                     textbook_id=session.unit.textbook_id,
                     unit_id=session.unit_id,
                     question_id=qid,
+                    knowledge=question.knowledge if question else None,
                     is_correct=1 if answer_data.get("is_correct") else 0,
                     score=1.0 if answer_data.get("is_correct") else 0.0,
                     time_spent=answer_data.get("time_spent", 0),
                     study_date=now(),
                 )
                 db.add(study_record)
+                
+                # 统计知识点掌握情况
+                if question and question.knowledge:
+                    knowledge = question.knowledge
+                    if knowledge not in knowledge_breakdown:
+                        knowledge_breakdown[knowledge] = {"total": 0, "correct": 0}
+                    knowledge_breakdown[knowledge]["total"] += 1
+                    if answer_data.get("is_correct"):
+                        knowledge_breakdown[knowledge]["correct"] += 1
         
         await db.commit()
+        
+        # 更新单元掌握度
+        from common.services.unit_mastery_service import UnitMasteryService
+        
+        await UnitMasteryService.update_mastery(
+            db,
+            student_id=student_id,
+            unit_id=session.unit_id,
+            score=score,
+            total_questions=session.total_questions,
+            correct_count=correct_count,
+            knowledge_breakdown=knowledge_breakdown
+        )
+        
         await db.refresh(session)
         
         logger.info(
