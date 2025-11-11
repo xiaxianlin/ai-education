@@ -1,6 +1,6 @@
 """问题-知识点关联服务"""
-from typing import List, Dict, Optional
-from sqlalchemy import select, delete
+from typing import List, Dict, Optional, Any
+from sqlalchemy import select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from common.database import QuestionKnowledge

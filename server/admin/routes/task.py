@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.services.task import TaskService
+from shared.services.task_executor import task_executor
 from common.database import Database
 from typing import Optional
 
@@ -12,7 +13,7 @@ async def get_task(task_id: int, db: AsyncSession = Database):
     """获取任务详情"""
     task = await TaskService.get_task(db, task_id)
     if not task:
-        return {"error": "任务不存在"}
+        raise HTTPException(status_code=404, detail="任务不存在")
     return {
         "id": task.id,
         "task_type": task.task_type,
@@ -64,5 +65,69 @@ async def list_tasks(
         "total": total,
         "page": page,
         "size": size,
+    }
+
+
+@task_router.post("/{task_id}/retry")
+async def retry_task(task_id: int, db: AsyncSession = Database):
+    """
+    ✅ 新增: 重试失败的任务
+    """
+    task = await TaskService.retry_failed_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在或无法重试")
+
+    return {
+        "message": "任务已重置为待执行状态",
+        "task_id": task.id,
+        "status": task.status,
+    }
+
+
+@task_router.post("/{task_id}/cancel")
+async def cancel_task(task_id: int, db: AsyncSession = Database):
+    """
+    ✅ 新增: 取消任务
+    """
+    task = await TaskService.cancel_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在或无法取消")
+
+    return {
+        "message": "任务已取消",
+        "task_id": task.id,
+        "status": task.status,
+    }
+
+
+@task_router.get("/statistics/summary")
+async def get_task_statistics(
+    task_type: Optional[str] = Query(None, description="任务类型"),
+    days: int = Query(7, ge=1, le=90, description="统计天数"),
+    db: AsyncSession = Database,
+):
+    """
+    ✅ 新增: 获取任务统计信息
+    """
+    stats = await TaskService.get_task_statistics(db, task_type, days)
+    return stats
+
+
+@task_router.get("/executor/status")
+async def get_executor_status():
+    """
+    ✅ 新增: 获取任务执行器状态
+    """
+    stats = task_executor.get_stats()
+    return {
+        "running": task_executor.running,
+        "max_concurrent_tasks": task_executor.config.max_concurrent_tasks,
+        "current_running_tasks": stats["running_tasks"],
+        "statistics": {
+            "total_executed": stats["total_executed"],
+            "total_completed": stats["total_completed"],
+            "total_failed": stats["total_failed"],
+            "total_timeout": stats["total_timeout"],
+        },
     }
 

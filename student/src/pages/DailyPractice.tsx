@@ -138,7 +138,7 @@ export function DailyPractice() {
 
           <CardContent className="p-8 space-y-8">
             {/* 简化的题目组成说明 - 用表情符号 */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-6 rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 text-center">
                 <div className="text-5xl mb-3">📕</div>
                 <p className="text-lg font-bold text-gray-800">错题复习</p>
