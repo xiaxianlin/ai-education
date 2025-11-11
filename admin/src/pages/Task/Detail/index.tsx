@@ -4,6 +4,7 @@ import { TaskApi } from '@/services/task';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Progress, Alert } from 'antd';
 import { fmtTime } from '@/utils/time';
+import { useEffect } from 'react';
 
 const statusConfig = {
   pending: { color: 'default', text: '待执行' },
@@ -15,28 +16,22 @@ const statusConfig = {
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: task, loading, refresh } = useRequest(
-    () => TaskApi.get(Number(id!)),
-    {
-      ready: !!id,
-      refreshDeps: [id],
-      pollingInterval: (task) => {
-        // 如果任务在执行中或待执行，每3秒刷新一次
-        if (task?.status === 'running' || task?.status === 'pending') {
-          return 3000;
-        }
-        return 0;
-      },
-      onError: () => {
-        message.error('加载任务失败');
-        history.back();
-      },
-    }
-  );
+  const { data: task, cancel } = useRequest(() => TaskApi.get(Number(id!)), {
+    ready: !!id,
+    refreshDeps: [id],
+    pollingInterval: 3000,
+    onError: () => {
+      message.error('加载任务失败');
+      history.back();
+    },
+  });
 
-  if (loading) {
-    return <PageContainer loading={loading} />;
-  }
+  useEffect(() => {
+    if (task && (task.status === 'completed' || task.status === 'failed')) {
+      // 任务完成或失败后停止轮询
+      cancel();
+    }
+  }, [task]);
 
   if (!task) {
     return null;
@@ -119,12 +114,7 @@ export default function TaskDetailPage() {
 
         {task.status === 'failed' && task.error_message && (
           <Card title="错误信息">
-            <Alert
-              message="任务执行失败"
-              description={task.error_message}
-              type="error"
-              showIcon
-            />
+            <Alert message="任务执行失败" description={task.error_message} type="error" showIcon />
           </Card>
         )}
 
@@ -172,4 +162,3 @@ export default function TaskDetailPage() {
     </PageContainer>
   );
 }
-

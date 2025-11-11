@@ -11,6 +11,7 @@ from admin.schema import (
 )
 from common.schema import SearchSchema
 from admin.services import student, profile, stats, study_record, wrong_question
+from student.services.daily_practice import DailyPracticeService
 from common.database import Database
 
 
@@ -109,4 +110,38 @@ async def unmark_question_as_mastered(
     id: str, question_id: int, db: AsyncSession = Database
 ):
     return await wrong_question.unmark_as_mastered(db, id, question_id)
+
+
+@student_router.get("/{id}/daily_practices")
+async def get_student_daily_practices(
+    id: str, limit: int = 30, db: AsyncSession = Database
+):
+    """获取学生的今日练习列表"""
+    history = await DailyPracticeService.get_practice_history(db, id, limit)
+    return {
+        "data": history,
+        "total": len(history),
+    }
+
+
+@student_router.post("/{id}/daily_practices/generate")
+async def generate_student_daily_practice(
+    id: str, db: AsyncSession = Database
+):
+    """为学生生成今日练习（30道题）"""
+    result = await DailyPracticeService.check_or_create_today_practice(db, id)
+    return result
+
+
+@student_router.get("/{id}/daily_practices/{session_id}")
+async def get_daily_practice_detail(
+    id: str, session_id: int, db: AsyncSession = Database
+):
+    """获取今日练习详情（包含问题列表）"""
+    session_data = await DailyPracticeService.get_practice_session(
+        db, session_id, id
+    )
+    if not session_data:
+        raise ValueError("练习会话不存在")
+    return session_data
 

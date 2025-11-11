@@ -3,6 +3,7 @@ import asyncio
 import sys
 import json
 import os
+import importlib
 from pathlib import Path
 from typing import Dict, Any
 import dotenv
@@ -30,12 +31,27 @@ async def execute_task_in_process(task_id: int, handler_module: str, handler_fun
         await TaskService.update_task_status(db, task_id, "running", progress=0)
 
         # 动态导入处理器
-        module = __import__(handler_module, fromlist=[handler_function])
+        # 使用 importlib 确保正确导入模块
+        try:
+            module = importlib.import_module(handler_module)
+        except ImportError as e:
+            logger.error(f"导入模块失败: {handler_module} - {e}")
+            raise
+        
+        # 调试：检查模块属性
+        if not hasattr(module, handler_function):
+            available_attrs = [attr for attr in dir(module) if not attr.startswith('_')]
+            logger.error(f"模块 {handler_module} 中没有找到函数 {handler_function}")
+            logger.error(f"可用属性: {available_attrs}")
+            raise AttributeError(f"module '{handler_module}' has no attribute '{handler_function}'")
+        
         handler = getattr(module, handler_function)
 
         # 执行任务
         logger.info(f"开始执行任务: {task_id} - {handler_module}.{handler_function}")
-        result = await handler(db, params)
+        # 将task_id添加到params中，以便handler可以更新进度
+        params_with_task_id = {**params, "task_id": task_id}
+        result = await handler(db, params_with_task_id)
 
         # 更新任务结果为完成
         await TaskService.update_task_result(db, task_id, result)

@@ -288,6 +288,30 @@ export const practiceApi = {
     return api.get<DailyPracticeHistoryItem[]>(`/practice/daily/history${params}`);
   },
 
+  /**
+   * 检查或创建今日练习（30道题）
+   */
+  checkTodayPractice: async (): Promise<{
+    session: DailyPracticeSession | null;
+    task_id: number | null;
+    status: string;
+    progress: number;
+  }> => {
+    return api.get('/practice/daily/check');
+  },
+
+  /**
+   * 获取今日练习生成进度
+   */
+  getDailyPracticeProgress: async (taskId: number): Promise<{
+    status: string;
+    progress: number;
+    session?: DailyPracticeSession;
+    error_message?: string;
+  }> => {
+    return api.get(`/practice/daily/progress/${taskId}`);
+  },
+
   // ===== 单元练习 API =====
 
   /**

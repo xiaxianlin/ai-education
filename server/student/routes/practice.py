@@ -50,6 +50,61 @@ async def create_daily_practice(
     return session
 
 
+@practice_router.get("/daily/check")
+async def check_today_practice(
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    检查或创建今日练习（30道题）
+    
+    返回：
+    - session: 如果已生成，返回会话信息
+    - task_id: 如果正在生成，返回任务ID
+    - status: 状态（ready/generating/completed）
+    - progress: 进度（0-100）
+    """
+    result = await DailyPracticeService.check_or_create_today_practice(db, student.id)
+    return result
+
+
+@practice_router.get("/daily/progress/{task_id}")
+async def get_daily_practice_progress(
+    task_id: int,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取今日练习生成进度
+    
+    参数：
+    - task_id: 任务ID
+    
+    返回：
+    - status: 任务状态
+    - progress: 进度（0-100）
+    - session: 如果完成，返回会话信息
+    """
+    result = await DailyPracticeService.get_generation_progress(db, student.id, task_id)
+    return result
+
+
+@practice_router.get("/daily/history")
+async def get_daily_practice_history(
+    limit: Optional[int] = 30,
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取今日练习历史
+    
+    参数：
+    - limit: 返回记录数，默认30
+    """
+    history = await DailyPracticeService.get_practice_history(db, student.id, limit)
+    return history
+
+
 @practice_router.get("/daily/{session_id}")
 async def get_daily_practice_session(
     session_id: int,
@@ -123,20 +178,6 @@ async def complete_daily_practice(
     return report
 
 
-@practice_router.get("/daily/history")
-async def get_daily_practice_history(
-    limit: Optional[int] = 30,
-    student=Depends(get_current_student),
-    db: AsyncSession = Database,
-):
-    """
-    获取今日练习历史
-    
-    参数：
-    - limit: 返回记录数，默认30
-    """
-    history = await DailyPracticeService.get_practice_history(db, student.id, limit)
-    return history
 
 
 # ==================== 单元练习 API ====================

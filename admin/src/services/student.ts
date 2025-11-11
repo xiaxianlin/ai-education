@@ -121,5 +121,32 @@ export const StudentApi = {
     });
     return res.data;
   },
+
+  // 获取今日练习列表
+  getDailyPractices: async (id: string, limit?: number) => {
+    const res = await request<ListApiData<DailyPracticeSession>>(`/student/${id}/daily_practices`, {
+      params: limit ? { limit } : {},
+    });
+    return res.data;
+  },
+
+  // 生成今日练习
+  generateDailyPractice: async (id: string) => {
+    const res = await request<ApiData<{
+      session: DailyPracticeSession | null;
+      task_id: number | null;
+      status: string;
+      progress: number;
+    }>>(`/student/${id}/daily_practices/generate`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 获取今日练习详情
+  getDailyPracticeDetail: async (id: string, sessionId: number) => {
+    const res = await request<ApiData<DailyPracticeSessionDetail>>(`/student/${id}/daily_practices/${sessionId}`);
+    return res.data;
+  },
 };
 

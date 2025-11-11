@@ -291,6 +291,35 @@ export default function StudentDetailPage() {
     }
   );
 
+  // 获取今日练习列表
+  const {
+    data: dailyPractices,
+    loading: loadingDailyPractices,
+    run: refreshDailyPractices,
+  } = useRequest(
+    () => StudentApi.getDailyPractices(id!),
+    {
+      ready: !!id && activeTab === 'daily',
+    }
+  );
+
+  // 生成今日练习
+  const { runAsync: handleGenerateDailyPractice, loading: generatingDailyPractice } = useRequest(
+    async () => {
+      return await StudentApi.generateDailyPractice(id!);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('今日练习生成任务已创建');
+        refreshDailyPractices();
+      },
+      onError: () => {
+        message.error('生成失败');
+      },
+    },
+  );
+
   // 保存学习配置
   const { runAsync: handleSaveProfile, loading: savingProfile } = useRequest(
     async (values: any) => {
@@ -387,6 +416,111 @@ export default function StudentDetailPage() {
       width: 150,
       valueType: 'dateTime',
       renderText: (timestamp) => timestamp * 1000,
+    },
+  ];
+
+  const dailyPracticeColumns: ProColumns<DailyPracticeSession>[] = [
+    {
+      title: '日期',
+      dataIndex: 'date',
+      width: 120,
+      render: (date: number) => {
+        const dateStr = date.toString();
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        return `${year}-${month}-${day}`;
+      },
+    },
+    {
+      title: '总题数',
+      dataIndex: 'total_questions',
+      width: 100,
+    },
+    {
+      title: '正确数',
+      dataIndex: 'correct_questions',
+      width: 100,
+    },
+    {
+      title: '得分',
+      dataIndex: 'score',
+      width: 100,
+      render: (score: number) => `${score.toFixed(1)}分`,
+    },
+    {
+      title: '完成度',
+      dataIndex: 'status',
+      width: 100,
+      render: (status: string, record: DailyPracticeSession) => {
+        if (status === 'completed') {
+          return <Tag color="green">已完成</Tag>;
+        }
+        const progress = record.total_questions > 0 
+          ? Math.round((record.correct_questions / record.total_questions) * 100)
+          : 0;
+        return <Tag color="orange">{progress}%</Tag>;
+      },
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 120,
+      fixed: 'right',
+      render: (_, record) => (
+        <Button
+          size="small"
+          type="link"
+          onClick={async () => {
+            try {
+              const detail = await StudentApi.getDailyPracticeDetail(id!, record.id);
+              Modal.info({
+                title: `今日练习详情 - ${record.date}`,
+                width: 800,
+                content: (
+                  <div>
+                    <Descriptions column={2} bordered>
+                      <Descriptions.Item label="总题数">{detail.session.total_questions}</Descriptions.Item>
+                      <Descriptions.Item label="正确数">{detail.session.correct_questions}</Descriptions.Item>
+                      <Descriptions.Item label="得分">{detail.session.score.toFixed(1)}分</Descriptions.Item>
+                      <Descriptions.Item label="状态">
+                        <Tag color={detail.session.status === 'completed' ? 'green' : 'orange'}>
+                          {detail.session.status === 'completed' ? '已完成' : '进行中'}
+                        </Tag>
+                      </Descriptions.Item>
+                    </Descriptions>
+                    <div style={{ marginTop: 16 }}>
+                      <h4>题目列表：</h4>
+                      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                        {detail.questions.map((q, idx) => (
+                          <Card key={q.id} size="small" style={{ marginBottom: 8 }}>
+                            <div>
+                              <strong>题目 {idx + 1}：</strong>
+                              <Tag color={q.is_correct ? 'green' : 'red'} style={{ marginLeft: 8 }}>
+                                {q.is_correct ? '正确' : '错误'}
+                              </Tag>
+                            </div>
+                            <div style={{ marginTop: 8 }}>{q.content}</div>
+                            {q.answer && (
+                              <div style={{ marginTop: 8, color: '#666' }}>
+                                答案：{q.answer}
+                              </div>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ),
+              });
+            } catch (error: any) {
+              message.error(error.message || '获取详情失败');
+            }
+          }}
+        >
+          查看问题
+        </Button>
+      ),
     },
   ];
 
@@ -529,6 +663,34 @@ export default function StudentDetailPage() {
           options={false}
           toolbar={{ actions: [] }}
         />
+      ),
+    },
+    {
+      key: 'daily',
+      label: '今日练习',
+      children: (
+        <Card
+          extra={
+            <Button
+              type="primary"
+              loading={generatingDailyPractice}
+              onClick={handleGenerateDailyPractice}
+            >
+              生成今日练习
+            </Button>
+          }
+        >
+          <ProTable<DailyPracticeSession>
+            rowKey="id"
+            columns={dailyPracticeColumns}
+            search={false}
+            pagination={{ pageSize: 10 }}
+            dataSource={dailyPractices?.data || []}
+            loading={loadingDailyPractices}
+            options={false}
+            toolbar={{ actions: [] }}
+          />
+        </Card>
       ),
     },
   ];

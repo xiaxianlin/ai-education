@@ -66,6 +66,44 @@ declare global {
     created_at: number;
   }
 
+  // 今日练习会话
+  interface DailyPracticeSession {
+    id: number;
+    student_id: string;
+    date: number; // YYYYMMDD格式
+    total_questions: number;
+    correct_questions: number;
+    total_time: number;
+    score: number;
+    practice_type: string;
+    knowledge_coverage: string; // JSON
+    question_distribution: string; // JSON
+    question_ids: string; // JSON数组
+    answers: string; // JSON
+    status: string; // in_progress/completed
+    create_time: number;
+    update_time: number;
+  }
+
+  // 今日练习详情
+  interface DailyPracticeSessionDetail {
+    session: DailyPracticeSession;
+    questions: Array<{
+      id: number;
+      type: string;
+      subtype?: string;
+      content: string;
+      options?: string;
+      difficulty: string;
+      knowledge: string;
+      resource?: string;
+      resource_type?: string;
+      resource_content?: string;
+      answer?: string;
+      is_correct?: boolean;
+    }>;
+  }
+
   // 错题
   interface StudentWrongQuestion {
     id: number;
