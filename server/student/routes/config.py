@@ -22,7 +22,7 @@ async def configs(
     
     data = {
         "subjects": SUBJECTS,
-        "textbook_version": TEXTBOOK_VERSIONS,
+        "textbook_versions": TEXTBOOK_VERSIONS,
         "semesters": SEMESTERS,
         "question_types": question_types,
     }

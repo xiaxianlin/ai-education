@@ -15,6 +15,9 @@ export function Home() {
     showTextbookModal,
     checking,
     stats,
+    todayProgress,
+    dailyQuestions,
+    completedQuestions,
     closeTextbookModal,
   } = useHomePage();
 
@@ -35,9 +38,9 @@ export function Home() {
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <WelcomeCard stats={stats} />
         <StatsCard
-          todayProgress={60}
-          dailyQuestions={12}
-          completedQuestions={7}
+          todayProgress={todayProgress}
+          dailyQuestions={dailyQuestions}
+          completedQuestions={completedQuestions}
           continuousDays={stats?.current_streak || 0}
           totalPracticeTime={stats?.total_practice_time || 0}
         />

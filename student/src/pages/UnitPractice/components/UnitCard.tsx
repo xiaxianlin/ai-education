@@ -3,7 +3,7 @@
  * 展示单个单元的信息
  */
 import { memo } from 'react';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,62 +28,62 @@ export const UnitCard = memo(function UnitCard({
   onShowKnowledge,
 }: UnitCardProps) {
   const knowledges = unit.knowledges || [];
-  const knowledgePreviewLimit = 4;
 
   return (
     <Card
       className={cn(
-        'relative overflow-hidden border-3 transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl cursor-pointer rounded-3xl',
+        'relative overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer rounded-2xl',
         theme.border
       )}
     >
       <div className={cn('absolute inset-0 bg-gradient-to-br opacity-40', theme.bg)} />
-      <CardContent className="relative z-10 p-6 space-y-4">
-        {/* 单元标题和开始按钮 */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={cn('p-3 rounded-2xl bg-white/90 shadow-lg flex-shrink-0')}>
-              <BookOpen className={cn('h-8 w-8', theme.icon)} />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-800 leading-tight">
+      <CardContent className="relative z-10 p-5 space-y-4">
+        {/* 单元标题和简介 */}
+        <div className="flex items-start gap-3">
+          <div className={cn('p-2.5 rounded-xl bg-white/90 shadow-md flex-shrink-0')}>
+            <BookOpen className={cn('h-8 w-8', theme.icon)} />
+          </div>
+          <div className="flex-1 min-w-0 space-y-2">
+            <CardTitle className="text-xl font-bold text-gray-800 leading-tight">
               {unit.name}
             </CardTitle>
+            <CardDescription className="text-sm leading-relaxed text-gray-600 line-clamp-2">
+              {unit.content || '本单元包含多个重点知识点，快来挑战吧！'}
+            </CardDescription>
           </div>
+        </div>
+
+        {/* 操作按钮 */}
+        <div className="pt-1 flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              'flex-1 h-11 rounded-xl text-sm font-semibold transition-all',
+              knowledges.length > 0
+                ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm hover:bg-purple-200 hover:border-purple-300 hover:-translate-y-0.5 hover:shadow-md'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
+            )}
+            onClick={() => knowledges.length > 0 && onShowKnowledge(unit)}
+            disabled={knowledges.length === 0}
+          >
+            查看知识点
+          </Button>
+
           <Button
             onClick={() => onStart(unit)}
             className={cn(
-              'rounded-2xl w-16 h-16 text-white shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center p-0 flex-shrink-0',
+              'flex-1 h-11 rounded-xl text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300',
               theme.button
             )}
           >
-            <Play className="h-7 w-7" fill="currentColor" />
+            <Play className="h-5 w-5 mr-2" fill="currentColor" />
+            开始练习
           </Button>
         </div>
 
-        {/* 知识点标签 */}
-        {knowledges.length > 0 ? (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {knowledges.slice(0, knowledgePreviewLimit).map((knowledge) => (
-              <span
-                key={knowledge.id}
-                className="px-3 py-1.5 rounded-xl bg-white/90 border-2 border-white text-sm font-medium text-gray-700 shadow-sm"
-              >
-                {knowledge.name}
-              </span>
-            ))}
-            {knowledges.length > knowledgePreviewLimit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="px-3 py-1.5 h-auto rounded-xl text-sm font-medium text-gray-600 hover:bg-white/50"
-                onClick={() => onShowKnowledge(unit)}
-              >
-                +{knowledges.length - knowledgePreviewLimit}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500 pt-2">暂无知识点</p>
+        {knowledges.length === 0 && (
+          <p className="text-xs text-gray-500 text-center">暂无知识点</p>
         )}
       </CardContent>
       {/* 装饰性元素 */}

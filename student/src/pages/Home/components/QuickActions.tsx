@@ -5,7 +5,7 @@ import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from '@tanstack/react-router';
-import { BookOpen, Target, Brain, RefreshCw } from 'lucide-react';
+import { BookOpen, Target, Brain, RefreshCw, History } from 'lucide-react';
 
 export const QuickActions = memo(function QuickActions() {
   const actions = [
@@ -37,13 +37,19 @@ export const QuickActions = memo(function QuickActions() {
       color: 'from-orange-500 to-red-500',
       hoverColor: 'hover:from-orange-600 hover:to-red-600',
     },
+    {
+      icon: History,
+      label: '练习记录',
+      path: '/history',
+      color: 'from-indigo-500 to-blue-500',
+      hoverColor: 'hover:from-indigo-600 hover:to-blue-600',
+    },
   ];
 
   return (
     <Card className="border-2 border-purple-200 shadow-xl">
       <CardContent className="p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">快速开始</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {actions.map((action) => (
             <Link key={action.path} to={action.path}>
               <Button

@@ -1,9 +1,9 @@
-from sqlalchemy import or_, select, func
+from sqlalchemy import delete, or_, select, func
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from core.schema import SearchResultSchema, SearchSchema, UnitSchema
-from core.database import Unit, Knowledge, Textbook
+from core.database import Unit, Knowledge, Textbook, QuestionKnowledge
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from shared.utils.time import now
 
@@ -49,9 +49,16 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     if not unit:
         raise ValueError("课程单元不存在")
 
-    total = await db.scalar(select(func.count(Knowledge.id)).where(Knowledge.unit_id == id)) or 0
-    if total > 0:
-        raise ValueError("课程单元已关联了知识点，不能被删除")
+    knowledge_ids_result = await db.scalars(
+        select(Knowledge.id).where(Knowledge.unit_id == id)
+    )
+    knowledge_ids = knowledge_ids_result.all()
+
+    if knowledge_ids:
+        await db.execute(
+            delete(QuestionKnowledge).where(QuestionKnowledge.knowledge_id.in_(knowledge_ids))
+        )
+        await db.execute(delete(Knowledge).where(Knowledge.id.in_(knowledge_ids)))
 
     await db.delete(unit)
     await db.commit()

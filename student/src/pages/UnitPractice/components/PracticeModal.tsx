@@ -22,11 +22,11 @@ export const PracticeModal = memo(function PracticeModal({
   open,
   unitName,
   difficulty,
-  questionCount,
+  questionCount: _questionCount,
   creating,
   onClose,
   onDifficultyChange,
-  onQuestionCountChange,
+  onQuestionCountChange: _onQuestionCountChange,
   onSubmit,
 }: PracticeModalProps) {
   if (!open) return null;
@@ -38,7 +38,6 @@ export const PracticeModal = memo(function PracticeModal({
     { value: 'adaptive', label: '自动 🤖', emoji: '🤖', color: 'border-blue-300 bg-blue-50 text-blue-700' },
   ];
 
-  const questionCountOptions = [5, 10, 15, 20];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
@@ -69,34 +68,13 @@ export const PracticeModal = memo(function PracticeModal({
                   key={option.value}
                   onClick={() => onDifficultyChange(option.value)}
                   className={cn(
-                    'h-16 rounded-2xl border-3 font-bold text-base transition-all duration-200',
+                    'h-16 rounded-2xl border-2 font-bold text-base transition-all duration-200',
                     difficulty === option.value
                       ? option.color + ' scale-105 shadow-lg'
                       : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
                   )}
                 >
                   {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 题目数量 */}
-          <div className="space-y-3">
-            <label className="block text-lg font-bold text-gray-800">做几题？</label>
-            <div className="grid grid-cols-4 gap-3">
-              {questionCountOptions.map((count) => (
-                <button
-                  key={count}
-                  onClick={() => onQuestionCountChange(count)}
-                  className={cn(
-                    'h-16 rounded-2xl border-3 font-bold text-xl transition-all duration-200',
-                    questionCount === count
-                      ? 'border-purple-400 bg-gradient-to-br from-purple-400 to-pink-500 text-white scale-110 shadow-xl'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-purple-300 shadow-md'
-                  )}
-                >
-                  {count}
                 </button>
               ))}
             </div>

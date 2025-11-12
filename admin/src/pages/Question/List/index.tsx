@@ -153,8 +153,7 @@ export default function QuestionListPage() {
       title: '资源状态',
       dataIndex: 'resource_generated',
       minWidth: 90,
-      valueType: 'select',
-      valueEnum: RESOURCE_STATUS_ENUM,
+      hideInSearch: true,
       render: (_, record) => renderResourceStatusTag(record),
     },
     {
@@ -324,7 +323,7 @@ export default function QuestionListPage() {
               success: true,
             };
           }}
-          search={{ labelWidth: 'auto', defaultFormItemsNumber: 8 }}
+          search={{ labelWidth: 'auto', defaultFormItemsNumber: 6 }}
           options={false}
           toolbar={{ settings: [] }}
           scroll={{ x: 'max-content' }}

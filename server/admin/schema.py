@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, field_validator
 from shared.utils import validation
-from core.constants import QUESTION_TYPES, SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
+from core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
 from core.schema import SearchSchema
 
 

@@ -129,11 +129,8 @@ async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = await db.scalar(count_stmt)
 
-    # --- 排序 ---
-    sort_column = getattr(Textbook, params.sort, Textbook.id)
-    stmt = stmt.order_by(
-        desc(sort_column) if params.order == "desc" else asc(sort_column),
-    )
+    # --- 排序（先按科目、后按年级，确保年级顺序） ---
+    stmt = stmt.order_by(asc(Textbook.subject), asc(Textbook.grade))
 
     # --- 分页 ---
     offset = (params.page - 1) * params.size

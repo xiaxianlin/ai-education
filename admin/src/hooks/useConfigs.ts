@@ -3,8 +3,14 @@ import { useModel } from '@umijs/max';
 
 export const useConfigs = () => {
   const { initialState } = useModel('@@initialState');
-  const { semesters, subjects, textbook_versions, question_types, question_subtypes, difficulty_levels } =
-    (initialState?.configs || {}) as Configs;
+  const {
+    semesters,
+    subjects,
+    textbook_versions,
+    question_types,
+    question_subtypes,
+    difficulty_levels,
+  } = (initialState?.configs || {}) as Configs;
   const subjectEnum = subjects?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   const gradeEnum = Object.keys(GRADES).reduce(
@@ -17,6 +23,9 @@ export const useConfigs = () => {
   const difficultyLevelEmun =
     difficulty_levels?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
+  const textbookVersionEmun =
+    textbook_versions?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
+
   return {
     semesters,
     subjects,
@@ -28,5 +37,6 @@ export const useConfigs = () => {
     gradeEnum,
     questionTypeEmun,
     difficultyLevelEmun,
+    textbookVersionEmun,
   };
 };

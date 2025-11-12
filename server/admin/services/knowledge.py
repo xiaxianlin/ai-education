@@ -1,8 +1,8 @@
-from sqlalchemy import or_, select, func
+from sqlalchemy import delete, or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
-from core.database import Knowledge, Unit, Question
+from core.database import Knowledge, Unit, QuestionKnowledge
 from core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
 from shared.utils.time import now
 
@@ -88,9 +88,9 @@ async def delete_knowledge(db: AsyncSession, id: str) -> bool:
     if not knowledge:
         raise ValueError("知识点不存在")
 
-    total = await db.scalar(select(func.count(Question.id)).where(Question.id == id)) or 0
-    if total > 0:
-        raise ValueError("知识点已关联了问题，不能被删除")
+    await db.execute(
+        delete(QuestionKnowledge).where(QuestionKnowledge.knowledge_id == id)
+    )
 
     await db.delete(knowledge)
     await db.commit()

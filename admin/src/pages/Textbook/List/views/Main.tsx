@@ -16,7 +16,8 @@ import { Link } from '@umijs/max';
 import { useConfigs } from '@/hooks';
 
 export default function MainView() {
-  const { semesters, textbook_versions, subjectEnum, gradeEnum } = useConfigs();
+  const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } =
+    useConfigs();
   const { actionRef, instance, edited, visible, showForm, onCancel, updateStatus, handleSubmit } =
     useTextbookListModel();
 
@@ -32,6 +33,7 @@ export default function MainView() {
         title: '版本',
         dataIndex: 'version',
         valueType: 'select',
+        valueEnum: textbookVersionEmun,
       },
       {
         title: '阶段',
