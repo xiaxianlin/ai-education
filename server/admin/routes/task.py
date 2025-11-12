@@ -49,7 +49,7 @@ async def list_tasks(
         size=size,
     )
     return {
-        "items": [
+        "data": [
             {
                 "id": task.id,
                 "task_type": task.task_type,

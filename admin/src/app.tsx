@@ -22,12 +22,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
   return {
     logo,
     title: 'AI 教育',
-    layout: 'side',
-    theme: 'dark',
+    layout: 'mix',
     contentWidth: 'Fixed',
     fixedHeader: true,
     fixSiderbar: true,
-    colorWeak: false,
     avatarProps: {
       title: initialState?.manager?.username,
       render: (_, avatarChildren) => {

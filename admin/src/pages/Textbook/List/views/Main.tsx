@@ -100,6 +100,7 @@ export default function MainView() {
   );
   return (
     <PageContainer
+      className="simple-list-page"
       header={{
         breadcrumb: {},
         title: '教材管理',
@@ -111,6 +112,7 @@ export default function MainView() {
       }}
     >
       <ProTable<Textbook>
+        bordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -121,9 +123,8 @@ export default function MainView() {
           defaultCollapsed: false,
         }}
         scroll={{ x: 'max-content' }}
-        toolbar={{ actions: [] }}
+        toolbar={{ actions: [], settings: [] }}
         request={async ({ pageSize, current, ...filter }) => {
-          console.log(filter);
           const data = await TextbookApi.search({
             page: current || 1,
             size: pageSize || 10,
@@ -135,7 +136,6 @@ export default function MainView() {
             total: data.total,
           };
         }}
-        pagination={{ pageSize: 10 }}
       />
       <ModalForm<TextbookForm>
         width={600}

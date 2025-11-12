@@ -20,4 +20,9 @@ export const ManagerApi = {
     const res = await request<ApiData<Manager[]>>(`/manager/all`);
     return res.data;
   },
+
+  resetPassword: async (id: string) => {
+    const res = await request<ApiData<string>>(`/manager/${id}/reset`, { method: 'POST' });
+    return res.data;
+  },
 };

@@ -311,6 +311,7 @@ export default function QuestionListPage() {
     >
       {activeTab === 'question' ? (
         <ProTable<Question>
+          bordered
           actionRef={actionRef}
           rowKey="id"
           columns={questionColumns}
@@ -323,14 +324,14 @@ export default function QuestionListPage() {
               success: true,
             };
           }}
-          search={{ labelWidth: 'auto', defaultFormItemsNumber: 4 }}
+          search={{ labelWidth: 'auto', defaultFormItemsNumber: 8 }}
           options={false}
           toolbar={{ settings: [] }}
           scroll={{ x: 'max-content' }}
-          pagination={{ pageSize: 10 }}
         />
       ) : (
         <ProTable<Question>
+          bordered
           actionRef={resourceActionRef}
           rowKey="id"
           columns={resourceColumns}

@@ -76,7 +76,13 @@ export default function MainView() {
             <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
-            <Button size="small" key="delete" type="link" danger onClick={() => handleDelete(record)}>
+            <Button
+              size="small"
+              key="delete"
+              type="link"
+              danger
+              onClick={() => handleDelete(record)}
+            >
               删除
             </Button>
           </Space>
@@ -88,6 +94,7 @@ export default function MainView() {
 
   return (
     <PageContainer
+      className="simple-list-page"
       header={{
         breadcrumb: {},
         title: '学生管理',
@@ -99,17 +106,18 @@ export default function MainView() {
       }}
     >
       <ProTable<Student>
+        bordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
         search={{
           labelWidth: 'auto',
           layout: 'inline',
-          defaultColsNumber: 3,
+          defaultColsNumber: 6,
           defaultCollapsed: false,
         }}
         scroll={{ x: 'max-content' }}
-        toolbar={{ actions: [] }}
+        toolbar={{ actions: [], settings: [] }}
         request={async ({ pageSize, current, ...filter }) => {
           const data = await StudentApi.search({
             page: current || 1,
@@ -123,7 +131,6 @@ export default function MainView() {
             total: data.total,
           };
         }}
-        pagination={{ pageSize: 10 }}
       />
       <ModalForm<StudentForm | StudentUpdateForm>
         width={500}
@@ -159,4 +166,3 @@ export default function MainView() {
     </PageContainer>
   );
 }
-

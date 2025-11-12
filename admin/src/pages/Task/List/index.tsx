@@ -118,6 +118,7 @@ export default function TaskListPage() {
   return (
     <PageContainer title="任务管理" header={{ breadcrumb: {} }} className="simple-list-page">
       <ProTable<Task>
+        bordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -130,7 +131,7 @@ export default function TaskListPage() {
 
           const res = await TaskApi.list(searchParams);
           return {
-            data: res?.items || [],
+            data: res?.data || [],
             total: res?.total || 0,
             success: true,
           };
@@ -139,10 +140,8 @@ export default function TaskListPage() {
         options={false}
         toolbar={{ settings: [] }}
         scroll={{ x: 'max-content' }}
-        pagination={{ pageSize: 10 }}
         polling={3000} // 每3秒轮询一次，更新任务状态
       />
     </PageContainer>
   );
 }
-

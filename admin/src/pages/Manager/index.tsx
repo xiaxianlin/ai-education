@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { PageContainer } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select, Space, Table, TableProps } from 'antd';
-// 类型已在全局声明，无需导入
+import React, { useRef } from 'react';
+import {
+  PageContainer,
+  ProColumns,
+  ProTable,
+  ModalForm,
+  ProFormText,
+  ProFormSelect,
+} from '@ant-design/pro-components';
+import { Button, message, Modal, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { ManagerApi } from '@/services/manager';
 import { ManagerType, ManagerTypeText } from '@/constants/manager';
@@ -9,24 +15,22 @@ import { useRequest } from 'ahooks';
 import { StatusTag } from '@/components/ui';
 
 export default function ManagerPage() {
-  const [form] = Form.useForm();
-  const [visible, setVisible] = useState(false);
-
-  const { data, loading, refresh } = useRequest(() => ManagerApi.all());
+  const actionRef = useRef<any>();
+  const [formVisible, setFormVisible] = React.useState(false);
 
   const { runAsync: remove } = useRequest((id: string) => ManagerApi.delete(id), {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
-      refresh();
+      actionRef.current?.reload();
     },
   });
 
   const { runAsync: add } = useRequest((values) => ManagerApi.add(values), {
     manual: true,
     onSuccess: (passwd) => {
-      setVisible(false);
-      refresh();
+      setFormVisible(false);
+      actionRef.current?.reload();
       Modal.success({
         title: '添加成功',
         content: `请保存好密码：${passwd}`,
@@ -40,10 +44,21 @@ export default function ManagerPage() {
       manual: true,
       onSuccess: () => {
         message.success('状态更新成功');
-        refresh();
+        actionRef.current?.reload();
       },
     },
   );
+
+  const { runAsync: resetPassword } = useRequest((id: string) => ManagerApi.resetPassword(id), {
+    manual: true,
+    onSuccess: (passwd) => {
+      message.success('密码重置成功');
+      Modal.success({
+        title: '密码重置成功',
+        content: `新密码：${passwd}，请保存好密码`,
+      });
+    },
+  });
 
   const handleDelete = (manager: Manager) => {
     Modal.confirm({
@@ -66,39 +81,65 @@ export default function ManagerPage() {
     });
   };
 
-  const columns: TableProps<Manager>['columns'] = [
+  const handleResetPassword = (manager: Manager) => {
+    Modal.confirm({
+      title: '确认重置密码',
+      content: `确定要重置账号 "${manager.username}" 的密码吗？`,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => resetPassword(manager.id),
+    });
+  };
+
+  const columns: ProColumns<Manager>[] = [
     {
       title: '账号',
       dataIndex: 'username',
-      minWidth: 150,
+      width: 150,
     },
     {
       title: '类型',
       dataIndex: 'type',
-      minWidth: 150,
-      render: (type: ManagerType) => ManagerTypeText[type],
+      width: 150,
+      valueType: 'select',
+      valueEnum: {
+        [ManagerType.Init]: { text: ManagerTypeText[ManagerType.Init] },
+        [ManagerType.System]: { text: ManagerTypeText[ManagerType.System] },
+        [ManagerType.Audit]: { text: ManagerTypeText[ManagerType.Audit] },
+        [ManagerType.Data]: { text: ManagerTypeText[ManagerType.Data] },
+      },
+      render: (_, record) => ManagerTypeText[record.type],
     },
     {
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (status) => <StatusTag status={status} />,
+      valueType: 'select',
+      valueEnum: {
+        1: { text: '启用', status: 'Success' },
+        0: { text: '停用', status: 'Error' },
+      },
+      render: (_, record) => <StatusTag status={Boolean(record.status)} />,
     },
     {
       title: '创建时间',
       dataIndex: 'create_time',
-      minWidth: 180,
-      render: (time) => fmtTime(time),
+      width: 180,
+      hideInSearch: true,
+      renderText: (time) => fmtTime(time),
     },
     {
       title: '更新时间',
       dataIndex: 'update_time',
-      minWidth: 180,
-      render: (time) => fmtTime(time),
+      width: 180,
+      hideInSearch: true,
+      renderText: (time) => (time ? fmtTime(time) : '-'),
     },
     {
       title: '操作',
-      minWidth: 120,
+      valueType: 'option',
+      fixed: 'right',
+      width: 200,
       render: (_, record) =>
         record.type !== ManagerType.Init ? (
           <Space size={0}>
@@ -108,17 +149,18 @@ export default function ManagerPage() {
             <Button size="small" type="link" onClick={() => handleUpdateStatus(record)}>
               {record.status === 1 ? '停用' : '启用'}
             </Button>
-            <Button size="small" type="link" onClick={() => handleUpdateStatus(record)}>
+            <Button size="small" type="link" onClick={() => handleResetPassword(record)}>
               重置密码
             </Button>
           </Space>
-        ) : undefined,
+        ) : null,
     },
   ];
 
   return (
     <PageContainer
       title="账号管理"
+      className="simple-list-page"
       header={{
         breadcrumb: {},
         extra: [
@@ -126,8 +168,7 @@ export default function ManagerPage() {
             key="add"
             type="primary"
             onClick={() => {
-              setVisible(true);
-              form.setFieldsValue({ username: '', type: ManagerType.System });
+              setFormVisible(true);
             }}
           >
             添加账号
@@ -135,40 +176,65 @@ export default function ManagerPage() {
         ],
       }}
     >
-      <Table<Manager> rowKey="id" columns={columns} dataSource={data} loading={loading} />
-      <Modal
-        centered
-        open={visible}
-        title="添加账号"
-        okText="保存"
-        cancelText="取消"
-        onOk={() => form.submit()}
-        onCancel={() => {
-          setVisible(false);
-          form.resetFields();
+      <ProTable<Manager>
+        bordered
+        actionRef={actionRef}
+        rowKey="id"
+        columns={columns}
+        request={async () => {
+          const data = await ManagerApi.all();
+          return {
+            data: data || [],
+            success: true,
+            total: data?.length || 0,
+          };
         }}
+        search={{ labelWidth: 'auto', defaultFormItemsNumber: 3 }}
+        options={false}
+        toolbar={{ settings: [] }}
+        scroll={{ x: 'max-content' }}
+      />
+      <ModalForm<CreateManagerModel>
+        width={500}
+        open={formVisible}
+        title="添加账号"
+        onFinish={async (values) => {
+          await add(values);
+          return true;
+        }}
+        modalProps={{
+          destroyOnClose: true,
+          onCancel: () => {
+            setFormVisible(false);
+          },
+        }}
+        layout="horizontal"
+        size="large"
+        labelAlign="left"
+        labelCol={{ span: 4 }}
+        initialValues={{ type: ManagerType.System }}
       >
-        <Form autoComplete="off" form={form} onFinish={add} className="pt-2" layout="vertical">
-          <Form.Item
-            label="账号"
-            name="username"
-            rules={[{ required: true, message: '请输入账号' }]}
-          >
-            <Input placeholder="请输入账号" />
-          </Form.Item>
-          <Form.Item label="类型" name="type" rules={[{ required: true, message: '请选择类型' }]}>
-            <Select>
-              {Object.keys(ManagerTypeText)
-                .filter((key) => Number(key) > 0)
-                .map((key) => (
-                  <Select.Option key={key} value={Number(key)}>
-                    {ManagerTypeText[Number(key) as ManagerType]}
-                  </Select.Option>
-                ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+        <div className="pt-3" />
+        <ProFormText
+          name="username"
+          label="账号"
+          placeholder="请输入账号"
+          rules={[{ required: true, message: '请输入账号' }]}
+          fieldProps={{ maxLength: 50 }}
+        />
+        <ProFormSelect
+          name="type"
+          label="类型"
+          placeholder="请选择类型"
+          rules={[{ required: true, message: '请选择类型' }]}
+          options={Object.keys(ManagerTypeText)
+            .filter((key) => Number(key) > 0)
+            .map((key) => ({
+              label: ManagerTypeText[Number(key) as ManagerType],
+              value: Number(key),
+            }))}
+        />
+      </ModalForm>
     </PageContainer>
   );
 }
