@@ -2,7 +2,7 @@ import { history } from '@umijs/max';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { AvatarDropdown } from './components/ui';
 import logo from '@/assets/logo.png';
-import { message } from 'antd';
+import { ConfigProvider, message } from 'antd';
 import { AuthApi } from './services/auth';
 import { CommonApi } from './services/common';
 

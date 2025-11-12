@@ -9,30 +9,6 @@ body,
     'Noto Color Emoji';
 }
 
-.colorWeak {
-  filter: invert(80%);
-}
-
-.ant-layout {
-  min-height: 100vh;
-}
-.ant-pro-sider.ant-layout-sider.ant-pro-sider-fixed {
-  left: unset;
-}
-
-.ant-pro-layout {
-  .ant-pro-layout-content {
-    padding: 0 24px;
-
-    .ant-pro-page-container-warp-page-header,
-    .ant-pro-page-container-children-container {
-      padding: 0;
-    }
-  }
-  .ant-pro-sider-collapsed-button {
-    display: none;
-  }
-}
 canvas {
   display: block;
 }
@@ -48,43 +24,23 @@ ol {
   list-style: none;
 }
 
-.text-icon {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-  .anticon {
-    margin-top: 1px;
-  }
-}
 
-#ai-reasoning {
-  line-height: 2;
-  font-size: 13px;
-  color: #666;
-}
+.ant-pro-layout {
+  .ant-pro-layout-content {
+    padding: 0 24px;
 
-#ai-answer {
-  font-family: 'PingFang SC';
-  line-height: 2;
-  ol,
-  ul {
-    padding-left: 16px;
-    li {
-      margin: 4px 0;
+    .ant-pro-page-container-warp-page-header,
+    .ant-pro-page-container-children-container {
+      padding: 0;
     }
   }
-}
-
-.ant-btn {
-  border-radius: 4px;
-}
-.ant-btn-sm {
-  font-size: 12px;
+  .ant-pro-sider-collapsed-button {
+    display: none;
+  }
 }
 
 .simple-list-page {
-  .ant-pro-card {
+  .ant-table-wrapper {
     padding-top: 24px;
   }
 }

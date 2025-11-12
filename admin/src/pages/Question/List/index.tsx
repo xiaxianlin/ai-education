@@ -176,7 +176,7 @@ export default function QuestionListPage() {
       key: 'option',
       fixed: 'right',
       hideInSearch: true,
-      width: 180,
+      width: 140,
       render: (_, record) => (
         <Space>
           <Link className="umi-link" key="detail" to={`/question/detail/${record.id}`}>
@@ -243,7 +243,7 @@ export default function QuestionListPage() {
       key: 'option',
       fixed: 'right',
       hideInSearch: true,
-      width: 200,
+      width: 120,
       render: (_, record) => {
         const isSupported = record.resource_type === 'image' || record.resource_type === 'audio';
         const isGenerating = generateLoadingId === String(record.id);
