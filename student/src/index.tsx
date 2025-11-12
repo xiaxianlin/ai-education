@@ -4,7 +4,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router } from './router';
 import { useAuthStore } from './stores/useAuthStore';
-import { LoadingPage } from './shared/components/LoadingSpinner';
+import { LoadingPage } from './components/biz/LoadingSpinner';
 import './index.css';
 
 // 初始化 auth store

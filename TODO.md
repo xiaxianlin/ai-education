@@ -28,4 +28,5 @@
 页面按采用视图、逻辑、组件、存储分层
 通用 UI 组件放在 components/ui
 通用业务组件放在 components/biz
-拆分 shared，组件移动 components，其他移到 lib
+拆分 shared，组件移到 components，其他移到 lib
+最后检查所有无用代码，并删除

@@ -1,22 +1,22 @@
 import { lazy } from 'react';
 import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router';
-import { requireAuth, requireGuest } from './shared/lib/router-utils';
-import { LoadingPage } from './shared/components/LoadingSpinner';
+import { requireAuth, requireGuest } from './lib/router-utils';
+import { LoadingPage } from './components/biz/LoadingSpinner';
 
 // 懒加载页面组件
-const Login = lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
-const Home = lazy(() => import('./features/home/pages/Home').then(m => ({ default: m.Home })));
-const WrongQuestions = lazy(() => import('./features/wrong-questions/pages/WrongQuestions').then(m => ({ default: m.WrongQuestions })));
-const PracticeHistory = lazy(() => import('./pages/PracticeHistory').then(m => ({ default: m.PracticeHistory })));
-const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
-const DailyPractice = lazy(() => import('./features/practice/daily/pages/DailyPractice').then(m => ({ default: m.DailyPractice })));
-const DailyPracticeSession = lazy(() => import('./features/practice/daily/pages/DailyPracticeSession').then(m => ({ default: m.DailyPracticeSession })));
-const DailyPracticeResult = lazy(() => import('./pages/DailyPracticeResult').then(m => ({ default: m.DailyPracticeResult })));
-const UnitPractice = lazy(() => import('./features/practice/unit/pages/UnitPractice').then(m => ({ default: m.UnitPractice })));
-const UnitPracticeSession = lazy(() => import('./features/practice/unit/pages/UnitPracticeSession').then(m => ({ default: m.UnitPracticeSession })));
-const Assessment = lazy(() => import('./pages/Assessment').then(m => ({ default: m.Assessment })));
-const AssessmentSession = lazy(() => import('./features/practice/assessment/pages/AssessmentSession').then(m => ({ default: m.AssessmentSession })));
-const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const Login = lazy(() => import('./pages/Login/Login').then(m => ({ default: m.Login })));
+const Home = lazy(() => import('./pages/Home/Home').then(m => ({ default: m.Home })));
+const WrongQuestions = lazy(() => import('./pages/WrongQuestions/WrongQuestions').then(m => ({ default: m.WrongQuestions })));
+const PracticeHistory = lazy(() => import('./pages/PracticeHistory/PracticeHistory').then(m => ({ default: m.PracticeHistory })));
+const Profile = lazy(() => import('./pages/Profile/Profile').then(m => ({ default: m.Profile })));
+const DailyPractice = lazy(() => import('./pages/DailyPractice/DailyPractice').then(m => ({ default: m.DailyPractice })));
+const DailyPracticeSession = lazy(() => import('./pages/DailyPracticeSession/DailyPracticeSession').then(m => ({ default: m.DailyPracticeSession })));
+const DailyPracticeResult = lazy(() => import('./pages/DailyPracticeResult/DailyPracticeResult').then(m => ({ default: m.DailyPracticeResult })));
+const UnitPractice = lazy(() => import('./pages/UnitPractice/UnitPractice').then(m => ({ default: m.UnitPractice })));
+const UnitPracticeSession = lazy(() => import('./pages/UnitPracticeSession/UnitPracticeSession').then(m => ({ default: m.UnitPracticeSession })));
+const Assessment = lazy(() => import('./pages/Assessment/Assessment').then(m => ({ default: m.Assessment })));
+const AssessmentSession = lazy(() => import('./pages/AssessmentSession/AssessmentSession').then(m => ({ default: m.AssessmentSession })));
+const Settings = lazy(() => import('./pages/Settings/Settings').then(m => ({ default: m.Settings })));
 
 const rootRoute = createRootRoute();
 

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { StudentInfo, LoginParams } from '@/shared/types/api';
+import type { StudentInfo, LoginParams } from '@/lib/types/api';
 
 export const authApi = {
   login: async (params: LoginParams): Promise<string> => {

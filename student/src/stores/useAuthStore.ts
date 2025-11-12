@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { SecureStorage } from '@/shared/lib/secureStorage';
-import type { StudentInfo } from '@/shared/types/api';
+import { SecureStorage } from '@/lib/secureStorage';
+import type { StudentInfo } from '@/lib/types/api';
 
 interface AuthState {
   token: string | null;
