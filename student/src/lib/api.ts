@@ -5,7 +5,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 
   (import.meta.env.MODE === 'development' ? '/api/student' : 'http://127.0.0.1:7890/api/student');
 
-export interface ApiData<T = any> {
+export interface ApiData<T = unknown> {
   data: T;
   message?: string;
   status?: number;
@@ -23,9 +23,12 @@ const axiosInstance: AxiosInstance = axios.create({
 // 请求拦截器：添加 token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-      config.headers['x-access-token'] = token;
+    // 直接从 sessionStorage 获取 token（与 SecureStorage 保持一致）
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('_t');
+      if (token && config.headers) {
+        config.headers['x-access-token'] = token;
+      }
     }
     return config;
   },
@@ -37,13 +40,13 @@ axiosInstance.interceptors.request.use(
 // 响应拦截器：处理错误和数据格式
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse<ApiData>) => {
-    const { data = {} as any } = response;
+    const { data = {} as ApiData } = response;
     
     // 处理状态码
     if (data.status === 401) {
       // 未授权，清除 token 并跳转到登录页
-      localStorage.removeItem('token');
       if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('_t');
         window.location.href = '/login';
       }
       throw new Error(data.message || '未授权，请重新登录');
@@ -87,16 +90,16 @@ axiosInstance.interceptors.response.use(
 );
 
 export const api = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     return axiosInstance.get<ApiData<T>>(url, config).then(res => res.data.data);
   },
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
     return axiosInstance.post<ApiData<T>>(url, data, config).then(res => res.data.data);
   },
-  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
     return axiosInstance.put<ApiData<T>>(url, data, config).then(res => res.data.data);
   },
-  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     return axiosInstance.delete<ApiData<T>>(url, config).then(res => res.data.data);
   },
 };

@@ -41,9 +41,10 @@ export function Settings() {
         // 如果没有profile数据，也不设置默认值
         setCurrentTextbookId(null);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('加载数据失败');
+      const errorMessage = error instanceof Error ? error.message : '加载数据失败';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -75,9 +76,10 @@ export function Settings() {
       });
       setCurrentTextbookId(confirmDialog.textbookId);
       toast.success('已设置为当前学习教材');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update current textbook:', error);
-      toast.error('设置失败');
+      const errorMessage = error instanceof Error ? error.message : '设置失败';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
       setConfirmDialog({ open: false, textbookId: null });

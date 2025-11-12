@@ -42,7 +42,7 @@ export function Header() {
         const current = textbooksData?.find(t => t.id === profileData.current_textbook_id);
         setCurrentTextbook(current || null);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load header data:', error);
       // 不显示错误提示，避免干扰用户体验
     } finally {
@@ -63,9 +63,10 @@ export function Header() {
       
       // 刷新页面以更新所有相关数据
       window.location.reload();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to switch textbook:', error);
-      toast.error(error.message || '切换教材失败');
+      const errorMessage = error instanceof Error ? error.message : '切换教材失败';
+      toast.error(errorMessage);
     } finally {
       setSwitching(false);
     }

@@ -1,19 +1,21 @@
 import { create } from 'zustand';
+import { SecureStorage } from '@/shared/lib/secureStorage';
+import type { StudentInfo } from '@/shared/types/api';
 
 interface AuthState {
   token: string | null;
-  student: any | null;
+  student: StudentInfo | null;
   isAuthenticated: boolean;
   setToken: (token: string | null) => void;
-  setStudent: (student: any | null) => void;
+  setStudent: (student: StudentInfo | null) => void;
   logout: () => void;
   init: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => {
-  // 初始化时从 localStorage 读取 token
+  // 初始化时从安全存储读取 token
   const init = () => {
-    const token = localStorage.getItem('token');
+    const token = SecureStorage.getToken();
     if (token) {
       set({ token, isAuthenticated: true });
     }
@@ -25,21 +27,21 @@ export const useAuthStore = create<AuthState>((set) => {
   }
 
   return {
-    token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+    token: typeof window !== 'undefined' ? SecureStorage.getToken() : null,
     student: null,
-    isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
+    isAuthenticated: typeof window !== 'undefined' ? SecureStorage.hasToken() : false,
     setToken: (token) => {
       if (token) {
-        localStorage.setItem('token', token);
+        SecureStorage.setToken(token);
         set({ token, isAuthenticated: true });
       } else {
-        localStorage.removeItem('token');
+        SecureStorage.removeToken();
         set({ token: null, isAuthenticated: false });
       }
     },
     setStudent: (student) => set({ student }),
     logout: () => {
-      localStorage.removeItem('token');
+      SecureStorage.removeToken();
       set({ token: null, student: null, isAuthenticated: false });
     },
     init,

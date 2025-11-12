@@ -1,16 +1,5 @@
 import { api } from '@/lib/api';
-
-export interface LoginParams {
-  phone: string;
-  password: string;
-}
-
-export interface StudentInfo {
-  id: string;
-  name: string;
-  phone: string;
-  [key: string]: any;
-}
+import type { StudentInfo, LoginParams } from '@/shared/types/api';
 
 export const authApi = {
   login: async (params: LoginParams): Promise<string> => {

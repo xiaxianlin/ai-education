@@ -25,9 +25,10 @@ export function PracticeHistory() {
       ]);
       setRecords(recordsData);
       setStats(statsData);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('加载记录失败');
+      const errorMessage = error instanceof Error ? error.message : '加载记录失败';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

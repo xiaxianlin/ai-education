@@ -24,9 +24,10 @@ export function Profile() {
       ]);
       setProfile(profileData);
       setStats(statsData);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to load data:', error);
-      toast.error('加载数据失败');
+      const errorMessage = error instanceof Error ? error.message : '加载数据失败';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

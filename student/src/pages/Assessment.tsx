@@ -22,9 +22,10 @@ export function Assessment() {
       });
       toast.success('能力评测已创建，开始答题！');
       navigate({ to: `/assessment/${assessment.id}` });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to create assessment:', error);
-      toast.error(error.message || '创建评测失败');
+      const errorMessage = error instanceof Error ? error.message : '创建评测失败';
+      toast.error(errorMessage);
     } finally {
       setCreating(false);
     }
