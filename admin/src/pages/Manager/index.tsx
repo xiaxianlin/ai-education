@@ -158,24 +158,7 @@ export default function ManagerPage() {
   ];
 
   return (
-    <PageContainer
-      title="账号管理"
-      className="simple-list-page"
-      header={{
-        breadcrumb: {},
-        extra: [
-          <Button
-            key="add"
-            type="primary"
-            onClick={() => {
-              setFormVisible(true);
-            }}
-          >
-            添加账号
-          </Button>,
-        ],
-      }}
-    >
+    <PageContainer title="账号管理" header={{ breadcrumb: {} }}>
       <ProTable<Manager>
         bordered
         actionRef={actionRef}
@@ -190,8 +173,11 @@ export default function ManagerPage() {
           };
         }}
         search={{ labelWidth: 'auto', defaultFormItemsNumber: 3 }}
-        options={false}
-        toolbar={{ settings: [] }}
+        headerTitle={
+          <Button key="add" type="primary" onClick={() => setFormVisible(true)}>
+            添加账号
+          </Button>
+        }
         scroll={{ x: 'max-content' }}
       />
       <ModalForm<CreateManagerModel>

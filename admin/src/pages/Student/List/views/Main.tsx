@@ -93,18 +93,7 @@ export default function MainView() {
   );
 
   return (
-    <PageContainer
-      className="simple-list-page"
-      header={{
-        breadcrumb: {},
-        title: '学生管理',
-        extra: [
-          <Button type="primary" onClick={() => showForm()}>
-            新增学生
-          </Button>,
-        ],
-      }}
-    >
+    <PageContainer title="学生管理" header={{ breadcrumb: {} }}>
       <ProTable<Student>
         bordered
         actionRef={actionRef}
@@ -117,7 +106,11 @@ export default function MainView() {
           defaultCollapsed: false,
         }}
         scroll={{ x: 'max-content' }}
-        toolbar={{ actions: [], settings: [] }}
+        headerTitle={
+          <Button type="primary" onClick={() => showForm()}>
+            新增学生
+          </Button>
+        }
         request={async ({ pageSize, current, ...filter }) => {
           const data = await StudentApi.search({
             page: current || 1,

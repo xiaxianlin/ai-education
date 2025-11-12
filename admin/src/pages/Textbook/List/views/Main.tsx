@@ -99,18 +99,7 @@ export default function MainView() {
     [showForm, updateStatus],
   );
   return (
-    <PageContainer
-      className="simple-list-page"
-      header={{
-        breadcrumb: {},
-        title: '教材管理',
-        extra: [
-          <Button type="primary" onClick={() => showForm()}>
-            新增教材
-          </Button>,
-        ],
-      }}
-    >
+    <PageContainer title="教材管理" header={{ breadcrumb: {} }}>
       <ProTable<Textbook>
         bordered
         actionRef={actionRef}
@@ -123,7 +112,11 @@ export default function MainView() {
           defaultCollapsed: false,
         }}
         scroll={{ x: 'max-content' }}
-        toolbar={{ actions: [], settings: [] }}
+        headerTitle={
+          <Button type="primary" onClick={() => showForm()}>
+            新增教材
+          </Button>
+        }
         request={async ({ pageSize, current, ...filter }) => {
           const data = await TextbookApi.search({
             page: current || 1,

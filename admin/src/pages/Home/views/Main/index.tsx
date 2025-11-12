@@ -111,13 +111,6 @@ export default function MainView() {
                 })}
               </Text>
             </Col>
-            <Col>
-              <Space>
-                <Button type="primary" ghost>
-                  <Link to="/student">开始管理</Link>
-                </Button>
-              </Space>
-            </Col>
           </Row>
         </Card>
 
