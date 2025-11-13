@@ -120,7 +120,9 @@ export const AnswerOptions = memo(function AnswerOptions({
     );
   }
 
-  // 主观题
+  // 主观题、拼写题等
+  const isSpellingQuestion = question.type === '拼写题';
+  
   return (
     <div>
       <textarea
@@ -137,25 +139,8 @@ export const AnswerOptions = memo(function AnswerOptions({
             : 'border-gray-300 focus:border-blue-400',
           hasAnswered && 'cursor-not-allowed'
         )}
-        rows={6}
+        rows={isSpellingQuestion ? 2 : 6}
       />
-      {hasAnswered && (
-        <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-gray-50">
-          {isCorrect ? (
-            <CheckCircle className="h-7 w-7 text-green-600" />
-          ) : (
-            <XCircle className="h-7 w-7 text-red-600" />
-          )}
-          <span
-            className={cn(
-              'text-lg font-bold',
-              isCorrect ? 'text-green-700' : 'text-red-700'
-            )}
-          >
-            {isCorrect ? '回答正确！✨' : '回答错误'}
-          </span>
-        </div>
-      )}
     </div>
   );
 });

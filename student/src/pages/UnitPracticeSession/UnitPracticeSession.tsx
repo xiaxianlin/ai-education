@@ -71,7 +71,12 @@ export function UnitPracticeSession() {
           answeredCount={answeredCount}
         />
 
-        <QuestionCard question={currentQuestion} index={currentQuestionIndex} />
+        <QuestionCard
+          question={currentQuestion}
+          index={currentQuestionIndex}
+          hasAnswered={hasAnswered}
+          isCorrect={isCorrect}
+        />
 
         <div className="space-y-6">
           <AnswerOptions

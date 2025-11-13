@@ -1,16 +1,24 @@
 import { memo } from 'react';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { getResourceUrl } from '@/lib/utils/resource';
+import { StampAnimation } from './StampAnimation';
 import type { Question } from '@/services/practice';
 
 interface QuestionCardProps {
   question: Question;
   index: number;
+  hasAnswered?: boolean;
+  isCorrect?: boolean;
 }
 
-export const QuestionCard = memo(function QuestionCard({ question, index }: QuestionCardProps) {
+export const QuestionCard = memo(function QuestionCard({
+  question,
+  index,
+  hasAnswered = false,
+  isCorrect,
+}: QuestionCardProps) {
   return (
-    <Card className="border-2 border-purple-200 shadow-lg">
+    <Card className="border-2 border-purple-200 shadow-lg relative overflow-visible">
       <CardContent className="pt-6 pb-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -43,6 +51,10 @@ export const QuestionCard = memo(function QuestionCard({ question, index }: Ques
           </div>
         )}
       </CardContent>
+      <StampAnimation
+        isCorrect={isCorrect === true}
+        show={hasAnswered && isCorrect !== undefined}
+      />
     </Card>
   );
 });
