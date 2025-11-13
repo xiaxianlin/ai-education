@@ -24,19 +24,6 @@ export function Profile() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* 头部卡片 */}
-        <Card className="border-2 border-purple-300 shadow-2xl rounded-3xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center gap-4">
-              <div className="text-6xl">👤</div>
-              <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-800">我的主页</h1>
-                <p className="text-base text-gray-600">看看你的学习成果！</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* 数据统计 */}
         <Card className="border-2 border-purple-300 shadow-2xl rounded-3xl overflow-hidden">
           <CardContent className="p-8">
@@ -44,7 +31,7 @@ export function Profile() {
               <TrendingUp className="h-6 w-6 text-purple-600" />
               <h2 className="text-2xl font-bold text-gray-800">我的成绩</h2>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 p-6 border-2 border-blue-300 shadow-lg">
                 <div className="text-center">
                   <div className="text-5xl mb-2">🎯</div>
