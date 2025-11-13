@@ -1,9 +1,10 @@
 import React from 'react';
-import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { TaskApi } from '@/services/task';
-import { fmtTime } from '@/utils/time';
 import { Link } from '@umijs/max';
 import { Space, Tag, Progress } from 'antd';
+import { CommonTable } from '@/components/business';
+import { createTimeColumn } from '@/hooks';
 
 const statusConfig = {
   pending: { color: 'default', text: '待执行' },
@@ -58,7 +59,7 @@ export default function TaskListPage() {
       dataIndex: 'progress',
       width: 120,
       hideInSearch: true,
-      render: (progress: number, record) => {
+      render: (_, record) => {
         if (record.status === 'pending') {
           return <Tag>0%</Tag>;
         }
@@ -70,7 +71,7 @@ export default function TaskListPage() {
         }
         return (
           <Progress
-            percent={progress}
+            percent={record.progress}
             size="small"
             status={record.status === 'running' ? 'active' : 'normal'}
             style={{ minWidth: 80 }}
@@ -78,27 +79,9 @@ export default function TaskListPage() {
         );
       },
     },
-    {
-      title: '开始时间',
-      dataIndex: 'start_time',
-      width: 170,
-      hideInSearch: true,
-      renderText: (time) => (time ? fmtTime(time) : '-'),
-    },
-    {
-      title: '结束时间',
-      dataIndex: 'end_time',
-      width: 170,
-      hideInSearch: true,
-      renderText: (time) => (time ? fmtTime(time) : '-'),
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'create_time',
-      width: 170,
-      hideInSearch: true,
-      renderText: (time) => fmtTime(time),
-    },
+    createTimeColumn<Task>('开始时间', 'start_time'),
+    createTimeColumn<Task>('结束时间', 'end_time'),
+    createTimeColumn<Task>('创建时间', 'create_time'),
     {
       title: '操作',
       key: 'option',
@@ -117,8 +100,7 @@ export default function TaskListPage() {
 
   return (
     <PageContainer title="任务管理" header={{ breadcrumb: {} }} className="simple-list-page">
-      <ProTable<Task>
-        bordered
+      <CommonTable<Task>
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -137,9 +119,6 @@ export default function TaskListPage() {
           };
         }}
         search={{ labelWidth: 'auto', defaultFormItemsNumber: 3 }}
-        options={false}
-        toolbar={{ settings: [] }}
-        scroll={{ x: 'max-content' }}
         polling={3000} // 每3秒轮询一次，更新任务状态
       />
     </PageContainer>

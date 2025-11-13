@@ -1,18 +1,16 @@
-import {
-  ModalForm,
-  PageContainer,
-  ProColumns,
-  ProFormText,
-  ProTable,
-  ProFormSelect,
-} from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ProFormText } from '@ant-design/pro-components';
 import { useStudentListModel } from '../models/page';
 import { Button } from 'antd';
 import { StudentApi } from '@/services/student';
 import { useMemo } from 'react';
-import { StatusTag } from '@/components/ui';
-import { fmtTime } from '@/utils/time';
 import { Link } from '@umijs/max';
+import { CommonTable, FormModal } from '@/components/business';
+import {
+  createTimeColumn,
+  createStatusColumn,
+  createStatusSearchColumn,
+  createActionColumn,
+} from '@/hooks';
 
 export default function MainView() {
   const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
@@ -30,58 +28,27 @@ export default function MainView() {
         dataIndex: 'phone',
         width: 130,
       },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        hideInSearch: true,
-        width: 80,
-        render: (status) => <StatusTag status={status === 1} />,
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        valueType: 'select',
-        valueEnum: {
-          1: { text: '启用', status: 'Success' },
-          0: { text: '停用', status: 'Error' },
-        },
-        hideInTable: true,
-      },
-      {
-        title: '创建时间',
-        dataIndex: 'create_time',
-        hideInSearch: true,
-        width: 170,
-        renderText: (time) => fmtTime(time),
-      },
-      {
-        title: '更新时间',
-        dataIndex: 'update_time',
-        hideInSearch: true,
-        width: 170,
-        renderText: (time) => (time ? fmtTime(time) : '-'),
-      },
-      {
-        title: '操作',
-        valueType: 'option',
-        fixed: 'right',
-        width: 80,
-        render: (_, record) => (
+      createStatusColumn<Student>(),
+      createStatusSearchColumn<Student>(),
+      createTimeColumn<Student>('创建时间', 'create_time'),
+      createTimeColumn<Student>('更新时间', 'update_time'),
+      createActionColumn<Student>(
+        (_, record) => (
           <Link key="detail" to={`/student/detail/${record.id}`}>
             <Button size="small" type="link">
               详情
             </Button>
           </Link>
         ),
-      },
+        { width: 80 },
+      ),
     ],
     [],
   );
 
   return (
     <PageContainer title="学生管理" header={{ breadcrumb: {} }}>
-      <ProTable<Student>
-        bordered
+      <CommonTable<Student>
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -91,7 +58,6 @@ export default function MainView() {
           defaultColsNumber: 6,
           defaultCollapsed: false,
         }}
-        scroll={{ x: 'max-content' }}
         headerTitle={
           <Button type="primary" onClick={() => showForm()}>
             新增学生
@@ -111,19 +77,15 @@ export default function MainView() {
           };
         }}
       />
-      <ModalForm<StudentForm | StudentUpdateForm>
-        width={500}
+      <FormModal<StudentForm | StudentUpdateForm>
         form={instance}
-        open={visible}
-        title={edited ? '更新学生' : '新增学生'}
+        visible={visible}
+        onCancel={onCancel}
+        isEdit={!!edited}
+        addTitle="新增学生"
+        editTitle="更新学生"
         onFinish={handleSubmit}
-        modalProps={{ destroyOnHidden: true, onCancel }}
-        layout="horizontal"
-        size="large"
-        labelAlign="left"
-        labelCol={{ span: 4 }}
       >
-        <div className="pt-3" />
         <ProFormText
           name="name"
           label="姓名"
@@ -141,7 +103,7 @@ export default function MainView() {
           ]}
           fieldProps={{ maxLength: 11 }}
         />
-      </ModalForm>
+      </FormModal>
     </PageContainer>
   );
 }

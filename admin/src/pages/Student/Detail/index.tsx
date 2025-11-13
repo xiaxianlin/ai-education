@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useParams, history } from '@umijs/max';
+import { useParams } from '@umijs/max';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Dropdown, Space } from 'antd';
-import { ArrowLeftOutlined, MoreOutlined } from '@ant-design/icons';
+import { MoreOutlined } from '@ant-design/icons';
 
+import { PageHeader } from '@/components/business';
 import { useStudentActions } from './hooks/useStudentActions';
 import { BasicInfoCard } from './views/BasicInfoCard';
 import { TextbookSection } from './views/TextbookSection';
@@ -21,17 +22,7 @@ export default function StudentDetailPage() {
   return (
     <PageContainer
       style={{ padding: '24px 0' }}
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => history.back()}
-            style={{ padding: 0, height: 'auto' }}
-          />
-          <span>学生详情</span>
-        </div>
-      }
+      title={<PageHeader title="学生详情" />}
       header={{
         breadcrumb: {},
         extra: [

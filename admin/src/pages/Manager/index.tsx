@@ -2,16 +2,16 @@ import React, { useRef } from 'react';
 import {
   PageContainer,
   ProColumns,
-  ProTable,
   ModalForm,
   ProFormText,
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button, message, Modal, Space } from 'antd';
-import { fmtTime } from '@/utils/time';
 import { ManagerApi } from '@/services/manager';
 import { ManagerType, ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
+import { CommonTable } from '@/components/business';
+import { createTimeColumn } from '@/hooks';
 import { StatusTag } from '@/components/ui';
 
 export default function ManagerPage() {
@@ -121,20 +121,8 @@ export default function ManagerPage() {
       },
       render: (_, record) => <StatusTag status={Boolean(record.status)} />,
     },
-    {
-      title: '创建时间',
-      dataIndex: 'create_time',
-      width: 180,
-      hideInSearch: true,
-      renderText: (time) => fmtTime(time),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'update_time',
-      width: 180,
-      hideInSearch: true,
-      renderText: (time) => (time ? fmtTime(time) : '-'),
-    },
+    createTimeColumn<Manager>('创建时间', 'create_time', { width: 180 }),
+    createTimeColumn<Manager>('更新时间', 'update_time', { width: 180 }),
     {
       title: '操作',
       valueType: 'option',
@@ -159,8 +147,7 @@ export default function ManagerPage() {
 
   return (
     <PageContainer title="账号管理" header={{ breadcrumb: {} }}>
-      <ProTable<Manager>
-        bordered
+      <CommonTable<Manager>
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -178,7 +165,6 @@ export default function ManagerPage() {
             添加账号
           </Button>
         }
-        scroll={{ x: 'max-content' }}
       />
       <ModalForm<CreateManagerModel>
         width={500}

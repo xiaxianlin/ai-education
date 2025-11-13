@@ -3,17 +3,17 @@ import {
   PageContainer,
   ProColumns,
   ProFormSelect,
-  ProTable,
 } from '@ant-design/pro-components';
 import { useTextbookListModel } from '../models/page';
 import { Button, Space, Tag } from 'antd';
 import { TextbookApi } from '@/services/textbook';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
-import { StatusTag } from '@/components/ui';
 import { fmtTime } from '@/utils/time';
 import { Link } from '@umijs/max';
 import { useConfigs } from '@/hooks';
+import { CommonTable } from '@/components/business';
+import { createTimeColumn, createStatusColumn } from '@/hooks';
 
 export default function MainView() {
   const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } =
@@ -61,24 +61,9 @@ export default function MainView() {
         hideInSearch: true,
         render: (is_parsed) => (is_parsed ? <Tag color="success">已解析</Tag> : <Tag>未解析</Tag>),
       },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        hideInSearch: true,
-        render: (status) => <StatusTag status={status === 1} />,
-      },
-      {
-        title: '创建时间',
-        dataIndex: 'create_time',
-        hideInSearch: true,
-        renderText: (time) => fmtTime(time),
-      },
-      {
-        title: '更新时间',
-        dataIndex: 'update_time',
-        hideInSearch: true,
-        renderText: (time) => fmtTime(time),
-      },
+      createStatusColumn<Textbook>(),
+      createTimeColumn<Textbook>('创建时间', 'create_time'),
+      createTimeColumn<Textbook>('更新时间', 'update_time'),
       {
         title: '操作',
         valueType: 'option',
@@ -98,12 +83,12 @@ export default function MainView() {
         ),
       },
     ],
-    [showForm, updateStatus],
+    [showForm, updateStatus, subjectEnum, textbookVersionEmun, gradeEnum],
   );
+
   return (
     <PageContainer title="教材管理" header={{ breadcrumb: {} }}>
-      <ProTable<Textbook>
-        bordered
+      <CommonTable<Textbook>
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -113,7 +98,6 @@ export default function MainView() {
           defaultColsNumber: 3,
           defaultCollapsed: false,
         }}
-        scroll={{ x: 'max-content' }}
         headerTitle={
           <Button type="primary" onClick={() => showForm()}>
             新增教材
