@@ -46,7 +46,6 @@ export function BasicInfoCard({
     <>
       <Card
         title="基本信息"
-        style={{ marginTop: 24 }}
         loading={loading}
         extra={
           <Button type="primary" onClick={handleEdit} disabled={!student}>
@@ -56,7 +55,6 @@ export function BasicInfoCard({
       >
         {student ? (
           <ProDescriptions column={3}>
-            <ProDescriptions.Item label="学生ID">{student.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="姓名">{student.name}</ProDescriptions.Item>
             <ProDescriptions.Item label="手机号">{student.phone}</ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
@@ -79,7 +77,9 @@ export function BasicInfoCard({
         form={editForm}
         open={editFormVisible}
         title="编辑学生"
-        onFinish={handleEditSubmit}
+        onFinish={async (values) => {
+          await handleEditSubmit(values);
+        }}
         loading={editing}
         modalProps={{
           destroyOnHidden: true,

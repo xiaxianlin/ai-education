@@ -13,11 +13,7 @@ type DailyPracticeResponse = {
 
 const PRACTICE_HISTORY_PATH = (id: string) => `/student/${id}/practice-history`;
 
-export function useDailyPractice(
-  id?: string,
-  refreshStats?: () => void,
-  refreshRecords?: () => void,
-) {
+export function useDailyPractice(id?: string, refreshStats?: () => void) {
   const [todayPractice, setTodayPractice] = useState<DailyPracticeResponse>(null);
   const [generatingPractice, setGeneratingPractice] = useState(false);
 
@@ -31,7 +27,6 @@ export function useDailyPractice(
       setTodayPractice(data);
       if (data.session && data.session.status === 'completed') {
         refreshStats?.();
-        refreshRecords?.();
       }
     },
   });
@@ -51,7 +46,6 @@ export function useDailyPractice(
         message.success('今日练习已生成');
         if (data.session.status === 'completed') {
           refreshStats?.();
-          refreshRecords?.();
         }
       } else {
         message.success('今日练习生成任务已创建');
@@ -84,7 +78,6 @@ export function useDailyPractice(
           if (data.session) {
             message.success('今日练习生成完成！');
             refreshStats?.();
-            refreshRecords?.();
           } else if (data.status === 'failed') {
             message.error('今日练习生成失败，请重试');
           }
@@ -95,7 +88,7 @@ export function useDailyPractice(
     }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [id, todayPractice?.status, refreshStats, refreshRecords]);
+  }, [id, todayPractice?.status, refreshStats]);
 
   const practiceHistoryLink = useMemo(
     () => (id ? PRACTICE_HISTORY_PATH(id) : '#'),

@@ -13,7 +13,9 @@ from admin.schema import (
 from core.schema import SearchSchema
 from admin.services import student, profile, stats, study_record, wrong_question
 from student.services.daily_practice import DailyPracticeService
-from core.database import Database, DailyPracticeSession
+from student.services.unit_practice import UnitPracticeService
+from student.services.assessment import AssessmentService
+from core.database import Database, DailyPracticeSession, UnitPracticeSession, AssessmentTest
 
 
 student_router = APIRouter(prefix="/student")
@@ -179,4 +181,128 @@ async def delete_daily_practice(
     await db.commit()
     
     return {"message": "删除成功"}
+
+
+@student_router.get("/{id}/unit_practices")
+async def get_student_unit_practices(
+    id: str, limit: int = 30, db: AsyncSession = Database
+):
+    """获取学生的单元练习记录列表"""
+    from sqlalchemy import desc
+    from admin.schema import UnitPracticeSessionSchema
+    
+    result = await db.execute(
+        select(UnitPracticeSession)
+        .where(UnitPracticeSession.student_id == id)
+        .order_by(desc(UnitPracticeSession.create_time))
+        .limit(limit)
+    )
+    sessions = result.scalars().all()
+    
+    return {
+        "data": [UnitPracticeSessionSchema.model_validate(session) for session in sessions],
+        "total": len(sessions),
+    }
+
+
+@student_router.get("/{id}/unit_practices/{session_id}")
+async def get_unit_practice_detail(
+    id: str, session_id: int, db: AsyncSession = Database
+):
+    """获取单元练习详情（包含问题列表）"""
+    session_data = await UnitPracticeService.get_practice_session(
+        db, session_id, id
+    )
+    if not session_data:
+        raise HTTPException(status_code=404, detail="练习会话不存在")
+    return session_data
+
+
+@student_router.get("/{id}/assessments")
+async def get_student_assessments(
+    id: str, limit: int = 30, db: AsyncSession = Database
+):
+    """获取学生的能力评估记录列表"""
+    from sqlalchemy import desc
+    from admin.schema import AssessmentTestSchema
+    
+    result = await db.execute(
+        select(AssessmentTest)
+        .where(AssessmentTest.student_id == id)
+        .order_by(desc(AssessmentTest.create_time))
+        .limit(limit)
+    )
+    assessments = result.scalars().all()
+    
+    return {
+        "data": [AssessmentTestSchema.model_validate(assessment) for assessment in assessments],
+        "total": len(assessments),
+    }
+
+
+@student_router.get("/{id}/assessments/{assessment_id}")
+async def get_assessment_detail(
+    id: str, assessment_id: int, db: AsyncSession = Database
+):
+    """获取能力评测详情（包含问题列表）"""
+    from sqlalchemy import select, and_
+    from core.database import AssessmentQuestion, Question
+    from admin.schema import AssessmentTestSchema
+    import json
+    
+    # 获取评测会话
+    result = await db.execute(
+        select(AssessmentTest).where(
+            and_(
+                AssessmentTest.id == assessment_id,
+                AssessmentTest.student_id == id,
+            )
+        )
+    )
+    test = result.scalar_one_or_none()
+    
+    if not test:
+        raise HTTPException(status_code=404, detail="评测不存在")
+    
+    # 获取题目列表
+    questions_result = await db.execute(
+        select(AssessmentQuestion)
+        .where(AssessmentQuestion.assessment_id == assessment_id)
+        .order_by(AssessmentQuestion.question_order)
+    )
+    assessment_questions = questions_result.scalars().all()
+    
+    # 获取题目详情
+    question_ids = [aq.question_id for aq in assessment_questions]
+    if question_ids:
+        questions_result = await db.execute(
+            select(Question).where(Question.id.in_(question_ids))
+        )
+        questions_dict = {q.id: q for q in questions_result.scalars().all()}
+        
+        questions = []
+        for aq in assessment_questions:
+            q = questions_dict.get(aq.question_id)
+            if q:
+                questions.append({
+                    "id": q.id,
+                    "type": q.type,
+                    "subtype": q.subtype,
+                    "content": q.content,
+                    "options": q.options,
+                    "difficulty": q.difficulty,
+                    "knowledge": q.knowledge,
+                    "resource": q.resource,
+                    "resource_type": q.resource_type,
+                    "resource_content": q.resource_content,
+                    "answer": q.answer,
+                    "is_correct": aq.is_correct == 1,
+                })
+    else:
+        questions = []
+    
+    return {
+        "session": AssessmentTestSchema.model_validate(test),
+        "questions": questions,
+    }
 

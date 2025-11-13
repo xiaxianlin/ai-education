@@ -160,5 +160,33 @@ export const StudentApi = {
       method: 'DELETE',
     });
   },
+
+  // 获取单元练习记录列表
+  getUnitPractices: async (id: string, limit?: number) => {
+    const res = await request<ListApiData<UnitPracticeSession>>(`/student/${id}/unit_practices`, {
+      params: limit ? { limit } : {},
+    });
+    return res.data;
+  },
+
+  // 获取单元练习详情
+  getUnitPracticeDetail: async (id: string, sessionId: number) => {
+    const res = await request<ApiData<UnitPracticeSessionDetail>>(`/student/${id}/unit_practices/${sessionId}`);
+    return res.data;
+  },
+
+  // 获取能力评估记录列表
+  getAssessments: async (id: string, limit?: number) => {
+    const res = await request<ListApiData<AssessmentTest>>(`/student/${id}/assessments`, {
+      params: limit ? { limit } : {},
+    });
+    return res.data;
+  },
+
+  // 获取能力评测详情
+  getAssessmentDetail: async (id: string, assessmentId: number) => {
+    const res = await request<ApiData<AssessmentDetail>>(`/student/${id}/assessments/${assessmentId}`);
+    return res.data;
+  },
 };
 

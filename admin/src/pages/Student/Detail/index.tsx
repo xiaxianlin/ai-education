@@ -8,7 +8,8 @@ import { useStudentActions } from './hooks/useStudentActions';
 import { BasicInfoCard } from './views/BasicInfoCard';
 import { TextbookSection } from './views/TextbookSection';
 import { PracticeCard } from './views/PracticeCard';
-import { LearningTabs } from './views/LearningTabs';
+import { UnitPracticeCard } from './views/UnitPracticeCard';
+import { AssessmentCard } from './views/AssessmentCard';
 
 export default function StudentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export default function StudentDetailPage() {
 
   return (
     <PageContainer
+      style={{ padding: '24px 0' }}
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Button
@@ -48,7 +50,9 @@ export default function StudentDetailPage() {
 
         {id && <PracticeCard id={id} />}
 
-        {id && <LearningTabs id={id} />}
+        {id && <UnitPracticeCard id={id} />}
+
+        {id && <AssessmentCard id={id} />}
       </Space>
     </PageContainer>
   );

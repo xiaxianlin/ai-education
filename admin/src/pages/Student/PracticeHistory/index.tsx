@@ -1,8 +1,8 @@
-import { useParams, history } from '@umijs/max';
+import { useParams, history, Link } from '@umijs/max';
 import { PageContainer, ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { StudentApi } from '@/services/student';
 import { useRequest } from 'ahooks';
-import { message, Button, Modal, Tag } from 'antd';
+import { message, Button, Modal, Tag, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useMemo, useRef } from 'react';
 import { fmtTime } from '@/utils/time';
@@ -108,12 +108,19 @@ export default function PracticeHistoryPage() {
       {
         title: '操作',
         valueType: 'option',
-        width: 100,
+        width: 150,
         fixed: 'right',
         render: (_, record) => (
-          <Button size="small" type="link" danger onClick={() => handleDeleteClick(record)}>
-            删除
-          </Button>
+          <Space>
+            <Link to={`/student/${id}/practice/daily/${record.id}`}>
+              <Button size="small" type="link">
+                查看详情
+              </Button>
+            </Link>
+            <Button size="small" type="link" danger onClick={() => handleDeleteClick(record)}>
+              删除
+            </Button>
+          </Space>
         ),
       },
     ],

@@ -32,9 +32,10 @@ export function PracticeCard({ id }: PracticeCardProps) {
       {todayPractice?.session ? (
         <div>
           {renderPracticeStats(todayPractice.session)}
-          <div style={infoStyle}>
-            <span style={{ marginRight: '8px' }}>🕐</span>
-            创建时间：{fmtTime(todayPractice.session.create_time)}
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+                  <Link to={`/student/${id}/practice/daily/${todayPractice.session.id}`}>
+                    <Button type="primary">查看练习详情 →</Button>
+                  </Link>
           </div>
         </div>
       ) : todayPractice && ['pending', 'running'].includes(todayPractice.status) ? (
@@ -177,4 +178,3 @@ const infoStyle: CSSProperties = {
   fontSize: '13px',
   color: '#666',
 };
-
