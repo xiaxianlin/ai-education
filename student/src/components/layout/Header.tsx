@@ -177,9 +177,10 @@ export function Header() {
             <Link
               to="/home"
               title="返回首页"
-              className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <Home className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">首页</span>
             </Link>
           )}
 

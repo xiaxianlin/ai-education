@@ -384,6 +384,16 @@ class DailyPracticeService:
             "audio_url": audio_url if audio_url else None,
         }
         session.answers = json.dumps(answers)
+        
+        # 重新计算统计信息（以便后台管理系统能实时看到进度）
+        correct_count = sum(1 for ans in answers.values() if ans.get("is_correct"))
+        total_time = sum(ans.get("time_spent", 0) for ans in answers.values())
+        score = (correct_count / session.total_questions * 100) if session.total_questions > 0 else 0
+        
+        # 更新统计字段
+        session.correct_questions = correct_count
+        session.total_time = total_time
+        session.score = score
         session.update_time = now()
 
         await db.commit()

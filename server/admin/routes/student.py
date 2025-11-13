@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
 from admin.schema import (
     CreateStudentSchema,
     SaveStudentSubjectSchema,
@@ -12,7 +13,7 @@ from admin.schema import (
 from core.schema import SearchSchema
 from admin.services import student, profile, stats, study_record, wrong_question
 from student.services.daily_practice import DailyPracticeService
-from core.database import Database
+from core.database import Database, DailyPracticeSession
 
 
 student_router = APIRouter(prefix="/student")
@@ -144,4 +145,30 @@ async def get_daily_practice_detail(
     if not session_data:
         raise ValueError("练习会话不存在")
     return session_data
+
+
+@student_router.delete("/{id}/daily_practices/{session_id}")
+async def delete_daily_practice(
+    id: str, session_id: int, db: AsyncSession = Database
+):
+    """删除日常练习会话"""
+    # 验证练习会话是否存在且属于该学生
+    result = await db.execute(
+        select(DailyPracticeSession).where(
+            and_(
+                DailyPracticeSession.id == session_id,
+                DailyPracticeSession.student_id == id,
+            )
+        )
+    )
+    session = result.scalar_one_or_none()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="练习会话不存在")
+    
+    # 删除会话
+    await db.delete(session)
+    await db.commit()
+    
+    return {"message": "删除成功"}
 

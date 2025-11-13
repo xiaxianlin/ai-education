@@ -9,6 +9,7 @@
   { path: '/question/detail/:id', component: './Question/Detail' },
   { path: '/student', name: '学生管理', icon: 'Github', component: './Student/List' },
   { path: '/student/detail/:id', component: './Student/Detail' },
+  { path: '/student/:id/practice-history', component: './Student/PracticeHistory' },
   { path: '/task', name: '任务管理', icon: 'ClockCircle', component: './Task/List' },
   { path: '/task/detail/:id', component: './Task/Detail' },
   { path: '/password', component: './ModifyPassword' },

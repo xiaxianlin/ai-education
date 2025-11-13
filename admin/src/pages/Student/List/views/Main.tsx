@@ -7,7 +7,7 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { useStudentListModel } from '../models/page';
-import { Button, Space } from 'antd';
+import { Button } from 'antd';
 import { StudentApi } from '@/services/student';
 import { useMemo } from 'react';
 import { StatusTag } from '@/components/ui';
@@ -15,7 +15,7 @@ import { fmtTime } from '@/utils/time';
 import { Link } from '@umijs/max';
 
 export default function MainView() {
-  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit, handleDelete } =
+  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
     useStudentListModel();
 
   const columns = useMemo<ProColumns<Student>[]>(
@@ -65,31 +65,17 @@ export default function MainView() {
         title: '操作',
         valueType: 'option',
         fixed: 'right',
-        width: 180,
+        width: 80,
         render: (_, record) => (
-          <Space>
-            <Link key="detail" to={`/student/detail/${record.id}`}>
-              <Button size="small" type="link">
-                详情
-              </Button>
-            </Link>
-            <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
-              编辑
+          <Link key="detail" to={`/student/detail/${record.id}`}>
+            <Button size="small" type="link">
+              详情
             </Button>
-            <Button
-              size="small"
-              key="delete"
-              type="link"
-              danger
-              onClick={() => handleDelete(record)}
-            >
-              删除
-            </Button>
-          </Space>
+          </Link>
         ),
       },
     ],
-    [showForm, handleDelete],
+    [],
   );
 
   return (
@@ -131,7 +117,7 @@ export default function MainView() {
         open={visible}
         title={edited ? '更新学生' : '新增学生'}
         onFinish={handleSubmit}
-        modalProps={{ destroyOnClose: true, onCancel }}
+        modalProps={{ destroyOnHidden: true, onCancel }}
         layout="horizontal"
         size="large"
         labelAlign="left"

@@ -84,7 +84,7 @@ export const UnitView: React.FC = () => {
         open={visible}
         title={edited ? '更新单元' : '新增单元'}
         onFinish={handleSubmit}
-        modalProps={{ destroyOnClose: true, onCancel }}
+        modalProps={{ destroyOnHidden: true, onCancel }}
         size="large"
       >
         <div className="pt-3" />

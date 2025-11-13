@@ -189,7 +189,7 @@ export default function ManagerPage() {
           return true;
         }}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnHidden: true,
           onCancel: () => {
             setFormVisible(false);
           },

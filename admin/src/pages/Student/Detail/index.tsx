@@ -1,4 +1,4 @@
-import { useParams, history } from '@umijs/max';
+import { useParams, history, Link } from '@umijs/max';
 import {
   PageContainer,
   ProDescriptions,
@@ -24,7 +24,6 @@ import {
   Row,
   Col,
   Descriptions,
-  Drawer,
   Empty,
   Progress,
   Spin,
@@ -56,9 +55,10 @@ export default function StudentDetailPage() {
   } | null>(null);
   const [loadingPractice, setLoadingPractice] = useState(false);
   const [generatingPractice, setGeneratingPractice] = useState(false);
-  const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
-  const [practiceHistory, setPracticeHistory] = useState<DailyPracticeSession[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // 编辑表单相关状态
+  const [editFormVisible, setEditFormVisible] = useState(false);
+  const [editForm] = ProForm.useForm<StudentUpdateForm>();
 
   const { runAsync: loadStudent } = useRequest(
     async () => {
@@ -138,6 +138,63 @@ export default function StudentDetailPage() {
       title: '重置密码',
       content: '确定要重置该学生的密码吗？重置后系统将生成新密码。',
       onOk: () => handleResetPassword(),
+    });
+  };
+
+  // 编辑学生
+  const { runAsync: handleEditSubmit, loading: editing } = useRequest(
+    async (values: StudentUpdateForm) => {
+      await StudentApi.update(id!, values);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('更新成功');
+        setEditFormVisible(false);
+        editForm.resetFields();
+        refreshStudent();
+      },
+      onError: () => {
+        message.error('更新失败');
+      },
+    },
+  );
+
+  const handleEdit = () => {
+    if (student) {
+      editForm.setFieldsValue({
+        name: student.name,
+        phone: student.phone,
+      });
+      setEditFormVisible(true);
+    }
+  };
+
+  // 删除学生
+  const { runAsync: handleDelete, loading: deleting } = useRequest(
+    async () => {
+      await StudentApi.delete(id!);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('删除成功');
+        history.push('/student');
+      },
+      onError: () => {
+        message.error('删除失败');
+      },
+    },
+  );
+
+  const handleDeleteClick = () => {
+    if (!student) return;
+    Modal.confirm({
+      centered: true,
+      title: '删除确认',
+      content: `确定要删除学生「${student.name}」吗？此操作不可恢复。`,
+      okType: 'danger',
+      onOk: () => handleDelete(),
     });
   };
 
@@ -283,7 +340,7 @@ export default function StudentDetailPage() {
   ], [profile]);
 
   // 获取学习统计
-  const { data: stats, loading: loadingStats } = useRequest(
+  const { data: stats, loading: loadingStats, refresh: refreshStats } = useRequest(
     () => StudentApi.getStats(id!),
     {
       ready: !!id && activeTab === 'stats',
@@ -317,6 +374,11 @@ export default function StudentDetailPage() {
       ready: !!id,
       onSuccess: (data) => {
         setTodayPractice(data);
+        // 如果有完成的练习数据，刷新统计数据
+        if (data.session && data.session.status === 'completed') {
+          refreshStats();
+          refreshRecords();
+        }
       },
     }
   );
@@ -330,6 +392,11 @@ export default function StudentDetailPage() {
       setTodayPractice(data);
       if (data.session) {
         message.success('今日练习已生成');
+        // 如果有完成的练习数据，刷新统计数据
+        if (data.session.status === 'completed') {
+          refreshStats();
+          refreshRecords();
+        }
       } else {
         message.success('今日练习生成任务已创建');
       }
@@ -341,20 +408,6 @@ export default function StudentDetailPage() {
     }
   };
 
-  // 打开历史练习抽屉
-  const handleOpenHistory = async () => {
-    setHistoryDrawerVisible(true);
-    if (!id) return;
-    try {
-      setLoadingHistory(true);
-      const data = await StudentApi.getDailyPractices(id, 30);
-      setPracticeHistory(data.data || []);
-    } catch (error) {
-      message.error('加载历史记录失败');
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
 
   // 轮询任务进度：当状态为 pending 或 running 时，每3秒查询一次
   useEffect(() => {
@@ -378,6 +431,9 @@ export default function StudentDetailPage() {
           clearInterval(pollInterval);
           if (data.session) {
             message.success('今日练习生成完成！');
+            // 刷新统计数据和学习记录
+            refreshStats();
+            refreshRecords();
           } else if (data.status === 'failed') {
             message.error('今日练习生成失败，请重试');
           }
@@ -388,7 +444,7 @@ export default function StudentDetailPage() {
     }, 3000); // 每3秒查询一次
 
     return () => clearInterval(pollInterval);
-  }, [id, todayPractice?.status]);
+  }, [id, todayPractice?.status, refreshStats, refreshRecords]);
 
   // 保存学习配置
   const { runAsync: handleSaveProfile, loading: savingProfile } = useRequest(
@@ -638,6 +694,12 @@ export default function StudentDetailPage() {
       header={{
         breadcrumb: {},
         extra: [
+          <Button key="edit" type="primary" onClick={handleEdit}>
+            编辑
+          </Button>,
+          <Button key="delete" danger loading={deleting} onClick={handleDeleteClick}>
+            删除
+          </Button>,
           <Button key="reset" loading={resetting} onClick={handleResetPasswordClick}>
             重置密码
           </Button>,
@@ -657,7 +719,7 @@ export default function StudentDetailPage() {
       }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Card title="基本信息">
+        <Card title="基本信息" style={{ marginTop: 24 }}>
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="学生ID">{student.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="姓名">{student.name}</ProDescriptions.Item>
@@ -707,22 +769,27 @@ export default function StudentDetailPage() {
                     >
                       {/* 移除按钮 - 右上角 */}
                       <Tooltip title="移除教材">
-                        <DeleteOutlined
-                          onClick={() => handleRemoveTextbook(textbook.id)}
+                        <span
                           style={{
                             position: 'absolute',
                             top: '8px',
                             right: '8px',
-                            fontSize: '16px',
-                            color: '#ff4d4f',
-                            cursor: 'pointer',
                             zIndex: 1,
-                            opacity: 0.6,
-                            transition: 'opacity 0.3s'
+                            cursor: 'pointer',
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
-                        />
+                        >
+                          <DeleteOutlined
+                            onClick={() => handleDeleteTextbook(textbook.id)}
+                            style={{
+                              fontSize: '16px',
+                              color: '#ff4d4f',
+                              opacity: 0.6,
+                              transition: 'opacity 0.3s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
+                          />
+                        </span>
                       </Tooltip>
 
                       {/* 第一行：版本名称 + 当前标签 */}
@@ -809,9 +876,11 @@ export default function StudentDetailPage() {
           }
           loading={loadingTodayPractice}
           extra={
-            <Button type="link" onClick={handleOpenHistory} style={{ padding: 0 }}>
-              查看历史 →
-            </Button>
+            <Link to={`/student/${id}/practice-history`}>
+              <Button type="link" style={{ padding: 0 }}>
+                查看历史 →
+              </Button>
+            </Link>
           }
           style={{
             borderRadius: '8px',
@@ -821,54 +890,90 @@ export default function StudentDetailPage() {
           {todayPractice?.session ? (
             // 已生成今日练习
             <div>
-              <StatisticCard.Group direction="row">
-                <StatisticCard
-                  statistic={{
-                    title: '总题数',
-                    value: todayPractice.session.total_questions,
-                    suffix: '题',
-                    icon: (
-                      <div style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '8px',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        color: '#fff'
-                      }}>
-                        📋
-                      </div>
-                    ),
-                  }}
-                  style={{ borderRadius: '8px' }}
-                />
-                <StatisticCard
-                  statistic={{
-                    title: '已完成',
-                    value: todayPractice.session.correct_questions,
-                    suffix: '题',
-                    valueStyle: { color: '#52c41a' },
-                    icon: (
-                      <div style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '8px',
-                        background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        color: '#fff'
-                      }}>
-                        ✅
-                      </div>
-                    ),
-                  }}
-                  style={{ borderRadius: '8px' }}
-                />
+              {(() => {
+                // 计算已完成题数（从 answers 字段解析）
+                let answeredCount = 0;
+                try {
+                  if (todayPractice.session.answers) {
+                    const answers = JSON.parse(todayPractice.session.answers);
+                    answeredCount = Object.keys(answers).length;
+                  }
+                } catch (e) {
+                  console.error('解析 answers 失败:', e);
+                }
+                return (
+                  <StatisticCard.Group direction="row">
+                    <StatisticCard
+                      statistic={{
+                        title: '总题数',
+                        value: todayPractice.session.total_questions,
+                        suffix: '题',
+                        icon: (
+                          <div style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            color: '#fff'
+                          }}>
+                            📋
+                          </div>
+                        ),
+                      }}
+                      style={{ borderRadius: '8px' }}
+                    />
+                    <StatisticCard
+                      statistic={{
+                        title: '已完成',
+                        value: answeredCount,
+                        suffix: '题',
+                        valueStyle: { color: '#52c41a' },
+                        icon: (
+                          <div style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            color: '#fff'
+                          }}>
+                            ✅
+                          </div>
+                        ),
+                      }}
+                      style={{ borderRadius: '8px' }}
+                    />
+                    <StatisticCard
+                      statistic={{
+                        title: '正确',
+                        value: todayPractice.session.correct_questions,
+                        suffix: '题',
+                        valueStyle: { color: '#1890ff' },
+                        icon: (
+                          <div style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            color: '#fff'
+                          }}>
+                            ✓
+                          </div>
+                        ),
+                      }}
+                      style={{ borderRadius: '8px' }}
+                    />
                 <StatisticCard
                   statistic={{
                     title: '得分',
@@ -921,18 +1026,9 @@ export default function StudentDetailPage() {
                   }}
                   style={{ borderRadius: '8px' }}
                 />
-              </StatisticCard.Group>
-              <div style={{
-                marginTop: 16,
-                padding: '12px 16px',
-                background: '#fafafa',
-                borderRadius: '6px',
-                fontSize: '13px',
-                color: '#666'
-              }}>
-                <span style={{ marginRight: '8px' }}>🕐</span>
-                创建时间：{fmtTime(todayPractice.session.create_time)}
-              </div>
+                  </StatisticCard.Group>
+                );
+              })()}
             </div>
           ) : todayPractice && ['pending', 'running'].includes(todayPractice.status) ? (
             // 正在生成（任务状态为 pending 或 running）
@@ -1002,71 +1098,6 @@ export default function StudentDetailPage() {
         </Card>
       </Space>
 
-      {/* 历史练习抽屉 */}
-      <Drawer
-        title="历史日常练习"
-        placement="right"
-        width={600}
-        open={historyDrawerVisible}
-        onClose={() => setHistoryDrawerVisible(false)}
-      >
-        <Spin spinning={loadingHistory}>
-          {practiceHistory.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {practiceHistory.map((practice) => {
-                const dateStr = String(practice.date);
-                const formattedDate = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-                const accuracy = practice.total_questions > 0
-                  ? ((practice.correct_questions / practice.total_questions) * 100).toFixed(1)
-                  : '0';
-
-                return (
-                  <Card
-                    key={practice.id}
-                    size="small"
-                    hoverable
-                    style={{
-                      borderLeft: practice.status === 'completed' ? '3px solid #52c41a' : '3px solid #faad14'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 'bold', marginBottom: 8 }}>
-                          {formattedDate}
-                          <Tag
-                            color={practice.status === 'completed' ? 'success' : 'warning'}
-                            style={{ marginLeft: 8 }}
-                          >
-                            {practice.status === 'completed' ? '已完成' : '进行中'}
-                          </Tag>
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>
-                          <span>题数：{practice.total_questions} </span>
-                          <span style={{ marginLeft: 12 }}>
-                            正确：{practice.correct_questions}
-                          </span>
-                          <span style={{ marginLeft: 12 }}>
-                            准确率：{accuracy}%
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
-                          {practice.score.toFixed(1)}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#999' }}>得分</div>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          ) : (
-            <Empty description="暂无历史记录" />
-          )}
-        </Spin>
-      </Drawer>
-
       <ModalForm<{ ids: number[] }>
         width={600}
         form={form}
@@ -1074,7 +1105,7 @@ export default function StudentDetailPage() {
         title="批量添加教材"
         onFinish={handleAddTextbook}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnHidden: true,
           onCancel: () => {
             setVisible(false);
             form.resetFields();
@@ -1108,6 +1139,45 @@ export default function StudentDetailPage() {
             };
           })}
           rules={[{ required: true, message: '请至少选择一个教材' }]}
+        />
+      </ModalForm>
+
+      <ModalForm<StudentUpdateForm>
+        width={500}
+        form={editForm}
+        open={editFormVisible}
+        title="编辑学生"
+        onFinish={handleEditSubmit}
+        loading={editing}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            setEditFormVisible(false);
+            editForm.resetFields();
+          },
+        }}
+        layout="horizontal"
+        size="large"
+        labelAlign="left"
+        labelCol={{ span: 4 }}
+      >
+        <div className="pt-3" />
+        <ProFormText
+          name="name"
+          label="姓名"
+          placeholder="请输入姓名"
+          rules={[{ required: true, message: '请输入姓名' }]}
+          fieldProps={{ maxLength: 50 }}
+        />
+        <ProFormText
+          name="phone"
+          label="手机号"
+          placeholder="请输入手机号"
+          rules={[
+            { required: true, message: '请输入手机号' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' },
+          ]}
+          fieldProps={{ maxLength: 11 }}
         />
       </ModalForm>
     </PageContainer>

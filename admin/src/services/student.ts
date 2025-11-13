@@ -148,5 +148,12 @@ export const StudentApi = {
     const res = await request<ApiData<DailyPracticeSessionDetail>>(`/student/${id}/daily_practices/${sessionId}`);
     return res.data;
   },
+
+  // 删除日常练习
+  deleteDailyPractice: async (id: string, sessionId: number) => {
+    await request<ApiData<void>>(`/student/${id}/daily_practices/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 

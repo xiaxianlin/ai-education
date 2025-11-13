@@ -23,11 +23,39 @@ class AliyunAIService:
             )
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
 
-        result_text = response.output.choices[0].message.content.text
-        logger.info(
-            f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {result_text[:100]}..."
-        )
-        return result_text
+        # 处理不同的响应格式
+        try:
+            content = response.output.choices[0].message.content
+            
+            # 如果 content 是列表，取第一个元素
+            if isinstance(content, list):
+                if len(content) > 0:
+                    # 检查第一个元素是否有 text 属性
+                    if hasattr(content[0], 'text'):
+                        result_text = content[0].text
+                    elif isinstance(content[0], dict) and 'text' in content[0]:
+                        result_text = content[0]['text']
+                    else:
+                        # 如果第一个元素是字符串，直接使用
+                        result_text = str(content[0])
+                else:
+                    raise ValueError("ASR 响应内容为空")
+            # 如果 content 是对象，直接获取 text 属性
+            elif hasattr(content, 'text'):
+                result_text = content.text
+            elif isinstance(content, dict) and 'text' in content:
+                result_text = content['text']
+            else:
+                # 如果 content 本身就是字符串
+                result_text = str(content)
+            
+            logger.info(
+                f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {result_text[:100]}..."
+            )
+            return result_text
+        except Exception as e:
+            logger.error(f"解析 ASR 响应失败: {e}, 响应内容: {response.output}")
+            raise ValueError(f"语音识别响应格式错误: {str(e)}")
 
     @staticmethod
     def tts(text: str, voice: str = "Elias", language: str = "English"):

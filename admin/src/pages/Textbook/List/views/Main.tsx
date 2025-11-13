@@ -138,7 +138,7 @@ export default function MainView() {
         open={visible}
         title={edited ? '更新教材' : '新增教材'}
         onFinish={handleSubmit}
-        modalProps={{ destroyOnClose: true, onCancel }}
+        modalProps={{ destroyOnHidden: true, onCancel }}
         layout="horizontal"
         size="large"
         labelAlign="left"
