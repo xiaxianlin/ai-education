@@ -105,6 +105,25 @@ async def get_daily_practice_history(
     return history
 
 
+@practice_router.get("/daily/stats")
+async def get_daily_practice_stats(
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取今日练习统计数据
+    
+    返回：
+    - today_progress: 今日进度（百分比）
+    - daily_questions: 今日题目总数
+    - completed_questions: 已完成题目数
+    - consecutive_days: 连续天数
+    - total_practice: 累计练习次数
+    """
+    stats = await DailyPracticeService.get_today_stats(db, student.id)
+    return stats
+
+
 @practice_router.get("/daily/{session_id}")
 async def get_daily_practice_session(
     session_id: int,

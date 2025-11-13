@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getResourceUrl } from '@/lib/utils/resource';
 import AudioPlayer from '@/components/ui/AudioPlayer';
 import type { Question } from '@/services/practice';
 
@@ -49,23 +50,23 @@ export function AssessmentQuestionCard({
 
           {/* 题目资源 */}
           {question.resource_type === 'image' && question.resource && (
-            <div className="my-4 flex justify-center">
+            <div className="my-4 flex justify-start">
               <img
-                src={question.resource}
+                src={getResourceUrl(question.resource) || ''}
                 alt="Question Resource"
-                className="max-w-full h-auto rounded-lg shadow-md"
+                className="w-[120px] h-[120px] object-cover rounded-lg shadow-md"
               />
             </div>
           )}
           {question.resource_type === 'audio' && question.resource && (
             <div className="my-4">
-              <AudioPlayer src={question.resource} />
+              <AudioPlayer src={getResourceUrl(question.resource) || ''} />
             </div>
           )}
 
           {/* 选项 */}
           {options.length > 0 && (
-            <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
               {options.map((option, index: number) => {
                 const optionText =
                   typeof option === 'object' && option !== null && 'text' in option
@@ -74,7 +75,6 @@ export function AssessmentQuestionCard({
                 const isSelected = userAnswer === optionText;
                 const isCorrect = showResult && optionText === question.answer;
                 const isWrong = showResult && isSelected && userAnswer !== question.answer;
-                const optionLabel = String.fromCharCode(65 + index);
 
                 return (
                   <button
@@ -82,28 +82,20 @@ export function AssessmentQuestionCard({
                     onClick={() => !showResult && !submitting && onAnswer(optionText)}
                     disabled={showResult || submitting}
                     className={cn(
-                      'w-full p-6 text-left rounded-2xl border-3 transition-all duration-300 flex items-start gap-4 shadow-md hover:shadow-lg',
-                      isSelected && !showResult && 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 scale-105',
-                      isCorrect && 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-105',
-                      isWrong && 'border-red-500 bg-gradient-to-r from-red-50 to-rose-50 scale-105',
-                      !showResult && !isSelected && 'border-gray-300 hover:border-blue-300 cursor-pointer hover:bg-blue-50/30',
-                      (showResult || submitting) && 'cursor-not-allowed opacity-80'
+                      'flex-1 min-w-[160px] flex items-center justify-center gap-4 p-6 rounded-2xl border-3 transition-all duration-300 shadow-lg hover:shadow-xl',
+                      isSelected && !showResult && 'border-blue-400 bg-gradient-to-br from-blue-100 via-cyan-50 to-blue-50 scale-105 shadow-blue-200/50',
+                      isCorrect && 'border-green-400 bg-gradient-to-br from-green-100 via-emerald-50 to-green-50 scale-105 shadow-green-200/50',
+                      isWrong && 'border-red-400 bg-gradient-to-br from-red-100 via-rose-50 to-red-50 scale-105 shadow-red-200/50',
+                      !showResult && !isSelected && 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50/30 hover:shadow-blue-100 cursor-pointer',
+                      (showResult || submitting) && 'cursor-not-allowed',
+                      showResult && !isSelected && 'opacity-60'
                     )}
                   >
-                    <div
-                      className={cn(
-                        'flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-md',
-                        isSelected && !showResult && 'bg-blue-500 text-white',
-                        isCorrect && 'bg-green-500 text-white',
-                        isWrong && 'bg-red-500 text-white',
-                        !isSelected && !isCorrect && !isWrong && 'bg-gray-200 text-gray-600'
-                      )}
-                    >
-                      {optionLabel}
-                    </div>
-                    <span className="flex-1 pt-2 text-lg text-gray-800 font-medium">{optionText}</span>
-                    {isCorrect && <CheckCircle className="h-8 w-8 text-green-600 mt-2" />}
-                    {isWrong && <XCircle className="h-8 w-8 text-red-600 mt-2" />}
+                    <span className="text-xl text-gray-800 font-bold text-center leading-relaxed flex-1">
+                      {optionText}
+                    </span>
+                    {isCorrect && <CheckCircle className="h-7 w-7 text-green-600 flex-shrink-0" />}
+                    {isWrong && <XCircle className="h-7 w-7 text-red-600 flex-shrink-0" />}
                   </button>
                 );
               })}

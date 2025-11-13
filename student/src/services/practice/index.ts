@@ -34,6 +34,8 @@ export const practiceApi = {
     dailyPracticeApi.checkToday(),
   getDailyPracticeProgress: (taskId: number) =>
     dailyPracticeApi.getProgress(taskId),
+  getDailyPracticeStats: () =>
+    dailyPracticeApi.getStats(),
 
   // ===== 单元练习 API =====
   createUnitPractice: (params: CreatePracticeParams) =>

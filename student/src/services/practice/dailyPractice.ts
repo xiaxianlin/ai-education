@@ -76,5 +76,18 @@ export const dailyPracticeApi = {
   }> => {
     return api.get(`/practice/daily/progress/${taskId}`);
   },
+
+  /**
+   * 获取今日练习统计数据
+   */
+  getStats: async (): Promise<{
+    today_progress: number;
+    daily_questions: number;
+    completed_questions: number;
+    consecutive_days: number;
+    total_practice: number;
+  }> => {
+    return api.get('/practice/daily/stats');
+  },
 };
 

@@ -16,12 +16,19 @@ export function useDailyPracticePage() {
 
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<DailyPracticeSession | null>(null);
-  const [taskId, setTaskId] = useState<number | null>(null);
   const [status, setStatus] = useState<PracticeStatus>('checking');
   const [progress, setProgress] = useState<number>(0);
+  const [stats, setStats] = useState<{
+    todayProgress: number;
+    dailyQuestions: number;
+    completedQuestions: number;
+    consecutiveDays: number;
+    totalPractice: number;
+  } | null>(null);
 
   useEffect(() => {
     checkTodayPractice();
+    loadStats();
   }, []);
 
   const checkTodayPractice = useCallback(async () => {
@@ -34,7 +41,6 @@ export function useDailyPracticePage() {
         setStatus('ready');
         setProgress(100);
       } else if (result.task_id) {
-        setTaskId(result.task_id);
         setStatus(result.status as PracticeStatus);
         setProgress(result.progress);
         pollProgress(result.task_id);
@@ -80,6 +86,29 @@ export function useDailyPracticePage() {
     }, 30000);
   }, []);
 
+  const loadStats = useCallback(async () => {
+    try {
+      const statsData = await practiceApi.getDailyPracticeStats();
+      setStats({
+        todayProgress: statsData.today_progress,
+        dailyQuestions: statsData.daily_questions,
+        completedQuestions: statsData.completed_questions,
+        consecutiveDays: statsData.consecutive_days,
+        totalPractice: statsData.total_practice,
+      });
+    } catch (error) {
+      // 静默处理错误，不影响页面显示
+      console.error('Failed to load stats:', error);
+      setStats({
+        todayProgress: 0,
+        dailyQuestions: 0,
+        completedQuestions: 0,
+        consecutiveDays: 0,
+        totalPractice: 0,
+      });
+    }
+  }, []);
+
   const handleStartPractice = useCallback(async () => {
     if (!session) {
       toast.error('练习尚未生成完成');
@@ -99,6 +128,7 @@ export function useDailyPracticePage() {
     session,
     status,
     progress,
+    stats,
     handleStartPractice,
   };
 }

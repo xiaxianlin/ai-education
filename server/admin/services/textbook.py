@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from fastapi import UploadFile
-from sqlalchemy import asc, delete, desc, func, select, update
+from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from shared.provider.aliyun import AliyunRag, AliyunApp
@@ -14,23 +14,21 @@ from core.settings import envs
 async def _clean_textbook(db: AsyncSession, id: int):
     """清理教材相关数据（优化版，包含QuestionKnowledge关联）"""
     from core.database import QuestionKnowledge
-    
+
     # 1. 删除问题-知识点关联
     stmt = delete(QuestionKnowledge).where(
-        QuestionKnowledge.knowledge_id.in_(
-            select(Knowledge.id).where(Knowledge.textbook_id == id)
-        )
+        QuestionKnowledge.knowledge_id.in_(select(Knowledge.id).where(Knowledge.textbook_id == id))
     )
     await db.execute(stmt)
-    
+
     # 2. 删除知识点
     stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
     await db.execute(stmt)
-    
+
     # 3. 删除单元
     stmt = delete(Unit).where(Unit.textbook_id == id)
     await db.execute(stmt)
-    
+
     # 4. 更新所有问题关联（清理旧的字符串字段）
     stmt = (
         update(Question)
@@ -38,7 +36,7 @@ async def _clean_textbook(db: AsyncSession, id: int):
         .values({"unit_id": None, "knowledge": None})
     )
     await db.execute(stmt)
-    
+
     await db.commit()
 
 
@@ -178,11 +176,7 @@ async def parse_textbook(db: AsyncSession, id: int):
     # 解析单元和知识点
     for unit_index, item in enumerate(units):
         # 创建单元
-        unit = Unit(
-            textbook_id=id,
-            name=item.get("unit_name"),
-            content=item.get("unit_content")
-        )
+        unit = Unit(textbook_id=id, name=item.get("unit_name"), content=item.get("unit_content"))
         db.add(unit)
         await db.commit()
         await db.refresh(unit)
@@ -202,10 +196,10 @@ async def parse_textbook(db: AsyncSession, id: int):
                 content=topic.get("topic_content"),
                 order=knowledge_index,  # 按解析顺序设置排序
                 difficulty=None,  # 可后续手动设置或通过AI分析
-                importance=5  # 默认重要性
+                importance=5,  # 默认重要性
             )
             knowledge_objects.append(knowledge)
-        
+
         db.add_all(knowledge_objects)
         await db.commit()
 

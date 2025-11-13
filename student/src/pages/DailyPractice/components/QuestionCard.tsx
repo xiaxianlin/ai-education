@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { getResourceUrl } from '@/lib/utils/resource';
 import type { Question } from '@/services/practice';
 
 interface QuestionCardProps {
@@ -33,11 +34,11 @@ export const QuestionCard = memo(function QuestionCard({ question, index }: Ques
         </div>
 
         {question.resource && question.resource_type === 'image' && (
-          <div className="flex justify-center">
+          <div className="flex justify-start">
             <img
-              src={question.resource}
+              src={getResourceUrl(question.resource) || ''}
               alt="题目图片"
-              className="max-w-full max-h-96 rounded-lg shadow-md"
+              className="w-[120px] h-[120px] object-cover rounded-lg shadow-md"
             />
           </div>
         )}

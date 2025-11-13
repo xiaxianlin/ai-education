@@ -27,7 +27,7 @@ export const AnswerOptions = memo(function AnswerOptions({
 
   if (question.type === '选择题') {
     return (
-      <div className="space-y-4">
+      <div className="flex flex-wrap gap-4">
         {options.map((option, index) => {
           const optionLabel = String.fromCharCode(65 + index);
           const isSelected = answer === optionLabel;
@@ -42,43 +42,30 @@ export const AnswerOptions = memo(function AnswerOptions({
               onClick={() => !hasAnswered && onAnswerChange(optionLabel)}
               disabled={hasAnswered}
               className={cn(
-                'w-full text-left p-6 rounded-2xl border-3 transition-all duration-300 shadow-md hover:shadow-lg',
+                'flex-1 min-w-[160px] flex items-center justify-center gap-4 p-6 rounded-2xl border-3 transition-all duration-300 shadow-lg hover:shadow-xl',
                 isSelected
                   ? hasAnswered
                     ? isCorrect
-                      ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-105'
-                      : 'border-red-500 bg-gradient-to-r from-red-50 to-rose-50 scale-105'
-                    : 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 scale-105'
-                  : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50/30',
-                hasAnswered && 'cursor-not-allowed opacity-80'
+                      ? 'border-green-400 bg-gradient-to-br from-green-100 via-emerald-50 to-green-50 scale-105 shadow-green-200/50'
+                      : 'border-red-400 bg-gradient-to-br from-red-100 via-rose-50 to-red-50 scale-105 shadow-red-200/50'
+                    : 'border-blue-400 bg-gradient-to-br from-blue-100 via-cyan-50 to-blue-50 scale-105 shadow-blue-200/50'
+                  : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50/30 hover:shadow-blue-100',
+                hasAnswered && !isSelected && 'opacity-60',
+                hasAnswered && 'cursor-not-allowed'
               )}
             >
-              <div className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    'flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-md',
-                    isSelected
-                      ? hasAnswered
-                        ? isCorrect
-                          ? 'bg-green-500 text-white'
-                          : 'bg-red-500 text-white'
-                        : 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  )}
-                >
-                  {optionLabel}
-                </div>
-                <div className="flex-1 pt-2 text-lg text-gray-800 font-medium">{optionText}</div>
-                {isSelected && hasAnswered && (
-                  <div className="flex-shrink-0 mt-2">
-                    {isCorrect ? (
-                      <CheckCircle className="h-8 w-8 text-green-600" />
-                    ) : (
-                      <XCircle className="h-8 w-8 text-red-600" />
-                    )}
-                  </div>
-                )}
+              <div className="text-xl text-gray-800 font-bold text-center leading-relaxed flex-1">
+                {optionText}
               </div>
+              {isSelected && hasAnswered && (
+                <div className="flex-shrink-0">
+                  {isCorrect ? (
+                    <CheckCircle className="h-7 w-7 text-green-600" />
+                  ) : (
+                    <XCircle className="h-7 w-7 text-red-600" />
+                  )}
+                </div>
+              )}
             </button>
           );
         })}

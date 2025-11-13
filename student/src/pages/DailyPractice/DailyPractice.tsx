@@ -3,7 +3,6 @@
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
 import { Header } from '@/components/layout/Header';
-import { Card, CardContent } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useDailyPracticePage } from './hooks/useDailyPracticePage';
 import { PracticeStatusCard } from './components/PracticeStatusCard';
@@ -15,6 +14,7 @@ export function DailyPractice() {
     session,
     status,
     progress,
+    stats,
     handleStartPractice,
   } = useDailyPracticePage();
 
@@ -42,11 +42,13 @@ export function DailyPractice() {
         />
 
         {/* 统计信息 */}
-        {status === 'ready' && (
+        {status === 'ready' && stats && (
           <DailyPracticeStats
-            todayProgress={60}
-            dailyQuestions={12}
-            completedQuestions={7}
+            todayProgress={stats.todayProgress}
+            dailyQuestions={stats.dailyQuestions}
+            completedQuestions={stats.completedQuestions}
+            consecutiveDays={stats.consecutiveDays}
+            totalPractice={stats.totalPractice}
           />
         )}
       </div>

@@ -15,6 +15,7 @@ from core.database import (
     StudentProfile,
     StudyRecord,
     Task,
+    StudentStats,
 )
 from admin.schema import DailyPracticeSessionSchema
 from shared.utils.time import now
@@ -759,6 +760,73 @@ class DailyPracticeService:
             "status": task.status,
             "progress": task.progress,
             "error_message": task.error_message,
+        }
+
+    @staticmethod
+    async def get_today_stats(db: AsyncSession, student_id: str) -> Dict[str, Any]:
+        """
+        获取今日练习统计数据
+        
+        返回：
+        - today_progress: 今日进度（百分比）
+        - daily_questions: 今日题目总数
+        - completed_questions: 已完成题目数
+        - consecutive_days: 连续天数
+        - total_practice: 累计练习次数
+        """
+        today = int(datetime.now().strftime("%Y%m%d"))
+        
+        # 获取今日练习会话
+        today_result = await db.execute(
+            select(DailyPracticeSession)
+            .where(
+                and_(
+                    DailyPracticeSession.student_id == student_id,
+                    DailyPracticeSession.date == today,
+                )
+            )
+            .order_by(DailyPracticeSession.create_time.desc())
+        )
+        today_session = today_result.scalar_one_or_none()
+        
+        # 计算今日进度
+        daily_questions = 0
+        completed_questions = 0
+        today_progress = 0
+        
+        if today_session:
+            daily_questions = today_session.total_questions or 0
+            # 从 answers 中计算已完成题目数
+            if today_session.answers:
+                try:
+                    answers = json.loads(today_session.answers)
+                    completed_questions = len(answers)
+                except:
+                    completed_questions = 0
+            
+            # 如果已完成，已完成数等于总题目数
+            if today_session.status == "completed":
+                completed_questions = daily_questions
+            
+            # 计算进度百分比
+            if daily_questions > 0:
+                today_progress = round((completed_questions / daily_questions) * 100)
+        
+        # 获取学生统计信息
+        stats_result = await db.execute(
+            select(StudentStats).where(StudentStats.student_id == student_id)
+        )
+        stats = stats_result.scalar_one_or_none()
+        
+        consecutive_days = stats.current_streak if stats else 0
+        total_practice = stats.total_practice if stats else 0
+        
+        return {
+            "today_progress": today_progress,
+            "daily_questions": daily_questions,
+            "completed_questions": completed_questions,
+            "consecutive_days": consecutive_days,
+            "total_practice": total_practice,
         }
 
 

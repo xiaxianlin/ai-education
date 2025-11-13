@@ -3,18 +3,22 @@
  */
 import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Target, TrendingUp, Zap, Award, BookCheck, Brain } from 'lucide-react';
+import { Target, TrendingUp, Award, BookCheck } from 'lucide-react';
 
 interface DailyPracticeStatsProps {
   todayProgress: number;
   dailyQuestions: number;
   completedQuestions: number;
+  consecutiveDays: number;
+  totalPractice: number;
 }
 
 export const DailyPracticeStats = memo(function DailyPracticeStats({
   todayProgress,
   dailyQuestions,
   completedQuestions,
+  consecutiveDays,
+  totalPractice,
 }: DailyPracticeStatsProps) {
   const stats = [
     {
@@ -34,14 +38,14 @@ export const DailyPracticeStats = memo(function DailyPracticeStats({
     {
       icon: TrendingUp,
       label: '连续天数',
-      value: '7',
+      value: `${consecutiveDays}`,
       color: 'text-purple-600',
       bg: 'bg-purple-50',
     },
     {
       icon: Award,
       label: '累计练习',
-      value: '128',
+      value: `${totalPractice}`,
       color: 'text-orange-600',
       bg: 'bg-orange-50',
     },
