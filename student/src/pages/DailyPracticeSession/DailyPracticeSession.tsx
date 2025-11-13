@@ -1,5 +1,8 @@
+import { useNavigate } from '@tanstack/react-router';
 import { Header } from '@/components/layout/Header';
 import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 import { usePracticeSession } from './hooks/usePracticeSession';
 import { useCompletePractice } from './hooks/useCompletePractice';
 import { ProgressIndicator } from '../DailyPractice/components/ProgressIndicator';
@@ -9,6 +12,7 @@ import { NavigationButtons } from '../DailyPractice/components/NavigationButtons
 import { ResultModal } from '../DailyPractice/components/ResultModal';
 
 export function DailyPracticeSession() {
+  const navigate = useNavigate();
   const {
     loading,
     sessionData,
@@ -17,6 +21,7 @@ export function DailyPracticeSession() {
     totalQuestions,
     answeredCount,
     userAnswers,
+    audioUrls,
     answerResults,
     submitting,
     handleAnswerChange,
@@ -53,7 +58,11 @@ export function DailyPracticeSession() {
 
   const hasAnswered = answerResults[currentQuestion.id] !== undefined;
   const currentAnswer = userAnswers[currentQuestion.id];
+  const currentAudioUrl = audioUrls[currentQuestion.id];
   const isCorrect = answerResults[currentQuestion.id];
+  const hasAnswer = currentQuestion.type === '口语题' 
+    ? !!currentAudioUrl 
+    : !!currentAnswer;
 
   const handleComplete = async () => {
     const unansweredCount = totalQuestions - answeredCount;
@@ -64,6 +73,16 @@ export function DailyPracticeSession() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-20">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* 返回按钮 */}
+        <Button
+          variant="outline"
+          onClick={() => navigate({ to: '/daily-practice' })}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          返回今日练习
+        </Button>
+
         <ProgressIndicator
           currentIndex={currentQuestionIndex}
           totalQuestions={totalQuestions}
@@ -90,7 +109,7 @@ export function DailyPracticeSession() {
             canGoPrevious={currentQuestionIndex > 0}
             canGoNext={currentQuestionIndex < totalQuestions - 1}
             hasAnswered={hasAnswered}
-            hasAnswer={!!currentAnswer}
+            hasAnswer={hasAnswer}
             submitting={submitting}
             isLastQuestion={currentQuestionIndex === totalQuestions - 1}
             onPrevious={goToPreviousQuestion}

@@ -327,8 +327,13 @@ class DailyPracticeService:
         question_id: int,
         answer: str,
         time_spent: int = 0,
+        audio_url: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """提交答案"""
+        """
+        提交答案
+        
+        如果是口语题且有 audio_url，则通过 ASR 解析录音后再对比答案
+        """
         # 获取会话
         result = await db.execute(
             select(DailyPracticeSession).where(
@@ -353,16 +358,30 @@ class DailyPracticeService:
         if not question:
             raise ValueError("题目不存在")
 
+        # 如果是口语题且有录音文件，通过 ASR 解析
+        actual_answer = answer
+        if question.type == "口语题" and audio_url:
+            try:
+                from shared.ai.services.aliyun import AliyunAIService
+                # 通过 ASR 解析录音
+                asr_text = AliyunAIService.asr(audio_url, language="zh")
+                actual_answer = asr_text.strip()
+                logger.info(f"口语题 ASR 解析结果: {actual_answer}")
+            except Exception as e:
+                logger.error(f"ASR 解析失败: {e}")
+                raise ValueError(f"语音识别失败: {str(e)}")
+
         # 批改答案
-        is_correct = DailyPracticeService._check_answer(question, answer)
+        is_correct = DailyPracticeService._check_answer(question, actual_answer)
 
         # 更新会话的答案记录
         answers = json.loads(session.answers)
         answers[str(question_id)] = {
-            "answer": answer,
+            "answer": actual_answer,
             "is_correct": is_correct,
             "time_spent": time_spent,
             "submit_time": now(),
+            "audio_url": audio_url if audio_url else None,
         }
         session.answers = json.dumps(answers)
         session.update_time = now()

@@ -36,6 +36,8 @@ export const practiceApi = {
     dailyPracticeApi.getProgress(taskId),
   getDailyPracticeStats: () =>
     dailyPracticeApi.getStats(),
+  uploadAudio: (audioBlob: Blob) =>
+    dailyPracticeApi.uploadAudio(audioBlob),
 
   // ===== 单元练习 API =====
   createUnitPractice: (params: CreatePracticeParams) =>
@@ -50,6 +52,8 @@ export const practiceApi = {
     unitPracticeApi.getUnitProgress(unitId),
   getPracticeHistory: (limit?: number) =>
     unitPracticeApi.getHistory(limit),
+  getIncompleteUnitSessions: () =>
+    unitPracticeApi.getIncompleteSessions(),
 
   // ===== 能力评测 API =====
   createAssessment: (params: CreateAssessmentParams = {}) =>

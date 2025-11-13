@@ -20,17 +20,35 @@ class UnitPracticeService:
 
     @staticmethod
     async def create_practice_session(
-        db: AsyncSession, student_id: str, unit_id: int, difficulty: str = "adaptive", count: int = 10
+        db: AsyncSession, student_id: str, unit_id: int, difficulty: str = "adaptive", count: int = 30
     ) -> UnitPracticeSessionSchema:
         """
         创建单元练习会话
         
         步骤：
-        1. 验证单元是否存在
-        2. 根据难度和数量选择题目
-        3. 创建练习会话
+        1. 检查是否有未完成的练习会话
+        2. 如果有，直接返回未完成的会话
+        3. 如果没有，验证单元是否存在
+        4. 根据难度和数量选择题目
+        5. 创建练习会话
         """
         logger.info(f"为学生 {student_id} 创建单元 {unit_id} 练习会话，难度：{difficulty}，题目数：{count}")
+        
+        # 检查是否有未完成的练习会话
+        existing_result = await db.execute(
+            select(UnitPracticeSession).where(
+                and_(
+                    UnitPracticeSession.student_id == student_id,
+                    UnitPracticeSession.unit_id == unit_id,
+                    UnitPracticeSession.status == "in_progress",
+                )
+            ).order_by(UnitPracticeSession.create_time.desc())
+        )
+        existing_session = existing_result.scalar_one_or_none()
+        
+        if existing_session:
+            logger.info(f"发现未完成的单元练习会话: {existing_session.id}，直接返回")
+            return UnitPracticeSessionSchema.model_validate(existing_session)
         
         # 验证单元是否存在
         unit_result = await db.execute(select(Unit).where(Unit.id == unit_id))
@@ -217,9 +235,12 @@ class UnitPracticeService:
         question_id: int,
         answer: str,
         time_spent: int = 0,
+        audio_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         提交单道题目的答案
+        
+        如果是口语题且有 audio_url，则通过 ASR 解析录音后再对比答案
         
         返回批改结果
         """
@@ -249,16 +270,30 @@ class UnitPracticeService:
         if not question:
             raise ValueError("题目不存在")
         
+        # 如果是口语题且有录音文件，通过 ASR 解析
+        actual_answer = answer
+        if question.type == "口语题" and audio_url:
+            try:
+                from shared.ai.services.aliyun import AliyunAIService
+                # 通过 ASR 解析录音
+                asr_text = AliyunAIService.asr(audio_url, language="zh")
+                actual_answer = asr_text.strip()
+                logger.info(f"口语题 ASR 解析结果: {actual_answer}")
+            except Exception as e:
+                logger.error(f"ASR 解析失败: {e}")
+                raise ValueError(f"语音识别失败: {str(e)}")
+        
         # 批改答案（简单的字符串比较，实际可能需要更复杂的逻辑）
-        is_correct = UnitPracticeService._check_answer(question, answer)
+        is_correct = UnitPracticeService._check_answer(question, actual_answer)
         
         # 更新会话的答案记录
         answers = json.loads(session.answers)
         answers[str(question_id)] = {
-            "answer": answer,
+            "answer": actual_answer,
             "is_correct": is_correct,
             "time_spent": time_spent,
             "submit_time": now(),
+            "audio_url": audio_url if audio_url else None,
         }
         session.answers = json.dumps(answers)
         session.update_time = now()

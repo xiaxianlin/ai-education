@@ -24,6 +24,7 @@ export interface SubmitAnswerParams {
   question_id: number;
   answer: string;
   time_spent?: number;
+  audio_url?: string; // 录音文件 URL（口语题使用）
 }
 
 export interface AnswerResult {

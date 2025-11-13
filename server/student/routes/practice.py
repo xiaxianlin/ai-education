@@ -1,13 +1,19 @@
 """练习路由（今日练习 + 单元练习 + 能力评测）"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
 from typing import Optional
+from datetime import datetime
 
 from core.database import Database
 from student.routes.profile import get_current_student
 from student.services.unit_practice import UnitPracticeService
+from core.database import UnitPracticeSession
 from student.services.daily_practice import DailyPracticeService
 from student.services.assessment import AssessmentService
+from shared.provider.aliyun import AliyunOSS
+from shared.ai.services.aliyun import AliyunAIService
+from loguru import logger
 from admin.schema import (
     CreateUnitPracticeSchema,
     SubmitUnitPracticeAnswerSchema,
@@ -124,6 +130,41 @@ async def get_daily_practice_stats(
     return stats
 
 
+@practice_router.post("/upload-audio")
+async def upload_audio(
+    file: UploadFile = File(...),
+    student=Depends(get_current_student),
+):
+    """
+    上传录音文件到 OSS
+    
+    返回：
+    - audio_url: 录音文件的 OSS URL
+    """
+    try:
+        # 读取文件内容
+        file_data = await file.read()
+        
+        # 生成文件路径
+        timestamp = int(datetime.now().timestamp())
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'webm'
+        oss_path = f"student_audio/{student.id}/{timestamp}.{file_extension}"
+        
+        # 上传到 OSS
+        oss = AliyunOSS()
+        oss.upload(oss_path, file_data)
+        
+        # 生成访问 URL
+        audio_url = f"https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com/{oss_path}"
+        
+        logger.info(f"学生 {student.id} 上传录音文件: {oss_path}")
+        
+        return {"audio_url": audio_url}
+    except Exception as e:
+        logger.error(f"上传录音文件失败: {e}")
+        raise ValueError(f"上传录音文件失败: {str(e)}")
+
+
 @practice_router.get("/daily/{session_id}")
 async def get_daily_practice_session(
     session_id: int,
@@ -172,6 +213,7 @@ async def submit_daily_practice_answer(
         params.question_id,
         params.answer,
         params.time_spent,
+        params.audio_url,
     )
     return result
 
@@ -214,12 +256,43 @@ async def create_unit_practice(
     请求参数：
     - unit_id: 单元ID
     - difficulty: 难度 (easy/medium/hard/adaptive)
-    - count: 题目数量
+    - count: 题目数量（默认30）
     """
     session = await UnitPracticeService.create_practice_session(
         db, student.id, params.unit_id, params.difficulty, params.count
     )
     return session
+
+
+@practice_router.get("/unit/incomplete-sessions")
+async def get_incomplete_unit_sessions(
+    student=Depends(get_current_student),
+    db: AsyncSession = Database,
+):
+    """
+    获取所有未完成的单元练习会话
+    
+    返回：
+    - 一个字典，key 为 unit_id，value 为 session_id
+    """
+    result = await db.execute(
+        select(UnitPracticeSession).where(
+            and_(
+                UnitPracticeSession.student_id == student.id,
+                UnitPracticeSession.status == "in_progress",
+            )
+        ).order_by(UnitPracticeSession.create_time.desc())
+    )
+    sessions = result.scalars().all()
+    
+    # 返回 unit_id -> session_id 的映射
+    incomplete_sessions = {}
+    for session in sessions:
+        # 如果同一个单元有多个未完成的会话，只保留最新的
+        if session.unit_id not in incomplete_sessions:
+            incomplete_sessions[session.unit_id] = session.id
+    
+    return incomplete_sessions
 
 
 @practice_router.get("/unit/{session_id}")
@@ -271,6 +344,7 @@ async def submit_unit_practice_answer(
         params.question_id,
         params.answer,
         params.time_spent,
+        params.audio_url,
     )
     return result
 

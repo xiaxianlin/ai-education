@@ -18,7 +18,7 @@ export const QuestionCard = memo(function QuestionCard({
   isCorrect,
 }: QuestionCardProps) {
   return (
-    <Card className="border-2 border-purple-200 shadow-lg relative overflow-visible">
+    <Card className="border-2 border-purple-200 shadow-lg relative overflow-visible min-h-[200px]">
       <CardContent className="pt-6 pb-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

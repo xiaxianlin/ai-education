@@ -61,5 +61,12 @@ export const unitPracticeApi = {
     const params = limit ? `?limit=${limit}` : '';
     return api.get<PracticeHistoryItem[]>(`/practice/history${params}`);
   },
+
+  /**
+   * 获取所有未完成的单元练习会话
+   */
+  getIncompleteSessions: async (): Promise<Record<number, number>> => {
+    return api.get<Record<number, number>>('/practice/unit/incomplete-sessions');
+  },
 };
 

@@ -21,6 +21,7 @@ export function UnitPractice() {
     difficulty,
     questionCount,
     creating,
+    incompleteSessions,
     setDifficulty,
     setQuestionCount,
     handleStartPractice,
@@ -83,6 +84,7 @@ export function UnitPractice() {
                 theme={getColorTheme(index)}
                 onStart={handleStartPractice}
                 onShowKnowledge={openKnowledgeModal}
+                hasIncompletePractice={!!incompleteSessions[unit.id]}
               />
             ))}
           </div>

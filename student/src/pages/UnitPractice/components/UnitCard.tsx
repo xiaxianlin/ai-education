@@ -19,6 +19,7 @@ interface UnitCardProps {
   };
   onStart: (unit: Unit) => void;
   onShowKnowledge: (unit: Unit) => void;
+  hasIncompletePractice?: boolean;
 }
 
 export const UnitCard = memo(function UnitCard({
@@ -26,6 +27,7 @@ export const UnitCard = memo(function UnitCard({
   theme,
   onStart,
   onShowKnowledge,
+  hasIncompletePractice = false,
 }: UnitCardProps) {
   const knowledges = unit.knowledges || [];
 
@@ -38,6 +40,16 @@ export const UnitCard = memo(function UnitCard({
     >
       <div className={cn('absolute inset-0 bg-gradient-to-br opacity-40', theme.bg)} />
       <CardContent className="relative z-10 p-5 space-y-4">
+        {/* 未完成练习标识 */}
+        {hasIncompletePractice && (
+          <div className="absolute top-3 right-3 z-20">
+            <div className="px-2.5 py-1 bg-orange-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+              <span>⏸️</span>
+              <span>未完成</span>
+            </div>
+          </div>
+        )}
+
         {/* 单元标题和简介 */}
         <div className="flex items-start gap-3">
           <div className={cn('p-2.5 rounded-xl bg-white/90 shadow-md flex-shrink-0')}>
@@ -78,7 +90,7 @@ export const UnitCard = memo(function UnitCard({
             )}
           >
             <Play className="h-5 w-5 mr-2" fill="currentColor" />
-            开始练习
+            {hasIncompletePractice ? '继续练习' : '开始练习'}
           </Button>
         </div>
 

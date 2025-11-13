@@ -16,6 +16,7 @@ export function useUnitPracticePage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [currentTextbook, setCurrentTextbook] = useState<Textbook | null>(null);
   const [loading, setLoading] = useState(true);
+  const [incompleteSessions, setIncompleteSessions] = useState<Record<number, number>>({});
   const [knowledgeModal, setKnowledgeModal] = useState<{
     open: boolean;
     unitName: string;
@@ -27,11 +28,26 @@ export function useUnitPracticePage() {
     unitName: string;
   }>({ open: false, unitId: 0, unitName: '' });
   const [difficulty, setDifficulty] = useState<string>('adaptive');
-  const [questionCount, setQuestionCount] = useState<number>(10);
+  const [questionCount, setQuestionCount] = useState<number>(30);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     loadUnits();
+    loadIncompleteSessions();
+  }, []);
+
+  // 当页面可见时刷新未完成会话列表（用户从其他页面返回时）
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadIncompleteSessions();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const loadUnits = useCallback(async () => {
@@ -64,15 +80,34 @@ export function useUnitPracticePage() {
     }
   }, [handleError]);
 
-  const handleStartPractice = useCallback((unit: Unit) => {
+  const loadIncompleteSessions = useCallback(async () => {
+    try {
+      const sessions = await practiceApi.getIncompleteUnitSessions();
+      setIncompleteSessions(sessions);
+    } catch (error) {
+      console.error('Failed to load incomplete sessions:', error);
+      // 不显示错误，静默失败
+    }
+  }, []);
+
+  const handleStartPractice = useCallback(async (unit: Unit) => {
+    // 检查是否有未完成的练习
+    const sessionId = incompleteSessions[unit.id];
+    if (sessionId) {
+      // 有未完成的练习，直接跳转
+      navigate({ to: `/unit-practice/${sessionId}` });
+      return;
+    }
+    
+    // 没有未完成的练习，显示弹窗
     setPracticeModal({
       open: true,
       unitId: unit.id,
       unitName: unit.name,
     });
     setDifficulty('adaptive');
-    setQuestionCount(10);
-  }, []);
+    setQuestionCount(30);
+  }, [incompleteSessions, navigate]);
 
   const handleCreatePractice = useCallback(async () => {
     try {
@@ -82,7 +117,15 @@ export function useUnitPracticePage() {
         difficulty,
         count: questionCount,
       });
-      toast.success('练习已创建，开始答题！');
+      
+      // 检查是否有已提交的答案，判断是新创建还是继续未完成的练习
+      const hasAnswers = session.answers && session.answers !== '{}';
+      if (hasAnswers) {
+        toast.success('继续未完成的练习！');
+      } else {
+        toast.success('练习已创建，开始答题！');
+      }
+      
       navigate({ to: `/unit-practice/${session.id}` });
     } catch (error) {
       handleError(error);
@@ -117,6 +160,7 @@ export function useUnitPracticePage() {
     difficulty,
     questionCount,
     creating,
+    incompleteSessions,
     // 方法
     setDifficulty,
     setQuestionCount,

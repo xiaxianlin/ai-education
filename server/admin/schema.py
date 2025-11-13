@@ -270,7 +270,7 @@ class UnitPracticeSessionSchema(BaseModel):
 class CreateUnitPracticeSchema(BaseModel):
     unit_id: int
     difficulty: str = "adaptive"
-    count: int = 10
+    count: int = 30
 
 
 class SubmitUnitPracticeAnswerSchema(BaseModel):
@@ -278,6 +278,7 @@ class SubmitUnitPracticeAnswerSchema(BaseModel):
     question_id: int
     answer: str
     time_spent: int = 0
+    audio_url: Optional[str] = None  # 录音文件 URL（口语题使用）
 
 
 class CompleteUnitPracticeSchema(BaseModel):
@@ -315,6 +316,7 @@ class SubmitDailyPracticeAnswerSchema(BaseModel):
     question_id: int
     answer: str
     time_spent: int = 0
+    audio_url: Optional[str] = None  # 录音文件 URL（口语题使用）
 
 
 class CompleteDailyPracticeSchema(BaseModel):

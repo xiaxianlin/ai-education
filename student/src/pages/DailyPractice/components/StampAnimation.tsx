@@ -35,32 +35,37 @@ export const StampAnimation = memo(function StampAnimation({
   return (
     <div
       className={cn(
-        'absolute bottom-4 right-4 z-10',
-        'flex flex-col items-center justify-center',
-        'pointer-events-none'
+        'absolute z-10',
+        'flex items-end justify-end',
+        'pointer-events-none',
+        'p-4'
       )}
       style={{
+        bottom: 0,
+        right: 0,
         animation: isAnimating ? 'stamp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
       }}
     >
       <div
         className={cn(
           'relative flex flex-col items-center justify-center',
-          'px-6 py-4'
+          'w-[72px] h-[72px] rounded-full',
+          'shadow-md',
+          isCorrect 
+            ? 'bg-green-100' 
+            : 'bg-red-100'
         )}
       >
-        {isCorrect ? (
-          <CheckCircle className="h-12 w-12 text-green-600 mb-2" strokeWidth={3} />
-        ) : (
-          <XCircle className="h-12 w-12 text-red-600 mb-2" strokeWidth={3} />
-        )}
+        <span className="text-2xl mb-0.5">
+          {isCorrect ? '✅' : '❌'}
+        </span>
         <span
           className={cn(
-            'text-xl font-bold whitespace-nowrap',
+            'text-[10px] font-semibold leading-tight text-center px-1',
             isCorrect ? 'text-green-700' : 'text-red-700'
           )}
         >
-          {isCorrect ? '回答正确！✨' : '回答错误'}
+          {isCorrect ? '回答正确' : '回答错误'}
         </span>
       </div>
       <style>{`
@@ -70,7 +75,7 @@ export const StampAnimation = memo(function StampAnimation({
             opacity: 0;
           }
           50% {
-            transform: scale(1.2) rotate(-5deg);
+            transform: scale(1.15) rotate(-5deg);
           }
           100% {
             transform: scale(1) rotate(0deg);

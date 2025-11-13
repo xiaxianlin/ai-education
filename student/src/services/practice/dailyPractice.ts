@@ -89,5 +89,37 @@ export const dailyPracticeApi = {
   }> => {
     return api.get('/practice/daily/stats');
   },
+
+  /**
+   * 上传录音文件
+   */
+  uploadAudio: async (audioBlob: Blob): Promise<{ audio_url: string }> => {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'recording.webm');
+    
+    // 使用 axios 直接调用，因为需要 FormData
+    const axios = (await import('axios')).default;
+    const API_BASE_URL = 
+      import.meta.env.VITE_API_BASE_URL || 
+      (import.meta.env.MODE === 'development' ? '/api/student' : 'http://127.0.0.1:7890/api/student');
+    
+    const token = sessionStorage.getItem('_t');
+    const response = await axios.post(
+      `${API_BASE_URL}/practice/upload-audio`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'x-access-token': token || '',
+        },
+      }
+    );
+    
+    // 处理响应格式
+    if (response.data && response.data.data) {
+      return response.data.data;
+    }
+    return response.data;
+  },
 };
 

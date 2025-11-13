@@ -11,6 +11,7 @@ export function usePracticeSession() {
   const [sessionData, setSessionData] = useState<DailyPracticeSessionDetail | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+  const [audioUrls, setAudioUrls] = useState<Record<number, string>>({});
   const [answerResults, setAnswerResults] = useState<Record<number, boolean>>({});
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [submitting, setSubmitting] = useState(false);
@@ -26,6 +27,52 @@ export function usePracticeSession() {
       setLoading(true);
       const data = await practiceApi.getDailyPracticeSession(parseInt(sessionId!));
       setSessionData(data);
+      
+      // 解析已提交的答案，恢复进度
+      if (data.session.answers) {
+        try {
+          const answers = JSON.parse(data.session.answers);
+          const restoredAnswers: Record<number, string> = {};
+          const restoredAudioUrls: Record<number, string> = {};
+          const restoredResults: Record<number, boolean> = {};
+          
+          // 恢复已提交的答案
+          Object.entries(answers).forEach(([questionIdStr, answerData]: [string, any]) => {
+            const questionId = parseInt(questionIdStr);
+            if (answerData.answer) {
+              restoredAnswers[questionId] = answerData.answer;
+            }
+            if (answerData.audio_url) {
+              restoredAudioUrls[questionId] = answerData.audio_url;
+            }
+            if (answerData.is_correct !== undefined) {
+              restoredResults[questionId] = answerData.is_correct;
+            }
+          });
+          
+          setUserAnswers(restoredAnswers);
+          setAudioUrls(restoredAudioUrls);
+          setAnswerResults(restoredResults);
+          
+          // 找到第一个未回答的题目，如果没有则跳转到最后一题
+          let targetIndex = 0;
+          if (data.questions && data.questions.length > 0) {
+            const firstUnansweredIndex = data.questions.findIndex(
+              (q) => !restoredResults[q.id]
+            );
+            if (firstUnansweredIndex !== -1) {
+              targetIndex = firstUnansweredIndex;
+            } else {
+              // 所有题目都已回答，跳转到最后一题
+              targetIndex = data.questions.length - 1;
+            }
+          }
+          setCurrentQuestionIndex(targetIndex);
+        } catch (parseError) {
+          console.error('Failed to parse answers:', parseError);
+        }
+      }
+      
       setStartTime(Date.now());
     } catch (error) {
       console.error('Failed to load session:', error);
@@ -39,21 +86,36 @@ export function usePracticeSession() {
 
   const currentQuestion = sessionData?.questions[currentQuestionIndex];
   const totalQuestions = sessionData?.questions.length || 0;
-  const answeredCount = Object.keys(userAnswers).length;
+  const answeredCount = Object.keys(answerResults).length;
 
-  const handleAnswerChange = useCallback((answer: string) => {
+  const handleAnswerChange = useCallback((answer: string, audioUrl?: string) => {
     if (!currentQuestion) return;
     setUserAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]: answer,
     }));
+    if (audioUrl) {
+      setAudioUrls((prev) => ({
+        ...prev,
+        [currentQuestion.id]: audioUrl,
+      }));
+    }
   }, [currentQuestion]);
 
   const handleSubmitAnswer = useCallback(async () => {
     if (!currentQuestion || !sessionData) return;
 
     const answer = userAnswers[currentQuestion.id];
-    if (!answer) {
+    const audioUrl = audioUrls[currentQuestion.id];
+    
+    // 对于口语题，必须有录音文件
+    if (currentQuestion.type === '口语题' && !audioUrl) {
+      toast.error('请先录音');
+      return;
+    }
+    
+    // 对于其他题型，必须有答案
+    if (currentQuestion.type !== '口语题' && !answer) {
       toast.error('请先选择答案');
       return;
     }
@@ -64,8 +126,9 @@ export function usePracticeSession() {
       const result = await practiceApi.submitDailyAnswer({
         session_id: sessionData.session.id,
         question_id: currentQuestion.id,
-        answer,
+        answer: answer || '', // 口语题答案由后端 ASR 解析
         time_spent: timeSpent,
+        audio_url: audioUrl,
       });
 
       setAnswerResults((prev) => ({
@@ -74,14 +137,6 @@ export function usePracticeSession() {
       }));
 
       toast.success(result.is_correct ? '回答正确！' : '回答错误');
-
-      // 自动进入下一题
-      setTimeout(() => {
-        if (currentQuestionIndex < totalQuestions - 1) {
-          setCurrentQuestionIndex((prev) => prev + 1);
-          setStartTime(Date.now());
-        }
-      }, 1500);
     } catch (error) {
       console.error('Failed to submit answer:', error);
       const errorMessage = error instanceof Error ? error.message : '提交答案失败';
@@ -89,7 +144,7 @@ export function usePracticeSession() {
     } finally {
       setSubmitting(false);
     }
-  }, [currentQuestion, sessionData, userAnswers, startTime, currentQuestionIndex, totalQuestions]);
+  }, [currentQuestion, sessionData, userAnswers, audioUrls, startTime, currentQuestionIndex, totalQuestions]);
 
   const goToPreviousQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
@@ -113,6 +168,7 @@ export function usePracticeSession() {
     totalQuestions,
     answeredCount,
     userAnswers,
+    audioUrls,
     answerResults,
     submitting,
     handleAnswerChange,

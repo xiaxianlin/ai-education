@@ -1,6 +1,9 @@
-import { memo } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AudioRecorder } from '@/components/ui/AudioRecorder';
+import { practiceApi } from '@/services/practice';
+import { toast } from 'sonner';
 import type { Question } from '@/services/practice';
 
 interface AnswerOptionsProps {
@@ -8,7 +11,7 @@ interface AnswerOptionsProps {
   answer: string | undefined;
   hasAnswered: boolean;
   isCorrect: boolean | undefined;
-  onAnswerChange: (answer: string) => void;
+  onAnswerChange: (answer: string, audioUrl?: string) => void;
 }
 
 export const AnswerOptions = memo(function AnswerOptions({
@@ -116,6 +119,52 @@ export const AnswerOptions = memo(function AnswerOptions({
             </button>
           );
         })}
+      </div>
+    );
+  }
+
+  // 口语题
+  const [isUploading, setIsUploading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
+
+  const handleRecordingComplete = useCallback(async (audioBlob: Blob) => {
+    if (hasAnswered) {
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const result = await practiceApi.uploadAudio(audioBlob);
+      setAudioUrl(result.audio_url);
+      // 口语题的答案通过 ASR 解析，这里先传空字符串，实际答案由后端 ASR 解析后返回
+      onAnswerChange('', result.audio_url);
+      toast.success('录音上传成功，正在识别...');
+    } catch (error) {
+      console.error('上传录音失败:', error);
+      toast.error(error instanceof Error ? error.message : '上传录音失败');
+    } finally {
+      setIsUploading(false);
+    }
+  }, [hasAnswered, onAnswerChange]);
+
+  if (question.type === '口语题') {
+    return (
+      <div className="flex flex-col items-center gap-6">
+        <AudioRecorder
+          onRecordingComplete={handleRecordingComplete}
+          disabled={hasAnswered || isUploading}
+          maxDuration={60}
+        />
+        {audioUrl && !hasAnswered && (
+          <div className="text-sm text-gray-600">
+            录音已上传，请点击提交按钮
+          </div>
+        )}
+        {hasAnswered && (
+          <div className="text-sm text-gray-600">
+            答案已提交
+          </div>
+        )}
       </div>
     );
   }
