@@ -8,6 +8,7 @@ import { TextbookUnitModel } from '../models/unit';
 import { TextbookKnowledgeModel } from '../models/knowledge';
 import { useMemo } from 'react';
 import { Button } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from '@umijs/max';
 import { UploadButton } from '@/components/util';
 
@@ -28,7 +29,17 @@ export default function MainView() {
     <PageContainer
       loading={loading}
       header={{
-        title: '教材详情',
+        title: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate(-1)}
+              style={{ padding: 0, height: 'auto' }}
+            />
+            <span>教材详情</span>
+          </div>
+        ),
         breadcrumb: {},
         extra: [
           <Button
@@ -53,9 +64,6 @@ export default function MainView() {
           </Button>,
           <Button key="delete" danger onClick={handleDelete}>
             删除
-          </Button>,
-          <Button key="back" onClick={() => navigate(-1)}>
-            返回
           </Button>,
         ],
       }}

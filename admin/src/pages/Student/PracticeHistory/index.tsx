@@ -3,6 +3,7 @@ import { PageContainer, ProTable, ProColumns, ActionType } from '@ant-design/pro
 import { StudentApi } from '@/services/student';
 import { useRequest } from 'ahooks';
 import { message, Button, Modal, Tag } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useMemo, useRef } from 'react';
 import { fmtTime } from '@/utils/time';
 
@@ -121,14 +122,20 @@ export default function PracticeHistoryPage() {
 
   return (
     <PageContainer
-      title="日常练习历史"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => history.back()}
+            style={{ padding: 0, height: 'auto' }}
+          />
+          <span>日常练习历史</span>
+        </div>
+      }
       className="simple-list-page"
       header={{
-        extra: [
-          <Button key="back" onClick={() => history.back()}>
-            返回
-          </Button>,
-        ],
+        breadcrumb: {},
       }}
     >
       <ProTable<DailyPracticeSession>

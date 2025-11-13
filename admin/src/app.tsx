@@ -9,7 +9,6 @@ import { CommonApi } from './services/common';
 export async function getInitialState(): Promise<InitialState> {
   try {
     const [manager, configs] = await Promise.all([AuthApi.check(), CommonApi.configs()]);
-    console.log(configs);
     return { manager, configs };
   } catch (e) {
     history.push('/login');

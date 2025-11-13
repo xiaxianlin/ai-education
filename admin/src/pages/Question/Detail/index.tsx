@@ -3,6 +3,7 @@ import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { QuestionApi } from '@/services/question';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
 import { StatusTag, AudioPlayer } from '@/components/ui';
 
@@ -117,7 +118,17 @@ export default function QuestionDetailPage() {
 
   return (
     <PageContainer
-      title="题目详情"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => history.back()}
+            style={{ padding: 0, height: 'auto' }}
+          />
+          <span>题目详情</span>
+        </div>
+      }
       header={{
         breadcrumb: {},
         extra: [
@@ -137,9 +148,6 @@ export default function QuestionDetailPage() {
               删除
             </Button>
           </Popconfirm>,
-          <Button key="back" onClick={() => history.back()}>
-            返回
-          </Button>,
         ],
       }}
     >

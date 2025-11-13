@@ -11,6 +11,7 @@ import { QuestionApi } from '@/services/question';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Button, Space, Card } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useEffect, useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { StatusTag } from '@/components/ui';
@@ -74,14 +75,19 @@ export default function QuestionEditPage() {
 
   return (
     <PageContainer
-      title="编辑题目"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => history.back()}
+            style={{ padding: 0, height: 'auto' }}
+          />
+          <span>编辑题目</span>
+        </div>
+      }
       header={{
         breadcrumb: {},
-        extra: [
-          <Button key="back" onClick={() => history.back()}>
-            返回
-          </Button>,
-        ],
       }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">

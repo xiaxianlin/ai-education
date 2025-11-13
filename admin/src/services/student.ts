@@ -6,6 +6,11 @@ export const StudentApi = {
     return res.data;
   },
 
+  getDetail: async (id: string) => {
+    const res = await request<ApiData<Student>>(`/student/${id}`);
+    return res.data;
+  },
+
   create: async (data: StudentForm) => {
     const res = await request<ApiData<string>>('/student', {
       method: 'POST',

@@ -3,6 +3,7 @@ import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { TaskApi } from '@/services/task';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Progress, Alert } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { fmtTime } from '@/utils/time';
 import { useEffect } from 'react';
 
@@ -55,14 +56,19 @@ export default function TaskDetailPage() {
 
   return (
     <PageContainer
-      title="任务详情"
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => history.back()}
+            style={{ padding: 0, height: 'auto' }}
+          />
+          <span>任务详情</span>
+        </div>
+      }
       header={{
         breadcrumb: {},
-        extra: [
-          <Button key="back" onClick={() => history.back()}>
-            返回
-          </Button>,
-        ],
       }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">

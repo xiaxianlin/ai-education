@@ -133,3 +133,10 @@ async def reset_student_password(db: AsyncSession, id: str):
     await db.commit()
 
     return password
+
+
+async def get_student_detail(db: AsyncSession, id: str):
+    student_model = await db.scalar(select(Student).where(Student.id == id))
+    if not student_model:
+        raise ValueError("学生不存在")
+    return StudentSchema.model_validate(student_model)

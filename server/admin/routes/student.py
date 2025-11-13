@@ -39,8 +39,16 @@ async def search_student(params: SearchStudentSchema = Depends(), db: AsyncSessi
     return await student.search_student(db, params)
 
 
+@student_router.get("/{id}")
+async def get_student_detail(id: str, db: AsyncSession = Database):
+    try:
+        return await student.get_student_detail(db, id)
+    except ValueError as exc:  # pragma: no cover - simple pass-through
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @student_router.post("/{id}/subjects")
-async def create_student(id: str, params: SaveStudentSubjectSchema, db: AsyncSession = Database):
+async def save_student_textbook(id: str, params: SaveStudentSubjectSchema, db: AsyncSession = Database):
     await student.save_student_textbook(db, id, params.ids)
 
 
