@@ -49,9 +49,7 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     if not unit:
         raise ValueError("课程单元不存在")
 
-    knowledge_ids_result = await db.scalars(
-        select(Knowledge.id).where(Knowledge.unit_id == id)
-    )
+    knowledge_ids_result = await db.scalars(select(Knowledge.id).where(Knowledge.unit_id == id))
     knowledge_ids = knowledge_ids_result.all()
 
     if knowledge_ids:
@@ -86,9 +84,3 @@ async def search_unit(db: AsyncSession, params: SearchSchema) -> Tuple[List[Unit
         total=total,
         data=[UnitSchema.model_validate(unit) for unit in units.all()],
     )
-
-
-async def query_unit_by_textbook(db: AsyncSession, textbook_id: int):
-    query = select(Unit).where(Unit.textbook_id == textbook_id).options(noload(Unit.textbook))
-    results = await db.scalars(query)
-    return [UnitSchema.model_validate(unit) for unit in results.all()]

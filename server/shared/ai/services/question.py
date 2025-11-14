@@ -50,14 +50,6 @@ class QuestionGenerationResult(BaseModel):
     questions: List[GeneratedQuestion] = []
 
 
-async def validate_question_params(unit_id: int, count: int) -> Dict[str, Any]:
-    """检查问题生成参数，失败直接退出"""
-    if count <= 0:
-        raise ValueError("生成题目的数量必须大于 0")
-
-    return {"unit_id": unit_id, "count": count}
-
-
 async def load_unit_data(db: AsyncSession, unit_id: int) -> Dict[str, Any]:
     """加载单元相关数据"""
     unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
@@ -584,10 +576,10 @@ def _format_new_knowledge(new_knowledge: List[str]) -> str:
 async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """根据传入参数生成单元练习 prompt"""
     prompt_input, parser = _build_common_prompt_inputs(params)
-    
+
     # 根据科目自动选择对应的 prompt 模板
     textbook = params["textbook"]
-    unit_prompt_template = get_prompt_by_subject('unit', textbook.subject)
+    unit_prompt_template = get_prompt_by_subject("unit", textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -670,10 +662,10 @@ async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "challenge_count": challenge_count,
         "new_count": new_count,
     }
-    
+
     # 根据科目自动选择对应的 prompt 模板
     textbook = params["textbook"]
-    daily_prompt_template = get_prompt_by_subject('daily', textbook.subject)
+    daily_prompt_template = get_prompt_by_subject("daily", textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -736,9 +728,9 @@ async def assessment_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
         "hard_count": hard_count,
         "format_instructions": format_instructions,
     }
-    
+
     # 根据科目自动选择对应的 prompt 模板
-    assessment_prompt_template = get_prompt_by_subject('assessment', textbook.subject)
+    assessment_prompt_template = get_prompt_by_subject("assessment", textbook.subject)
 
     prompt = ChatPromptTemplate.from_messages(
         [

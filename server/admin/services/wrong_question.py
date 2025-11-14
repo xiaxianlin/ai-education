@@ -1,9 +1,7 @@
-from sqlalchemy import and_, select, func, desc, or_
+from sqlalchemy import and_, select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
-from core.database import StudentWrongRecord, Student, Question, PracticeSession
-from core.schema import SearchResultSchema
-from admin.schema import SearchSchema
+from core.database import StudentWrongRecord, Question, PracticeSession
 
 
 class WrongRecordSchema:
@@ -33,12 +31,14 @@ async def get_student_wrong_records(
     is_corrected: int = None,
     session_type: str = None,
     limit: int = 50,
-    offset: int = 0
+    offset: int = 0,
 ):
     """获取学生的错题记录"""
-    query = select(StudentWrongRecord).options(
-        joinedload(StudentWrongRecord.session)
-    ).where(StudentWrongRecord.student_id == student_id)
+    query = (
+        select(StudentWrongRecord)
+        .options(joinedload(StudentWrongRecord.session))
+        .where(StudentWrongRecord.student_id == student_id)
+    )
 
     if is_corrected is not None:
         query = query.where(StudentWrongRecord.is_corrected == is_corrected)
@@ -74,6 +74,7 @@ async def mark_wrong_record_corrected(db: AsyncSession, record_id: int, student_
         raise ValueError("错题记录不存在")
 
     from shared.utils.time import now
+
     wrong_record.is_corrected = 1
     wrong_record.corrected_time = now()
     wrong_record.update_time = now()
@@ -88,9 +89,7 @@ async def get_wrong_record_stats(db: AsyncSession, student_id: str):
     """获取学生的错题统计信息"""
     # 总错题记录数
     total_wrong = await db.scalar(
-        select(func.count(StudentWrongRecord.id)).where(
-            StudentWrongRecord.student_id == student_id
-        )
+        select(func.count(StudentWrongRecord.id)).where(StudentWrongRecord.student_id == student_id)
     )
 
     # 已订正的错题数
@@ -108,15 +107,14 @@ async def get_wrong_record_stats(db: AsyncSession, student_id: str):
 
     # 按知识点统计
     knowledge_stats = await db.execute(
-        select(
-            StudentWrongRecord.knowledge,
-            func.count(StudentWrongRecord.id)
-        ).where(
+        select(StudentWrongRecord.knowledge, func.count(StudentWrongRecord.id))
+        .where(
             and_(
                 StudentWrongRecord.student_id == student_id,
-                StudentWrongRecord.knowledge.isnot(None)
+                StudentWrongRecord.knowledge.isnot(None),
             )
-        ).group_by(StudentWrongRecord.knowledge)
+        )
+        .group_by(StudentWrongRecord.knowledge)
     )
 
     knowledge_breakdown = {row[0]: row[1] for row in knowledge_stats.all()}
@@ -132,14 +130,15 @@ async def get_wrong_record_stats(db: AsyncSession, student_id: str):
 async def get_wrong_records_by_question(db: AsyncSession, student_id: str, question_id: int):
     """获取特定题目的错题记录"""
     result = await db.scalars(
-        select(StudentWrongRecord).options(
-            joinedload(StudentWrongRecord.session)
-        ).where(
+        select(StudentWrongRecord)
+        .options(joinedload(StudentWrongRecord.session))
+        .where(
             and_(
                 StudentWrongRecord.student_id == student_id,
                 StudentWrongRecord.question_id == question_id,
             )
-        ).order_by(desc(StudentWrongRecord.create_time))
+        )
+        .order_by(desc(StudentWrongRecord.create_time))
     )
 
     wrong_records = result.all()

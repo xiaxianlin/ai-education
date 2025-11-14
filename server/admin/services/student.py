@@ -136,6 +136,7 @@ async def reset_student_password(db: AsyncSession, id: str):
 
 
 async def get_student_detail(db: AsyncSession, id: str):
+    """获取学生详情"""
     student_model = await db.scalar(select(Student).where(Student.id == id))
     if not student_model:
         raise ValueError("学生不存在")
