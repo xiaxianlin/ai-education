@@ -29,30 +29,30 @@ export function WrongQuestions() {
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 头部卡片 */}
-        <Card className="border-2 border-red-300 shadow-2xl rounded-3xl overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="text-6xl">❌</div>
+        <Card className="border border-gray-200 shadow-sm rounded-lg overflow-hidden bg-white/80">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">❌</div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800">我的错题</h1>
-                  <p className="text-base text-gray-600">巩固薄弱知识点</p>
+                  <h1 className="text-xl font-semibold text-gray-800">我的错题</h1>
+                  <p className="text-sm text-gray-500">巩固薄弱知识点</p>
                 </div>
               </div>
 
               {/* 统计信息 */}
-              <div className="flex items-center gap-6 text-base font-medium">
-                <div className="text-center px-4 py-2 rounded-xl bg-red-50 border-2 border-red-200">
-                  <p className="text-2xl font-bold text-red-600">{stats.unmastered}</p>
-                  <p className="text-xs text-red-600">待练</p>
+              <div className="flex items-center gap-3 text-sm">
+                <div className="text-center px-3 py-1.5 rounded-md bg-red-50/50 border border-red-100">
+                  <p className="text-lg font-semibold text-red-600">{stats.unmastered}</p>
+                  <p className="text-xs text-red-500">待练</p>
                 </div>
-                <div className="text-center px-4 py-2 rounded-xl bg-green-50 border-2 border-green-200">
-                  <p className="text-2xl font-bold text-green-600">{stats.mastered}</p>
-                  <p className="text-xs text-green-600">已会</p>
+                <div className="text-center px-3 py-1.5 rounded-md bg-green-50/50 border border-green-100">
+                  <p className="text-lg font-semibold text-green-600">{stats.mastered}</p>
+                  <p className="text-xs text-green-500">已会</p>
                 </div>
-                <div className="text-center px-4 py-2 rounded-xl bg-blue-50 border-2 border-blue-200">
-                  <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-                  <p className="text-xs text-blue-600">总计</p>
+                <div className="text-center px-3 py-1.5 rounded-md bg-blue-50/50 border border-blue-100">
+                  <p className="text-lg font-semibold text-blue-600">{stats.total}</p>
+                  <p className="text-xs text-blue-500">总计</p>
                 </div>
               </div>
             </div>

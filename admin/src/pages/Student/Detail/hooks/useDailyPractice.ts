@@ -101,6 +101,7 @@ export function useDailyPractice(id?: string, refreshStats?: () => void) {
     generatingPractice,
     handleGenerateDailyPractice,
     practiceHistoryLink,
+    refreshTodayPractice,
   };
 }
 

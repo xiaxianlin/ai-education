@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from fastapi import UploadFile
+from loguru import logger
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
@@ -163,8 +164,10 @@ async def parse_textbook(db: AsyncSession, id: int):
     # 重新解析，需要清理教材相关数据
     await _clean_textbook(db, id)
 
+    logger.info(f"解析教材{textbook.file}，index_id:{textbook.index_file_id}")
+
     data = AliyunApp.invoke(
-        query=f"解析教材{textbook.file}",
+        query=f"对知识库中 pdf 名称为 {textbook.file}，索引 ID 为 {textbook.index_file_id} 的文件进行全文解析",
         app_id="e18385d4dd3e4801938b6f68024466b3",
         file_id=textbook.index_file_id,
     )
@@ -174,7 +177,7 @@ async def parse_textbook(db: AsyncSession, id: int):
         raise ValueError("教材解析格式错误")
 
     # 解析单元和知识点
-    for unit_index, item in enumerate(units):
+    for _, item in enumerate(units):
         # 创建单元
         unit = Unit(textbook_id=id, name=item.get("unit_name"), content=item.get("unit_content"))
         db.add(unit)

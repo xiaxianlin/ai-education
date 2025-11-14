@@ -6,7 +6,7 @@ import requests
 from loguru import logger
 from http import HTTPStatus
 from datetime import timedelta
-from dashscope import Application
+from dashscope import Application, Assistants
 import alibabacloud_oss_v2 as oss
 from alibabacloud_tea_util.models import RuntimeOptions
 from alibabacloud_tea_openapi.models import Config
@@ -251,7 +251,7 @@ class AliyunRag:
                 self.delete_index_document(old_file_id)
             logger.info("阿里云百炼知识库创建成功！")
             return file_id
-        except Exception as e:
+        except Exception:
             raise ValueError("文档上传知识库异常")
 
 
@@ -330,14 +330,48 @@ class AliyunOSS:
         return res.url
 
 
+class TextbookParserAssitant:
+    def create_assistant(index_id):
+        """创建一个使用指定知识库的 Assistant。"""
+        assistant = Assistants.create(
+            model="qwen-plus",  # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+            name="智能手机选购助手",
+            description="一个帮助用户选择手机的智能助手。",
+            instructions="你是一个手机选购向导，你的任务是帮助用户选择满意的手机。使用提供的知识库来回答用户的问题。以下信息可能对你有帮助：${documents}。",
+            tools=[
+                {
+                    "type": "rag",  # 指定使用RAG（检索增强生成）模式
+                    "prompt_ra": {
+                        "pipeline_id": ["09opu660dx"],
+                        "multiknowledge_rerank_top_n": 10,  # 多知识源重排序时返回的top N结果数
+                        "rerank_top_n": 5,  # 最终重排序后返回的top N结果数
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "query_word": {
+                                    "type": "str",
+                                    "value": "${documents}",  # 使用动态占位符，将被实际查询内容替换
+                                }
+                            },
+                        },
+                    },
+                },
+            ],
+        )
+        return assistant.id
+
+
 class AliyunApp:
     def invoke(query: str, app_id: str, file_id: str) -> dict:
         """调用阿里百炼平台应用"""
         response = Application.call(
-            api_key=envs.ALIYUN_AI_KEY,
+            api_key=envs.AI_PLATFORM_KEY,
             app_id=app_id,
             prompt=query,
-            rag_options={"file_ids": [file_id]},
+            rag_options={
+                "pipeline_ids": ["09opu660dx"],
+                "file_ids": [file_id],
+            },
         )
         if response.status_code != HTTPStatus.OK:
             raise ValueError(response.message)

@@ -2,6 +2,7 @@
 from typing import List
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 from core.database import Question, StudentWrongQuestion
 from shared.services.unit_mastery_service import UnitMasteryService
@@ -76,6 +77,38 @@ class ImprovedQuestionSelector:
                     )
                     question_pool.extend(questions)
         
+        # 6. 如果题目不足，补充随机题目（不限制难度）
+        if len(question_pool) < count:
+            remaining = count - len(question_pool)
+            logger.info(
+                f"题目数量不足：期望 {count} 道，当前 {len(question_pool)} 道，需要补充 {remaining} 道"
+            )
+            # 获取单元的所有可用题目（不限制难度）
+            all_questions = await ImprovedQuestionSelector._get_all_unit_questions(
+                db, unit_ids, exclude=question_pool
+            )
+            logger.info(f"单元 {unit_ids} 可用题目总数：{len(all_questions)} 道")
+            # 随机选择补充题目
+            import random
+            if len(all_questions) > 0:
+                # 如果可用题目足够，随机选择；否则全部使用
+                if len(all_questions) >= remaining:
+                    additional = random.sample(all_questions, remaining)
+                else:
+                    additional = all_questions
+                    logger.warning(
+                        f"单元 {unit_ids} 可用题目不足：期望 {remaining} 道，实际 {len(all_questions)} 道"
+                    )
+                question_pool.extend(additional)
+            else:
+                logger.warning(f"单元 {unit_ids} 没有更多可用题目")
+        
+        final_count = len(question_pool)
+        if final_count < count:
+            logger.warning(
+                f"最终题目数量不足：期望 {count} 道，实际 {final_count} 道（单元 {unit_ids}）"
+            )
+        
         return question_pool[:count]
     
     @staticmethod
@@ -129,6 +162,29 @@ class ImprovedQuestionSelector:
             .where(and_(*conditions))
             .order_by(func.random())
             .limit(limit)
+        )
+        result = await db.execute(query)
+        return [row[0] for row in result.all()]
+    
+    @staticmethod
+    async def _get_all_unit_questions(
+        db: AsyncSession,
+        unit_ids: List[int],
+        exclude: List[int] = []
+    ) -> List[int]:
+        """获取单元的所有可用题目（用于补充）"""
+        conditions = [
+            Question.unit_id.in_(unit_ids),
+            Question.status == 1
+        ]
+        
+        if exclude:
+            conditions.append(Question.id.not_in(exclude))
+        
+        query = (
+            select(Question.id)
+            .where(and_(*conditions))
+            .order_by(func.random())
         )
         result = await db.execute(query)
         return [row[0] for row in result.all()]

@@ -12,6 +12,7 @@ from admin.schema import (
     CreateUnitPracticeSchema,
     SubmitUnitPracticeAnswerSchema,
 )
+from admin.services import wrong_question as wrong_question_service
 from shared.utils.time import now
 
 
@@ -285,6 +286,13 @@ class UnitPracticeService:
         
         # 批改答案（简单的字符串比较，实际可能需要更复杂的逻辑）
         is_correct = UnitPracticeService._check_answer(question, actual_answer)
+        
+        # 如果答案错误，记录到错题本
+        if not is_correct:
+            try:
+                await wrong_question_service.add_wrong_question(db, student_id, question_id)
+            except Exception as e:
+                logger.error(f"记录错题失败: {e}")
         
         # 更新会话的答案记录
         answers = json.loads(session.answers)

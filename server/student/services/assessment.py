@@ -20,6 +20,7 @@ from admin.schema import (
     SubmitAssessmentAnswerSchema,
     AssessmentReportSchema,
 )
+from admin.services import wrong_question as wrong_question_service
 from shared.utils.time import now
 from shared.services.assessment_generation import AssessmentGenerationService
 
@@ -462,6 +463,13 @@ class AssessmentService:
         
         # 批改答案
         is_correct = AssessmentService._check_answer(question, answer)
+        
+        # 如果答案错误，记录到错题本
+        if not is_correct:
+            try:
+                await wrong_question_service.add_wrong_question(db, student_id, question_id)
+            except Exception as e:
+                logger.error(f"记录错题失败: {e}")
         
         # 记录答题
         assessment_question = AssessmentQuestion(

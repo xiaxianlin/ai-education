@@ -188,5 +188,38 @@ export const StudentApi = {
     const res = await request<ApiData<AssessmentDetail>>(`/student/${id}/assessments/${assessmentId}`);
     return res.data;
   },
+
+  // 重新生成今日练习（重置进度）
+  regenerateDailyPractice: async (id: string, sessionId: number) => {
+    const res = await request<ApiData<{ message: string; session: DailyPracticeSession }>>(
+      `/student/${id}/daily_practices/${sessionId}/regenerate`,
+      {
+        method: 'POST',
+      }
+    );
+    return res.data;
+  },
+
+  // 重新生成单元练习（重置进度）
+  regenerateUnitPractice: async (id: string, sessionId: number) => {
+    const res = await request<ApiData<{ message: string; session: UnitPracticeSession }>>(
+      `/student/${id}/unit_practices/${sessionId}/regenerate`,
+      {
+        method: 'POST',
+      }
+    );
+    return res.data;
+  },
+
+  // 重置能力评估
+  resetAssessment: async (id: string, assessmentId: number) => {
+    const res = await request<ApiData<{ message: string; assessment: AssessmentTest }>>(
+      `/student/${id}/assessments/${assessmentId}/reset`,
+      {
+        method: 'POST',
+      }
+    );
+    return res.data;
+  },
 };
 

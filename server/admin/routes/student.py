@@ -183,6 +183,39 @@ async def delete_daily_practice(
     return {"message": "删除成功"}
 
 
+@student_router.post("/{id}/daily_practices/{session_id}/regenerate")
+async def regenerate_daily_practice(
+    id: str, session_id: int, db: AsyncSession = Database
+):
+    """重新生成今日练习（重置全部进度）"""
+    # 验证练习会话是否存在且属于该学生
+    result = await db.execute(
+        select(DailyPracticeSession).where(
+            and_(
+                DailyPracticeSession.id == session_id,
+                DailyPracticeSession.student_id == id,
+            )
+        )
+    )
+    session = result.scalar_one_or_none()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="练习会话不存在")
+    
+    # 重置进度
+    session.status = "in_progress"
+    session.answers = "{}"
+    session.correct_questions = 0
+    session.total_time = 0
+    session.score = 0
+    from shared.utils.time import now
+    session.update_time = now()
+    
+    await db.commit()
+    
+    return {"message": "重新生成成功", "session": session}
+
+
 @student_router.get("/{id}/unit_practices")
 async def get_student_unit_practices(
     id: str, limit: int = 30, db: AsyncSession = Database
@@ -216,6 +249,36 @@ async def get_unit_practice_detail(
     if not session_data:
         raise HTTPException(status_code=404, detail="练习会话不存在")
     return session_data
+
+
+@student_router.post("/{id}/unit_practices/{session_id}/regenerate")
+async def regenerate_unit_practice(
+    id: str, session_id: int, db: AsyncSession = Database
+):
+    """重新生成单元练习（重置全部进度）"""
+    # 验证练习会话是否存在且属于该学生
+    result = await db.execute(
+        select(UnitPracticeSession).where(
+            and_(
+                UnitPracticeSession.id == session_id,
+                UnitPracticeSession.student_id == id,
+            )
+        )
+    )
+    session = result.scalar_one_or_none()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="练习会话不存在")
+    
+    # 重置进度
+    session.status = "in_progress"
+    session.answers = "{}"
+    from shared.utils.time import now
+    session.update_time = now()
+    
+    await db.commit()
+    
+    return {"message": "重新生成成功", "session": session}
 
 
 @student_router.get("/{id}/assessments")
@@ -305,4 +368,49 @@ async def get_assessment_detail(
         "session": AssessmentTestSchema.model_validate(test),
         "questions": questions,
     }
+
+
+@student_router.post("/{id}/assessments/{assessment_id}/reset")
+async def reset_assessment(
+    id: str, assessment_id: int, db: AsyncSession = Database
+):
+    """重置能力评估（重置全部进度）"""
+    # 验证评测是否存在且属于该学生
+    result = await db.execute(
+        select(AssessmentTest).where(
+            and_(
+                AssessmentTest.id == assessment_id,
+                AssessmentTest.student_id == id,
+            )
+        )
+    )
+    test = result.scalar_one_or_none()
+    
+    if not test:
+        raise HTTPException(status_code=404, detail="评测不存在")
+    
+    # 重置进度
+    test.status = "in_progress"
+    test.answered_count = 0
+    test.current_ability = 0.0
+    test.confidence = 0.0
+    test.overall_score = 0.0
+    test.ability_level = ""
+    from shared.utils.time import now
+    test.update_time = now()
+    
+    # 删除已答题目记录
+    from core.database import AssessmentQuestion
+    questions_result = await db.execute(
+        select(AssessmentQuestion).where(
+            AssessmentQuestion.assessment_id == assessment_id
+        )
+    )
+    assessment_questions = questions_result.scalars().all()
+    for aq in assessment_questions:
+        await db.delete(aq)
+    
+    await db.commit()
+    
+    return {"message": "重置成功", "assessment": test}
 

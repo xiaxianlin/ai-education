@@ -1,17 +1,38 @@
-import { Card, Empty, Tag, Button, Space } from 'antd';
+import { Card, Empty, Tag, Button, Space, Modal, message } from 'antd';
 import { ProTable, ProColumns } from '@ant-design/pro-components';
 import { Link } from '@umijs/max';
 import { useMemo } from 'react';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { fmtTime } from '@/utils/time';
 
 import { useUnitPractice } from '../hooks/useUnitPractice';
+import { StudentApi } from '@/services/student';
 
 type UnitPracticeCardProps = {
   id: string;
 };
 
 export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
-  const { unitPractices, loading } = useUnitPractice(id);
+  const { unitPractices, loading, refresh } = useUnitPractice(id);
+
+  const handleRegenerate = async (sessionId: number) => {
+    Modal.confirm({
+      title: '确认重新生成',
+      icon: <ExclamationCircleOutlined />,
+      content: '重新生成将重置全部进度，此操作不可恢复。确定要继续吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await StudentApi.regenerateUnitPractice(id, sessionId);
+          message.success('重新生成成功');
+          refresh();
+        } catch (error) {
+          message.error('重新生成失败');
+        }
+      },
+    });
+  };
 
   const columns = useMemo<ProColumns<UnitPracticeSession>[]>(
     () => [
@@ -84,18 +105,30 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
       {
         title: '操作',
         valueType: 'option',
-        width: 100,
+        width: 180,
         fixed: 'right',
         render: (_, record) => (
-          <Link to={`/student/${id}/practice/unit/${record.id}`}>
-            <Button type="link" size="small">
-              查看详情
-            </Button>
-          </Link>
+          <Space>
+            <Link to={`/student/${id}/practice/unit/${record.id}`}>
+              <Button type="link" size="small">
+                查看详情
+              </Button>
+            </Link>
+            {record.status === 'in_progress' && (
+              <Button
+                type="link"
+                size="small"
+                danger
+                onClick={() => handleRegenerate(record.id)}
+              >
+                重新生成
+              </Button>
+            )}
+          </Space>
         ),
       },
     ],
-    [id],
+    [id, handleRegenerate],
   );
 
   return (

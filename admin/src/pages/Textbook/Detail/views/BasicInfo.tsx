@@ -17,6 +17,7 @@ export const BasicInfo = () => {
         <ProDescriptions.Item label="年级">{info?.grade}</ProDescriptions.Item>
         <ProDescriptions.Item label="学期">{textbook?.semester}</ProDescriptions.Item>
         <ProDescriptions.Item label="文件">{textbook?.file}</ProDescriptions.Item>
+        <ProDescriptions.Item label="索引ID">{textbook?.index_file_id}</ProDescriptions.Item>
         <ProDescriptions.Item label="单元解析">
           <StatusTag status={!!textbook?.is_parsed} trueText="已解析" falseText="未解析" />
         </ProDescriptions.Item>

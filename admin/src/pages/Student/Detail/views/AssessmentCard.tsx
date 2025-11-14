@@ -1,17 +1,38 @@
-import { Card, Empty, Tag, Button } from 'antd';
+import { Card, Empty, Tag, Button, Space, Modal, message } from 'antd';
 import { ProTable, ProColumns } from '@ant-design/pro-components';
 import { Link } from '@umijs/max';
 import { useMemo } from 'react';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { fmtTime } from '@/utils/time';
 
 import { useAssessment } from '../hooks/useAssessment';
+import { StudentApi } from '@/services/student';
 
 type AssessmentCardProps = {
   id: string;
 };
 
 export function AssessmentCard({ id }: AssessmentCardProps) {
-  const { assessments, loading } = useAssessment(id);
+  const { assessments, loading, refresh } = useAssessment(id);
+
+  const handleReset = async (assessmentId: number) => {
+    Modal.confirm({
+      title: '确认重置',
+      icon: <ExclamationCircleOutlined />,
+      content: '重置将清除全部进度和已答题目，此操作不可恢复。确定要继续吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await StudentApi.resetAssessment(id, assessmentId);
+          message.success('重置成功');
+          refresh();
+        } catch (error) {
+          message.error('重置失败');
+        }
+      },
+    });
+  };
 
   const columns = useMemo<ProColumns<AssessmentTest>[]>(
     () => [
@@ -92,18 +113,30 @@ export function AssessmentCard({ id }: AssessmentCardProps) {
       {
         title: '操作',
         valueType: 'option',
-        width: 100,
+        width: 180,
         fixed: 'right',
         render: (_, record) => (
-          <Link to={`/student/${id}/practice/assessment/${record.id}`}>
-            <Button type="link" size="small">
-              查看详情
-            </Button>
-          </Link>
+          <Space>
+            <Link to={`/student/${id}/practice/assessment/${record.id}`}>
+              <Button type="link" size="small">
+                查看详情
+              </Button>
+            </Link>
+            {record.status === 'in_progress' && (
+              <Button
+                type="link"
+                size="small"
+                danger
+                onClick={() => handleReset(record.id)}
+              >
+                重置
+              </Button>
+            )}
+          </Space>
         ),
       },
     ],
-    [id],
+    [id, handleReset],
   );
 
   return (

@@ -22,7 +22,7 @@ export const unitPracticeApi = {
     return api.post<UnitPracticeSession>('/practice/unit', {
       unit_id: params.unit_id,
       difficulty: params.difficulty || 'adaptive',
-      count: params.count || 10,
+      count: params.count ?? 30,
     });
   },
 

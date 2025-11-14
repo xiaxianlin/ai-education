@@ -1,10 +1,13 @@
 import type { CSSProperties } from 'react';
-import { Card, Empty, Button, Progress, Spin } from 'antd';
+import { Card, Empty, Button, Progress, Spin, Modal, Space } from 'antd';
 import { Link } from '@umijs/max';
 import { StatisticCard } from '@ant-design/pro-components';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import { useDailyPractice } from '../hooks/useDailyPractice';
+import { StudentApi } from '@/services/student';
 import { fmtTime } from '@/utils/time';
+import { message } from 'antd';
 
 type PracticeCardProps = {
   id: string;
@@ -17,7 +20,29 @@ export function PracticeCard({ id }: PracticeCardProps) {
     generatingPractice,
     handleGenerateDailyPractice,
     practiceHistoryLink,
+    refreshTodayPractice,
   } = useDailyPractice(id);
+
+  const handleRegenerate = async () => {
+    if (!todayPractice?.session) return;
+
+    Modal.confirm({
+      title: '确认重新生成',
+      icon: <ExclamationCircleOutlined />,
+      content: '重新生成将重置全部进度，此操作不可恢复。确定要继续吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await StudentApi.regenerateDailyPractice(id, todayPractice.session!.id);
+          message.success('重新生成成功');
+          refreshTodayPractice();
+        } catch (error) {
+          message.error('重新生成失败');
+        }
+      },
+    });
+  };
 
   return (
     <Card
@@ -33,9 +58,16 @@ export function PracticeCard({ id }: PracticeCardProps) {
         <div>
           {renderPracticeStats(todayPractice.session)}
           <div style={{ marginTop: 16, textAlign: 'center' }}>
-                  <Link to={`/student/${id}/practice/daily/${todayPractice.session.id}`}>
-                    <Button type="primary">查看练习详情 →</Button>
-                  </Link>
+            <Space>
+              <Link to={`/student/${id}/practice/daily/${todayPractice.session.id}`}>
+                <Button type="primary">查看练习详情 →</Button>
+              </Link>
+              {todayPractice.session.status === 'in_progress' && (
+                <Button danger onClick={handleRegenerate}>
+                  重新生成
+                </Button>
+              )}
+            </Space>
           </div>
         </div>
       ) : todayPractice && ['pending', 'running'].includes(todayPractice.status) ? (

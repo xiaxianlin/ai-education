@@ -7,8 +7,10 @@ import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useAssessmentSession } from './hooks/useAssessmentSession';
 import { useCompleteAssessment } from './hooks/useCompleteAssessment';
 import { AssessmentProgress } from './components/AssessmentProgress';
-import { AssessmentQuestionCard } from './components/AssessmentQuestionCard';
 import { AssessmentReport } from './components/AssessmentReport';
+import { QuestionCard } from '@/pages/DailyPractice/components/QuestionCard';
+import { AnswerOptions } from '@/pages/DailyPractice/components/AnswerOptions';
+import { NavigationButtons } from '@/pages/DailyPractice/components/NavigationButtons';
 
 export function AssessmentSession() {
   const { assessmentId } = useParams({ from: '/assessment/$assessmentId' });
@@ -20,7 +22,10 @@ export function AssessmentSession() {
     userAnswer,
     showResult,
     submitting,
-    handleAnswer,
+    isCorrect,
+    handleAnswerChange,
+    handleSubmitAnswer,
+    goToNextQuestion,
     loadNextQuestion,
   } = useAssessmentSession();
 
@@ -91,12 +96,36 @@ export function AssessmentSession() {
         <AssessmentProgress questionData={nextQuestionData} />
 
         {/* 题目卡片 */}
-        <AssessmentQuestionCard
+        <QuestionCard
           question={nextQuestionData.question}
-          userAnswer={userAnswer}
-          showResult={showResult}
+          index={nextQuestionData.answered_count}
+          hasAnswered={showResult}
+          isCorrect={isCorrect}
+        />
+
+        {/* 答题选项 */}
+        <AnswerOptions
+          question={nextQuestionData.question}
+          answer={userAnswer}
+          hasAnswered={showResult}
+          isCorrect={isCorrect}
+          onAnswerChange={handleAnswerChange}
+        />
+
+        {/* 导航按钮 */}
+        <NavigationButtons
+          canGoPrevious={false}
+          canGoNext={showResult}
+          hasAnswered={showResult}
+          hasAnswer={!!userAnswer}
           submitting={submitting}
-          onAnswer={handleAnswer}
+          isLastQuestion={nextQuestionData.progress.current >= nextQuestionData.progress.max}
+          onPrevious={() => {}}
+          onNext={goToNextQuestion}
+          onSubmit={handleSubmitAnswer}
+          onComplete={async () => {
+            await completeAssessment(Number(assessmentId));
+          }}
         />
       </div>
     </div>

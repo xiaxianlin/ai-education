@@ -14,7 +14,7 @@ interface AnswerOptionsProps {
   onAnswerChange: (answer: string, audioUrl?: string) => void;
 }
 
-export const AnswerOptions = memo(function AnswerOptions({
+function AnswerOptionsComponent({
   question,
   answer,
   hasAnswered,
@@ -192,5 +192,7 @@ export const AnswerOptions = memo(function AnswerOptions({
       />
     </div>
   );
-});
+}
+
+export const AnswerOptions = memo(AnswerOptionsComponent);
 

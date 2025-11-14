@@ -11,7 +11,7 @@ interface QuestionCardProps {
   isCorrect?: boolean;
 }
 
-export const QuestionCard = memo(function QuestionCard({
+function QuestionCardComponent({
   question,
   index,
   hasAnswered = false,
@@ -57,5 +57,7 @@ export const QuestionCard = memo(function QuestionCard({
       />
     </Card>
   );
-});
+}
+
+export const QuestionCard = memo(QuestionCardComponent);
 

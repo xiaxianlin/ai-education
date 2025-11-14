@@ -18,6 +18,7 @@ from core.database import (
     StudentStats,
 )
 from admin.schema import DailyPracticeSessionSchema
+from admin.services import wrong_question as wrong_question_service
 from shared.utils.time import now
 from shared.services.task import TaskService
 from shared.services.daily_practice_generation import DailyPracticeGenerationService
@@ -373,6 +374,13 @@ class DailyPracticeService:
 
         # 批改答案
         is_correct = DailyPracticeService._check_answer(question, actual_answer)
+
+        # 如果答案错误，记录到错题本
+        if not is_correct:
+            try:
+                await wrong_question_service.add_wrong_question(db, student_id, question_id)
+            except Exception as e:
+                logger.error(f"记录错题失败: {e}")
 
         # 更新会话的答案记录
         answers = json.loads(session.answers)
