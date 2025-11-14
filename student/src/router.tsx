@@ -57,6 +57,13 @@ const historyRoute = createRoute({
   beforeLoad: requireAuth,
 });
 
+const practiceHistoryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/practice-history',
+  component: PracticeHistory,
+  beforeLoad: requireAuth,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
@@ -126,6 +133,7 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   wrongRoute,
   historyRoute,
+  practiceHistoryRoute,
   profileRoute,
   dailyPracticeRoute,
   dailyPracticeSessionRoute,

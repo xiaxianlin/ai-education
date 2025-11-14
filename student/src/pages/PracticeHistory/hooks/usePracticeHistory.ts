@@ -1,15 +1,24 @@
 /**
- * 练习统计页面逻辑 Hook
+ * 练习记录页面逻辑 Hook
+ * 获取今日练习、单元练习和能力评测的历史记录
  */
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { profileApi, StudyRecord, StudentStats } from '@/services/profile';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  practiceApi, 
+  DailyPracticeHistoryItem, 
+  PracticeHistoryItem, 
+  AssessmentHistoryItem 
+} from '@/services/practice';
 import { useApiError } from '@/lib/hooks/useApiError';
+
+export type TabType = 'daily' | 'unit' | 'assessment';
 
 export function usePracticeHistory() {
   const { handleError } = useApiError();
-  const [records, setRecords] = useState<StudyRecord[]>([]);
-  const [stats, setStats] = useState<StudentStats | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('daily');
+  const [dailyHistory, setDailyHistory] = useState<DailyPracticeHistoryItem[]>([]);
+  const [unitHistory, setUnitHistory] = useState<PracticeHistoryItem[]>([]);
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,12 +28,14 @@ export function usePracticeHistory() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [recordsData, statsData] = await Promise.all([
-        profileApi.getRecords(),
-        profileApi.getStats(),
+      const [daily, unit, assessment] = await Promise.all([
+        practiceApi.getDailyPracticeHistory(50),
+        practiceApi.getPracticeHistory(50),
+        practiceApi.getAssessmentHistory(50),
       ]);
-      setRecords(recordsData);
-      setStats(statsData);
+      setDailyHistory(daily);
+      setUnitHistory(unit);
+      setAssessmentHistory(assessment);
     } catch (error) {
       handleError(error);
     } finally {
@@ -32,45 +43,34 @@ export function usePracticeHistory() {
     }
   }, [handleError]);
 
-  const formatDate = useCallback((timestamp: number) => {
-    const date = new Date(timestamp * 1000);
+  const formatDate = useCallback((dateNum: number) => {
+    const str = String(dateNum);
+    if (str.length === 8) {
+      // 格式：20250114
+      return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+    }
+    // Unix timestamp
+    const date = new Date(dateNum * 1000);
     return date.toLocaleDateString('zh-CN', {
-      month: 'short',
-      day: 'numeric',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     });
   }, []);
 
   const formatTime = useCallback((seconds: number) => {
     const minutes = Math.floor(seconds / 60);
-    return `${minutes} 分钟`;
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  const groupRecordsByDate = useMemo(() => {
-    const grouped: { [key: string]: StudyRecord[] } = {};
-    records.forEach((record) => {
-      const date = formatDate(record.study_date);
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(record);
-    });
-    return grouped;
-  }, [records, formatDate]);
-
-  const getTodayRecords = useMemo(() => {
-    const today = new Date().toLocaleDateString('zh-CN', {
-      month: 'short',
-      day: 'numeric',
-    });
-    return records.filter((r) => formatDate(r.study_date) === today);
-  }, [records, formatDate]);
-
   return {
-    records,
-    stats,
+    activeTab,
+    setActiveTab,
+    dailyHistory,
+    unitHistory,
+    assessmentHistory,
     loading,
-    groupRecordsByDate,
-    getTodayRecords,
     formatDate,
     formatTime,
   };
