@@ -3,13 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import Database
 from student.services import auth
 from student.services import student as student_service
-from admin.services import profile, stats, study_record, wrong_question
+from admin.services import profile, stats, wrong_question
 from admin.services import unit as unit_service
-from admin.services import knowledge as knowledge_service
 from admin.schema import (
     CreateStudentProfileSchema,
     UpdateStudentStatsSchema,
-    CreateStudyRecordSchema,
 )
 
 profile_router = APIRouter(prefix="/profile")
@@ -76,29 +74,6 @@ async def unmark_question_as_mastered(
     return {"success": True}
 
 
-@profile_router.get("/records")
-async def get_records(
-    student=Depends(get_current_student), db: AsyncSession = Database
-):
-    records = await study_record.get_student_study_records(db, student.id, 50)
-    return records
-
-
-@profile_router.post("/records")
-async def create_record(
-    params: CreateStudyRecordSchema,
-    student=Depends(get_current_student),
-    db: AsyncSession = Database,
-):
-    params.student_id = student.id
-    record = await study_record.create_study_record(db, params)
-
-    await stats.increment_student_stats(db, student.id, params.is_correct == 1)
-
-    if params.is_correct == 0 and params.question_id:
-        await wrong_question.add_wrong_question(db, student.id, params.question_id)
-
-    return record
 
 
 @profile_router.get("/textbooks")
@@ -130,14 +105,6 @@ async def get_units(
 
     units = await unit_service.query_unit_by_textbook(db, textbook_id)
 
-    units_with_knowledge: list[dict] = []
-    for unit in units:
-        knowledge_list = await knowledge_service.query_knowledge_by_unit(db, unit.id)
-        unit_dict = unit.model_dump()
-        unit_dict["knowledges"] = [
-            knowledge.model_dump() for knowledge in knowledge_list if knowledge.status == 1
-        ]
-        units_with_knowledge.append(unit_dict)
-
-    return units_with_knowledge
+    # 简化返回：只返回单元信息，不包含知识点（知识点功能已移除）
+    return [unit.model_dump() for unit in units]
 

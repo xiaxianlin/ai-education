@@ -14,16 +14,9 @@ from core.settings import envs
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
-    """清理教材相关数据（优化版，包含QuestionKnowledge关联）"""
-    from core.database import QuestionKnowledge
+    """清理教材相关数据（优化版）"""
 
-    # 1. 删除问题-知识点关联
-    stmt = delete(QuestionKnowledge).where(
-        QuestionKnowledge.knowledge_id.in_(select(Knowledge.id).where(Knowledge.textbook_id == id))
-    )
-    await db.execute(stmt)
-
-    # 2. 删除知识点
+    # 1. 删除知识点
     stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
     await db.execute(stmt)
 

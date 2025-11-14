@@ -6,7 +6,7 @@ from admin.schema import (
     UpdateStudentProfileSchema,
     StudentProfileSchema,
 )
-from core.database import StudentProfile, Student, DailyPracticeSession
+from core.database import StudentProfile, Student, PracticeSession
 from core.schema import ResponseSchema
 from shared.utils.time import now
 
@@ -62,11 +62,12 @@ async def create_or_update_student_profile(
     if textbook_changed:
         today = int(datetime.now().strftime("%Y%m%d"))
         result = await db.execute(
-            select(DailyPracticeSession).where(
+            select(PracticeSession).where(
                 and_(
-                    DailyPracticeSession.student_id == student_id,
-                    DailyPracticeSession.date == today,
-                    DailyPracticeSession.status == "in_progress"
+                    PracticeSession.student_id == student_id,
+                    PracticeSession.session_type == "daily",
+                    PracticeSession.target_id == today,  # target_id 存储日期
+                    PracticeSession.status == "in_progress"
                 )
             )
         )

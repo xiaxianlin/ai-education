@@ -1,176 +1,152 @@
-from sqlalchemy import and_, select, func
+from sqlalchemy import and_, select, func, desc, or_
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.database import StudentWrongQuestion, Student, Question
+from sqlalchemy.orm import joinedload
+from core.database import StudentWrongRecord, Student, Question, PracticeSession
 from core.schema import SearchResultSchema
 from admin.schema import SearchSchema
-from shared.utils.time import now
 
 
-class WrongQuestionSchema:
-    def __init__(self, wrong_question, question):
-        self.id = wrong_question.id
-        self.student_id = wrong_question.student_id
-        self.question_id = wrong_question.question_id
-        self.wrong_count = wrong_question.wrong_count
-        self.last_wrong_time = wrong_question.last_wrong_time
-        self.is_mastered = wrong_question.is_mastered
-        self.mastered_time = wrong_question.mastered_time
-        self.create_time = wrong_question.create_time
-        self.update_time = wrong_question.update_time
+class WrongRecordSchema:
+    def __init__(self, wrong_record, question=None, session=None):
+        self.id = wrong_record.id
+        self.student_id = wrong_record.student_id
+        self.question_id = wrong_record.question_id
+        self.session_id = wrong_record.session_id
+        self.unit_id = wrong_record.unit_id
+        self.knowledge = wrong_record.knowledge
+        self.textbook_id = wrong_record.textbook_id
+        self.user_answer = wrong_record.user_answer
+        self.correct_answer = wrong_record.correct_answer
+        self.time_spent = wrong_record.time_spent
+        self.is_corrected = wrong_record.is_corrected
+        self.corrected_time = wrong_record.corrected_time
+        self.create_time = wrong_record.create_time
+        self.update_time = wrong_record.update_time
         self.question_content = question.content if question else ""
+        self.session_type = session.session_type if session else ""
+        self.unit_name = session.unit.name if session and session.unit else ""
 
 
-async def add_wrong_question(db: AsyncSession, student_id: str, question_id: int):
-    wrong_question = await db.scalar(
-        select(StudentWrongQuestion).where(
-            and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.question_id == question_id,
-            )
-        )
-    )
+async def get_student_wrong_records(
+    db: AsyncSession,
+    student_id: str,
+    is_corrected: int = None,
+    session_type: str = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """获取学生的错题记录"""
+    query = select(StudentWrongRecord).options(
+        joinedload(StudentWrongRecord.session)
+    ).where(StudentWrongRecord.student_id == student_id)
 
-    if not wrong_question:
-        wrong_question = StudentWrongQuestion(
-            student_id=student_id,
-            question_id=question_id,
-            wrong_count=1,
-            last_wrong_time=now(),
-            is_mastered=0,
-            mastered_time=0,
-            create_time=now(),
-            update_time=now(),
-        )
-        db.add(wrong_question)
-    else:
-        wrong_question.wrong_count += 1
-        wrong_question.last_wrong_time = now()
-        wrong_question.update_time = now()
+    if is_corrected is not None:
+        query = query.where(StudentWrongRecord.is_corrected == is_corrected)
 
-    await db.commit()
-    await db.refresh(wrong_question)
+    if session_type:
+        query = query.join(PracticeSession).where(PracticeSession.session_type == session_type)
 
-    return wrong_question
-
-
-async def get_wrong_question(db: AsyncSession, student_id: str, question_id: int):
-    wrong_question = await db.scalar(
-        select(StudentWrongQuestion).where(
-            and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.question_id == question_id,
-            )
-        )
-    )
-
-    if not wrong_question:
-        return None
-
-    question = await db.scalar(select(Question).where(Question.id == question_id))
-
-    return WrongQuestionSchema(wrong_question, question)
-
-
-async def get_student_wrong_questions(db: AsyncSession, student_id: str, is_mastered: int = None):
-    query = select(StudentWrongQuestion).where(StudentWrongQuestion.student_id == student_id)
-
-    if is_mastered is not None:
-        query = query.where(StudentWrongQuestion.is_mastered == is_mastered)
-
-    query = query.order_by(StudentWrongQuestion.last_wrong_time.desc())
+    query = query.order_by(desc(StudentWrongRecord.create_time)).limit(limit).offset(offset)
 
     result = await db.scalars(query)
-    wrong_questions = result.all()
+    wrong_records = result.all()
 
     output = []
-    for wq in wrong_questions:
-        question = await db.scalar(select(Question).where(Question.id == wq.question_id))
-        output.append(WrongQuestionSchema(wq, question))
+    for record in wrong_records:
+        question = await db.scalar(select(Question).where(Question.id == record.question_id))
+        output.append(WrongRecordSchema(record, question, record.session))
 
     return output
 
 
-async def mark_as_mastered(db: AsyncSession, student_id: str, question_id: int):
-    wrong_question = await db.scalar(
-        select(StudentWrongQuestion).where(
+async def mark_wrong_record_corrected(db: AsyncSession, record_id: int, student_id: str):
+    """标记错题记录为已订正"""
+    wrong_record = await db.scalar(
+        select(StudentWrongRecord).where(
             and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.question_id == question_id,
+                StudentWrongRecord.id == record_id,
+                StudentWrongRecord.student_id == student_id,
             )
         )
     )
 
-    if not wrong_question:
+    if not wrong_record:
         raise ValueError("错题记录不存在")
 
-    wrong_question.is_mastered = 1
-    wrong_question.mastered_time = now()
-    wrong_question.update_time = now()
+    from shared.utils.time import now
+    wrong_record.is_corrected = 1
+    wrong_record.corrected_time = now()
+    wrong_record.update_time = now()
 
     await db.commit()
-    await db.refresh(wrong_question)
+    await db.refresh(wrong_record)
 
-    return wrong_question
+    return wrong_record
 
 
-async def unmark_as_mastered(db: AsyncSession, student_id: str, question_id: int):
-    wrong_question = await db.scalar(
-        select(StudentWrongQuestion).where(
+async def get_wrong_record_stats(db: AsyncSession, student_id: str):
+    """获取学生的错题统计信息"""
+    # 总错题记录数
+    total_wrong = await db.scalar(
+        select(func.count(StudentWrongRecord.id)).where(
+            StudentWrongRecord.student_id == student_id
+        )
+    )
+
+    # 已订正的错题数
+    corrected_wrong = await db.scalar(
+        select(func.count(StudentWrongRecord.id)).where(
             and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.question_id == question_id,
+                StudentWrongRecord.student_id == student_id,
+                StudentWrongRecord.is_corrected == 1,
             )
         )
     )
 
-    if not wrong_question:
-        raise ValueError("错题记录不存在")
+    # 未订正的错题数
+    uncorrected_wrong = total_wrong - corrected_wrong
 
-    wrong_question.is_mastered = 0
-    wrong_question.mastered_time = 0
-    wrong_question.update_time = now()
-
-    await db.commit()
-    await db.refresh(wrong_question)
-
-    return wrong_question
-
-
-async def delete_wrong_question(db: AsyncSession, student_id: str, question_id: int):
-    wrong_question = await db.scalar(
-        select(StudentWrongQuestion).where(
+    # 按知识点统计
+    knowledge_stats = await db.execute(
+        select(
+            StudentWrongRecord.knowledge,
+            func.count(StudentWrongRecord.id)
+        ).where(
             and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.question_id == question_id,
+                StudentWrongRecord.student_id == student_id,
+                StudentWrongRecord.knowledge.isnot(None)
             )
-        )
+        ).group_by(StudentWrongRecord.knowledge)
     )
 
-    if wrong_question:
-        await db.delete(wrong_question)
-        await db.commit()
-
-
-async def get_wrong_question_stats(db: AsyncSession, student_id: str):
-    total = await db.scalar(
-        select(func.count(StudentWrongQuestion.id)).where(
-            StudentWrongQuestion.student_id == student_id
-        )
-    ) or 0
-
-    mastered = await db.scalar(
-        select(func.count(StudentWrongQuestion.id)).where(
-            and_(
-                StudentWrongQuestion.student_id == student_id,
-                StudentWrongQuestion.is_mastered == 1,
-            )
-        )
-    ) or 0
-
-    unmastered = total - mastered
+    knowledge_breakdown = {row[0]: row[1] for row in knowledge_stats.all()}
 
     return {
-        "total": total,
-        "mastered": mastered,
-        "unmastered": unmastered,
+        "total_wrong": total_wrong,
+        "corrected_wrong": corrected_wrong,
+        "uncorrected_wrong": uncorrected_wrong,
+        "knowledge_breakdown": knowledge_breakdown,
     }
+
+
+async def get_wrong_records_by_question(db: AsyncSession, student_id: str, question_id: int):
+    """获取特定题目的错题记录"""
+    result = await db.scalars(
+        select(StudentWrongRecord).options(
+            joinedload(StudentWrongRecord.session)
+        ).where(
+            and_(
+                StudentWrongRecord.student_id == student_id,
+                StudentWrongRecord.question_id == question_id,
+            )
+        ).order_by(desc(StudentWrongRecord.create_time))
+    )
+
+    wrong_records = result.all()
+    question = await db.scalar(select(Question).where(Question.id == question_id))
+
+    output = []
+    for record in wrong_records:
+        output.append(WrongRecordSchema(record, question, record.session))
+
+    return output

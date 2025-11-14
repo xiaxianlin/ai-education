@@ -195,22 +195,6 @@ class StudentStatsSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class StudyRecordSchema(BaseModel):
-    id: int
-    student_id: str
-    textbook_id: int
-    unit_id: Optional[int] = None
-    knowledge: Optional[str] = None
-    question_id: Optional[int] = None
-    is_correct: int = 0
-    score: float = 0.0
-    time_spent: int = 0
-    study_date: int
-    create_time: int
-
-    model_config = {"from_attributes": True}
-
-
 class CreateStudentProfileSchema(BaseModel):
     current_textbook_id: Optional[int] = None
     preferred_subjects: str = ""
@@ -234,19 +218,21 @@ class UpdateStudentStatsSchema(BaseModel):
     achievements: Optional[str] = None
 
 
-class CreateStudyRecordSchema(BaseModel):
-    student_id: str
-    textbook_id: int
-    unit_id: Optional[int] = None
-    knowledge: Optional[str] = None
-    question_id: Optional[int] = None
-    is_correct: int = 0
-    score: float = 0.0
-    time_spent: int = 0
-    study_date: Optional[int] = None
-
-
 # ===== 单元练习相关 Schema =====
+# ===== 练习会话相关 Schema =====
+class PracticeSessionSchema(BaseModel):
+    id: int
+    student_id: str
+    session_type: str  # daily/unit/assessment
+    target_id: Optional[int] = None  # 日期ID（daily）/单元ID（unit）
+    textbook_id: int
+    status: str = "in_progress"
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
 class UnitPracticeSessionSchema(BaseModel):
     id: int
     student_id: str
@@ -289,17 +275,16 @@ class CompleteUnitPracticeSchema(BaseModel):
 class DailyPracticeSessionSchema(BaseModel):
     id: int
     student_id: str
-    date: int
-    total_questions: int = 0
-    correct_questions: int = 0
-    total_time: int = 0
-    score: float = 0.0
-    practice_type: str = "daily"
-    knowledge_coverage: str = "{}"
-    question_distribution: str = "{}"
-    question_ids: str = "[]"
-    answers: str = "{}"
+    session_type: str = "daily"
+    target_id: int | None = None  # 日期（对于daily类型）
+    textbook_id: int | None = None
     status: str = "in_progress"
+    start_time: int
+    end_time: int | None = None
+    adaptive: int = 1
+    max_questions: int = 30
+    min_questions: int = 30
+    difficulty: str = "adaptive"
     create_time: int
     update_time: int
 
@@ -366,14 +351,21 @@ class CompleteAssessmentSchema(BaseModel):
     assessment_id: int
 
 
-class AssessmentReportSchema(BaseModel):
+# PracticeReport schema 现在统一用于所有练习类型
+class PracticeReportSchema(BaseModel):
     id: int
-    assessment_id: int
+    session_id: int
     student_id: str
+    total_questions: int
+    correct_questions: int
+    total_time: int
     overall_score: float
+    current_ability: float
+    confidence: float
     ability_level: str
     percentile: int
-    knowledge_mastery: str
+    knowledge_scores: str
+    question_distribution: str
     ability_breakdown: str
     learning_speed: float
     consistency: float
@@ -381,5 +373,6 @@ class AssessmentReportSchema(BaseModel):
     weaknesses: str
     recommendations: str
     create_time: int
+    update_time: int
 
     model_config = {"from_attributes": True}

@@ -7,10 +7,8 @@ from datetime import datetime
 
 from core.database import Database
 from student.routes.profile import get_current_student
-from student.services.unit_practice import UnitPracticeService
-from core.database import UnitPracticeSession
-from student.services.daily_practice import DailyPracticeService
-from student.services.assessment import AssessmentService
+from core.database import PracticeSession
+from student.services.practice import PracticeService
 from shared.provider.aliyun import AliyunOSS
 from shared.ai.services.aliyun import AliyunAIService
 from loguru import logger
@@ -50,7 +48,7 @@ async def create_daily_practice(
     - 20% 挑战题目
     - 10% 新知识点
     """
-    session = await DailyPracticeService.create_daily_practice(
+    session = await PracticeService.create_daily_practice(
         db, student.id, params.count, params.practice_type
     )
     return session
@@ -70,7 +68,7 @@ async def check_today_practice(
     - status: 状态（ready/generating/completed）
     - progress: 进度（0-100）
     """
-    result = await DailyPracticeService.check_or_create_today_practice(db, student.id)
+    result = await PracticeService.check_or_create_today_practice(db, student.id)
     return result
 
 
@@ -81,18 +79,17 @@ async def get_daily_practice_progress(
     db: AsyncSession = Database,
 ):
     """
-    获取今日练习生成进度
+    获取今日练习生成进度（已废弃，不再使用任务服务）
     
-    参数：
-    - task_id: 任务ID
-    
-    返回：
-    - status: 任务状态
-    - progress: 进度（0-100）
-    - session: 如果完成，返回会话信息
+    此端点已废弃，现在生成是同步的，不再需要查询进度。
+    请使用 /daily/check 端点检查今日练习状态。
     """
-    result = await DailyPracticeService.get_generation_progress(db, student.id, task_id)
-    return result
+    # 返回错误，提示使用新的端点
+    from fastapi import HTTPException
+    raise HTTPException(
+        status_code=410,  # Gone
+        detail="此端点已废弃。现在生成是同步的，请使用 /daily/check 端点检查今日练习状态。"
+    )
 
 
 @practice_router.get("/daily/history")
@@ -107,7 +104,7 @@ async def get_daily_practice_history(
     参数：
     - limit: 返回记录数，默认30
     """
-    history = await DailyPracticeService.get_practice_history(db, student.id, limit)
+    history = await PracticeService.get_practice_history(db, student.id, limit)
     return history
 
 
@@ -126,7 +123,7 @@ async def get_daily_practice_stats(
     - consecutive_days: 连续天数
     - total_practice: 累计练习次数
     """
-    stats = await DailyPracticeService.get_today_stats(db, student.id)
+    stats = await PracticeService.get_today_stats(db, student.id)
     return stats
 
 
@@ -178,7 +175,7 @@ async def get_daily_practice_session(
     - 会话信息
     - 题目列表
     """
-    session_data = await DailyPracticeService.get_practice_session(
+    session_data = await PracticeService.get_practice_session(
         db, session_id, student.id
     )
     if not session_data:
@@ -206,7 +203,7 @@ async def submit_daily_practice_answer(
     - correct_answer: 正确答案
     - explanation: 解析
     """
-    result = await DailyPracticeService.submit_answer(
+    result = await PracticeService.submit_answer(
         db,
         student.id,
         params.session_id,
@@ -233,7 +230,7 @@ async def complete_daily_practice(
     返回：
     - 练习报告，包括总分、知识点掌握情况、题目分布等
     """
-    report = await DailyPracticeService.complete_practice(
+    report = await PracticeService.complete_practice(
         db, student.id, params.session_id
     )
     return report
@@ -258,7 +255,7 @@ async def create_unit_practice(
     - difficulty: 难度 (easy/medium/hard/adaptive)
     - count: 题目数量（默认30）
     """
-    session = await UnitPracticeService.create_practice_session(
+    session = await PracticeService.create_practice_session(
         db, student.id, params.unit_id, params.difficulty, params.count
     )
     return session
@@ -276,12 +273,13 @@ async def get_incomplete_unit_sessions(
     - 一个字典，key 为 unit_id，value 为 session_id
     """
     result = await db.execute(
-        select(UnitPracticeSession).where(
+        select(PracticeSession).where(
             and_(
-                UnitPracticeSession.student_id == student.id,
-                UnitPracticeSession.status == "in_progress",
+                PracticeSession.student_id == student.id,
+                PracticeSession.session_type == "unit",
+                PracticeSession.status == "in_progress",
             )
-        ).order_by(UnitPracticeSession.create_time.desc())
+        ).order_by(PracticeSession.create_time.desc())
     )
     sessions = result.scalars().all()
     
@@ -309,7 +307,7 @@ async def get_unit_practice_session(
     - 题目列表
     - 单元信息
     """
-    session_data = await UnitPracticeService.get_practice_session(
+    session_data = await PracticeService.get_practice_session(
         db, session_id, student.id
     )
     if not session_data:
@@ -337,7 +335,7 @@ async def submit_unit_practice_answer(
     - correct_answer: 正确答案
     - explanation: 解析
     """
-    result = await UnitPracticeService.submit_answer(
+    result = await PracticeService.submit_answer(
         db,
         student.id,
         params.session_id,
@@ -364,7 +362,7 @@ async def complete_unit_practice(
     返回：
     - 练习报告，包括总分、知识点掌握情况等
     """
-    report = await UnitPracticeService.complete_practice(
+    report = await PracticeService.complete_practice(
         db, student.id, params.session_id
     )
     return report
@@ -384,7 +382,7 @@ async def get_unit_progress(
     - 各知识点掌握情况
     - 练习历史
     """
-    progress = await UnitPracticeService.get_unit_progress(db, student.id, unit_id)
+    progress = await PracticeService.get_unit_progress(db, student.id, unit_id)
     return progress
 
 
@@ -400,7 +398,7 @@ async def get_practice_history(
     参数：
     - limit: 返回记录数，默认20
     """
-    history = await UnitPracticeService.get_practice_history(db, student.id, limit)
+    history = await PracticeService.get_practice_history(db, student.id, limit)
     return history
 
 
@@ -426,7 +424,7 @@ async def create_assessment(
     - 快速定位能力边界
     - 提高测试精度
     """
-    test = await AssessmentService.create_assessment(
+    test = await PracticeService.create_assessment(
         db,
         student.id,
         params.assessment_type,
@@ -454,7 +452,7 @@ async def get_next_assessment_question(
     
     如果返回null，表示评测已达到终止条件
     """
-    next_question = await AssessmentService.get_next_question(
+    next_question = await PracticeService.get_next_question(
         db, assessment_id, student.id
     )
     return next_question
@@ -482,7 +480,7 @@ async def submit_assessment_answer(
     - confidence: 更新后的置信度
     - answered_count: 已答题目数
     """
-    result = await AssessmentService.submit_answer(
+    result = await PracticeService.submit_answer(
         db,
         student.id,
         params.assessment_id,
@@ -520,7 +518,7 @@ async def complete_assessment(
         - weaknesses: 薄弱点
         - recommendations: 学习建议
     """
-    report = await AssessmentService.complete_assessment(
+    report = await PracticeService.complete_assessment(
         db, student.id, params.assessment_id
     )
     return report
@@ -538,6 +536,6 @@ async def get_assessment_history(
     参数：
     - limit: 返回记录数，默认10
     """
-    history = await AssessmentService.get_assessment_history(db, student.id, limit)
+    history = await PracticeService.get_assessment_history(db, student.id, limit)
     return history
 

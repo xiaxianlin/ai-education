@@ -1,4 +1,4 @@
-from . import auth, knowledge, manager, profile, question, stats, student, study_record, textbook, unit, wrong_question
+from . import auth, knowledge, manager, profile, question, stats, student, textbook, unit, wrong_question
 
 __all__ = [
     "auth",
@@ -8,7 +8,6 @@ __all__ = [
     "question",
     "stats",
     "student",
-    "study_record",
     "textbook",
     "unit",
     "wrong_question",

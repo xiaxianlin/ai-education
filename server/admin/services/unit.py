@@ -3,7 +3,7 @@ from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from core.schema import SearchResultSchema, SearchSchema, UnitSchema
-from core.database import Unit, Knowledge, Textbook, QuestionKnowledge
+from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from shared.utils.time import now
 
@@ -55,9 +55,6 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     knowledge_ids = knowledge_ids_result.all()
 
     if knowledge_ids:
-        await db.execute(
-            delete(QuestionKnowledge).where(QuestionKnowledge.knowledge_id.in_(knowledge_ids))
-        )
         await db.execute(delete(Knowledge).where(Knowledge.id.in_(knowledge_ids)))
 
     await db.delete(unit)

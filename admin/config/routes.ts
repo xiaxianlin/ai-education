@@ -11,8 +11,6 @@
   { path: '/student/detail/:id', component: './Student/Detail' },
   { path: '/student/:id/practice-history', component: './Student/PracticeHistory' },
   { path: '/student/:id/practice/:type/:sessionId', component: './Student/PracticeDetail' },
-  { path: '/task', name: '任务管理', icon: 'ClockCircle', component: './Task/List' },
-  { path: '/task/detail/:id', component: './Task/Detail' },
   { path: '/password', component: './ModifyPassword' },
   { path: '/login', layout: false, component: './Login' },
   { path: '*', layout: false, component: './404' },

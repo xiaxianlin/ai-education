@@ -4,9 +4,10 @@ from admin.schema import (
     UpdateStudentStatsSchema,
     StudentStatsSchema,
 )
-from core.database import StudentStats, Student, StudyRecord
+from core.database import StudentStats, Student
 from core.schema import ResponseSchema
 from shared.utils.time import now
+from shared.services.practice import PracticeService
 
 
 async def get_student_stats(db: AsyncSession, student_id: str):
@@ -129,6 +130,11 @@ async def increment_student_stats(db: AsyncSession, student_id: str, is_correct:
     await db.refresh(stats)
 
     return StudentStatsSchema.model_validate(stats)
+
+
+async def get_practice_statistics(db: AsyncSession, student_id: str, session_type: str = None):
+    """获取学生的练习统计信息"""
+    return await PracticeService.get_practice_statistics(db, student_id, session_type)
 
 
 async def delete_student_stats(db: AsyncSession, student_id: str):

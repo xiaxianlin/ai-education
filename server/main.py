@@ -13,7 +13,6 @@ from core.logger import logger
 
 from admin import admin_app
 from admin.services.manager import init_super_manager
-from shared.services.task_executor import task_executor
 from student import student_app
 
 dotenv.load_dotenv()
@@ -33,15 +32,7 @@ async def lifespan(_: FastAPI):
     if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
         await init_super_manager()
     
-    # 启动任务执行器
-    await task_executor.start()
-    logger.info("任务执行器已启动")
-    
     yield
-    
-    # 停止任务执行器
-    await task_executor.stop()
-    logger.info("任务执行器已停止")
 
 
 app = FastAPI(lifespan=lifespan)

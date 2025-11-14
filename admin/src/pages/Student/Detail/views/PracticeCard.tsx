@@ -94,6 +94,47 @@ export function PracticeCard({ id }: PracticeCardProps) {
             </div>
           </div>
         </div>
+      ) : todayPractice && todayPractice.status === 'failed' ? (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '40px 0',
+            background: '#fff1f0',
+            borderRadius: '8px',
+            border: '1px solid #ffccc7',
+          }}
+        >
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+          <div style={{ color: '#ff4d4f', fontSize: '16px', fontWeight: 500, marginBottom: '8px' }}>
+            生成失败
+          </div>
+          {todayPractice.error_message && (
+            <div
+              style={{
+                color: '#666',
+                fontSize: '14px',
+                marginTop: '12px',
+                maxHeight: '100px',
+                overflow: 'auto',
+                textAlign: 'left',
+                background: '#fff',
+                borderRadius: '4px',
+                padding: '12px',
+              }}
+            >
+              {todayPractice.error_message}
+            </div>
+          )}
+          <div style={{ marginTop: '20px' }}>
+            <Button
+              type="primary"
+              onClick={handleGenerateDailyPractice}
+              loading={generatingPractice}
+            >
+              重新生成
+            </Button>
+          </div>
+        </div>
       ) : (
         <div
           style={{

@@ -611,8 +611,6 @@ async def unit_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
 
 async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     """根据传入参数生成今日练习 prompt"""
-    from shared.services.unit_mastery_service import UnitMasteryService
-
     prompt_input, parser = _build_common_prompt_inputs(params)
 
     # 从参数中获取学生相关信息
@@ -620,35 +618,17 @@ async def daily_generate_prompt(params: Dict[str, Any]) -> Dict[str, Any]:
     textbook_id = params.get("textbook_id")
     db = params.get("db")
 
-    # 初始化默认值
+    # 初始化默认值（简化：不再使用复杂的掌握度计算）
     weak_knowledge_points = []
     mastered_knowledge = []
     review_units = []
 
-    # 如果有学生数据，则加载真实的掌握度信息
+    # 如果有学生数据，可以考虑从 PracticeReport 中获取基本统计信息
+    # 暂时使用默认策略，保持向后兼容
     if student_id and textbook_id and db:
         try:
-            # 获取学生单元掌握度数据
-            mastery_map = await UnitMasteryService.get_student_unit_mastery_map(db, student_id, textbook_id)
-
-            # 提取薄弱知识点（mastery_level < 0.6）
-            weak_units = [unit_id for unit_id, data in mastery_map.items() if data.get("mastery_level", 0) < 0.6]
-            if weak_units:
-                weak_knowledge_points = await _get_knowledge_names_by_units(db, weak_units)
-
-            # 提取已掌握知识点（0.6 <= mastery_level < 0.8）
-            mastered_units = [
-                unit_id for unit_id, data in mastery_map.items() if 0.6 <= data.get("mastery_level", 0) < 0.8
-            ]
-            if mastered_units:
-                mastered_knowledge = await _get_knowledge_names_by_units(db, mastered_units)
-
-            # 提取需要复习的单元（基于遗忘曲线）
-            review_units = (
-                await UnitMasteryService.get_units_need_review(db, student_id, textbook_id)
-                if hasattr(UnitMasteryService, "get_units_need_review")
-                else []
-            )
+            # 可以考虑从 PracticeReport 中获取学习统计，但暂时保持简单
+            pass
         except Exception as e:
             logger.warning(f"加载学生学习数据失败，将使用默认策略: {e}")
 
