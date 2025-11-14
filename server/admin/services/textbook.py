@@ -5,7 +5,8 @@ from loguru import logger
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
-from shared.provider.aliyun import AliyunRag, AliyunApp
+from shared.provider.aliyun import AliyunRag
+from shared.services.textbook_parser import TextbookParser
 from core.database import Knowledge, Question, Textbook, Unit
 from core.schema import TextbookSchema
 from shared.utils.time import now
@@ -153,50 +154,47 @@ async def update_textbook_status(db: AsyncSession, id: int, status: int):
 
 
 async def parse_textbook(db: AsyncSession, id: int):
+    """
+    解析教材，使用RAG知识库解析：
+    1. 从RAG知识库获取切片数据
+    2. 解析教材内容，提取单元信息
+    3. 交给 AI 去生成单元和知识点数据
+    """
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
         raise ValueError("教材不存在")
-    if not textbook.file:
-        raise ValueError("教材文件不存在")
     if not textbook.index_file_id:
-        raise ValueError("教材文件还未被解析")
+        raise ValueError("教材文件还未上传到知识库，请先上传文件")
 
     # 重新解析，需要清理教材相关数据
     await _clean_textbook(db, id)
 
-    logger.info(f"解析教材{textbook.file}，index_id:{textbook.index_file_id}")
+    logger.info(f"开始解析教材: {textbook.file}，file_id: {textbook.index_file_id}")
 
-    data = AliyunApp.invoke(
-        query=f"对知识库中 pdf 名称为 {textbook.file}，索引 ID 为 {textbook.index_file_id} 的文件进行全文解析",
-        app_id="e18385d4dd3e4801938b6f68024466b3",
-        file_id=textbook.index_file_id,
-    )
+    # 使用RAG知识库解析
+    parsed_units = await TextbookParser.parse_by_rag(textbook.index_file_id)
+    logger.info(f"AI解析完成，共{len(parsed_units)}个单元")
 
-    units = data.get("units")
-    if not units:
-        raise ValueError("教材解析格式错误")
-
-    # 解析单元和知识点
-    for _, item in enumerate(units):
+    # 保存单元和知识点到数据库
+    for item in parsed_units:
         # 创建单元
-        unit = Unit(textbook_id=id, name=item.get("unit_name"), content=item.get("unit_content"))
+        unit = Unit(textbook_id=id, name=item.unit_name, content=item.unit_content)
         db.add(unit)
         await db.commit()
         await db.refresh(unit)
 
         # 创建知识点（带排序和默认属性）
-        knowledges = item.get("topics")
-        if not knowledges:
+        topics = item.topics
+        if not topics:
             continue
 
         knowledge_objects = []
-        for knowledge_index, topic in enumerate(knowledges):
-            # ✅ 优化：设置知识点排序（order）
+        for knowledge_index, topic in enumerate(topics):
             knowledge = Knowledge(
                 unit_id=unit.id,
                 textbook_id=id,
-                name=topic.get("topic_name"),
-                content=topic.get("topic_content"),
+                name=topic.get("topic_name", ""),
+                content=topic.get("topic_content", ""),
                 order=knowledge_index,  # 按解析顺序设置排序
                 difficulty=None,  # 可后续手动设置或通过AI分析
                 importance=5,  # 默认重要性
@@ -208,7 +206,8 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     textbook.is_parsed = 1
     await db.commit()
-    return units
+
+    return [unit.model_dump() for unit in parsed_units]
 
 
 async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):

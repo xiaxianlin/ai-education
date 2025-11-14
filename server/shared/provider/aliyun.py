@@ -1,12 +1,9 @@
 import os
-import json
 import time
 import hashlib
 import requests
 from loguru import logger
-from http import HTTPStatus
 from datetime import timedelta
-from dashscope import Application, Assistants
 import alibabacloud_oss_v2 as oss
 from alibabacloud_tea_util.models import RuntimeOptions
 from alibabacloud_tea_openapi.models import Config
@@ -20,6 +17,7 @@ from alibabacloud_bailian20231229.models import (
     DeleteIndexDocumentRequest,
     ApplyFileUploadLeaseRequest,
     SubmitIndexAddDocumentsJobRequest,
+    ListChunksRequest,
 )
 from core.settings import envs
 
@@ -199,6 +197,59 @@ class AliyunRag:
             runtime,
         )
 
+    def get_chunks_paginated(self, file_id: str = None, page_num: int = 1, page_size: int = 100):
+        """
+        获取知识库中的所有切片数据
+
+        Args:
+            file_id: 文件ID，如果提供则只获取该文件的切片，否则获取所有切片
+            page_num: 页码，从1开始
+            page_size: 每页大小，最大100
+
+        Returns:
+            包含切片数据的响应对象
+        """
+        request = ListChunksRequest(
+            index_id=self.index_id,
+            file_id=file_id,
+            page_num=page_num,
+            page_size=min(page_size, 100),  # 限制最大为100
+        )
+
+        res = self.client.list_chunks(self.workspace_id, request)
+        return [node.text for node in res.body.data.nodes]
+
+    def get_all_chunks(self, file_id: str = None):
+        """
+        分页获取所有切片数据（自动处理分页）
+
+        Args:
+            file_id: 文件ID，如果提供则只获取该文件的切片，否则获取所有切片
+
+        Returns:
+            所有切片的列表
+        """
+        all_chunks = []
+        page_num = 1
+
+        while True:
+            try:
+                chunks = self.get_chunks_paginated(
+                    file_id=file_id, page_num=page_num, page_size=100
+                )
+
+                if not chunks or len(chunks) == 0:
+                    break
+
+                page_num = page_num + 1
+                all_chunks.extend(chunks)
+            except Exception as e:
+                logger.error(f"获取切片数据失败 (页码 {page_num}): {e}")
+                break
+
+        logger.info(f"共获取到 {len(all_chunks)} 个切片")
+        return all_chunks
+
     def exec_upload(self, file_name: str, file_path: str, old_file_id=None) -> str:
         """上传知识库文件，如果已经存在，则更新"""
         try:
@@ -328,60 +379,3 @@ class AliyunOSS:
         req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
         res = self.client.presign(req, expires=timedelta(days=days))
         return res.url
-
-
-class TextbookParserAssitant:
-    def create_assistant(index_id):
-        """创建一个使用指定知识库的 Assistant。"""
-        assistant = Assistants.create(
-            model="qwen-plus",  # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
-            name="智能手机选购助手",
-            description="一个帮助用户选择手机的智能助手。",
-            instructions="你是一个手机选购向导，你的任务是帮助用户选择满意的手机。使用提供的知识库来回答用户的问题。以下信息可能对你有帮助：${documents}。",
-            tools=[
-                {
-                    "type": "rag",  # 指定使用RAG（检索增强生成）模式
-                    "prompt_ra": {
-                        "pipeline_id": ["09opu660dx"],
-                        "multiknowledge_rerank_top_n": 10,  # 多知识源重排序时返回的top N结果数
-                        "rerank_top_n": 5,  # 最终重排序后返回的top N结果数
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "query_word": {
-                                    "type": "str",
-                                    "value": "${documents}",  # 使用动态占位符，将被实际查询内容替换
-                                }
-                            },
-                        },
-                    },
-                },
-            ],
-        )
-        return assistant.id
-
-
-class AliyunApp:
-    def invoke(query: str, app_id: str, file_id: str) -> dict:
-        """调用阿里百炼平台应用"""
-        response = Application.call(
-            api_key=envs.AI_PLATFORM_KEY,
-            app_id=app_id,
-            prompt=query,
-            rag_options={
-                "pipeline_ids": ["09opu660dx"],
-                "file_ids": [file_id],
-            },
-        )
-        if response.status_code != HTTPStatus.OK:
-            raise ValueError(response.message)
-
-        raw_text = response.output.text
-        if not raw_text:
-            raise ValueError("提取数据失败")
-
-        try:
-            json_data = json.loads(raw_text)
-            return json_data
-        except json.JSONDecodeError:
-            raise ValueError("提取的 JSON 格式错误")
