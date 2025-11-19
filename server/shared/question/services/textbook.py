@@ -7,6 +7,7 @@ from loguru import logger
 
 from core.database import Knowledge, Textbook, Unit, Question
 from shared.question.types import QuestionGenerationState
+from shared.question.prompts.textbook import build_textbook_prompt
 
 
 class TextbookGenerateService:
@@ -82,3 +83,8 @@ class TextbookGenerateService:
             "knowledges": knowledges,
             "recall_questions": recalled_questions,
         }
+
+    @classmethod
+    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+        """构建教材生成的prompt"""
+        return build_textbook_prompt(state)

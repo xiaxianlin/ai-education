@@ -7,6 +7,7 @@ from loguru import logger
 
 from core.database import Knowledge, Textbook, Question
 from shared.question.types import QuestionGenerationState
+from shared.question.prompts.assessment import build_assessment_prompt
 
 
 class AssessmentGenerateService:
@@ -74,3 +75,8 @@ class AssessmentGenerateService:
             "knowledges": knowledges,
             "recall_questions": recalled_questions,
         }
+
+    @classmethod
+    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+        """构建能力评估的prompt"""
+        return build_assessment_prompt(state)

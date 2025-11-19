@@ -7,6 +7,7 @@ from loguru import logger
 
 from core.database import Question, Textbook
 from shared.question.types import QuestionGenerationState
+from shared.question.prompts.daily_practice import build_daily_practice_prompt
 
 
 class DailyPracticeGenerateService:
@@ -82,3 +83,9 @@ class DailyPracticeGenerateService:
             "mastered_knowledge": mastered_knowledge,
             "review_units": review_units,
         }
+
+    @classmethod
+    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+        """构建今日练习的prompt"""
+        return build_daily_practice_prompt(state)
+

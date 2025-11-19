@@ -21,12 +21,6 @@ from shared.question.services.daily_practice import DailyPracticeGenerateService
 from shared.question.services.unit_practice import UnitPracticeGenerateService
 from shared.question.services.assessment import AssessmentGenerateService
 
-# 导入各生成类型的Prompt构建函数
-from shared.question.prompts.unit import build_unit_prompt
-from shared.question.prompts.textbook import build_textbook_prompt
-from shared.question.prompts.daily_practice import build_daily_practice_prompt
-from shared.question.prompts.unit_practice import build_unit_practice_prompt
-from shared.question.prompts.assessment import build_assessment_prompt
 
 
 def entry_node(state: QuestionGenerationState) -> str:
@@ -41,6 +35,9 @@ def entry_node(state: QuestionGenerationState) -> str:
 
     if state.get("subject") is None:
         raise ValueError("学科（subject）不能为空")
+
+    if state.get("grade") is None:
+        raise ValueError("年级（grade）不能为空")
 
 
 def router_node(state: QuestionGenerationState) -> str:
@@ -110,31 +107,31 @@ async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str,
 async def build_unit_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元prompt"""
     logger.info("开始构建单元prompt")
-    return build_unit_prompt(state)
+    return UnitGenerateService.build_prompt(state)
 
 
 async def build_textbook_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建教材prompt"""
     logger.info("开始构建教材prompt")
-    return build_textbook_prompt(state)
+    return TextbookGenerateService.build_prompt(state)
 
 
 async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建今日练习prompt"""
     logger.info("开始构建今日练习prompt")
-    return build_daily_practice_prompt(state)
+    return DailyPracticeGenerateService.build_prompt(state)
 
 
 async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习prompt"""
     logger.info("开始构建单元练习prompt")
-    return build_unit_practice_prompt(state)
+    return UnitPracticeGenerateService.build_prompt(state)
 
 
 async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建能力评估prompt"""
     logger.info("开始构建能力评估prompt")
-    return build_assessment_prompt(state)
+    return AssessmentGenerateService.build_prompt(state)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:

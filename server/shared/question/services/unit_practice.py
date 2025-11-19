@@ -7,6 +7,7 @@ from loguru import logger
 
 from core.database import Knowledge, Unit, Question
 from shared.question.types import QuestionGenerationState
+from shared.question.prompts.unit_practice import build_unit_practice_prompt
 
 
 class UnitPracticeGenerateService:
@@ -75,3 +76,8 @@ class UnitPracticeGenerateService:
             "knowledges": knowledges,
             "recall_questions": recalled_questions,
         }
+
+    @classmethod
+    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+        """构建单元练习的prompt"""
+        return build_unit_practice_prompt(state)
