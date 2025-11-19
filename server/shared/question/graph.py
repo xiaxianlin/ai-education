@@ -16,6 +16,8 @@ from shared.question.services import storage as storage_service
 
 from .services.unit_practice import UnitPracticeGenerateService
 
+from .prompts.unit_practice import build_unit_practice_prompt
+
 
 def entry_node(state: QuestionGenerationState) -> str:
     if state.get("db") is None:
@@ -26,6 +28,9 @@ def entry_node(state: QuestionGenerationState) -> str:
 
     if state.get("count") is None:
         raise ValueError("题目数量（count）不能为空")
+
+    if state.get("subject") is None:
+        raise ValueError("学科（subject）不能为空")
 
 
 def router_node(state: QuestionGenerationState) -> str:
@@ -46,12 +51,12 @@ async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str,
 
 async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查单元练习参数"""
+    logger.info("开始检查单元练习参数")
     UnitPracticeGenerateService.validate_state(state)
 
 
 async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查能力评估参数"""
-    logger.info("开始检查问题生成参数")
 
 
 async def load_unit_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -64,6 +69,7 @@ async def load_textbool_data_node(state: QuestionGenerationState) -> Dict[str, A
 
 async def load_daily_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载今日练习数据"""
+    logger.info("开始加载今日练习数据")
     return await UnitPracticeGenerateService.load_data(state)
 
 
@@ -89,6 +95,8 @@ async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Di
 
 async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习prompt"""
+    logger.info("开始构建单元练习prompt")
+    return build_unit_practice_prompt(state)
 
 
 async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:

@@ -3,8 +3,32 @@
 from enum import Enum
 from typing import Any, List, NotRequired, TypedDict
 
-from core.database import Question
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database import Question, Unit, Textbook
+
+
+class QuestionOption(BaseModel):
+    label: str = Field(description="选项标签，如 A/B/C/D")
+    text: str = Field(description="选项内容")
+
+
+class GeneratedQuestion(BaseModel):
+    question_type: str = Field(description="题型（主类型）")
+    question_subtype: str = Field(description="题目子类型", default="")
+    question: str = Field(description="题干内容")
+    resource_content: str = Field(description="资源内容（录音文本等，仅录音题需要）", default="")
+    options: List[QuestionOption] = Field(
+        description="题目选项列表，非选择题时可为空数组", default=[]
+    )
+    answer: str = Field(description="标准答案")
+    difficulty: str = Field(description="题目难度：简单、普通、困难")
+    knowledge: str = Field(description="知识点")
+
+
+class QuestionGenerationResult(BaseModel):
+    questions: List[GeneratedQuestion] = []
 
 
 class GenerationType(str, Enum):
@@ -31,22 +55,30 @@ class QuestionGenerationState(TypedDict, total=False):
     type: GenerationType
     # 需要生成的题目数量
     count: int
+    # 年级
+    grade: int
+    # 学科，如：math、english 等
+    subject: str
     # 单元 ID，单元生成和单元练习需要
     unit_id: NotRequired[int]
     # 教材 ID，教材生成和能力评估需要
     textbook_id: NotRequired[int]
     # 单元对象
-    unit: NotRequired[Any]
+    unit: NotRequired[Unit]
     # 教材对象
-    textbook: NotRequired[Any]
+    textbook: NotRequired[Textbook]
     # 知识点列表
     knowledges: NotRequired[List[str]]
     # 召回的题目列表
-    recall_questions: NotRequired[List[Any]]
-    # 生成的提示词
+    recall_questions: NotRequired[List[Question]]
+    # 生成的提示词 (ChatPromptTemplate)
     prompt: NotRequired[Any]
+    # prompt 输入参数（用于格式化 prompt）
+    prompt_input: NotRequired[dict[str, Any]]
+    # JSON 输出解析器
+    parser: NotRequired[Any]
     # LLM 生成的题目列表
-    generated_questions: NotRequired[List[Any]]
+    generated_questions: NotRequired[List[GeneratedQuestion]]
     # 题目对象列表
     questions: NotRequired[List[Question]]
 

@@ -616,8 +616,6 @@ DAILY_PRACTICE_PROMPT_MATH = """
 """
 
 
-DAILY_PRACTICE_PROMPT = DAILY_PRACTICE_PROMPT_ENGLISH  # 默认使用英语版本
-
 
 # ==================== 能力评估 Prompts ====================
 
@@ -952,8 +950,6 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 - [ ] **数据合理性**：应用题情境和数据真实可信
 """
 
-
-ASSESSMENT_GENERATION_PROMPT = ASSESSMENT_GENERATION_PROMPT_ENGLISH  # 默认使用英语版本
 
 
 PROMPT_OPTIMIZATION_INSTRUCTION = """
