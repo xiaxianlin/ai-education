@@ -6,7 +6,7 @@ from loguru import logger
 from core.database import Question
 from shared.question.types import QuestionGenerationState
 from shared.utils.question import build_full_question_text
-from server.shared.services.aliyun import AliyunAIService
+from shared.services.aliyun import AliyunAIService
 
 
 async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:

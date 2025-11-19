@@ -1,7 +1,7 @@
 """单元练习 Prompt 构建"""
 
 from langchain_core.output_parsers import JsonOutputParser
-from server.core.constants import get_question_subtypes, get_question_types
+from core.constants import get_question_subtypes, get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
 
 # ==================== 英语学科 Prompts ====================

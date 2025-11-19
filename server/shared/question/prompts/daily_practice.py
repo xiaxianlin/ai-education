@@ -3,8 +3,16 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from server.core.constants import get_question_subtypes, get_question_types
+from core.constants import get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
+from shared.question.prompts.prompt_utils import (
+    build_subtype_info,
+    build_avoid_duplicate_hint,
+    build_question_types_text,
+    format_knowledge_list,
+    build_question_distribution,
+)
+from shared.question.prompts.prompt_templates import DAILY_PRACTICE_SYSTEM_PROMPT
 
 DAILY_PRACTICE_PROMPT_ENGLISH = """
 # 英语今日智能练习生成任务
@@ -328,39 +336,6 @@ DAILY_PRACTICE_PROMPT_MATH = """
 """
 
 
-def _build_subtype_info(question_types: list[str]) -> str:
-    """构建题型子类型信息"""
-    subtype_info_lines = []
-    for qtype in question_types:
-        subtypes = get_question_subtypes(qtype)
-        if subtypes:
-            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
-    return "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
-
-
-def _build_avoid_duplicate_hint(recall_questions: list) -> str:
-    """构建避免重复题目的提示信息"""
-    if not recall_questions:
-        return ""
-
-    recalled_questions_info_lines = []
-    for recall_question in recall_questions:
-        recalled_questions_info_lines.append(
-            f"- 题目ID: {recall_question.id}, "
-            f"题干: {recall_question.question}, "
-            f"选项: {recall_question.options}"
-        )
-
-    recalled_questions_info = "\n".join(recalled_questions_info_lines)
-
-    return (
-        f"\n\n## 重要：避免题目重复\n"
-        f"以下题目已从数据库召回，请确保生成的题目与这些题目不重复或高度相似：\n"
-        f"{recalled_questions_info}\n"
-        f"请生成全新的、与上述题目不同的题目。"
-    )
-
-
 def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     """构建今日练习prompt
 
@@ -392,15 +367,17 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         )
 
     # 计算题目分布
-    wrong_count = max(1, int(count * 0.3))
-    consolidation_count = int(count * 0.4)
-    challenge_count = int(count * 0.2)
-    new_count = count - wrong_count - consolidation_count - challenge_count
+    # 计算题目分布
+    distribution = build_question_distribution(count)
+    wrong_count = distribution["wrong_count"]
+    consolidation_count = distribution["consolidation_count"]
+    challenge_count = distribution["challenge_count"]
+    new_count = distribution["new_count"]
 
-    # 构建各种文本信息
-    question_types_str = "、".join(question_types)
-    subtype_info = _build_subtype_info(question_types)
-    avoid_duplicate_hint = _build_avoid_duplicate_hint(recall_questions)
+    # 使用工具函数构建各种文本信息
+    question_types_str = build_question_types_text(question_types)
+    subtype_info = build_subtype_info(question_types)
+    avoid_duplicate_hint = build_avoid_duplicate_hint(recall_questions)
 
     # 格式化知识点信息
     weak_knowledge_analysis = (
@@ -408,9 +385,7 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         if weak_knowledge
         else "（暂无明显薄弱知识点，学生整体掌握良好）"
     )
-    mastered_knowledge_list = (
-        "、".join(mastered_knowledge[:10]) if mastered_knowledge else "（暂无已掌握知识点数据）"
-    )
+    mastered_knowledge_list = format_knowledge_list(mastered_knowledge, max_count=10)
 
     # 获取prompt模板并追加避免重复提示
     daily_prompt_template = (
@@ -422,12 +397,7 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     # 构建 ChatPromptTemplate
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
-                "你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。"
-                "你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。"
-                "请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
+            ("system", DAILY_PRACTICE_SYSTEM_PROMPT),
             ("human", daily_prompt_template),
         ]
     )
@@ -443,12 +413,12 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         "weak_knowledge_analysis": weak_knowledge_analysis,
         "mastered_knowledge_list": mastered_knowledge_list,
         "review_units_reminder": "（近期无需复习的单元）",
-        "weak_knowledge_points": "、".join(weak_knowledge[:5]) or "（无）",
-        "mastered_knowledge": "、".join(mastered_knowledge[:8]) or "（无）",
+        "weak_knowledge_points": format_knowledge_list(weak_knowledge, max_count=5) or "（无）",
+        "mastered_knowledge": format_knowledge_list(mastered_knowledge, max_count=8) or "（无）",
         "challenge_knowledge": (
-            "、".join(mastered_knowledge[-3:]) if mastered_knowledge else "（无）"
+            format_knowledge_list(mastered_knowledge[-3:]) if mastered_knowledge else "（无）"
         ),
-        "new_knowledge": "、".join(mastered_knowledge[-3:]) if mastered_knowledge else "（无）",
+        "new_knowledge": format_knowledge_list(mastered_knowledge[-3:]) if mastered_knowledge else "（无）",
         "wrong_count": wrong_count,
         "consolidation_count": consolidation_count,
         "challenge_count": challenge_count,
@@ -460,3 +430,4 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         "prompt_input": prompt_input,
         "parser": parser,
     }
+

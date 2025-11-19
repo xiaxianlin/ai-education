@@ -5,6 +5,14 @@ from langchain_core.output_parsers import JsonOutputParser
 
 from core.constants import get_question_subtypes, get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
+from shared.question.prompts.prompt_utils import (
+    build_knowledge_text,
+    build_subtype_info,
+    build_avoid_duplicate_hint,
+    build_difficulty_distribution,
+    build_question_types_text,
+)
+from shared.question.prompts.prompt_templates import ASSESSMENT_SYSTEM_PROMPT
 
 
 ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
@@ -195,74 +203,79 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 
 ### 3.1 数学学科能力维度
 - **数感与运算**（30-40%）：数的认识、加减乘除、四则运算、心算能力
-- **图形与空间**（15-25%）：图形识别、周长面积、空间想象
-- **量的测量**（10-15%）：长度、重量、时间、货币认识与换算
-- **应用能力**（25-35%）：实际问题建模、多步骤应用题
-- **逻辑推理**（5-15%）：找规律、数字推理、问题解决
-
-### 3.2 年级能力标准
-- **低年级(1-2年级)**：
-  - 运算：20以内/100以内加减法
-  - 图形：基础图形识别
-  - 应用：一步应用题
-  - 测量：长度、时间基础认识
-  
-- **中年级(3-4年级)**：
-  - 运算：万以内四则运算、简单分数
-  - 图形：周长面积计算
-  - 应用：两步应用题
-  - 推理：简单找规律
-  
-- **高年级(5-6年级)**：
-  - 运算：多位数运算、分数小数、百分数
-  - 图形：组合图形、立体图形
-  - 应用：复杂多步应用题
-  - 推理：数学归纳、问题解决
-
-**重要提示**：
-- 题目应**均衡分布**在各能力维度
-- 不要求题目必须关联特定单元
-- 可以跨单元、跨主题出题，只要符合年级能力要求
+- **评估范围**：全教材/阶段性评估
+- **生成数量**：{count} 道题目
+- **评估目标**：精准测量数学思维水平，构建能力模型
 
 ---
 
-## 四、IRT难度梯度定义（数学）
+## 二、评估知识点范围
+{knowledge_text}
 
-| 难度等级 | IRT值范围 | 认知要求 | 预期通过率 | 能力体现 |
-|---------|----------|---------|-----------|---------|
-| **简单** | -1.5 ~ -0.5 | 直接识别、基础运算、一步操作 | 85%-95% | 基础加减法、简单图形识别 |
-| **普通** | -0.5 ~ +0.5 | 两步运算、一般应用、概念理解 | 50%-75% | 乘除法运算、两步应用题 |
-| **困难** | +0.5 ~ +1.5 | 多步综合、复杂应用、逻辑推理 | 20%-40% | 综合运算、复杂应用、找规律 |
-
-**数学难度设计原则**：
-- **简单题**：考察本年级最基础的运算和概念
-- **普通题**：考察本年级标准要求的运算和应用能力
-- **困难题**：考察综合能力和数学思维
+**知识点分类说明**：
+- **概念理解**：定义、性质、定理的认识
+- **运算求解**：算法、算理、精确计算
+- **逻辑推理**：归纳、演绎、证明
+- **问题解决**：建模、应用、综合分析
 
 ---
 
-## 五、题目分布要求
+## 三、IRT自适应评估策略
 
-### 5.1 难度分配
-- **简单题**：{simple_count} 题（30%）
-- **普通题**：{medium_count} 题（50%）
-- **困难题**：{hard_count} 题（20%）
+本次生成采用**项目反应理论 (IRT)** 导向的题目设计：
 
-### 5.2 能力维度覆盖（建议）
-根据题目总数均衡分配：
-- **10题总量**：运算4题 + 应用3题 + 图形2题 + 推理1题
-- **15题总量**：运算5题 + 应用5题 + 图形3题 + 推理2题
-- **20题总量**：运算7题 + 应用6题 + 图形4题 + 推理3题
+### 3.1 难度梯度（区分度优先）
+| 难度等级 | 比例 | 目标学生群体 | 设计意图 |
+|---------|------|-------------|---------|
+| **基础题** | {simple_count}题 | 学困生/中等生 | 考查基本概念和基本运算 |
+| **中等题** | {medium_count}题 | 中等生/优等生 | 考查变式应用和综合能力 |
+| **难题** | {hard_count}题 | 优等生/尖子生 | 考查创新思维和复杂问题解决 |
 
-### 5.3 题型要求
-- **优先选择**：选择题、填空题、计算题（便于自动判分）
-- **适度使用**：应用题、判断题
-- **避免使用**：需要画图、开放性答案的题目
+### 3.2 能力维度覆盖
+- **基础知识 (30%)**：概念清晰，记忆准确
+- **基本技能 (40%)**：运算熟练，作图规范
+- **综合应用 (30%)**：分析问题，解决问题
 
-### 5.4 题目独立性
-- 每道题应独立考察一个能力点
-- 题目之间不应有依赖关系
-- 避免题目间的提示效应
+---
+
+## 四、数学题目生成细则
+
+### 4.1 基础题（{simple_count}题）
+- **题型**：直接计算、概念判断、简单填空
+- **特征**：一步得出结果，无思维陷阱
+- **示例**：20以内加减法，图形名称识别
+- **难度系数**：0.1 - 0.4
+
+### 4.2 中等题（{medium_count}题）
+- **题型**：混合运算、简单应用题、图形计算
+- **特征**：两步及以上运算，需要简单转换
+- **陷阱**：设置常见计算错误或概念混淆点
+- **示例**：带余除法应用，周长计算
+- **难度系数**：0.5 - 0.7
+
+### 4.3 难题（{hard_count}题）
+- **题型**：复杂应用题、逻辑推理、探究题
+- **特征**：多步骤，隐蔽条件，逆向思维
+- **陷阱**：思维定势干扰，多解情况
+- **示例**：行程问题，找规律填数（复杂）
+- **难度系数**：0.8 - 1.0
+
+---
+
+## 五、数学特殊题型规范
+
+### 5.1 应用题评估
+- **情境**：必须新颖且合理，避免陈旧套路
+- **数据**：设计需严谨，避免出现矛盾条件
+- **建模**：中难题应需要学生自己构建数学模型
+
+### 5.2 概念题评估
+- **辨析**：重点考查概念的内涵和外延
+- **反例**：通过判断题考查对反例的认识
+
+### 5.3 运算题评估
+- **算理**：不仅考结果，更隐含考查运算定律
+- **技巧**：难题可涉及简便运算技巧
 
 ---
 
@@ -272,43 +285,28 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 **题型子类型说明**：
 {subtype_info}
 
-**题型选择建议**：
-- 数感运算：计算题、口算题、填空题、选择题
-- 图形空间：选择题、判断题、填空题
-- 量的测量：选择题、应用题
-- 应用能力：应用题、填空题
-- 逻辑推理：找规律、选择题
-
-**题型数量限制**：单一题型最多不超过总题数的40%
+**题型多样性要求**：
+- **题型数量限制**：单一题型最多不超过总题数的40%
+- 建议使用4-5种不同题型
+- 计算、概念、应用均衡分布
 
 ---
 
-## 七、质量控制标准
+## 七、质量控制（评估专用）
 
-### 7.1 题目区分度（核心指标）
-- ✅ **简单题**：85%+学生能做对（基础运算、简单识别）
-- ✅ **普通题**：50-75%学生能做对（标准运算、一般应用）
-- ✅ **困难题**：20-40%学生能做对（综合能力、复杂思维）
+### 7.1 区分度控制
+- ✅ 基础题应让绝大多数学生得分
+- ✅ 中等题应能区分及格与优秀
+- ✅ 难题应能筛选出数学思维好的学生
 
-### 7.2 数学准确性
-- 计算结果准确无误
-- 单位使用规范
-- 数学概念表述严谨
+### 7.2 严谨性控制
+- ✅ 题干语言精炼，无废话
+- ✅ 条件充分且不冗余
+- ✅ 答案唯一且准确
 
-### 7.3 能力考察纯度
-- 每道题主要考察1个核心能力
-- 运算题就考运算，不混入复杂应用
-- 应用题重点考应用，数字不要过于复杂
-
-### 7.4 年级适配性
-- 数字大小符合{grade}年级水平
-- 不出现超纲知识
-- 运算复杂度适合年级要求
-
-### 7.5 数据合理性
-- 应用题情境真实
-- 数字符合实际（价格、数量等）
-- 答案有实际意义（人数应为整数）
+### 7.3 诊断性控制
+- ✅ 错误选项应对应具体的思维缺陷
+- ✅ 能通过做题情况分析出学生薄弱点
 
 ---
 
@@ -316,71 +314,16 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 严格按照以下JSON Schema输出：
 {format_instructions}
 
-**关键字段说明**：
-- `knowledge` 字段：可填写能力维度（如"数感与运算"、"应用能力"）
-- `difficulty` 字段：必须从 ["简单", "普通", "困难"] 中选择
-- `answer` 数字结果注意格式规范
-
----
-
-## 九、评测专用质量检查清单
-
-- [ ] **难度分布**：简单30% / 普通50% / 困难20%（允许±1题误差）
-- [ ] **能力覆盖**：运算、应用、图形、推理均衡分布
-- [ ] **题目区分度**：每个难度层次内题目难度相对一致
-- [ ] **计算准确性**：所有答案经过验算，确保正确
-- [ ] **判分友好性**：答案唯一，便于自动判分
-- [ ] **题目独立性**：题目间无依赖关系，无提示效应
-- [ ] **年级适配性**：符合{grade}年级数学水平
-- [ ] **题型多样性**：至少3种以上题型，单一题型≤40%
-- [ ] **数据合理性**：应用题情境和数据真实可信
+**数学评估关键字段**：
+- `knowledge` 必须是字符串，精准对应考查点
+- `difficulty` 必须严格按照分布要求设置 (0.1-0.9)
+- `answer` 格式标准
+- `question` 题干严谨
 """
 
 
-def _build_knowledge_text(knowledges: list[str]) -> str:
-    """构建知识点文本"""
-    if not knowledges:
-        return "暂无知识点信息"
-
-    knowledge_lines = [f"- {knowledge}" for knowledge in knowledges]
-    return "\n".join(knowledge_lines)
-
-
-def _build_subtype_info(question_types: list[str]) -> str:
-    """构建题型子类型信息"""
-    subtype_info_lines = []
-    for qtype in question_types:
-        subtypes = get_question_subtypes(qtype)
-        if subtypes:
-            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
-    return "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
-
-
-def _build_avoid_duplicate_hint(recall_questions: list) -> str:
-    """构建避免重复题目的提示信息"""
-    if not recall_questions:
-        return ""
-
-    recalled_questions_info_lines = []
-    for recall_question in recall_questions:
-        recalled_questions_info_lines.append(
-            f"- 题目ID: {recall_question.id}, "
-            f"题干: {recall_question.question}, "
-            f"选项: {recall_question.options}"
-        )
-
-    recalled_questions_info = "\n".join(recalled_questions_info_lines)
-
-    return (
-        f"\n\n## 重要：避免题目重复\n"
-        f"以下题目已从数据库召回，请确保生成的题目与这些题目不重复或高度相似：\n"
-        f"{recalled_questions_info}\n"
-        f"请生成全新的、与上述题目不同的题目。"
-    )
-
-
 def build_assessment_prompt(state: QuestionGenerationState) -> dict:
-    """构建能力评估prompt
+    """构建学业水平评估prompt
 
     返回包含以下字段的字典：
     - prompt: ChatPromptTemplate 对象
@@ -390,8 +333,8 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     # 提取状态数据
     textbook = state["textbook"]
     count = state["count"]
-    grade = state["grade"]
     subject = state["subject"]
+    grade = state["grade"]
     knowledges = state.get("knowledges", [])
     recall_questions = state.get("recall_questions", [])
 
@@ -400,22 +343,24 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     format_instructions = parser.get_format_instructions()
 
     # 获取题型配置
-    question_types = get_question_types(textbook.subject, textbook.grade)
+    question_types = get_question_types(subject, grade)
     if not question_types:
         raise ValueError(
-            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
+            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
     # 计算难度分布
-    simple_count = max(1, int(count * 0.3))
-    medium_count = max(1, int(count * 0.5))
-    hard_count = count - simple_count - medium_count
+    # 计算难度分布
+    difficulty_distribution = build_difficulty_distribution(count)
+    simple_count = difficulty_distribution["simple_count"]
+    medium_count = difficulty_distribution["medium_count"]
+    hard_count = difficulty_distribution["hard_count"]
 
-    # 构建各种文本信息
-    question_types_str = "、".join(question_types)
-    subtype_info = _build_subtype_info(question_types)
-    avoid_duplicate_hint = _build_avoid_duplicate_hint(recall_questions)
+    # 使用工具函数构建各种文本信息
+    question_types_str = build_question_types_text(question_types)
+    subtype_info = build_subtype_info(question_types)
+    knowledge_text = build_knowledge_text(knowledges)
+    avoid_duplicate_hint = build_avoid_duplicate_hint(recall_questions)
 
     # 获取prompt模板并追加避免重复提示
     assessment_prompt_template = (
@@ -429,12 +374,7 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     # 构建 ChatPromptTemplate
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
-                "你是一名专业教研员，负责设计IRT自适应能力评估题目。"
-                "你的目标是生成高质量、区分度高、符合学生认知水平的评估题目。"
-                "请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
+            ("system", ASSESSMENT_SYSTEM_PROMPT),
             ("human", assessment_prompt_template),
         ]
     )
@@ -443,12 +383,13 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     prompt_input = {
         "grade": grade,
         "count": count,
+        "question_types": question_types_str,
+        "subtype_info": subtype_info,
+        "knowledge_text": knowledge_text,
+        "format_instructions": format_instructions,
         "simple_count": simple_count,
         "medium_count": medium_count,
         "hard_count": hard_count,
-        "question_types": question_types_str,
-        "subtype_info": subtype_info,
-        "format_instructions": format_instructions,
     }
 
     return {

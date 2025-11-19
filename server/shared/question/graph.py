@@ -22,8 +22,10 @@ from shared.question.services.unit_practice import UnitPracticeGenerateService
 from shared.question.services.assessment import AssessmentGenerateService
 
 
-
-def entry_node(state: QuestionGenerationState) -> str:
+def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """入口节点，负责基础校验"""
+    logger.info(f"进入题目生成工作流: type={state.get('generation_type')}, count={state.get('count')}")
+    
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
 
@@ -38,9 +40,12 @@ def entry_node(state: QuestionGenerationState) -> str:
 
     if state.get("grade") is None:
         raise ValueError("年级（grade）不能为空")
+        
+    return {}
 
 
 def router_node(state: QuestionGenerationState) -> str:
+    """路由节点，根据生成类型分发"""
     return state["generation_type"]
 
 
@@ -48,30 +53,35 @@ async def check_unit_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查单元生成参数"""
     logger.info("开始检查单元生成参数")
     UnitGenerateService.validate_state(state)
+    return {}
 
 
 async def check_textbook_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查教材生成参数"""
     logger.info("开始检查教材生成参数")
     TextbookGenerateService.validate_state(state)
+    return {}
 
 
 async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查今日练习参数"""
     logger.info("开始检查今日练习参数")
     DailyPracticeGenerateService.validate_state(state)
+    return {}
 
 
 async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查单元练习参数"""
     logger.info("开始检查单元练习参数")
     UnitPracticeGenerateService.validate_state(state)
+    return {}
 
 
 async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查能力评估参数"""
     logger.info("开始检查能力评估参数")
     AssessmentGenerateService.validate_state(state)
+    return {}
 
 
 async def load_unit_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -137,60 +147,78 @@ async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[s
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """调用大模型生成题目"""
     logger.info("开始调用大模型生成题目")
-    result = await llm_service.call_llm(state)
-    logger.info("大模型生成完成，共生成 %s 道题目", len(result.get("generated_questions", [])))
-    return result
+    try:
+        result = await llm_service.call_llm(state)
+        logger.info("大模型生成完成，共生成 %s 道题目", len(result.get("generated_questions", [])))
+        return result
+    except Exception as e:
+        logger.error(f"大模型调用失败: {e}")
+        raise
 
 
 async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
-    result = await converter_service.convert_to_question_objects(state)
+    try:
+        result = await converter_service.convert_to_question_objects(state)
 
-    image_questions = result.get("image_questions", [])
-    audio_questions = result.get("audio_questions", [])
-    text_questions = result.get("text_questions", [])
+        image_questions = result.get("image_questions", [])
+        audio_questions = result.get("audio_questions", [])
+        text_questions = result.get("text_questions", [])
 
-    logger.info(
-        "问题转换完成: 辨识题 %s, 音频题 %s, 其他题目 %s",
-        len(image_questions),
-        len(audio_questions),
-        len(text_questions),
-    )
+        logger.info(
+            "问题转换完成: 辨识题 %s, 音频题 %s, 其他题目 %s",
+            len(image_questions),
+            len(audio_questions),
+            len(text_questions),
+        )
 
-    # 保存题目到数据库
-    save_result = await storage_service.save_questions({**state, **result})
-    result.update(save_result)
+        # 保存题目到数据库
+        save_result = await storage_service.save_questions({**state, **result})
+        result.update(save_result)
 
-    return result
+        return result
+    except Exception as e:
+        logger.error(f"数据转换或保存失败: {e}")
+        raise
 
 
 async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成图片"""
-    image_questions = state.get("image_questions", [])
-    needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
-    if needs_image_count == 0:
-        logger.info("跳过图片处理（没有需要生成图片的题目）")
-        return {}
+    try:
+        image_questions = state.get("image_questions", [])
+        needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
+        if needs_image_count == 0:
+            logger.info("跳过图片处理（没有需要生成图片的题目）")
+            return {}
 
-    logger.info("开始为 %s 道题目生成图片", needs_image_count)
-    result = await resource_service.generate_images(state)
-    logger.info("图片生成完成")
-    return result
+        logger.info("开始为 %s 道题目生成图片", needs_image_count)
+        result = await resource_service.generate_images(state)
+        logger.info("图片生成完成")
+        return result
+    except Exception as e:
+        logger.error(f"图片生成失败: {e}")
+        # 图片生成失败不应阻断整个流程，可以记录错误并继续
+        return {"image_generation_error": str(e)}
 
 
 async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成语音"""
-    audio_questions = state.get("audio_questions", [])
-    needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
-    if needs_audio_count == 0:
-        logger.info("跳过音频处理（没有需要生成语音的题目）")
-        return {}
+    try:
+        audio_questions = state.get("audio_questions", [])
+        needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
+        if needs_audio_count == 0:
+            logger.info("跳过音频处理（没有需要生成语音的题目）")
+            return {}
 
-    logger.info("开始为 %s 道题目生成语音", needs_audio_count)
-    result = await resource_service.generate_audio(state)
-    logger.info("语音生成完成")
-    return result
+        logger.info("开始为 %s 道题目生成语音", needs_audio_count)
+        result = await resource_service.generate_audio(state)
+        logger.info("语音生成完成")
+        return result
+    except Exception as e:
+        logger.error(f"语音生成失败: {e}")
+        # 语音生成失败不应阻断整个流程
+        return {"audio_generation_error": str(e)}
 
 
 async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -207,17 +235,25 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
 async def upload_files_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """文件上传节点"""
     logger.info("开始上传文件到 OSS")
-    result = await storage_service.upload_files(state)
-    logger.info("文件上传完成")
-    return result
+    try:
+        result = await storage_service.upload_files(state)
+        logger.info("文件上传完成")
+        return result
+    except Exception as e:
+        logger.error(f"文件上传失败: {e}")
+        raise
 
 
 async def upload_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """数据更新节点"""
     logger.info("开始更新问题数据")
-    result = await storage_service.update_questions(state)
-    logger.info("问题更新完成，共更新 %s 道题目", len(result.get("saved_questions", [])))
-    return result
+    try:
+        result = await storage_service.update_questions(state)
+        logger.info("问题更新完成，共更新 %s 道题目", len(result.get("saved_questions", [])))
+        return result
+    except Exception as e:
+        logger.error(f"问题更新失败: {e}")
+        raise
 
 
 # ==================== 图构建 ====================
@@ -226,6 +262,9 @@ async def upload_questions_node(state: QuestionGenerationState) -> Dict[str, Any
 def create_question_generation_graph() -> StateGraph:
     """创建问题生成流程图"""
     workflow = StateGraph(QuestionGenerationState)
+
+    # 添加入口节点
+    workflow.add_node("entry", entry_node)
 
     # 添加校验节点
     workflow.add_node("check_unit", check_unit_node)
@@ -258,7 +297,7 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("upload_questions", upload_questions_node)
 
     # 设置入口点
-    workflow.set_entry_point("entry", entry_node)
+    workflow.set_entry_point("entry")
 
     # 添加条件边：根据生成类型路由
     workflow.add_conditional_edges(
@@ -323,7 +362,10 @@ async def invoke_generate_workflow(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """执行问题生成流程"""
-    graph = create_question_generation_graph()
+    # graph = create_question_generation_graph()
+    # 编译图可能比较耗时，如果可以缓存最好，这里每次都重新创建
+    
+    app = create_question_generation_graph()
 
     initial_state: QuestionGenerationState = {
         "count": count,
@@ -332,4 +374,4 @@ async def invoke_generate_workflow(
     }
     initial_state.update({k: v for k, v in kwargs.items() if v is not None})
 
-    return await graph.ainvoke(initial_state)
+    return await app.ainvoke(initial_state)
