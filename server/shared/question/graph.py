@@ -2,88 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Dict
 
 from langgraph.graph import END, StateGraph
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.question.types import GenerationType, QuestionGenerationState
-from shared.question.services import assessment as assessment_service
-from shared.question.services import daily_practice as daily_service
-from shared.question.services import unit as unit_service
 from shared.question.services import llm as llm_service
 from shared.question.services import converter as converter_service
 from shared.question.services import resource as resource_service
 from shared.question.services import storage as storage_service
 
-
-@dataclass(frozen=True)
-class GenerationService:
-    """生成服务接口"""
-
-    validate: Callable[[QuestionGenerationState], None]
-    load_context: Callable[[QuestionGenerationState], Awaitable[Dict[str, Any]]]
-    build_prompt: Callable[[QuestionGenerationState], Awaitable[Dict[str, Any]]]
-
-
-GENERATION_SERVICES: Dict[GenerationType, GenerationService] = {
-    GenerationType.UNIT: GenerationService(
-        validate=unit_service.validate_state,
-        load_context=unit_service.load_context,
-        build_prompt=unit_service.build_prompt,
-    ),
-    GenerationType.DAILY: GenerationService(
-        validate=daily_service.validate_state,
-        load_context=daily_service.load_context,
-        build_prompt=daily_service.build_prompt,
-    ),
-    GenerationType.ASSESSMENT: GenerationService(
-        validate=assessment_service.validate_state,
-        load_context=assessment_service.load_context,
-        build_prompt=assessment_service.build_prompt,
-    ),
-}
-
-
-def _parse_generation_type(raw: str) -> GenerationType:
-    """解析生成类型"""
-    try:
-        return GenerationType(raw)
-    except ValueError as exc:
-        raise ValueError(f"Unsupported generation_type: {raw}") from exc
-
-
-def _get_service_by_type(gen_type: GenerationType) -> GenerationService:
-    """根据类型获取对应的服务"""
-    service = GENERATION_SERVICES.get(gen_type)
-    if service is None:
-        raise ValueError(f"No generation service registered for {gen_type.value}")
-    return service
-
-
-def _get_service_by_state(state: QuestionGenerationState) -> GenerationService:
-    """根据状态获取对应的服务"""
-    generation_type = _parse_generation_type(
-        state.get("generation_type", GenerationType.UNIT.value)
-    )
-    return _get_service_by_type(generation_type)
-
-
-def _validate_common_params(state: QuestionGenerationState) -> None:
-    """验证通用参数"""
-    if state.get("db") is None:
-        raise ValueError("db is required in question generation state")
-    if state.get("unit_id") is None:
-        raise ValueError("unit_id is required in question generation state")
-    if not isinstance(state.get("count"), int) or state["count"] <= 0:
-        raise ValueError("count must be a positive integer")
-    if "generation_type" not in state:
-        state["generation_type"] = GenerationType.UNIT.value
-
-
-# ==================== 节点函数 ====================
+from .services.unit_practice import UnitPracticeGenerateService
 
 
 def entry_node(state: QuestionGenerationState) -> str:
@@ -93,84 +24,75 @@ def entry_node(state: QuestionGenerationState) -> str:
     if state.get("generation_type") is None:
         raise ValueError("生成类型（generation_type）不能为空")
 
+    if state.get("count") is None:
+        raise ValueError("题目数量（count）不能为空")
+
 
 def router_node(state: QuestionGenerationState) -> str:
     return state["generation_type"]
 
 
 async def check_unit_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查并验证参数"""
-    logger.info("开始检查问题生成参数")
+    """检查单元生成参数"""
 
 
 async def check_textbook_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查并验证参数"""
-    logger.info("开始检查问题生成参数")
+    """检查教材生成参数"""
 
 
 async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查并验证参数"""
-    logger.info("开始检查问题生成参数")
+    """检查今日练习参数"""
 
 
 async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查并验证参数"""
-    logger.info("开始检查问题生成参数")
+    """检查单元练习参数"""
+    UnitPracticeGenerateService.validate_state(state)
 
 
 async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查并验证参数"""
+    """检查能力评估参数"""
     logger.info("开始检查问题生成参数")
 
 
 async def load_unit_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载单元数据"""
-    return await _load_context(state, GenerationType.UNIT)
 
 
 async def load_textbool_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载教材数据"""
-    return await _load_context(state, GenerationType.UNIT)
 
 
 async def load_daily_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载今日练习数据"""
-    return await _load_context(state, GenerationType.DAILY)
+    return await UnitPracticeGenerateService.load_data(state)
 
 
 async def load_unit_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载单元练习数据"""
-    return await _load_context(state, GenerationType.DAILY)
 
 
 async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载能力评估数据"""
-    return await _load_context(state, GenerationType.ASSESSMENT)
 
 
 async def build_unit_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元prompt"""
-    return await _build_prompt(state, GenerationType.UNIT)
 
 
 async def build_textbook_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建教材prompt"""
-    return await _build_prompt(state, GenerationType.UNIT)
 
 
 async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建今日练习prompt"""
-    return await _build_prompt(state, GenerationType.DAILY)
 
 
 async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习prompt"""
-    return await _build_prompt(state, GenerationType.DAILY)
 
 
 async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建能力评估prompt"""
-    return await _build_prompt(state, GenerationType.ASSESSMENT)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -355,17 +277,8 @@ def create_question_generation_graph() -> StateGraph:
     return workflow.compile()
 
 
-def get_question_generation_graph() -> StateGraph:
-    """获取问题生成图（单例模式）"""
-    return create_question_generation_graph()
-
-
-# ==================== 公共接口 ====================
-
-
 async def invoke_generate_workflow(
     db: AsyncSession,
-    unit_id: int,
     count: int,
     generation_type: str = GenerationType.UNIT.value,
     **kwargs: Any,
@@ -374,7 +287,6 @@ async def invoke_generate_workflow(
     graph = create_question_generation_graph()
 
     initial_state: QuestionGenerationState = {
-        "unit_id": unit_id,
         "count": count,
         "db": db,
         "generation_type": generation_type,
