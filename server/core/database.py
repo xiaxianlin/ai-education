@@ -263,7 +263,7 @@ class PracticeAnswer(BaseModel):
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
 
 
-# 练习报告表（统一的练习结果统计和能力分析）
+# 练习报告表
 class PracticeReport(BaseModel):
     __tablename__ = "ah_practice_report"
 

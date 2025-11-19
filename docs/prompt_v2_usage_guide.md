@@ -24,7 +24,7 @@
 在调用题目生成时，传入 `use_prompt_v2=True` 参数：
 
 ```python
-from shared.ai.graphs.generate_question import generate_question_graph
+from shared.question.graph import generate_question_graph
 
 # 单元训练（使用 V2）
 result = await generate_question_graph(

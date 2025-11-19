@@ -7,7 +7,7 @@ Prompt V2 测试脚本
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import AsyncSessionLocal
-from shared.ai.graphs.generate_question import generate_question_graph
+from shared.question.graph import generate_question_graph
 
 
 async def test_unit_prompt_v2():

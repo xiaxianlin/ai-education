@@ -1,6 +1,7 @@
 import os
 import time
 import hashlib
+from langchain_openai import ChatOpenAI
 import requests
 from loguru import logger
 from datetime import timedelta
@@ -379,3 +380,12 @@ class AliyunOSS:
         req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
         res = self.client.presign(req, expires=timedelta(days=days))
         return res.url
+
+
+class AliyunLLM:
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            model_name="qwen3-max",
+            openai_api_key=envs.AI_PLATFORM_KEY,
+            openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )

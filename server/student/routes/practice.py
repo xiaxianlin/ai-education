@@ -10,7 +10,6 @@ from student.routes.profile import get_current_student
 from core.database import PracticeSession
 from student.services.practice import PracticeService
 from shared.provider.aliyun import AliyunOSS
-from shared.ai.services.aliyun import AliyunAIService
 from loguru import logger
 from admin.schema import (
     CreateUnitPracticeSchema,

@@ -1,6 +1,6 @@
 {
   "graphs": {
-    "generate_question": "ai.graphs.generate_question:get_question_generation_graph"
+    "generate_question": "shared.generate_question.graph:get_question_generation_graph"
   },
   "dependencies": [
     "."

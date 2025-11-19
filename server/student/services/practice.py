@@ -7,7 +7,7 @@ import json
 import math
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from loguru import logger
@@ -21,17 +21,14 @@ from core.database import (
     StudentProfile,
     StudentStats,
     Unit,
-    Knowledge,
 )
 from admin.schema import (
     DailyPracticeSessionSchema,
     UnitPracticeSessionSchema,
     AssessmentTestSchema,
 )
-from admin.services import wrong_question as wrong_question_service
 from shared.utils.time import now
-from shared.services.question_generation import QuestionGenerationService
-from shared.services.practice import PracticeService as SharedPracticeService
+from shared.question import QuestionGenerationService
 
 
 class AdaptiveAlgorithm:
@@ -246,9 +243,8 @@ class PracticeService:
         await db.refresh(session)
 
         # 使用统一的题目生成服务：固定30道题目（15召回+15生成），并预生成答题记录
-        question_ids = await QuestionGenerationService.generate_questions(
+        question_ids = await QuestionGenerationService.generate_daily_questions(
             db=db,
-            session_type="daily",
             student_id=student_id,
             textbook_id=textbook_id,
             create_answer_records=True,
@@ -329,12 +325,10 @@ class PracticeService:
         await db.refresh(session)
 
         # 使用统一的题目生成服务：固定30道题目（15召回+15生成），并预生成答题记录
-        question_ids = await QuestionGenerationService.generate_questions(
+        question_ids = await QuestionGenerationService.generate_unit_questions(
             db=db,
-            session_type="unit",
             student_id=student_id,
-            textbook_id=unit.textbook_id,
-            target_id=unit_id,
+            unit_id=unit_id,
             create_answer_records=True,
             session_id=session.id,
         )
@@ -419,9 +413,8 @@ class PracticeService:
         await db.refresh(session)
 
         # 使用统一的题目生成服务：固定30道题目（15召回+15生成），并预生成答题记录
-        question_ids = await QuestionGenerationService.generate_questions(
+        question_ids = await QuestionGenerationService.generate_assessment_questions(
             db=db,
-            session_type="assessment",
             student_id=student_id,
             textbook_id=textbook_id,
             create_answer_records=True,
@@ -575,7 +568,7 @@ class PracticeService:
         actual_answer = answer
         if question.type == "口语题" and audio_url:
             try:
-                from shared.ai.services.aliyun import AliyunAIService
+                from server.shared.services.aliyun import AliyunAIService
                 # 通过 ASR 解析录音
                 asr_text = AliyunAIService.asr(audio_url, language="zh")
                 actual_answer = asr_text.strip()
@@ -1072,9 +1065,8 @@ class PracticeService:
         textbook_id = profile.current_textbook_id
 
         # 使用统一的题目生成服务：召回15道题，不足的由AI生成
-        question_ids = await QuestionGenerationService.generate_questions(
+        question_ids = await QuestionGenerationService.generate_daily_questions(
             db=db,
-            session_type="daily",
             student_id=student_id,
             textbook_id=textbook_id,
         )

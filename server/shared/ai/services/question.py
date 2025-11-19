@@ -18,13 +18,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_openai import ChatOpenAI
 
 from shared.ai.prompts.question import (
-    GENERIC_UNIT_PROMPT,
-    DAILY_PRACTICE_PROMPT,
-    ASSESSMENT_GENERATION_PROMPT,
     get_prompt_by_subject,
 )
-from shared.ai.services.aliyun import AliyunAIService
-from shared.ai.services.prompt import PromptOptimizationService
+from server.shared.services.aliyun import AliyunAIService
 from shared.provider.aliyun import AliyunOSS
 from shared.utils.time import now
 from shared.utils.question import build_full_question_text
@@ -764,7 +760,7 @@ PROMPT_BUILDERS = {
 async def generate_question_by_unit(db: AsyncSession, unit_id: int, count: int) -> List[Question]:
     """根据单元 ID 生成指定数量的题目并入库（旧接口，保持兼容）"""
     # 延迟导入以避免循环导入
-    from shared.ai.graphs.generate_question import generate_question_graph
+from shared.question.graph import generate_question_graph
 
     result = await generate_question_graph(db, unit_id, count, generation_type="unit")
     return result.get("saved_questions", [])
