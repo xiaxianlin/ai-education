@@ -14,9 +14,19 @@ from shared.question.services import converter as converter_service
 from shared.question.services import resource as resource_service
 from shared.question.services import storage as storage_service
 
-from .services.unit_practice import UnitPracticeGenerateService
+# 导入各生成类型的Service
+from shared.question.services.unit import UnitGenerateService
+from shared.question.services.textbook import TextbookGenerateService
+from shared.question.services.daily_practice import DailyPracticeGenerateService
+from shared.question.services.unit_practice import UnitPracticeGenerateService
+from shared.question.services.assessment import AssessmentGenerateService
 
-from .prompts.unit_practice import build_unit_practice_prompt
+# 导入各生成类型的Prompt构建函数
+from shared.question.prompts.unit import build_unit_prompt
+from shared.question.prompts.textbook import build_textbook_prompt
+from shared.question.prompts.daily_practice import build_daily_practice_prompt
+from shared.question.prompts.unit_practice import build_unit_practice_prompt
+from shared.question.prompts.assessment import build_assessment_prompt
 
 
 def entry_node(state: QuestionGenerationState) -> str:
@@ -39,14 +49,20 @@ def router_node(state: QuestionGenerationState) -> str:
 
 async def check_unit_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查单元生成参数"""
+    logger.info("开始检查单元生成参数")
+    UnitGenerateService.validate_state(state)
 
 
 async def check_textbook_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查教材生成参数"""
+    logger.info("开始检查教材生成参数")
+    TextbookGenerateService.validate_state(state)
 
 
 async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查今日练习参数"""
+    logger.info("开始检查今日练习参数")
+    DailyPracticeGenerateService.validate_state(state)
 
 
 async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -57,40 +73,56 @@ async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, 
 
 async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """检查能力评估参数"""
+    logger.info("开始检查能力评估参数")
+    AssessmentGenerateService.validate_state(state)
 
 
 async def load_unit_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载单元数据"""
+    logger.info("开始加载单元数据")
+    return await UnitGenerateService.load_data(state)
 
 
-async def load_textbool_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def load_textbook_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载教材数据"""
+    logger.info("开始加载教材数据")
+    return await TextbookGenerateService.load_data(state)
 
 
 async def load_daily_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载今日练习数据"""
     logger.info("开始加载今日练习数据")
-    return await UnitPracticeGenerateService.load_data(state)
+    return await DailyPracticeGenerateService.load_data(state)
 
 
 async def load_unit_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载单元练习数据"""
+    logger.info("开始加载单元练习数据")
+    return await UnitPracticeGenerateService.load_data(state)
 
 
 async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """加载能力评估数据"""
+    logger.info("开始加载能力评估数据")
+    return await AssessmentGenerateService.load_data(state)
 
 
 async def build_unit_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元prompt"""
+    logger.info("开始构建单元prompt")
+    return build_unit_prompt(state)
 
 
 async def build_textbook_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建教材prompt"""
+    logger.info("开始构建教材prompt")
+    return build_textbook_prompt(state)
 
 
 async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建今日练习prompt"""
+    logger.info("开始构建今日练习prompt")
+    return build_daily_practice_prompt(state)
 
 
 async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -101,6 +133,8 @@ async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dic
 
 async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建能力评估prompt"""
+    logger.info("开始构建能力评估prompt")
+    return build_assessment_prompt(state)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -205,7 +239,7 @@ def create_question_generation_graph() -> StateGraph:
 
     # 添加加载数据节点
     workflow.add_node("load_unit_data", load_unit_data_node)
-    workflow.add_node("load_textbook_data", load_textbool_data_node)
+    workflow.add_node("load_textbook_data", load_textbook_data_node)
     workflow.add_node("load_unit_practice_data", load_unit_practice_data_node)
     workflow.add_node("load_daily_practice_data", load_daily_practice_data_node)
     workflow.add_node("load_assessment_data", load_assessment_data_node)
@@ -245,15 +279,15 @@ def create_question_generation_graph() -> StateGraph:
     # 添加边：参数检查 -> 数据加载
     workflow.add_edge("check_unit", "load_unit_data")
     workflow.add_edge("check_textbook", "load_textbook_data")
-    workflow.add_edge("check_daily_practice", "load_unit_practice_data")
-    workflow.add_edge("check_unit_practice", "load_daily_practice_data")
+    workflow.add_edge("check_daily_practice", "load_daily_practice_data")
+    workflow.add_edge("check_unit_practice", "load_unit_practice_data")
     workflow.add_edge("check_assessment", "load_assessment_data")
 
     # 添加边：数据加载 -> prompt构建
     workflow.add_edge("load_unit_data", "build_unit_prompt")
     workflow.add_edge("load_textbook_data", "build_textbook_prompt")
-    workflow.add_edge("load_unit_practice_data", "build_daily_practice_prompt")
-    workflow.add_edge("load_daily_practice_data", "build_unit_practice_prompt")
+    workflow.add_edge("load_daily_practice_data", "build_daily_practice_prompt")
+    workflow.add_edge("load_unit_practice_data", "build_unit_practice_prompt")
     workflow.add_edge("load_assessment_data", "build_assessment_prompt")
 
     # 添加边：prompt构建 -> LLM调用

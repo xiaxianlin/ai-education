@@ -1,26 +1,107 @@
-"""单元练习 Prompt 构建"""
-from typing import Any, Dict
+"""单元生成 Prompt 构建"""
 
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
 
-from shared.question.types import QuestionGenerationState
-from shared.ai.prompts.question import get_prompt_by_subject
-from shared.question.prompts.common import build_common_prompt_inputs
+from server.core.constants import get_question_subtypes, get_question_types
+from shared.question.types import QuestionGenerationResult, QuestionGenerationState
+from shared.question.prompts.unit_practice import (
+    GENERIC_UNIT_PROMPT_ENGLISH,
+    GENERIC_UNIT_PROMPT_MATH,
+)
+
+# TODO: 根据需要补充英语学科的 Prompt 模板
+GENERIC_UNIT_PROMPT_ENGLISH = """"""
+
+# TODO: 根据需要补充数学学科的 Prompt 模板
+GENERIC_UNIT_PROMPT_MATH = """"""
 
 
-async def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
-    """构建单元练习的prompt"""
-    prompt_input, parser = build_common_prompt_inputs(state)
+def _build_knowledge_text(knowledges: list[str]) -> str:
+    """构建知识点文本"""
+    if not knowledges:
+        return "暂无知识点信息"
 
-    # 根据科目自动选择对应的 prompt 模板
-    textbook = state["textbook"]
-    unit_prompt_template = get_prompt_by_subject("unit", textbook.subject)
-    
-    # 如果有避免重复的提示，追加到模板末尾
-    avoid_duplicate_hint = prompt_input.get("avoid_duplicate_hint", "")
+    knowledge_lines = [f"- {knowledge}" for knowledge in knowledges]
+    return "\n".join(knowledge_lines)
+
+
+def _build_subtype_info(question_types: list[str]) -> str:
+    """构建题型子类型信息"""
+    subtype_info_lines = []
+    for qtype in question_types:
+        subtypes = get_question_subtypes(qtype)
+        if subtypes:
+            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
+    return "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
+
+
+def _build_avoid_duplicate_hint(recall_questions: list) -> str:
+    """构建避免重复题目的提示信息"""
+    if not recall_questions:
+        return ""
+
+    recalled_questions_info_lines = []
+    for recall_question in recall_questions:
+        recalled_questions_info_lines.append(
+            f"- 题目ID: {recall_question.id}, "
+            f"题干: {recall_question.question}, "
+            f"选项: {recall_question.options}"
+        )
+
+    recalled_questions_info = "\n".join(recalled_questions_info_lines)
+
+    return (
+        f"\n\n## 重要：避免题目重复\n"
+        f"以下题目已从数据库召回，请确保生成的题目与这些题目不重复或高度相似：\n"
+        f"{recalled_questions_info}\n"
+        f"请生成全新的、与上述题目不同的题目。"
+    )
+
+
+def build_unit_prompt(state: QuestionGenerationState) -> dict:
+    """构建单元生成prompt
+
+    返回包含以下字段的字典：
+    - prompt: ChatPromptTemplate 对象
+    - prompt_input: 用于格式化 prompt 的输入字典
+    - parser: JsonOutputParser 对象
+    """
+    # 提取状态数据
+    unit = state["unit"]
+    count = state["count"]
+    subject = state["subject"]
+    grade = state["grade"]
+    knowledges = state.get("knowledges", [])
+    recall_questions = state.get("recall_questions", [])
+
+    # 构建格式说明
+    parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
+    format_instructions = parser.get_format_instructions()
+
+    # 获取题型配置
+    question_types = get_question_types(subject, grade)
+    if not question_types:
+        raise ValueError(
+            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
+        )
+
+    # 构建各种文本信息
+    question_types_str = "、".join(question_types)
+    subtype_info = _build_subtype_info(question_types)
+    knowledge_text = _build_knowledge_text(knowledges)
+    avoid_duplicate_hint = _build_avoid_duplicate_hint(recall_questions)
+
+    # 根据学科选择prompt模板
+    unit_prompt_template = (
+        subject == "英语" and GENERIC_UNIT_PROMPT_ENGLISH or GENERIC_UNIT_PROMPT_MATH
+    )
+
+    # 追加避免重复提示
     if avoid_duplicate_hint:
         unit_prompt_template = unit_prompt_template + avoid_duplicate_hint
 
+    # 构建 ChatPromptTemplate
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -33,10 +114,20 @@ async def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
         ]
     )
 
+    # 构建 prompt 输入参数
+    prompt_input = {
+        "grade": grade,
+        "unit_name": unit.name,
+        "unit_summary": unit.content or "",
+        "count": count,
+        "question_types": question_types_str,
+        "subtype_info": subtype_info,
+        "knowledge_text": knowledge_text,
+        "format_instructions": format_instructions,
+    }
+
     return {
         "prompt": prompt,
         "prompt_input": prompt_input,
         "parser": parser,
-        "prompt_template": unit_prompt_template,
     }
-

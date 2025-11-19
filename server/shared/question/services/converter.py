@@ -1,12 +1,13 @@
 """题目转换服务 - 负责将生成的题目转换为Question对象"""
+
 from typing import Any, Dict, List
 from loguru import logger
 from pydantic import TypeAdapter
 
-from core.constants import get_question_types, get_question_subtypes
+from core.constants import get_question_types
 from core.database import Question
 from shared.question.types import QuestionGenerationState
-from shared.ai.services.question import GeneratedQuestion, QuestionOption
+from shared.question.types import GeneratedQuestion, QuestionOption
 
 
 async def convert_to_question_objects(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -114,4 +115,3 @@ async def convert_to_question_objects(state: QuestionGenerationState) -> Dict[st
         "audio_questions": audio_questions,
         "text_questions": text_questions,
     }
-

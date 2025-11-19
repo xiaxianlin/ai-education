@@ -3,11 +3,10 @@
 from langchain_core.output_parsers import JsonOutputParser
 from server.core.constants import get_question_subtypes, get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
-from shared.ai.prompts.question import get_prompt_by_subject
 
 # ==================== 英语学科 Prompts ====================
 
-GENERIC_UNIT_PROMPT_ENGLISH = """
+GENERIC_UNIT_PRACTICE_PROMPT_ENGLISH = """
 # 英语单元题目生成任务
 
 ## 一、基础信息
@@ -142,7 +141,7 @@ GENERIC_UNIT_PROMPT_ENGLISH = """
 
 # ==================== 数学学科 Prompts ====================
 
-GENERIC_UNIT_PROMPT_MATH = """
+GENERIC_UNIT_PRACTICE_PROMPT_MATH = """
 # 数学单元题目生成任务
 
 ## 一、基础信息
@@ -325,14 +324,14 @@ def _build_avoid_duplicate_hint(recall_questions: list) -> str:
 
 def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     """构建单元练习的prompt
-    
+
     返回包含以下字段的字典：
     - prompt: ChatPromptTemplate 对象
     - prompt_input: 用于格式化 prompt 的输入字典
     - parser: JsonOutputParser 对象
     """
     from langchain_core.prompts import ChatPromptTemplate
-    
+
     # 提取状态数据
     unit = state["unit"]
     count = state["count"]
@@ -340,7 +339,6 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     grade = state["grade"]
     knowledges = state.get("knowledges", [])
     recall_questions = state.get("recall_questions", [])
-    textbook = state["textbook"]
 
     # 构建格式说明
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
@@ -350,8 +348,7 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     question_types = get_question_types(subject, grade)
     if not question_types:
         raise ValueError(
-            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
+            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
     # 构建各种文本信息
@@ -361,7 +358,11 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     avoid_duplicate_hint = _build_avoid_duplicate_hint(recall_questions)
 
     # 获取prompt模板并追加避免重复提示
-    unit_prompt_template = get_prompt_by_subject("unit", textbook.subject)
+    unit_prompt_template = (
+        subject == "英语"
+        and GENERIC_UNIT_PRACTICE_PROMPT_ENGLISH
+        or GENERIC_UNIT_PRACTICE_PROMPT_MATH
+    )
     if avoid_duplicate_hint:
         unit_prompt_template = unit_prompt_template + avoid_duplicate_hint
 

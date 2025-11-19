@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 
 from core.settings import envs
 from shared.question.types import QuestionGenerationState
-from shared.ai.services.question import QuestionGenerationResult
+from shared.question.types import QuestionGenerationResult
 
 
 async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
