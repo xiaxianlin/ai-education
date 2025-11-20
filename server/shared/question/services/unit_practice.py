@@ -22,12 +22,7 @@ class UnitPracticeGenerateService:
         # 1. 获取单元下的所有可用题目
         stmt = (
             select(Question)
-            .where(
-                and_(
-                    Question.unit_id == unit_id,
-                    Question.status == 1,
-                )
-            )
+            .where(and_(Question.unit_id == unit_id, Question.status == 1))
             .order_by(func.random())  # 随机排序，避免每次都一样
             .limit(count)
         )

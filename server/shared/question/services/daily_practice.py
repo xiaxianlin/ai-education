@@ -5,7 +5,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from core.database import Question, Textbook, Student
+from core.database import Question
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.daily_practice import build_daily_practice_prompt
 
@@ -14,7 +14,9 @@ class DailyPracticeGenerateService:
     """今日练习服务类"""
 
     @classmethod
-    async def _recall_questions(cls, db: AsyncSession, student_id: str, textbook_id: int, count: int) -> List[Question]:
+    async def _recall_questions(
+        cls, db: AsyncSession, student_id: str, textbook_id: int, count: int
+    ) -> List[Question]:
         """召回今日练习题目
 
         策略：从教材中随机选择题目作为参考（避免重复）
@@ -54,7 +56,9 @@ class DailyPracticeGenerateService:
             textbook_id: str = state["textbook_id"]
             recall_count: int = state["recall_count"]
 
-            recalled_questions = await cls._recall_questions(db, student_id, textbook_id, recall_count)
+            recalled_questions = await cls._recall_questions(
+                db, student_id, textbook_id, recall_count
+            )
 
             logger.info(
                 f"加载今日练习上下文: textbook_id={textbook_id}, student_id={student_id}, "

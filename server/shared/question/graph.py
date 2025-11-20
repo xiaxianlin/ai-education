@@ -370,7 +370,8 @@ async def invoke_generate_workflow(
     unit_id: int | None = None,
     textbook_id: int | None = None,
     student_id: str | None = None,
-) -> Dict[str, Any]:
+    **kwargs,
+):
     """执行问题生成流程"""
 
     initial_state: QuestionGenerationState = {
@@ -380,11 +381,13 @@ async def invoke_generate_workflow(
         "subject": subject,
         "generation_type": generation_type,
     }
-    kwargs = {
+    update_kwargs = {
         "unit_id": unit_id,
         "textbook_id": textbook_id,
         "student_id": student_id,
+        **kwargs,
     }
-    initial_state.update({k: v for k, v in kwargs.items() if v is not None})
+    initial_state.update({k: v for k, v in update_kwargs.items() if v is not None})
 
-    await app.ainvoke(initial_state)
+    result = await app.ainvoke(initial_state)
+    return result["saved_questions"]

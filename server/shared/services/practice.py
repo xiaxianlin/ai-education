@@ -2,25 +2,17 @@ from typing import List
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeAnswer
+from core.database import PracticeAnswer, PracticeSession
+from shared.utils.time import today
+from shared.question.graph import invoke_generate_workflow
+from shared.question.types import GenerationType
 
 
-class PracticeSerivce:
+class PracticeService:
 
     @staticmethod
-    async def create_answer_records(
-        db: AsyncSession,
-        session_id: int,
-        question_ids: List[int],
-    ) -> None:
-        """
-        预生成答题记录
-
-        Args:
-            db: 数据库会话
-            session_id: 会话ID
-            question_ids: 题目ID列表（按顺序）
-        """
+    async def create_answer_records(db: AsyncSession, session_id: int, question_ids: List[int]):
+        """预生成答题记录"""
         try:
             # 先删除可能存在的旧记录（避免重复）
             await db.execute(
@@ -48,9 +40,45 @@ class PracticeSerivce:
             await db.rollback()
             raise
 
-    def create_daily_practice_session():
+    @staticmethod
+    async def create_daily_practice_session(
+        db: AsyncSession,
+        student_id: str,
+        subject: str,
+        grade: int,
+        textbook_id: int,
+        count: int = 30,
+        recall_count: int = 15,
+    ) -> PracticeSession:
         # 1. 调用 invoke_generate_workflow 生成题目
+        result = await invoke_generate_workflow(
+            db=db,
+            count=count,
+            generation_type=GenerationType.DAILY_PRACTICE.value,
+            subject=subject,
+            grade=grade,
+            textbook_id=textbook_id,
+            student_id=student_id,
+            recall_count=recall_count,
+        )
+
+        generated_questions = result.get("saved_questions", [])
+        question_ids = [q.id for q in generated_questions]
+
         # 2. 创建会话
+        session = PracticeSession(
+            student_id=student_id,
+            session_type="daily",
+            target_id=today(),
+            textbook_id=textbook_id,
+            question_count=len(question_ids),
+            status="in_progress",
+        )
+        db.add(session)
+        await db.flush()
+
         # 3. 预生成答题记录
+        await PracticeService.create_answer_records(db, session.id, question_ids)
+
         # 4. 返回会话
-        pass
+        return session
