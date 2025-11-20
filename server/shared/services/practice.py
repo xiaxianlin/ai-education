@@ -49,4 +49,8 @@ class PracticeSerivce:
             raise
 
     def create_daily_practice_session():
+        # 1. 调用 invoke_generate_workflow 生成题目
+        # 2. 创建会话
+        # 3. 预生成答题记录
+        # 4. 返回会话
         pass
