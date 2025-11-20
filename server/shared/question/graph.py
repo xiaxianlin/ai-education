@@ -130,7 +130,7 @@ async def build_textbook_prompt_node(state: QuestionGenerationState) -> Dict[str
 async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建今日练习prompt"""
     logger.info("开始构建今日练习prompt")
-    return DailyPracticeGenerateService.build_prompt(state)
+    return await DailyPracticeGenerateService.build_prompt(state)
 
 
 async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
