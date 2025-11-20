@@ -31,10 +31,10 @@ class UnitPracticeGenerateService:
             .order_by(func.random())  # 随机排序，避免每次都一样
             .limit(count)
         )
-        
+
         result = await db.execute(stmt)
         questions = result.scalars().all()
-        
+
         return list(questions)
 
     @classmethod
@@ -42,8 +42,9 @@ class UnitPracticeGenerateService:
         """验证单元练习的状态参数"""
         if state.get("unit_id") is None:
             raise ValueError("单元 ID (unit_id) 不能为空")
-        if state.get("db") is None:
-            raise ValueError("数据库会话 (db) 不能为空")
+
+        if state.get("recall_count") is None:
+            raise ValueError("召回题目数量 (recall_count) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -53,7 +54,7 @@ class UnitPracticeGenerateService:
             unit_id: int = state["unit_id"]
             # 召回数量通常是生成数量的一半，或者固定数量
             # 这里假设生成30题，召回15题
-            recall_count: int = 15 
+            recall_count: int = 15
 
             # 加载单元信息
             unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
@@ -64,7 +65,7 @@ class UnitPracticeGenerateService:
             knowledge_rows = await db.scalars(
                 select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id)
             )
-            knowledges = [k.name for k in knowledge_rows.all()] # 提取知识点名称
+            knowledges = [k.name for k in knowledge_rows.all()]  # 提取知识点名称
 
             # 召回题目
             recalled_questions = await cls._recall_questions(db, unit_id, recall_count)

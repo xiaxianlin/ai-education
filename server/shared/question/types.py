@@ -6,7 +6,7 @@ from typing import Any, List, NotRequired, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Question, Unit, Textbook
+from core.database import Question, Unit, Textbook, Student
 
 
 class QuestionOption(BaseModel):
@@ -19,9 +19,7 @@ class GeneratedQuestion(BaseModel):
     question_subtype: str = Field(description="题目子类型", default="")
     question: str = Field(description="题干内容")
     resource_content: str = Field(description="资源内容（录音文本等，仅录音题需要）", default="")
-    options: List[QuestionOption] = Field(
-        description="题目选项列表，非选择题时可为空数组", default=[]
-    )
+    options: List[QuestionOption] = Field(description="题目选项列表，非选择题时可为空数组", default=[])
     answer: str = Field(description="标准答案")
     difficulty: str = Field(description="题目难度：简单、普通、困难")
     knowledge: str = Field(description="知识点")
@@ -55,6 +53,8 @@ class QuestionGenerationState(TypedDict, total=False):
     type: GenerationType
     # 需要生成的题目数量
     count: int
+    # 召回的题目数量
+    recall_count: int
     # 年级
     grade: int
     # 学科，如：math、english 等
@@ -63,12 +63,8 @@ class QuestionGenerationState(TypedDict, total=False):
     unit_id: NotRequired[int]
     # 教材 ID，教材生成和能力评估需要
     textbook_id: NotRequired[int]
-    # 单元对象
-    unit: NotRequired[Unit]
-    # 教材对象
-    textbook: NotRequired[Textbook]
-    # 知识点列表
-    knowledges: NotRequired[List[str]]
+    # 学生 ID，每日练习需要
+    student_id: NotRequired[str]
     # 召回的题目列表
     recall_questions: NotRequired[List[Question]]
     # 生成的提示词 (ChatPromptTemplate)

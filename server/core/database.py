@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy import String, Text
 from sqlalchemy.orm import relationship, Mapped, mapped_column, DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from core.settings import envs
@@ -103,7 +103,9 @@ class Knowledge(BaseModel):
     content: Mapped[str] = mapped_column(Text, nullable=False, index=True)
 
     # 知识点属性（简化）
-    difficulty: Mapped[str] = mapped_column(String(50), nullable=True, comment="知识点难度（简单/普通/困难）")
+    difficulty: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="知识点难度（简单/普通/困难）"
+    )
     importance: Mapped[int] = mapped_column(default=5, comment="重要性（1-10，10最重要）")
     order: Mapped[int] = mapped_column(default=0, comment="同级知识点排序")
 
@@ -123,9 +125,6 @@ class Knowledge(BaseModel):
         lazy="joined",
     )
 
-    # 关联关系
-    # questions: 题目关联已移除（QuestionKnowledge 表被删除）
-
 
 class Question(BaseModel):
     __tablename__ = "ah_question"
@@ -142,7 +141,9 @@ class Question(BaseModel):
     resource_type: Mapped[str] = mapped_column(
         String(50), comment="资源类型：image-图片，audio-语音，空-无资源", nullable=True
     )
-    resource_content: Mapped[str] = mapped_column(Text, comment="资源内容（录音文本等）", nullable=True)
+    resource_content: Mapped[str] = mapped_column(
+        Text, comment="资源内容（录音文本等）", nullable=True
+    )
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column()
     knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
@@ -162,14 +163,11 @@ class Question(BaseModel):
         lazy="joined",
     )
 
-    # 关联关系
-    # knowledge_points: 知识点关联已移除（QuestionKnowledge 表被删除）
-
 
 class Student(BaseModel):
     __tablename__ = "ah_student"
 
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(255), nullable=False)
     password: Mapped[str] = mapped_column(String(255), default="")
@@ -185,7 +183,7 @@ class StudentTextbook(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), nullable=False)
     textbook_id: Mapped[int] = mapped_column(nullable=False)
-    create_time: Mapped[int] = mapped_column(default=now)
+    active: Mapped[int] = mapped_column(default=0, comment="是否为当前使用教材，1-是，0-否")
 
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
@@ -194,53 +192,27 @@ class StudentTextbook(BaseModel):
     )
 
 
-# 学生错题记录表（每次答错都记录）
-class StudentWrongRecord(BaseModel):
-    __tablename__ = "ah_student_wrong_record"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True, comment="学生ID")
-    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
-    session_id: Mapped[int] = mapped_column(
-        ForeignKey("ah_practice_session.id"), nullable=False, index=True, comment="练习会话ID"
-    )  # 练习会话ID
-
-    # 题目相关信息（冗余存储，避免关联查询）
-    unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")  # 单元ID
-    knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")  # 知识点
-    textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")  # 教材ID
-
-    # 答题信息
-    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")  # 用户答案
-    correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")  # 正确答案
-    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")  # 耗时(秒)
-
-    # 状态信息
-    is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正（再次答对）")  # 是否已订正（再次答对）
-    corrected_time: Mapped[int] = mapped_column(default=0, comment="订正时间")  # 订正时间
-
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, comment="更新时间")
-
-
 # 练习会话表，合并单元练习、每日练习、能力评估
 class PracticeSession(BaseModel):
     __tablename__ = "ah_practice_session"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
     student_id: Mapped[str] = mapped_column(String(255), nullable=False, comment="学生ID")
-    session_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="会话类型")  # daily/unit/assessment
+    session_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, comment="会话类型:daily/unit/assessment"
+    )  #
 
     target_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID或者时间戳")
     textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[str] = mapped_column(String(50), default="in_progress", comment="会话状态")  # in_progress/completed
+    status: Mapped[str] = mapped_column(String(50), default="in_progress", comment="会话状态")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(comment="更新时间")
 
 
 # 答题记录表
@@ -248,19 +220,43 @@ class PracticeAnswer(BaseModel):
     __tablename__ = "ah_practice_answer"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[int] = mapped_column(
-        ForeignKey("ah_practice_session.id"), nullable=False, index=True, comment="会话ID"
-    )
-    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
-    question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")  # 题目顺序
+    session_id: Mapped[int] = mapped_column(nullable=False, comment="会话ID")
+    question_id: Mapped[int] = mapped_column(nullable=False, comment="题目ID")
+    question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
 
     # 答题信息
-    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")  # 用户答案
-    is_correct: Mapped[int] = mapped_column(default=0)  # 0-未答 1-正确 2-错误
-    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")  # 耗时(秒)
-    submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")  # 提交时间
+    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
+    is_correct: Mapped[int] = mapped_column(default=0, comment="0-未答 1-正确 2-错误")
+    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
+    submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
+    audio_url: Mapped[str] = mapped_column(String(255), nullable=True, comment="录音URL")
+
+
+# 学生错题记录表（每次答错都记录）
+class PracticeWrongRecord(BaseModel):
+    __tablename__ = "ah_practice_wrong_record"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False, comment="学生ID")
+    question_id: Mapped[int] = mapped_column(nullable=False, comment="题目ID")
+    session_id: Mapped[int] = mapped_column(nullable=False, comment="练习会话ID")
+
+    # 题目相关信息（冗余存储，避免关联查询）
+    unit_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID")
+    knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")
+    textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")
+
+    # 答题信息
+    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
+    correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
+    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
+
+    # 状态信息
+    is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正（再次答对）")
+    corrected_time: Mapped[int] = mapped_column(default=0, comment="订正时间")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, comment="更新时间")
 
 
 # 练习报告表
@@ -268,9 +264,7 @@ class PracticeReport(BaseModel):
     __tablename__ = "ah_practice_report"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[int] = mapped_column(
-        ForeignKey("ah_practice_session.id"), nullable=False, unique=True, index=True
-    )
+    session_id: Mapped[int] = mapped_column(nullable=False, unique=True, index=True)
     student_id: Mapped[str] = mapped_column(String(255), nullable=False, comment="学生ID")
 
     # 总体统计
@@ -280,25 +274,21 @@ class PracticeReport(BaseModel):
     overall_score: Mapped[float] = mapped_column(default=0.0, comment="总得分")
 
     # 能力评估（主要用于assessment）
-    current_ability: Mapped[float] = mapped_column(default=0.0, comment="当前能力值（-3到+3）")  # 当前能力值（-3到+3）
-    confidence: Mapped[float] = mapped_column(default=0.0, comment="置信度")  # 置信度
-    ability_level: Mapped[str] = mapped_column(
-        String(50), default="", comment="能力等级"
-    )  # beginner/intermediate/advanced
-    percentile: Mapped[int] = mapped_column(default=0, comment="百分位排名")  # 百分位排名
+    current_ability: Mapped[float] = mapped_column(default=0.0, comment="当前能力值（-3到+3）")
+    confidence: Mapped[float] = mapped_column(default=0.0, comment="置信度")
+    ability_level: Mapped[str] = mapped_column(String(50), default="", comment="能力等级")
+    percentile: Mapped[int] = mapped_column(default=0, comment="百分位排名")
 
     # 详细分析 - JSON格式
-    knowledge_scores: Mapped[str] = mapped_column(Text, default="{}", comment="知识点掌握情况")  # 知识点掌握情况
-    question_distribution: Mapped[str] = mapped_column(Text, default="{}", comment="题目来源分布")  # 题目来源分布
-    ability_breakdown: Mapped[str] = mapped_column(
-        Text, default="{}", comment="能力分解（按难度）"
-    )  # 能力分解（按难度）
-    learning_speed: Mapped[float] = mapped_column(default=0.0, comment="学习速度")  # 学习速度
-    consistency: Mapped[float] = mapped_column(default=0.0, comment="稳定性")  # 稳定性
+    knowledge_scores: Mapped[str] = mapped_column(Text, default="{}", comment="知识点掌握情况")
+    question_distribution: Mapped[str] = mapped_column(Text, default="{}", comment="题目来源分布")
+    ability_breakdown: Mapped[str] = mapped_column(Text, default="{}", comment="能力分解（按难度）")
+    learning_speed: Mapped[float] = mapped_column(default=0.0, comment="学习速度")
+    consistency: Mapped[float] = mapped_column(default=0.0, comment="稳定性")
 
     # 建议 - JSON格式
-    strengths: Mapped[str] = mapped_column(Text, default="[]", comment="优势")  # 优势
-    weaknesses: Mapped[str] = mapped_column(Text, default="[]", comment="薄弱点")  # 薄弱点
-    recommendations: Mapped[str] = mapped_column(Text, default="[]", comment="学习建议")  # 学习建议
+    strengths: Mapped[str] = mapped_column(Text, default="[]", comment="优势")
+    weaknesses: Mapped[str] = mapped_column(Text, default="[]", comment="薄弱点")
+    recommendations: Mapped[str] = mapped_column(Text, default="[]", comment="学习建议")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")

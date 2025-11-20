@@ -1,7 +1,8 @@
 import dashscope
 from loguru import logger
 from core.settings import envs
-from shared.ai.services.prompt import PromptOptimizationService
+from shared.services.prompt import PromptService
+
 
 class AliyunAIService:
 
@@ -18,40 +19,36 @@ class AliyunAIService:
         )
 
         if response.status_code != 200:
-            logger.error(
-                f"语音识别失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
-            )
+            logger.error(f"语音识别失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
 
         # 处理不同的响应格式
         try:
             content = response.output.choices[0].message.content
-            
+
             # 如果 content 是列表，取第一个元素
             if isinstance(content, list):
                 if len(content) > 0:
                     # 检查第一个元素是否有 text 属性
-                    if hasattr(content[0], 'text'):
+                    if hasattr(content[0], "text"):
                         result_text = content[0].text
-                    elif isinstance(content[0], dict) and 'text' in content[0]:
-                        result_text = content[0]['text']
+                    elif isinstance(content[0], dict) and "text" in content[0]:
+                        result_text = content[0]["text"]
                     else:
                         # 如果第一个元素是字符串，直接使用
                         result_text = str(content[0])
                 else:
                     raise ValueError("ASR 响应内容为空")
             # 如果 content 是对象，直接获取 text 属性
-            elif hasattr(content, 'text'):
+            elif hasattr(content, "text"):
                 result_text = content.text
-            elif isinstance(content, dict) and 'text' in content:
-                result_text = content['text']
+            elif isinstance(content, dict) and "text" in content:
+                result_text = content["text"]
             else:
                 # 如果 content 本身就是字符串
                 result_text = str(content)
-            
-            logger.info(
-                f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {result_text[:100]}..."
-            )
+
+            logger.info(f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {result_text[:100]}...")
             return result_text
         except Exception as e:
             logger.error(f"解析 ASR 响应失败: {e}, 响应内容: {response.output}")
@@ -74,9 +71,7 @@ class AliyunAIService:
         logger.info(response)
 
         if response.status_code != 200:
-            logger.error(
-                f"文本转语音失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
-            )
+            logger.error(f"文本转语音失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
 
         audio_url = response.output.audio.url
@@ -84,9 +79,7 @@ class AliyunAIService:
         return audio_url
 
     @staticmethod
-    def generate_image(
-        text: str, width: int = None, height: int = None, optimize_prompt: bool = True
-    ):
+    def generate_image(text: str, width: int = None, height: int = None, optimize_prompt: bool = True):
         """
         生成图片
 
@@ -102,7 +95,7 @@ class AliyunAIService:
         # 如果启用提示词优化，使用提示词优化服务
         if optimize_prompt:
             logger.info(f"开始优化图片生成提示词，原始文本长度: {len(text)}")
-            image_prompt = PromptOptimizationService.optimize_image_prompt(text)
+            image_prompt = PromptService.optimize_image_prompt(text)
             logger.info(f"提示词优化完成，优化后长度: {len(image_prompt)}")
             logger.debug(f"优化后的提示词: {image_prompt[:200]}...")
         else:
@@ -126,9 +119,7 @@ class AliyunAIService:
 
         logger.info(response)
         if response.status_code != 200:
-            logger.error(
-                f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
-            )
+            logger.error(f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
         image_url = response.output.choices[0].message.content[0].get("image")
         logger.info(f"图片生成成功，任务 ID: {response.request_id}, 图片URL: {image_url}")

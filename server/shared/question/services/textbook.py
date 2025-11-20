@@ -16,7 +16,7 @@ class TextbookGenerateService:
     @classmethod
     async def _recall_questions(cls, db: AsyncSession, textbook_id: int, count: int) -> List[Question]:
         """召回教材题目
-        
+
         策略：从指定教材随机选择题目，用于避免重复
         """
         stmt = (
@@ -25,10 +25,10 @@ class TextbookGenerateService:
             .order_by(func.random())
             .limit(count)
         )
-        
+
         result = await db.execute(stmt)
         questions = result.scalars().all()
-        
+
         return list(questions)
 
     @classmethod
@@ -36,8 +36,6 @@ class TextbookGenerateService:
         """验证教材生成的状态参数"""
         if state.get("textbook_id") is None:
             raise ValueError("教材 ID (textbook_id) 不能为空")
-        if state.get("db") is None:
-            raise ValueError("数据库会话 (db) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -53,9 +51,7 @@ class TextbookGenerateService:
                 raise ValueError(f"教材不存在: {textbook_id}")
 
             # 加载所有单元
-            unit_rows = await db.scalars(
-                select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
-            )
+            unit_rows = await db.scalars(select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id))
             units = unit_rows.all()
 
             # 加载所有知识点（跨单元）

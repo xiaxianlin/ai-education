@@ -9,9 +9,6 @@ STANDARD_SYSTEM_PROMPT = """你是一名专业教研员，负责根据教材内�
 你的目标是生成高质量、符合学生认知水平、紧扣知识点的题目。
 请严格按照 {format_instructions} 生成 JSON 输出。"""
 
-DAILY_PRACTICE_SYSTEM_PROMPT = """你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。
-你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。
-请严格按照 {format_instructions} 生成 JSON 输出。"""
 
 ASSESSMENT_SYSTEM_PROMPT = """你是一名专业教研员，负责设计IRT自适应能力评估题目。
 你的目标是生成高质量、区分度高、符合学生认知水平的评估题目。

@@ -29,6 +29,7 @@ from admin.schema import (
 )
 from shared.utils.time import now
 from shared.question import QuestionGenerationService
+from shared.services.aliyun import AliyunAIService
 
 
 class AdaptiveAlgorithm:
@@ -43,9 +44,9 @@ class AdaptiveAlgorithm:
 
     # 能力等级映射
     ABILITY_LEVEL_MAP = [
-        (-3, -1, "beginner"),      # 初学者
-        (-1, 1, "intermediate"),   # 熟练
-        (1, 3, "advanced"),        # 精通
+        (-3, -1, "beginner"),  # 初学者
+        (-1, 1, "intermediate"),  # 熟练
+        (1, 3, "advanced"),  # 精通
     ]
 
     @staticmethod
@@ -133,11 +134,7 @@ class AdaptiveAlgorithm:
 
     @staticmethod
     def should_stop(
-        answered_count: int,
-        confidence: float,
-        min_questions: int,
-        max_questions: int,
-        recent_results: List[bool]
+        answered_count: int, confidence: float, min_questions: int, max_questions: int, recent_results: List[bool]
     ) -> bool:
         """
         判断是否应该结束评测
@@ -252,9 +249,7 @@ class PracticeService:
         )
 
         if not question_ids or len(question_ids) < 30:
-            logger.warning(
-                f"题目生成数量不足: 期望30道，实际{len(question_ids) if question_ids else 0}道"
-            )
+            logger.warning(f"题目生成数量不足: 期望30道，实际{len(question_ids) if question_ids else 0}道")
             if not question_ids:
                 raise ValueError("AI 生成题目失败，请稍后重试")
 
@@ -288,14 +283,16 @@ class PracticeService:
 
         # 检查是否有未完成的练习会话
         existing_result = await db.execute(
-            select(PracticeSession).where(
+            select(PracticeSession)
+            .where(
                 and_(
                     PracticeSession.student_id == student_id,
                     PracticeSession.session_type == "unit",
                     PracticeSession.target_id == unit_id,
                     PracticeSession.status == "in_progress",
                 )
-            ).order_by(PracticeSession.create_time.desc())
+            )
+            .order_by(PracticeSession.create_time.desc())
         )
         existing_session = existing_result.scalar_one_or_none()
 
@@ -384,9 +381,7 @@ class PracticeService:
             return AssessmentTestSchema.model_validate(existing_test)
 
         # 获取学生教材信息
-        profile_result = await db.execute(
-            select(StudentProfile).where(StudentProfile.student_id == student_id)
-        )
+        profile_result = await db.execute(select(StudentProfile).where(StudentProfile.student_id == student_id))
         profile = profile_result.scalar_one_or_none()
 
         if not profile or not profile.current_textbook_id:
@@ -458,9 +453,7 @@ class PracticeService:
         ordered_questions = [questions_dict[qid] for qid in question_ids if qid in questions_dict]
 
         # 获取答题记录
-        answers_result = await db.execute(
-            select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
+        answers_result = await db.execute(select(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
         answers = {ans.question_id: ans for ans in answers_result.scalars().all()}
 
         # 根据会话类型返回不同的数据结构
@@ -568,7 +561,7 @@ class PracticeService:
         actual_answer = answer
         if question.type == "口语题" and audio_url:
             try:
-                from server.shared.services.aliyun import AliyunAIService
+
                 # 通过 ASR 解析录音
                 asr_text = AliyunAIService.asr(audio_url, language="zh")
                 actual_answer = asr_text.strip()
@@ -623,9 +616,7 @@ class PracticeService:
 
         # 对于评测类型，更新能力值
         if session.session_type == "assessment":
-            difficulty_value = AdaptiveAlgorithm.DIFFICULTY_MAP.get(
-                question.difficulty, 0.0
-            )
+            difficulty_value = AdaptiveAlgorithm.DIFFICULTY_MAP.get(question.difficulty, 0.0)
             new_ability, new_confidence = AdaptiveAlgorithm.calculate_ability(
                 session.current_ability, difficulty_value, is_correct, session.confidence
             )
@@ -640,9 +631,7 @@ class PracticeService:
 
         # 重新计算统计信息（以便后台管理系统能实时看到进度）
         # 查询该会话的所有答题记录
-        all_answers = await db.execute(
-            select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
+        all_answers = await db.execute(select(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
         answers = all_answers.scalars().all()
 
         correct_count = sum(1 for ans in answers if ans.is_correct == 1)
@@ -707,9 +696,7 @@ class PracticeService:
             return await PracticeService._generate_report(db, session)
 
         # 获取答题记录
-        answers_result = await db.execute(
-            select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
+        answers_result = await db.execute(select(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
         answers = answers_result.scalars().all()
 
         # 计算统计信息
@@ -773,8 +760,8 @@ class PracticeService:
                         select(PracticeSession.id).where(
                             and_(
                                 PracticeSession.student_id == student_id,
-                                PracticeSession.session_type.in_(['daily', 'unit']),
-                                PracticeSession.status == 'completed'
+                                PracticeSession.session_type.in_(["daily", "unit"]),
+                                PracticeSession.status == "completed",
                             )
                         )
                     ),
@@ -904,7 +891,7 @@ class PracticeService:
             window_size = 5
             rates = []
             for i in range(len(answered_answers) - window_size + 1):
-                window = answered_answers[i:i+window_size]
+                window = answered_answers[i : i + window_size]
                 rate = sum(1 for ans in window if ans.is_correct == 1) / window_size
                 rates.append(rate)
 
@@ -923,7 +910,11 @@ class PracticeService:
                 weaknesses.append(knowledge)
 
         # 题目分布（兼容旧逻辑）
-        distribution = json.loads(session.question_distribution) if hasattr(session, 'question_distribution') and session.question_distribution else {}
+        distribution = (
+            json.loads(session.question_distribution)
+            if hasattr(session, "question_distribution") and session.question_distribution
+            else {}
+        )
 
         # 创建练习报告
         report = PracticeReport(
@@ -949,9 +940,7 @@ class PracticeService:
     async def _generate_report(db: AsyncSession, session: PracticeSession) -> Dict[str, Any]:
         """生成练习报告"""
         # 获取练习报告
-        report_result = await db.execute(
-            select(PracticeReport).where(PracticeReport.session_id == session.id)
-        )
+        report_result = await db.execute(select(PracticeReport).where(PracticeReport.session_id == session.id))
         report = report_result.scalar_one_or_none()
 
         if not report:
@@ -1072,15 +1061,12 @@ class PracticeService:
         )
 
         if not question_ids or len(question_ids) < 30:
-            logger.warning(
-                f"题目生成数量不足: 期望30道，实际{len(question_ids) if question_ids else 0}道"
-            )
+            logger.warning(f"题目生成数量不足: 期望30道，实际{len(question_ids) if question_ids else 0}道")
             if not question_ids:
                 # 检查是否有单元
                 from core.database import Unit
-                unit_result = await db.execute(
-                    select(Unit.id).where(Unit.textbook_id == textbook_id)
-                )
+
+                unit_result = await db.execute(select(Unit.id).where(Unit.textbook_id == textbook_id))
                 unit_count = len(unit_result.all())
 
                 if unit_count == 0:
@@ -1198,9 +1184,7 @@ class PracticeService:
                 today_progress = round((completed_questions / daily_questions) * 100)
 
         # 获取学生统计信息
-        stats_result = await db.execute(
-            select(StudentStats).where(StudentStats.student_id == student_id)
-        )
+        stats_result = await db.execute(select(StudentStats).where(StudentStats.student_id == student_id))
         stats = stats_result.scalar_one_or_none()
 
         consecutive_days = stats.current_streak if stats else 0
@@ -1215,9 +1199,7 @@ class PracticeService:
         }
 
     @staticmethod
-    async def get_unit_progress(
-        db: AsyncSession, student_id: str, unit_id: int
-    ) -> Dict[str, Any]:
+    async def get_unit_progress(db: AsyncSession, student_id: str, unit_id: int) -> Dict[str, Any]:
         """
         获取单元学习进度
 
@@ -1304,9 +1286,7 @@ class PracticeService:
         }
 
     @staticmethod
-    async def get_unit_practice_history(
-        db: AsyncSession, student_id: str, limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    async def get_unit_practice_history(db: AsyncSession, student_id: str, limit: int = 20) -> List[Dict[str, Any]]:
         """获取学生的单元练习历史"""
         result = await db.execute(
             select(PracticeSession)
@@ -1339,9 +1319,7 @@ class PracticeService:
         ]
 
     @staticmethod
-    async def get_assessment_history(
-        db: AsyncSession, student_id: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    async def get_assessment_history(db: AsyncSession, student_id: str, limit: int = 10) -> List[Dict[str, Any]]:
         """获取评测历史"""
         result = await db.execute(
             select(PracticeSession)
@@ -1372,9 +1350,7 @@ class PracticeService:
         ]
 
     @staticmethod
-    async def get_next_question(
-        db: AsyncSession, assessment_id: int, student_id: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_next_question(db: AsyncSession, assessment_id: int, student_id: str) -> Optional[Dict[str, Any]]:
         """
         获取下一道题（从预生成的题目列表中按顺序获取）
 
@@ -1419,9 +1395,7 @@ class PracticeService:
 
         # 获取下一道题
         next_question_id = question_ids[answered_count]
-        question_result = await db.execute(
-            select(Question).where(Question.id == next_question_id)
-        )
+        question_result = await db.execute(select(Question).where(Question.id == next_question_id))
         question = question_result.scalar_one_or_none()
 
         if not question:

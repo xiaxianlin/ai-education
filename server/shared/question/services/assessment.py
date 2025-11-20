@@ -16,7 +16,7 @@ class AssessmentGenerateService:
     @classmethod
     async def _recall_questions(cls, db: AsyncSession, textbook_id: int, count: int) -> List[Question]:
         """召回教材题目
-        
+
         策略：从指定教材随机选择题目，用于避免重复
         """
         stmt = (
@@ -25,10 +25,10 @@ class AssessmentGenerateService:
             .order_by(func.random())
             .limit(count)
         )
-        
+
         result = await db.execute(stmt)
         questions = result.scalars().all()
-        
+
         return list(questions)
 
     @classmethod
@@ -36,8 +36,9 @@ class AssessmentGenerateService:
         """验证能力评估的状态参数"""
         if state.get("textbook_id") is None:
             raise ValueError("教材 ID (textbook_id) 不能为空")
-        if state.get("db") is None:
-            raise ValueError("数据库会话 (db) 不能为空")
+
+        if state.get("recall_count") is None:
+            raise ValueError("召回题目数量 (recall_count) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -73,6 +74,7 @@ class AssessmentGenerateService:
                 "textbook": textbook,
                 "knowledges": knowledges,
                 "recall_questions": recalled_questions,
+                "recall_count": recall_count,
             }
         except Exception as e:
             logger.error(f"加载能力评估数据失败: {e}")

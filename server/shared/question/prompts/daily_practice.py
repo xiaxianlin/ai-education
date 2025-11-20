@@ -2,17 +2,21 @@
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.constants import get_question_types
+from server.shared.services.student import StudentService
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
-from shared.question.prompts.prompt_utils import (
-    build_subtype_info,
-    build_avoid_duplicate_hint,
-    build_question_types_text,
-    format_knowledge_list,
+from shared.question.prompts.utils import (
+    build_common_prompt,
+    build_knowledges_prompt,
     build_question_distribution,
+    build_units_prompt,
 )
-from shared.question.prompts.prompt_templates import DAILY_PRACTICE_SYSTEM_PROMPT
+
+DAILY_PRACTICE_SYSTEM_PROMPT = """你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。
+你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。
+请严格按照 {format_instructions} 生成 JSON 输出。"""
 
 DAILY_PRACTICE_PROMPT_ENGLISH = """
 # 英语今日智能练习生成任务
@@ -28,13 +32,13 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 ## 二、学生学习画像（近期数据）
 
 ### 2.1 薄弱知识点（需重点复习）
-{weak_knowledge_analysis}
+{weak_knowledge_points}
 
 ### 2.2 已掌握知识点（需巩固）
-{mastered_knowledge_list}
+{mastered_knowledge_points}
 
 ### 2.3 需要复习的单元提醒
-{review_units_reminder}
+{review_units}
 
 ---
 
@@ -45,9 +49,9 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 | 类型 | 数量 | 难度 | 知识点来源 | 英语学习目标 |
 |------|------|------|-----------|------------|
 | **错题复习** | {wrong_count}题 | 简单/普通 | {weak_knowledge_points} | 重点攻克薄弱词汇、语法点 |
-| **巩固练习** | {consolidation_count}题 | 普通 | {mastered_knowledge} | 保持已学单词、句型的熟练度 |
-| **挑战题** | {challenge_count}题 | 普通/困难 | {challenge_knowledge} | 提升语言理解和表达能力 |
-| **新知引入** | {new_count}题 | 简单 | {new_knowledge} | 预习新单词或句型 |
+| **巩固练习** | {mastered_count}题 | 普通 | {mastered_knowledge_points} | 保持已学单词、句型的熟练度 |
+| **挑战题** | {challenge_count}题 | 普通/困难 | {challenge_knowledge_points} | 提升语言理解和表达能力 |
+| **新知引入** | {new_count}题 | 简单 | {new_knowledge_points} | 预习新单词或句型 |
 
 **总计**：{count} 题
 
@@ -65,8 +69,8 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 - **题干风格**：鼓励性语言，如"Let's practice again!"
 - **避免陷阱**：不使用完全相同的错题，但可出相似题型
 
-### 4.2 巩固练习题（{consolidation_count}题）
-- **知识点**：从 `{mastered_knowledge}` 中均匀选择
+### 4.2 巩固练习题（{mastered_count}题）
+- **知识点**：从 `{mastered_knowledge_points}` 中均匀选择
 - **难度**：以"普通"为主（70%），"简单"为辅（30%）
 - **题型**：多样化，包括听说读写各技能
 - **建议搭配**：词汇2题 + 语法1题 + 听力1题 + 口语1题（根据总数调整）
@@ -82,7 +86,7 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
   - 短文阅读与理解
 
 ### 4.4 新知引入题（{new_count}题）
-- **知识点**：从 `{new_knowledge}` 中选择
+- **知识点**：从 `{new_knowledge_points}` 中选择
 - **难度**：必须是"简单"
 - **题型**：听音选词、跟读、看图说话
 - **题干要求**：
@@ -112,10 +116,7 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 ---
 
 ## 六、题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **题型多样性要求**：
 - **题型数量限制**：单一题型最多不超过总题数的50%
@@ -132,7 +133,7 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 - ❌ 避免过于严肃或压力式表达
 
 ### 7.2 适龄表述
-- 题干使用{grade}年级学生能理解的英语词汇
+- 题干使用{grade}学生能理解的英语词汇
 - 说明部分可使用中文，核心内容尽量用简单英语
 - 每道题题干（中英文合计）不超过60字
 
@@ -161,7 +162,7 @@ DAILY_PRACTICE_PROMPT_ENGLISH = """
 - [ ] 题目分布符合指定比例（允许±1题误差）
 - [ ] 听说读写能力均衡覆盖
 - [ ] 难度曲线平滑，前期简单，后期适度挑战
-- [ ] 题干语气友好，符合{grade}年级英语水平
+- [ ] 题干语气友好，符合{grade}英语水平
 - [ ] 无重复题目或高度相似题目
 - [ ] 英语表达地道，无中式英语
 """
@@ -181,13 +182,13 @@ DAILY_PRACTICE_PROMPT_MATH = """
 ## 二、学生学习画像（近期数据）
 
 ### 2.1 薄弱知识点（需重点复习）
-{weak_knowledge_analysis}
+{weak_knowledge_points}
 
 ### 2.2 已掌握知识点（需巩固）
-{mastered_knowledge_list}
+{mastered_knowledge_points}
 
 ### 2.3 需要复习的单元提醒
-{review_units_reminder}
+{review_units}
 
 ---
 
@@ -198,9 +199,9 @@ DAILY_PRACTICE_PROMPT_MATH = """
 | 类型 | 数量 | 难度 | 知识点来源 | 数学学习目标 |
 |------|------|------|-----------|------------|
 | **错题复习** | {wrong_count}题 | 简单/普通 | {weak_knowledge_points} | 攻克计算失误、概念混淆 |
-| **巩固练习** | {consolidation_count}题 | 普通 | {mastered_knowledge} | 保持运算熟练度和准确性 |
-| **挑战题** | {challenge_count}题 | 普通/困难 | {challenge_knowledge} | 提升数学思维和解题能力 |
-| **新知引入** | {new_count}题 | 简单 | {new_knowledge} | 预习新知识点或新题型 |
+| **巩固练习** | {mastered_count}题 | 普通 | {mastered_knowledge_points} | 保持运算熟练度和准确性 |
+| **挑战题** | {challenge_count}题 | 普通/困难 | {challenge_knowledge_points} | 提升数学思维和解题能力 |
+| **新知引入** | {new_count}题 | 简单 | {new_knowledge_points} | 预习新知识点或新题型 |
 
 **总计**：{count} 题
 
@@ -220,8 +221,8 @@ DAILY_PRACTICE_PROMPT_MATH = """
   - 避免完全相同的数字组合
 - **题干风格**：鼓励性，如"我们再来练习一下...""相信你这次能做对！"
 
-### 4.2 巩固练习题（{consolidation_count}题）
-- **知识点**：从 `{mastered_knowledge}` 中均匀选择
+### 4.2 巩固练习题（{mastered_count}题）
+- **知识点**：从 `{mastered_knowledge_points}` 中均匀选择
 - **难度**：以"普通"为主（70%），"简单"为辅（30%）
 - **题型**：多样化，包括计算、应用、选择、填空
 - **建议搭配**：计算2题 + 应用1题 + 选择1题（根据总数调整）
@@ -243,7 +244,7 @@ DAILY_PRACTICE_PROMPT_MATH = """
   - 提供适度提示，避免完全无从下手
 
 ### 4.4 新知引入题（{new_count}题）
-- **知识点**：从 `{new_knowledge}` 中选择
+- **知识点**：从 `{new_knowledge_points}` 中选择
 - **难度**：必须是"简单"
 - **题型**：概念理解题、简单计算题
 - **题干要求**：
@@ -275,10 +276,7 @@ DAILY_PRACTICE_PROMPT_MATH = """
 ---
 
 ## 六、题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **题型多样性要求**：
 - **题型数量限制**：单一题型最多不超过总题数的50%
@@ -296,7 +294,7 @@ DAILY_PRACTICE_PROMPT_MATH = """
 - ❌ 避免压力式表达："必须"、"不能错"
 
 ### 7.2 适龄表述
-- 题干使用{grade}年级学生能理解的语言
+- 题干使用{grade}学生能理解的语言
 - 避免过于复杂的条件或背景描述
 - 应用题场景贴近学生生活经验
 
@@ -331,12 +329,12 @@ DAILY_PRACTICE_PROMPT_MATH = """
 - [ ] 计算题答案准确无误
 - [ ] 应用题数据真实合理
 - [ ] 难度曲线平滑，无突然跳跃
-- [ ] 题干表述清晰，符合{grade}年级理解水平
+- [ ] 题干表述清晰，符合{grade}理解水平
 - [ ] 无重复题目或完全相同的数字组合
 """
 
 
-def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
+async def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     """构建今日练习prompt
 
     返回包含以下字段的字典：
@@ -345,52 +343,22 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     - parser: JsonOutputParser 对象
     """
     # 提取状态数据
-    textbook = state["textbook"]
+    db: AsyncSession = state["db"]
+    student_id: str = state["student_id"]
     count = state["count"]
+    recall_count = state["recall_count"]
     subject = state["subject"]
+    grade = state["grade"]
     recall_questions = state.get("recall_questions", [])
-
-    # 简化版：使用默认的知识点分布
-    weak_knowledge = state.get("weak_knowledge", [])
-    mastered_knowledge = state.get("mastered_knowledge", [])
 
     # 构建格式说明
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    # 获取题型配置
-    question_types = get_question_types(textbook.subject, textbook.grade)
-    if not question_types:
-        raise ValueError(
-            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
-        )
-
-    # 计算题目分布
-    # 计算题目分布
-    distribution = build_question_distribution(count)
-    wrong_count = distribution["wrong_count"]
-    consolidation_count = distribution["consolidation_count"]
-    challenge_count = distribution["challenge_count"]
-    new_count = distribution["new_count"]
-
-    # 使用工具函数构建各种文本信息
-    question_types_str = build_question_types_text(question_types)
-    subtype_info = build_subtype_info(question_types)
-    avoid_duplicate_hint = build_avoid_duplicate_hint(recall_questions)
-
-    # 格式化知识点信息
-    weak_knowledge_analysis = (
-        "\n".join([f"- **{k}**" for k in weak_knowledge[:5]])
-        if weak_knowledge
-        else "（暂无明显薄弱知识点，学生整体掌握良好）"
-    )
-    mastered_knowledge_list = format_knowledge_list(mastered_knowledge, max_count=10)
+    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(subject, grade, recall_questions)
 
     # 获取prompt模板并追加避免重复提示
-    daily_prompt_template = (
-        subject == "英语" and DAILY_PRACTICE_PROMPT_ENGLISH or DAILY_PRACTICE_PROMPT_MATH
-    )
+    daily_prompt_template = subject == "英语" and DAILY_PRACTICE_PROMPT_ENGLISH or DAILY_PRACTICE_PROMPT_MATH
     if avoid_duplicate_hint:
         daily_prompt_template = daily_prompt_template + avoid_duplicate_hint
 
@@ -402,27 +370,27 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         ]
     )
 
+    # 获取学生学习数据
+    weak_knowledge_points = await StudentService.get_weak_knowledges(db, student_id)
+    mastered_knowledge_points = await StudentService.get_mastered_knowledges(db, student_id)
+    challenge_knowledge_points = await StudentService.get_challenge_knowledges(db, student_id)
+    new_knowledge_points = await StudentService.get_new_knowledges(db, student_id)
+    review_units = await StudentService.get_review_units(db, student_id)
+
+    # 计算题目分布
+    distribution = build_question_distribution(count)
+
     # 构建 prompt 输入参数
     prompt_input = {
-        "grade": textbook.grade,
-        "semester": textbook.semester,
-        "count": count,
-        "question_types": question_types_str,
-        "subtype_info": subtype_info,
+        "grade": grade_text,
+        "question_types": question_types_text,
         "format_instructions": format_instructions,
-        "weak_knowledge_analysis": weak_knowledge_analysis,
-        "mastered_knowledge_list": mastered_knowledge_list,
-        "review_units_reminder": "（近期无需复习的单元）",
-        "weak_knowledge_points": format_knowledge_list(weak_knowledge, max_count=5) or "（无）",
-        "mastered_knowledge": format_knowledge_list(mastered_knowledge, max_count=8) or "（无）",
-        "challenge_knowledge": (
-            format_knowledge_list(mastered_knowledge[-3:]) if mastered_knowledge else "（无）"
-        ),
-        "new_knowledge": format_knowledge_list(mastered_knowledge[-3:]) if mastered_knowledge else "（无）",
-        "wrong_count": wrong_count,
-        "consolidation_count": consolidation_count,
-        "challenge_count": challenge_count,
-        "new_count": new_count,
+        "weak_knowledge_points": build_knowledges_prompt(weak_knowledge_points),
+        "mastered_knowledge_points": build_knowledges_prompt(mastered_knowledge_points),
+        "challenge_knowledge_points": build_knowledges_prompt(challenge_knowledge_points),
+        "new_knowledge_points": build_knowledges_prompt(new_knowledge_points),
+        "review_units": build_units_prompt(review_units),
+        **distribution,
     }
 
     return {
@@ -430,4 +398,3 @@ def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
         "prompt_input": prompt_input,
         "parser": parser,
     }
-

@@ -7,9 +7,6 @@ from core.database import PracticeAnswer
 
 class PracticeSerivce:
 
-    def create():
-        pass
-
     @staticmethod
     async def create_answer_records(
         db: AsyncSession,
@@ -50,3 +47,6 @@ class PracticeSerivce:
             logger.error(f"预生成答题记录失败: session_id={session_id}, error={e}")
             await db.rollback()
             raise
+
+    def create_daily_practice_session():
+        pass

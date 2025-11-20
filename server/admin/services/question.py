@@ -9,7 +9,7 @@ from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from core.database import Question, Unit
 from core.schema import QuestionSchema, SearchResultSchema
 from core.settings import envs
-from server.shared.services.aliyun import AliyunAIService
+from shared.services.aliyun import AliyunAIService
 from shared.provider.aliyun import AliyunOSS
 from shared.utils.time import now
 from shared.utils.question import build_full_question_text
@@ -194,33 +194,18 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     if params.subject:
         conditions.append(Question.subject == params.subject)
     if params.resource_type is not None:
-        if params.resource_type == '':
+        if params.resource_type == "":
             # 筛选无资源类型的题目（resource_type 为 None 或空字符串）
-            conditions.append(
-                or_(
-                    Question.resource_type.is_(None),
-                    Question.resource_type == ''
-                )
-            )
+            conditions.append(or_(Question.resource_type.is_(None), Question.resource_type == ""))
         else:
             conditions.append(Question.resource_type == params.resource_type)
     if params.resource_generated is not None:
         if params.resource_generated:
             # 资源已生成：resource 不为空且不为空字符串
-            conditions.append(
-                and_(
-                    Question.resource.isnot(None),
-                    Question.resource != ''
-                )
-            )
+            conditions.append(and_(Question.resource.isnot(None), Question.resource != ""))
         else:
             # 资源未生成：resource 为空或空字符串
-            conditions.append(
-                or_(
-                    Question.resource.is_(None),
-                    Question.resource == ''
-                )
-            )
+            conditions.append(or_(Question.resource.is_(None), Question.resource == ""))
 
     if len(conditions) > 0:
         query = query.where(and_(*conditions))
@@ -321,8 +306,6 @@ async def _download_file(url: str, file_path: str) -> None:
             f.write(chunk)
 
 
-
-
 async def generate_question_image(db: AsyncSession, question_id: str) -> QuestionSchema:
     """为单个问题生成图片并上传到 OSS"""
     question = await db.scalar(select(Question).where(Question.id == question_id))
@@ -331,10 +314,12 @@ async def generate_question_image(db: AsyncSession, question_id: str) -> Questio
 
     if not question.content:
         raise ValueError("问题内容为空，无法生成图片")
-    
+
     # 检查是否需要生成图片
     if question.resource_type != "image":
-        raise ValueError(f"该题目不需要生成图片（resource_type={question.resource_type}）。只有 resource_type 为 'image' 的题目才能生成图片。")
+        raise ValueError(
+            f"该题目不需要生成图片（resource_type={question.resource_type}）。只有 resource_type 为 'image' 的题目才能生成图片。"
+        )
 
     try:
         # 构建完整的问题内容（包含题目、选项、答案）
@@ -394,10 +379,12 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
 
     if not question.content:
         raise ValueError("问题内容为空，无法生成语音")
-    
+
     # 检查是否需要生成语音
     if question.resource_type != "audio":
-        raise ValueError(f"该题目不需要生成语音（resource_type={question.resource_type}）。只有 resource_type 为 'audio' 的题目才能生成语音。")
+        raise ValueError(
+            f"该题目不需要生成语音（resource_type={question.resource_type}）。只有 resource_type 为 'audio' 的题目才能生成语音。"
+        )
 
     try:
         # 生成语音，优先使用 resource_content，如果没有则使用完整的问题内容

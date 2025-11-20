@@ -24,8 +24,10 @@ from shared.question.services.assessment import AssessmentGenerateService
 
 def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """入口节点，负责基础校验"""
-    logger.info(f"进入题目生成工作流: type={state.get('generation_type')}, count={state.get('count')}")
-    
+    logger.info(
+        f"进入题目生成工作流: type={state.get('generation_type')}, count={state.get('count')}"
+    )
+
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
 
@@ -40,7 +42,7 @@ def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
     if state.get("grade") is None:
         raise ValueError("年级（grade）不能为空")
-        
+
     return {}
 
 
@@ -355,23 +357,34 @@ def create_question_generation_graph() -> StateGraph:
     return workflow.compile()
 
 
+app = create_question_generation_graph()
+
+
 async def invoke_generate_workflow(
+    *,
     db: AsyncSession,
-    count: int,
+    count: int = 30,
     generation_type: str = GenerationType.UNIT.value,
-    **kwargs: Any,
+    subject: str,
+    grade: int,
+    unit_id: int | None = None,
+    textbook_id: int | None = None,
+    student_id: str | None = None,
 ) -> Dict[str, Any]:
     """执行问题生成流程"""
-    # graph = create_question_generation_graph()
-    # 编译图可能比较耗时，如果可以缓存最好，这里每次都重新创建
-    
-    app = create_question_generation_graph()
 
     initial_state: QuestionGenerationState = {
-        "count": count,
         "db": db,
+        "count": count,
+        "grade": grade,
+        "subject": subject,
         "generation_type": generation_type,
+    }
+    kwargs = {
+        "unit_id": unit_id,
+        "textbook_id": textbook_id,
+        "student_id": student_id,
     }
     initial_state.update({k: v for k, v in kwargs.items() if v is not None})
 
-    return await app.ainvoke(initial_state)
+    await app.ainvoke(initial_state)

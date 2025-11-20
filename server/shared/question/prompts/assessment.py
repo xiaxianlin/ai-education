@@ -3,7 +3,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from core.constants import get_question_subtypes, get_question_types
+from core.constants import get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
 from shared.question.prompts.prompt_utils import (
     build_knowledge_text,
@@ -331,7 +331,6 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     - parser: JsonOutputParser 对象
     """
     # 提取状态数据
-    textbook = state["textbook"]
     count = state["count"]
     subject = state["subject"]
     grade = state["grade"]
@@ -349,7 +348,6 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
             f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
-    # 计算难度分布
     # 计算难度分布
     difficulty_distribution = build_difficulty_distribution(count)
     simple_count = difficulty_distribution["simple_count"]

@@ -84,3 +84,11 @@ async def search_unit(db: AsyncSession, params: SearchSchema) -> Tuple[List[Unit
         total=total,
         data=[UnitSchema.model_validate(unit) for unit in units.all()],
     )
+
+
+async def query_unit_by_textbook(db: AsyncSession, textbook_id: int) -> List[Unit]:
+    """根据教材ID查询课程单元"""
+    units_result = await db.scalars(
+        select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
+    )
+    return units_result.all()

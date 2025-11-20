@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Request, HTTPException, Depends
+from fastapi import Request, HTTPException
 from loguru import logger
 from core.database import AsyncSessionLocal, Student
 from core.schema import StudentSchema
@@ -40,16 +40,6 @@ async def student_router_filter(request: Request):
     request.state.student = StudentSchema.model_validate(student)
 
 
-async def get_current_student(request: Request):
-    token = request.headers.get("x-access-token")
-
-    payload = encrypt.decode(token)
-    if not payload or not payload.get("id"):
-        raise HTTPException(status_code=401, detail="登录失效")
-
-    return payload
-
-
 async def student_login(db: AsyncSession, phone: str, password: str):
     student = await db.scalar(select(Student).where(Student.phone == phone))
     if not student:
@@ -69,10 +59,3 @@ async def student_login(db: AsyncSession, phone: str, password: str):
     await db.commit()
 
     return token
-
-
-async def get_student(db: AsyncSession, id: str):
-    return await db.scalar(select(Student).where(Student.id == id))
-
-
-CurrentStudent = Depends(get_current_student)

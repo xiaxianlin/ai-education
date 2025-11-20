@@ -16,7 +16,7 @@ class UnitGenerateService:
     @classmethod
     async def _recall_questions(cls, db: AsyncSession, unit_id: int, count: int) -> List[Question]:
         """召回单元题目
-        
+
         策略：从指定单元随机选择题目，用于避免重复
         """
         stmt = (
@@ -30,10 +30,10 @@ class UnitGenerateService:
             .order_by(func.random())
             .limit(count)
         )
-        
+
         result = await db.execute(stmt)
         questions = result.scalars().all()
-        
+
         return list(questions)
 
     @classmethod
@@ -41,8 +41,6 @@ class UnitGenerateService:
         """验证单元生成的状态参数"""
         if state.get("unit_id") is None:
             raise ValueError("单元 ID (unit_id) 不能为空")
-        if state.get("db") is None:
-            raise ValueError("数据库会话 (db) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
