@@ -25,7 +25,7 @@ class DailyPracticeGenerateService:
         # TODO: 实际应用中应该根据学生的学习数据（错题、薄弱知识点等）智能召回
         stmt = (
             select(Question)
-            .where(Question.textbook_id == textbook_id, Question.status == 1)
+            .where(Question.textbook_id == textbook_id)
             .order_by(func.random())
             .limit(count)
         )

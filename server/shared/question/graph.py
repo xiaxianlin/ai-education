@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.question.types import GenerationType, QuestionGenerationState
 from shared.question.services import llm as llm_service
-from shared.question.services import converter as converter_service
 from shared.question.services import resource as resource_service
 from shared.question.services import storage as storage_service
 
@@ -162,7 +161,7 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
     logger.info("开始转换问题对象并分流")
     try:
-        result = await converter_service.convert_to_question_objects(state)
+        result = await storage_service.convert_questions(state)
 
         image_questions = result.get("image_questions", [])
         audio_questions = result.get("audio_questions", [])
@@ -246,16 +245,10 @@ async def upload_files_node(state: QuestionGenerationState) -> Dict[str, Any]:
         raise
 
 
-async def upload_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """数据更新节点"""
-    logger.info("开始更新问题数据")
-    try:
-        result = await storage_service.update_questions(state)
-        logger.info("问题更新完成，共更新 %s 道题目", len(result.get("saved_questions", [])))
-        return result
-    except Exception as e:
-        logger.error(f"问题更新失败: {e}")
-        raise
+async def gather_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """汇总数据节点"""
+    logger.info("问题更新完成，共更新 %s 道题目", len(state.get("questions", [])))
+    return {"questions": state.get("questions", [])}
 
 
 # ==================== 图构建 ====================
@@ -296,7 +289,7 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("handle_audio", handle_audio_node)
     workflow.add_node("handle_text", handle_text_node)
     workflow.add_node("upload_files", upload_files_node)
-    workflow.add_node("upload_questions", upload_questions_node)
+    workflow.add_node("gather_questions_node", gather_questions_node)
 
     # 设置入口点
     workflow.set_entry_point("entry")
@@ -348,11 +341,11 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("handle_audio", "upload_files")
 
     # 添加边：文件上传/文本处理 -> 更新问题
-    workflow.add_edge("upload_files", "upload_questions")
-    workflow.add_edge("handle_text", "upload_questions")
+    workflow.add_edge("upload_files", "gather_questions_node")
+    workflow.add_edge("handle_text", "gather_questions_node")
 
     # 添加边：更新问题 -> 结束
-    workflow.add_edge("upload_questions", END)
+    workflow.add_edge("gather_questions_node", END)
 
     return workflow.compile()
 
@@ -390,4 +383,4 @@ async def invoke_generate_workflow(
     initial_state.update({k: v for k, v in update_kwargs.items() if v is not None})
 
     result = await app.ainvoke(initial_state)
-    return result["saved_questions"]
+    return result.get("questions", [])

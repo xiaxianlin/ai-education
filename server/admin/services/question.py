@@ -11,7 +11,6 @@ from core.schema import QuestionSchema, SearchResultSchema
 from core.settings import envs
 from shared.services.aliyun import AliyunAIService
 from shared.provider.aliyun import AliyunOSS
-from shared.utils.time import now
 from shared.utils.question import build_full_question_text
 
 
@@ -47,10 +46,7 @@ async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchem
         question.unit_id = update.unit_id
     if update.textbook_id is not None:
         question.textbook_id = update.textbook_id
-    if update.status is not None:
-        question.status = update.status
 
-    question.update_time = now()
     await db.commit()
 
 
@@ -88,17 +84,11 @@ async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: in
             noload(Question.textbook),
             noload(Question.unit),
         )
-        .where(
-            Question.knowledge == knowledge,
-            Question.status == 1,
-        )
+        .where(Question.knowledge == knowledge)
     )
 
     # 获取总数
-    count_query = select(func.count(Question.id)).where(
-        Question.knowledge == knowledge,
-        Question.status == 1,
-    )
+    count_query = select(func.count(Question.id)).where(Question.knowledge == knowledge)
 
     total = await db.scalar(count_query) or 0
 
@@ -126,10 +116,7 @@ async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size
     )
 
     # 获取总数
-    count_query = select(func.count(Question.id)).where(
-        Question.unit_id == unit_id,
-        Question.status == 1,
-    )
+    count_query = select(func.count(Question.id)).where(Question.unit_id == unit_id)
 
     total = await db.scalar(count_query) or 0
 
@@ -357,7 +344,6 @@ async def generate_question_image(db: AsyncSession, question_id: str) -> Questio
 
         # 更新问题的 resource 字段
         question.resource = oss_path
-        question.update_time = now()
         await db.commit()
 
         # 清理临时文件
@@ -425,7 +411,6 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
 
         # 更新问题的 resource 字段
         question.resource = oss_path
-        question.update_time = now()
         await db.commit()
 
         # 清理临时文件

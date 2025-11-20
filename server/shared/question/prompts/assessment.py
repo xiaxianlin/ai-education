@@ -3,16 +3,16 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from core.constants import get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
-from shared.question.prompts.prompt_utils import (
-    build_knowledge_text,
-    build_subtype_info,
-    build_avoid_duplicate_hint,
+from shared.question.prompts.utils import (
+    build_common_prompt,
+    build_knowledges_prompt,
     build_difficulty_distribution,
-    build_question_types_text,
 )
-from shared.question.prompts.prompt_templates import ASSESSMENT_SYSTEM_PROMPT
+
+ASSESSMENT_SYSTEM_PROMPT = """你是一名专业教研员，负责设计IRT自适应能力评估题目。
+你的目标是生成高质量、区分度高、符合学生认知水平的评估题目。
+请严格按照 {format_instructions} 生成 JSON 输出。"""
 
 
 ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
@@ -37,7 +37,7 @@ ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
 
 ## 三、英语能力考察范围
 
-本评测旨在考察学生在**{grade}年级英语学科**的整体能力，题目应覆盖该年级的核心能力维度：
+本评测旨在考察学生在**{grade}英语学科**的整体能力，题目应覆盖该年级的核心能力维度：
 
 ### 3.1 英语学科能力维度
 - **词汇能力**（30-40%）：单词识别、拼写、词义理解、词组搭配
@@ -113,10 +113,7 @@ ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
 ---
 
 ## 六、题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **题型选择建议**：
 - 词汇能力：选择题、听音选词、看图选词
@@ -147,7 +144,7 @@ ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
 - 听力题重点考听力，不要求复杂推理
 
 ### 7.4 年级适配性
-- 词汇难度符合{grade}年级课程标准
+- 词汇难度符合{grade}课程标准
 - 句型复杂度适合年级水平
 - 不出现超纲或低于年级的内容
 
@@ -171,7 +168,7 @@ ASSESSMENT_GENERATION_PROMPT_ENGLISH = """
 - [ ] **题目区分度**：每个难度层次内题目难度相对一致
 - [ ] **判分友好性**：所有题目答案唯一，便于自动判分
 - [ ] **题目独立性**：题目间无依赖关系，无提示效应
-- [ ] **年级适配性**：符合{grade}年级英语水平
+- [ ] **年级适配性**：符合{grade}英语水平
 - [ ] **题型多样性**：至少3种以上题型，单一题型≤40%
 - [ ] **语言准确性**：英语表达地道，无中式英语
 """
@@ -199,7 +196,7 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 
 ## 三、数学能力考察范围
 
-本评测旨在考察学生在**{grade}年级数学学科**的整体能力，题目应覆盖该年级的核心能力维度：
+本评测旨在考察学生在**{grade}数学学科**的整体能力，题目应覆盖该年级的核心能力维度：
 
 ### 3.1 数学学科能力维度
 - **数感与运算**（30-40%）：数的认识、加减乘除、四则运算、心算能力
@@ -280,10 +277,7 @@ ASSESSMENT_GENERATION_PROMPT_MATH = """
 ---
 
 ## 六、题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **题型多样性要求**：
 - **题型数量限制**：单一题型最多不超过总题数的40%
@@ -341,24 +335,12 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    # 获取题型配置
-    question_types = get_question_types(subject, grade)
-    if not question_types:
-        raise ValueError(
-            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
-        )
-
     # 计算难度分布
     difficulty_distribution = build_difficulty_distribution(count)
-    simple_count = difficulty_distribution["simple_count"]
-    medium_count = difficulty_distribution["medium_count"]
-    hard_count = difficulty_distribution["hard_count"]
 
-    # 使用工具函数构建各种文本信息
-    question_types_str = build_question_types_text(question_types)
-    subtype_info = build_subtype_info(question_types)
-    knowledge_text = build_knowledge_text(knowledges)
-    avoid_duplicate_hint = build_avoid_duplicate_hint(recall_questions)
+    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
+        subject, grade, recall_questions
+    )
 
     # 获取prompt模板并追加避免重复提示
     assessment_prompt_template = (
@@ -379,15 +361,12 @@ def build_assessment_prompt(state: QuestionGenerationState) -> dict:
 
     # 构建 prompt 输入参数
     prompt_input = {
-        "grade": grade,
+        "grade": grade_text,
         "count": count,
-        "question_types": question_types_str,
-        "subtype_info": subtype_info,
-        "knowledge_text": knowledge_text,
+        "question_types": question_types_text,
+        "knowledge_text": build_knowledges_prompt(knowledges),
         "format_instructions": format_instructions,
-        "simple_count": simple_count,
-        "medium_count": medium_count,
-        "hard_count": hard_count,
+        **difficulty_distribution,
     }
 
     return {

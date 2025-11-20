@@ -4,8 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.constants import get_question_types
-from server.shared.services.student import StudentService
+from shared.services.student import StudentService
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
 from shared.question.prompts.utils import (
     build_common_prompt,
@@ -14,9 +13,11 @@ from shared.question.prompts.utils import (
     build_units_prompt,
 )
 
-DAILY_PRACTICE_SYSTEM_PROMPT = """你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。
+DAILY_PRACTICE_SYSTEM_PROMPT = """
+你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。
 你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。
-请严格按照 {format_instructions} 生成 JSON 输出。"""
+请严格按照 {format_instructions} 生成 JSON 输出。
+"""
 
 DAILY_PRACTICE_PROMPT_ENGLISH = """
 # 英语今日智能练习生成任务
@@ -355,10 +356,14 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(subject, grade, recall_questions)
+    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
+        subject, grade, recall_questions
+    )
 
     # 获取prompt模板并追加避免重复提示
-    daily_prompt_template = subject == "英语" and DAILY_PRACTICE_PROMPT_ENGLISH or DAILY_PRACTICE_PROMPT_MATH
+    daily_prompt_template = (
+        subject == "英语" and DAILY_PRACTICE_PROMPT_ENGLISH or DAILY_PRACTICE_PROMPT_MATH
+    )
     if avoid_duplicate_hint:
         daily_prompt_template = daily_prompt_template + avoid_duplicate_hint
 
@@ -378,11 +383,13 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> dict:
     review_units = await StudentService.get_review_units(db, student_id)
 
     # 计算题目分布
-    distribution = build_question_distribution(count)
+    remain_count = count - recall_count
+    distribution = build_question_distribution(remain_count)
 
     # 构建 prompt 输入参数
     prompt_input = {
         "grade": grade_text,
+        "count": remain_count,
         "question_types": question_types_text,
         "format_instructions": format_instructions,
         "weak_knowledge_points": build_knowledges_prompt(weak_knowledge_points),

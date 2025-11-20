@@ -21,12 +21,7 @@ class UnitGenerateService:
         """
         stmt = (
             select(Question)
-            .where(
-                and_(
-                    Question.unit_id == unit_id,
-                    Question.status == 1,
-                )
-            )
+            .where(and_(Question.unit_id == unit_id))
             .order_by(func.random())
             .limit(count)
         )

@@ -6,7 +6,7 @@ from typing import Any, List, NotRequired, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Question, Unit, Textbook, Student
+from core.database import Question
 
 
 class QuestionOption(BaseModel):
@@ -19,7 +19,9 @@ class GeneratedQuestion(BaseModel):
     question_subtype: str = Field(description="题目子类型", default="")
     question: str = Field(description="题干内容")
     resource_content: str = Field(description="资源内容（录音文本等，仅录音题需要）", default="")
-    options: List[QuestionOption] = Field(description="题目选项列表，非选择题时可为空数组", default=[])
+    options: List[QuestionOption] = Field(
+        description="题目选项列表，非选择题时可为空数组", default=[]
+    )
     answer: str = Field(description="标准答案")
     difficulty: str = Field(description="题目难度：简单、普通、困难")
     knowledge: str = Field(description="知识点")
@@ -81,4 +83,3 @@ class QuestionGenerationState(TypedDict, total=False):
     image_questions: NotRequired[List[Question]]
     audio_questions: NotRequired[List[Question]]
     text_questions: NotRequired[List[Question]]
-    saved_questions: NotRequired[List[Question]]

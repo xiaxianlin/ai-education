@@ -147,7 +147,6 @@ class Question(BaseModel):
     textbook_id: Mapped[int] = mapped_column(nullable=False)
     unit_id: Mapped[int] = mapped_column()
     knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
-    status: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()
 

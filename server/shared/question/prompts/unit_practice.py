@@ -1,8 +1,17 @@
 """单元练习 Prompt 构建"""
 
 from langchain_core.output_parsers import JsonOutputParser
-from core.constants import get_question_subtypes, get_question_types
 from shared.question.types import QuestionGenerationResult, QuestionGenerationState
+from shared.question.prompts.utils import (
+    build_common_prompt,
+    build_knowledges_prompt,
+)
+
+UNIT_PRACTICE_SYSTEM_PROMPT = """
+你是一名专业的教研员，擅长根据学生的学习数据设计个性化的日常练习。
+你的目标是帮助学生巩固薄弱环节、保持已掌握知识、挑战更高难度，并激发学习兴趣。
+请严格按照 {format_instructions} 生成 JSON 输出。
+"""
 
 # ==================== 英语学科 Prompts ====================
 
@@ -30,10 +39,7 @@ GENERIC_UNIT_PRACTICE_PROMPT_ENGLISH = """
 ---
 
 ## 三、英语题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **英语题型选择建议**：
 - **词汇学习**：选择题（选词填空）、听音选词、看图选词
@@ -52,7 +58,7 @@ GENERIC_UNIT_PRACTICE_PROMPT_ENGLISH = """
 - knowledge字段必须是**字符串类型**（示例："词汇认读、句型理解"）
 
 ### 2. 年级与难度匹配
-- **{grade}年级英语水平要求**：
+- **{grade}英语水平要求**：
   - 低年级(1-2年级)：侧重字母、简单单词、基础句型
   - 中年级(3-4年级)：侧重常用词汇、简单语法、日常对话
   - 高年级(5-6年级)：侧重词汇扩展、复杂句型、短文阅读
@@ -81,7 +87,7 @@ GENERIC_UNIT_PRACTICE_PROMPT_ENGLISH = """
 | `resource_type` | 固定为 "audio" | - |
 
 **听力题设计要点**：
-- 发音清晰，语速适合{grade}年级学生
+- 发音清晰，语速适合{grade}学生
 - 避免口音过重或不标准发音
 - 句子长度：低年级≤5词，中年级≤8词，高年级≤12词
 
@@ -166,10 +172,7 @@ GENERIC_UNIT_PRACTICE_PROMPT_MATH = """
 ---
 
 ## 三、数学题型配置
-**可用主题型**：{question_types}
-
-**题型子类型说明**：
-{subtype_info}
+{question_types}
 
 **数学题型选择建议**：
 - **数感培养**：选择题、填空题、比大小
@@ -188,7 +191,7 @@ GENERIC_UNIT_PRACTICE_PROMPT_MATH = """
 - knowledge字段必须是**字符串类型**（示例："两位数加法、进位运算"）
 
 ### 2. 年级与难度匹配
-- **{grade}年级数学水平要求**：
+- **{grade}数学水平要求**：
   - 低年级(1-2年级)：20以内/100以内加减法、简单图形、基础应用
   - 中年级(3-4年级)：万以内运算、乘除法、分数初步、组合图形
   - 高年级(5-6年级)：多位数运算、分数小数、比例、复杂应用题
@@ -280,48 +283,6 @@ GENERIC_UNIT_PRACTICE_PROMPT_MATH = """
 """
 
 
-def _build_knowledge_text(knowledges: list[str]) -> str:
-    """构建知识点文本"""
-    if not knowledges:
-        return "暂无知识点信息"
-
-    knowledge_lines = [f"- {knowledge}" for knowledge in knowledges]
-    return "\n".join(knowledge_lines)
-
-
-def _build_subtype_info(question_types: list[str]) -> str:
-    """构建题型子类型信息"""
-    subtype_info_lines = []
-    for qtype in question_types:
-        subtypes = get_question_subtypes(qtype)
-        if subtypes:
-            subtype_info_lines.append(f"{qtype}：{'、'.join(subtypes)}")
-    return "\n".join(subtype_info_lines) if subtype_info_lines else "无子类型要求"
-
-
-def _build_avoid_duplicate_hint(recall_questions: list) -> str:
-    """构建避免重复题目的提示信息"""
-    if not recall_questions:
-        return ""
-
-    recalled_questions_info_lines = []
-    for recall_question in recall_questions:
-        recalled_questions_info_lines.append(
-            f"- 题目ID: {recall_question.id}, "
-            f"题干: {recall_question.question}, "
-            f"选项: {recall_question.options}"
-        )
-
-    recalled_questions_info = "\n".join(recalled_questions_info_lines)
-
-    return (
-        f"\n\n## 重要：避免题目重复\n"
-        f"以下题目已从数据库召回，请确保生成的题目与这些题目不重复或高度相似：\n"
-        f"{recalled_questions_info}\n"
-        f"请生成全新的、与上述题目不同的题目。"
-    )
-
-
 def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     """构建单元练习的prompt
 
@@ -344,18 +305,9 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    # 获取题型配置
-    question_types = get_question_types(subject, grade)
-    if not question_types:
-        raise ValueError(
-            f"科目 {subject} 的 {grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
-        )
-
-    # 构建各种文本信息
-    question_types_str = "、".join(question_types)
-    subtype_info = _build_subtype_info(question_types)
-    knowledge_text = _build_knowledge_text(knowledges)
-    avoid_duplicate_hint = _build_avoid_duplicate_hint(recall_questions)
+    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
+        subject, grade, recall_questions
+    )
 
     # 获取prompt模板并追加避免重复提示
     unit_prompt_template = (
@@ -369,25 +321,19 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> dict:
     # 构建 ChatPromptTemplate
     prompt = ChatPromptTemplate.from_messages(
         [
-            (
-                "system",
-                "你是一名专业教研员，负责根据教材内容命题。"
-                "你的目标是生成高质量、符合学生认知水平、紧扣知识点的题目。"
-                "请严格按照 {format_instructions} 生成 JSON 输出。",
-            ),
+            ("system", UNIT_PRACTICE_SYSTEM_PROMPT),
             ("human", unit_prompt_template),
         ]
     )
 
     # 构建 prompt 输入参数
     prompt_input = {
-        "grade": grade,
+        "grade": grade_text,
         "unit_name": unit.name,
         "unit_summary": unit.content or "",
         "count": count,
-        "question_types": question_types_str,
-        "subtype_info": subtype_info,
-        "knowledge_text": knowledge_text,
+        "question_types": question_types_text,
+        "knowledge_text": build_knowledges_prompt(knowledges),
         "format_instructions": format_instructions,
     }
 

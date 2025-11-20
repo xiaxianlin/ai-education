@@ -112,9 +112,6 @@ class QuestionSchema(BaseModel):
     textbook_id: int
     unit_id: Optional[int] = None
     knowledge: Optional[str] = None
-    status: int = 1
-    create_time: int
-    update_time: Optional[int] = None
 
     unit: Optional["UnitSchema"] = None
     textbook: Optional["TextbookSchema"] = None

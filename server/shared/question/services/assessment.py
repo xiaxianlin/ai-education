@@ -14,14 +14,16 @@ class AssessmentGenerateService:
     """能力评估服务类"""
 
     @classmethod
-    async def _recall_questions(cls, db: AsyncSession, textbook_id: int, count: int) -> List[Question]:
+    async def _recall_questions(
+        cls, db: AsyncSession, textbook_id: int, count: int
+    ) -> List[Question]:
         """召回教材题目
 
         策略：从指定教材随机选择题目，用于避免重复
         """
         stmt = (
             select(Question)
-            .where(Question.textbook_id == textbook_id, Question.status == 1)
+            .where(Question.textbook_id == textbook_id)
             .order_by(func.random())
             .limit(count)
         )
