@@ -266,16 +266,16 @@ ASSESSMENT_PROMPT_MATH = """# 数学IRT能力评估生成
 
 def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建IRT能力评估题目生成的 Prompt
-    
+
     Args:
         state: 题目生成状态，包含年级、学科、知识点等信息
-    
+
     Returns:
         包含以下字段的字典：
         - prompt: ChatPromptTemplate 对象
         - prompt_input: 用于格式化 prompt 的输入字典
         - parser: JsonOutputParser 对象
-    
+
     Note:
         - 基于IRT理论的自适应评估
         - 难度分布：简单30%、普通50%、困难20%
@@ -283,6 +283,7 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """
     # 提取状态数据
     count = state["count"]
+    recall_count = state["recall_count"]
     subject = state["subject"]
     grade = state["grade"]
     knowledges = state.get("knowledges", [])
@@ -292,8 +293,9 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
+    remain_count = count - recall_count
     # 计算难度分布
-    distribution = build_difficulty_distribution(count)
+    distribution = build_difficulty_distribution(remain_count)
 
     # 构建公共提示词组件
     grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
@@ -308,17 +310,12 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", template),
-        ]
-    )
+    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
 
     # 构建 prompt 输入参数
     prompt_input = {
         "grade": grade_text,
-        "count": count,
+        "count": remain_count,
         "question_types": question_types_text,
         "knowledge_text": build_knowledges_prompt(knowledges),
         "format_instructions": format_instructions,

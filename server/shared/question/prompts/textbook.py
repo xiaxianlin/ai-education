@@ -28,15 +28,14 @@ SYSTEM_PROMPT = """你是一名资深教研员，专注于教材级别的题目�
 TEXTBOOK_PROMPT_ENGLISH = """# 英语教材综合练习生成
 
 ## 一、任务概述
-**学科**：英语 | **年级**：{grade} | **教材**：{unit_name} | **题目数量**：{count}道
+**学科**：英语 | **年级**：{grade} | **题目数量**：{count}道
 
-**教材单元结构**：
-{unit_summary}
+**教材内容**：
+{textbook_content}
 
 ---
 
 ## 二、知识点体系
-{knowledge_text}
 
 **知识点分类**：
 - **词汇**：单词认读、拼写、词义、词组搭配
@@ -131,15 +130,14 @@ TEXTBOOK_PROMPT_ENGLISH = """# 英语教材综合练习生成
 TEXTBOOK_PROMPT_MATH = """# 数学教材综合练习生成
 
 ## 一、任务概述
-**学科**：数学 | **年级**：{grade} | **教材**：{unit_name} | **题目数量**：{count}道
+**学科**：数学 | **年级**：{grade}  | **题目数量**：{count}道
 
-**教材单元结构**：
-{unit_summary}
+**教材内容**：
+{textbook_content}
 
 ---
 
 ## 二、知识点体系
-{knowledge_text}
 
 **知识点分类**：
 - **数与运算**：数的认识、四则运算、估算
@@ -231,73 +229,56 @@ TEXTBOOK_PROMPT_MATH = """# 数学教材综合练习生成
 
 def build_textbook_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建教材级别题目生成的 Prompt
-    
+
     Args:
         state: 题目生成状态，包含教材、年级、学科等信息
-    
+
     Returns:
         包含以下字段的字典：
         - prompt: ChatPromptTemplate 对象
         - prompt_input: 用于格式化 prompt 的输入字典
         - parser: JsonOutputParser 对象
-    
+
     Note:
         - 教材级别生成要求跨单元出题，全面覆盖知识点
         - 难度分布默认为：简单30%、普通50%、困难20%
     """
     # 提取状态数据
-    textbook = state["textbook"]
     count = state["count"]
     grade = state["grade"]
     subject = state["subject"]
-    knowledges = state.get("knowledges", [])
-    recall_questions = state.get("recall_questions", [])
     units = state.get("units", [])
+    knowledges = state.get("knowledges", [])
 
     # 构建 JSON 输出解析器
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
     # 构建公共提示词组件
-    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
-        subject, grade, recall_questions
-    )
+    grade_text, question_types_text = build_common_prompt(subject, grade, [])
 
-    # 计算难度分布
     distribution = build_difficulty_distribution(count)
 
-    # 构建知识点文本
-    knowledge_text = build_knowledges_prompt(knowledges)
+    prompt_lines = []
+    for unit in units:
+        unit_knowledges = [item for item in knowledges if item.unit_id == unit.id]
+        unit_knowledge_text = build_knowledges_prompt(unit_knowledges)
+        prompt_lines.append(f"## {unit.name} \n {unit.content} \n {unit_knowledge_text}")
 
-    # 构建单元概要（教材所有单元列表）
-    unit_summary = "整本教材的综合练习"
-    if units:
-        unit_names = [f"{i+1}. {unit.name}" for i, unit in enumerate(units)]
-        unit_summary = "\n".join(unit_names)
+    textbook_content = "\n".join(prompt_lines) or "（无）"
 
     # 根据学科选择 prompt 模板
     template = TEXTBOOK_PROMPT_ENGLISH if subject == "英语" else TEXTBOOK_PROMPT_MATH
 
-    # 追加避免重复提示（如有召回的题目）
-    if avoid_duplicate_hint:
-        template = template + "\n" + avoid_duplicate_hint
-
     # 构建 ChatPromptTemplate
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", template),
-        ]
-    )
+    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
 
     # 构建 prompt 输入参数
     prompt_input = {
         "grade": grade_text,
-        "unit_name": f"{textbook.name}（全教材）",
-        "unit_summary": unit_summary,
         "count": count,
         "question_types": question_types_text,
-        "knowledge_text": knowledge_text,
+        "textbook_content": textbook_content,
         "format_instructions": format_instructions,
         **distribution,  # 包含 simple_count, medium_count, hard_count
     }

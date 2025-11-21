@@ -22,7 +22,7 @@ from shared.question.prompts.daily_practice import build_daily_practice_prompt
 
 class DailyPracticeGenerateService:
     """每日练习服务
-    
+
     功能：
     - 基于学生学习数据生成个性化练习
     - 题目分布：错题30%、巩固40%、挑战20%、新知10%
@@ -34,20 +34,23 @@ class DailyPracticeGenerateService:
         cls, db: AsyncSession, student_id: str, textbook_id: int, count: int
     ) -> List[Question]:
         """召回学生历史题目
-        
+
         Args:
             db: 数据库会话
             student_id: 学生ID
             textbook_id: 教材ID
             count: 召回数量
-            
+
         Returns:
             题目列表
-            
+
         Note:
             策略：从教材中随机选择题目作为参考（避免重复）
             TODO: 未来可基于学生学习数据（错题、薄弱知识点）智能召回
         """
+        if count == 0:
+            return []
+
         stmt = (
             select(Question)
             .where(Question.textbook_id == textbook_id)
@@ -63,13 +66,13 @@ class DailyPracticeGenerateService:
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证每日练习的状态参数
-        
+
         Args:
             state: 题目生成状态
-            
+
         Raises:
             ValueError: 参数验证失败
-            
+
         Note:
             对应 Graph 节点: check_daily_practice_node
         """
@@ -85,15 +88,15 @@ class DailyPracticeGenerateService:
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """加载每日练习所需的上下文数据
-        
+
         Args:
             state: 题目生成状态
-            
+
         Returns:
             包含以下字段的字典：
             - recall_questions: 召回的历史题目列表
             - recall_count: 实际召回数量
-            
+
         Note:
             对应 Graph 节点: load_daily_practice_data_node
             数据将用于 build_daily_practice_prompt 构建提示词
@@ -126,20 +129,20 @@ class DailyPracticeGenerateService:
     @classmethod
     async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建每日练习的 Prompt（异步方法）
-        
+
         Args:
             state: 题目生成状态（必须已包含 load_data 返回的数据）
-            
+
         Returns:
             包含以下字段的字典：
             - prompt: ChatPromptTemplate 对象
             - prompt_input: Prompt 输入参数
             - parser: JSON 输出解析器
-            
+
         Note:
             对应 Graph 节点: build_daily_practice_prompt_node
             对应 Prompt 函数: shared/question/prompts/daily_practice.py::build_daily_practice_prompt
-            
+
             ⚠️ 此方法是异步的，因为需要获取学生学习画像数据
         """
         return await build_daily_practice_prompt(state)

@@ -272,18 +272,18 @@ UNIT_PROMPT_MATH = """# 数学单元练习生成
 """
 
 
-def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
+def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习题目生成的 Prompt
-    
+
     Args:
         state: 题目生成状态，包含单元、年级、学科等信息
-    
+
     Returns:
         包含以下字段的字典：
         - prompt: ChatPromptTemplate 对象
         - prompt_input: 用于格式化 prompt 的输入字典
         - parser: JsonOutputParser 对象
-    
+
     Note:
         - 单元级别生成针对特定单元知识点
         - 难度分布默认为：简单40%、普通40%、困难20%
@@ -294,23 +294,16 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
     subject = state["subject"]
     grade = state["grade"]
     knowledges = state.get("knowledges", [])
-    recall_questions = state.get("recall_questions", [])
 
     # 构建 JSON 输出解析器
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
     # 构建公共提示词组件
-    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
-        subject, grade, recall_questions
-    )
+    grade_text, question_types_text = build_common_prompt(subject, grade, [])
 
     # 根据学科选择 prompt 模板
     template = UNIT_PROMPT_ENGLISH if subject == "英语" else UNIT_PROMPT_MATH
-
-    # 追加避免重复提示（如有召回的题目）
-    if avoid_duplicate_hint:
-        template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate
     prompt = ChatPromptTemplate.from_messages(

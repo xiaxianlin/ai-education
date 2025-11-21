@@ -25,7 +25,7 @@ SYSTEM_PROMPT = """你是一名资深教研员，专注于单元级别的题目�
 
 # ==================== 英语学科 Prompts ====================
 
-UNIT_PROMPT_ENGLISH = """# 英语单元练习生成
+UNIT_PRACTICE_PROMPT_ENGLISH = """# 英语单元练习生成
 
 ## 一、任务概述
 **学科**：英语 | **年级**：{grade} | **单元**：{unit_name} | **题目数量**：{count}道
@@ -147,7 +147,7 @@ UNIT_PROMPT_ENGLISH = """# 英语单元练习生成
 
 # ==================== 数学学科 Prompts ====================
 
-UNIT_PROMPT_MATH = """# 数学单元练习生成
+UNIT_PRACTICE_PROMPT_MATH = """# 数学单元练习生成
 
 ## 一、任务概述
 **学科**：数学 | **年级**：{grade} | **单元**：{unit_name} | **题目数量**：{count}道
@@ -274,16 +274,16 @@ UNIT_PROMPT_MATH = """# 数学单元练习生成
 
 def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习题目生成的 Prompt
-    
+
     Args:
         state: 题目生成状态，包含单元、年级、学科等信息
-    
+
     Returns:
         包含以下字段的字典：
         - prompt: ChatPromptTemplate 对象
         - prompt_input: 用于格式化 prompt 的输入字典
         - parser: JsonOutputParser 对象
-    
+
     Note:
         - 单元级别生成针对特定单元知识点
         - 难度分布默认为：简单40%、普通40%、困难20%
@@ -291,6 +291,7 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
     # 提取状态数据
     unit = state["unit"]
     count = state["count"]
+    recall_count = state["recall_count"]
     subject = state["subject"]
     grade = state["grade"]
     knowledges = state.get("knowledges", [])
@@ -306,26 +307,21 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
     )
 
     # 根据学科选择 prompt 模板
-    template = UNIT_PROMPT_ENGLISH if subject == "英语" else UNIT_PROMPT_MATH
+    template = UNIT_PRACTICE_PROMPT_ENGLISH if subject == "英语" else UNIT_PRACTICE_PROMPT_MATH
 
     # 追加避免重复提示（如有召回的题目）
     if avoid_duplicate_hint:
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", template),
-        ]
-    )
+    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
 
     # 构建 prompt 输入参数
     prompt_input = {
         "grade": grade_text,
         "unit_name": unit.name,
         "unit_summary": unit.content or "本单元的练习题目",
-        "count": count,
+        "count": count - recall_count,
         "question_types": question_types_text,
         "knowledge_text": build_knowledges_prompt(knowledges),
         "format_instructions": format_instructions,

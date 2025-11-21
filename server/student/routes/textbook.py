@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import Database
-from server.student.services import textbook
+from student.services import textbook
 
 textbook_router = APIRouter(prefix="/textbook")
 

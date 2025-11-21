@@ -198,15 +198,16 @@ class PracticeSession(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
     student_id: Mapped[str] = mapped_column(String(255), nullable=False, comment="学生ID")
     session_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, comment="会话类型:daily/unit/assessment"
+        String(50), nullable=False, comment="会话类型:daily_practice/unit_practice/assessment"
     )  #
 
     target_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID或者时间戳")
     textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
+    answer_count: Mapped[int] = mapped_column(default=0, comment="回到数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[str] = mapped_column(String(50), default="in_progress", comment="会话状态")
+    status: Mapped[int] = mapped_column(default=0, comment="会话状态")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 

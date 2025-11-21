@@ -317,16 +317,16 @@ DAILY_PRACTICE_PROMPT_MATH = """# 数学每日智能练习
 
 async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建个性化每日练习题目生成的 Prompt
-    
+
     Args:
         state: 题目生成状态，包含学生ID、年级、学科等信息
-    
+
     Returns:
         包含以下字段的字典：
         - prompt: ChatPromptTemplate 对象
         - prompt_input: 用于格式化 prompt 的输入字典
         - parser: JsonOutputParser 对象
-    
+
     Note:
         - 基于学生学习数据进行个性化推荐
         - 题目分布：错题30%、巩固40%、挑战20%、新知10%
@@ -358,12 +358,7 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", SYSTEM_PROMPT),
-            ("human", template),
-        ]
-    )
+    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
 
     # 获取学生学习数据（异步）
     weak_knowledge_points = await StudentService.get_weak_knowledges(db, student_id)

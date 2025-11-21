@@ -1,4 +1,5 @@
 """LLM调用服务 - 负责调用大模型生成题目"""
+
 from typing import Any, Dict
 from loguru import logger
 
@@ -44,7 +45,9 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
         # 确保 questions 是列表
         if not isinstance(result["questions"], list):
             logger.error(f"questions 字段类型错误: {type(result['questions'])}")
-            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
+            raise ValueError(
+                f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
+            )
 
         for question in result["questions"]:
             if not isinstance(question, dict):
@@ -74,4 +77,3 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     return {
         "generated_questions": validated_result.questions,
     }
-

@@ -3,26 +3,25 @@
 本模块负责单元级别题目生成的业务逻辑：
 - 参数验证
 - 数据加载（单元、教材、知识点）
-- 题目召回（避免重复）
 - Prompt 构建
 
 对应 Prompt: shared/question/prompts/unit.py
 对应 Graph 节点: check_unit -> load_unit_data -> build_unit_prompt
 """
 
-from typing import Any, Dict, List
-from sqlalchemy import select, and_, func
+from typing import Any, Dict
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from core.database import Knowledge, Unit, Textbook, Question
+from core.database import Knowledge, Unit
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.unit import build_unit_prompt
 
 
 class UnitGenerateService:
     """单元生成服务
-    
+
     功能：
     - 针对特定单元生成练习题
     - 基于单元知识点出题
@@ -30,44 +29,15 @@ class UnitGenerateService:
     """
 
     @classmethod
-    async def _recall_questions(
-        cls, db: AsyncSession, unit_id: int, count: int
-    ) -> List[Question]:
-        """召回单元历史题目
-        
-        Args:
-            db: 数据库会话
-            unit_id: 单元ID
-            count: 召回数量
-            
-        Returns:
-            题目列表
-            
-        Note:
-            策略：从指定单元随机选择题目，用于避免生成重复题目
-        """
-        stmt = (
-            select(Question)
-            .where(and_(Question.unit_id == unit_id))
-            .order_by(func.random())
-            .limit(count)
-        )
-
-        result = await db.execute(stmt)
-        questions = result.scalars().all()
-
-        return list(questions)
-
-    @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证单元生成的状态参数
-        
+
         Args:
             state: 题目生成状态
-            
+
         Raises:
             ValueError: 参数验证失败
-            
+
         Note:
             对应 Graph 节点: check_unit_node
         """
@@ -77,20 +47,20 @@ class UnitGenerateService:
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """加载单元生成所需的上下文数据
-        
+
         Args:
             state: 题目生成状态
-            
+
         Returns:
             包含以下字段的字典：
             - unit: 单元对象
             - textbook: 教材对象
             - knowledges: 知识点名称列表
             - recall_questions: 召回的历史题目列表
-            
+
         Raises:
             ValueError: 单元或教材不存在
-            
+
         Note:
             对应 Graph 节点: load_unit_data_node
             数据将用于 build_unit_prompt 构建提示词
@@ -98,42 +68,21 @@ class UnitGenerateService:
         try:
             db: AsyncSession = state["db"]
             unit_id: int = state["unit_id"]
-            count: int = state.get("count", 10)
 
-            # 1. 加载单元信息
             unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
             if not unit:
                 raise ValueError(f"单元不存在: unit_id={unit_id}")
 
-            # 2. 加载教材信息
-            textbook = await db.scalar(
-                select(Textbook).where(Textbook.id == unit.textbook_id)
-            )
-            if not textbook:
-                raise ValueError(f"教材不存在: textbook_id={unit.textbook_id}")
-
-            # 3. 加载知识点列表
             knowledge_rows = await db.scalars(
-                select(Knowledge)
-                .where(Knowledge.unit_id == unit_id)
-                .order_by(Knowledge.id)
+                select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id)
             )
             knowledges = [k.name for k in knowledge_rows.all()]
 
-            # 4. 召回历史题目（用于避免重复）
-            recall_count = min(count, 20)  # 最多召回20道题
-            recalled_questions = await cls._recall_questions(db, unit_id, recall_count)
-
-            logger.info(
-                f"✓ 单元数据加载完成: unit_id={unit_id}, unit_name={unit.name}, "
-                f"知识点={len(knowledges)}个, 召回题目={len(recalled_questions)}道"
-            )
+            logger.info(f"✓ 单元数据加载完成: unit_id={unit_id}, unit_name={unit.name}, ")
 
             return {
                 "unit": unit,
-                "textbook": textbook,
                 "knowledges": knowledges,
-                "recall_questions": recalled_questions,
             }
         except Exception as e:
             logger.error(f"✗ 加载单元数据失败: {e}")
@@ -142,16 +91,16 @@ class UnitGenerateService:
     @classmethod
     def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建单元生成的 Prompt
-        
+
         Args:
             state: 题目生成状态（必须已包含 load_data 返回的数据）
-            
+
         Returns:
             包含以下字段的字典：
             - prompt: ChatPromptTemplate 对象
             - prompt_input: Prompt 输入参数
             - parser: JSON 输出解析器
-            
+
         Note:
             对应 Graph 节点: build_unit_prompt_node
             对应 Prompt 函数: shared/question/prompts/unit.py::build_unit_prompt

@@ -1,4 +1,4 @@
-from sqlalchemy import delete, or_, select, func
+from sqlalchemy import or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema

@@ -1,13 +1,12 @@
 """问题生成流程图 - 使用LangGraph构建题目生成工作流"""
 
-from __future__ import annotations
-
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from langgraph.graph import END, StateGraph
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.database import Question
 from shared.question.types import GenerationType, QuestionGenerationState
 from shared.question.services import llm as llm_service
 from shared.question.services import resource as resource_service
@@ -364,7 +363,7 @@ async def invoke_generate_workflow(
     textbook_id: int | None = None,
     student_id: str | None = None,
     **kwargs,
-):
+) -> List[Question]:
     """执行问题生成流程"""
 
     initial_state: QuestionGenerationState = {
