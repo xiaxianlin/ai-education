@@ -80,7 +80,7 @@ export function useHomePage() {
           : 0;
         setTodayProgress(progress);
       } else {
-        // 如果没有今日练习，重置为0
+        // 如果没有每日练习，重置为0
         setDailyQuestions(0);
         setCompletedQuestions(0);
         setTodayProgress(0);

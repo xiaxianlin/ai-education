@@ -64,8 +64,8 @@ async def check_textbook_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
 
 async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查今日练习参数"""
-    logger.info("开始检查今日练习参数")
+    """检查每日练习参数"""
+    logger.info("开始检查每日练习参数")
     DailyPracticeGenerateService.validate_state(state)
     return {}
 
@@ -97,8 +97,8 @@ async def load_textbook_data_node(state: QuestionGenerationState) -> Dict[str, A
 
 
 async def load_daily_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """加载今日练习数据"""
-    logger.info("开始加载今日练习数据")
+    """加载每日练习数据"""
+    logger.info("开始加载每日练习数据")
     return await DailyPracticeGenerateService.load_data(state)
 
 
@@ -127,8 +127,8 @@ async def build_textbook_prompt_node(state: QuestionGenerationState) -> Dict[str
 
 
 async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """构建今日练习prompt"""
-    logger.info("开始构建今日练习prompt")
+    """构建每日练习prompt"""
+    logger.info("开始构建每日练习prompt")
     return await DailyPracticeGenerateService.build_prompt(state)
 
 

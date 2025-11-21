@@ -1,5 +1,5 @@
 /**
- * 今日练习结果页面
+ * 每日练习结果页面
  * 视图层：只负责渲染
  */
 import { Link } from '@tanstack/react-router';

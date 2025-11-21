@@ -21,7 +21,7 @@ export const ProgressIndicator = memo(function ProgressIndicator({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
-            <span className="font-semibold text-gray-800">今日练习</span>
+            <span className="font-semibold text-gray-800">每日练习</span>
           </div>
           <span className="text-sm text-gray-600">
             {currentIndex + 1} / {totalQuestions}

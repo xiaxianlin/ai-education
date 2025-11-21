@@ -11,7 +11,7 @@ export const QuickActions = memo(function QuickActions() {
   const actions = [
     {
       icon: Target,
-      label: '今日练习',
+      label: '每日练习',
       path: '/daily-practice',
       color: 'from-blue-500 to-cyan-500',
       hoverColor: 'hover:from-blue-600 hover:to-cyan-600',

@@ -1,6 +1,6 @@
 /**
  * 练习记录页面逻辑 Hook
- * 获取今日练习、单元练习和能力评测的历史记录
+ * 获取每日练习、单元练习和能力评测的历史记录
  */
 import { useState, useEffect, useCallback } from 'react';
 import { 

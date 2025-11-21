@@ -80,7 +80,7 @@ export function DailyPracticeSession() {
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ChevronLeft className="h-4 w-4" />
-          返回今日练习
+          返回每日练习
         </Button>
 
         <ProgressIndicator

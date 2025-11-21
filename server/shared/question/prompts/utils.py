@@ -98,7 +98,7 @@ def build_question_distribution(
     challenge_ratio: float = 0.2,
     new_ratio: float = 0.1,
 ) -> dict:
-    """计算今日练习题目类型分布
+    """计算每日练习题目类型分布
 
     Args:
         count: 总题目数量

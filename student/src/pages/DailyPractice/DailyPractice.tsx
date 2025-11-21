@@ -23,7 +23,7 @@ export function DailyPractice() {
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <LoadingSpinner size="lg" text="检查今日练习..." />
+          <LoadingSpinner size="lg" text="检查每日练习..." />
         </div>
       </div>
     );

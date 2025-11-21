@@ -9,7 +9,7 @@ practice_router = APIRouter(prefix="/practice", tags=["学生练习管理"])
 
 @practice_router.get("/{id}/daily")
 async def get_daily_practice(id: str, db: AsyncSession = Database):
-    """获取学生的今日练习"""
+    """获取学生的每日练习"""
     return await practice_service.get_daily_practice(db, id)
 
 

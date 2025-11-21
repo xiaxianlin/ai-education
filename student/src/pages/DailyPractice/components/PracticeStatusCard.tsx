@@ -39,7 +39,7 @@ export const PracticeStatusCard = memo(function PracticeStatusCard({
         <CardContent className="p-8 text-center space-y-6">
           <div className="text-7xl mb-4">🎉</div>
           <CardTitle className="text-3xl font-bold text-gray-800 mb-2">
-            今日练习已就绪！
+            每日练习已就绪！
           </CardTitle>
           <CardDescription className="text-lg text-gray-600 mb-6">
             准备好开始今天的挑战了吗？
@@ -63,7 +63,7 @@ export const PracticeStatusCard = memo(function PracticeStatusCard({
         <CardContent className="p-8 text-center space-y-6">
           <Loader2 className="h-16 w-16 text-blue-500 animate-spin mx-auto" />
           <CardTitle className="text-2xl font-bold text-gray-800 mb-2">
-            正在生成今日练习...
+            正在生成每日练习...
           </CardTitle>
           <CardDescription className="text-base text-gray-600 mb-4">
             AI 正在为你精心准备题目，请稍候

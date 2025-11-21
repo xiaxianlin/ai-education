@@ -27,7 +27,7 @@ export function ResultModal({ report }: ResultModalProps) {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 shadow-lg">
             <Trophy className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">今日练习完成！</h1>
+          <h1 className="text-3xl font-bold text-gray-800">每日练习完成！</h1>
           <p className="text-gray-600">{formatDate(report.date)}</p>
         </div>
 

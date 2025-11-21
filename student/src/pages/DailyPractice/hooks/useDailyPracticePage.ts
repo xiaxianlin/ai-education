@@ -67,11 +67,11 @@ export function useDailyPracticePage() {
           setSession(result.session);
           setStatus('ready');
           setProgress(100);
-          toast.success('🎉 今日练习已生成！');
+          toast.success('🎉 每日练习已生成！');
         } else if (result.status === 'failed') {
           clearInterval(interval);
           setStatus('error');
-          toast.error(result.error_message || '生成今日练习失败');
+          toast.error(result.error_message || '生成每日练习失败');
         }
       } catch (error) {
         console.error('Failed to get progress:', error);

@@ -1,6 +1,6 @@
 /**
- * 今日练习 API 服务
- * 负责今日练习相关的所有 API 调用
+ * 每日练习 API 服务
+ * 负责每日练习相关的所有 API 调用
  */
 import { api } from '@/lib/api';
 import type {
@@ -15,7 +15,7 @@ import type {
 
 export const dailyPracticeApi = {
   /**
-   * 创建今日练习会话
+   * 创建每日练习会话
    */
   create: async (params: CreateDailyPracticeParams = {}): Promise<DailyPracticeSession> => {
     return api.post<DailyPracticeSession>('/practice/daily', {
@@ -25,28 +25,28 @@ export const dailyPracticeApi = {
   },
 
   /**
-   * 获取今日练习会话详情
+   * 获取每日练习会话详情
    */
   getSession: async (sessionId: number): Promise<DailyPracticeSessionDetail> => {
     return api.get<DailyPracticeSessionDetail>(`/practice/daily/${sessionId}`);
   },
 
   /**
-   * 提交今日练习答案
+   * 提交每日练习答案
    */
   submitAnswer: async (params: SubmitAnswerParams): Promise<AnswerResult> => {
     return api.post<AnswerResult>('/practice/daily/answer', params);
   },
 
   /**
-   * 完成今日练习
+   * 完成每日练习
    */
   complete: async (sessionId: number): Promise<DailyPracticeReport> => {
     return api.post<DailyPracticeReport>('/practice/daily/complete', { session_id: sessionId });
   },
 
   /**
-   * 获取今日练习历史
+   * 获取每日练习历史
    */
   getHistory: async (limit?: number): Promise<DailyPracticeHistoryItem[]> => {
     const params = limit ? `?limit=${limit}` : '';
@@ -54,7 +54,7 @@ export const dailyPracticeApi = {
   },
 
   /**
-   * 检查或创建今日练习（30道题）
+   * 检查或创建每日练习（30道题）
    */
   checkToday: async (): Promise<{
     session: DailyPracticeSession | null;
@@ -66,7 +66,7 @@ export const dailyPracticeApi = {
   },
 
   /**
-   * 获取今日练习生成进度
+   * 获取每日练习生成进度
    */
   getProgress: async (taskId: number): Promise<{
     status: string;
@@ -78,7 +78,7 @@ export const dailyPracticeApi = {
   },
 
   /**
-   * 获取今日练习统计数据
+   * 获取每日练习统计数据
    */
   getStats: async (): Promise<{
     today_progress: number;

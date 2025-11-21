@@ -19,7 +19,7 @@ import type {
 } from './types';
 
 export const practiceApi = {
-  // ===== 今日练习 API =====
+  // ===== 每日练习 API =====
   createDailyPractice: (params: CreateDailyPracticeParams = {}) =>
     dailyPracticeApi.create(params),
   getDailyPracticeSession: (sessionId: number) =>

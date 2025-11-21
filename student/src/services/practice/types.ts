@@ -39,7 +39,7 @@ export interface KnowledgeScore {
   rate: number;
 }
 
-// ===== 今日练习类型 =====
+// ===== 每日练习类型 =====
 export interface DailyPracticeSession {
   id: number;
   student_id: string;

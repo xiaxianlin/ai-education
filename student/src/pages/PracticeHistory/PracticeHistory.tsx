@@ -1,6 +1,6 @@
 /**
  * 练习记录页面
- * 展示今日练习、单元练习和能力评测的历史记录
+ * 展示每日练习、单元练习和能力评测的历史记录
  */
 import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/layout/Header';
@@ -32,7 +32,7 @@ export function PracticeHistory() {
   }
 
   const tabs: { key: TabType; label: string; icon: React.ReactNode; count: number }[] = [
-    { key: 'daily', label: '今日练习', icon: <Calendar className="h-5 w-5" />, count: dailyHistory.length },
+    { key: 'daily', label: '每日练习', icon: <Calendar className="h-5 w-5" />, count: dailyHistory.length },
     { key: 'unit', label: '单元练习', icon: <BookOpen className="h-5 w-5" />, count: unitHistory.length },
     { key: 'assessment', label: '能力评测', icon: <TrendingUp className="h-5 w-5" />, count: assessmentHistory.length },
   ];
@@ -105,7 +105,7 @@ export function PracticeHistory() {
                             <Calendar className="h-7 w-7 text-white" />
                           </div>
                           <div className="flex-1">
-                            <div className="text-lg font-bold text-gray-800">今日练习</div>
+                            <div className="text-lg font-bold text-gray-800">每日练习</div>
                             <div className="text-sm text-gray-600">{formatDate(item.date)}</div>
                           </div>
                           <div className={cn(
@@ -154,8 +154,8 @@ export function PracticeHistory() {
               <Card className="border-2 border-gray-300 shadow-lg">
                 <CardContent className="py-16 text-center">
                   <div className="text-6xl mb-4">📅</div>
-                  <p className="text-xl font-bold text-gray-800 mb-2">还没有今日练习记录</p>
-                  <p className="text-sm text-gray-600">开始你的第一次今日练习吧！</p>
+                  <p className="text-xl font-bold text-gray-800 mb-2">还没有每日练习记录</p>
+                  <p className="text-sm text-gray-600">开始你的第一次每日练习吧！</p>
                 </CardContent>
               </Card>
             )

@@ -16,7 +16,7 @@ async def get_practice_history(db: AsyncSession, student_id: str, practice_type:
 
 
 async def get_daily_practice(db: AsyncSession, student_id: str):
-    """获取学生的今日练习"""
+    """获取学生的每日练习"""
     today = int(datetime.now().strftime("%Y%m%d"))
     result = await db.execute(
         select(PracticeSession).where(
