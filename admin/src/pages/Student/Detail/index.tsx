@@ -21,7 +21,6 @@ export default function StudentDetailPage() {
 
   return (
     <PageContainer
-      style={{ padding: '24px 0' }}
       title={<PageHeader title="学生详情" />}
       header={{
         breadcrumb: {},

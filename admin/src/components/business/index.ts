@@ -4,3 +4,4 @@ export * from './FormModal';
 export * from './DeleteButton';
 export * from './DetailCard';
 export * from './DescriptionList';
+export * from './QuestionDetailDrawer';

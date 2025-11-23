@@ -161,11 +161,13 @@ class PracticeSessionSchema(BaseModel):
     target_id: Optional[int] = None
     textbook_id: Optional[int] = None
     question_count: int = 0
+    answer_count: int = 0  # 添加 answer_count 字段
     correct_count: int = 0
-    status: str = "in_progress"
+    status: int = 0  # 改为 int 类型，与数据库模型一致 (0-未开始, 1-进行中, 2-已完成)
     start_time: int
     end_time: Optional[int] = None
     create_time: int
+    update_time: Optional[int] = None  # 添加 update_time 字段
 
     model_config = {"from_attributes": True}
 

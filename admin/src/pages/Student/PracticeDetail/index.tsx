@@ -2,11 +2,24 @@ import { useParams, history } from '@umijs/max';
 import { PageContainer, ProDescriptions, ProTable, ProColumns } from '@ant-design/pro-components';
 import { StudentApi } from '@/services/student';
 import { useRequest } from 'ahooks';
-import { Button, Card, Space, Tag, Empty, Image, Spin, Progress, Row, Col, Statistic } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useMemo } from 'react';
+import {
+  Button,
+  Card,
+  Space,
+  Tag,
+  Empty,
+  Image,
+  Spin,
+  Progress,
+  Row,
+  Col,
+  Statistic,
+  message,
+} from 'antd';
+import { ArrowLeftOutlined, EyeOutlined } from '@ant-design/icons';
+import { useMemo, useState } from 'react';
 import { fmtTime } from '@/utils/time';
-import { AudioPlayer } from '@/components/ui';
+import { QuestionDetailDrawer } from '@/components/business';
 
 type PracticeType = 'daily' | 'unit' | 'assessment';
 
@@ -17,18 +30,37 @@ export default function PracticeDetailPage() {
     sessionId: string;
   }>();
 
+  // 抽屉状态
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
+
   // 使用统一的会话详情接口
-  const { data, loading } = useRequest(
+  const { data, loading, error } = useRequest(
     async () => {
       if (!sessionId) return null;
       const sessionIdNum = Number(sessionId);
+      if (isNaN(sessionIdNum)) {
+        throw new Error('无效的会话ID');
+      }
       // 根据 API.md，使用统一的会话详情接口
       return await StudentApi.getSessionDetail(sessionIdNum);
     },
     {
       ready: !!sessionId,
-      onError: () => {
-        history.back();
+      onError: (error: any) => {
+        console.error('加载练习详情失败:', error);
+        console.error('错误详情:', {
+          sessionId,
+          type,
+          id,
+          errorMessage: error?.message,
+          errorResponse: error?.response,
+        });
+        message.error(error?.message || '加载练习详情失败，请稍后重试');
+        // 延迟返回，让用户看到错误提示
+        setTimeout(() => {
+          history.back();
+        }, 2000);
       },
     },
   );
@@ -40,12 +72,20 @@ export default function PracticeDetailPage() {
     // 优先使用 answers 数组（根据 API.md 规范）
     if (data.answers && Array.isArray(data.answers)) {
       const answers: Record<number, any> = {};
-      data.answers.forEach((answer) => {
+      data.answers.forEach((answer: any) => {
+        // is_correct: 0-未答, 1-正确, 2-错误
+        const isCorrectValue =
+          answer.is_correct !== undefined && answer.is_correct !== null ? answer.is_correct : 0;
+        const hasAnswered = isCorrectValue !== 0;
+
         answers[answer.question_id] = {
-          is_correct: answer.is_correct === 1,
-          answer: answer.text_answer || '',
-          time_spent: answer.time_spent,
+          is_correct: isCorrectValue, // 保存原始值 0/1/2，用于计算
+          has_answered: hasAnswered,
+          answer: answer.text_answer || answer.question_content || '',
+          time_spent: answer.time_spent || 0,
           audio_data: answer.audio_data,
+          submit_time: answer.submit_time,
+          question_order: answer.question_order,
         };
       });
       return answers;
@@ -58,6 +98,7 @@ export default function PracticeDetailPage() {
         if (q.is_correct !== undefined) {
           answers[q.id] = {
             is_correct: q.is_correct,
+            has_answered: true,
             answer: q.answer || '',
           };
         }
@@ -77,6 +118,52 @@ export default function PracticeDetailPage() {
     return {};
   }, [data]);
 
+  // 从 answers 数组中提取题目列表
+  const questions = useMemo(() => {
+    if (!data) return [];
+
+    // 优先从 answers 数组中提取题目（后端返回的数据结构）
+    if (data.answers && Array.isArray(data.answers) && data.answers.length > 0) {
+      const questionMap = new Map<number, any>();
+      data.answers.forEach((answer: any) => {
+        // 如果 answer 中有 question 对象，使用它
+        if (answer.question && !questionMap.has(answer.question.id)) {
+          questionMap.set(answer.question.id, {
+            ...answer.question,
+            order: answer.question_order || answer.question.order || 0,
+          });
+        }
+        // 如果没有 question 对象但有 question_content，创建一个简化的题目对象
+        else if (
+          answer.question_id &&
+          answer.question_content &&
+          !questionMap.has(answer.question_id)
+        ) {
+          questionMap.set(answer.question_id, {
+            id: answer.question_id,
+            content: answer.question_content,
+            order: answer.question_order || 0,
+          });
+        }
+      });
+      // 按 order 排序
+      const questionList = Array.from(questionMap.values());
+      return questionList.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+
+    // 兼容：从 questions 字段获取
+    if (data.questions && Array.isArray(data.questions)) {
+      return data.questions;
+    }
+
+    // 兼容：从 session.questions 获取
+    if (data.session?.questions && Array.isArray(data.session.questions)) {
+      return data.session.questions;
+    }
+
+    return [];
+  }, [data]);
+
   // 获取标题
   const getTitle = () => {
     switch (type) {
@@ -93,18 +180,39 @@ export default function PracticeDetailPage() {
 
   // 获取会话信息
   const session = data?.session;
-  const questions = data?.questions || data?.session?.questions || [];
   const unit = (data as any)?.unit; // unit 只在 unit practice 中存在
   const report = data?.report;
 
-  // 计算统计数据（优先使用 report，否则计算）
+  // 调试信息
+  if (data && !session) {
+    console.warn('数据已加载但 session 不存在:', data);
+  }
+
+  // 计算统计数据（优先使用 report，否则通过 is_correct 计算）
   const totalQuestions = report?.total_questions || session?.question_count || questions.length;
-  const answeredCount = session?.answer_count || Object.keys(studentAnswers).length;
+
+  // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
+  const answerValues = Object.values(studentAnswers) as any[];
+
+  // 已完成数量：is_correct 为 1 或 2 的数量（即 is_correct !== 0）
+  const answeredCount = report?.total_questions
+    ? session?.answer_count || 0
+    : answerValues.filter(
+        (ans: any) =>
+          ans.is_correct !== undefined && ans.is_correct !== null && ans.is_correct !== 0,
+      ).length;
+
+  // 正确数量：is_correct === 1 的数量
   const correctCount =
     report?.correct_questions ||
     session?.correct_count ||
-    Object.values(studentAnswers).filter((ans: any) => ans.is_correct === true).length;
-  const wrongCount = answeredCount - correctCount;
+    answerValues.filter((ans: any) => ans.is_correct === 1).length;
+
+  // 错误数量：is_correct === 2 的数量
+  const wrongCount = report?.total_questions
+    ? answeredCount - correctCount
+    : answerValues.filter((ans: any) => ans.is_correct === 2).length;
+
   const unansweredCount = totalQuestions - answeredCount;
   const progressPercent =
     totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
@@ -162,10 +270,12 @@ export default function PracticeDetailPage() {
         dataIndex: 'id',
         width: 100,
         render: (questionId: number) => {
+          const answerData = studentAnswers[questionId];
+          // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
           const hasAnswered =
-            type === 'assessment'
-              ? questions.some((q: any) => q.id === questionId)
-              : studentAnswers[questionId] !== undefined;
+            answerData?.is_correct !== undefined &&
+            answerData?.is_correct !== null &&
+            answerData?.is_correct !== 0;
           return (
             <Tag color={hasAnswered ? 'success' : 'default'}>
               {hasAnswered ? '已作答' : '未作答'}
@@ -175,29 +285,56 @@ export default function PracticeDetailPage() {
       },
       {
         title: '答题结果',
-        dataIndex: 'is_correct',
+        dataIndex: 'id',
         width: 100,
-        render: (is_correct: boolean | undefined, record) => {
-          if (type === 'assessment') {
-            if (is_correct === undefined || is_correct === null) {
-              return <span style={{ color: '#999' }}>-</span>;
-            }
-            return (
-              <Tag color={is_correct ? 'success' : 'error'}>{is_correct ? '正确' : '错误'}</Tag>
-            );
-          }
-
-          const hasAnswered = studentAnswers[record.id] !== undefined;
-          if (!hasAnswered) {
+        render: (questionId: number) => {
+          const answerData = studentAnswers[questionId];
+          // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
+          if (
+            !answerData ||
+            answerData.is_correct === undefined ||
+            answerData.is_correct === null ||
+            answerData.is_correct === 0
+          ) {
             return <span style={{ color: '#999' }}>-</span>;
           }
-          const answerData = studentAnswers[record.id];
-          const correct = answerData?.is_correct;
-          if (correct === undefined || correct === null) {
-            return <span style={{ color: '#999' }}>-</span>;
-          }
-          return <Tag color={correct ? 'success' : 'error'}>{correct ? '正确' : '错误'}</Tag>;
+          const isCorrect = answerData.is_correct === 1;
+          return <Tag color={isCorrect ? 'success' : 'error'}>{isCorrect ? '正确' : '错误'}</Tag>;
         },
+      },
+      {
+        title: '答题耗时',
+        dataIndex: 'id',
+        width: 120,
+        render: (questionId: number) => {
+          const answerData = studentAnswers[questionId];
+          if (!answerData || !answerData.time_spent) {
+            return <span style={{ color: '#999' }}>-</span>;
+          }
+          const seconds = answerData.time_spent;
+          if (seconds < 60) {
+            return `${seconds}秒`;
+          }
+          return `${Math.floor(seconds / 60)}分${seconds % 60}秒`;
+        },
+      },
+      {
+        title: '操作',
+        valueType: 'option',
+        width: 100,
+        fixed: 'right',
+        render: (_, record) => (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setSelectedQuestion(record);
+              setDrawerVisible(true);
+            }}
+          >
+            详情
+          </Button>
+        ),
       },
     ],
     [studentAnswers, type, questions],
@@ -213,10 +350,35 @@ export default function PracticeDetailPage() {
     );
   }
 
+  if (error) {
+    return (
+      <PageContainer>
+        <Empty
+          description={
+            <div>
+              <div style={{ marginBottom: 8 }}>加载失败</div>
+              <div style={{ fontSize: '12px', color: '#999' }}>
+                {error?.message || '请检查网络连接或稍后重试'}
+              </div>
+            </div>
+          }
+        >
+          <Button type="primary" onClick={() => history.back()}>
+            返回上一页
+          </Button>
+        </Empty>
+      </PageContainer>
+    );
+  }
+
   if (!data || !session) {
     return (
       <PageContainer>
-        <Empty description="练习详情不存在" />
+        <Empty description="练习详情不存在">
+          <Button type="primary" onClick={() => history.back()}>
+            返回上一页
+          </Button>
+        </Empty>
       </PageContainer>
     );
   }
@@ -257,7 +419,14 @@ export default function PracticeDetailPage() {
               <Progress
                 percent={progressPercent}
                 status={(() => {
-                  const statusNum = typeof session.status === 'number' ? session.status : session.status === 'completed' ? 2 : session.status === 'in_progress' ? 1 : 0;
+                  const statusNum =
+                    typeof session.status === 'number'
+                      ? session.status
+                      : session.status === 'completed'
+                      ? 2
+                      : session.status === 'in_progress'
+                      ? 1
+                      : 0;
                   return statusNum === 2 ? 'success' : 'active';
                 })()}
                 strokeColor={{
@@ -316,7 +485,16 @@ export default function PracticeDetailPage() {
               <>
                 <ProDescriptions.Item label="练习日期">
                   {(() => {
-                    const dateStr = String((session as any).date);
+                    // 优先使用 date 字段，如果没有则使用 target_id（每日练习的日期存储在 target_id 中）
+                    const dateValue = (session as any).date || (session as any).target_id;
+                    if (!dateValue) {
+                      return '-';
+                    }
+                    const dateStr = String(dateValue);
+                    // 确保日期字符串长度至少为 8 位（YYYYMMDD）
+                    if (dateStr.length < 8) {
+                      return dateStr;
+                    }
                     return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
                   })()}
                 </ProDescriptions.Item>
@@ -416,7 +594,14 @@ export default function PracticeDetailPage() {
             )}
             <ProDescriptions.Item label="状态">
               {(() => {
-                const statusNum = typeof session.status === 'number' ? session.status : session.status === 'completed' ? 2 : session.status === 'in_progress' ? 1 : 0;
+                const statusNum =
+                  typeof session.status === 'number'
+                    ? session.status
+                    : session.status === 'completed'
+                    ? 2
+                    : session.status === 'in_progress'
+                    ? 1
+                    : 0;
                 const isCompleted = statusNum === 2;
                 return (
                   <Tag color={isCompleted ? 'success' : statusNum === 1 ? 'warning' : 'default'}>
@@ -459,107 +644,16 @@ export default function PracticeDetailPage() {
             options={false}
             toolbar={{ actions: [] }}
             scroll={{ x: 'max-content' }}
-            expandable={{
-              expandedRowRender: (record) => (
-                <div style={{ padding: '16px', background: '#fafafa', borderRadius: '8px' }}>
-                  <div style={{ marginBottom: '12px' }}>
-                    <strong>题目内容：</strong>
-                    <div
-                      style={{
-                        marginTop: '8px',
-                        padding: '12px',
-                        background: '#fff',
-                        borderRadius: '4px',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {record.content}
-                    </div>
-                  </div>
-
-                  {record.options && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <strong>选项：</strong>
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          padding: '12px',
-                          background: '#fff',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {record.options.split('\n').map((option: string, index: number) => (
-                          <div key={index} style={{ marginBottom: '4px' }}>
-                            {option}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {studentAnswers[record.id] && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <strong>学生答案：</strong>
-                      <Tag
-                        color={studentAnswers[record.id].is_correct ? 'success' : 'error'}
-                        style={{ marginLeft: '8px' }}
-                      >
-                        {studentAnswers[record.id].answer || '未作答'}
-                      </Tag>
-                      {studentAnswers[record.id].audio_url && (
-                        <div style={{ marginTop: '8px' }}>
-                          <AudioPlayer src={studentAnswers[record.id].audio_url} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {record.answer && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <strong>正确答案：</strong>
-                      <Tag color="success" style={{ marginLeft: '8px' }}>
-                        {record.answer}
-                      </Tag>
-                    </div>
-                  )}
-
-                  {record.resource && (
-                    <div style={{ marginBottom: '12px' }}>
-                      <strong>资源：</strong>
-                      <div style={{ marginTop: '8px' }}>
-                        {record.resource_type === 'image' && (
-                          <Image
-                            src={record.resource}
-                            alt="题目资源"
-                            style={{ maxWidth: '300px', borderRadius: '4px' }}
-                          />
-                        )}
-                        {record.resource_type === 'audio' && <AudioPlayer src={record.resource} />}
-                        {record.resource_type === 'video' && (
-                          <video
-                            src={record.resource}
-                            controls
-                            style={{ maxWidth: '300px', borderRadius: '4px' }}
-                          />
-                        )}
-                        {!record.resource_type && (
-                          <div style={{ padding: '8px', background: '#fff', borderRadius: '4px' }}>
-                            {record.resource_content || record.resource}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <strong>知识点：</strong>
-                    <Tag style={{ marginLeft: '8px' }}>{record.knowledge || '-'}</Tag>
-                  </div>
-                </div>
-              ),
-            }}
           />
         </Card>
+
+        {/* 题目详情抽屉 */}
+        <QuestionDetailDrawer
+          open={drawerVisible}
+          onClose={() => setDrawerVisible(false)}
+          question={selectedQuestion}
+          studentAnswer={selectedQuestion ? studentAnswers[selectedQuestion.id] : null}
+        />
       </Space>
     </PageContainer>
   );

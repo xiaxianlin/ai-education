@@ -552,8 +552,12 @@ async def get_session_detail(db: AsyncSession, session_id: int) -> Dict:
             report = PracticeReportSchema.model_validate(report_obj).model_dump()
 
     # 构建返回结果
+    session_dict = PracticeSessionSchema.model_validate(session).model_dump()
+    # 将 id 字段映射为 session_id，以符合前端接口定义
+    session_dict["session_id"] = session_dict.pop("id", session.id)
+    
     result = {
-        "session": PracticeSessionSchema.model_validate(session).model_dump(),
+        "session": session_dict,
         "answers": answer_list,
         "report": report,
     }

@@ -46,16 +46,33 @@ export interface PracticeSession {
   update_time?: number;
 }
 
-// 练习会话详情（根据 API.md）
+// 练习会话详情（根据 API.md 和后端实际返回结构）
 export interface PracticeSessionDetail {
   session: PracticeSession;
   answers: Array<{
+    id?: number;
+    session_id?: number;
     question_id: number;
-    question_content: string;
+    question_order?: number;
+    question_content?: string; // API.md 中定义的字段
     text_answer?: string;
     is_correct: number; // 0-未答, 1-正确, 2-错误
     time_spent: number; // 答题耗时（秒）
+    submit_time?: number; // 提交时间（时间戳）
     audio_data?: string; // 音频答案（base64）
+    question?: { // 后端实际返回的题目详情对象
+      id: number;
+      content: string;
+      type?: string;
+      subtype?: string;
+      options?: string;
+      answer?: string;
+      difficulty?: string;
+      knowledge?: string;
+      resource?: string;
+      resource_type?: 'image' | 'audio' | null;
+      order?: number;
+    };
   }>;
   report?: {
     total_questions: number;

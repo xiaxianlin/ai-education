@@ -154,7 +154,7 @@ export function AssessmentCard({ id }: AssessmentCardProps) {
     >
       {assessments.length > 0 ? (
         <ProTable<AssessmentTest>
-          rowKey="id"
+          rowKey="session_id"
           columns={columns}
           search={false}
           pagination={false}

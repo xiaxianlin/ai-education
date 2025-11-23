@@ -150,7 +150,7 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
     >
       {unitPractices.length > 0 ? (
         <ProTable<UnitPracticeSession>
-          rowKey="id"
+          rowKey="session_id"
           columns={columns}
           search={false}
           pagination={false}
