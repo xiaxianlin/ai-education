@@ -10,14 +10,15 @@
 对应 Graph 节点: check_unit_practice -> load_unit_practice_data -> build_unit_practice_prompt
 """
 
-from typing import Any, Dict, List
-from sqlalchemy import select, and_, func
+from typing import Any, Dict
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from core.database import Knowledge, Unit, Question
+from core.database import Knowledge, Unit
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.unit_practice import build_unit_practice_prompt
+from shared.question.services.recall import RecallService
 
 
 class UnitPracticeGenerateService:
@@ -31,36 +32,6 @@ class UnitPracticeGenerateService:
     Note:
         与 UnitGenerateService 的区别在于使用场景和召回策略
     """
-
-    @classmethod
-    async def _recall_questions(cls, db: AsyncSession, unit_id: int, count: int) -> List[Question]:
-        """召回单元历史题目
-
-        Args:
-            db: 数据库会话
-            unit_id: 单元ID
-            count: 召回数量
-
-        Returns:
-            题目列表
-
-        Note:
-            策略：从指定单元随机选择题目，优先保持题型多样性
-        """
-        if count == 0:
-            return []
-
-        stmt = (
-            select(Question)
-            .where(and_(Question.unit_id == unit_id))
-            .order_by(func.random())  # 随机排序保持多样性
-            .limit(count)
-        )
-
-        result = await db.execute(stmt)
-        questions = result.scalars().all()
-
-        return list(questions)
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
@@ -77,9 +48,6 @@ class UnitPracticeGenerateService:
         """
         if state.get("unit_id") is None:
             raise ValueError("单元 ID (unit_id) 不能为空")
-
-        if state.get("recall_count") is None:
-            raise ValueError("召回题目数量 (recall_count) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -104,7 +72,6 @@ class UnitPracticeGenerateService:
         try:
             db: AsyncSession = state["db"]
             unit_id: int = state["unit_id"]
-            recall_count: int = state["recall_count"]
 
             # 1. 加载单元信息
             unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
@@ -121,7 +88,12 @@ class UnitPracticeGenerateService:
             knowledges = [k.name for k in knowledge_rows.all()]
 
             # 4. 召回历史题目（用于避免重复）
-            recalled_questions = await cls._recall_questions(db, unit_id, recall_count)
+            # 召回数量从环境变量 QUESTION_RECALL_COUNT 读取
+            # 如果 state 中有 student_id，传递给召回服务以排除最近做过的题目
+            student_id = state.get("student_id")
+            recalled_questions = await RecallService.recall_for_unit_practice(
+                db, unit_id, student_id=student_id
+            )
 
             logger.info(
                 f"✓ 单元练习数据加载完成: unit_id={unit_id}, unit_name={unit.name}, "
@@ -134,7 +106,6 @@ class UnitPracticeGenerateService:
                 "textbook": textbook,
                 "knowledges": knowledges,
                 "recall_questions": recalled_questions,
-                "recall_count": len(recalled_questions),
             }
         except Exception as e:
             logger.error(f"✗ 加载单元练习数据失败: {e}")

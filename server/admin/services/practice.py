@@ -121,7 +121,6 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
             db=db,
             type="daily_practice",
             count=30,
-            recall_count=15,
             textbook_id=textbook.id,
             student_id=student_id,
         )
@@ -190,7 +189,6 @@ async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> dict:
             session_id=session.id,
             type="daily_practice",
             count=30,
-            recall_count=15,
             textbook_id=textbook.id,
             student_id=student_id,
         )
@@ -267,7 +265,6 @@ async def create_unit_practice(
             db=db,
             type="unit_practice",
             count=30,
-            recall_count=15,
             unit_id=unit_id,
             textbook_id=textbook.id,
             student_id=student_id,
@@ -341,7 +338,6 @@ async def regenerate_unit_practice(
             session_id=session.id,
             type="unit_practice",
             count=30,
-            recall_count=15,
             unit_id=unit_id,
             textbook_id=textbook.id,
             student_id=student_id,
@@ -408,11 +404,11 @@ async def create_assessment(db: AsyncSession, student_id: str) -> PracticeStatsS
 
     try:
         # 调用 shared/services/practice.py 的生成方法
+        # 能力评估类型不使用召回题目（在 invoke_generate_workflow 中处理）
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="assessment",
             count=30,
-            recall_count=0,  # 能力评估不需要复习题
             student_id=student_id,
         )
 
@@ -470,12 +466,12 @@ async def regenerate_assessment(db: AsyncSession, student_id: str) -> PracticeSt
 
     try:
         # 调用重新生成方法
+        # 能力评估类型不使用召回题目（在 invoke_generate_workflow 中处理）
         session_id = await PracticeService.regenerate_practice_session(
             db=db,
             session_id=session.id,
             type="assessment",
             count=30,
-            recall_count=0,
             textbook_id=textbook.id,
             student_id=student_id,
         )

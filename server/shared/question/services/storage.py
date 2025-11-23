@@ -143,33 +143,6 @@ async def update_resource_info(state: QuestionGenerationState) -> Dict[str, Any]
     }
 
 
-async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
-    """保存题目到数据库"""
-    questions: List[Question] = state.get("questions", [])
-    image_questions: List[Question] = state.get("image_questions", [])
-    audio_questions: List[Question] = state.get("audio_questions", [])
-    text_questions: List[Question] = state.get("text_questions", [])
-    db: AsyncSession = state["db"]
-
-    all_questions = image_questions + audio_questions + text_questions
-
-    if all_questions:
-        db.add_all(all_questions)
-        await db.commit()
-        for question in all_questions:
-            await db.refresh(question)
-        logger.info("成功保存 %s 道题目到数据库", len(all_questions))
-    else:
-        logger.warning("没有需要保存的题目")
-
-    return {
-        "questions": questions,
-        "image_questions": image_questions,
-        "audio_questions": audio_questions,
-        "text_questions": text_questions,
-    }
-
-
 async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     """将内容转换成 Question 数组，并根据问题类型分流"""
     generated_questions: List[GeneratedQuestion] = state["generated_questions"]
@@ -239,7 +212,7 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
         # 根据 QUESTION_TYPES 判断资源类型
         # 口语题的 resource_type 为空，只有听力相关和识别相关的题目 resource_type 才有值
         resource_type = None
-        
+
         # 口语题类型的 resource_type 始终为空
         if question_type != "口语题":
             # 判断是否需要图片（识别相关）
@@ -274,6 +247,33 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
 
     if len(questions) == 0:
         raise ValueError("题目生成失败")
+
+    return {
+        "questions": questions,
+        "image_questions": image_questions,
+        "audio_questions": audio_questions,
+        "text_questions": text_questions,
+    }
+
+
+async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
+    """保存题目到数据库"""
+    questions: List[Question] = state.get("questions", [])
+    image_questions: List[Question] = state.get("image_questions", [])
+    audio_questions: List[Question] = state.get("audio_questions", [])
+    text_questions: List[Question] = state.get("text_questions", [])
+    db: AsyncSession = state["db"]
+
+    all_questions = image_questions + audio_questions + text_questions
+
+    if all_questions:
+        db.add_all(all_questions)
+        await db.commit()
+        for question in all_questions:
+            await db.refresh(question)
+        logger.info("成功保存 %s 道题目到数据库", len(all_questions))
+    else:
+        logger.warning("没有需要保存的题目")
 
     return {
         "questions": questions,

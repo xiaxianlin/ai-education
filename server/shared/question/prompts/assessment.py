@@ -280,7 +280,6 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """
     # 提取状态数据
     count = state["count"]
-    recall_count = state["recall_count"]
     textbook = state["textbook"]
     subject = textbook.subject
     grade = textbook.grade
@@ -291,7 +290,7 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
     format_instructions = parser.get_format_instructions()
 
-    remain_count = count - recall_count
+    remain_count = count - len(recall_questions)
     # 计算难度分布
     distribution = build_difficulty_distribution(remain_count)
 

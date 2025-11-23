@@ -8,6 +8,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Question
+from core.settings import envs
 from shared.question.types import GenerationType, QuestionGenerationState
 from shared.question.services import llm as llm_service
 from shared.question.services import resource as resource_service
@@ -250,9 +251,21 @@ async def update_resource_info_node(state: QuestionGenerationState) -> Dict[str,
 
 
 async def gather_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """汇总数据节点"""
-    logger.info("问题更新完成，共更新 %s 道题目", len(state.get("questions", [])))
-    return {"questions": state.get("questions", [])}
+    """汇总数据节点 - 合并召回题目和生成题目"""
+    generated_questions: List[Question] = state.get("questions", [])
+    recall_questions: List[Question] = state.get("recall_questions", [])
+    
+    # 合并召回题目和生成题目
+    all_questions = list(recall_questions) + list(generated_questions)
+    
+    logger.info(
+        "题目汇总完成: 召回题目=%s道, 生成题目=%s道, 总计=%s道",
+        len(recall_questions),
+        len(generated_questions),
+        len(all_questions),
+    )
+    
+    return {"questions": all_questions}
 
 
 # ==================== 图构建 ====================
@@ -389,10 +402,14 @@ async def invoke_generate_workflow(
 
     logger.info("开始生成题目 | " + " | ".join(log_parts))
 
+    # 从环境变量读取 recall_count，能力评估类型不使用召回题目
+    recall_count = 0 if type == "assessment" else envs.QUESTION_RECALL_COUNT
+
     initial_state: QuestionGenerationState = {
         "db": db,
         "count": count,
         "type": type,
+        "recall_count": recall_count,
     }
     update_kwargs = {
         "unit_id": unit_id,

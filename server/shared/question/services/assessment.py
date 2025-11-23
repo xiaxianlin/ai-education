@@ -10,15 +10,16 @@
 对应 Graph 节点: check_assessment -> load_assessment_data -> build_assessment_prompt
 """
 
-from typing import Any, Dict, List
-from sqlalchemy import select, func
+from typing import Any, Dict
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload
 from loguru import logger
 
-from core.database import Knowledge, Question, StudentTextbook
+from core.database import Knowledge, StudentTextbook
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.assessment import build_assessment_prompt
+from shared.question.services.recall import RecallService
 
 
 class AssessmentGenerateService:
@@ -30,37 +31,6 @@ class AssessmentGenerateService:
     - 难度分布：简单30%、普通50%、困难20%
     - 题目具有高区分度和独立性
     """
-
-    @classmethod
-    async def _recall_questions(
-        cls, db: AsyncSession, textbook_id: int, count: int
-    ) -> List[Question]:
-        """召回教材历史题目
-
-        Args:
-            db: 数据库会话
-            textbook_id: 教材ID
-            count: 召回数量
-
-        Returns:
-            题目列表
-
-        Note:
-            策略：从指定教材随机选择题目，用于避免生成重复题目
-        """
-        if count == 0:
-            return []
-        stmt = (
-            select(Question)
-            .where(Question.textbook_id == textbook_id)
-            .order_by(func.random())
-            .limit(count)
-        )
-
-        result = await db.execute(stmt)
-        questions = result.scalars().all()
-
-        return list(questions)
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
@@ -78,9 +48,6 @@ class AssessmentGenerateService:
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
 
-        if state.get("recall_count") is None:
-            raise ValueError("召回题目数量 (recall_count) 不能为空")
-
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """加载能力评估所需的上下文数据
@@ -93,7 +60,6 @@ class AssessmentGenerateService:
             - textbook: 教材对象
             - knowledges: 全部知识点名称列表（跨单元）
             - recall_questions: 召回的历史题目列表
-            - recall_count: 实际召回数量
 
         Raises:
             ValueError: 教材不存在
@@ -105,7 +71,6 @@ class AssessmentGenerateService:
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
-            recall_count: int = state["recall_count"]
 
             # 1. 从学生的激活教材获取教材信息
             student_textbook = await db.scalar(
@@ -128,7 +93,9 @@ class AssessmentGenerateService:
             knowledges = [k.name for k in knowledge_rows.all()]
 
             # 3. 召回历史题目（用于避免重复）
-            recalled_questions = await cls._recall_questions(db, textbook_id, recall_count)
+            recalled_questions = await RecallService.recall_for_assessment(
+                db, textbook_id, student_id=student_id
+            )
 
             logger.info(
                 f"✓ 能力评估数据加载完成: student_id={student_id}, textbook_id={textbook_id}, "
@@ -141,7 +108,6 @@ class AssessmentGenerateService:
                 "textbook": textbook,
                 "knowledges": knowledges,
                 "recall_questions": recalled_questions,
-                "recall_count": len(recalled_questions),
             }
         except Exception as e:
             logger.error(f"✗ 加载能力评估数据失败: {e}")

@@ -340,7 +340,6 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     db: AsyncSession = state["db"]
     student_id: str = state["student_id"]
     count = state["count"]
-    recall_count = state["recall_count"]
     textbook = state["textbook"]
     subject = textbook.subject
     grade = textbook.grade
@@ -374,7 +373,7 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     review_units = await StudentService.get_review_units(db, student_id)
 
     # 计算题目分布（扣除召回的题目数量）
-    remain_count = count - recall_count
+    remain_count = count - len(recall_questions)
     distribution = build_question_distribution(remain_count)
 
     # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）

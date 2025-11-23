@@ -51,11 +51,11 @@ async def create_assessment(
         times = await count_assessment(db, student_id)
 
         # 调用 shared/services/practice.py 的生成方法
+        # 能力评估类型不使用召回题目（在 invoke_generate_workflow 中处理）
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="assessment",
             count=30,
-            recall_count=0,  # 能力评估不需要复习题
             textbook_id=textbook.id,
             student_id=student_id,
         )

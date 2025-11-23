@@ -38,7 +38,6 @@ class PracticeService:
         db: AsyncSession,
         type: str,
         count: int = 30,
-        recall_count: int = 0,
         unit_id: int | None = None,
         textbook_id: int | None = None,
         student_id: str | None = None,
@@ -56,11 +55,11 @@ class PracticeService:
         
         # 1. 调用 invoke_generate_workflow 生成题目
         # 能力评估不传 textbook_id，由工作流内部通过 student_id 获取
+        # recall_count 从环境变量读取，能力评估类型不使用召回题目
         questions = await invoke_generate_workflow(
             db=db,
             type=type,
             count=count,
-            recall_count=recall_count,
             unit_id=unit_id,
             textbook_id=textbook_id if type != "assessment" else None,
             student_id=student_id,
@@ -98,7 +97,6 @@ class PracticeService:
         db: AsyncSession,
         type: str,
         count: int = 30,
-        recall_count: int = 0,
         unit_id: int | None = None,
         textbook_id: int | None = None,
         student_id: str | None = None,
@@ -108,11 +106,11 @@ class PracticeService:
         if not session:
             raise ValueError("当前练习不存在")
 
+        # recall_count 从环境变量读取，能力评估类型不使用召回题目
         questions = await invoke_generate_workflow(
             db=db,
             type=type,
             count=count,
-            recall_count=recall_count,
             unit_id=unit_id,
             textbook_id=textbook_id,
             student_id=student_id,

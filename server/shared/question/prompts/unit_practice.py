@@ -281,7 +281,6 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
     # 提取状态数据
     unit = state["unit"]
     count = state["count"]
-    recall_count = state["recall_count"]
     textbook = state["textbook"]
     subject = textbook.subject
     grade = textbook.grade
@@ -313,7 +312,7 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
         "grade": grade_text,
         "unit_name": unit.name,
         "unit_summary": unit.content or "本单元的练习题目",
-        "count": count - recall_count,
+        "count": count - len(recall_questions),
         "question_types": question_types_text,
         "knowledge_text": build_knowledges_prompt(knowledges),
     }

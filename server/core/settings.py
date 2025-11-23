@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str
     # CORS配置
     CORS_ORIGINS: str = "*"  # 多个域名用逗号分隔
+    # 题目召回数量配置
+    QUESTION_RECALL_COUNT: int = 0
 
     class Config:
         env_file = ".env"

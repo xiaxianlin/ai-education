@@ -57,8 +57,6 @@ class QuestionGenerationState(TypedDict, total=False):
     count: int
     # 教材对象（必需，所有生成类型都需要）
     textbook: NotRequired[Textbook]
-    # 召回的题目数量
-    recall_count: NotRequired[int]
     # 单元 ID，单元生成和单元练习需要
     unit_id: NotRequired[int]
     # 教材 ID，教材生成和能力评估需要

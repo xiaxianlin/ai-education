@@ -115,7 +115,6 @@ async def create_daily_practice(
             db=db,
             type="daily_practice",
             count=30,
-            recall_count=15,
             textbook_id=textbook.id,
             student_id=student_id,
         )
