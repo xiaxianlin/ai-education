@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, LargeBinary
 from sqlalchemy.orm import (
     relationship,
     Mapped,
@@ -243,10 +243,13 @@ class PracticeAnswer(BaseModel):
     question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
 
     # 答题信息
-    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
+    text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="文本答案")
     is_correct: Mapped[int] = mapped_column(default=0, comment="0-未答 1-正确 2-错误")
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
+    audio_answer: Mapped[bytes] = mapped_column(
+        LargeBinary, nullable=True, comment="语音回答（音频字节数据）"
+    )
 
 
 # 学生错题记录表（每次答错都记录）
@@ -268,7 +271,7 @@ class PracticeWrongRecord(BaseModel):
     # 答题信息
     user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
     correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
-    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
+    analysis: Mapped[str] = mapped_column(Text, nullable=True, comment="错题分析")
 
     # 状态信息
     is_corrected: Mapped[int] = mapped_column(

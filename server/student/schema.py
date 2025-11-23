@@ -8,10 +8,12 @@ class LoginSchema(BaseModel):
 
 
 class AnswerQuestionSchema(BaseModel):
-    session_id: str
-    question_id: str
+    session_id: int
+    question_id: int
     answer: str
-    is_video_answer: bool
+    time_spent: int  # 答题耗时，单位秒
+    is_audio_answer: bool = False  # 是否为音频回答
+    audio_data: Optional[str] = None  # 音频数据（base64编码字符串）
 
 
 class PracticeStatsSchem(BaseModel):
@@ -25,6 +27,7 @@ class PracticeStatsSchem(BaseModel):
 
 class PracticeHistorySchema(BaseModel):
     """练习历史记录"""
+
     session_id: int
     session_type: str  # 练习类型
     status: int  # 练习状态 0-未开始 1-进行中 2-已完成

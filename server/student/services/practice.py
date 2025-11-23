@@ -7,6 +7,100 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession
 from student.schema import PracticeHistorySchema
+from shared.utils.time import now
+
+
+async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> dict:
+    """
+    开始练习
+    
+    Args:
+        db: 数据库会话
+        student_id: 学生ID
+        session_id: 练习会话ID
+        
+    Returns:
+        练习会话信息
+    """
+    # 查询练习会话
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    
+    if not session:
+        raise ValueError("练习会话不存在")
+    
+    if session.student_id != student_id:
+        raise ValueError("无权操作此练习")
+    
+    # 如果已经开始或已完成，不能重复开始
+    if session.status == 1:
+        logger.warning(f"练习已经开始: session_id={session_id}")
+        # 返回当前状态
+    elif session.status == 2:
+        raise ValueError("练习已完成，无法重新开始")
+    else:
+        # 更新状态为进行中
+        session.status = 1
+        session.start_time = now()
+        session.update_time = now()
+        await db.commit()
+        logger.info(f"练习开始: session_id={session_id}, student_id={student_id}")
+    
+    return {
+        "session_id": session.id,
+        "status": session.status,
+        "session_type": session.session_type,
+        "target_id": session.target_id,
+        "textbook_id": session.textbook_id,
+        "question_count": session.question_count,
+        "answer_count": session.answer_count,
+        "correct_count": session.correct_count,
+        "start_time": session.start_time,
+        "create_time": session.create_time,
+    }
+
+
+async def complete_practice(db: AsyncSession, student_id: str, session_id: int) -> int:
+    """
+    完成练习，生成报告
+    
+    Args:
+        db: 数据库会话
+        student_id: 学生ID
+        session_id: 练习会话ID
+        
+    Returns:
+        报告ID
+    """
+    # 查询练习会话
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    
+    if not session:
+        raise ValueError("练习会话不存在")
+    
+    if session.student_id != student_id:
+        raise ValueError("无权操作此练习")
+    
+    # 如果已经完成，直接返回报告ID
+    if session.status == 2:
+        logger.warning(f"练习已完成: session_id={session_id}")
+        # 查询报告ID
+        from student.services.report import generate_practice_report
+        report_id = await generate_practice_report(db, student_id, session_id)
+        return report_id
+    
+    # 更新状态为已完成
+    session.status = 2
+    session.end_time = now()
+    session.update_time = now()
+    await db.commit()
+    
+    logger.info(f"练习完成: session_id={session_id}, student_id={student_id}")
+    
+    # 生成报告
+    from student.services.report import generate_practice_report
+    report_id = await generate_practice_report(db, student_id, session_id)
+    
+    return report_id
 
 
 async def get_practice_history(

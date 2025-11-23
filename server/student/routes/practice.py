@@ -1,12 +1,13 @@
 """练习路由（每日练习 + 单元练习 + 能力评测）"""
 
+import base64
 from typing import Dict, List
-from fastapi import APIRouter, Request, UploadFile, File
+from fastapi import APIRouter, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
 from student.schema import AnswerQuestionSchema, PracticeStatsSchem, PracticeHistorySchema
-from student.services import textbook, daily_practice, assessment, unit_practice, practice
+from student.services import textbook, daily_practice, assessment, unit_practice, practice, answer
 
 practice_router = APIRouter(prefix="/practice")
 
@@ -81,9 +82,9 @@ async def get_units_practice_stats(
     """获取指定教材下所有单元的未完成练习记录"""
     # 获取当前学生信息
     student = request.state.student
-    
+
     result = await unit_practice.get_units_practice_stats(db, student.id, textbook_id)
-    
+
     return result
 
 
@@ -121,31 +122,69 @@ async def get_practice_history_route(
     """根据类型获取最近 30 条练习记录，type 可选值：daily_practice/unit_practice/assessment"""
     # 获取当前学生信息
     student = request.state.student
-    
+
     # 验证练习类型
     valid_types = ["daily_practice", "unit_practice", "assessment"]
     if type not in valid_types:
         raise ValueError(f"无效的练习类型，可选值：{', '.join(valid_types)}")
-    
+
     # 获取练习历史记录
     result = await practice.get_practice_history(db, student.id, type, limit=30)
-    
+
     return result
 
 
 @practice_router.post("/answer")
 async def answer_question(
-    params: AnswerQuestionSchema,
-    request: Request,
-    file: UploadFile = File(...),
-    db: AsyncSession = Database,
+    params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database
 ):
-    """提交练习答案"""
+    """
+    提交练习答案
+
+    Args:
+        params.session_id: 练习会话ID
+        params.question_id: 题目ID
+        params.answer: 用户答案
+        params.time_spent: 答题耗时（秒）
+        params.is_audio_answer: 是否为音频回答
+        params.audio_data: 音频数据（base64编码字符串）
+    """
+    # 获取当前学生信息
+    student = request.state.student
+
+    # 如果是音频答案，解码 base64 数据
+    audio_bytes = None
+    if params.is_audio_answer and params.audio_data:
+        try:
+            audio_bytes = base64.b64decode(params.audio_data)
+        except Exception as e:
+            raise ValueError(f"音频数据解码失败: {str(e)}")
+
+    # 提交答案
+    result = await answer.submit_answer(
+        db=db,
+        student_id=student.id,
+        session_id=params.session_id,
+        question_id=params.question_id,
+        answer=params.answer,
+        time_spent=params.time_spent,
+        is_video_answer=params.is_audio_answer,
+        audio_bytes=audio_bytes,
+    )
+
+    return result
 
 
 @practice_router.post("/{session_id}/begin")
 async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """开始练习"""
+    # 获取当前学生信息
+    student = request.state.student
+
+    # 开始练习
+    result = await practice.begin_practice(db, student.id, session_id)
+
+    return result
 
 
 @practice_router.post("/{session_id}/complete")
@@ -153,3 +192,10 @@ async def complete_practice_practice(
     session_id: int, request: Request, db: AsyncSession = Database
 ):
     """完成练习，生成练习报告"""
+    # 获取当前学生信息
+    student = request.state.student
+
+    # 完成练习并生成报告
+    report_id = await practice.complete_practice(db, student.id, session_id)
+
+    return {"report_id": report_id}
