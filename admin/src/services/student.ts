@@ -138,20 +138,28 @@ export const StudentApi = {
     return res.data;
   },
 
-  // 获取单元练习列表（兼容旧接口）
+  // 获取单元练习列表（根据 API.md，使用 history 接口）
   getUnitPractices: async (studentId: string, limit: number = 30) => {
-    const res = await request<ListApiData<UnitPracticeSession>>(`/practice/${studentId}/unit/list`, {
+    const res = await request<ApiData<UnitPracticeSession[]>>(`/practice/${studentId}/history/unit_practice`, {
       params: { limit },
     });
-    return res.data;
+    // 转换为 ListApiData 格式
+    return {
+      data: res || [],
+      total: res?.length || 0,
+    };
   },
 
-  // 获取能力评估列表（兼容旧接口）
+  // 获取能力评估列表（根据 API.md，使用 history 接口）
   getAssessments: async (studentId: string, limit: number = 30) => {
-    const res = await request<ListApiData<AssessmentTest>>(`/practice/${studentId}/assessment/list`, {
+    const res = await request<ApiData<AssessmentTest[]>>(`/practice/${studentId}/history/assessment`, {
       params: { limit },
     });
-    return res.data;
+    // 转换为 ListApiData 格式
+    return {
+      data: res || [],
+      total: res?.length || 0,
+    };
   },
 
   // 获取每日练习详情（兼容旧接口）
@@ -183,12 +191,16 @@ export const StudentApi = {
     return res.data;
   },
 
-  // 获取每日练习列表（兼容旧接口）
+  // 获取每日练习列表（根据 API.md）
   getDailyPractices: async (studentId: string, limit: number = 100) => {
-    const res = await request<ListApiData<DailyPracticeSession>>(`/practice/${studentId}/history/daily_practice`, {
+    const res = await request<ApiData<DailyPracticeSession[]>>(`/practice/${studentId}/history/daily_practice`, {
       params: { limit },
     });
-    return res.data;
+    // 转换为 ListApiData 格式
+    return {
+      data: res || [],
+      total: res?.length || 0,
+    };
   },
 
   // 删除每日练习（如果后端支持）

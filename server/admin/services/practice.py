@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict
 from loguru import logger
-from sqlalchemy import select, desc
+from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -57,7 +57,7 @@ async def get_practice_history(
     return result
 
 
-async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
+async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[dict]:
     """获取学生当天的每日练习"""
     current_date = today()
 
@@ -75,23 +75,29 @@ async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[Prac
 
     logger.info(f"[Admin] 找到当天每日练习: session_id={session.id}, student_id={student_id}")
 
-    return PracticeStatsSchem(
-        session_id=session.id,
-        status=session.status,
-        total_questions=session.question_count,
-        completed_questions=session.answer_count,
-        right_questions=session.correct_count,
-        times=0,  # Admin端不需要统计练习次数
-    )
+    # 返回完整的 PracticeSession 信息，符合 API.md 定义
+    return {
+        "session_id": session.id,
+        "session_type": session.session_type,
+        "target_id": session.target_id,
+        "textbook_id": session.textbook_id,
+        "question_count": session.question_count,
+        "answer_count": session.answer_count,
+        "correct_count": session.correct_count,
+        "status": session.status,
+        "start_time": session.start_time,
+        "end_time": session.end_time,
+        "create_time": session.create_time,
+    }
 
 
-async def create_daily_practice(db: AsyncSession, student_id: str) -> PracticeStatsSchem:
+async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
     """为学生生成每日练习"""
     # 检查是否已存在当天的每日练习
     existing = await get_daily_practice(db, student_id)
     if existing:
         logger.warning(
-            f"[Admin] 当天每日练习已存在: student_id={student_id}, session_id={existing.session_id}"
+            f"[Admin] 当天每日练习已存在: student_id={student_id}, session_id={existing['session_id']}"
         )
         return existing
 
@@ -128,21 +134,27 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> PracticeSt
 
         logger.info(f"[Admin] 每日练习创建成功: session_id={session_id}")
 
-        return PracticeStatsSchem(
-            session_id=session.id,
-            status=session.status,
-            total_questions=session.question_count,
-            completed_questions=session.answer_count,
-            right_questions=session.correct_count,
-            times=0,
-        )
+        # 返回完整的 PracticeSession 信息
+        return {
+            "session_id": session.id,
+            "session_type": session.session_type,
+            "target_id": session.target_id,
+            "textbook_id": session.textbook_id,
+            "question_count": session.question_count,
+            "answer_count": session.answer_count,
+            "correct_count": session.correct_count,
+            "status": session.status,
+            "start_time": session.start_time,
+            "end_time": session.end_time,
+            "create_time": session.create_time,
+        }
 
     except Exception as e:
         logger.error(f"[Admin] 创建每日练习失败: student_id={student_id}, error={e}")
         raise ValueError(f"创建每日练习失败: {str(e)}")
 
 
-async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> PracticeStatsSchem:
+async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> dict:
     """重新生成学生的每日练习"""
     # 获取当天的每日练习
     current_date = today()
@@ -188,14 +200,20 @@ async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> Practi
 
         logger.info(f"[Admin] 每日练习重新生成成功: session_id={session_id}")
 
-        return PracticeStatsSchem(
-            session_id=session.id,
-            status=session.status,
-            total_questions=session.question_count,
-            completed_questions=session.answer_count,
-            right_questions=session.correct_count,
-            times=0,
-        )
+        # 返回完整的 PracticeSession 信息
+        return {
+            "session_id": session.id,
+            "session_type": session.session_type,
+            "target_id": session.target_id,
+            "textbook_id": session.textbook_id,
+            "question_count": session.question_count,
+            "answer_count": session.answer_count,
+            "correct_count": session.correct_count,
+            "status": session.status,
+            "start_time": session.start_time,
+            "end_time": session.end_time,
+            "create_time": session.create_time,
+        }
 
     except Exception as e:
         logger.error(f"[Admin] 重新生成每日练习失败: student_id={student_id}, error={e}")
@@ -549,3 +567,36 @@ async def get_session_detail(db: AsyncSession, session_id: int) -> Dict:
     )
 
     return result
+
+
+async def delete_session(db: AsyncSession, session_id: int):
+    """删除练习会话"""
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    
+    if not session:
+        raise ValueError("练习会话不存在")
+    
+    logger.info(f"[Admin] 开始删除练习会话: session_id={session_id}, type={session.session_type}")
+    
+    try:
+        # 删除会话相关的所有数据
+        # 1. 删除答题记录
+        await db.execute(
+            delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
+        )
+        
+        # 2. 删除报告（如果存在）
+        await db.execute(
+            delete(PracticeReport).where(PracticeReport.session_id == session_id)
+        )
+        
+        # 3. 删除会话本身
+        await db.delete(session)
+        await db.commit()
+        
+        logger.info(f"[Admin] 练习会话删除成功: session_id={session_id}")
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"[Admin] 删除练习会话失败: session_id={session_id}, error={e}")
+        raise ValueError(f"删除练习会话失败: {str(e)}")

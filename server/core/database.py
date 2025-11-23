@@ -64,7 +64,7 @@ class Manager(BaseModel):
     type: Mapped[int] = mapped_column(default=0)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
-    update_time: Mapped[int] = mapped_column()
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
 class Textbook(BaseModel):
@@ -171,7 +171,7 @@ class Student(BaseModel):
     token: Mapped[str] = mapped_column(String(255), index=True)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
-    update_time: Mapped[int] = mapped_column()
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
 class StudentTextbook(BaseModel):
@@ -208,7 +208,7 @@ class PracticeSession(BaseModel):
         nullable=False,
         index=True,
         comment="会话类型:daily_practice/unit_practice/assessment",
-    )  #
+    )
 
     target_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID或者时间戳")
     textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
@@ -221,7 +221,7 @@ class PracticeSession(BaseModel):
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(comment="更新时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
 
 # 答题记录表

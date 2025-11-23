@@ -715,6 +715,24 @@ POST /api/admin/student/{id}/textbooks
 GET /api/admin/student/{id}/textbooks
 ```
 
+#### 获取学生资料
+
+```
+GET /api/admin/student/{id}/profile
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "current_textbook_id": 1
+  }
+}
+```
+
+**功能说明**: 返回学生的当前学习教材 ID（active=1 的教材）。
+
 ---
 
 ### 练习管理
@@ -732,21 +750,23 @@ GET /api/admin/practice/{student_id}/daily
   "data": {
     "session_id": 123,
     "session_type": "daily_practice",
+    "target_id": 20241123,
+    "textbook_id": 1,
     "question_count": 10,
     "answer_count": 5,
     "correct_count": 4,
     "status": 1,
-    "questions": [
-      {
-        "id": 1,
-        "content": "1 + 1 = ?",
-        "type": "选择题",
-        "order": 1
-      }
-    ]
+    "start_time": 1234567890,
+    "end_time": null,
+    "create_time": 1234567890
   }
 }
 ```
+
+**功能说明**: 
+- 如果当天存在每日练习，返回练习会话信息
+- 如果当天不存在每日练习，返回 `null`
+- `status`: 0-未开始, 1-进行中, 2-已完成
 
 #### 为学生创建每日练习
 
@@ -754,13 +774,19 @@ GET /api/admin/practice/{student_id}/daily
 POST /api/admin/practice/{student_id}/daily/create
 ```
 
+**响应格式**: 与获取每日练习相同，返回新创建的练习会话信息
+
+**功能说明**: 如果当天已存在每日练习，直接返回现有练习会话
+
 #### 为学生重新生成每日练习
 
 ```
 POST /api/admin/practice/{student_id}/daily/regenerate
 ```
 
-**功能说明**: 删除当天未完成的练习，重新生成。
+**响应格式**: 与获取每日练习相同，返回重新生成的练习会话信息
+
+**功能说明**: 删除当天的练习（无论是否完成），重新生成新的每日练习
 
 #### 为学生创建单元练习
 
@@ -886,6 +912,14 @@ GET /api/admin/configs
 ```
 
 **功能说明**: 获取科目、版本、学期、题型等配置信息。如果指定了科目和年级，返回该科目年级对应的题型列表。
+
+#### 删除练习会话
+
+```
+DELETE /api/admin/practice/session/{session_id}
+```
+
+**功能说明**: 删除指定的练习会话，包括答题记录和报告。
 
 ---
 

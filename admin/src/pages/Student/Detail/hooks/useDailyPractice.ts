@@ -7,44 +7,17 @@ import type { PracticeSession } from '@/services/practice';
 
 const PRACTICE_HISTORY_PATH = (id: string) => `/student/${id}/practice-history`;
 
-// 将数字状态转换为字符串状态（用于兼容）
-function getStatusString(status: number): 'pending' | 'in_progress' | 'completed' | 'failed' {
-  switch (status) {
-    case 0:
-      return 'pending';
-    case 1:
-      return 'in_progress';
-    case 2:
-      return 'completed';
-    default:
-      return 'failed';
-  }
-}
-
-// 将 PracticeSession 转换为 DailyPracticeSession（兼容旧代码）
-function convertToDailyPracticeSession(session: PracticeSession | null): DailyPracticeSession | null {
-  if (!session) return null;
-  return {
-    ...session,
-    session_type: 'daily_practice',
-    date: session.target_id || 0,
-    score: 0,
-    total_questions: session.question_count,
-    correct_questions: session.correct_count,
-    status: getStatusString(session.status),
-  } as DailyPracticeSession;
-}
-
 export function useDailyPractice(id?: string, refreshStats?: () => void) {
+  // 获取今日练习会话（如果存在）
   const {
-    data: todayPracticeData,
+    data: todaySession,
     loading: loadingTodayPractice,
     refresh: refreshTodayPractice,
   } = useRequest(() => StudentApi.getDailyPractice(id!), {
     ready: !!id,
     onSuccess: (data) => {
       if (data && data.status === 2) {
-        // 已完成
+        // 已完成，刷新统计数据
         refreshStats?.();
       }
     },
@@ -53,6 +26,7 @@ export function useDailyPractice(id?: string, refreshStats?: () => void) {
     },
   });
 
+  // 生成今日练习
   const { runAsync: handleGenerateDailyPractice, loading: generatingPractice } = useRequest(
     async () => {
       if (!id) return;
@@ -66,8 +40,8 @@ export function useDailyPractice(id?: string, refreshStats?: () => void) {
     },
     {
       manual: true,
-      onError: () => {
-        message.error('生成失败');
+      onError: (error: any) => {
+        message.error(error?.message || '生成失败');
       },
     },
   );
@@ -77,27 +51,8 @@ export function useDailyPractice(id?: string, refreshStats?: () => void) {
     [id],
   );
 
-  // 转换为兼容格式
-  const todayPractice = useMemo(() => {
-    if (!todayPracticeData) {
-      return {
-        session: null,
-        task_id: null,
-        status: 'failed',
-        progress: 0,
-      };
-    }
-    const session = convertToDailyPracticeSession(todayPracticeData);
-    return {
-      session,
-      task_id: null,
-      status: session ? getStatusString(session.status) : 'failed',
-      progress: session ? (session.status === 'completed' ? 100 : 0) : 0,
-    };
-  }, [todayPracticeData]);
-
   return {
-    todayPractice,
+    todaySession, // 今日练习会话（null 表示未生成）
     loadingTodayPractice,
     generatingPractice,
     handleGenerateDailyPractice,

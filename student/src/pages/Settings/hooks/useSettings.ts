@@ -36,12 +36,15 @@ export function useSettings() {
         profileApi.getProfile(),
       ]);
       setTextbooks(textbooksData || []);
-      if (profileData) {
-        const currentId = profileData.current_textbook_id || null;
-        setCurrentTextbookId(currentId);
-      } else {
-        setCurrentTextbookId(null);
-      }
+      
+      // 从教材列表中查找激活的教材，或者从 profile 中获取
+      const activeTextbook = textbooksData?.find(t => t.active === 1);
+      const currentId = 
+        activeTextbook?.id || 
+        profileData?.current_textbook_id || 
+        profileData?.textbook?.id || 
+        null;
+      setCurrentTextbookId(currentId);
     } catch (error) {
       handleError(error);
     } finally {
@@ -69,14 +72,29 @@ export function useSettings() {
 
     try {
       setSaving(true);
-      await profileApi.updateProfile({
-        current_textbook_id: confirmDialog.textbookId,
-      });
+      // 使用新的激活教材接口
+      await profileApi.activateTextbook(confirmDialog.textbookId);
       setCurrentTextbookId(confirmDialog.textbookId);
+      
+      // 更新教材列表中的 active 状态
+      setTextbooks(prev => 
+        prev.map(t => ({
+          ...t,
+          active: t.id === confirmDialog.textbookId ? 1 : 0,
+        }))
+      );
+      
       toast.success('已设置为当前学习教材');
+      
+      // 关闭确认对话框
+      setConfirmDialog({ open: false, textbookId: null });
+      
+      // 延迟刷新页面，让用户看到成功提示
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       handleError(error);
-    } finally {
       setSaving(false);
       setConfirmDialog({ open: false, textbookId: null });
     }

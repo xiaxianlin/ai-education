@@ -103,8 +103,8 @@ export function Profile() {
                       <div className="text-5xl">⚙️</div>
                     </div>
                   </div>
-                  <p className="text-xl font-bold text-gray-800">我的设置</p>
-                  <p className="text-sm text-gray-600">修改个人信息</p>
+                  <p className="text-xl font-bold text-gray-800">教材设置</p>
+                  <p className="text-sm text-gray-600">选择学习教材</p>
                 </div>
               </CardContent>
             </Card>

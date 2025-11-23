@@ -3,10 +3,10 @@
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
 import { Header } from '@/components/layout/Header';
 import { AlertDialog } from '@/components/ui/alert-dialog';
-import { BookOpen, ArrowLeft } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useSettings } from './hooks/useSettings';
 import { TextbookCard } from './components/TextbookCard';
@@ -22,7 +22,7 @@ export function Settings() {
     handleSelectTextbook,
     handleConfirmSetTextbook,
     setConfirmDialog,
-    navigate,
+
   } = useSettings();
 
   if (loading) {
@@ -34,7 +34,7 @@ export function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 via-purple-50 to-pink-50 pb-20">
       <Header />
       <AlertDialog
         open={confirmDialog.open}
@@ -49,60 +49,83 @@ export function Settings() {
         cancelText="取消"
         onConfirm={handleConfirmSetTextbook}
       />
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* 头部 */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-12 w-12 rounded-xl"
-            onClick={() => navigate({ to: '/profile' })}
-          >
-            <ArrowLeft className="h-7 w-7" />
-          </Button>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="text-4xl">⚙️</div>
-              <h1 className="text-3xl font-bold text-gray-800">我的设置</h1>
-            </div>
-            <p className="text-base text-gray-600">选择你正在学习的教材</p>
-          </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* 页面标题 */}
+        <div className="text-center space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            教材设置
+          </h1>
+          <p className="text-gray-600 text-base sm:text-lg">
+            选择你正在使用的教材，开始个性化学习之旅
+          </p>
         </div>
 
         {/* 我的教材列表 */}
         {textbooks.length > 0 ? (
-          <Card className="border-2 border-purple-200 shadow-2xl rounded-3xl">
-            <CardHeader className="bg-gradient-to-r from-purple-100 via-blue-100 to-cyan-100 pb-4">
-              <CardTitle className="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
-                <BookOpen className="h-7 w-7 text-purple-600" />
-                我的教材
-              </CardTitle>
-              <CardDescription className="text-center text-base text-gray-600">
-                点击选择你正在用的教材
+          <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 pb-6 pt-8">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-2xl sm:text-3xl font-bold text-white">
+                  我的教材
+                </CardTitle>
+              </div>
+              <CardDescription className="text-center text-base text-blue-100">
+                点击下方卡片选择你正在使用的教材
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {textbooks.map((textbook) => (
-                  <TextbookCard
+            <CardContent className="p-6 sm:p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {textbooks.map((textbook, index) => (
+                  <div
                     key={textbook.id}
-                    textbook={textbook}
-                    isCurrent={currentTextbookId === textbook.id}
-                    saving={saving}
-                    getGradeLabel={getGradeLabel}
-                    onSelect={handleSelectTextbook}
-                  />
+                    className="animate-in fade-in slide-in-from-bottom-4"
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                      animationDuration: '500ms',
+                      animationFillMode: 'both',
+                    }}
+                  >
+                    <TextbookCard
+                      textbook={textbook}
+                      isCurrent={currentTextbookId === textbook.id}
+                      saving={saving}
+                      getGradeLabel={getGradeLabel}
+                      onSelect={handleSelectTextbook}
+                    />
+                  </div>
                 ))}
               </div>
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-2 border-gray-300 shadow-2xl rounded-3xl">
-            <CardContent className="py-16">
-              <div className="text-center">
-                <div className="text-7xl mb-6">📚</div>
-                <p className="text-2xl font-bold text-gray-800 mb-3">还没有教材呢</p>
-                <p className="text-base text-gray-600">请联系老师为你添加教材 👨‍🏫</p>
+          <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-500">
+            <CardContent className="py-20 px-6">
+              <div className="text-center space-y-6">
+                <div className="relative inline-block">
+                  <div className="text-8xl mb-2 animate-bounce" style={{ animationDuration: '2s' }}>
+                    📚
+                  </div>
+                  <div className="absolute -top-2 -right-2 text-4xl animate-pulse" style={{ animationDelay: '0.5s' }}>
+                    ✨
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                    还没有教材呢
+                  </p>
+                  <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto">
+                    请联系老师为你添加教材，添加后即可开始学习
+                  </p>
+                </div>
+                <div className="pt-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-gray-700">
+                    <span className="text-xl">👨‍🏫</span>
+                    <span className="text-sm font-medium">等待老师添加教材</span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -40,10 +40,14 @@ def build_common_prompt(subject: str, grade: int, recall_questions: Optional[Lis
     if len(recall_questions) > 0:
         recalled_questions_info_lines = []
         for recall_question in recall_questions:
+            # 转义内容中的花括号，避免被 LangChain 当作模板变量
+            # 将 { 替换为 {{，将 } 替换为 }}
+            content = recall_question.content.replace("{", "{{").replace("}", "}}")
+            options = recall_question.options.replace("{", "{{").replace("}", "}}")
             recalled_questions_info_lines.append(
                 f"- 题目ID: {recall_question.id}, "
-                f"题干: {recall_question.question}, "
-                f"选项: {recall_question.options}"
+                f"题干: {content}, "
+                f"选项: {options}"
             )
         recalled_questions_info = "\n".join(recalled_questions_info_lines)
         avoid_duplicate_hint = f"""

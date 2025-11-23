@@ -276,16 +276,16 @@ def build_textbook_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     # 根据学科选择 prompt 模板
     template = TEXTBOOK_PROMPT_ENGLISH if subject == "英语" else TEXTBOOK_PROMPT_MATH
 
-    # 构建 ChatPromptTemplate
+    # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
     prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
+    prompt = prompt.partial(format_instructions=format_instructions)
 
-    # 构建 prompt 输入参数
+    # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）
     prompt_input = {
         "grade": grade_text,
         "count": count,
         "question_types": question_types_text,
         "textbook_content": textbook_content,
-        "format_instructions": format_instructions,
         **distribution,  # 包含 simple_count, medium_count, hard_count
     }
 

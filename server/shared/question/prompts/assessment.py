@@ -307,16 +307,16 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     if avoid_duplicate_hint:
         template = template + "\n" + avoid_duplicate_hint
 
-    # 构建 ChatPromptTemplate
+    # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
     prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
+    prompt = prompt.partial(format_instructions=format_instructions)
 
-    # 构建 prompt 输入参数
+    # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）
     prompt_input = {
         "grade": grade_text,
         "count": remain_count,
         "question_types": question_types_text,
         "knowledge_text": build_knowledges_prompt(knowledges),
-        "format_instructions": format_instructions,
         **distribution,  # 包含 simple_count, medium_count, hard_count
     }
 

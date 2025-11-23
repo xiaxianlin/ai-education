@@ -1,13 +1,27 @@
 import { api } from '@/lib/api';
 
 export interface StudentProfile {
-  id: number;
-  student_id: string;
+  id?: number;
+  student_id?: string;
   current_textbook_id?: number;
-  preferred_subjects: string;
-  difficulty_preference: string;
-  create_time: number;
+  preferred_subjects?: string;
+  difficulty_preference?: string;
+  create_time?: number;
   update_time?: number;
+  // 根据 API.md，check 接口返回的格式
+  student?: {
+    id: string;
+    name: string;
+    phone: string;
+    status: number;
+  };
+  textbook?: {
+    id: number;
+    subject: string;
+    version: string;
+    grade: number;
+    semester: string;
+  };
 }
 
 export interface UpdateProfileParams {
@@ -17,12 +31,70 @@ export interface UpdateProfileParams {
 }
 
 export const profileApi = {
-  getProfile: async (): Promise<StudentProfile | null> => {
-    return api.get<StudentProfile>('/profile');
+  /**
+   * 检查登录状态（根据 API.md: GET /api/student/check）
+   * 返回学生信息和当前教材信息
+   */
+  check: async (): Promise<{
+    student: {
+      id: string;
+      name: string;
+      phone: string;
+      status: number;
+    };
+    textbook?: {
+      id: number;
+      subject: string;
+      version: string;
+      grade: number;
+      semester: string;
+    };
+  }> => {
+    return api.get('/check');
   },
 
+  /**
+   * 获取个人资料（兼容旧接口）
+   * 使用 check 接口获取信息
+   */
+  getProfile: async (): Promise<StudentProfile | null> => {
+    try {
+      const data = await profileApi.check();
+      return {
+        student_id: data.student.id,
+        current_textbook_id: data.textbook?.id,
+        student: data.student,
+        textbook: data.textbook,
+      };
+    } catch (error) {
+      console.error('获取个人资料失败:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 更新个人资料（兼容旧接口）
+   * 如果更新的是 current_textbook_id，使用激活教材接口
+   */
   updateProfile: async (params: UpdateProfileParams): Promise<StudentProfile> => {
-    return api.post<StudentProfile>('/profile', params);
+    // 如果更新的是当前教材，使用激活教材接口
+    if (params.current_textbook_id !== undefined) {
+      await profileApi.activateTextbook(params.current_textbook_id);
+      // 重新获取资料
+      const profile = await profileApi.getProfile();
+      if (!profile) {
+        throw new Error('更新失败');
+      }
+      return profile;
+    }
+    
+    // 其他字段的更新（如果需要后端支持）
+    // 目前先返回当前资料
+    const profile = await profileApi.getProfile();
+    if (!profile) {
+      throw new Error('更新失败');
+    }
+    return profile;
   },
 
   getStats: async () => {
@@ -50,13 +122,48 @@ export const profileApi = {
     return api.post<StudyRecord>('/profile/records', params);
   },
 
-  getTextbooks: async () => {
-    return api.get<Textbook[]>('/profile/textbooks');
+  // ===== 教材相关接口（根据 API.md） =====
+  
+  /**
+   * 获取学生教材列表（根据 API.md: GET /api/student/textbook/all）
+   */
+  getTextbooks: async (): Promise<Textbook[]> => {
+    return api.get<Textbook[]>('/textbook/all');
   },
 
-  getUnits: async (textbookId?: number) => {
+  /**
+   * 获取教材单元列表（根据 API.md: GET /api/student/textbook/units?textbook_id=1）
+   * 如果不指定 textbook_id，则获取当前激活教材的单元
+   */
+  getUnits: async (textbookId?: number): Promise<Unit[]> => {
     const params = textbookId ? `?textbook_id=${textbookId}` : '';
-    return api.get<Unit[]>(`/profile/units${params}`);
+    return api.get<Unit[]>(`/textbook/units${params}`);
+  },
+
+  /**
+   * 激活教材（根据 API.md: POST /api/student/textbook/acitve/{textbook_id}）
+   * 注意：API.md 中拼写是 "acitve"，可能是 "active" 的拼写错误
+   */
+  activateTextbook: async (textbookId: number): Promise<void> => {
+    return api.post(`/textbook/acitve/${textbookId}`);
+  },
+
+  // ===== 兼容旧接口的方法 =====
+  
+  /**
+   * 获取教材列表（兼容旧接口）
+   * 使用新的接口
+   */
+  getTextbooksOld: async () => {
+    return profileApi.getTextbooks();
+  },
+
+  /**
+   * 获取单元列表（兼容旧接口）
+   * 使用新的接口
+   */
+  getUnitsOld: async (textbookId?: number) => {
+    return profileApi.getUnits(textbookId);
   },
 };
 
@@ -120,11 +227,12 @@ export interface Textbook {
   version: string;
   grade: number;
   semester: string;
+  active?: number; // 是否激活（1-激活，0-未激活），根据 API.md
   file?: string;
   index_file_id?: string;
-  is_parsed: number;
-  status: number;
-  create_time: number;
+  is_parsed?: number;
+  status?: number;
+  create_time?: number;
   update_time?: number;
 }
 

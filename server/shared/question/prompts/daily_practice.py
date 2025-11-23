@@ -362,8 +362,9 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     if avoid_duplicate_hint:
         template = template + "\n" + avoid_duplicate_hint
 
-    # 构建 ChatPromptTemplate
+    # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
     prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
+    prompt = prompt.partial(format_instructions=format_instructions)
 
     # 获取学生学习数据（异步）
     weak_knowledge_points = await StudentService.get_weak_knowledges(db, student_id)
@@ -376,12 +377,11 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     remain_count = count - recall_count
     distribution = build_question_distribution(remain_count)
 
-    # 构建 prompt 输入参数
+    # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）
     prompt_input = {
         "grade": grade_text,
         "count": remain_count,
         "question_types": question_types_text,
-        "format_instructions": format_instructions,
         "weak_knowledge_points": build_knowledges_prompt(weak_knowledge_points),
         "mastered_knowledge_points": build_knowledges_prompt(mastered_knowledge_points),
         "challenge_knowledge_points": build_knowledges_prompt(challenge_knowledge_points),

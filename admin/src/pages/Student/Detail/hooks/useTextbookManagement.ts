@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProForm } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
@@ -22,6 +22,55 @@ export function useTextbookManagement(id?: string) {
       setTextbooks(data || []);
     },
   });
+
+  const {
+    data: profile,
+    loading: loadingProfile,
+    refresh: refreshProfile,
+  } = useRequest(() => StudentApi.getProfile(id!), {
+    ready: !!id,
+  });
+
+  // 如果当前学习教材不在关联教材列表中，需要获取并添加
+  useEffect(() => {
+    const loadCurrentTextbook = async () => {
+      // 等待 textbooks 和 profile 都加载完成
+      if (!id || !profile?.current_textbook_id || loadingTextbooks || loadingProfile) {
+        return;
+      }
+
+      const currentTextbookId = profile.current_textbook_id;
+      
+      // 检查当前教材是否已在列表中
+      setTextbooks((prev) => {
+        const isInList = prev.some((tb) => tb.id === currentTextbookId);
+        if (isInList) {
+          return prev;
+        }
+        
+        // 如果不在列表中，异步获取并添加
+        TextbookApi.get(currentTextbookId)
+          .then((currentTextbook) => {
+            if (currentTextbook) {
+              setTextbooks((current) => {
+                // 再次检查避免重复添加（可能在异步过程中已经添加）
+                if (current.some((tb) => tb.id === currentTextbookId)) {
+                  return current;
+                }
+                return [...current, currentTextbook];
+              });
+            }
+          })
+          .catch((error) => {
+            console.error('获取当前学习教材失败:', error);
+          });
+        
+        return prev;
+      });
+    };
+
+    loadCurrentTextbook();
+  }, [id, profile?.current_textbook_id, loadingTextbooks, loadingProfile, textbooks.length]);
 
   const { loading: loadingAllTextbooks } = useRequest(
     async () => {
@@ -78,14 +127,6 @@ export function useTextbookManagement(id?: string) {
       },
     });
   };
-
-  const {
-    data: profile,
-    loading: loadingProfile,
-    refresh: refreshProfile,
-  } = useRequest(() => StudentApi.getProfile(id!), {
-    ready: !!id,
-  });
 
   return {
     textbooks,

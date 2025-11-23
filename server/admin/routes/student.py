@@ -64,3 +64,12 @@ async def save_student_textbook(
 async def query_student_textbook(id: str, db: AsyncSession = Database):
     """查询学生教材"""
     return await student.query_student_textbook(db, id)
+
+
+@student_router.get("/{id}/profile")
+async def get_student_profile(id: str, db: AsyncSession = Database):
+    """获取学生资料（包含当前教材信息）"""
+    try:
+        return await student.get_student_profile(db, id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))

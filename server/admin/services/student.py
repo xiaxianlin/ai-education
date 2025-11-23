@@ -141,3 +141,22 @@ async def get_student_detail(db: AsyncSession, id: str):
     if not student_model:
         raise ValueError("学生不存在")
     return StudentSchema.model_validate(student_model)
+
+
+async def get_student_profile(db: AsyncSession, id: str):
+    """获取学生资料（包含当前教材信息）"""
+    student_model = await db.scalar(select(Student).where(Student.id == id))
+    if not student_model:
+        raise ValueError("学生不存在")
+    
+    # 获取当前激活的教材
+    active_textbook = await db.scalar(
+        select(StudentTextbook).where(
+            StudentTextbook.student_id == id,
+            StudentTextbook.active == 1
+        )
+    )
+    
+    return {
+        'current_textbook_id': active_textbook.textbook_id if active_textbook else None
+    }

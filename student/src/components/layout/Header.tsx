@@ -37,11 +37,13 @@ export function Header() {
       setProfile(profileData);
       setTextbooks(textbooksData || []);
       
-      // 找到当前教材
-      if (profileData?.current_textbook_id) {
-        const current = textbooksData?.find(t => t.id === profileData.current_textbook_id);
-        setCurrentTextbook(current || null);
-      }
+      // 找到当前教材（优先使用 active 字段，否则使用 profile 中的 current_textbook_id）
+      const activeTextbook = textbooksData?.find(t => t.active === 1);
+      const current = 
+        activeTextbook || 
+        (profileData?.current_textbook_id ? textbooksData?.find(t => t.id === profileData.current_textbook_id) : null) ||
+        (profileData?.textbook?.id ? textbooksData?.find(t => t.id === profileData.textbook?.id) : null);
+      setCurrentTextbook(current || null);
     } catch (error) {
       console.error('Failed to load header data:', error);
       // 不显示错误提示，避免干扰用户体验
@@ -53,12 +55,25 @@ export function Header() {
   const handleSwitchTextbook = async (textbookId: number) => {
     try {
       setSwitching(true);
-      await profileApi.updateProfile({ current_textbook_id: textbookId });
-      const updatedProfile = await profileApi.getProfile();
-      const newCurrent = textbooks.find(t => t.id === textbookId);
+      // 使用新的激活教材接口
+      await profileApi.activateTextbook(textbookId);
       
-      setProfile(updatedProfile);
+      // 更新本地状态
+      const newCurrent = textbooks.find(t => t.id === textbookId);
       setCurrentTextbook(newCurrent || null);
+      
+      // 更新教材列表中的 active 状态
+      setTextbooks(prev => 
+        prev.map(t => ({
+          ...t,
+          active: t.id === textbookId ? 1 : 0,
+        }))
+      );
+      
+      // 更新 profile
+      const updatedProfile = await profileApi.getProfile();
+      setProfile(updatedProfile);
+      
       toast.success('教材切换成功');
       
       // 刷新页面以更新所有相关数据

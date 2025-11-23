@@ -15,7 +15,7 @@ type PracticeCardProps = {
 
 export function PracticeCard({ id }: PracticeCardProps) {
   const {
-    todayPractice,
+    todaySession,
     loadingTodayPractice,
     generatingPractice,
     handleGenerateDailyPractice,
@@ -24,7 +24,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
   } = useDailyPractice(id);
 
   const handleRegenerate = async () => {
-    if (!todayPractice?.session) return;
+    if (!todaySession) return;
 
     Modal.confirm({
       title: '确认重新生成',
@@ -34,7 +34,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
       cancelText: '取消',
       onOk: async () => {
         try {
-          await StudentApi.regenerateDailyPractice(id, todayPractice.session!.session_id);
+          await StudentApi.regenerateDailyPractice(id, todaySession.session_id);
           message.success('重新生成成功');
           refreshTodayPractice();
         } catch (error) {
@@ -46,7 +46,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
 
   return (
     <Card
-      title={<span style={{ fontSize: '16px', fontWeight: 600 }}>📝 今日练习</span>}
+      title={<span style={{ fontSize: '16px', fontWeight: 600 }}>📝 每日练习</span>}
       loading={loadingTodayPractice}
       extra={<Link to={practiceHistoryLink}>查看历史 →</Link>}
       style={{
@@ -54,15 +54,16 @@ export function PracticeCard({ id }: PracticeCardProps) {
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
       }}
     >
-      {todayPractice?.session ? (
+      {todaySession ? (
+        // 已生成今日练习
         <div>
-          {renderPracticeStats(todayPractice.session)}
+          {renderPracticeStats(todaySession)}
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <Space>
-              <Link to={`/student/${id}/practice/daily/${todayPractice.session.session_id}`}>
+              <Link to={`/student/${id}/practice/daily/${todaySession.session_id}`}>
                 <Button type="primary">查看练习详情 →</Button>
               </Link>
-              {(todayPractice.session.status === 'in_progress' || todayPractice.session.status === 1) && (
+              {todaySession.status !== 2 && (
                 <Button danger onClick={handleRegenerate}>
                   重新生成
                 </Button>
@@ -70,72 +71,8 @@ export function PracticeCard({ id }: PracticeCardProps) {
             </Space>
           </div>
         </div>
-      ) : todayPractice && ['pending', 'running'].includes(todayPractice.status) ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '40px 0',
-            background: '#fafafa',
-            borderRadius: '8px',
-          }}
-        >
-          <Spin size="large" />
-          <div style={{ marginTop: 20 }}>
-            <Progress
-              percent={todayPractice.progress || 0}
-              status="active"
-              strokeColor={{
-                '0%': '#667eea',
-                '100%': '#764ba2',
-              }}
-            />
-            <div style={{ marginTop: 12, color: '#666', fontSize: '14px' }}>
-              正在生成今日练习，请稍候...（进度: {todayPractice.progress || 0}%）
-            </div>
-          </div>
-        </div>
-      ) : todayPractice && todayPractice.status === 'failed' ? (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '40px 0',
-            background: '#fff1f0',
-            borderRadius: '8px',
-            border: '1px solid #ffccc7',
-          }}
-        >
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
-          <div style={{ color: '#ff4d4f', fontSize: '16px', fontWeight: 500, marginBottom: '8px' }}>
-            生成失败
-          </div>
-          {todayPractice.error_message && (
-            <div
-              style={{
-                color: '#666',
-                fontSize: '14px',
-                marginTop: '12px',
-                maxHeight: '100px',
-                overflow: 'auto',
-                textAlign: 'left',
-                background: '#fff',
-                borderRadius: '4px',
-                padding: '12px',
-              }}
-            >
-              {todayPractice.error_message}
-            </div>
-          )}
-          <div style={{ marginTop: '20px' }}>
-            <Button
-              type="primary"
-              onClick={handleGenerateDailyPractice}
-              loading={generatingPractice}
-            >
-              重新生成
-            </Button>
-          </div>
-        </div>
       ) : (
+        // 未生成今日练习
         <div
           style={{
             textAlign: 'center',
@@ -146,7 +83,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
         >
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<span style={{ color: '#999', fontSize: '14px' }}>今日还未生成练习</span>}
+            description={<span style={{ color: '#999', fontSize: '14px' }}>今天还未生成练习</span>}
           >
             <Button
               type="primary"
@@ -161,7 +98,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
                 boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
               }}
             >
-              生成今日练习
+              生成每日练习
             </Button>
           </Empty>
         </div>
@@ -170,10 +107,10 @@ export function PracticeCard({ id }: PracticeCardProps) {
   );
 }
 
-function renderPracticeStats(session: DailyPracticeSession) {
-  const isCompleted = session.status === 'completed' || session.status === 2;
-  const totalQuestions = session.total_questions || session.question_count || 0;
-  const correctQuestions = session.correct_questions || session.correct_count || 0;
+function renderPracticeStats(session: any) {
+  const isCompleted = session.status === 2 || session.status === 'completed';
+  const totalQuestions = session.question_count || session.total_questions || 0;
+  const correctQuestions = session.correct_count || session.correct_questions || 0;
   const answeredCount = session.answer_count || 0;
   const score = session.score || 0;
 

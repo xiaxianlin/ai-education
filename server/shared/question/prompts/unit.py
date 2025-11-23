@@ -296,15 +296,16 @@ def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     # 根据学科选择 prompt 模板
     template = UNIT_PROMPT_ENGLISH if subject == "英语" else UNIT_PROMPT_MATH
 
-    # 构建 ChatPromptTemplate
+    # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", SYSTEM_PROMPT),
             ("human", template),
         ]
     )
+    prompt = prompt.partial(format_instructions=format_instructions)
 
-    # 构建 prompt 输入参数
+    # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）
     prompt_input = {
         "grade": grade_text,
         "unit_name": unit.name,
@@ -312,7 +313,6 @@ def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
         "count": count,
         "question_types": question_types_text,
         "knowledge_text": build_knowledges_prompt(knowledges),
-        "format_instructions": format_instructions,
     }
 
     return {
