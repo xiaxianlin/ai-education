@@ -237,6 +237,18 @@ async def upload_files_node(state: QuestionGenerationState) -> Dict[str, Any]:
         raise
 
 
+async def update_resource_info_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """更新资源信息节点"""
+    logger.info("开始更新资源信息到数据库")
+    try:
+        result = await storage_service.update_resource_info(state)
+        logger.info("资源信息更新完成")
+        return result
+    except Exception as e:
+        logger.error(f"资源信息更新失败: {e}")
+        raise
+
+
 async def gather_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点"""
     logger.info("问题更新完成，共更新 %s 道题目", len(state.get("questions", [])))
@@ -281,6 +293,7 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("handle_audio", handle_audio_node)
     workflow.add_node("handle_text", handle_text_node)
     workflow.add_node("upload_files", upload_files_node)
+    workflow.add_node("update_resource_info", update_resource_info_node)
     workflow.add_node("gather_questions_node", gather_questions_node)
 
     # 设置入口点
@@ -332,8 +345,11 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("handle_image", "upload_files")
     workflow.add_edge("handle_audio", "upload_files")
 
-    # 添加边：文件上传/文本处理 -> 更新问题
-    workflow.add_edge("upload_files", "gather_questions_node")
+    # 添加边：文件上传 -> 更新资源信息
+    workflow.add_edge("upload_files", "update_resource_info")
+
+    # 添加边：更新资源信息/文本处理 -> 更新问题
+    workflow.add_edge("update_resource_info", "gather_questions_node")
     workflow.add_edge("handle_text", "gather_questions_node")
 
     # 添加边：更新问题 -> 结束

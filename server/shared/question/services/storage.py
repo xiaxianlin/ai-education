@@ -30,7 +30,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
     """文件上传节点 - 将图片和音频上传到 OSS"""
     image_questions: List[Question] = state.get("image_questions", [])
     audio_questions: List[Question] = state.get("audio_questions", [])
-    textbook = state["texbook"]
+    textbook = state["textbook"]
 
     oss = AliyunOSS()
     tmp_dir = Path(envs.TMP_DIR)
@@ -97,6 +97,45 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
             except Exception as e:
                 logger.error(f"上传音频失败: {e}")
                 question.resource = None
+
+    return {
+        "image_questions": image_questions,
+        "audio_questions": audio_questions,
+    }
+
+
+async def update_resource_info(state: QuestionGenerationState) -> Dict[str, Any]:
+    """更新资源信息节点 - 将上传后的资源路径更新到数据库"""
+    image_questions: List[Question] = state.get("image_questions", [])
+    audio_questions: List[Question] = state.get("audio_questions", [])
+    db: AsyncSession = state["db"]
+
+    updated_count = 0
+    all_resource_questions = image_questions + audio_questions
+
+    # 统计需要更新的题目数量
+    for question in all_resource_questions:
+        if question.resource:
+            updated_count += 1
+
+    # 提交所有更改（SQLAlchemy 会自动跟踪已附加对象的字段更改）
+    if updated_count > 0:
+        try:
+            # 先刷新以确保更改被写入数据库
+            await db.flush()
+            # 提交更改
+            await db.commit()
+            # 刷新所有对象以获取最新状态
+            for question in all_resource_questions:
+                if question.id:
+                    await db.refresh(question)
+            logger.info(f"成功更新 {updated_count} 道题目的资源路径到数据库")
+        except Exception as e:
+            logger.error(f"提交资源路径更新失败: {e}")
+            await db.rollback()
+            raise
+    else:
+        logger.info("没有需要更新资源路径的题目")
 
     return {
         "image_questions": image_questions,
@@ -197,37 +236,40 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
 
         questions.append(question)
 
-        # 根据问题类型和子类型判断资源类型
-        # 需要图片的题目：辨识题、选择题中的看图类、识图题等
-        # 需要音频的题目：跟读题、听力题、选择题中的听音类、拼写题中的听音类、口语题等
-        needs_image = question_type == "辨识题" or question_subtype in [
-            "看图选词",
-            "看图选句",
-            "看图写单词",
-            "看图列式",
-            "数图形",
-            "数位看图",
-            "看图口头描述",
-        ]
-        needs_audio = question_type in ["跟读题", "听力题", "口语题"] or question_subtype in [
-            "听音选词",
-            "听音选句",
-            "听音写单词",
-            "单词精准模仿",
-            "句子情绪模仿",
-            "朗读小挑战",
-            "听问题口头回答",
-        ]
+        # 根据 QUESTION_TYPES 判断资源类型
+        # 口语题的 resource_type 为空，只有听力相关和识别相关的题目 resource_type 才有值
+        resource_type = None
+        
+        # 口语题类型的 resource_type 始终为空
+        if question_type != "口语题":
+            # 判断是否需要图片（识别相关）
+            # 1. 识图题类型的所有子类型都需要图片
+            if question_type == "识图题":
+                resource_type = "image"
+            # 2. 选择题中的"数位看图"需要图片
+            elif question_type == "选择题" and question_subtype == "数位看图":
+                resource_type = "image"
+            # 3. 选择题中的"看图选词"、"看图选句"需要图片
+            elif question_type == "选择题" and question_subtype in ["看图选词", "看图选句"]:
+                resource_type = "image"
+            # 4. 拼写题中的"看图写单词"需要图片
+            elif question_type == "拼写题" and question_subtype == "看图写单词":
+                resource_type = "image"
+            # 判断是否需要音频（听力相关）
+            # 1. 选择题中的"听音选词"、"听音选句"需要音频
+            elif question_type == "选择题" and question_subtype in ["听音选词", "听音选句"]:
+                resource_type = "audio"
+            # 2. 拼写题中的"听音写单词"需要音频
+            elif question_type == "拼写题" and question_subtype == "听音写单词":
+                resource_type = "audio"
 
-        # 设置资源类型字段
-        if needs_image:
-            question.resource_type = "image"
+        # 设置资源类型字段并分类
+        question.resource_type = resource_type
+        if resource_type == "image":
             image_questions.append(question)
-        elif needs_audio:
-            question.resource_type = "audio"
+        elif resource_type == "audio":
             audio_questions.append(question)
         else:
-            question.resource_type = None
             text_questions.append(question)
 
     if len(questions) == 0:
