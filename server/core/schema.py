@@ -25,7 +25,7 @@ class StatusSchema(BaseModel):
 class SearchSchema(BaseModel):
     page: Optional[int] = 1
     size: Optional[int] = 10
-    sort: Optional[str] = Query("create_time", description="排序字段")
+    sort: Optional[str] = Query("id", description="排序字段")
     order: Optional[str] = Query("desc", pattern="^(asc|desc)$", description="排序方式")
     keywords: Optional[str] = None
 
@@ -55,9 +55,6 @@ class TextbookSchema(BaseModel):
     file: Optional[str] = None
     index_file_id: Optional[str] = None
     is_parsed: int = 0
-    status: int = 1
-    create_time: int
-    update_time: Optional[int] = None
 
     course_units: Optional[List["UnitSchema"]] = None
 
@@ -69,9 +66,6 @@ class UnitSchema(BaseModel):
     textbook_id: int
     name: str
     content: str
-    status: int = 1
-    create_time: int
-    update_time: Optional[int] = None
     textbook: Optional["TextbookSchema"] = None
 
     model_config = {"from_attributes": True}
@@ -86,9 +80,6 @@ class KnowledgeSchema(BaseModel):
     difficulty: Optional[str] = None
     importance: Optional[int] = 5
     order: Optional[int] = 0
-    status: int = 1
-    create_time: int
-    update_time: Optional[int] = None
 
     textbook: Optional["TextbookSchema"] = None
     unit: Optional["UnitSchema"] = None

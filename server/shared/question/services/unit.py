@@ -73,15 +73,22 @@ class UnitGenerateService:
             if not unit:
                 raise ValueError(f"单元不存在: unit_id={unit_id}")
 
+            # 加载教材信息
+            textbook = unit.textbook
+
             knowledge_rows = await db.scalars(
                 select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id)
             )
             knowledges = [k.name for k in knowledge_rows.all()]
 
-            logger.info(f"✓ 单元数据加载完成: unit_id={unit_id}, unit_name={unit.name}, ")
+            logger.info(
+                f"✓ 单元数据加载完成: unit_id={unit_id}, unit_name={unit.name}, "
+                f"textbook_id={textbook.id}, subject={textbook.subject}, grade={textbook.grade}"
+            )
 
             return {
                 "unit": unit,
+                "textbook": textbook,
                 "knowledges": knowledges,
             }
         except Exception as e:

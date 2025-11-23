@@ -114,8 +114,6 @@ async def create_daily_practice(
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="daily_practice",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=15,
             textbook_id=textbook.id,

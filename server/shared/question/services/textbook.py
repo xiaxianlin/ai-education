@@ -42,9 +42,9 @@ class TextbookGenerateService:
 
         Note:
             对应 Graph 节点: check_textbook_node
+            注意：textbook_id 已在 entry_node 中校验，此处不再重复校验
         """
-        if state.get("textbook_id") is None:
-            raise ValueError("教材 ID (textbook_id) 不能为空")
+        pass
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -88,13 +88,17 @@ class TextbookGenerateService:
                 .options(noload(Knowledge.textbook), noload(Knowledge.unit))
                 .where(Knowledge.textbook_id == textbook_id)
             )
-            knowledges = [k.name for k in knowledge_rows.all()]
+            knowledges = knowledge_rows.all()  # 返回完整的知识点对象列表，而不是只返回名称
 
             logger.info(
-                f"✓ 教材数据加载完成: textbook_id={textbook_id}, textbook_name={textbook.name}, "
+                f"✓ 教材数据加载完成: textbook_id={textbook_id}, "
+                f"subject={textbook.subject}, version={textbook.version}, "
+                f"grade={textbook.grade}, semester={textbook.semester}, "
+                f"单元数={len(units)}, 知识点数={len(knowledges)}"
             )
 
             return {
+                "textbook": textbook,  # 确保返回 textbook 对象
                 "units": units,
                 "knowledges": knowledges,
             }

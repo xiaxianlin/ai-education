@@ -35,20 +35,6 @@ export const KnowledgeView: React.FC = () => {
       renderText: (unit_id) => units?.find((u) => u.id === unit_id)?.name || '',
     },
     {
-      title: '创建时间',
-      dataIndex: 'create_time',
-      hideInSearch: true,
-      width: 160,
-      renderText: (time) => fmtTime(time),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'update_time',
-      hideInSearch: true,
-      width: 160,
-      renderText: (time) => fmtTime(time),
-    },
-    {
       title: '操作',
       valueType: 'option',
       width: 120,
@@ -86,7 +72,7 @@ export const KnowledgeView: React.FC = () => {
         request={async (params) => {
           const data = await TextbookApi.getKnowledges(id);
           const filtered = data.filter((item) => {
-            const results = ['unit', 'status']
+            const results = ['unit']
               .filter((key) => Boolean(params[key]))
               .map((key) => {
                 const value = params[key];

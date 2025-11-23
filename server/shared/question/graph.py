@@ -1,5 +1,6 @@
 """问题生成流程图 - 使用LangGraph构建题目生成工作流"""
 
+import time
 from typing import Any, Dict, List
 
 from langgraph.graph import END, StateGraph
@@ -22,31 +23,23 @@ from shared.question.services.assessment import AssessmentGenerateService
 
 def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """入口节点，负责基础校验"""
-    logger.info(
-        f"进入题目生成工作流: type={state.get('generation_type')}, count={state.get('count')}"
-    )
+    logger.info(f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}")
 
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
 
-    if state.get("generation_type") is None:
-        raise ValueError("生成类型（generation_type）不能为空")
+    if state.get("type") is None:
+        raise ValueError("生成类型（type）不能为空")
 
     if state.get("count") is None:
         raise ValueError("题目数量（count）不能为空")
-
-    if state.get("subject") is None:
-        raise ValueError("学科（subject）不能为空")
-
-    if state.get("grade") is None:
-        raise ValueError("年级（grade）不能为空")
 
     return {}
 
 
 def router_node(state: QuestionGenerationState) -> str:
     """路由节点，根据生成类型分发"""
-    return state["generation_type"]
+    return state["type"]
 
 
 async def check_unit_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -149,7 +142,7 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     logger.info("开始调用大模型生成题目")
     try:
         result = await llm_service.call_llm(state)
-        logger.info("大模型生成完成，共生成 %s 道题目", len(result.get("generated_questions", [])))
+        logger.info(f"大模型生成完成，共生成 {len(result.get("generated_questions", []))} 道题目")
         return result
     except Exception as e:
         logger.error(f"大模型调用失败: {e}")
@@ -355,23 +348,35 @@ app = create_question_generation_graph()
 async def invoke_generate_workflow(
     *,
     db: AsyncSession,
-    count: int = 30,
-    generation_type: str = GenerationType.UNIT.value,
-    subject: str,
-    grade: int,
+    count: int,
+    type: str,
     unit_id: int | None = None,
     textbook_id: int | None = None,
     student_id: str | None = None,
     **kwargs,
 ) -> List[Question]:
     """执行问题生成流程"""
+    # 记录开始时间
+    start_time = time.time()
+
+    # 构建日志信息
+    log_parts = [
+        f"type={type}",
+        f"count={count}",
+    ]
+    if unit_id is not None:
+        log_parts.append(f"unit_id={unit_id}")
+    if textbook_id is not None:
+        log_parts.append(f"textbook_id={textbook_id}")
+    if student_id is not None:
+        log_parts.append(f"student_id={student_id}")
+
+    logger.info("开始生成题目 | " + " | ".join(log_parts))
 
     initial_state: QuestionGenerationState = {
         "db": db,
         "count": count,
-        "grade": grade,
-        "subject": subject,
-        "generation_type": generation_type,
+        "type": type,
     }
     update_kwargs = {
         "unit_id": unit_id,
@@ -381,5 +386,55 @@ async def invoke_generate_workflow(
     }
     initial_state.update({k: v for k, v in update_kwargs.items() if v is not None})
 
-    result = await app.ainvoke(initial_state)
-    return result.get("questions", [])
+    try:
+        result = await app.ainvoke(initial_state)
+        questions = result.get("questions", [])
+
+        # 计算生成时长
+        elapsed_time = time.time() - start_time
+
+        # 从结果中获取 textbook 信息用于日志
+        textbook = result.get("textbook")
+        if textbook:
+            logger.info(
+                "题目生成完成 | type={type} | subject={subject} | grade={grade} | "
+                "生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
+                type=type,
+                subject=textbook.subject,
+                grade=textbook.grade,
+                question_count=len(questions),
+                elapsed_time=elapsed_time,
+            )
+        else:
+            logger.info(
+                "题目生成完成 | type={type} | 生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
+                type=type,
+                question_count=len(questions),
+                elapsed_time=elapsed_time,
+            )
+
+        return questions
+    except Exception as e:
+        # 计算失败时的时长
+        elapsed_time = time.time() - start_time
+
+        # 尝试从 state 中获取 textbook 信息用于日志
+        textbook = initial_state.get("textbook")
+        if textbook:
+            logger.error(
+                "题目生成失败 | type={type} | subject={subject} | grade={grade} | "
+                "耗时={elapsed_time:.2f}秒 | 错误={error}",
+                type=type,
+                subject=textbook.subject,
+                grade=textbook.grade,
+                elapsed_time=elapsed_time,
+                error=str(e),
+            )
+        else:
+            logger.error(
+                "题目生成失败 | type={type} | 耗时={elapsed_time:.2f}秒 | 错误={error}",
+                type=type,
+                elapsed_time=elapsed_time,
+                error=str(e),
+            )
+        raise

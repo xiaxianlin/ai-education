@@ -103,7 +103,6 @@ class CreateUnitSchema(BaseModel):
 class UpdateUnitSchema(BaseModel):
     name: Optional[str] = None
     content: Optional[str] = None
-    status: Optional[int] = None
 
 
 class CreateKnowledgeSchema(BaseModel):
@@ -116,7 +115,6 @@ class CreateKnowledgeSchema(BaseModel):
 class UpdateKnowledgeSchema(BaseModel):
     name: Optional[str] = None
     content: Optional[str] = None
-    status: Optional[int] = None
 
 
 class UpdateQuestionSchema(BaseModel):
@@ -134,7 +132,6 @@ class UpdateQuestionSchema(BaseModel):
     knowledge: Optional[str] = None
     unit_id: Optional[int] = None
     textbook_id: Optional[int] = None
-    status: Optional[int] = None
 
 
 class SearchQuestionSchema(SearchSchema):

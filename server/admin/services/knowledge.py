@@ -75,10 +75,8 @@ async def update_knowledge(db: AsyncSession, id: int, update: UpdateKnowledgeSch
         knowledge.name = update.name
     if update.content is not None:
         knowledge.content = update.content
-    if update.status is not None:
-        knowledge.status = update.status
+    # status 字段已移除，不再处理
 
-    knowledge.update_time = now()
     await db.commit()
 
 

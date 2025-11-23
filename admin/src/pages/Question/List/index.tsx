@@ -126,8 +126,6 @@ export default function QuestionListPage() {
           record.resource_type,
         ),
     },
-    createTimeColumn<Question>('创建时间', 'create_time', { minWidth: 170 }),
-    createTimeColumn<Question>('更新时间', 'update_time', { minWidth: 170 }),
     {
       title: '操作',
       key: 'option',
@@ -184,7 +182,6 @@ export default function QuestionListPage() {
       ellipsis: true,
       render: (_, record) => record.resource || '-',
     },
-    createTimeColumn<Question>('更新时间', 'update_time', { minWidth: 170 }),
     {
       title: '操作',
       key: 'option',

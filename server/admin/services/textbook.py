@@ -13,7 +13,6 @@ from core.schema import TextbookSchema, QuestionSchema
 from shared.utils.time import now
 from core.settings import envs
 from shared.question.graph import invoke_generate_workflow
-from shared.question.types import GenerationType
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -76,7 +75,6 @@ async def modify_textbook(db: AsyncSession, id: int, data: SaveTextbookSchema):
     textbook.version = data.version.strip()
     textbook.grade = data.grade
     textbook.semester = data.semester.strip()
-    textbook.update_time = now()
     await db.commit()
 
 
@@ -138,15 +136,6 @@ async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
         "total": total,
         "data": [TextbookSchema.model_validate(item) for item in results.unique().all()],
     }
-
-
-async def update_textbook_status(db: AsyncSession, id: int, status: int):
-    textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
-    if not textbook:
-        raise ValueError("教材不存在")
-
-    textbook.status = status
-    await db.commit()
 
 
 async def parse_textbook(db: AsyncSession, id: int):
@@ -229,7 +218,6 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
             file.filename, tmp_file_path, textbook.index_file_id
         )
 
-        textbook.update_time = now()
         await db.commit()
     except ValueError as e:
         raise e
@@ -238,7 +226,9 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
 
 
 async def generate_textbook_questions(
-    db: AsyncSession, textbook_id: int, count: int = 30
+    db: AsyncSession,
+    textbook_id: int,
+    count: int = 30,
 ) -> List[QuestionSchema]:
     """
     根据教材ID生成题目
@@ -284,9 +274,7 @@ async def generate_textbook_questions(
         # 3. 调用题目生成工作流
         questions = await invoke_generate_workflow(
             db=db,
-            generation_type=GenerationType.TEXTBOOK.value,
-            subject=textbook.subject,
-            grade=textbook.grade,
+            type="textbook",
             count=count,
             textbook_id=textbook_id,
         )

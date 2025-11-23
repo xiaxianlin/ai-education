@@ -17,9 +17,6 @@ declare global {
     knowledge?: string;
     textbook?: Textbook;
     unit?: Unit;
-    status: number;
-    create_time: number;
-    update_time?: number;
   }
 
   interface QuestionCreateSchema {
@@ -34,7 +31,6 @@ declare global {
     knowledge_id?: number;
     unit_id?: number;
     textbook_id?: number;
-    status?: number;
   }
 
   interface QuestionUpdateForm {
@@ -52,7 +48,6 @@ declare global {
     knowledge?: string;
     unit_id?: number;
     textbook_id?: number;
-    status?: number;
   }
 
   interface QuestionSearchParams extends SearchParams {

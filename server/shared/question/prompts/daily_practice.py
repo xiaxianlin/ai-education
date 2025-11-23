@@ -337,8 +337,9 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     student_id: str = state["student_id"]
     count = state["count"]
     recall_count = state["recall_count"]
-    subject = state["subject"]
-    grade = state["grade"]
+    textbook = state["textbook"]
+    subject = textbook.subject
+    grade = textbook.grade
     recall_questions = state.get("recall_questions", [])
 
     # 构建 JSON 输出解析器

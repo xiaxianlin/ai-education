@@ -30,28 +30,25 @@ async def parse_textbook(id: int, db: AsyncSession = Database):
 
 
 @textbook_router.post("/{id}/generate")
-async def generate_question(id: int, count: int = 30, db: AsyncSession = Database):
+async def generate_question(id: int, db: AsyncSession = Database):
     """
     根据教材生成题目
-    
+
     Args:
         id: 教材ID
         count: 生成题目数量，默认30道
-        
+        generation_type: 生成类型，默认textbook
+
     Returns:
         生成的题目列表
     """
-    return await textbook.generate_textbook_questions(db, id, count)
-
-
-@textbook_router.patch("/{id}/status/{status}")
-async def update_textbook_status(id: int, status: int, db: AsyncSession = Database):
-    """更新教材状态"""
-    await textbook.update_textbook_status(db, id, status)
+    return await textbook.generate_textbook_questions(db, id, 10)
 
 
 @textbook_router.put("/{id}")
-async def modify_textbook(id: str, params: SaveTextbookSchema, db: AsyncSession = Database):
+async def modify_textbook(
+    id: str, params: SaveTextbookSchema, db: AsyncSession = Database
+):
     """修改教材信息"""
     await textbook.modify_textbook(db, id, params)
 
@@ -81,7 +78,9 @@ async def query_knowledge(id: int, db: AsyncSession = Database):
 
 
 @textbook_router.get("/{id}/questions")
-async def query_question(id: int, page: int = 1, size: int = 10, db: AsyncSession = Database):
+async def query_question(
+    id: int, page: int = 1, size: int = 10, db: AsyncSession = Database
+):
     """根据教材ID查询题目"""
     return await query_question_by_textbook(db, id, page, size)
 

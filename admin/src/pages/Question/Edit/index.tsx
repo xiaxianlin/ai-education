@@ -107,15 +107,6 @@ export default function QuestionEditPage() {
             <ProDescriptions.Item label="难度">{question.difficulty}</ProDescriptions.Item>
             <ProDescriptions.Item label="单元">{question?.unit?.name}</ProDescriptions.Item>
             <ProDescriptions.Item label="知识点">{question?.knowledge || '-'}</ProDescriptions.Item>
-            <ProDescriptions.Item label="状态">
-              <StatusTag status={question.status === 1} />
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="创建时间" valueType="dateTime">
-              {question.create_time * 1000}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="更新时间" valueType="dateTime">
-              {question?.update_time ? question.update_time * 1000 : undefined}
-            </ProDescriptions.Item>
           </ProDescriptions>
         </Card>
 

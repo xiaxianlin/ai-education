@@ -15,7 +15,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from core.database import Question
+from core.database import Question, StudentTextbook
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.daily_practice import build_daily_practice_prompt
 
@@ -79,11 +79,10 @@ class DailyPracticeGenerateService:
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
 
-        if state.get("textbook_id") is None:
-            raise ValueError("教材 ID (textbook_id) 不能为空")
-
         if state.get("recall_count") is None:
             raise ValueError("召回题目数量 (recall_count) 不能为空")
+
+        # textbook_id 是可选的，如果没有提供则从学生的激活教材获取
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
@@ -105,20 +104,32 @@ class DailyPracticeGenerateService:
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
-            textbook_id: int = state["textbook_id"]
             recall_count: int = state["recall_count"]
+
+            # 1. 从学生的激活教材获取教材信息
+            student_textbook = await db.scalar(
+                select(StudentTextbook).where(
+                    StudentTextbook.student_id == student_id, StudentTextbook.active == 1
+                )
+            )
+            if not student_textbook:
+                raise ValueError(f"学生没有激活的教材: student_id={student_id}")
+
+            textbook = student_textbook.textbook
 
             # 召回历史题目（用于避免重复）
             recalled_questions = await cls._recall_questions(
-                db, student_id, textbook_id, recall_count
+                db, student_id, textbook.id, recall_count
             )
 
             logger.info(
-                f"✓ 每日练习数据加载完成: student_id={student_id}, textbook_id={textbook_id}, "
+                f"✓ 每日练习数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
+                f"subject={textbook.subject}, grade={textbook.grade}, "
                 f"召回题目={len(recalled_questions)}道"
             )
 
             return {
+                "textbook": textbook,
                 "recall_questions": recalled_questions,
                 "recall_count": len(recalled_questions),
             }

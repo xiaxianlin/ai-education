@@ -291,8 +291,9 @@ def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     # 提取状态数据
     unit = state["unit"]
     count = state["count"]
-    subject = state["subject"]
-    grade = state["grade"]
+    textbook = state["textbook"]
+    subject = textbook.subject
+    grade = textbook.grade
     knowledges = state.get("knowledges", [])
 
     # 构建 JSON 输出解析器
@@ -300,7 +301,7 @@ def build_unit_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     format_instructions = parser.get_format_instructions()
 
     # 构建公共提示词组件
-    grade_text, question_types_text = build_common_prompt(subject, grade, [])
+    grade_text, question_types_text, _ = build_common_prompt(subject, grade, [])
 
     # 根据学科选择 prompt 模板
     template = UNIT_PROMPT_ENGLISH if subject == "英语" else UNIT_PROMPT_MATH

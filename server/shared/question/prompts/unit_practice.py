@@ -292,8 +292,9 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
     unit = state["unit"]
     count = state["count"]
     recall_count = state["recall_count"]
-    subject = state["subject"]
-    grade = state["grade"]
+    textbook = state["textbook"]
+    subject = textbook.subject
+    grade = textbook.grade
     knowledges = state.get("knowledges", [])
     recall_questions = state.get("recall_questions", [])
 

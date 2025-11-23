@@ -6,7 +6,6 @@ from loguru import logger
 from core.schema import SearchResultSchema, SearchSchema, UnitSchema, QuestionSchema
 from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
-from shared.utils.time import now
 from shared.question.graph import invoke_generate_workflow
 from shared.question.types import GenerationType
 
@@ -39,10 +38,8 @@ async def update_unit(db: AsyncSession, id: int, update: UpdateUnitSchema):
         unit.name = update.name
     if update.content is not None:
         unit.content = update.content
-    if update.status is not None:
-        unit.status = update.status
+    # status 字段已移除，不再处理
 
-    unit.update_time = now()
     await db.commit()
 
 
@@ -142,12 +139,9 @@ async def generate_unit_questions(
         # 4. 调用题目生成工作流
         questions = await invoke_generate_workflow(
             db=db,
-            generation_type=GenerationType.UNIT.value,
-            subject=textbook.subject,
-            grade=textbook.grade,
+            type=GenerationType.UNIT.value,
             count=count,
             unit_id=unit_id,
-            textbook_id=textbook.id,
         )
 
         logger.info(

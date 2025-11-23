@@ -18,7 +18,7 @@ import { createTimeColumn, createStatusColumn } from '@/hooks';
 export default function MainView() {
   const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } =
     useConfigs();
-  const { actionRef, instance, edited, visible, showForm, onCancel, updateStatus, handleSubmit } =
+  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
     useTextbookListModel();
 
   const columns = useMemo<ProColumns<Textbook>[]>(
@@ -61,9 +61,6 @@ export default function MainView() {
         hideInSearch: true,
         render: (is_parsed) => (is_parsed ? <Tag color="success">已解析</Tag> : <Tag>未解析</Tag>),
       },
-      createStatusColumn<Textbook>(),
-      createTimeColumn<Textbook>('创建时间', 'create_time'),
-      createTimeColumn<Textbook>('更新时间', 'update_time'),
       {
         title: '操作',
         valueType: 'option',
@@ -83,7 +80,7 @@ export default function MainView() {
         ),
       },
     ],
-    [showForm, updateStatus, subjectEnum, textbookVersionEmun, gradeEnum],
+    [showForm, subjectEnum, textbookVersionEmun, gradeEnum],
   );
 
   return (

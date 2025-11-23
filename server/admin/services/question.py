@@ -94,7 +94,7 @@ async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: in
 
     # 分页查询
     offset = (page - 1) * size
-    query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
+    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
 
     result = await db.scalars(query)
 
@@ -122,7 +122,7 @@ async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size
 
     # 分页查询
     offset = (page - 1) * size
-    query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
+    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
 
     result = await db.scalars(query)
 
@@ -154,7 +154,7 @@ async def query_question_by_textbook(
 
     # 分页查询
     offset = (page - 1) * size
-    query = query.order_by(Question.create_time.desc()).offset(offset).limit(size)
+    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
 
     result = await db.scalars(query)
 
@@ -207,9 +207,9 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     # 分页查询
     offset = (params.page - 1) * params.size
     query = query.order_by(
-        getattr(Question, params.sort, Question.create_time).desc()
+        getattr(Question, params.sort, Question.id).desc()
         if params.order == "desc"
-        else getattr(Question, params.sort, Question.create_time).asc()
+        else getattr(Question, params.sort, Question.id).asc()
     )
     query = query.offset(offset).limit(params.size)
 
@@ -270,7 +270,7 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
     total = await db.scalar(count_query) or 0
 
     offset = (params.page - 1) * params.size
-    order_field = getattr(Question, params.sort, Question.update_time)
+    order_field = getattr(Question, params.sort, Question.id)
     query = query.order_by(order_field.desc() if params.order == "desc" else order_field.asc())
     query = query.offset(offset).limit(params.size)
 

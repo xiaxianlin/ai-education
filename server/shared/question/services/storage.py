@@ -134,8 +134,12 @@ async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
 async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     """将内容转换成 Question 数组，并根据问题类型分流"""
     generated_questions: List[GeneratedQuestion] = state["generated_questions"]
-    textbook = state["textbook"]
-    unit = state["unit"]
+
+    # 处理单元：教材生成可能有多个单元，单元生成只有一个单元
+    unit = state.get("unit")
+
+    # 获取 textbook：优先从 state 中获取，如果没有则从 unit 或 textbook_id 加载
+    textbook = state.get("textbook")
 
     questions: List[Question] = []
     image_questions: List[Question] = []
@@ -156,10 +160,9 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
         question_type = item.question_type
         if question_type not in question_types:
             logger.warning(
-                f"生成的题型 {question_type} 不在预期列表中（科目: {textbook.subject}, 年级: {textbook.grade}），"
-                f"将使用默认题型 {question_types[0]}"
+                f"生成的题型 {question_type} 不在预期列表中（科目: {textbook.subject}, 年级: {textbook.grade}）"
             )
-            question_type = question_types[0]
+            question_type = "未知题型"
 
         # 获取子类型，如果为空字符串则设为 None
         question_subtype = getattr(item, "question_subtype", None)
@@ -188,7 +191,7 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
             answer=item.answer,
             difficulty=item.difficulty,
             textbook_id=textbook.id,
-            unit_id=unit.id,
+            unit_id=unit.id if unit else None,  # 教材生成时 unit_id 可以为 None
             knowledge=item.knowledge if item.knowledge else "",
         )
 

@@ -69,10 +69,9 @@ export const TextbookApi = {
     return res.data;
   },
 
-  generateQuestions: async (id: number, count: number = 30) => {
+  generateQuestions: async (id: number) => {
     const res = await request<ApiData<void>>(`/textbook/${id}/generate`, {
       method: 'POST',
-      params: { count },
     });
     return res.data;
   },

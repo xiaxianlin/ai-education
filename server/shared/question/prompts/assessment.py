@@ -284,8 +284,9 @@ def build_assessment_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     # 提取状态数据
     count = state["count"]
     recall_count = state["recall_count"]
-    subject = state["subject"]
-    grade = state["grade"]
+    textbook = state["textbook"]
+    subject = textbook.subject
+    grade = textbook.grade
     knowledges = state.get("knowledges", [])
     recall_questions = state.get("recall_questions", [])
 

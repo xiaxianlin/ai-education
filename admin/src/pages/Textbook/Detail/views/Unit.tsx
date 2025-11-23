@@ -26,18 +26,6 @@ export const UnitView: React.FC = () => {
     { title: '单元名称', dataIndex: 'name' },
     { title: '单元内容', dataIndex: 'content', ellipsis: true },
     {
-      title: '创建时间',
-      dataIndex: 'create_time',
-      width: 160,
-      renderText: (time) => fmtTime(time),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'update_time',
-      width: 160,
-      renderText: (time) => fmtTime(time),
-    },
-    {
       title: '操作',
       valueType: 'option',
       width: 120,

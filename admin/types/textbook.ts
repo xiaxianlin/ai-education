@@ -8,9 +8,6 @@ declare global {
     file?: string;
     index_file_id?: string;
     is_parsed?: number;
-    status: number;
-    create_time: number;
-    update_time?: number;
   }
 
   interface TextbookSearchParams extends SearchParams {
@@ -31,9 +28,6 @@ declare global {
     textbook_id: number;
     name: string;
     content: string;
-    status: number;
-    create_time: number;
-    update_time?: number;
   }
 
   interface UnitSearchParams extends SearchParams {
@@ -49,7 +43,6 @@ declare global {
   interface UnitUpdateForm {
     name?: string;
     content?: string;
-    status?: number;
   }
 
   interface Knowledge {
@@ -61,9 +54,6 @@ declare global {
     difficulty?: string;
     importance?: number;
     order?: number;
-    status: number;
-    create_time: number;
-    update_time?: number;
   }
 
   interface KnowledgeSearchParams extends SearchParams {
@@ -86,7 +76,6 @@ declare global {
     difficulty?: string;
     importance?: number;
     order?: number;
-    status?: number;
   }
 
   interface TextbookContentForm {

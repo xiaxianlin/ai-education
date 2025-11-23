@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload
 from loguru import logger
 
-from core.database import Knowledge, Textbook, Question
+from core.database import Knowledge, Question, StudentTextbook
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.assessment import build_assessment_prompt
 
@@ -75,8 +75,8 @@ class AssessmentGenerateService:
         Note:
             对应 Graph 节点: check_assessment_node
         """
-        if state.get("textbook_id") is None:
-            raise ValueError("教材 ID (textbook_id) 不能为空")
+        if state.get("student_id") is None:
+            raise ValueError("学生 ID (student_id) 不能为空")
 
         if state.get("recall_count") is None:
             raise ValueError("召回题目数量 (recall_count) 不能为空")
@@ -104,12 +104,20 @@ class AssessmentGenerateService:
         """
         try:
             db: AsyncSession = state["db"]
-            textbook_id: int = state["textbook_id"]
+            student_id: str = state["student_id"]
             recall_count: int = state["recall_count"]
-            # 1. 加载教材信息
-            textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
-            if not textbook:
-                raise ValueError(f"教材不存在: textbook_id={textbook_id}")
+
+            # 1. 从学生的激活教材获取教材信息
+            student_textbook = await db.scalar(
+                select(StudentTextbook).where(
+                    StudentTextbook.student_id == student_id, StudentTextbook.active == 1
+                )
+            )
+            if not student_textbook:
+                raise ValueError(f"学生没有激活的教材: student_id={student_id}")
+
+            textbook = student_textbook.textbook
+            textbook_id = student_textbook.textbook_id
 
             # 2. 加载所有知识点（跨单元，用于能力维度评估）
             knowledge_rows = await db.scalars(
@@ -123,7 +131,9 @@ class AssessmentGenerateService:
             recalled_questions = await cls._recall_questions(db, textbook_id, recall_count)
 
             logger.info(
-                f"✓ 能力评估数据加载完成: textbook_id={textbook_id}, textbook_name={textbook.name}, "
+                f"✓ 能力评估数据加载完成: student_id={student_id}, textbook_id={textbook_id}, "
+                f"subject={textbook.subject}, version={textbook.version}, "
+                f"grade={textbook.grade}, semester={textbook.semester}, "
                 f"知识点={len(knowledges)}个, 召回题目={len(recalled_questions)}道"
             )
 

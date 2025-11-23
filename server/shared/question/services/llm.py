@@ -15,7 +15,7 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     prompt = state["prompt"]
     prompt_input = state["prompt_input"]
     parser = state["parser"]
-
+    logger.info(f"✓ LLM 调用开始: prompt={prompt}, input={prompt_input}")
     llm = ChatOpenAI(
         model_name="qwen3-max",
         temperature=0.7,
@@ -26,6 +26,7 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
 
     try:
         result = chain.invoke(prompt_input)
+        logger.info(f"✓ LLM 调用成功: result={result}")
     except Exception as e:
         logger.error(f"LLM 调用失败: {e}")
         raise ValueError(f"大模型调用失败: {str(e)}")

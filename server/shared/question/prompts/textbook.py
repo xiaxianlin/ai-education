@@ -245,8 +245,9 @@ def build_textbook_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """
     # 提取状态数据
     count = state["count"]
-    grade = state["grade"]
-    subject = state["subject"]
+    textbook = state["textbook"]
+    subject = textbook.subject
+    grade = textbook.grade
     units = state.get("units", [])
     knowledges = state.get("knowledges", [])
 
@@ -255,13 +256,14 @@ def build_textbook_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     format_instructions = parser.get_format_instructions()
 
     # 构建公共提示词组件
-    grade_text, question_types_text = build_common_prompt(subject, grade, [])
+    grade_text, question_types_text, _ = build_common_prompt(subject, grade, [])
 
     distribution = build_difficulty_distribution(count)
 
     prompt_lines = []
     for unit in units:
-        unit_knowledges = [item for item in knowledges if item.unit_id == unit.id]
+        # 筛选属于当前单元的知识点，并提取名称
+        unit_knowledges = [item.name for item in knowledges if item.unit_id == unit.id]
         unit_knowledge_text = build_knowledges_prompt(unit_knowledges)
         prompt_lines.append(f"## {unit.name} \n {unit.content} \n {unit_knowledge_text}")
 

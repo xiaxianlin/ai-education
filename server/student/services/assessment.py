@@ -54,8 +54,6 @@ async def create_assessment(
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="assessment",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=0,  # 能力评估不需要复习题
             textbook_id=textbook.id,

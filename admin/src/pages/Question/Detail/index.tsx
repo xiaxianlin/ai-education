@@ -179,9 +179,6 @@ export default function QuestionDetailPage() {
         >
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
-            <ProDescriptions.Item label="状态">
-              <StatusTag status={question.status === 1} />
-            </ProDescriptions.Item>
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
             <ProDescriptions.Item label="阶段">{gradeInfo?.stage || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo?.grade || '-'}</ProDescriptions.Item>
@@ -221,14 +218,6 @@ export default function QuestionDetailPage() {
             {question.knowledge && (
               <ProDescriptions.Item label="所属知识点" span={2}>
                 {String(question.knowledge)}
-              </ProDescriptions.Item>
-            )}
-            <ProDescriptions.Item label="创建时间" valueType="dateTime">
-              {question.create_time * 1000}
-            </ProDescriptions.Item>
-            {question.update_time && (
-              <ProDescriptions.Item label="更新时间" valueType="dateTime">
-                {question.update_time * 1000}
               </ProDescriptions.Item>
             )}
           </ProDescriptions>

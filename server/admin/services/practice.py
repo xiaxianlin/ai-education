@@ -114,8 +114,6 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> PracticeSt
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="daily_practice",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=15,
             textbook_id=textbook.id,
@@ -179,8 +177,6 @@ async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> Practi
             db=db,
             session_id=session.id,
             type="daily_practice",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=15,
             textbook_id=textbook.id,
@@ -252,8 +248,6 @@ async def create_unit_practice(
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="unit_practice",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=15,
             unit_id=unit_id,
@@ -328,8 +322,6 @@ async def regenerate_unit_practice(
             db=db,
             session_id=session.id,
             type="unit_practice",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=15,
             unit_id=unit_id,
@@ -401,11 +393,8 @@ async def create_assessment(db: AsyncSession, student_id: str) -> PracticeStatsS
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="assessment",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=0,  # 能力评估不需要复习题
-            textbook_id=textbook.id,
             student_id=student_id,
         )
 
@@ -467,8 +456,6 @@ async def regenerate_assessment(db: AsyncSession, student_id: str) -> PracticeSt
             db=db,
             session_id=session.id,
             type="assessment",
-            subject=textbook.subject,
-            grade=textbook.grade,
             count=30,
             recall_count=0,
             textbook_id=textbook.id,

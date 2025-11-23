@@ -265,15 +265,6 @@ POST /api/admin/textbook/{id}/generate?count=30
 
 **功能说明**: 基于教材内容使用AI生成题目。
 
-#### 更新教材状态
-
-```
-PATCH /api/admin/textbook/{id}/status/{status}
-```
-
-**路径参数**:
-- `status`: 状态（0-禁用，1-启用）
-
 #### 修改教材信息
 
 ```

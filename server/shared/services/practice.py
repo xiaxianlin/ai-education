@@ -3,7 +3,7 @@ from loguru import logger
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeAnswer, PracticeSession
+from core.database import PracticeAnswer, PracticeSession, StudentTextbook
 from shared.utils.time import now, today
 from shared.question.graph import invoke_generate_workflow
 
@@ -37,24 +37,32 @@ class PracticeService:
         *,
         db: AsyncSession,
         type: str,
-        subject: str,
-        grade: int,
         count: int = 30,
         recall_count: int = 15,
         unit_id: int | None = None,
         textbook_id: int | None = None,
         student_id: str | None = None,
     ):
+        # 对于能力评估，如果没有传入 textbook_id，从学生的激活教材获取
+        # 注意：这个 textbook_id 仅用于创建 PracticeSession，不传递给 invoke_generate_workflow
+        session_textbook_id = textbook_id
+        if type == "assessment" and session_textbook_id is None and student_id:
+            student_textbook = await db.scalar(
+                select(StudentTextbook)
+                .where(StudentTextbook.student_id == student_id, StudentTextbook.active == 1)
+            )
+            if student_textbook:
+                session_textbook_id = student_textbook.textbook_id
+        
         # 1. 调用 invoke_generate_workflow 生成题目
+        # 能力评估不传 textbook_id，由工作流内部通过 student_id 获取
         questions = await invoke_generate_workflow(
             db=db,
-            generation_type=type,
-            subject=subject,
-            grade=grade,
+            type=type,
             count=count,
             recall_count=recall_count,
             unit_id=unit_id,
-            textbook_id=textbook_id,
+            textbook_id=textbook_id if type != "assessment" else None,
             student_id=student_id,
         )
 
@@ -66,7 +74,7 @@ class PracticeService:
                 student_id=student_id,
                 session_type=type,
                 target_id=today(),
-                textbook_id=textbook_id,
+                textbook_id=session_textbook_id,
                 question_count=len(question_ids),
                 status=0,
             )
@@ -89,8 +97,6 @@ class PracticeService:
         session_id: int,
         db: AsyncSession,
         type: str,
-        subject: str,
-        grade: int,
         count: int = 30,
         recall_count: int = 15,
         unit_id: int | None = None,
@@ -104,9 +110,7 @@ class PracticeService:
 
         questions = await invoke_generate_workflow(
             db=db,
-            generation_type=type,
-            subject=subject,
-            grade=grade,
+            type=type,
             count=count,
             recall_count=recall_count,
             unit_id=unit_id,

@@ -6,7 +6,7 @@ from typing import Any, List, NotRequired, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Question, Unit, Knowledge
+from core.database import Question, Unit, Knowledge, Textbook
 
 
 class QuestionOption(BaseModel):
@@ -55,10 +55,8 @@ class QuestionGenerationState(TypedDict, total=False):
     type: GenerationType
     # 需要生成的题目数量
     count: int
-    # 年级
-    grade: int
-    # 学科，如：math、english 等
-    subject: str
+    # 教材对象（必需，所有生成类型都需要）
+    textbook: NotRequired[Textbook]
     # 召回的题目数量
     recall_count: NotRequired[int]
     # 单元 ID，单元生成和单元练习需要

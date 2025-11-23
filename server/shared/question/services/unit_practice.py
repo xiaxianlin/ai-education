@@ -111,22 +111,27 @@ class UnitPracticeGenerateService:
             if not unit:
                 raise ValueError(f"单元不存在: unit_id={unit_id}")
 
-            # 2. 加载知识点列表
+            # 2. 加载教材信息
+            textbook = unit.textbook
+
+            # 3. 加载知识点列表
             knowledge_rows = await db.scalars(
                 select(Knowledge).where(Knowledge.unit_id == unit_id).order_by(Knowledge.id)
             )
             knowledges = [k.name for k in knowledge_rows.all()]
 
-            # 3. 召回历史题目（用于避免重复）
+            # 4. 召回历史题目（用于避免重复）
             recalled_questions = await cls._recall_questions(db, unit_id, recall_count)
 
             logger.info(
                 f"✓ 单元练习数据加载完成: unit_id={unit_id}, unit_name={unit.name}, "
+                f"textbook_id={textbook.id}, subject={textbook.subject}, grade={textbook.grade}, "
                 f"知识点={len(knowledges)}个, 召回题目={len(recalled_questions)}道"
             )
 
             return {
                 "unit": unit,
+                "textbook": textbook,
                 "knowledges": knowledges,
                 "recall_questions": recalled_questions,
                 "recall_count": len(recalled_questions),
