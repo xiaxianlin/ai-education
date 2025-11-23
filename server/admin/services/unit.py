@@ -1,11 +1,14 @@
 from sqlalchemy import delete, or_, select, func
-from sqlalchemy.orm import noload
+from sqlalchemy.orm import noload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
-from core.schema import SearchResultSchema, SearchSchema, UnitSchema
+from loguru import logger
+from core.schema import SearchResultSchema, SearchSchema, UnitSchema, QuestionSchema
 from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from shared.utils.time import now
+from shared.question.graph import invoke_generate_workflow
+from shared.question.types import GenerationType
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
@@ -92,3 +95,69 @@ async def query_unit_by_textbook(db: AsyncSession, textbook_id: int) -> List[Uni
         select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
     )
     return units_result.all()
+
+
+async def generate_unit_questions(
+    db: AsyncSession, unit_id: int, count: int = 30
+) -> List[QuestionSchema]:
+    """
+    根据单元ID生成题目
+
+    Args:
+        db: 数据库会话
+        unit_id: 单元ID
+        count: 生成题目数量，默认30道
+
+    Returns:
+        生成的题目列表
+
+    Raises:
+        ValueError: 单元不存在或没有知识点
+    """
+    # 1. 查询单元信息（联合查询教材）
+    unit = await db.scalar(
+        select(Unit).options(joinedload(Unit.textbook)).where(Unit.id == unit_id)
+    )
+    if not unit:
+        raise ValueError("单元不存在")
+
+    # 2. 获取教材信息
+    textbook = unit.textbook
+    if not textbook:
+        raise ValueError("单元关联的教材不存在")
+
+    # 3. 检查是否有知识点
+    knowledge_count = await db.scalar(
+        select(func.count()).select_from(Knowledge).where(Knowledge.unit_id == unit_id)
+    )
+    if not knowledge_count or knowledge_count == 0:
+        raise ValueError("单元没有知识点信息，请先添加知识点")
+
+    logger.info(
+        f"[Admin] 开始为单元生成题目: unit_id={unit_id}, unit_name={unit.name}, "
+        f"subject={textbook.subject}, grade={textbook.grade}, count={count}"
+    )
+
+    try:
+        # 4. 调用题目生成工作流
+        questions = await invoke_generate_workflow(
+            db=db,
+            generation_type=GenerationType.UNIT.value,
+            subject=textbook.subject,
+            grade=textbook.grade,
+            count=count,
+            unit_id=unit_id,
+            textbook_id=textbook.id,
+        )
+
+        logger.info(
+            f"[Admin] 单元题目生成成功: unit_id={unit_id}, "
+            f"generated_count={len(questions)}"
+        )
+
+        # 5. 返回题目列表
+        return [QuestionSchema.model_validate(q) for q in questions]
+
+    except Exception as e:
+        logger.error(f"[Admin] 单元题目生成失败: unit_id={unit_id}, error={e}")
+        raise ValueError(f"题目生成失败: {str(e)}")

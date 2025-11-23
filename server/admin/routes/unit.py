@@ -16,11 +16,19 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
     return await unit.create_unit(db, params)
 
 
-@unit_router.post("/{id}/generate/{count}")
-async def generate_question(id: int, db: AsyncSession = Database):
-    """生成课程单元相关题目"""
-    # await generate_question_by_unit(db, id, count)
-    pass
+@unit_router.post("/{id}/generate")
+async def generate_question(id: int, count: int = 30, db: AsyncSession = Database):
+    """
+    生成课程单元相关题目
+    
+    Args:
+        id: 单元ID
+        count: 生成题目数量，默认30道
+        
+    Returns:
+        生成的题目列表
+    """
+    return await unit.generate_unit_questions(db, id, count)
 
 
 @unit_router.patch("/{id}")

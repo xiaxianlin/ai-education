@@ -30,10 +30,18 @@ async def parse_textbook(id: int, db: AsyncSession = Database):
 
 
 @textbook_router.post("/{id}/generate")
-async def generate_question(id: int, db: AsyncSession = Database):
-    """根据教材生成题目"""
-    # await generate_question_by_unit(db, id, count)
-    pass
+async def generate_question(id: int, count: int = 30, db: AsyncSession = Database):
+    """
+    根据教材生成题目
+    
+    Args:
+        id: 教材ID
+        count: 生成题目数量，默认30道
+        
+    Returns:
+        生成的题目列表
+    """
+    return await textbook.generate_textbook_questions(db, id, count)
 
 
 @textbook_router.patch("/{id}/status/{status}")
