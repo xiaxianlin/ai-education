@@ -4,24 +4,47 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 
-async def http_exception_handler(_: Request, exc: HTTPException):
+async def http_exception_handler(request: Request, exc: HTTPException):
+    # 记录HTTP异常
+    logger.warning(
+        f"HTTP exception: {exc.status_code} - {exc.detail}\n"
+        f"Path: {request.url.path}\n"
+        f"Method: {request.method}"
+    )
+    
     return JSONResponse(
-        status_code=200,
+        status_code=exc.status_code,  # 使用正确的HTTP状态码
         content={"status": exc.status_code, "message": exc.detail},
     )
 
 
-async def value_error_handler(_: Request, exc: ValueError):
+async def value_error_handler(request: Request, exc: ValueError):
+    # 记录业务异常
+    logger.warning(
+        f"Value error: {str(exc)}\n"
+        f"Path: {request.url.path}\n"
+        f"Method: {request.method}"
+    )
+    
     return JSONResponse(
-        status_code=200,
+        status_code=400,  # 使用正确的HTTP状态码
         content={"status": 400, "message": str(exc)},
     )
 
 
-async def global_exception_handler(_: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception):
+    # 记录详细的异常信息
+    logger.error(
+        f"Unhandled exception: {type(exc).__name__}: {str(exc)}\n"
+        f"Path: {request.url.path}\n"
+        f"Method: {request.method}\n"
+        f"Client: {request.client.host if request.client else 'unknown'}",
+        exc_info=exc
+    )
+    
     return JSONResponse(
-        status_code=200,
-        content={"status": 500, "message": "服务器异常"},
+        status_code=500,  # 使用正确的HTTP状态码
+        content={"status": 500, "message": "服务器内部错误，请稍后重试"},
     )
 
 

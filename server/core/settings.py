@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # AI 配置
     AI_PLATFORM: str
     AI_PLATFORM_KEY: str
+    AI_PLATFORM_URL: str
     # 对象存储平台
     ALIYUN_OSS_ENDPOINT: str
     ALIYUN_OSS_BUCKET: str
@@ -27,9 +28,14 @@ class Settings(BaseSettings):
     ALIYUN_RAG_CATEGORY_ID: str
     # 数据库配置
     DATABASE_URL: str
+    DATABASE_POOL_SIZE: int = 20
+    DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_POOL_TIMEOUT: int = 30
     # 管理系统配置
     ADMIN_USERNAME: str
     ADMIN_PASSWORD: str
+    # CORS配置
+    CORS_ORIGINS: str = "*"  # 多个域名用逗号分隔
 
     class Config:
         env_file = ".env"

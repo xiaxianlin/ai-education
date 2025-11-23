@@ -37,9 +37,13 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# 配置CORS - 从环境变量读取允许的域名
+cors_origins = envs.CORS_ORIGINS.split(",") if envs.CORS_ORIGINS != "*" else ["*"]
+logger.info(f"CORS允许的域名: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -14,7 +14,11 @@ from shared.utils.time import now
 async_engine = create_async_engine(
     envs.DATABASE_URL,
     echo=False,
-    pool_pre_ping=True,
+    pool_pre_ping=True,  # 连接池预检查，确保连接有效
+    pool_size=envs.DATABASE_POOL_SIZE,  # 连接池大小
+    max_overflow=envs.DATABASE_MAX_OVERFLOW,  # 最大溢出连接数
+    pool_timeout=envs.DATABASE_POOL_TIMEOUT,  # 连接超时时间
+    pool_recycle=3600,  # 连接回收时间（1小时），避免MySQL的wait_timeout问题
 )
 
 AsyncSessionLocal = sessionmaker(
@@ -54,9 +58,9 @@ class Manager(BaseModel):
     __tablename__ = "ah_manager"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String(255), nullable=False)
+    username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
-    token: Mapped[str] = mapped_column(String(255))
+    token: Mapped[str] = mapped_column(String(255), index=True)
     type: Mapped[int] = mapped_column(default=0)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
@@ -176,11 +180,11 @@ class Question(BaseModel):
 class Student(BaseModel):
     __tablename__ = "ah_student"
 
-    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255), default="")
-    token: Mapped[str] = mapped_column(String(255))
+    token: Mapped[str] = mapped_column(String(255), index=True)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column()
@@ -188,12 +192,16 @@ class Student(BaseModel):
 
 class StudentTextbook(BaseModel):
     __tablename__ = "ah_student_textbook"
+    __table_args__ = (
+        # 添加联合唯一索引，防止重复绑定
+        {"mysql_charset": "utf8mb4"},
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    textbook_id: Mapped[int] = mapped_column(nullable=False)
+    student_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    textbook_id: Mapped[int] = mapped_column(nullable=False, index=True)
     active: Mapped[int] = mapped_column(
-        default=0, comment="是否为当前使用教材，1-是，0-否"
+        default=0, comment="是否为当前使用教材，1-是，0-否", index=True
     )
 
     textbook: Mapped["Textbook"] = relationship(
@@ -211,21 +219,22 @@ class PracticeSession(BaseModel):
         primary_key=True, autoincrement=True, comment="会话ID"
     )
     student_id: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="学生ID"
+        String(255), nullable=False, index=True, comment="学生ID"
     )
     session_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
+        index=True,
         comment="会话类型:daily_practice/unit_practice/assessment",
     )  #
 
-    target_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID或者时间戳")
-    textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")
+    target_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID或者时间戳")
+    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
     answer_count: Mapped[int] = mapped_column(default=0, comment="回到数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(default=0, comment="会话状态")
+    status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
@@ -238,8 +247,8 @@ class PracticeAnswer(BaseModel):
     __tablename__ = "ah_practice_answer"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[int] = mapped_column(nullable=False, comment="会话ID")
-    question_id: Mapped[int] = mapped_column(nullable=False, comment="题目ID")
+    session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="会话ID")
+    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
     question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
 
     # 答题信息
@@ -258,15 +267,15 @@ class PracticeWrongRecord(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="学生ID"
+        String(255), nullable=False, index=True, comment="学生ID"
     )
-    question_id: Mapped[int] = mapped_column(nullable=False, comment="题目ID")
-    session_id: Mapped[int] = mapped_column(nullable=False, comment="练习会话ID")
+    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
+    session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="练习会话ID")
 
     # 题目相关信息（冗余存储，避免关联查询）
-    unit_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID")
+    unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
     knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")
-    textbook_id: Mapped[int] = mapped_column(nullable=True, comment="教材ID")
+    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
 
     # 答题信息
     user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")

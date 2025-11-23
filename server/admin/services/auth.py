@@ -50,7 +50,7 @@ async def admin_login(db: AsyncSession, params: LoginSchema):
     if not manager:
         raise ValueError("用户名或密码错误")
 
-    if manager.password != encrypt.hash(params.password):
+    if not encrypt.verify_password(params.password, manager.password):
         raise ValueError("用户名或密码错误")
 
     if manager.status == 0:

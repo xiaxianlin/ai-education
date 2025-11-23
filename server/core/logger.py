@@ -26,35 +26,31 @@ for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     log.handlers = [intercept_handler]
     log.propagate = False
 
-# 添加控制台输出
-# logger.add(
-#     sys.stdout,
-#     format="<level>{level: <8}</level> | <green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-#     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-#     level="INFO",
-# )
+# 添加文件输出 - 普通日志
+logger.add(
+    f"{envs.LOG_DIR}/app.log",
+    rotation="500 MB",  # 单个文件最大500MB
+    retention="10 days",  # 保留10天
+    compression="zip",  # 压缩旧日志
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
+    level="INFO",
+    encoding="utf-8",
+    enqueue=True,  # 异步写入，提高性能
+)
 
-# # 添加文件输出
-# logger.add(
-#     f"{envs.LOG_DIR}/app.log",
-#     rotation="500 MB",
-#     retention="10 days",
-#     compression="zip",
-#     format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
-#     level="INFO",
-#     encoding="utf-8",
-# )
-
-# # 错误日志单独存储
-# logger.add(
-#     f"{envs.LOG_DIR}/error.log",
-#     rotation="100 MB",
-#     retention="30 days",
-#     compression="zip",
-#     format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
-#     level="ERROR",
-#     encoding="utf-8",
-# )
+# 错误日志单独存储
+logger.add(
+    f"{envs.LOG_DIR}/error.log",
+    rotation="100 MB",  # 单个文件最大100MB
+    retention="30 days",  # 错误日志保留30天
+    compression="zip",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
+    level="ERROR",
+    encoding="utf-8",
+    enqueue=True,
+    backtrace=True,  # 记录完整的堆栈跟踪
+    diagnose=True,  # 添加诊断信息
+)
 
 from sqlalchemy.sql import Select
 from sqlalchemy.orm import Query

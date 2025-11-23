@@ -68,7 +68,7 @@ class PromptService:
                 model_name="qwen3-max",
                 temperature=0.3,  # 使用较低的温度以获得更稳定的输出
                 openai_api_key=envs.AI_PLATFORM_KEY,
-                openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+                openai_api_base=envs.AI_PLATFORM_URL,
             )
             
             # 构建调用链

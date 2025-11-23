@@ -387,5 +387,5 @@ class AliyunLLM:
         self.llm = ChatOpenAI(
             model_name="qwen3-max",
             openai_api_key=envs.AI_PLATFORM_KEY,
-            openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            openai_api_base=envs.AI_PLATFORM_URL,
         )

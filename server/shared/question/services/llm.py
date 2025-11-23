@@ -20,7 +20,7 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
         model_name="qwen3-max",
         temperature=0.7,
         openai_api_key=envs.AI_PLATFORM_KEY,
-        openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        openai_api_base=envs.AI_PLATFORM_URL,
     )
     chain = prompt | llm | parser
 

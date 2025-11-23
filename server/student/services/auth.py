@@ -46,7 +46,7 @@ async def student_login(db: AsyncSession, phone: str, password: str):
         raise ValueError("手机号或密码错误")
 
     # 校验密码
-    if student.password != encrypt.hash(password):
+    if not encrypt.verify_password(password, student.password):
         raise ValueError("手机号或密码错误")
 
     if student.status == 0:
