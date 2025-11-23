@@ -15,7 +15,11 @@ type UnitPracticeCardProps = {
 export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
   const { unitPractices, loading, refresh } = useUnitPractice(id);
 
-  const handleRegenerate = async (sessionId: number) => {
+  const handleRegenerate = async (session: UnitPracticeSession) => {
+    if (!session.unit_id) {
+      message.error('单元ID不存在');
+      return;
+    }
     Modal.confirm({
       title: '确认重新生成',
       icon: <ExclamationCircleOutlined />,
@@ -24,7 +28,7 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
       cancelText: '取消',
       onOk: async () => {
         try {
-          await StudentApi.regenerateUnitPractice(id, sessionId);
+          await StudentApi.regenerateUnitPractice(id, session.unit_id!);
           message.success('重新生成成功');
           refresh();
         } catch (error) {
@@ -90,11 +94,15 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
         title: '状态',
         dataIndex: 'status',
         width: 100,
-        render: (status: string) => (
-          <Tag color={status === 'completed' ? 'success' : 'warning'}>
-            {status === 'completed' ? '已完成' : '进行中'}
-          </Tag>
-        ),
+        render: (status: string | number) => {
+          const statusNum = typeof status === 'number' ? status : status === 'completed' ? 2 : status === 'in_progress' ? 1 : 0;
+          const isCompleted = statusNum === 2;
+          return (
+            <Tag color={isCompleted ? 'success' : statusNum === 1 ? 'warning' : 'default'}>
+              {isCompleted ? '已完成' : statusNum === 1 ? '进行中' : '未开始'}
+            </Tag>
+          );
+        },
       },
       {
         title: '创建时间',
@@ -109,17 +117,17 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
         fixed: 'right',
         render: (_, record) => (
           <Space>
-            <Link to={`/student/${id}/practice/unit/${record.id}`}>
+            <Link to={`/student/${id}/practice/unit/${record.session_id}`}>
               <Button type="link" size="small">
                 查看详情
               </Button>
             </Link>
-            {record.status === 'in_progress' && (
+            {(record.status === 'in_progress' || record.status === 1) && (
               <Button
                 type="link"
                 size="small"
                 danger
-                onClick={() => handleRegenerate(record.id)}
+                onClick={() => handleRegenerate(record)}
               >
                 重新生成
               </Button>

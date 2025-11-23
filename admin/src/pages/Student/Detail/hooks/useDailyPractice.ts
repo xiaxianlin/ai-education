@@ -1,122 +1,100 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRequest } from 'ahooks';
 import { message } from 'antd';
 
 import { StudentApi } from '@/services/student';
-
-type DailyPracticeResponse = {
-  session: DailyPracticeSession | null;
-  task_id: number | null;
-  status: string;
-  progress: number;
-  error_message?: string;
-} | null;
+import type { PracticeSession } from '@/services/practice';
 
 const PRACTICE_HISTORY_PATH = (id: string) => `/student/${id}/practice-history`;
 
-export function useDailyPractice(id?: string, refreshStats?: () => void) {
-  const [todayPractice, setTodayPractice] = useState<DailyPracticeResponse>(null);
-  const [generatingPractice, setGeneratingPractice] = useState(false);
+// 将数字状态转换为字符串状态（用于兼容）
+function getStatusString(status: number): 'pending' | 'in_progress' | 'completed' | 'failed' {
+  switch (status) {
+    case 0:
+      return 'pending';
+    case 1:
+      return 'in_progress';
+    case 2:
+      return 'completed';
+    default:
+      return 'failed';
+  }
+}
 
+// 将 PracticeSession 转换为 DailyPracticeSession（兼容旧代码）
+function convertToDailyPracticeSession(session: PracticeSession | null): DailyPracticeSession | null {
+  if (!session) return null;
+  return {
+    ...session,
+    session_type: 'daily_practice',
+    date: session.target_id || 0,
+    score: 0,
+    total_questions: session.question_count,
+    correct_questions: session.correct_count,
+    status: getStatusString(session.status),
+  } as DailyPracticeSession;
+}
+
+export function useDailyPractice(id?: string, refreshStats?: () => void) {
   const {
     data: todayPracticeData,
     loading: loadingTodayPractice,
     refresh: refreshTodayPractice,
-    run: runGenerateDailyPractice,
-  } = useRequest(() => StudentApi.generateDailyPractice(id!), {
+  } = useRequest(() => StudentApi.getDailyPractice(id!), {
     ready: !!id,
-    manual: false, // 自动执行
     onSuccess: (data) => {
-      setTodayPractice(data);
-      if (data.session && data.session.status === 'completed') {
+      if (data && data.status === 2) {
+        // 已完成
         refreshStats?.();
       }
     },
-    onError: (error) => {
-      console.error('生成今日练习失败:', error);
-      // 即使失败也设置状态，避免显示空状态
-      setTodayPractice({
-        session: null,
-        task_id: null,
-        status: 'failed',
-        progress: 0,
-        error_message: error?.message || '生成失败',
-      });
+    onError: () => {
+      // 如果获取失败，可能是当天没有练习，不显示错误
     },
   });
 
-  useEffect(() => {
-    if (!todayPracticeData) return;
-    setTodayPractice(todayPracticeData);
-  }, [todayPracticeData]);
-
-  const handleGenerateDailyPractice = async () => {
-    if (!id) return;
-    try {
-      setGeneratingPractice(true);
-      // 直接调用 API，然后刷新数据
-      const data = await StudentApi.generateDailyPractice(id);
-      setTodayPractice(data);
-      // 如果成功生成，显示成功消息
-      if (data?.session) {
-        message.success('今日练习已生成');
-        if (data.session.status === 'completed') {
-          refreshStats?.();
-        }
-      }
-      // 刷新 useRequest 的数据
+  const { runAsync: handleGenerateDailyPractice, loading: generatingPractice } = useRequest(
+    async () => {
+      if (!id) return;
+      const data = await StudentApi.createDailyPractice(id);
+      message.success('今日练习已生成');
       refreshTodayPractice();
-    } catch (error) {
-      message.error('生成失败');
-    } finally {
-      setGeneratingPractice(false);
-    }
-  };
-
-  // 注意：根据重构后的后端逻辑，生成是同步的，总是立即返回 session
-  // 所以不再需要轮询任务进度
-  // 保留此逻辑仅用于兼容性，实际上不会触发（因为状态不会是 pending 或 running）
-  useEffect(() => {
-    if (!id || !todayPractice?.status) {
-      return;
-    }
-
-    const isGenerating = ['pending', 'running'].includes(todayPractice.status);
-    const isFailed = todayPractice.status === 'failed';
-    if (!isGenerating && !isFailed) {
-      return;
-    }
-    
-    // 如果已经失败，停止轮询
-    if (isFailed) {
-      return;
-    }
-
-    const pollInterval = setInterval(async () => {
-      try {
-        const data = await StudentApi.generateDailyPractice(id);
-        setTodayPractice(data);
-        if (data.session || !['pending', 'running'].includes(data.status)) {
-          clearInterval(pollInterval);
-          if (data.session) {
-            message.success('今日练习生成完成！');
-            refreshStats?.();
-          } else if (data.status === 'failed') {
-            message.error('今日练习生成失败，请重试');
-          }
-        }
-      } catch (error) {
-        console.error('查询任务进度失败:', error);
+      if (data.status === 2) {
+        refreshStats?.();
       }
-    }, 3000);
-
-    return () => clearInterval(pollInterval);
-  }, [id, todayPractice?.status, refreshStats]);
+      return data;
+    },
+    {
+      manual: true,
+      onError: () => {
+        message.error('生成失败');
+      },
+    },
+  );
 
   const practiceHistoryLink = useMemo(
     () => (id ? PRACTICE_HISTORY_PATH(id) : '#'),
     [id],
   );
+
+  // 转换为兼容格式
+  const todayPractice = useMemo(() => {
+    if (!todayPracticeData) {
+      return {
+        session: null,
+        task_id: null,
+        status: 'failed',
+        progress: 0,
+      };
+    }
+    const session = convertToDailyPracticeSession(todayPracticeData);
+    return {
+      session,
+      task_id: null,
+      status: session ? getStatusString(session.status) : 'failed',
+      progress: session ? (session.status === 'completed' ? 100 : 0) : 0,
+    };
+  }, [todayPracticeData]);
 
   return {
     todayPractice,

@@ -34,7 +34,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
       cancelText: '取消',
       onOk: async () => {
         try {
-          await StudentApi.regenerateDailyPractice(id, todayPractice.session!.id);
+          await StudentApi.regenerateDailyPractice(id, todayPractice.session!.session_id);
           message.success('重新生成成功');
           refreshTodayPractice();
         } catch (error) {
@@ -59,10 +59,10 @@ export function PracticeCard({ id }: PracticeCardProps) {
           {renderPracticeStats(todayPractice.session)}
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <Space>
-              <Link to={`/student/${id}/practice/daily/${todayPractice.session.id}`}>
+              <Link to={`/student/${id}/practice/daily/${todayPractice.session.session_id}`}>
                 <Button type="primary">查看练习详情 →</Button>
               </Link>
-              {todayPractice.session.status === 'in_progress' && (
+              {(todayPractice.session.status === 'in_progress' || todayPractice.session.status === 1) && (
                 <Button danger onClick={handleRegenerate}>
                   重新生成
                 </Button>
@@ -171,12 +171,18 @@ export function PracticeCard({ id }: PracticeCardProps) {
 }
 
 function renderPracticeStats(session: DailyPracticeSession) {
+  const isCompleted = session.status === 'completed' || session.status === 2;
+  const totalQuestions = session.total_questions || session.question_count || 0;
+  const correctQuestions = session.correct_questions || session.correct_count || 0;
+  const answeredCount = session.answer_count || 0;
+  const score = session.score || 0;
+
   return (
     <StatisticCard.Group direction="row">
       <StatisticCard
         statistic={{
           title: '总题数',
-          value: session.total_questions,
+          value: totalQuestions,
           suffix: '题',
           icon: renderIcon('linear-gradient(135deg, #667eea 0%, #764ba2 100%)', '📋'),
         }}
@@ -185,7 +191,7 @@ function renderPracticeStats(session: DailyPracticeSession) {
       <StatisticCard
         statistic={{
           title: '已完成',
-          value: session.correct_questions,
+          value: answeredCount,
           suffix: '题',
           valueStyle: { color: '#52c41a' },
           icon: renderIcon('linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', '✅'),
@@ -194,9 +200,9 @@ function renderPracticeStats(session: DailyPracticeSession) {
       />
       <StatisticCard
         statistic={{
-          title: '得分',
-          value: session.score.toFixed(1),
-          suffix: '分',
+          title: '正确',
+          value: correctQuestions,
+          suffix: '题',
           valueStyle: { color: '#1890ff' },
           icon: renderIcon('linear-gradient(135deg, #fa709a 0%, #fee140 100%)', '⭐'),
         }}
@@ -205,16 +211,18 @@ function renderPracticeStats(session: DailyPracticeSession) {
       <StatisticCard
         statistic={{
           title: '状态',
-          value: session.status === 'completed' ? '已完成' : '进行中',
+          value: isCompleted ? '已完成' : answeredCount > 0 ? '进行中' : '未开始',
           valueStyle: {
-            color: session.status === 'completed' ? '#52c41a' : '#faad14',
+            color: isCompleted ? '#52c41a' : answeredCount > 0 ? '#faad14' : '#999',
             fontSize: '16px',
           },
           icon: renderIcon(
-            session.status === 'completed'
+            isCompleted
               ? 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-              : 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-            session.status === 'completed' ? '🎉' : '⏳',
+              : answeredCount > 0
+              ? 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+              : 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)',
+            isCompleted ? '🎉' : answeredCount > 0 ? '⏳' : '📝',
           ),
         }}
         style={{ borderRadius: '8px' }}

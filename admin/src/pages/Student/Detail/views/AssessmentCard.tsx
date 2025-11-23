@@ -15,20 +15,20 @@ type AssessmentCardProps = {
 export function AssessmentCard({ id }: AssessmentCardProps) {
   const { assessments, loading, refresh } = useAssessment(id);
 
-  const handleReset = async (assessmentId: number) => {
+  const handleReset = async (assessment: AssessmentTest) => {
     Modal.confirm({
-      title: '确认重置',
+      title: '确认重新生成',
       icon: <ExclamationCircleOutlined />,
-      content: '重置将清除全部进度和已答题目，此操作不可恢复。确定要继续吗？',
+      content: '重新生成将清除全部进度和已答题目，此操作不可恢复。确定要继续吗？',
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
         try {
-          await StudentApi.resetAssessment(id, assessmentId);
-          message.success('重置成功');
+          await StudentApi.regenerateAssessment(id);
+          message.success('重新生成成功');
           refresh();
         } catch (error) {
-          message.error('重置失败');
+          message.error('重新生成失败');
         }
       },
     });
@@ -98,11 +98,15 @@ export function AssessmentCard({ id }: AssessmentCardProps) {
         title: '状态',
         dataIndex: 'status',
         width: 100,
-        render: (status: string) => (
-          <Tag color={status === 'completed' ? 'success' : 'warning'}>
-            {status === 'completed' ? '已完成' : '进行中'}
-          </Tag>
-        ),
+        render: (status: string | number) => {
+          const statusNum = typeof status === 'number' ? status : status === 'completed' ? 2 : status === 'in_progress' ? 1 : 0;
+          const isCompleted = statusNum === 2;
+          return (
+            <Tag color={isCompleted ? 'success' : statusNum === 1 ? 'warning' : 'default'}>
+              {isCompleted ? '已完成' : statusNum === 1 ? '进行中' : '未开始'}
+            </Tag>
+          );
+        },
       },
       {
         title: '创建时间',
@@ -117,19 +121,19 @@ export function AssessmentCard({ id }: AssessmentCardProps) {
         fixed: 'right',
         render: (_, record) => (
           <Space>
-            <Link to={`/student/${id}/practice/assessment/${record.id}`}>
+            <Link to={`/student/${id}/practice/assessment/${record.session_id}`}>
               <Button type="link" size="small">
                 查看详情
               </Button>
             </Link>
-            {record.status === 'in_progress' && (
+            {(record.status === 'in_progress' || record.status === 1) && (
               <Button
                 type="link"
                 size="small"
                 danger
-                onClick={() => handleReset(record.id)}
+                onClick={() => handleReset(record)}
               >
-                重置
+                重新生成
               </Button>
             )}
           </Space>

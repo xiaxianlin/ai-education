@@ -17,39 +17,44 @@ export default function PracticeDetailPage() {
     sessionId: string;
   }>();
 
-  // 根据类型调用不同的 API
+  // 使用统一的会话详情接口
   const { data, loading } = useRequest(
     async () => {
-      if (!id || !sessionId) return null;
+      if (!sessionId) return null;
       const sessionIdNum = Number(sessionId);
-
-      switch (type) {
-        case 'daily':
-          return await StudentApi.getDailyPracticeDetail(id, sessionIdNum);
-        case 'unit':
-          return await StudentApi.getUnitPracticeDetail(id, sessionIdNum);
-        case 'assessment':
-          return await StudentApi.getAssessmentDetail(id, sessionIdNum);
-        default:
-          throw new Error('未知的练习类型');
-      }
+      // 根据 API.md，使用统一的会话详情接口
+      return await StudentApi.getSessionDetail(sessionIdNum);
     },
     {
-      ready: !!id && !!sessionId && !!type,
+      ready: !!sessionId,
       onError: () => {
         history.back();
       },
     },
   );
 
-  // 解析 answers JSON 以获取学生答案（必须在所有条件返回之前调用）
+  // 解析答案数据
   const studentAnswers = useMemo(() => {
-    if (!data?.session) return {};
+    if (!data) return {};
 
-    // 对于 assessment，答案已经在 questions 中
-    if (type === 'assessment') {
+    // 优先使用 answers 数组（根据 API.md 规范）
+    if (data.answers && Array.isArray(data.answers)) {
       const answers: Record<number, any> = {};
-      data.questions?.forEach((q: any) => {
+      data.answers.forEach((answer) => {
+        answers[answer.question_id] = {
+          is_correct: answer.is_correct === 1,
+          answer: answer.text_answer || '',
+          time_spent: answer.time_spent,
+          audio_data: answer.audio_data,
+        };
+      });
+      return answers;
+    }
+
+    // 兼容：从 questions 中获取答案（能力评估）
+    if (data.questions && Array.isArray(data.questions)) {
+      const answers: Record<number, any> = {};
+      data.questions.forEach((q: any) => {
         if (q.is_correct !== undefined) {
           answers[q.id] = {
             is_correct: q.is_correct,
@@ -60,15 +65,17 @@ export default function PracticeDetailPage() {
       return answers;
     }
 
-    // 对于 daily 和 unit，从 session.answers 解析
-    if (!data.session.answers) return {};
-    try {
-      return JSON.parse(data.session.answers);
-    } catch (e) {
-      console.error('Failed to parse answers:', e);
-      return {};
+    // 兼容：从 session.answers JSON 字符串解析
+    if (data.session?.answers && typeof data.session.answers === 'string') {
+      try {
+        return JSON.parse(data.session.answers);
+      } catch (e) {
+        console.error('Failed to parse answers:', e);
+      }
     }
-  }, [data?.session, data?.questions, type]);
+
+    return {};
+  }, [data]);
 
   // 获取标题
   const getTitle = () => {
@@ -86,21 +93,18 @@ export default function PracticeDetailPage() {
 
   // 获取会话信息
   const session = data?.session;
-  const questions = data?.questions || [];
+  const questions = data?.questions || data?.session?.questions || [];
   const unit = (data as any)?.unit; // unit 只在 unit practice 中存在
+  const report = data?.report;
 
-  // 计算统计数据
-  const totalQuestions = session?.total_questions || questions.length;
-  const answeredCount =
-    type === 'assessment' ? questions.length : Object.keys(studentAnswers).length;
+  // 计算统计数据（优先使用 report，否则计算）
+  const totalQuestions = report?.total_questions || session?.question_count || questions.length;
+  const answeredCount = session?.answer_count || Object.keys(studentAnswers).length;
   const correctCount =
-    type === 'assessment'
-      ? questions.filter((q: any) => q.is_correct === true).length
-      : Object.values(studentAnswers).filter((ans: any) => ans.is_correct === true).length;
-  const wrongCount =
-    type === 'assessment'
-      ? questions.filter((q: any) => q.is_correct === false).length
-      : Object.values(studentAnswers).filter((ans: any) => ans.is_correct === false).length;
+    report?.correct_questions ||
+    session?.correct_count ||
+    Object.values(studentAnswers).filter((ans: any) => ans.is_correct === true).length;
+  const wrongCount = answeredCount - correctCount;
   const unansweredCount = totalQuestions - answeredCount;
   const progressPercent =
     totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
@@ -252,7 +256,10 @@ export default function PracticeDetailPage() {
               </div>
               <Progress
                 percent={progressPercent}
-                status={session.status === 'completed' ? 'success' : 'active'}
+                status={(() => {
+                  const statusNum = typeof session.status === 'number' ? session.status : session.status === 'completed' ? 2 : session.status === 'in_progress' ? 1 : 0;
+                  return statusNum === 2 ? 'success' : 'active';
+                })()}
                 strokeColor={{
                   '0%': '#108ee9',
                   '100%': '#87d068',
@@ -408,9 +415,15 @@ export default function PracticeDetailPage() {
               </ProDescriptions.Item>
             )}
             <ProDescriptions.Item label="状态">
-              <Tag color={session.status === 'completed' ? 'success' : 'warning'}>
-                {session.status === 'completed' ? '已完成' : '进行中'}
-              </Tag>
+              {(() => {
+                const statusNum = typeof session.status === 'number' ? session.status : session.status === 'completed' ? 2 : session.status === 'in_progress' ? 1 : 0;
+                const isCompleted = statusNum === 2;
+                return (
+                  <Tag color={isCompleted ? 'success' : statusNum === 1 ? 'warning' : 'default'}>
+                    {isCompleted ? '已完成' : statusNum === 1 ? '进行中' : '未开始'}
+                  </Tag>
+                );
+              })()}
             </ProDescriptions.Item>
             {(session as any).total_time > 0 && (
               <ProDescriptions.Item label="总用时">

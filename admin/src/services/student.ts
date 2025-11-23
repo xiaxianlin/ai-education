@@ -1,4 +1,11 @@
 import { request } from '@umijs/max';
+import type {
+  PracticeSession,
+  PracticeSessionDetail,
+  DailyPracticeSession,
+  UnitPracticeSession,
+  AssessmentTest,
+} from './practice';
 
 export const StudentApi = {
   search: async (params: StudentSearchParams) => {
@@ -50,6 +57,150 @@ export const StudentApi = {
       method: 'POST',
     });
     return res.data;
+  },
+
+  // 练习相关 API（管理端）
+  // 获取学生每日练习
+  getDailyPractice: async (studentId: string) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/daily`);
+    return res.data;
+  },
+
+  // 为学生创建每日练习
+  createDailyPractice: async (studentId: string) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/daily/create`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 为学生重新生成每日练习
+  regenerateDailyPractice: async (studentId: string, sessionId: number) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/daily/regenerate`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 为学生创建单元练习
+  createUnitPractice: async (studentId: string, unitId: number) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/unit/${unitId}/create`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 为学生重新生成单元练习
+  regenerateUnitPractice: async (studentId: string, unitId: number) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/unit/${unitId}/regenerate`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 为学生创建能力评估
+  createAssessment: async (studentId: string) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/assessment/create`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 为学生重新生成能力评估
+  regenerateAssessment: async (studentId: string) => {
+    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/assessment/regenerate`, {
+      method: 'POST',
+    });
+    return res.data;
+  },
+
+  // 获取学生练习历史
+  getPracticeHistory: async (
+    studentId: string,
+    practiceType: 'daily_practice' | 'unit_practice' | 'assessment',
+  ) => {
+    const res = await request<ApiData<PracticeSession[]>>(`/practice/${studentId}/history/${practiceType}`);
+    return res.data;
+  },
+
+  // 获取练习会话详情
+  getSessionDetail: async (sessionId: number) => {
+    const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
+    return res.data;
+  },
+
+  // 获取学生单元练习状态
+  getUnitPracticeStatus: async (studentId: string, textbookId: number) => {
+    const res = await request<ApiData<Record<string, PracticeSession | null>>>(
+      `/practice/units/${textbookId}`,
+      { params: { student_id: studentId } },
+    );
+    return res.data;
+  },
+
+  // 获取单元练习列表（兼容旧接口）
+  getUnitPractices: async (studentId: string, limit: number = 30) => {
+    const res = await request<ListApiData<UnitPracticeSession>>(`/practice/${studentId}/unit/list`, {
+      params: { limit },
+    });
+    return res.data;
+  },
+
+  // 获取能力评估列表（兼容旧接口）
+  getAssessments: async (studentId: string, limit: number = 30) => {
+    const res = await request<ListApiData<AssessmentTest>>(`/practice/${studentId}/assessment/list`, {
+      params: { limit },
+    });
+    return res.data;
+  },
+
+  // 获取每日练习详情（兼容旧接口）
+  getDailyPracticeDetail: async (studentId: string, sessionId: number) => {
+    const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
+    return res.data;
+  },
+
+  // 获取单元练习详情（兼容旧接口）
+  getUnitPracticeDetail: async (studentId: string, sessionId: number) => {
+    const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
+    return res.data;
+  },
+
+  // 获取能力评估详情（兼容旧接口）
+  getAssessmentDetail: async (studentId: string, sessionId: number) => {
+    const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
+    return res.data;
+  },
+
+  // 生成每日练习（兼容旧接口，实际调用 create）
+  generateDailyPractice: async (studentId: string) => {
+    return StudentApi.createDailyPractice(studentId);
+  },
+
+  // 获取学生资料（包含当前教材信息）
+  getProfile: async (studentId: string) => {
+    const res = await request<ApiData<{ current_textbook_id?: number }>>(`/student/${studentId}/profile`);
+    return res.data;
+  },
+
+  // 获取每日练习列表（兼容旧接口）
+  getDailyPractices: async (studentId: string, limit: number = 100) => {
+    const res = await request<ListApiData<DailyPracticeSession>>(`/practice/${studentId}/history/daily_practice`, {
+      params: { limit },
+    });
+    return res.data;
+  },
+
+  // 删除每日练习（如果后端支持）
+  deleteDailyPractice: async (studentId: string, sessionId: number) => {
+    await request<ApiData<void>>(`/practice/session/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // 重置能力评估（兼容旧接口）
+  resetAssessment: async (studentId: string, assessmentId: number) => {
+    return StudentApi.regenerateAssessment(studentId);
   },
 };
 
