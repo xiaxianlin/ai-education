@@ -30,7 +30,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
     """文件上传节点 - 将图片和音频上传到 OSS"""
     image_questions: List[Question] = state.get("image_questions", [])
     audio_questions: List[Question] = state.get("audio_questions", [])
-    unit_id = state["unit_id"]
+    textbook = state["texbook"]
 
     oss = AliyunOSS()
     tmp_dir = Path(envs.TMP_DIR)
@@ -41,7 +41,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
         if hasattr(question, "_temp_image_url") and question._temp_image_url:
             try:
                 # 下载图片
-                image_path = tmp_dir / f"question_{unit_id}_{idx}_image.jpg"
+                image_path = tmp_dir / f"question_{textbook.id}_{idx}_image.jpg"
                 await download_file(question._temp_image_url, str(image_path))
 
                 # 读取文件内容
@@ -49,7 +49,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
                     file_data = f.read()
 
                 # 上传到 OSS
-                oss_path = f"questions/{unit_id}/images/{idx}.jpg"
+                oss_path = f"questions/{textbook.id}/images/{idx}.jpg"
 
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
@@ -72,7 +72,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
         if hasattr(question, "_temp_audio_url") and question._temp_audio_url:
             try:
                 # 下载音频
-                audio_path = tmp_dir / f"question_{unit_id}_{idx}_audio.mp3"
+                audio_path = tmp_dir / f"question_{textbook.id}_{idx}_audio.mp3"
                 await download_file(question._temp_audio_url, str(audio_path))
 
                 # 读取文件内容
@@ -80,7 +80,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
                     file_data = f.read()
 
                 # 上传到 OSS
-                oss_path = f"questions/{unit_id}/audio/{idx}.mp3"
+                oss_path = f"questions/{textbook.id}/audio/{idx}.mp3"
 
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
@@ -191,7 +191,7 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
             answer=item.answer,
             difficulty=item.difficulty,
             textbook_id=textbook.id,
-            unit_id=unit.id if unit else None,  # 教材生成时 unit_id 可以为 None
+            unit_id=unit.id if unit else None,  # 教材生成时 textbook.id 可以为 None
             knowledge=item.knowledge if item.knowledge else "",
         )
 
