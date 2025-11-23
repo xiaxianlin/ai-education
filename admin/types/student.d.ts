@@ -7,11 +7,13 @@ declare global {
     status: number;
     create_time: number;
     update_time?: number;
+    textbooks?: Textbook[];
   }
 
   interface StudentForm {
     name: string;
     phone: string;
+    password?: string;
   }
 
   interface StudentUpdateForm {
@@ -21,8 +23,12 @@ declare global {
   }
 
   interface StudentSearchParams extends SearchParams {
-    phone?: string;
+    keyword?: string;
     status?: number;
+  }
+
+  interface ResetPasswordResponse {
+    password: string;
   }
 
   // 学生配置信息

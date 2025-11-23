@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { useModel } from '@umijs/max';
 
@@ -17,8 +18,19 @@ export const useConfigs = () => {
     (prev, key) => ({ ...prev, [key]: GRADES[Number(key)].grade }),
     {},
   );
-  const questionTypeEmun =
-    question_types?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
+  // question_types 可能是数组或对象格式，需要兼容处理
+  const questionTypeEmun = useMemo(() => {
+    if (!question_types) return {};
+    // 如果是数组格式（旧格式兼容）
+    if (Array.isArray(question_types)) {
+      return question_types.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {});
+    }
+    // 如果是对象格式（新格式），提取所有键
+    if (typeof question_types === 'object') {
+      return Object.keys(question_types).reduce((prev, curr) => ({ ...prev, [curr]: curr }), {});
+    }
+    return {};
+  }, [question_types]);
 
   const difficultyLevelEmun =
     difficulty_levels?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};

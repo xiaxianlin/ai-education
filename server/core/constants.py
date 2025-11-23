@@ -65,3 +65,17 @@ QUESTION_TYPES = {
 
 def get_question_types(subject: str, grade: int):
     return QUESTION_TYPES[subject][grade]
+
+
+def extract_question_subtypes():
+    """从 QUESTION_TYPES 中提取所有唯一的子类型"""
+    subtypes = set()
+    for subject_data in QUESTION_TYPES.values():
+        for grade_data in subject_data.values():
+            for type_subtypes in grade_data.values():
+                subtypes.update(type_subtypes)
+    return sorted(list(subtypes))
+
+
+# 所有题目子类型（从 QUESTION_TYPES 中提取）
+QUESTION_SUBTYPES = extract_question_subtypes()

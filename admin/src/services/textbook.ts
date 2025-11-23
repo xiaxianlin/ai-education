@@ -6,7 +6,7 @@ export const TextbookApi = {
     return res.data;
   },
 
-  search: async (params: TextbookSearch) => {
+  search: async (params: TextbookSearchParams) => {
     const res = await request<ListApiData<Textbook>>('/textbook/search', { params });
     return res.data;
   },
@@ -61,6 +61,19 @@ export const TextbookApi = {
 
   getKnowledges: async (id: number) => {
     const res = await request<ApiData<Knowledge[]>>(`/textbook/${id}/knowledges`);
+    return res.data;
+  },
+
+  getQuestions: async (id: number, params?: { page?: number; size?: number }) => {
+    const res = await request<ListApiData<Question>>(`/textbook/${id}/questions`, { params });
+    return res.data;
+  },
+
+  generateQuestions: async (id: number, count: number = 30) => {
+    const res = await request<ApiData<void>>(`/textbook/${id}/generate`, {
+      method: 'POST',
+      params: { count },
+    });
     return res.data;
   },
 

@@ -12,6 +12,7 @@ declare global {
 
   interface CreateManagerModel {
     username: string;
+    password: string;
     type: number;
   }
 

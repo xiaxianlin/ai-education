@@ -56,11 +56,14 @@ declare global {
   }
 
   interface QuestionSearchParams extends SearchParams {
+    keyword?: string;
+    textbook_id?: number;
+    unit_id?: number;
     type?: string;
+    subtype?: string;
+    difficulty?: string;
     subject?: string;
     grade?: number;
-    resource_type?: string;
-    resource_generated?: boolean;
   }
 }
 

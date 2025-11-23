@@ -49,11 +49,13 @@ export const request: RequestConfig<ApiData<any>> = {
   responseInterceptors: [
     (response) => {
       const { data = {} as any } = response;
-      if (data.status === 401) {
+      // 兼容 code 和 status 两种格式
+      const code = data.code ?? data.status;
+      if (code === 401) {
         history.push('/login');
-      } else if (data.status === 499) {
+      } else if (code === 499) {
         history.push('/password');
-      } else if (data.status !== 0) {
+      } else if (code !== 0 && code !== undefined) {
         message.error(data.message || '网络异常');
         throw data.message || '网络异常';
       }

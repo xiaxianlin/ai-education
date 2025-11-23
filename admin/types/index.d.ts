@@ -10,22 +10,24 @@ declare global {
   }
 
   interface ApiData<T = any> {
-    data: T;
+    code?: number;
+    status?: number; // 兼容旧格式
     message?: string;
-    status?: number;
+    data: T;
   }
 
   interface ListApiData<T = any> {
-    data: ListData<T>;
+    code?: number;
+    status?: number; // 兼容旧格式
     message?: string;
-    status?: number;
+    data: ListData<T>;
   }
 
   interface Configs {
     subjects: string[];
     textbook_versions: string[];
     semesters: string[];
-    question_types: string[];
+    question_types: Record<string, string[]>;
     question_subtypes?: Record<string, string[]>;
     difficulty_levels: string[];
   }
