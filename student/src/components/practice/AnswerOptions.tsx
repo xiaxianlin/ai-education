@@ -45,27 +45,27 @@ function AnswerOptionsComponent({
               onClick={() => !hasAnswered && onAnswerChange(optionLabel)}
               disabled={hasAnswered}
               className={cn(
-                'flex-1 min-w-[160px] flex items-center justify-center gap-4 p-6 rounded-2xl border-3 transition-all duration-300 shadow-lg hover:shadow-xl',
+                'flex-1 min-w-[160px] flex items-center justify-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md',
                 isSelected
                   ? hasAnswered
                     ? isCorrect
-                      ? 'border-green-400 bg-gradient-to-br from-green-100 via-emerald-50 to-green-50 scale-105 shadow-green-200/50'
-                      : 'border-red-400 bg-gradient-to-br from-red-100 via-rose-50 to-red-50 scale-105 shadow-red-200/50'
-                    : 'border-blue-400 bg-gradient-to-br from-blue-100 via-cyan-50 to-blue-50 scale-105 shadow-blue-200/50'
-                  : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50/30 hover:shadow-blue-100',
-                hasAnswered && !isSelected && 'opacity-60',
+                      ? 'border-green-500 bg-green-500/10 text-green-500 shadow-green-500/20'
+                      : 'border-destructive bg-destructive/10 text-destructive shadow-destructive/20'
+                    : 'border-primary bg-primary/10 text-primary shadow-primary/20'
+                  : 'border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-accent hover:text-accent-foreground',
+                hasAnswered && !isSelected && 'opacity-50 grayscale',
                 hasAnswered && 'cursor-not-allowed'
               )}
             >
-              <div className="text-xl text-gray-800 font-bold text-center leading-relaxed flex-1">
+              <div className="text-xl font-bold text-center leading-relaxed flex-1">
                 {optionText}
               </div>
               {isSelected && hasAnswered && (
                 <div className="flex-shrink-0">
                   {isCorrect ? (
-                    <CheckCircle className="h-7 w-7 text-green-600" />
+                    <CheckCircle className="h-7 w-7 text-green-500" />
                   ) : (
-                    <XCircle className="h-7 w-7 text-red-600" />
+                    <XCircle className="h-7 w-7 text-destructive" />
                   )}
                 </div>
               )}
@@ -90,28 +90,28 @@ function AnswerOptionsComponent({
               onClick={() => !hasAnswered && onAnswerChange(option)}
               disabled={hasAnswered}
               className={cn(
-                'w-full p-6 rounded-2xl border-3 transition-all duration-300 shadow-md hover:shadow-lg',
+                'w-full p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md',
                 isSelected
                   ? hasAnswered
                     ? isCorrect
-                      ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 scale-105'
-                      : 'border-red-500 bg-gradient-to-r from-red-50 to-rose-50 scale-105'
-                    : 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 scale-105'
-                  : 'border-gray-300 hover:border-blue-300 hover:bg-blue-50/30',
+                      ? 'border-green-500 bg-green-500/10 text-green-500'
+                      : 'border-destructive bg-destructive/10 text-destructive'
+                    : 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-accent hover:text-accent-foreground',
                 hasAnswered && 'cursor-not-allowed opacity-80'
               )}
             >
               <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <span className="text-2xl font-bold flex items-center gap-3">
                   <span className="text-4xl">{emoji}</span>
                   {option}
                 </span>
                 {isSelected && hasAnswered && (
                   <div className="flex-shrink-0">
                     {isCorrect ? (
-                      <CheckCircle className="h-8 w-8 text-green-600" />
+                      <CheckCircle className="h-8 w-8 text-green-500" />
                     ) : (
-                      <XCircle className="h-8 w-8 text-red-600" />
+                      <XCircle className="h-8 w-8 text-destructive" />
                     )}
                   </div>
                 )}
@@ -156,12 +156,12 @@ function AnswerOptionsComponent({
           maxDuration={60}
         />
         {audioUrl && !hasAnswered && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             录音已上传，请点击提交按钮
           </div>
         )}
         {hasAnswered && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             答案已提交
           </div>
         )}
@@ -180,13 +180,13 @@ function AnswerOptionsComponent({
         disabled={hasAnswered}
         placeholder="请输入你的答案..."
         className={cn(
-          'w-full p-6 border-3 rounded-2xl resize-none focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all text-lg',
+          'w-full p-6 border-2 rounded-2xl resize-none focus:outline-none focus:ring-4 transition-all text-lg bg-card text-foreground placeholder:text-muted-foreground',
           hasAnswered
             ? isCorrect
-              ? 'border-green-500 bg-green-50'
-              : 'border-red-500 bg-red-50'
-            : 'border-gray-300 focus:border-blue-400',
-          hasAnswered && 'cursor-not-allowed'
+              ? 'border-green-500 bg-green-500/10 text-green-500'
+              : 'border-destructive bg-destructive/10 text-destructive'
+            : 'border-input focus:border-primary focus:ring-primary/20',
+          hasAnswered && 'cursor-not-allowed opacity-80'
         )}
         rows={isSpellingQuestion ? 2 : 6}
       />

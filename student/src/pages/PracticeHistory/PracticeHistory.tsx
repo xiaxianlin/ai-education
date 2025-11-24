@@ -101,7 +101,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
+                    className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}
@@ -182,7 +182,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
+                    className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}
@@ -262,7 +262,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
+                    className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}

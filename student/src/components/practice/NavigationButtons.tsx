@@ -1,10 +1,9 @@
-import { memo } from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Send, Trophy } from 'lucide-react';
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, Send, Trophy } from "lucide-react";
 
 interface NavigationButtonsProps {
   canGoPrevious: boolean;
-  canGoNext: boolean;
   hasAnswered: boolean;
   hasAnswer: boolean;
   submitting: boolean;
@@ -17,7 +16,6 @@ interface NavigationButtonsProps {
 
 export const NavigationButtons = memo(function NavigationButtons({
   canGoPrevious,
-  canGoNext,
   hasAnswered,
   hasAnswer,
   submitting,
@@ -28,7 +26,7 @@ export const NavigationButtons = memo(function NavigationButtons({
   onComplete,
 }: NavigationButtonsProps) {
   return (
-    <div className="flex gap-4 pt-6 border-t-2 border-gray-200">
+    <div className="flex gap-4 pt-6 border-t-2 border-input">
       <Button
         variant="outline"
         onClick={onPrevious}
@@ -45,7 +43,7 @@ export const NavigationButtons = memo(function NavigationButtons({
           className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-2xl shadow-lg"
         >
           <Send className="h-6 w-6 mr-2" />
-          {submitting ? '提交中...' : '提交答案 ✓'}
+          {submitting ? "提交中..." : "提交答案 ✓"}
         </Button>
       ) : isLastQuestion ? (
         <Button
@@ -54,7 +52,7 @@ export const NavigationButtons = memo(function NavigationButtons({
           className="flex-1 h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl shadow-lg"
         >
           <Trophy className="h-6 w-6 mr-2" />
-          {submitting ? '完成中...' : '完成练习 🎉'}
+          {submitting ? "完成中..." : "完成练习 🎉"}
         </Button>
       ) : (
         <Button
@@ -68,4 +66,3 @@ export const NavigationButtons = memo(function NavigationButtons({
     </div>
   );
 });
-

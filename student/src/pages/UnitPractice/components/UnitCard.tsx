@@ -50,7 +50,7 @@ export const UnitCard = memo(function UnitCard({
         {/* 未完成练习标识 */}
         {hasIncompletePractice && (
           <div className="absolute top-3 right-3 z-20">
-            <div className="px-2.5 py-1 bg-orange-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+            <div className="px-2.5 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
               <span>⏸️</span>
               <span>未完成</span>
             </div>

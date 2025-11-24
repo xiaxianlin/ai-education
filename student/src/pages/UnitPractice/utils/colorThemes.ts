@@ -12,12 +12,48 @@ export interface ColorTheme {
 }
 
 export const colorThemes: ColorTheme[] = [
-  { bg: 'from-blue-50/80 to-cyan-50/80', border: 'border-blue-100', icon: 'text-blue-400', button: 'bg-blue-400 hover:bg-blue-500', shadow: 'shadow-blue-50' },
-  { bg: 'from-pink-50/80 to-rose-50/80', border: 'border-pink-100', icon: 'text-pink-400', button: 'bg-pink-400 hover:bg-pink-500', shadow: 'shadow-pink-50' },
-  { bg: 'from-green-50/80 to-emerald-50/80', border: 'border-green-100', icon: 'text-green-400', button: 'bg-green-400 hover:bg-green-500', shadow: 'shadow-green-50' },
-  { bg: 'from-yellow-50/80 to-amber-50/80', border: 'border-yellow-100', icon: 'text-yellow-400', button: 'bg-yellow-400 hover:bg-yellow-500', shadow: 'shadow-yellow-50' },
-  { bg: 'from-purple-50/80 to-violet-50/80', border: 'border-purple-100', icon: 'text-purple-400', button: 'bg-purple-400 hover:bg-purple-500', shadow: 'shadow-purple-50' },
-  { bg: 'from-orange-50/80 to-red-50/80', border: 'border-orange-100', icon: 'text-orange-400', button: 'bg-orange-400 hover:bg-orange-500', shadow: 'shadow-orange-50' },
+  { 
+    bg: 'from-primary/5 to-primary/10', 
+    border: 'border-primary/20', 
+    icon: 'text-primary', 
+    button: 'bg-primary hover:bg-primary/90', 
+    shadow: 'shadow-primary/10' 
+  },
+  { 
+    bg: 'from-secondary/5 to-secondary/10', 
+    border: 'border-secondary-foreground/20', 
+    icon: 'text-secondary-foreground', 
+    button: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground', 
+    shadow: 'shadow-secondary/10' 
+  },
+  { 
+    bg: 'from-accent/5 to-accent/10', 
+    border: 'border-accent/30', 
+    icon: 'text-accent', 
+    button: 'bg-accent hover:bg-accent/90 text-accent-foreground', 
+    shadow: 'shadow-accent/10' 
+  },
+  { 
+    bg: 'from-destructive/5 to-destructive/10', 
+    border: 'border-destructive/50', 
+    icon: 'text-destructive', 
+    button: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground', 
+    shadow: 'shadow-destructive/10' 
+  },
+  { 
+    bg: 'from-primary/5 to-accent/5', 
+    border: 'border-primary/30', 
+    icon: 'text-primary', 
+    button: 'bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground', 
+    shadow: 'shadow-primary/10' 
+  },
+  { 
+    bg: 'from-secondary/5 to-destructive/5', 
+    border: 'border-secondary-foreground/20', 
+    icon: 'text-secondary-foreground', 
+    button: 'bg-gradient-to-r from-secondary to-destructive hover:opacity-90 text-white', 
+    shadow: 'shadow-secondary/10' 
+  },
 ];
 
 /**
