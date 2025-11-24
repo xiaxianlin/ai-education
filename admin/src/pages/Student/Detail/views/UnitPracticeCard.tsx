@@ -117,7 +117,7 @@ export function UnitPracticeCard({ id }: UnitPracticeCardProps) {
         fixed: 'right',
         render: (_, record) => (
           <Space>
-            <Link to={`/student/${id}/practice/unit/${record.session_id}`}>
+            <Link to={`/practice/detail/${record.session_id}`}>
               <Button type="link" size="small">
                 查看详情
               </Button>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from admin.services import unit
@@ -17,14 +17,14 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
 
 
 @unit_router.post("/{id}/generate")
-async def generate_question(id: int, count: int = 30, db: AsyncSession = Database):
+async def generate_question(id: int, count: int = Query(default=10), db: AsyncSession = Database):
     """
     生成课程单元相关题目
-    
+
     Args:
         id: 单元ID
         count: 生成题目数量，默认30道
-        
+
     Returns:
         生成的题目列表
     """

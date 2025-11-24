@@ -114,15 +114,6 @@ export const StudentApi = {
     return res.data;
   },
 
-  // 获取学生练习历史
-  getPracticeHistory: async (
-    studentId: string,
-    practiceType: 'daily_practice' | 'unit_practice' | 'assessment',
-  ) => {
-    const res = await request<ApiData<PracticeSession[]>>(`/practice/${studentId}/history/${practiceType}`);
-    return res.data;
-  },
-
   // 获取练习会话详情
   getSessionDetail: async (sessionId: number) => {
     const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
@@ -204,12 +195,6 @@ export const StudentApi = {
   },
 
   // 删除每日练习（如果后端支持）
-  deleteDailyPractice: async (studentId: string, sessionId: number) => {
-    await request<ApiData<void>>(`/practice/session/${sessionId}`, {
-      method: 'DELETE',
-    });
-  },
-
   // 重置能力评估（兼容旧接口）
   resetAssessment: async (studentId: string, assessmentId: number) => {
     return StudentApi.regenerateAssessment(studentId);

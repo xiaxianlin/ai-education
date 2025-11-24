@@ -196,16 +196,31 @@ export const PracticeApi = {
     return res.data;
   },
 
-  // 获取学生练习历史
-  getPracticeHistory: async (studentId: string, practiceType: 'daily_practice' | 'unit_practice' | 'assessment') => {
-    const res = await request<ApiData<PracticeSession[]>>(`/practice/${studentId}/history/${practiceType}`);
-    return res.data;
-  },
-
   // 获取练习会话详情
   getSessionDetail: async (sessionId: number) => {
     const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}/detail`);
     return res.data;
   },
+
+  // 获取所有学生的练习记录
+  getAllPracticeRecords: async (params?: {
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    student_id?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const res = await request<ApiData<{ records: PracticeRecord[]; total: number }>>('/practice/records', { params });
+    return {
+      data: res.data.records || [],
+      total: res.data.total || 0,
+    };
+  },
 };
+
+// 练习记录（包含学生信息）
+export interface PracticeRecord extends PracticeSession {
+  student_id: string;
+  student_name: string;
+  student_phone: string;
+}
 

@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict
 from loguru import logger
-from sqlalchemy import delete, desc, select
+from sqlalchemy import delete, desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -13,6 +13,7 @@ from core.database import (
     Question,
     StudentTextbook,
     Unit,
+    Student,
 )
 from core.schema import PracticeSessionSchema, PracticeReportSchema, QuestionSchema
 from student.schema import PracticeStatsSchem, PracticeHistorySchema
@@ -57,6 +58,80 @@ async def get_practice_history(
     return result
 
 
+async def get_all_practice_records(
+    db: AsyncSession,
+    practice_type: Optional[str] = None,
+    student_id: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> Dict:
+    """
+    获取所有学生的练习记录（支持筛选和分页）
+    
+    Args:
+        db: 数据库会话
+        practice_type: 练习类型筛选 (daily_practice/unit_practice/assessment)，None 表示不过滤
+        student_id: 学生ID筛选，None 表示不过滤
+        limit: 返回记录数量，默认100条
+        offset: 偏移量，默认0
+        
+    Returns:
+        包含 records 和 total 的字典
+    """
+    query = select(PracticeSession, Student).join(Student, PracticeSession.student_id == Student.id)
+    
+    # 应用筛选条件
+    if practice_type:
+        query = query.where(PracticeSession.session_type == practice_type)
+    if student_id:
+        query = query.where(PracticeSession.student_id == student_id)
+    
+    # 获取总数
+    count_query = select(func.count()).select_from(PracticeSession)
+    if practice_type:
+        count_query = count_query.where(PracticeSession.session_type == practice_type)
+    if student_id:
+        count_query = count_query.where(PracticeSession.student_id == student_id)
+    
+    total = await db.scalar(count_query)
+    
+    # 获取分页数据
+    sessions = await db.execute(
+        query.order_by(desc(PracticeSession.create_time))
+        .limit(limit)
+        .offset(offset)
+    )
+    
+    result = []
+    for session, student in sessions.all():
+        result.append({
+            "session_id": session.id,
+            "student_id": session.student_id,
+            "student_name": student.name,
+            "student_phone": student.phone,
+            "session_type": session.session_type,
+            "status": session.status,
+            "target_id": session.target_id,
+            "textbook_id": session.textbook_id,
+            "question_count": session.question_count,
+            "answer_count": session.answer_count,
+            "correct_count": session.correct_count,
+            "start_time": session.start_time,
+            "end_time": session.end_time,
+            "create_time": session.create_time,
+        })
+    
+    logger.info(
+        f"[Admin] 获取所有练习记录: type={practice_type}, student_id={student_id}, "
+        f"count={len(result)}, total={total}"
+    )
+    
+    return {
+        "records": result,
+        "total": total or 0,
+    }
+
+
 async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[dict]:
     """获取学生当天的每日练习"""
     current_date = today()
@@ -93,15 +168,17 @@ async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[dict
 
 async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
     """为学生生成每日练习"""
+    current_date = today()
+    
     # 检查是否已存在当天的每日练习
-    existing = await get_daily_practice(db, student_id)
-    if existing:
+    existing_today = await get_daily_practice(db, student_id)
+    if existing_today:
         logger.warning(
-            f"[Admin] 当天每日练习已存在: student_id={student_id}, session_id={existing['session_id']}"
+            f"[Admin] 当天每日练习已存在: student_id={student_id}, session_id={existing_today['session_id']}"
         )
-        return existing
+        return existing_today
 
-    # 获取学生当前激活的教材
+    # 获取学生当前激活的教材（提前获取，重置和创建都需要）
     active_textbook = await db.scalar(
         select(StudentTextbook)
         .options(joinedload(StudentTextbook.textbook))
@@ -112,6 +189,79 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
         raise ValueError("学生未设置激活教材")
 
     textbook = active_textbook.textbook
+
+    # 检查是否有未完成的每日练习（不限制日期）
+    incomplete_session = await db.scalar(
+        select(PracticeSession)
+        .where(
+            PracticeSession.student_id == student_id,
+            PracticeSession.session_type == "daily_practice",
+            PracticeSession.status != 2,  # 未完成的练习
+        )
+        .order_by(desc(PracticeSession.create_time))
+    )
+
+    if incomplete_session:
+        logger.info(
+            f"[Admin] 找到未完成的每日练习，准备重置: student_id={student_id}, "
+            f"session_id={incomplete_session.id}, old_target_id={incomplete_session.target_id}"
+        )
+
+        try:
+            # 重置所有答题记录的信息
+            answer_records = await db.scalars(
+                select(PracticeAnswer).where(PracticeAnswer.session_id == incomplete_session.id)
+            )
+            for answer in answer_records.all():
+                answer.text_answer = None
+                answer.is_correct = 0
+                answer.time_spent = 0
+                answer.submit_time = None
+                answer.audio_answer = None
+            
+            # 删除报告（如果存在）
+            await db.execute(
+                delete(PracticeReport).where(PracticeReport.session_id == incomplete_session.id)
+            )
+            
+            # 重置进度并更新为当天的每日练习
+            incomplete_session.target_id = current_date
+            incomplete_session.textbook_id = textbook.id  # 更新教材ID
+            incomplete_session.status = 0
+            incomplete_session.answer_count = 0
+            incomplete_session.correct_count = 0
+            incomplete_session.start_time = 0
+            incomplete_session.end_time = None
+            
+            await db.commit()
+            
+            logger.info(
+                f"[Admin] 未完成每日练习已重置为当天: session_id={incomplete_session.id}, "
+                f"new_target_id={current_date}"
+            )
+            
+            # 返回重置后的会话信息
+            return {
+                "session_id": incomplete_session.id,
+                "session_type": incomplete_session.session_type,
+                "target_id": incomplete_session.target_id,
+                "textbook_id": incomplete_session.textbook_id,
+                "question_count": incomplete_session.question_count,
+                "answer_count": incomplete_session.answer_count,
+                "correct_count": incomplete_session.correct_count,
+                "status": incomplete_session.status,
+                "start_time": incomplete_session.start_time,
+                "end_time": incomplete_session.end_time,
+                "create_time": incomplete_session.create_time,
+            }
+            
+        except Exception as e:
+            await db.rollback()
+            logger.error(
+                f"[Admin] 重置未完成每日练习失败: student_id={student_id}, "
+                f"session_id={incomplete_session.id}, error={e}"
+            )
+            raise ValueError(f"重置未完成每日练习失败: {str(e)}")
 
     logger.info(f"[Admin] 开始创建每日练习: student_id={student_id}, textbook_id={textbook.id}")
 

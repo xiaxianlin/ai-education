@@ -37,19 +37,23 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     # 上传图片
-    for idx, question in enumerate(image_questions):
+    for question in image_questions:
         if hasattr(question, "_temp_image_url") and question._temp_image_url:
+            # 确保题目 ID 已生成
+            if not question.id:
+                raise ValueError(f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}...")
+            
             try:
                 # 下载图片
-                image_path = tmp_dir / f"question_{textbook.id}_{idx}_image.jpg"
+                image_path = tmp_dir / f"question_{textbook.id}_{question.id}_image.jpg"
                 await download_file(question._temp_image_url, str(image_path))
 
                 # 读取文件内容
                 with open(image_path, "rb") as f:
                     file_data = f.read()
 
-                # 上传到 OSS
-                oss_path = f"questions/{textbook.id}/images/{idx}.jpg"
+                # 上传到 OSS，使用 question.id 作为文件名
+                oss_path = f"questions/{textbook.id}/images/{question.id}.jpg"
 
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
@@ -64,23 +68,27 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
                 # 清理临时文件
                 os.remove(image_path)
             except Exception as e:
-                logger.error(f"上传图片失败: {e}")
+                logger.error(f"上传图片失败: question_id={question.id}, error={e}")
                 question.resource = None
 
     # 上传音频
-    for idx, question in enumerate(audio_questions):
+    for question in audio_questions:
         if hasattr(question, "_temp_audio_url") and question._temp_audio_url:
+            # 确保题目 ID 已生成
+            if not question.id:
+                raise ValueError(f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}...")
+            
             try:
                 # 下载音频
-                audio_path = tmp_dir / f"question_{textbook.id}_{idx}_audio.mp3"
+                audio_path = tmp_dir / f"question_{textbook.id}_{question.id}_audio.mp3"
                 await download_file(question._temp_audio_url, str(audio_path))
 
                 # 读取文件内容
                 with open(audio_path, "rb") as f:
                     file_data = f.read()
 
-                # 上传到 OSS
-                oss_path = f"questions/{textbook.id}/audio/{idx}.mp3"
+                # 上传到 OSS，使用 question.id 作为文件名
+                oss_path = f"questions/{textbook.id}/audio/{question.id}.mp3"
 
                 # 检查文件是否存在，如果存在则先删除
                 if oss.exist(oss_path):
@@ -95,7 +103,7 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
                 # 清理临时文件
                 os.remove(audio_path)
             except Exception as e:
-                logger.error(f"上传音频失败: {e}")
+                logger.error(f"上传音频失败: question_id={question.id}, error={e}")
                 question.resource = None
 
     return {

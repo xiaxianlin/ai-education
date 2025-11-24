@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import React from 'react';
 import { Card, Empty, Button, Progress, Spin, Modal, Space } from 'antd';
 import { Link } from '@umijs/max';
 import { StatisticCard } from '@ant-design/pro-components';
@@ -17,7 +18,6 @@ export function PracticeCard({ id }: PracticeCardProps) {
   const {
     todaySession,
     loadingTodayPractice,
-    generatingPractice,
     handleGenerateDailyPractice,
     practiceHistoryLink,
     refreshTodayPractice,
@@ -33,12 +33,44 @@ export function PracticeCard({ id }: PracticeCardProps) {
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
+        // 显示全局 loading 弹窗
+        const hide = Modal.info({
+          centered: true,
+          title: '正在重新生成每日练习',
+          content: React.createElement(
+            'div',
+            { style: { textAlign: 'center', padding: '20px 0' } },
+            React.createElement(Spin, { size: 'large' }),
+            React.createElement(
+              'div',
+              { style: { color: '#666', marginTop: 16 } },
+              '重新生成中，请稍候...',
+            ),
+          ),
+          okButtonProps: { style: { display: 'none' } },
+          closable: false,
+          maskClosable: false,
+          width: 400,
+        });
+
         try {
           await StudentApi.regenerateDailyPractice(id, todaySession.session_id);
-          message.success('重新生成成功');
-          refreshTodayPractice();
-        } catch (error) {
-          message.error('重新生成失败');
+          hide.destroy();
+          Modal.success({
+            centered: true,
+            title: '重新生成成功',
+            content: '每日练习已重新生成完成！',
+            onOk: () => {
+              refreshTodayPractice();
+            },
+          });
+        } catch (error: any) {
+          hide.destroy();
+          Modal.error({
+            centered: true,
+            title: '重新生成失败',
+            content: error?.message || '重新生成失败，请稍后重试',
+          });
         }
       },
     });
@@ -60,7 +92,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
           {renderPracticeStats(todaySession)}
           <div style={{ marginTop: 16, textAlign: 'center' }}>
             <Space>
-              <Link to={`/student/${id}/practice/daily/${todaySession.session_id}`}>
+              <Link to={`/practice/detail/${todaySession.session_id}`}>
                 <Button type="primary">查看练习详情 →</Button>
               </Link>
               {todaySession.status !== 2 && (
@@ -88,7 +120,6 @@ export function PracticeCard({ id }: PracticeCardProps) {
             <Button
               type="primary"
               size="large"
-              loading={generatingPractice}
               onClick={handleGenerateDailyPractice}
               style={{
                 height: '40px',

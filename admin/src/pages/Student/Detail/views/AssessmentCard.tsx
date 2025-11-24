@@ -121,7 +121,7 @@ export function AssessmentCard({ id }: AssessmentCardProps) {
         fixed: 'right',
         render: (_, record) => (
           <Space>
-            <Link to={`/student/${id}/practice/assessment/${record.session_id}`}>
+            <Link to={`/practice/detail/${record.session_id}`}>
               <Button type="link" size="small">
                 查看详情
               </Button>

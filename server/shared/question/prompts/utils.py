@@ -8,24 +8,10 @@ from core.database import Question, Unit
 from core.constants import get_question_types
 
 
-def build_common_prompt(subject: str, grade: int, recall_questions: Optional[List[Question]] = None) -> str:
+def build_common_prompt(
+    subject: str, grade: int, recall_questions: Optional[List[Question]] = None
+) -> str:
     """构建题型配置信息，遍历题型和子题型生成适合 prompt 的字符串"""
-
-    grades = [
-        "",
-        "小学一年级",
-        "小学二年级",
-        "小学三年级",
-        "小学四年级",
-        "小学五年级",
-        "小学六年级",
-        "初中一年级",
-        "初中二年级",
-        "初中三年级",
-        "高中一年级",
-        "高中二年级",
-        "高中三年级",
-    ]
 
     question_types = get_question_types(subject, grade)
 
@@ -45,9 +31,7 @@ def build_common_prompt(subject: str, grade: int, recall_questions: Optional[Lis
             content = recall_question.content.replace("{", "{{").replace("}", "}}")
             options = recall_question.options.replace("{", "{{").replace("}", "}}")
             recalled_questions_info_lines.append(
-                f"- 题目ID: {recall_question.id}, "
-                f"题干: {content}, "
-                f"选项: {options}"
+                f"- 题目ID: {recall_question.id}, " f"题干: {content}, " f"选项: {options}"
             )
         recalled_questions_info = "\n".join(recalled_questions_info_lines)
         avoid_duplicate_hint = f"""
@@ -59,7 +43,7 @@ def build_common_prompt(subject: str, grade: int, recall_questions: Optional[Lis
     else:
         avoid_duplicate_hint = ""
 
-    return (grades[grade], question_types_text, avoid_duplicate_hint)
+    return (f"{grade}年级", question_types_text, avoid_duplicate_hint)
 
 
 def build_difficulty_distribution(

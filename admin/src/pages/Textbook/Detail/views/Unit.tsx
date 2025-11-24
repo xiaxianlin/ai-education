@@ -6,9 +6,10 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button } from 'antd';
+import { Button, Modal, Spin, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
+import { CourseUnitApi } from '@/services/unit';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
 
@@ -21,6 +22,52 @@ export const UnitView: React.FC = () => {
     handleSubmit,
   } = useTextbookUnitModel();
 
+  const handleGenerateQuestions = async (unit: Unit) => {
+    Modal.confirm({
+      centered: true,
+      title: '生成题目',
+      content: `确定要为单元 "${unit.name}" 生成题目吗？生成过程可能需要一些时间，请耐心等待。`,
+      onOk: async () => {
+        // 显示全局 loading 弹窗
+        const hide = Modal.info({
+          centered: true,
+          title: '正在生成题目',
+          content: React.createElement(
+            'div',
+            { style: { textAlign: 'center', padding: '20px 0' } },
+            React.createElement(Spin, { size: 'large' }),
+            React.createElement(
+              'div',
+              { style: { color: '#666', marginTop: 16 } },
+              `正在为单元 "${unit.name}" 生成题目，请稍候...`,
+            ),
+          ),
+          okButtonProps: { style: { display: 'none' } },
+          closable: false,
+          maskClosable: false,
+          width: 400,
+        });
+
+        try {
+          await CourseUnitApi.generateQuestions(unit.id);
+          hide.destroy();
+          Modal.success({
+            centered: true,
+            title: '生成成功',
+            content: `单元 "${unit.name}" 的题目已生成完成！`,
+          });
+        } catch (error: any) {
+          hide.destroy();
+          Modal.error({
+            centered: true,
+            title: '生成失败',
+            content: error?.message || '题目生成失败，请稍后重试',
+          });
+        }
+      },
+    });
+  };
+
   const columns: ProColumns<Unit>[] = [
     { title: 'ID', dataIndex: 'id' },
     { title: '单元名称', dataIndex: 'name' },
@@ -28,16 +75,21 @@ export const UnitView: React.FC = () => {
     {
       title: '操作',
       valueType: 'option',
-      width: 120,
+      width: 200,
       fixed: 'right',
-      render: (_, record) => [
-        <Button key="edit" type="link" onClick={() => showForm(record)}>
-          编辑
-        </Button>,
-        <Button key="delete" type="link" danger onClick={() => handleDelete(record)}>
-          删除
-        </Button>,
-      ],
+      render: (_, record) => (
+        <Space>
+          <Button type="link" onClick={() => showForm(record)}>
+            编辑
+          </Button>
+          <Button type="link" onClick={() => handleGenerateQuestions(record)}>
+            生成题目
+          </Button>
+          <Button type="link" danger onClick={() => handleDelete(record)}>
+            删除
+          </Button>
+        </Space>
+      ),
     },
   ];
 

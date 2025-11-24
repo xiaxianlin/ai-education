@@ -1,6 +1,6 @@
 import { useParams, history } from '@umijs/max';
 import { PageContainer, ProDescriptions, ProTable, ProColumns } from '@ant-design/pro-components';
-import { StudentApi } from '@/services/student';
+import { PracticeApi } from '@/services/practice';
 import { useRequest } from 'ahooks';
 import {
   Button,
@@ -8,7 +8,6 @@ import {
   Space,
   Tag,
   Empty,
-  Image,
   Spin,
   Progress,
   Row,
@@ -16,19 +15,12 @@ import {
   Statistic,
   message,
 } from 'antd';
-import { ArrowLeftOutlined, EyeOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
-import { fmtTime } from '@/utils/time';
 import { QuestionDetailDrawer } from '@/components/business';
 
-type PracticeType = 'daily' | 'unit' | 'assessment';
-
 export default function PracticeDetailPage() {
-  const { id, type, sessionId } = useParams<{
-    id: string;
-    type: PracticeType;
-    sessionId: string;
-  }>();
+  const { sessionId } = useParams<{ sessionId: string }>();
 
   // 抽屉状态
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -42,22 +34,13 @@ export default function PracticeDetailPage() {
       if (isNaN(sessionIdNum)) {
         throw new Error('无效的会话ID');
       }
-      // 根据 API.md，使用统一的会话详情接口
-      return await StudentApi.getSessionDetail(sessionIdNum);
+      return await PracticeApi.getSessionDetail(sessionIdNum);
     },
     {
       ready: !!sessionId,
       onError: (error: any) => {
         console.error('加载练习详情失败:', error);
-        console.error('错误详情:', {
-          sessionId,
-          type,
-          id,
-          errorMessage: error?.message,
-          errorResponse: error?.response,
-        });
         message.error(error?.message || '加载练习详情失败，请稍后重试');
-        // 延迟返回，让用户看到错误提示
         setTimeout(() => {
           history.back();
         }, 2000);
@@ -73,13 +56,12 @@ export default function PracticeDetailPage() {
     if (data.answers && Array.isArray(data.answers)) {
       const answers: Record<number, any> = {};
       data.answers.forEach((answer: any) => {
-        // is_correct: 0-未答, 1-正确, 2-错误
         const isCorrectValue =
           answer.is_correct !== undefined && answer.is_correct !== null ? answer.is_correct : 0;
         const hasAnswered = isCorrectValue !== 0;
 
         answers[answer.question_id] = {
-          is_correct: isCorrectValue, // 保存原始值 0/1/2，用于计算
+          is_correct: isCorrectValue,
           has_answered: hasAnswered,
           answer: answer.text_answer || answer.question_content || '',
           time_spent: answer.time_spent || 0,
@@ -126,15 +108,12 @@ export default function PracticeDetailPage() {
     if (data.answers && Array.isArray(data.answers) && data.answers.length > 0) {
       const questionMap = new Map<number, any>();
       data.answers.forEach((answer: any) => {
-        // 如果 answer 中有 question 对象，使用它
         if (answer.question && !questionMap.has(answer.question.id)) {
           questionMap.set(answer.question.id, {
             ...answer.question,
             order: answer.question_order || answer.question.order || 0,
           });
-        }
-        // 如果没有 question 对象但有 question_content，创建一个简化的题目对象
-        else if (
+        } else if (
           answer.question_id &&
           answer.question_content &&
           !questionMap.has(answer.question_id)
@@ -146,7 +125,6 @@ export default function PracticeDetailPage() {
           });
         }
       });
-      // 按 order 排序
       const questionList = Array.from(questionMap.values());
       return questionList.sort((a, b) => (a.order || 0) - (b.order || 0));
     }
@@ -166,10 +144,11 @@ export default function PracticeDetailPage() {
 
   // 获取标题
   const getTitle = () => {
-    switch (type) {
-      case 'daily':
+    const sessionType = data?.session?.session_type;
+    switch (sessionType) {
+      case 'daily_practice':
         return '日常练习详情';
-      case 'unit':
+      case 'unit_practice':
         return '单元练习详情';
       case 'assessment':
         return '能力评测详情';
@@ -180,35 +159,22 @@ export default function PracticeDetailPage() {
 
   // 获取会话信息
   const session = data?.session;
-  const unit = (data as any)?.unit; // unit 只在 unit practice 中存在
+  const unit = (data as any)?.unit;
   const report = data?.report;
 
-  // 调试信息
-  if (data && !session) {
-    console.warn('数据已加载但 session 不存在:', data);
-  }
-
-  // 计算统计数据（优先使用 report，否则通过 is_correct 计算）
+  // 计算统计数据
   const totalQuestions = report?.total_questions || session?.question_count || questions.length;
-
-  // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
   const answerValues = Object.values(studentAnswers) as any[];
-
-  // 已完成数量：is_correct 为 1 或 2 的数量（即 is_correct !== 0）
   const answeredCount = report?.total_questions
     ? session?.answer_count || 0
     : answerValues.filter(
         (ans: any) =>
           ans.is_correct !== undefined && ans.is_correct !== null && ans.is_correct !== 0,
       ).length;
-
-  // 正确数量：is_correct === 1 的数量
   const correctCount =
     report?.correct_questions ||
     session?.correct_count ||
     answerValues.filter((ans: any) => ans.is_correct === 1).length;
-
-  // 错误数量：is_correct === 2 的数量
   const wrongCount = report?.total_questions
     ? answeredCount - correctCount
     : answerValues.filter((ans: any) => ans.is_correct === 2).length;
@@ -216,7 +182,6 @@ export default function PracticeDetailPage() {
   const unansweredCount = totalQuestions - answeredCount;
   const progressPercent =
     totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
-
   const accuracy = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(1) : '0';
 
   const columns = useMemo<ProColumns<any>[]>(
@@ -271,7 +236,6 @@ export default function PracticeDetailPage() {
         width: 100,
         render: (questionId: number) => {
           const answerData = studentAnswers[questionId];
-          // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
           const hasAnswered =
             answerData?.is_correct !== undefined &&
             answerData?.is_correct !== null &&
@@ -289,7 +253,6 @@ export default function PracticeDetailPage() {
         width: 100,
         render: (questionId: number) => {
           const answerData = studentAnswers[questionId];
-          // 通过 is_correct 判断：0-未答, 1-正确, 2-错误
           if (
             !answerData ||
             answerData.is_correct === undefined ||
@@ -337,7 +300,7 @@ export default function PracticeDetailPage() {
         ),
       },
     ],
-    [studentAnswers, type, questions],
+    [studentAnswers],
   );
 
   if (loading) {
@@ -382,6 +345,8 @@ export default function PracticeDetailPage() {
       </PageContainer>
     );
   }
+
+  const sessionType = session.session_type;
 
   return (
     <PageContainer
@@ -481,17 +446,15 @@ export default function PracticeDetailPage() {
         {/* 练习信息卡片 */}
         <Card title="练习信息">
           <ProDescriptions column={3}>
-            {type === 'daily' && (
+            {sessionType === 'daily_practice' && (
               <>
                 <ProDescriptions.Item label="练习日期">
                   {(() => {
-                    // 优先使用 date 字段，如果没有则使用 target_id（每日练习的日期存储在 target_id 中）
                     const dateValue = (session as any).date || (session as any).target_id;
                     if (!dateValue) {
                       return '-';
                     }
                     const dateStr = String(dateValue);
-                    // 确保日期字符串长度至少为 8 位（YYYYMMDD）
                     if (dateStr.length < 8) {
                       return dateStr;
                     }
@@ -500,10 +463,10 @@ export default function PracticeDetailPage() {
                 </ProDescriptions.Item>
               </>
             )}
-            {type === 'unit' && unit && (
+            {sessionType === 'unit_practice' && unit && (
               <ProDescriptions.Item label="单元名称">{unit.name || '-'}</ProDescriptions.Item>
             )}
-            {type === 'assessment' && (
+            {sessionType === 'assessment' && (
               <>
                 <ProDescriptions.Item label="评测类型">
                   <Tag color="blue">
@@ -515,14 +478,12 @@ export default function PracticeDetailPage() {
                   </Tag>
                 </ProDescriptions.Item>
                 {(session as any).target_id && (
-                  <ProDescriptions.Item label="目标ID">
-                    {(session as any).target_id}
-                  </ProDescriptions.Item>
+                  <ProDescriptions.Item label="目标ID">{(session as any).target_id}</ProDescriptions.Item>
                 )}
               </>
             )}
             <ProDescriptions.Item label="总题数">{totalQuestions} 题</ProDescriptions.Item>
-            {type !== 'assessment' && (
+            {sessionType !== 'assessment' && (
               <>
                 <ProDescriptions.Item label="正确题数">
                   {(session as any).correct_questions || correctCount} 题
@@ -535,7 +496,7 @@ export default function PracticeDetailPage() {
                 )}
               </>
             )}
-            {type === 'assessment' && (
+            {sessionType === 'assessment' && (
               <>
                 <ProDescriptions.Item label="能力值">
                   {(session as any).current_ability?.toFixed(2) || '-'}
@@ -571,7 +532,7 @@ export default function PracticeDetailPage() {
                 )}
               </>
             )}
-            {type === 'unit' && (session as any).difficulty && (
+            {sessionType === 'unit_practice' && (session as any).difficulty && (
               <ProDescriptions.Item label="难度">
                 <Tag
                   color={
@@ -658,3 +619,4 @@ export default function PracticeDetailPage() {
     </PageContainer>
   );
 }
+

@@ -1,6 +1,7 @@
 """练习管理路由 - Admin端"""
 
 from typing import Dict, List, Optional
+from fastapi import Query
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -150,6 +151,31 @@ async def get_practice_history(
 
     # 转换为字典列表
     return [item.model_dump() for item in history_list]
+
+
+@practice_router.get("/records")
+async def get_all_practice_records(
+    practice_type: Optional[str] = Query(None, description="练习类型筛选"),
+    student_id: Optional[str] = Query(None, description="学生ID筛选"),
+    limit: int = Query(100, description="返回记录数量"),
+    offset: int = Query(0, description="偏移量"),
+    db: AsyncSession = Database,
+) -> Dict:
+    """
+    获取所有学生的练习记录（支持筛选和分页）
+    
+    Args:
+        practice_type: 练习类型筛选 (daily_practice/unit_practice/assessment)
+        student_id: 学生ID筛选
+        limit: 返回记录数量，默认100条
+        offset: 偏移量，默认0
+        
+    Returns:
+        包含 records 和 total 的字典
+    """
+    return await practice_service.get_all_practice_records(
+        db, practice_type, student_id, limit, offset
+    )
 
 
 # ========== 练习会话详情 ==========
