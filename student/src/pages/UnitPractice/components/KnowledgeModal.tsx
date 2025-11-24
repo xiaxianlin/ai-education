@@ -10,6 +10,7 @@ interface KnowledgeModalProps {
   open: boolean;
   unitName: string;
   knowledges: Knowledge[];
+  loading?: boolean;
   onClose: () => void;
 }
 
@@ -17,6 +18,7 @@ export const KnowledgeModal = memo(function KnowledgeModal({
   open,
   unitName,
   knowledges,
+  loading = false,
   onClose,
 }: KnowledgeModalProps) {
   if (!open) return null;
@@ -39,7 +41,11 @@ export const KnowledgeModal = memo(function KnowledgeModal({
           </Button>
         </div>
         <div className="px-6 py-5 max-h-[60vh] overflow-y-auto space-y-3 bg-gradient-to-b from-white via-white to-purple-50/40">
-          {knowledges.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">加载中...</div>
+            </div>
+          ) : knowledges.length > 0 ? (
             knowledges.map((knowledge) => (
               <div
                 key={knowledge.id}

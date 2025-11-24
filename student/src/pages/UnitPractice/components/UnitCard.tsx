@@ -20,6 +20,7 @@ interface UnitCardProps {
   onStart: (unit: Unit) => void;
   onShowKnowledge: (unit: Unit) => void;
   hasIncompletePractice?: boolean;
+  hasInProgressPractice?: boolean; // 是否有任何进行中的单元练习
 }
 
 export const UnitCard = memo(function UnitCard({
@@ -28,8 +29,14 @@ export const UnitCard = memo(function UnitCard({
   onStart,
   onShowKnowledge,
   hasIncompletePractice = false,
+  hasInProgressPractice = false,
 }: UnitCardProps) {
-  const knowledges = unit.knowledges || [];
+  // 知识点查看功能已启用，点击时会调用接口获取知识点
+  // 这里暂时设为 true，允许用户点击查看知识点按钮
+  const hasKnowledges = true;
+  
+  // 如果存在进行中的练习，且当前单元没有进行中的练习，则禁用开始练习按钮
+  const isStartDisabled = hasInProgressPractice && !hasIncompletePractice;
 
   return (
     <Card
@@ -60,7 +67,8 @@ export const UnitCard = memo(function UnitCard({
               {unit.name}
             </CardTitle>
             <CardDescription className="text-sm leading-relaxed text-gray-600 line-clamp-2">
-              {unit.content || '本单元包含多个重点知识点，快来挑战吧！'}
+              {/* 根据 API.md，新接口可能不返回 content 字段，使用默认文本 */}
+              {(unit as any).content || '本单元包含多个重点知识点，快来挑战吧！'}
             </CardDescription>
           </div>
         </div>
@@ -72,21 +80,24 @@ export const UnitCard = memo(function UnitCard({
             size="sm"
             className={cn(
               'flex-1 h-11 rounded-xl text-sm font-semibold transition-all',
-              knowledges.length > 0
+              hasKnowledges
                 ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm hover:bg-purple-200 hover:border-purple-300 hover:-translate-y-0.5 hover:shadow-md'
                 : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
             )}
-            onClick={() => knowledges.length > 0 && onShowKnowledge(unit)}
-            disabled={knowledges.length === 0}
+            onClick={() => hasKnowledges && onShowKnowledge(unit)}
+            disabled={!hasKnowledges}
           >
             查看知识点
           </Button>
 
           <Button
-            onClick={() => onStart(unit)}
+            onClick={() => !isStartDisabled && onStart(unit)}
+            disabled={isStartDisabled}
             className={cn(
-              'flex-1 h-11 rounded-xl text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300',
-              theme.button
+              'flex-1 h-11 rounded-xl text-sm font-semibold shadow-lg transition-all duration-300',
+              isStartDisabled
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed hover:shadow-lg opacity-60'
+                : cn('text-white hover:shadow-xl', theme.button)
             )}
           >
             <Play className="h-5 w-5 mr-2" fill="currentColor" />
@@ -94,9 +105,7 @@ export const UnitCard = memo(function UnitCard({
           </Button>
         </div>
 
-        {knowledges.length === 0 && (
-          <p className="text-xs text-gray-500 text-center">暂无知识点</p>
-        )}
+        {/* 暂时隐藏知识点提示，因为新接口不返回知识点信息 */}
       </CardContent>
       {/* 装饰性元素 */}
       <div className={cn('absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-20 blur-3xl', theme.bg)} />

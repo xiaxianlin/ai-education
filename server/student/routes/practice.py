@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import Database
 from student.schema import AnswerQuestionSchema, PracticeStatsSchem, PracticeHistorySchema
 from student.services import textbook, daily_practice, assessment, unit_practice, practice, answer
+from student.services import unit as unit_service
 
 practice_router = APIRouter(prefix="/practice")
 
@@ -66,17 +67,6 @@ async def create_assessment_route(
     # 获取当前学生信息
     student = request.state.student
 
-    # 检查是否有正在生成的能力评估
-    from shared.services.practice import PracticeService
-    generating_session = await PracticeService.check_generating_session(
-        db=db,
-        session_type="assessment",
-        student_id=student.id,
-    )
-    if generating_session:
-        status_text = "生产中" if generating_session.status == 3 else "生成完成"
-        raise ValueError(f"能力评估正在生成中（{status_text}），请稍候")
-
     # 获取学生当前激活的教材
     active_textbook = await textbook.get_active_textbook(db, student.id)
     if not active_textbook:
@@ -122,17 +112,10 @@ async def create_unit_practice_route(
     # 获取当前学生信息
     student = request.state.student
 
-    # 检查是否有正在生成的单元练习
-    from shared.services.practice import PracticeService
-    generating_session = await PracticeService.check_generating_session(
-        db=db,
-        session_type="unit_practice",
-        student_id=student.id,
-        unit_id=unit_id,
-    )
-    if generating_session:
-        status_text = "生产中" if generating_session.status == 3 else "生成完成"
-        raise ValueError(f"单元练习正在生成中（{status_text}），请稍候")
+    # 检查是否存在进行中的单元练习
+    in_progress_session = await unit_service.get_in_progress_unit_practice(db, student.id)
+    if in_progress_session:
+        raise ValueError("还有进行中的单元练习，请先完成后再创建新的练习")
 
     result = await unit_practice.create_unit_practice(db, student.id, unit_id)
 
@@ -231,23 +214,23 @@ async def get_session_detail(
 ) -> Dict:
     """
     获取练习会话详情
-    
+
     包括：
     - 会话基本信息
     - 问题列表（按顺序）
     - 已提交的答案
     - 已完成练习的报告（如果存在）
-    
+
     Args:
         session_id: 练习会话ID
-        
+
     Returns:
         会话详情，包含session、questions、answers、report
     """
     # 获取当前学生信息
     student = request.state.student
-    
+
     # 获取会话详情
     result = await practice.get_session_detail(db, student.id, session_id)
-    
+
     return result

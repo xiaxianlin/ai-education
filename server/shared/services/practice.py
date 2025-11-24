@@ -2,12 +2,47 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, StudentTextbook
+from core.database import PracticeSession, StudentTextbook, PracticeAnswer
 from shared.utils.time import now, today
 from shared.question.graph import invoke_generate_workflow
 
 
 class PracticeService:
+
+    @staticmethod
+    async def prepare_records(db: AsyncSession, session_id: int, question_ids: list[int]):
+        """
+        为练习会话预生成答题记录
+
+        Args:
+            db: 数据库会话
+            session_id: 练习会话ID
+            question_ids: 题目ID列表
+        """
+        # 删除已存在的答题记录（如果重新生成）
+        existing_records = await db.scalars(
+            select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
+        )
+        for record in existing_records.all():
+            db.delete(record)
+        await db.flush()  # 确保删除操作完成
+
+        # 批量创建答题记录
+        answer_records = []
+        for order, question_id in enumerate(question_ids, start=1):
+            answer_record = PracticeAnswer(
+                session_id=session_id,
+                question_id=question_id,
+                question_order=order,
+                is_correct=0,  # 0表示未答
+                time_spent=0,
+            )
+            answer_records.append(answer_record)
+
+        db.add_all(answer_records)
+        await db.commit()
+
+        logger.info(f"预生成答题记录完成: session_id={session_id}, count={len(answer_records)}")
 
     @staticmethod
     async def generate_practice_session(
@@ -32,10 +67,12 @@ class PracticeService:
                 session_textbook_id = student_textbook.textbook_id
 
         # 1. 生成开始前，先创建会话记录
+        # target_id 根据类型设置：daily_practice 使用 today()，unit_practice 使用 unit_id，assessment 使用 today()
+        target_id_value = unit_id if type == "unit_practice" and unit_id else today()
         session = PracticeSession(
             student_id=student_id,
             session_type=type,
-            target_id=today(),
+            target_id=target_id_value,
             textbook_id=session_textbook_id,
             question_count=0,
         )

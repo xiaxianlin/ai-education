@@ -9,7 +9,9 @@ import { useApiError } from '@/lib/hooks/useApiError';
 import type { PracticeSession } from '@/lib/types/schema';
 import type { DailyPracticeStatus } from '../components/DailyPracticeCard';
 import type { AssessmentStatus } from '../components/AssessmentCard';
+import type { UnitPracticeStatus } from '../components/UnitPracticeCard';
 import { toast } from 'sonner';
+import { profileApi } from '@/services/profile';
 
 export function useHomePage() {
   const { handleError } = useApiError();
@@ -21,6 +23,8 @@ export function useHomePage() {
   const [dailyPracticeSession, setDailyPracticeSession] = useState<PracticeSession | null>(null);
   const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus>('not_created');
   const [assessmentSession, setAssessmentSession] = useState<PracticeSession | null>(null);
+  const [unitPracticeStatus, setUnitPracticeStatus] = useState<UnitPracticeStatus>('no_session');
+  const [unitPracticeSession, setUnitPracticeSession] = useState<PracticeSession | null>(null);
   const [todayProgress, setTodayProgress] = useState(0);
   const [dailyQuestions, setDailyQuestions] = useState(0);
   const [completedQuestions, setCompletedQuestions] = useState(0);
@@ -30,6 +34,7 @@ export function useHomePage() {
     loadStats();
     loadDailyPractice();
     loadAssessment();
+    loadUnitPractice();
   }, []);
 
   const checkTextbookSetup = useCallback(async () => {
@@ -173,6 +178,26 @@ export function useHomePage() {
     }
   }, [handleError]);
 
+  const loadUnitPractice = useCallback(async () => {
+    try {
+      // 调用新的接口获取进行中的单元练习
+      const session = await profileApi.getInProgressUnitPractice();
+      
+      if (session) {
+        setUnitPracticeSession(session);
+        setUnitPracticeStatus('in_progress');
+      } else {
+        setUnitPracticeStatus('no_session');
+        setUnitPracticeSession(null);
+      }
+    } catch (error) {
+      // 静默处理错误，不影响页面显示
+      console.error('Failed to load unit practice:', error);
+      setUnitPracticeStatus('no_session');
+      setUnitPracticeSession(null);
+    }
+  }, []);
+
   const closeTextbookModal = useCallback(() => {
     setShowTextbookModal(false);
     // 关闭后重新检查
@@ -187,6 +212,8 @@ export function useHomePage() {
     dailyPracticeSession,
     assessmentStatus,
     assessmentSession,
+    unitPracticeStatus,
+    unitPracticeSession,
     todayProgress,
     dailyQuestions,
     completedQuestions,

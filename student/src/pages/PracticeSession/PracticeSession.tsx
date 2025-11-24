@@ -2,26 +2,25 @@
  * 通用练习会话页面
  * 根据 session_id 进行答题，支持所有类型的练习
  */
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { Header } from '@/components/layout/Header';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
-import { usePracticeSession } from './hooks/usePracticeSession';
-import { ProgressIndicator } from './components/ProgressIndicator';
-import { QuestionCard } from '@/components/practice/QuestionCard';
-import { AnswerOptions } from '@/components/practice/AnswerOptions';
-import { NavigationButtons } from '@/components/practice/NavigationButtons';
-import { ResultModal } from './components/ResultModal';
+import { useParams, useNavigate } from "@tanstack/react-router";
+import { Header } from "@/components/layout/Header";
+import { LoadingSpinner } from "@/components/biz/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { usePracticeSession } from "./hooks/usePracticeSession";
+import { ProgressIndicator } from "./components/ProgressIndicator";
+import { QuestionCard } from "@/components/practice/QuestionCard";
+import { AnswerOptions } from "@/components/practice/AnswerOptions";
+import { NavigationButtons } from "@/components/practice/NavigationButtons";
+import { ResultModal } from "./components/ResultModal";
 
 export function PracticeSession() {
-  const { sessionId } = useParams({ from: '/practice/$sessionId' });
+  const { sessionId } = useParams({ from: "/practice/$sessionId" });
   const navigate = useNavigate();
-  
+
   const {
     loading,
     session,
-    questions,
     currentQuestion,
     currentQuestionIndex,
     totalQuestions,
@@ -41,31 +40,31 @@ export function PracticeSession() {
 
   // 获取返回路径
   const getBackPath = () => {
-    if (!session) return '/home';
+    if (!session) return "/home";
     switch (session.session_type) {
-      case 'daily_practice':
-        return '/home';
-      case 'unit_practice':
-        return '/unit-practice';
-      case 'assessment':
-        return '/assessment';
+      case "daily_practice":
+        return "/home";
+      case "unit_practice":
+        return "/unit-practice";
+      case "assessment":
+        return "/assessment";
       default:
-        return '/home';
+        return "/home";
     }
   };
 
   // 获取练习类型名称
   const getPracticeTypeName = () => {
-    if (!session) return '练习';
+    if (!session) return "练习";
     switch (session.session_type) {
-      case 'daily_practice':
-        return '每日练习';
-      case 'unit_practice':
-        return '单元练习';
-      case 'assessment':
-        return '能力评测';
+      case "daily_practice":
+        return "每日练习";
+      case "unit_practice":
+        return "单元练习";
+      case "assessment":
+        return "能力评测";
       default:
-        return '练习';
+        return "练习";
     }
   };
 
@@ -94,10 +93,10 @@ export function PracticeSession() {
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6 text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">练习会话不存在</h2>
-          <Button onClick={() => navigate({ to: getBackPath() })}>
-            返回
-          </Button>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            练习会话不存在
+          </h2>
+          <Button onClick={() => navigate({ to: getBackPath() })}>返回</Button>
         </div>
       </div>
     );
@@ -117,7 +116,7 @@ export function PracticeSession() {
             <ChevronLeft className="h-4 w-4" />
             返回
           </Button>
-          
+
           <div className="bg-white rounded-3xl p-12 shadow-xl border-2 border-blue-200 text-center">
             <div className="text-6xl mb-6">🎯</div>
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
@@ -143,9 +142,8 @@ export function PracticeSession() {
   const currentAnswer = userAnswers[currentQuestion.id];
   const currentAudioUrl = audioUrls[currentQuestion.id];
   const isCorrect = answerResults[currentQuestion.id];
-  const hasAnswer = currentQuestion.type === '口语题' 
-    ? !!currentAudioUrl 
-    : !!currentAnswer;
+  const hasAnswer =
+    currentQuestion.type === "口语题" ? !!currentAudioUrl : !!currentAnswer;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 pb-20">
@@ -204,4 +202,3 @@ export function PracticeSession() {
     </div>
   );
 }
-

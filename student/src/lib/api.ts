@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { toast } from 'sonner';
 
 // 开发环境使用代理路径，生产环境使用完整 URL
 const API_BASE_URL = 
@@ -45,6 +46,7 @@ axiosInstance.interceptors.response.use(
     // 处理状态码
     if (data.status === 401) {
       // 未授权，清除 token 并跳转到登录页
+      // 401 错误不显示 toast，直接跳转登录页
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('_t');
         window.location.href = '/login';
@@ -54,11 +56,13 @@ axiosInstance.interceptors.response.use(
       // 需要修改密码（student 项目中暂无密码修改页面，抛出错误）
       const errorMessage = data.message || '需要修改密码';
       console.error(errorMessage);
+      toast.error(errorMessage);
       throw new Error(errorMessage);
     } else if (data.status !== 0 && data.status !== undefined) {
       // 其他错误状态
       const errorMessage = data.message || '网络异常';
       console.error(errorMessage);
+      toast.error(errorMessage);
       throw new Error(errorMessage);
     }
     
@@ -74,16 +78,24 @@ axiosInstance.interceptors.response.use(
       const httpStatus = error.response.status;
       
       // 如果返回的是 ApiData 格式，使用其 message
-      if (responseData && typeof responseData === 'object' && 'message' in responseData) {
-        throw new Error(responseData.message || `请求失败: ${httpStatus}`);
-      } else {
-        throw new Error(`请求失败: ${httpStatus}`);
-      }
+      const errorMessage = responseData && typeof responseData === 'object' && 'message' in responseData
+        ? (responseData.message || `请求失败: ${httpStatus}`)
+        : `请求失败: ${httpStatus}`;
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     } else if (error.request) {
       // 请求已发出但没有收到响应
-      throw new Error('网络错误，请检查网络连接');
+      const errorMessage = '网络错误，请检查网络连接';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     } else {
       // 其他错误（包括拦截器中抛出的错误）
+      // 如果是 Error 对象且有 message，显示 toast
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('操作失败，请重试');
+      }
       throw error;
     }
   }

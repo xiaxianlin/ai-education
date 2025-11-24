@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { Student, Textbook, CheckAuthResponse } from '@/lib/types/schema';
+import type { Student, Textbook, CheckAuthResponse, PracticeSession } from '@/lib/types/schema';
 
 /**
  * 学生资料（兼容旧接口）
@@ -118,6 +118,20 @@ export const profileApi = {
   getUnits: async (textbookId?: number): Promise<Unit[]> => {
     const params = textbookId ? `?textbook_id=${textbookId}` : '';
     return api.get<Unit[]>(`/textbook/units${params}`);
+  },
+
+  /**
+   * 获取单元知识点列表（GET /api/student/unit/{unit_id}/knowledges）
+   */
+  getUnitKnowledges: async (unitId: number): Promise<Knowledge[]> => {
+    return api.get<Knowledge[]>(`/unit/${unitId}/knowledges`);
+  },
+
+  /**
+   * 获取进行中的单元练习（GET /api/student/unit/practice/in-progress）
+   */
+  getInProgressUnitPractice: async (): Promise<PracticeSession | null> => {
+    return api.get<PracticeSession | null>('/unit/practice/in-progress');
   },
 
   /**

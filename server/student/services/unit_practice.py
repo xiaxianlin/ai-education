@@ -116,7 +116,7 @@ async def create_unit_practice(
         session_id = await PracticeService.generate_practice_session(
             db=db,
             type="unit_practice",
-            count=30,
+            count=10,
             unit_id=unit_id,
             textbook_id=textbook.id,
             student_id=student_id,
