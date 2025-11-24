@@ -67,7 +67,6 @@ export function usePracticeSession(sessionId: number) {
           }
         }
       }
-      }
       
       // 如果有报告，说明练习已完成
       if (detail.report) {
@@ -231,10 +230,10 @@ export function usePracticeSession(sessionId: number) {
       const sessionIdValue = getSessionId(session);
       const result = await practiceApi.completePractice(sessionIdValue);
       
-      // 重新加载会话以获取报告
-      await loadSession();
-      
       toast.success('练习已完成！');
+      
+      // 导航到结果页
+      navigate({ to: `/practice-result/${sessionIdValue}` });
     } catch (error) {
       console.error('Failed to complete practice:', error);
       const errorMessage = error instanceof Error ? error.message : '完成练习失败';

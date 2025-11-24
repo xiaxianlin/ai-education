@@ -8,6 +8,7 @@ import { practiceApi } from '@/services/practice';
 import { useApiError } from '@/lib/hooks/useApiError';
 import type { PracticeSession } from '@/lib/types/schema';
 import type { DailyPracticeStatus } from '../components/DailyPracticeCard';
+import type { AssessmentStatus } from '../components/AssessmentCard';
 import { toast } from 'sonner';
 
 export function useHomePage() {
@@ -18,6 +19,8 @@ export function useHomePage() {
   const [stats, setStats] = useState<StudentStats | null>(null);
   const [dailyPracticeStatus, setDailyPracticeStatus] = useState<DailyPracticeStatus>('not_generated');
   const [dailyPracticeSession, setDailyPracticeSession] = useState<PracticeSession | null>(null);
+  const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus>('not_created');
+  const [assessmentSession, setAssessmentSession] = useState<PracticeSession | null>(null);
   const [todayProgress, setTodayProgress] = useState(0);
   const [dailyQuestions, setDailyQuestions] = useState(0);
   const [completedQuestions, setCompletedQuestions] = useState(0);
@@ -26,6 +29,7 @@ export function useHomePage() {
     checkTextbookSetup();
     loadStats();
     loadDailyPractice();
+    loadAssessment();
   }, []);
 
   const checkTextbookSetup = useCallback(async () => {
@@ -133,6 +137,42 @@ export function useHomePage() {
     }
   }, [handleError]);
 
+  const loadAssessment = useCallback(async () => {
+    try {
+      const session = await practiceApi.getAssessment();
+      
+      if (session) {
+        setAssessmentSession(session);
+        setAssessmentStatus('ready');
+      } else {
+        setAssessmentStatus('not_created');
+        setAssessmentSession(null);
+      }
+    } catch (error) {
+      // 静默处理错误，不影响页面显示
+      console.error('Failed to load assessment:', error);
+      setAssessmentStatus('not_created');
+      setAssessmentSession(null);
+    }
+  }, []);
+
+  const createAssessment = useCallback(async () => {
+    try {
+      const session = await practiceApi.createAssessment();
+      setAssessmentSession(session);
+      setAssessmentStatus('ready');
+      toast.success('能力评测已创建，开始答题！');
+      
+      // 返回 session，由组件处理导航
+      return session;
+    } catch (error) {
+      console.error('Failed to create assessment:', error);
+      handleError(error);
+      toast.error('创建能力评测失败，请稍后重试');
+      throw error;
+    }
+  }, [handleError]);
+
   const closeTextbookModal = useCallback(() => {
     setShowTextbookModal(false);
     // 关闭后重新检查
@@ -145,10 +185,13 @@ export function useHomePage() {
     stats,
     dailyPracticeStatus,
     dailyPracticeSession,
+    assessmentStatus,
+    assessmentSession,
     todayProgress,
     dailyQuestions,
     completedQuestions,
     createDailyPractice,
+    createAssessment,
     closeTextbookModal,
   };
 }

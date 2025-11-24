@@ -9,10 +9,9 @@ const Home = lazy(() => import('./pages/Home/Home').then(m => ({ default: m.Home
 const WrongQuestions = lazy(() => import('./pages/WrongQuestions/WrongQuestions').then(m => ({ default: m.WrongQuestions })));
 const PracticeHistory = lazy(() => import('./pages/PracticeHistory/PracticeHistory').then(m => ({ default: m.PracticeHistory })));
 const Profile = lazy(() => import('./pages/Profile/Profile').then(m => ({ default: m.Profile })));
-const DailyPracticeResult = lazy(() => import('./pages/DailyPracticeResult/DailyPracticeResult').then(m => ({ default: m.DailyPracticeResult })));
 const UnitPractice = lazy(() => import('./pages/UnitPractice/UnitPractice').then(m => ({ default: m.UnitPractice })));
-const Assessment = lazy(() => import('./pages/Assessment/Assessment').then(m => ({ default: m.Assessment })));
 const PracticeSession = lazy(() => import('./pages/PracticeSession/PracticeSession').then(m => ({ default: m.PracticeSession })));
+const PracticeResult = lazy(() => import('./pages/PracticeResult/PracticeResult').then(m => ({ default: m.PracticeResult })));
 const Settings = lazy(() => import('./pages/Settings/Settings').then(m => ({ default: m.Settings })));
 
 const rootRoute = createRootRoute();
@@ -68,10 +67,10 @@ const profileRoute = createRoute({
   beforeLoad: requireAuth,
 });
 
-const dailyPracticeResultRoute = createRoute({
+const practiceResultRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/daily-practice/result',
-  component: DailyPracticeResult,
+  path: '/practice-result/$sessionId',
+  component: PracticeResult,
   beforeLoad: requireAuth,
 });
 
@@ -79,13 +78,6 @@ const unitPracticeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/unit-practice',
   component: UnitPractice,
-  beforeLoad: requireAuth,
-});
-
-const assessmentRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/assessment',
-  component: Assessment,
   beforeLoad: requireAuth,
 });
 
@@ -112,9 +104,8 @@ const routeTree = rootRoute.addChildren([
   historyRoute,
   practiceHistoryRoute,
   profileRoute,
-  dailyPracticeResultRoute,
+  practiceResultRoute,
   unitPracticeRoute,
-  assessmentRoute,
   practiceSessionRoute,
   settingsRoute,
 ]);

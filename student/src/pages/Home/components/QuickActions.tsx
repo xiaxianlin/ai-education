@@ -4,7 +4,7 @@
  */
 import { memo } from 'react';
 import { Link } from '@tanstack/react-router';
-import { BookOpen, Brain, RefreshCw, History } from 'lucide-react';
+import { BookOpen, RefreshCw, History } from 'lucide-react';
 
 export const QuickActions = memo(function QuickActions() {
   const actions = [
@@ -17,16 +17,6 @@ export const QuickActions = memo(function QuickActions() {
       hoverGradient: 'hover:from-green-500 hover:to-emerald-600',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-200',
-    },
-    {
-      icon: Brain,
-      label: '能力评测',
-      emoji: '🧠',
-      path: '/assessment',
-      gradient: 'from-purple-400 to-pink-500',
-      hoverGradient: 'hover:from-purple-500 hover:to-pink-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
     },
     {
       icon: RefreshCw,
@@ -53,7 +43,7 @@ export const QuickActions = memo(function QuickActions() {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-gray-800 px-2">快速开始 🚀</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {actions.map((action) => (
           <Link key={action.path} to={action.path} className="group">
             <div className={`relative h-32 rounded-2xl ${action.bgColor} border-2 ${action.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group-hover:scale-105`}>

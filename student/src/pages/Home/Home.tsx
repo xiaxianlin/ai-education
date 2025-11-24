@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useHomePage } from './hooks/useHomePage';
 import { WelcomeCard } from './components/WelcomeCard';
 import { DailyPracticeCard } from './components/DailyPracticeCard';
+import { AssessmentCard } from './components/AssessmentCard';
 import { QuickActions } from './components/QuickActions';
 
 export function Home() {
@@ -17,7 +18,10 @@ export function Home() {
     stats,
     dailyPracticeStatus,
     dailyPracticeSession,
+    assessmentStatus,
+    assessmentSession,
     createDailyPractice,
+    createAssessment,
     closeTextbookModal,
   } = useHomePage();
 
@@ -41,12 +45,22 @@ export function Home() {
         
         {/* 主要内容区域 */}
         <div className="mt-8 space-y-6">
-          {/* 每日练习卡片 */}
-          <DailyPracticeCard
-            status={dailyPracticeStatus}
-            session={dailyPracticeSession}
-            onCreate={createDailyPractice}
-          />
+          {/* 练习卡片区域 - 并排显示 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 每日练习卡片 */}
+            <DailyPracticeCard
+              status={dailyPracticeStatus}
+              session={dailyPracticeSession}
+              onCreate={createDailyPractice}
+            />
+            
+            {/* 能力评测卡片 */}
+            <AssessmentCard
+              status={assessmentStatus}
+              session={assessmentSession}
+              onCreate={createAssessment}
+            />
+          </div>
           
           {/* 快速操作 */}
           <QuickActions />
