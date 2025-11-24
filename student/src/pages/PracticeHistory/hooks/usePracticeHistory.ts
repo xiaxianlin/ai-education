@@ -27,9 +27,9 @@ export function usePracticeHistory() {
 
   const loadUnits = useCallback(async () => {
     try {
-      const profile = await profileApi.getProfile();
-      if (profile?.current_textbook_id) {
-        const unitsData = await profileApi.getUnits(profile.current_textbook_id);
+      const checkResponse = await profileApi.check();
+      if (checkResponse.textbook?.id) {
+        const unitsData = await profileApi.getUnits(checkResponse.textbook.id);
         setUnits(unitsData || []);
       }
     } catch (error) {

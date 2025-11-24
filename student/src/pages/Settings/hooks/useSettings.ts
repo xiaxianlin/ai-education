@@ -31,18 +31,17 @@ export function useSettings() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [textbooksData, profileData] = await Promise.all([
+      const [textbooksData, checkResponse] = await Promise.all([
         profileApi.getTextbooks(),
-        profileApi.getProfile(),
+        profileApi.check(),
       ]);
       setTextbooks(textbooksData || []);
       
-      // 从教材列表中查找激活的教材，或者从 profile 中获取
+      // 从教材列表中查找激活的教材，或者从 check 接口返回的教材获取
       const activeTextbook = textbooksData?.find(t => t.active === 1);
       const currentId = 
         activeTextbook?.id || 
-        profileData?.current_textbook_id || 
-        profileData?.textbook?.id || 
+        checkResponse.textbook?.id || 
         null;
       setCurrentTextbookId(currentId);
     } catch (error) {

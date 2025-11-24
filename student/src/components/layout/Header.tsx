@@ -27,23 +27,20 @@ export function Header() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [checkResponse, profileData, textbooksData] = await Promise.all([
-        authApi.check(),
-        profileApi.getProfile(),
-        profileApi.getTextbooks(),
-      ]);
-      
-      // 从 check 接口获取学生信息和当前教材
-      setStudent(checkResponse.student);
-      setTextbooks(textbooksData || []);
-      
-      // 找到当前教材（优先级：check接口返回的textbook > active字段 > profile中的current_textbook_id）
-      const current = 
-        checkResponse.textbook || 
-        textbooksData?.find(t => t.active === 1) ||
-        (profileData?.current_textbook_id ? textbooksData?.find(t => t.id === profileData.current_textbook_id) : null) ||
-        (profileData?.textbook?.id ? textbooksData?.find(t => t.id === profileData.textbook?.id) : null);
-      setCurrentTextbook(current || null);
+              const [checkResponse, textbooksData] = await Promise.all([
+                authApi.check(),
+                profileApi.getTextbooks(),
+              ]);
+              
+              // 从 check 接口获取学生信息和当前教材
+              setStudent(checkResponse.student);
+              setTextbooks(textbooksData || []);
+              
+              // 找到当前教材（优先级：check接口返回的textbook > active字段）
+              const current = 
+                checkResponse.textbook || 
+                textbooksData?.find(t => t.active === 1);
+              setCurrentTextbook(current || null);
     } catch (error) {
       console.error('Failed to load header data:', error);
       // 不显示错误提示，避免干扰用户体验

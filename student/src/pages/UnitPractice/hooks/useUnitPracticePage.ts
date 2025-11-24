@@ -59,15 +59,15 @@ export function useUnitPracticePage() {
   const loadUnits = useCallback(async () => {
     try {
       setLoading(true);
-      const profile = await profileApi.getProfile();
-      if (!profile?.current_textbook_id) {
+      const checkResponse = await profileApi.check();
+      if (!checkResponse.textbook?.id) {
         setUnits([]);
         setCurrentTextbook(null);
         return;
       }
 
       const textbooks = await profileApi.getTextbooks();
-      const textbook = textbooks.find((t) => t.id === profile.current_textbook_id);
+      const textbook = textbooks.find((t) => t.id === checkResponse.textbook?.id);
       setCurrentTextbook(textbook || null);
 
       // 根据 API.md: GET /api/student/textbook/units?textbook_id=1

@@ -1,28 +1,5 @@
 import { api } from '@/lib/api';
-import type { Student, Textbook, CheckAuthResponse, PracticeSession } from '@/lib/types/schema';
-
-/**
- * 学生资料（兼容旧接口）
- * 实际应使用 CheckAuthResponse
- */
-export interface StudentProfile {
-  id?: number;
-  student_id?: string;
-  current_textbook_id?: number;
-  preferred_subjects?: string;
-  difficulty_preference?: string;
-  create_time?: number;
-  update_time?: number;
-  // 根据 API.md，check 接口返回的格式
-  student?: Student;
-  textbook?: Textbook;
-}
-
-export interface UpdateProfileParams {
-  current_textbook_id?: number;
-  preferred_subjects?: string;
-  difficulty_preference?: string;
-}
+import type { Textbook, CheckAuthResponse, PracticeSession, Unit, Knowledge } from '@/lib/types/schema';
 
 export const profileApi = {
   /**
@@ -34,68 +11,25 @@ export const profileApi = {
   },
 
   /**
-   * 获取个人资料（兼容旧接口）
-   * 使用 check 接口获取信息
+   * 获取错题列表（GET /api/student/wrong-records）
    */
-  getProfile: async (): Promise<StudentProfile | null> => {
-    try {
-      const data = await profileApi.check();
-      return {
-        student_id: data.student.id,
-        current_textbook_id: data.textbook?.id,
-        student: data.student,
-        textbook: data.textbook,
-      };
-    } catch (error) {
-      console.error('获取个人资料失败:', error);
-      return null;
-    }
-  },
-
-  /**
-   * 更新个人资料（兼容旧接口）
-   * 如果更新的是 current_textbook_id，使用激活教材接口
-   */
-  updateProfile: async (params: UpdateProfileParams): Promise<StudentProfile> => {
-    // 如果更新的是当前教材，使用激活教材接口
-    if (params.current_textbook_id !== undefined) {
-      await profileApi.activateTextbook(params.current_textbook_id);
-      // 重新获取资料
-      const profile = await profileApi.getProfile();
-      if (!profile) {
-        throw new Error('更新失败');
-      }
-      return profile;
-    }
-    
-    // 其他字段的更新（如果需要后端支持）
-    // 目前先返回当前资料
-    const profile = await profileApi.getProfile();
-    if (!profile) {
-      throw new Error('更新失败');
-    }
-    return profile;
-  },
-
   getWrongQuestions: async (mastered?: number) => {
     const params = mastered !== undefined ? `?mastered=${mastered}` : '';
     return api.get<WrongQuestion[]>(`/wrong-records${params}`);
   },
 
+  /**
+   * 标记题目为已掌握（POST /api/student/wrong-records/{question_id}/master）
+   */
   markQuestionAsMastered: async (questionId: number) => {
     return api.post(`/wrong-records/${questionId}/master`);
   },
 
+  /**
+   * 取消标记题目为已掌握（POST /api/student/wrong-records/{question_id}/unmaster）
+   */
   unmarkQuestionAsMastered: async (questionId: number) => {
     return api.post(`/wrong-records/${questionId}/unmaster`);
-  },
-
-  getRecords: async () => {
-    return api.get<StudyRecord[]>('/profile/records');
-  },
-
-  createRecord: async (params: CreateStudyRecordParams) => {
-    return api.post<StudyRecord>('/profile/records', params);
   },
 
   // ===== 教材相关接口（根据 API.md） =====
@@ -137,26 +71,11 @@ export const profileApi = {
   activateTextbook: async (textbookId: number): Promise<void> => {
     return api.post(`/textbook/acitve/${textbookId}`);
   },
-
-  // ===== 兼容旧接口的方法 =====
-  
-  /**
-   * 获取教材列表（兼容旧接口）
-   * 使用新的接口
-   */
-  getTextbooksOld: async () => {
-    return profileApi.getTextbooks();
-  },
-
-  /**
-   * 获取单元列表（兼容旧接口）
-   * 使用新的接口
-   */
-  getUnitsOld: async (textbookId?: number) => {
-    return profileApi.getUnits(textbookId);
-  },
 };
 
+/**
+ * 错题记录
+ */
 export interface WrongQuestion {
   id: number;
   student_id: string;
@@ -168,33 +87,8 @@ export interface WrongQuestion {
   create_time: number;
   update_time?: number;
   question_content?: string;
-  knowledge?: string; // 知识点
+  knowledge?: string;
 }
 
-export interface StudyRecord {
-  id: number;
-  student_id: string;
-  textbook_id: number;
-  unit_id?: number;
-  knowledge_id?: number;
-  question_id?: number;
-  is_correct: number;
-  score: number;
-  time_spent: number;
-  study_date: number;
-  create_time: number;
-}
-
-export interface CreateStudyRecordParams {
-  textbook_id: number;
-  unit_id?: number;
-  knowledge_id?: number;
-  question_id?: number;
-  is_correct: number;
-  score?: number;
-  time_spent?: number;
-  study_date?: number;
-}
-
-// 导出统一类型（兼容旧接口）
+// 导出类型
 export type { Textbook, Unit, Knowledge } from '@/lib/types/schema';

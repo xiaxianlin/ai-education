@@ -37,8 +37,8 @@ export function useHomePage() {
   const checkTextbookSetup = useCallback(async () => {
     try {
       setChecking(true);
-      const profile = await profileApi.getProfile();
-      if (!profile || !profile.current_textbook_id) {
+      const checkResponse = await profileApi.check();
+      if (!checkResponse.textbook?.id) {
         setShowTextbookModal(true);
       }
     } catch (error) {

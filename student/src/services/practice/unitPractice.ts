@@ -95,9 +95,9 @@ export const unitPracticeApi = {
     if (!textbookId) {
       // 如果没有提供 textbookId，尝试从当前激活的教材获取
       const { profileApi } = await import('@/services/profile');
-      const profile = await profileApi.getProfile();
-      if (profile?.textbook?.id) {
-        textbookId = profile.textbook.id;
+      const checkResponse = await profileApi.check();
+      if (checkResponse.textbook?.id) {
+        textbookId = checkResponse.textbook.id;
       } else {
         return {};
       }
