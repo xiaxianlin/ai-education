@@ -170,6 +170,7 @@ async def submit_answer(
                 user_answer=text_answer,
                 correct_answer=question.answer,
                 analysis=analysis,  # 存储错题分析
+                time_spent=time_spent,  # 答题耗时
                 is_corrected=0,
                 corrected_time=0,
                 create_time=now(),

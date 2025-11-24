@@ -268,6 +268,7 @@ class PracticeWrongRecord(BaseModel):
     user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
     correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
     analysis: Mapped[str] = mapped_column(Text, nullable=True, comment="错题分析")
+    time_spent: Mapped[int] = mapped_column(default=0, comment="答题耗时(秒)")
 
     # 状态信息
     is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正（再次答对）")

@@ -145,6 +145,7 @@ class StudentWrongRecordSchema(BaseModel):
     textbook_id: Optional[int] = None
     user_answer: Optional[str] = None
     correct_answer: Optional[str] = None
+    analysis: Optional[str] = None
     time_spent: int = 0
     is_corrected: int = 0
     corrected_time: int = 0
