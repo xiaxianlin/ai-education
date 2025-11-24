@@ -16,7 +16,6 @@ export function Home() {
   const {
     showTextbookModal,
     checking,
-    stats,
     dailyPracticeStatus,
     dailyPracticeSession,
     assessmentStatus,
@@ -42,29 +41,32 @@ export function Home() {
       {showTextbookModal && <TextbookSetupModal onClose={closeTextbookModal} />}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* 欢迎区域 */}
-        <WelcomeCard stats={stats} />
+        <WelcomeCard />
 
         {/* 主要内容区域 */}
         <div className="mt-8 space-y-6">
-          {/* 每日练习卡片 */}
-          <DailyPracticeCard
-            status={dailyPracticeStatus}
-            session={dailyPracticeSession}
-            onCreate={createDailyPractice}
-          />
+          {/* 练习卡片区域 - 并排一行 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 每日练习卡片 */}
+            <DailyPracticeCard
+              status={dailyPracticeStatus}
+              session={dailyPracticeSession}
+              onCreate={createDailyPractice}
+            />
 
-          {/* 单元练习卡片 */}
-          <UnitPracticeCard
-            status={unitPracticeStatus}
-            session={unitPracticeSession}
-          />
+            {/* 单元练习卡片 */}
+            <UnitPracticeCard
+              status={unitPracticeStatus}
+              session={unitPracticeSession}
+            />
 
-          {/* 能力评测卡片 */}
-          <AssessmentCard
-            status={assessmentStatus}
-            session={assessmentSession}
-            onCreate={createAssessment}
-          />
+            {/* 能力评测卡片 */}
+            <AssessmentCard
+              status={assessmentStatus}
+              session={assessmentSession}
+              onCreate={createAssessment}
+            />
+          </div>
 
           {/* 快速操作 */}
           <QuickActions />

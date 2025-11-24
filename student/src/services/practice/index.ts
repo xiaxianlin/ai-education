@@ -131,5 +131,15 @@ export const practiceApi = {
     assessmentApi.complete(assessmentId),
   getAssessmentHistory: (limit?: number) =>
     assessmentApi.getHistory(limit),
+
+  // ===== 统一的练习历史记录 API =====
+  /**
+   * 获取练习历史记录（统一接口）
+   * 根据 API.md: GET /api/student/practice/history/{type}
+   */
+  getHistory: async (type: 'daily_practice' | 'unit_practice' | 'assessment', limit?: number) => {
+    const params = limit ? `?limit=${limit}` : '';
+    return api.get(`/practice/history/${type}${params}`);
+  },
 };
 

@@ -42,12 +42,8 @@ export function PracticeSession() {
   const getBackPath = () => {
     if (!session) return "/home";
     switch (session.session_type) {
-      case "daily_practice":
-        return "/home";
       case "unit_practice":
         return "/unit-practice";
-      case "assessment":
-        return "/assessment";
       default:
         return "/home";
     }

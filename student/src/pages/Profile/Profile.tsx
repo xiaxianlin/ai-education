@@ -10,7 +10,7 @@ import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useProfile } from './hooks/useProfile';
 
 export function Profile() {
-  const { stats, loading } = useProfile();
+  const { loading } = useProfile();
 
   if (loading) {
     return (
@@ -30,36 +30,6 @@ export function Profile() {
             <div className="flex items-center justify-center gap-2 mb-6">
               <TrendingUp className="h-6 w-6 text-purple-600" />
               <h2 className="text-2xl font-bold text-gray-800">我的成绩</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 p-6 border-2 border-blue-300 shadow-lg">
-                <div className="text-center">
-                  <div className="text-5xl mb-2">🎯</div>
-                  <p className="text-4xl font-bold text-blue-700 mb-2">{stats?.total_practice || 0}</p>
-                  <p className="text-sm font-bold text-blue-700">练了几次</p>
-                </div>
-              </div>
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 p-6 border-2 border-green-300 shadow-lg">
-                <div className="text-center">
-                  <div className="text-5xl mb-2">📚</div>
-                  <p className="text-4xl font-bold text-green-700 mb-2">{stats?.total_questions || 0}</p>
-                  <p className="text-sm font-bold text-green-700">做了几题</p>
-                </div>
-              </div>
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 p-6 border-2 border-purple-300 shadow-lg">
-                <div className="text-center">
-                  <div className="text-5xl mb-2">✅</div>
-                  <p className="text-4xl font-bold text-purple-700 mb-2">{Math.round(stats?.accuracy || 0)}%</p>
-                  <p className="text-sm font-bold text-purple-700">正确率</p>
-                </div>
-              </div>
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-100 to-yellow-100 p-6 border-2 border-orange-300 shadow-lg">
-                <div className="text-center">
-                  <div className="text-5xl mb-2">🔥</div>
-                  <p className="text-4xl font-bold text-orange-700 mb-2">{stats?.current_streak || 0}</p>
-                  <p className="text-sm font-bold text-orange-700">连续天数</p>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>

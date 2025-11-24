@@ -3,7 +3,7 @@
  * 负责首页的业务逻辑
  */
 import { useState, useEffect, useCallback } from 'react';
-import { profileApi, StudentStats } from '@/services/profile';
+import { profileApi } from '@/services/profile';
 import { practiceApi } from '@/services/practice';
 import { useApiError } from '@/lib/hooks/useApiError';
 import type { PracticeSession } from '@/lib/types/schema';
@@ -11,14 +11,12 @@ import type { DailyPracticeStatus } from '../components/DailyPracticeCard';
 import type { AssessmentStatus } from '../components/AssessmentCard';
 import type { UnitPracticeStatus } from '../components/UnitPracticeCard';
 import { toast } from 'sonner';
-import { profileApi } from '@/services/profile';
 
 export function useHomePage() {
   const { handleError } = useApiError();
 
   const [showTextbookModal, setShowTextbookModal] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [stats, setStats] = useState<StudentStats | null>(null);
   const [dailyPracticeStatus, setDailyPracticeStatus] = useState<DailyPracticeStatus>('not_generated');
   const [dailyPracticeSession, setDailyPracticeSession] = useState<PracticeSession | null>(null);
   const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus>('not_created');
@@ -31,7 +29,6 @@ export function useHomePage() {
 
   useEffect(() => {
     checkTextbookSetup();
-    loadStats();
     loadDailyPractice();
     loadAssessment();
     loadUnitPractice();
@@ -51,15 +48,6 @@ export function useHomePage() {
       setChecking(false);
     }
   }, []);
-
-  const loadStats = useCallback(async () => {
-    try {
-      const statsData = await profileApi.getStats();
-      setStats(statsData);
-    } catch (error) {
-      handleError(error);
-    }
-  }, [handleError]);
 
   const loadDailyPractice = useCallback(async () => {
     try {
@@ -207,7 +195,6 @@ export function useHomePage() {
   return {
     showTextbookModal,
     checking,
-    stats,
     dailyPracticeStatus,
     dailyPracticeSession,
     assessmentStatus,

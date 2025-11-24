@@ -77,10 +77,6 @@ export const profileApi = {
     return profile;
   },
 
-  getStats: async () => {
-    return api.get<StudentStats>('/profile/stats');
-  },
-
   getWrongQuestions: async (mastered?: number) => {
     const params = mastered !== undefined ? `?mastered=${mastered}` : '';
     return api.get<WrongQuestion[]>(`/profile/wrong_questions${params}`);
@@ -160,22 +156,6 @@ export const profileApi = {
     return profileApi.getUnits(textbookId);
   },
 };
-
-export interface StudentStats {
-  id: number;
-  student_id: string;
-  total_practice: number;
-  total_questions: number;
-  correct_questions: number;
-  accuracy: number;
-  current_streak: number;
-  max_streak: number;
-  last_study_date: number;
-  total_study_duration: number;
-  achievements: string;
-  create_time: number;
-  update_time?: number;
-}
 
 export interface WrongQuestion {
   id: number;
