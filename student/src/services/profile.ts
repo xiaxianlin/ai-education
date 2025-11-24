@@ -79,15 +79,15 @@ export const profileApi = {
 
   getWrongQuestions: async (mastered?: number) => {
     const params = mastered !== undefined ? `?mastered=${mastered}` : '';
-    return api.get<WrongQuestion[]>(`/profile/wrong_questions${params}`);
+    return api.get<WrongQuestion[]>(`/wrong-records${params}`);
   },
 
   markQuestionAsMastered: async (questionId: number) => {
-    return api.post(`/profile/wrong_questions/${questionId}/master`);
+    return api.post(`/wrong-records/${questionId}/master`);
   },
 
   unmarkQuestionAsMastered: async (questionId: number) => {
-    return api.post(`/profile/wrong_questions/${questionId}/unmaster`);
+    return api.post(`/wrong-records/${questionId}/unmaster`);
   },
 
   getRecords: async () => {
@@ -168,6 +168,7 @@ export interface WrongQuestion {
   create_time: number;
   update_time?: number;
   question_content?: string;
+  knowledge?: string; // 知识点
 }
 
 export interface StudyRecord {

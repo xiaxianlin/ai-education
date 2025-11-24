@@ -54,9 +54,9 @@ export const WrongQuestionCard = memo(function WrongQuestionCard({
             )}>
               {question.is_mastered === 1 ? '已掌握' : '待练习'}
             </span>
-            {question.knowledge_point && (
+            {question.knowledge && (
               <span className="text-xs text-gray-500">
-                {question.knowledge_point}
+                {question.knowledge}
               </span>
             )}
           </div>

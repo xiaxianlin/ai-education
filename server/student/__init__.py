@@ -13,6 +13,7 @@ from .routes.auth import auth_router
 from .routes.textbook import textbook_router
 from .routes.practice import practice_router
 from .routes.unit import unit_router
+from .routes.wrong_records import wrong_records_router
 
 
 student_app = FastAPI(
@@ -30,5 +31,6 @@ student_app.include_router(auth_router)
 student_app.include_router(textbook_router)
 student_app.include_router(practice_router)
 student_app.include_router(unit_router)
+student_app.include_router(wrong_records_router)
 
 __all__ = ["student_app"]
