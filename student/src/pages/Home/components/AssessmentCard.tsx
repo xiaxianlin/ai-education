@@ -111,7 +111,7 @@ export const AssessmentCard = memo(function AssessmentCard({
         <div className="relative p-8 flex flex-col gap-6">
           {/* 内容区域 */}
           <div className="flex items-center gap-5">
-            <div className="text-6xl">{isCompleted ? "🎉" : "🧠"}</div>
+            <div className="text-6xl">{isCompleted ? "🎉" : "🎯"}</div>
             <div className="flex-1 min-w-0">
               <h3 className="text-2xl font-bold text-foreground mb-2">
                 能力评测

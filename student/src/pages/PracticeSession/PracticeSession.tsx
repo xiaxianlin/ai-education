@@ -184,7 +184,6 @@ export function PracticeSession() {
 
           <NavigationButtons
             canGoPrevious={currentQuestionIndex > 0}
-            canGoNext={currentQuestionIndex < totalQuestions - 1}
             hasAnswered={hasAnswered}
             hasAnswer={hasAnswer}
             submitting={submitting}

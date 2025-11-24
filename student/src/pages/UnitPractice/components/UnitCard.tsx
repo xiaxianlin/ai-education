@@ -81,7 +81,7 @@ export const UnitCard = memo(function UnitCard({
             className={cn(
               'flex-1 h-11 rounded-xl text-sm font-semibold transition-all',
               hasKnowledges
-                ? 'bg-secondary/50 text-secondary-foreground border-secondary shadow-sm hover:bg-secondary hover:border-secondary hover:-translate-y-0.5 hover:shadow-md'
+                ? 'bg-secondary/50 text-foreground border-secondary shadow-sm hover:bg-secondary/80 hover:text-foreground hover:border-secondary hover:-translate-y-0.5 hover:shadow-md'
                 : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
             )}
             onClick={() => hasKnowledges && onShowKnowledge(unit)}
