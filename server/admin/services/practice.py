@@ -67,65 +67,65 @@ async def get_all_practice_records(
 ) -> Dict:
     """
     获取所有学生的练习记录（支持筛选和分页）
-    
+
     Args:
         db: 数据库会话
         practice_type: 练习类型筛选 (daily_practice/unit_practice/assessment)，None 表示不过滤
         student_id: 学生ID筛选，None 表示不过滤
         limit: 返回记录数量，默认100条
         offset: 偏移量，默认0
-        
+
     Returns:
         包含 records 和 total 的字典
     """
     query = select(PracticeSession, Student).join(Student, PracticeSession.student_id == Student.id)
-    
+
     # 应用筛选条件
     if practice_type:
         query = query.where(PracticeSession.session_type == practice_type)
     if student_id:
         query = query.where(PracticeSession.student_id == student_id)
-    
+
     # 获取总数
     count_query = select(func.count()).select_from(PracticeSession)
     if practice_type:
         count_query = count_query.where(PracticeSession.session_type == practice_type)
     if student_id:
         count_query = count_query.where(PracticeSession.student_id == student_id)
-    
+
     total = await db.scalar(count_query)
-    
+
     # 获取分页数据
     sessions = await db.execute(
-        query.order_by(desc(PracticeSession.create_time))
-        .limit(limit)
-        .offset(offset)
+        query.order_by(desc(PracticeSession.create_time)).limit(limit).offset(offset)
     )
-    
+
     result = []
     for session, student in sessions.all():
-        result.append({
-            "session_id": session.id,
-            "student_id": session.student_id,
-            "student_name": student.name,
-            "student_phone": student.phone,
-            "session_type": session.session_type,
-            "status": session.status,
-            "target_id": session.target_id,
-            "textbook_id": session.textbook_id,
-            "question_count": session.question_count,
-            "answer_count": session.answer_count,
-            "correct_count": session.correct_count,
-            "start_time": session.start_time,
-            "end_time": session.end_time,
-            "create_time": session.create_time,
-        })
-    
+        result.append(
+            {
+                "session_id": session.id,
+                "student_id": session.student_id,
+                "student_name": student.name,
+                "student_phone": student.phone,
+                "session_type": session.session_type,
+                "status": session.status,
+                "target_id": session.target_id,
+                "textbook_id": session.textbook_id,
+                "question_count": session.question_count,
+                "answer_count": session.answer_count,
+                "correct_count": session.correct_count,
+                "start_time": session.start_time,
+                "end_time": session.end_time,
+                "create_time": session.create_time,
+            }
+        )
+
     logger.info(
         f"[Admin] 获取所有练习记录: type={practice_type}, student_id={student_id}, "
         f"count={len(result)}, total={total}"
     )
-    
+
     return {
         "records": result,
         "total": total or 0,
@@ -169,7 +169,7 @@ async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[dict
 async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
     """为学生生成每日练习"""
     current_date = today()
-    
+
     # 检查是否已存在当天的每日练习
     existing_today = await get_daily_practice(db, student_id)
     if existing_today:
@@ -218,12 +218,12 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
                 answer.time_spent = 0
                 answer.submit_time = None
                 answer.audio_answer = None
-            
+
             # 删除报告（如果存在）
             await db.execute(
                 delete(PracticeReport).where(PracticeReport.session_id == incomplete_session.id)
             )
-            
+
             # 重置进度并更新为当天的每日练习
             incomplete_session.target_id = current_date
             incomplete_session.textbook_id = textbook.id  # 更新教材ID
@@ -232,14 +232,14 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
             incomplete_session.correct_count = 0
             incomplete_session.start_time = 0
             incomplete_session.end_time = None
-            
+
             await db.commit()
-            
+
             logger.info(
                 f"[Admin] 未完成每日练习已重置为当天: session_id={incomplete_session.id}, "
                 f"new_target_id={current_date}"
             )
-            
+
             # 返回重置后的会话信息
             return {
                 "session_id": incomplete_session.id,
@@ -254,7 +254,7 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
                 "end_time": incomplete_session.end_time,
                 "create_time": incomplete_session.create_time,
             }
-            
+
         except Exception as e:
             await db.rollback()
             logger.error(
@@ -318,6 +318,9 @@ async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> dict:
     if not session:
         raise ValueError("当天每日练习不存在，请先创建")
 
+    if session.status == 3:
+        raise ValueError("每日练习正在生成中，请稍候")
+
     # 获取学生当前激活的教材
     active_textbook = await db.scalar(
         select(StudentTextbook)
@@ -372,6 +375,7 @@ async def create_unit_practice(
     db: AsyncSession, student_id: str, unit_id: int
 ) -> PracticeStatsSchem:
     """为学生生成单元练习"""
+
     # 获取单元信息
     unit = await db.scalar(
         select(Unit).options(joinedload(Unit.textbook)).where(Unit.id == unit_id)
@@ -516,6 +520,7 @@ async def regenerate_unit_practice(
 
 async def create_assessment(db: AsyncSession, student_id: str) -> PracticeStatsSchem:
     """为学生生成能力评估"""
+
     # 检查是否已存在未完成的能力评估
     existing = await db.scalar(
         select(PracticeSession)
@@ -705,7 +710,7 @@ async def get_session_detail(db: AsyncSession, session_id: int) -> Dict:
     session_dict = PracticeSessionSchema.model_validate(session).model_dump()
     # 将 id 字段映射为 session_id，以符合前端接口定义
     session_dict["session_id"] = session_dict.pop("id", session.id)
-    
+
     result = {
         "session": session_dict,
         "answers": answer_list,
@@ -722,30 +727,26 @@ async def get_session_detail(db: AsyncSession, session_id: int) -> Dict:
 async def delete_session(db: AsyncSession, session_id: int):
     """删除练习会话"""
     session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
-    
+
     if not session:
         raise ValueError("练习会话不存在")
-    
+
     logger.info(f"[Admin] 开始删除练习会话: session_id={session_id}, type={session.session_type}")
-    
+
     try:
         # 删除会话相关的所有数据
         # 1. 删除答题记录
-        await db.execute(
-            delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
-        
+        await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
+
         # 2. 删除报告（如果存在）
-        await db.execute(
-            delete(PracticeReport).where(PracticeReport.session_id == session_id)
-        )
-        
+        await db.execute(delete(PracticeReport).where(PracticeReport.session_id == session_id))
+
         # 3. 删除会话本身
         await db.delete(session)
         await db.commit()
-        
+
         logger.info(f"[Admin] 练习会话删除成功: session_id={session_id}")
-        
+
     except Exception as e:
         await db.rollback()
         logger.error(f"[Admin] 删除练习会话失败: session_id={session_id}, error={e}")

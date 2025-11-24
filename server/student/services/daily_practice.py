@@ -30,6 +30,15 @@ async def check_daily_practice(db: AsyncSession, student_id: str) -> Optional[Pr
 
     logger.info(f"找到当天每日练习: session_id={session.id}, student_id={student_id}")
 
+    # 根据状态确定生成状态
+    generating_status = None
+    if session.status == 3:
+        generating_status = "generating"  # 生产中
+    elif session.status == 4:
+        generating_status = "generated"  # 生成完成
+    elif session.status == 5:
+        generating_status = "failed"  # 生成失败
+
     return PracticeStatsSchem(
         session_id=session.id,
         status=session.status,
@@ -37,6 +46,7 @@ async def check_daily_practice(db: AsyncSession, student_id: str) -> Optional[Pr
         completed_questions=session.answer_count,
         right_questions=session.correct_count,
         times=times,
+        generating_status=generating_status,
     )
 
 
@@ -88,6 +98,15 @@ async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[Pra
 
         logger.info(f"往期练习已重置为当天: session_id={session.id}, new_date={current_date}")
 
+        # 根据状态确定生成状态
+        generating_status = None
+        if session.status == 3:
+            generating_status = "generating"  # 生产中
+        elif session.status == 4:
+            generating_status = "generated"  # 生成完成
+        elif session.status == 5:
+            generating_status = "failed"  # 生成失败
+
         return PracticeStatsSchem(
             session_id=session.id,
             status=session.status,
@@ -95,6 +114,7 @@ async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[Pra
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=times - 1,
+            generating_status=generating_status,
         )
 
     except Exception as e:
@@ -127,6 +147,15 @@ async def create_daily_practice(
 
         logger.info(f"每日练习创建成功: session_id={session_id}")
 
+        # 根据状态确定生成状态
+        generating_status = None
+        if session.status == 3:
+            generating_status = "generating"  # 生产中
+        elif session.status == 4:
+            generating_status = "generated"  # 生成完成
+        elif session.status == 5:
+            generating_status = "failed"  # 生成失败
+
         return PracticeStatsSchem(
             session_id=session.id,
             status=session.status,
@@ -134,11 +163,17 @@ async def create_daily_practice(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=times,
+            generating_status=generating_status,
         )
 
     except Exception as e:
         logger.error(f"创建每日练习失败: student_id={student_id}, error={e}")
         raise ValueError(f"创建每日练习失败: {str(e)}")
+
+
+async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
+    """获取每日练习信息（用于检查生成状态）"""
+    return await check_daily_practice(db, student_id)
 
 
 async def count_daily_practice(db: AsyncSession, student_id: str) -> int:
@@ -153,4 +188,3 @@ async def count_daily_practice(db: AsyncSession, student_id: str) -> int:
     count = result or 0
     logger.info(f"每日练习次数统计: student_id={student_id}, count={count}")
     return count
-

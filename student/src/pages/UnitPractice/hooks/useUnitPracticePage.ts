@@ -95,7 +95,7 @@ export function useUnitPracticePage() {
     const sessionId = incompleteSessions[unit.id];
     if (sessionId) {
       // 有未完成的练习，直接跳转
-      navigate({ to: `/unit-practice/${sessionId}` });
+      navigate({ to: `/practice/${sessionId}` });
       return;
     }
     
@@ -126,7 +126,10 @@ export function useUnitPracticePage() {
         toast.success('练习已创建，开始答题！');
       }
       
-      navigate({ to: `/unit-practice/${session.id}` });
+      const sessionId = session.session_id ?? session.id;
+      if (sessionId) {
+        navigate({ to: `/practice/${sessionId}` });
+      }
     } catch (error) {
       handleError(error);
     } finally {

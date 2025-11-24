@@ -70,19 +70,10 @@ export const practiceApi = {
   /**
    * 获取练习会话详情（统一接口）
    * 通过会话ID获取详情，适用于所有类型的练习
+   * 根据 API.md: GET /api/student/practice/session/{session_id}
    */
   getSessionDetail: async (sessionId: number): Promise<PracticeSessionDetail> => {
-    // 先获取会话基本信息
-    const session = await api.get<PracticeSession>(`/practice/session/${sessionId}`);
-    
-    // 根据会话类型获取详情
-    // 注意：这里可能需要后端提供统一的会话详情接口
-    // 目前先返回基本结构
-    return {
-      session,
-      questions: session.questions || [],
-      answers: [],
-    } as PracticeSessionDetail;
+    return api.get<PracticeSessionDetail>(`/practice/session/${sessionId}`);
   },
 
   // ===== 每日练习 API =====

@@ -15,16 +15,12 @@ practice_router = APIRouter(prefix="/practice")
 @practice_router.get("/daily")
 async def get_daily_practice(request: Request, db: AsyncSession = Database) -> PracticeStatsSchem:
     """获取每日练习信息"""
-    # 获取当前学生信息
     student = request.state.student
 
     result = await daily_practice.check_daily_practice(db, student.id)
-    if result:
-        return result
-
-    last = await daily_practice.check_last_practice(db, student.id)
-    if last:
-        return last
+    if result is None:
+        raise ValueError("当天没有每日练习")
+    return result
 
 
 @practice_router.post("/daily")
@@ -34,6 +30,11 @@ async def create_daily_practice_route(
     """创建每日练习"""
     # 获取当前学生信息
     student = request.state.student
+
+    # 检查是否有正在生成的每日练习
+    generating_session = await daily_practice.get_daily_practice(db, student.id)
+    if generating_session and generating_session.status == 3:
+        raise ValueError("每日练习正在生成中，请稍候")
 
     # 获取学生当前激活的教材
     active_textbook = await textbook.get_active_textbook(db, student.id)
@@ -64,6 +65,17 @@ async def create_assessment_route(
     """创建能力评估"""
     # 获取当前学生信息
     student = request.state.student
+
+    # 检查是否有正在生成的能力评估
+    from shared.services.practice import PracticeService
+    generating_session = await PracticeService.check_generating_session(
+        db=db,
+        session_type="assessment",
+        student_id=student.id,
+    )
+    if generating_session:
+        status_text = "生产中" if generating_session.status == 3 else "生成完成"
+        raise ValueError(f"能力评估正在生成中（{status_text}），请稍候")
 
     # 获取学生当前激活的教材
     active_textbook = await textbook.get_active_textbook(db, student.id)
@@ -109,6 +121,18 @@ async def create_unit_practice_route(
     """创建单元练习"""
     # 获取当前学生信息
     student = request.state.student
+
+    # 检查是否有正在生成的单元练习
+    from shared.services.practice import PracticeService
+    generating_session = await PracticeService.check_generating_session(
+        db=db,
+        session_type="unit_practice",
+        student_id=student.id,
+        unit_id=unit_id,
+    )
+    if generating_session:
+        status_text = "生产中" if generating_session.status == 3 else "生成完成"
+        raise ValueError(f"单元练习正在生成中（{status_text}），请稍候")
 
     result = await unit_practice.create_unit_practice(db, student.id, unit_id)
 
@@ -199,3 +223,31 @@ async def complete_practice_practice(
     report_id = await practice.complete_practice(db, student.id, session_id)
 
     return {"report_id": report_id}
+
+
+@practice_router.get("/session/{session_id}")
+async def get_session_detail(
+    session_id: int, request: Request, db: AsyncSession = Database
+) -> Dict:
+    """
+    获取练习会话详情
+    
+    包括：
+    - 会话基本信息
+    - 问题列表（按顺序）
+    - 已提交的答案
+    - 已完成练习的报告（如果存在）
+    
+    Args:
+        session_id: 练习会话ID
+        
+    Returns:
+        会话详情，包含session、questions、answers、report
+    """
+    # 获取当前学生信息
+    student = request.state.student
+    
+    # 获取会话详情
+    result = await practice.get_session_detail(db, student.id, session_id)
+    
+    return result

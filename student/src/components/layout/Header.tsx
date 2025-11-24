@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { authApi, StudentInfo } from '@/services/auth';
-import { profileApi, StudentProfile, Textbook } from '@/services/profile';
+import { authApi } from '@/services/auth';
+import { profileApi } from '@/services/profile';
+import type { Student, Textbook } from '@/lib/types/schema';
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown';
 import { Button } from '@/components/ui/button';
-import { LogOut, BookOpen, ChevronDown, User, Home } from 'lucide-react';
+import { LogOut, ChevronDown, User, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export function Header() {
   const { logout } = useAuthStore();
   const location = useLocation();
-  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [student, setStudent] = useState<Student | null>(null);
   const [textbooks, setTextbooks] = useState<Textbook[]>([]);
   const [currentTextbook, setCurrentTextbook] = useState<Textbook | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,20 +27,20 @@ export function Header() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [studentData, profileData, textbooksData] = await Promise.all([
+      const [checkResponse, profileData, textbooksData] = await Promise.all([
         authApi.check(),
         profileApi.getProfile(),
         profileApi.getTextbooks(),
       ]);
       
-      setStudentInfo(studentData);
-      setProfile(profileData);
+      // 从 check 接口获取学生信息和当前教材
+      setStudent(checkResponse.student);
       setTextbooks(textbooksData || []);
       
-      // 找到当前教材（优先使用 active 字段，否则使用 profile 中的 current_textbook_id）
-      const activeTextbook = textbooksData?.find(t => t.active === 1);
+      // 找到当前教材（优先级：check接口返回的textbook > active字段 > profile中的current_textbook_id）
       const current = 
-        activeTextbook || 
+        checkResponse.textbook || 
+        textbooksData?.find(t => t.active === 1) ||
         (profileData?.current_textbook_id ? textbooksData?.find(t => t.id === profileData.current_textbook_id) : null) ||
         (profileData?.textbook?.id ? textbooksData?.find(t => t.id === profileData.textbook?.id) : null);
       setCurrentTextbook(current || null);
@@ -69,10 +69,6 @@ export function Header() {
           active: t.id === textbookId ? 1 : 0,
         }))
       );
-      
-      // 更新 profile
-      const updatedProfile = await profileApi.getProfile();
-      setProfile(updatedProfile);
       
       toast.success('教材切换成功');
       
@@ -139,7 +135,7 @@ export function Header() {
                 <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
               </div>
             }
-            align="start"
+            align="left"
           >
             <div className="py-1 max-h-[300px] overflow-y-auto">
               {textbooks.length > 0 ? (
@@ -208,7 +204,7 @@ export function Header() {
             </div>
             <div className="flex flex-col leading-tight min-w-0">
               <span className="text-sm font-semibold text-gray-900 truncate">
-                {studentInfo?.name || '学生'}
+                {student?.name || '学生'}
               </span>
             </div>
           </Link>

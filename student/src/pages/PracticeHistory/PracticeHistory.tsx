@@ -137,7 +137,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                         {item.status === 'completed' && (
                           <button
-                            onClick={() => navigate({ to: `/daily-practice/${item.id}` })}
+                            onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
@@ -212,7 +212,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                         {item.status === 'completed' && (
                           <button
-                            onClick={() => navigate({ to: `/unit-practice/${item.id}` })}
+                            onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
@@ -289,7 +289,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                         {item.status === 'completed' && (
                           <button
-                            onClick={() => navigate({ to: `/assessment/${item.id}` })}
+                            onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />

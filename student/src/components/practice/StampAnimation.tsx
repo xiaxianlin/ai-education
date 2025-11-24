@@ -3,7 +3,6 @@
  * 用于显示回答正确/错误的盖章效果
  */
 import { memo, useEffect, useState } from 'react';
-import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StampAnimationProps {

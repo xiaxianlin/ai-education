@@ -7,7 +7,7 @@ import { TextbookSetupModal } from '@/components/TextbookSetupModal';
 import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
 import { useHomePage } from './hooks/useHomePage';
 import { WelcomeCard } from './components/WelcomeCard';
-import { StatsCard } from './components/StatsCard';
+import { DailyPracticeCard } from './components/DailyPracticeCard';
 import { QuickActions } from './components/QuickActions';
 
 export function Home() {
@@ -15,36 +15,42 @@ export function Home() {
     showTextbookModal,
     checking,
     stats,
-    todayProgress,
-    dailyQuestions,
-    completedQuestions,
+    dailyPracticeStatus,
+    dailyPracticeSession,
+    createDailyPractice,
     closeTextbookModal,
   } = useHomePage();
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="正在加载..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 pb-12">
       <Header />
       {showTextbookModal && (
         <TextbookSetupModal onClose={closeTextbookModal} />
       )}
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* 欢迎区域 */}
         <WelcomeCard stats={stats} />
-        <StatsCard
-          todayProgress={todayProgress}
-          dailyQuestions={dailyQuestions}
-          completedQuestions={completedQuestions}
-          continuousDays={stats?.current_streak || 0}
-          totalPracticeTime={stats?.total_practice_time || 0}
-        />
-        <QuickActions />
+        
+        {/* 主要内容区域 */}
+        <div className="mt-8 space-y-6">
+          {/* 每日练习卡片 */}
+          <DailyPracticeCard
+            status={dailyPracticeStatus}
+            session={dailyPracticeSession}
+            onCreate={createDailyPractice}
+          />
+          
+          {/* 快速操作 */}
+          <QuickActions />
+        </div>
       </div>
     </div>
   );

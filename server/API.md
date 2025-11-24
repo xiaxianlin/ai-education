@@ -1066,26 +1066,28 @@ GET /api/student/practice/daily
   "code": 0,
   "data": {
     "session_id": 123,
-    "session_type": "daily_practice",
-    "question_count": 10,
-    "answer_count": 0,
-    "correct_count": 0,
     "status": 0,
-    "questions": [
-      {
-        "id": 1,
-        "content": "1 + 1 = ?",
-        "options": "A. 1\nB. 2\nC. 3",
-        "type": "选择题",
-        "subtype": "快速口算",
-        "resource": "https://oss.example.com/image.png",
-        "resource_type": "image",
-        "order": 1
-      }
-    ]
+    "total_questions": 10,
+    "completed_questions": 0,
+    "right_questions": 0,
+    "times": 0,
+    "generating_status": null
   }
 }
 ```
+
+**响应字段说明**:
+- `session_id`: 练习会话ID
+- `status`: 练习状态（0-未开始, 1-进行中, 2-已完成, 3-生产中, 4-生成完成, 5-生成失败）
+- `total_questions`: 题目总数
+- `completed_questions`: 已答题数
+- `right_questions`: 正确答题数
+- `times`: 练习次数
+- `generating_status`: 会话生成状态
+  - `null`: 非生成状态（正常练习状态）
+  - `"generating"`: 生产中（status=3）
+  - `"generated"`: 生成完成（status=4）
+  - `"failed"`: 生成失败（status=5）
 
 **功能说明**: 获取当天的每日练习。如果当天没有，返回最近一次未完成的练习。
 
@@ -1262,6 +1264,16 @@ POST /api/student/practice/{session_id}/complete
 - `0`: 未开始
 - `1`: 进行中
 - `2`: 已完成
+- `3`: 生产中（正在生成题目）
+- `4`: 生成完成（题目已生成，正在预生成答题记录）
+- `5`: 生成失败
+
+### 会话生成状态（generating_status）
+
+- `null`: 非生成状态（正常练习状态，status为0/1/2）
+- `"generating"`: 生产中（status=3）
+- `"generated"`: 生成完成（status=4）
+- `"failed"`: 生成失败（status=5）
 
 ### 答题正确性
 

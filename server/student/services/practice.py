@@ -1,11 +1,12 @@
 """通用练习服务"""
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from loguru import logger
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession
+from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
+from core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
 from student.schema import PracticeHistorySchema
 from shared.utils.time import now
 
@@ -188,3 +189,84 @@ async def count_practice_by_type(
         f"target_id={target_id}, count={count}"
     )
     return count
+
+
+async def get_session_detail(db: AsyncSession, student_id: str, session_id: int) -> Dict:
+    """
+    根据练习会话ID查询会话详情（学生端）
+    包括：会话基本信息、问题列表、已完成练习的报告
+    
+    Args:
+        db: 数据库会话
+        student_id: 学生ID
+        session_id: 练习会话ID
+        
+    Returns:
+        会话详情，包含session、questions、answers、report
+    """
+    # 查询会话基本信息
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    
+    if not session:
+        raise ValueError("练习会话不存在")
+    
+    # 验证权限
+    if session.student_id != student_id:
+        raise ValueError("无权访问此练习会话")
+    
+    # 查询答题记录和题目信息
+    answer_records = await db.scalars(
+        select(PracticeAnswer)
+        .where(PracticeAnswer.session_id == session_id)
+        .order_by(PracticeAnswer.question_order)
+    )
+    
+    # 获取所有题目ID
+    answers = answer_records.all()
+    question_ids = [answer.question_id for answer in answers]
+    
+    # 查询题目详情
+    questions = []
+    if question_ids:
+        question_objs = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
+        questions = [QuestionSchema.model_validate(q).model_dump() for q in question_objs.all()]
+    
+    # 构建答题记录列表
+    answer_list = []
+    for answer in answers:
+        answer_data = {
+            "question_id": answer.question_id,
+            "question_order": answer.question_order,
+            "text_answer": answer.text_answer,
+            "is_correct": answer.is_correct,
+            "time_spent": answer.time_spent,
+            "submit_time": answer.submit_time,
+        }
+        answer_list.append(answer_data)
+    
+    # 查询报告（如果练习已完成）
+    report = None
+    if session.status == 2:
+        report_obj = await db.scalar(
+            select(PracticeReport).where(PracticeReport.session_id == session_id)
+        )
+        if report_obj:
+            report = PracticeReportSchema.model_validate(report_obj).model_dump()
+    
+    # 构建返回结果
+    session_dict = PracticeSessionSchema.model_validate(session).model_dump()
+    # 将 id 字段映射为 session_id，以符合前端接口定义
+    session_dict["session_id"] = session_dict.pop("id", session.id)
+    
+    result = {
+        "session": session_dict,
+        "questions": questions,
+        "answers": answer_list,
+        "report": report,
+    }
+    
+    logger.info(
+        f"[Student] 获取会话详情成功: session_id={session_id}, question_count={len(questions)}"
+    )
+    
+    return result

@@ -21,7 +21,10 @@ export function useAssessment() {
         min_questions: 10,
       });
       toast.success('能力评测已创建，开始答题！');
-      navigate({ to: `/assessment/${assessment.id}` });
+      const sessionId = assessment.session_id ?? assessment.id;
+      if (sessionId) {
+        navigate({ to: `/practice/${sessionId}` });
+      }
     } catch (error) {
       handleError(error);
     } finally {
