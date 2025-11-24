@@ -34,7 +34,7 @@ class PracticeService:
                 session_id=session_id,
                 question_id=question_id,
                 question_order=order,
-                is_correct=0,  # 0表示未答
+                status=0,  # 0表示未答
                 time_spent=0,
             )
             answer_records.append(answer_record)

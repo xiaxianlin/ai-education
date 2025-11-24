@@ -89,8 +89,8 @@ async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[Pra
             select(PracticeAnswer).where(PracticeAnswer.session_id == session.id)
         )
         for answer in answer_records.all():
-            answer.user_answer = None
-            answer.is_correct = 0
+            answer.text_answer = None
+            answer.status = 0
             answer.time_spent = 0
             answer.submit_time = None
 

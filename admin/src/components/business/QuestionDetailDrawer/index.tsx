@@ -22,7 +22,7 @@ interface QuestionDetailDrawerProps {
   } | null;
   studentAnswer?: {
     answer?: string;
-    is_correct?: number;
+    status?: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent?: number;
     submit_time?: number;
     audio_data?: string;
@@ -76,9 +76,9 @@ export function QuestionDetailDrawer({
   const resourceUrl = buildResourceUrl(question.resource);
   const optionsList = parseOptions(question.options);
   const hasStudentAnswer = studentAnswer && 
-    studentAnswer.is_correct !== undefined && 
-    studentAnswer.is_correct !== null && 
-    studentAnswer.is_correct !== 0;
+    studentAnswer.status !== undefined && 
+    studentAnswer.status !== null && 
+    studentAnswer.status !== 0;
 
   return (
     <Drawer
@@ -161,7 +161,7 @@ export function QuestionDetailDrawer({
             </div>
             <div>
               <Tag
-                color={studentAnswer!.is_correct === 1 ? 'success' : 'error'}
+                color={studentAnswer!.status === 1 ? 'success' : 'error'}
                 style={{ fontSize: '14px', padding: '4px 12px', marginBottom: '8px' }}
               >
                 {studentAnswer!.answer || '未作答'}

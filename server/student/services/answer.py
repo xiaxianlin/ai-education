@@ -119,7 +119,7 @@ async def submit_answer(
 
         # 6. 更新答题记录
         answer_record.text_answer = text_answer
-        answer_record.is_correct = 1 if is_correct else 2
+        answer_record.status = 1 if is_correct else 2
         answer_record.time_spent = time_spent
         answer_record.submit_time = now()
         if audio_bytes:

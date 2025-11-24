@@ -57,21 +57,6 @@ declare global {
     updated_at?: number;
   }
 
-  // 学习记录
-  interface StudyRecord {
-    id: number;
-    student_id: string;
-    question_id: number;
-    is_correct: number;
-    score: number;
-    time_spent: number;
-    textbook_id: number;
-    unit_id?: number;
-    knowledge_id?: number;
-    study_date: number;
-    created_at: number;
-  }
-
   // 今日练习会话
   interface DailyPracticeSession {
     id: number;
@@ -128,13 +113,6 @@ declare global {
     current_textbook_id?: number;
     preferred_subjects?: string;
     difficulty_preference?: string;
-  }
-
-  // 学习记录查询参数
-  interface StudyRecordSearchParams extends SearchParams {
-    is_correct?: number;
-    start_date?: number;
-    end_date?: number;
   }
 
   // 错题查询参数

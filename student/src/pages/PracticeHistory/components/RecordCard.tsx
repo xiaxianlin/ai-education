@@ -21,7 +21,7 @@ export const RecordCard = memo(function RecordCard({
 }: RecordCardProps) {
   const totalQuestions = dayRecords.length;
   const totalTime = dayRecords.reduce((sum, r) => sum + r.time_spent, 0);
-  const correctCount = dayRecords.filter((r) => r.is_correct === 1).length;
+  const correctCount = dayRecords.filter((r) => r.is_correct === 1).length; // StudyRecord 的 is_correct 保持不变
   const accuracy = Math.round((correctCount / totalQuestions) * 100);
 
   return (

@@ -13,7 +13,7 @@ interface QuestionReviewProps {
     question_id: number;
     question_content?: string;
     text_answer?: string;
-    is_correct: number; // 0-未答, 1-正确, 2-错误
+    status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number;
   }>;
 }
@@ -39,9 +39,9 @@ export const QuestionReview = memo(function QuestionReview({
     questions.forEach(question => {
       const answer = questionAnswerMap.get(question.id);
       if (answer) {
-        if (answer.is_correct === 1) {
+        if (answer.status === 1) {
           correct.push(question);
-        } else if (answer.is_correct === 2) {
+        } else if (answer.status === 2) {
           wrong.push(question);
         }
       }

@@ -180,7 +180,7 @@ export interface PracticeAnswer {
   question_id: number;
   question_order: number; // 题目顺序
   text_answer?: string; // 文本答案
-  is_correct: number; // 0-未答, 1-正确, 2-错误
+  status: number; // 答题状态: 0-未答, 1-正确, 2-错误
   time_spent: number; // 耗时（秒）
   submit_time?: number; // 提交时间
   audio_answer?: string; // 音频答案（base64编码，前端使用）

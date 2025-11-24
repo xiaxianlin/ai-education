@@ -864,7 +864,7 @@ GET /api/admin/practice/session/{session_id}/detail
         "question_id": 1,
         "question_content": "1 + 1 = ?",
         "text_answer": "2",
-        "is_correct": 1,
+        "status": 1,
         "time_spent": 5
       }
     ],

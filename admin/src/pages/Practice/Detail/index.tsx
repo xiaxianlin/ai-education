@@ -56,12 +56,12 @@ export default function PracticeDetailPage() {
     if (data.answers && Array.isArray(data.answers)) {
       const answers: Record<number, any> = {};
       data.answers.forEach((answer: any) => {
-        const isCorrectValue =
-          answer.is_correct !== undefined && answer.is_correct !== null ? answer.is_correct : 0;
-        const hasAnswered = isCorrectValue !== 0;
+        const statusValue =
+          answer.status !== undefined && answer.status !== null ? answer.status : 0;
+        const hasAnswered = statusValue !== 0;
 
         answers[answer.question_id] = {
-          is_correct: isCorrectValue,
+          status: statusValue,
           has_answered: hasAnswered,
           answer: answer.text_answer || answer.question_content || '',
           time_spent: answer.time_spent || 0,
@@ -77,9 +77,9 @@ export default function PracticeDetailPage() {
     if (data.questions && Array.isArray(data.questions)) {
       const answers: Record<number, any> = {};
       data.questions.forEach((q: any) => {
-        if (q.is_correct !== undefined) {
+        if (q.status !== undefined) {
           answers[q.id] = {
-            is_correct: q.is_correct,
+            status: q.status,
             has_answered: true,
             answer: q.answer || '',
           };
@@ -169,15 +169,15 @@ export default function PracticeDetailPage() {
     ? session?.answer_count || 0
     : answerValues.filter(
         (ans: any) =>
-          ans.is_correct !== undefined && ans.is_correct !== null && ans.is_correct !== 0,
+          ans.status !== undefined && ans.status !== null && ans.status !== 0,
       ).length;
   const correctCount =
     report?.correct_questions ||
     session?.correct_count ||
-    answerValues.filter((ans: any) => ans.is_correct === 1).length;
+    answerValues.filter((ans: any) => ans.status === 1).length;
   const wrongCount = report?.total_questions
     ? answeredCount - correctCount
-    : answerValues.filter((ans: any) => ans.is_correct === 2).length;
+    : answerValues.filter((ans: any) => ans.status === 2).length;
 
   const unansweredCount = totalQuestions - answeredCount;
   const progressPercent =
@@ -237,9 +237,9 @@ export default function PracticeDetailPage() {
         render: (questionId: number) => {
           const answerData = studentAnswers[questionId];
           const hasAnswered =
-            answerData?.is_correct !== undefined &&
-            answerData?.is_correct !== null &&
-            answerData?.is_correct !== 0;
+            answerData?.status !== undefined &&
+            answerData?.status !== null &&
+            answerData?.status !== 0;
           return (
             <Tag color={hasAnswered ? 'success' : 'default'}>
               {hasAnswered ? '已作答' : '未作答'}
@@ -255,13 +255,13 @@ export default function PracticeDetailPage() {
           const answerData = studentAnswers[questionId];
           if (
             !answerData ||
-            answerData.is_correct === undefined ||
-            answerData.is_correct === null ||
-            answerData.is_correct === 0
+            answerData.status === undefined ||
+            answerData.status === null ||
+            answerData.status === 0
           ) {
             return <span style={{ color: '#999' }}>-</span>;
           }
-          const isCorrect = answerData.is_correct === 1;
+          const isCorrect = answerData.status === 1;
           return <Tag color={isCorrect ? 'success' : 'error'}>{isCorrect ? '正确' : '错误'}</Tag>;
         },
       },

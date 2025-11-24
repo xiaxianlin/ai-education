@@ -40,8 +40,8 @@ export function useUnitPracticeSession() {
             if (answerData.answer) {
               restoredAnswers[questionId] = answerData.answer;
             }
-            if (answerData.is_correct !== undefined) {
-              restoredResults[questionId] = answerData.is_correct;
+            if (answerData.status !== undefined) {
+              restoredResults[questionId] = answerData.status === 1;
             }
           });
           

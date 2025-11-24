@@ -178,7 +178,8 @@ class PracticeAnswerSchema(BaseModel):
     question_id: int
     question_order: int
     user_answer: Optional[str] = None
-    is_correct: int = 0
+    text_answer: Optional[str] = None
+    status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
     create_time: int

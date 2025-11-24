@@ -148,7 +148,7 @@ const result = await api.post<SubmitAnswerResponse>('/practice/answer', params);
 
 - **PracticeSessionStatus**: `0` - 未开始, `1` - 进行中, `2` - 已完成
 - **PracticeSessionType**: `'daily_practice'` | `'unit_practice'` | `'assessment'`
-- **is_correct** (PracticeAnswer): `0` - 未答, `1` - 正确, `2` - 错误
+- **status** (PracticeAnswer): `0` - 未答, `1` - 正确, `2` - 错误
 
 ## 迁移指南
 

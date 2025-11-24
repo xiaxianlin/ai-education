@@ -50,8 +50,8 @@ export function usePracticeSession(sessionId: number) {
             if (answer.text_answer) {
               restoredAnswers[answer.question_id] = answer.text_answer;
             }
-            if (answer.is_correct !== undefined) {
-              restoredResults[answer.question_id] = answer.is_correct === 1;
+            if (answer.status !== undefined) {
+              restoredResults[answer.question_id] = answer.status === 1;
             }
           });
           

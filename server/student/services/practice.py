@@ -238,7 +238,7 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
             "question_id": answer.question_id,
             "question_order": answer.question_order,
             "text_answer": answer.text_answer,
-            "is_correct": answer.is_correct,
+            "status": answer.status,
             "time_spent": answer.time_spent,
             "submit_time": answer.submit_time,
         }

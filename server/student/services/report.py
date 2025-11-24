@@ -47,7 +47,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     
     # 4. 统计基础数据
     total_questions = len(answers)
-    correct_questions = sum(1 for ans in answers if ans.is_correct == 1)
+    correct_questions = sum(1 for ans in answers if ans.status == 1)
     total_time = sum(ans.time_spent for ans in answers if ans.time_spent)
     
     # 计算总得分（正确率 * 100）
@@ -123,7 +123,7 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswe
             knowledge_stats[knowledge] = {"total": 0, "correct": 0}
         
         knowledge_stats[knowledge]["total"] += 1
-        if answer.is_correct == 1:
+        if answer.status == 1:
             knowledge_stats[knowledge]["correct"] += 1
     
     # 计算正确率
@@ -153,7 +153,7 @@ async def analyze_question_distribution(db: AsyncSession, answers: List[Practice
             type_stats[q_type] = {"total": 0, "correct": 0}
         
         type_stats[q_type]["total"] += 1
-        if answer.is_correct == 1:
+        if answer.status == 1:
             type_stats[q_type]["correct"] += 1
     
     # 计算正确率
@@ -183,7 +183,7 @@ async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeAnsw
             difficulty_stats[difficulty] = {"total": 0, "correct": 0}
         
         difficulty_stats[difficulty]["total"] += 1
-        if answer.is_correct == 1:
+        if answer.status == 1:
             difficulty_stats[difficulty]["correct"] += 1
     
     # 计算正确率
@@ -226,7 +226,7 @@ def calculate_consistency(answers: List[PracticeAnswer]) -> float:
     
     for i in range(0, len(answers), chunk_size):
         chunk = answers[i:i + chunk_size]
-        correct = sum(1 for ans in chunk if ans.is_correct == 1)
+        correct = sum(1 for ans in chunk if ans.status == 1)
         accuracy = correct / len(chunk) * 100
         accuracies.append(accuracy)
     

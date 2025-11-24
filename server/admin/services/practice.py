@@ -214,7 +214,7 @@ async def create_daily_practice(db: AsyncSession, student_id: str) -> dict:
             )
             for answer in answer_records.all():
                 answer.text_answer = None
-                answer.is_correct = 0
+                answer.status = 0
                 answer.time_spent = 0
                 answer.submit_time = None
                 answer.audio_answer = None
@@ -686,7 +686,7 @@ async def get_session_detail(db: AsyncSession, session_id: int) -> Dict:
             "question_id": answer.question_id,
             "question_order": answer.question_order,
             "text_answer": answer.text_answer,
-            "is_correct": answer.is_correct,
+            "status": answer.status,
             "time_spent": answer.time_spent,
             "submit_time": answer.submit_time,
         }

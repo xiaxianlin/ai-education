@@ -56,7 +56,7 @@ export interface PracticeSessionDetail {
     question_order?: number;
     question_content?: string; // API.md 中定义的字段
     text_answer?: string;
-    is_correct: number; // 0-未答, 1-正确, 2-错误
+    status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number; // 答题耗时（秒）
     submit_time?: number; // 提交时间（时间戳）
     audio_data?: string; // 音频答案（base64）
