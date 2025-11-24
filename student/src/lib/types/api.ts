@@ -1,7 +1,32 @@
 /**
  * API 相关类型定义
  * 统一管理所有 API 接口的类型
+ * 
+ * 注意：基础数据类型定义在 schema.ts 中，这里主要定义 API 响应和请求类型
  */
+
+// 导出统一的数据类型
+export type {
+  Student,
+  Textbook,
+  Unit,
+  Knowledge,
+  Question,
+  PracticeSession,
+  PracticeStats,
+  PracticeHistory,
+  PracticeAnswer,
+  PracticeWrongRecord,
+  PracticeReport,
+  LoginParams,
+  LoginResponse,
+  CheckAuthResponse,
+  SubmitAnswerParams,
+  SubmitAnswerResponse,
+  BeginPracticeResponse,
+  CompletePracticeResponse,
+  UnitPracticeStatus,
+} from './schema';
 
 // ===== 通用类型 =====
 export interface ApiResponse<T = unknown> {
@@ -17,7 +42,10 @@ export interface PaginatedResponse<T> {
   pageSize: number;
 }
 
-// ===== 用户相关 =====
+// ===== 用户相关（兼容旧接口） =====
+/**
+ * @deprecated 使用 Student 类型替代
+ */
 export interface StudentInfo {
   id: string;
   name: string;
@@ -30,36 +58,22 @@ export interface StudentInfo {
   accuracyRate?: number;
   continuousDays?: number;
   createdAt?: string;
-  [key: string]: unknown; // 允许其他字段，但避免使用 any
+  [key: string]: unknown;
 }
 
-export interface LoginParams {
-  phone: string;
-  password: string;
-}
-
-// ===== 练习相关 =====
-export interface Question {
-  id: number;
-  type: string;
-  subtype?: string;
-  content: string;
-  options: string;
-  difficulty: string;
-  knowledge: string;
-  resource?: string;
-  resource_type?: string;
-  resource_content?: string;
-  answer?: string;
-  is_correct?: boolean;
-}
-
+// ===== 练习相关（兼容旧接口） =====
+/**
+ * @deprecated 使用 Question 类型替代
+ */
 export interface QuestionOption {
   id: string;
   label: string;
   content: string;
 }
 
+/**
+ * @deprecated 使用 SubmitAnswerParams 类型替代
+ */
 export interface AnswerSubmission {
   sessionId: string;
   questionId: number;
@@ -67,6 +81,9 @@ export interface AnswerSubmission {
   timeSpent?: number;
 }
 
+/**
+ * @deprecated 使用 SubmitAnswerResponse 类型替代
+ */
 export interface AnswerResult {
   is_correct: boolean;
   correct_answer: string;

@@ -1,10 +1,10 @@
-import { message, Modal, Spin } from 'antd';
+import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
 import { TextbookApi } from '@/services/textbook';
 import { useNavigate, useParams } from '@umijs/max';
 import { useState } from 'react';
-import React from 'react';
+import { useGenerateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
 const useContainer = () => {
   const navigate = useNavigate();
@@ -73,55 +73,24 @@ const useContainer = () => {
     });
   };
 
-  const handleGenerateQuestions = () => {
-    if (!textbook) return;
-    Modal.confirm({
-      centered: true,
-      title: '生成题目',
-      content: '确定要为该教材生成题目吗？生成过程可能需要一些时间，请耐心等待。',
-      onOk: async () => {
-        // 显示全局 loading 弹窗
-        const hide = Modal.info({
-          centered: true,
-          title: '正在生成题目',
-          content: React.createElement(
-            'div',
-            { style: { textAlign: 'center', padding: '20px 0' } },
-            React.createElement(Spin, { size: 'large' }),
-            React.createElement(
-              'div',
-              { style: { color: '#666', marginTop: 16 } },
-              '题目生成中，请稍候...',
-            ),
-          ),
-          okButtonProps: { style: { display: 'none' } },
-          closable: false,
-          maskClosable: false,
-          width: 400,
-        });
-
-        try {
-          await TextbookApi.generateQuestions(textbook.id);
-          hide.destroy();
-          Modal.success({
-            centered: true,
-            title: '生成成功',
-            content: '题目生成完成！',
-            onOk: () => {
-              refresh();
-            },
-          });
-        } catch (error: any) {
-          hide.destroy();
-          Modal.error({
-            centered: true,
-            title: '生成失败',
-            content: error?.message || '题目生成失败，请稍后重试',
-          });
-        }
+  const handleGenerateQuestions = useGenerateWithConfirm(
+    async () => {
+      if (!textbook) return;
+      return await TextbookApi.generateQuestions(textbook.id);
+    },
+    {
+      confirmTitle: '生成题目',
+      confirmContent: '确定要为该教材生成题目吗？生成过程可能需要一些时间，请耐心等待。',
+      loadingTitle: '正在生成题目',
+      loadingContent: '题目生成中，请稍候...',
+      successTitle: '生成成功',
+      successContent: '题目生成完成！',
+      errorTitle: '生成失败',
+      onSuccess: () => {
+        refresh();
       },
-    });
-  };
+    },
+  );
 
   return {
     id: Number(id),

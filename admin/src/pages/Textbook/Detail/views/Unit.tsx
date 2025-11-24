@@ -6,12 +6,13 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, Modal, Spin, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { CourseUnitApi } from '@/services/unit';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
+import { generateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
@@ -22,50 +23,21 @@ export const UnitView: React.FC = () => {
     handleSubmit,
   } = useTextbookUnitModel();
 
-  const handleGenerateQuestions = async (unit: Unit) => {
-    Modal.confirm({
-      centered: true,
-      title: '生成题目',
-      content: `确定要为单元 "${unit.name}" 生成题目吗？生成过程可能需要一些时间，请耐心等待。`,
-      onOk: async () => {
-        // 显示全局 loading 弹窗
-        const hide = Modal.info({
-          centered: true,
-          title: '正在生成题目',
-          content: React.createElement(
-            'div',
-            { style: { textAlign: 'center', padding: '20px 0' } },
-            React.createElement(Spin, { size: 'large' }),
-            React.createElement(
-              'div',
-              { style: { color: '#666', marginTop: 16 } },
-              `正在为单元 "${unit.name}" 生成题目，请稍候...`,
-            ),
-          ),
-          okButtonProps: { style: { display: 'none' } },
-          closable: false,
-          maskClosable: false,
-          width: 400,
-        });
-
-        try {
-          await CourseUnitApi.generateQuestions(unit.id);
-          hide.destroy();
-          Modal.success({
-            centered: true,
-            title: '生成成功',
-            content: `单元 "${unit.name}" 的题目已生成完成！`,
-          });
-        } catch (error: any) {
-          hide.destroy();
-          Modal.error({
-            centered: true,
-            title: '生成失败',
-            content: error?.message || '题目生成失败，请稍后重试',
-          });
-        }
+  const handleGenerateQuestions = (unit: Unit) => {
+    generateWithConfirm(
+      async () => {
+        return await CourseUnitApi.generateQuestions(unit.id);
       },
-    });
+      {
+        confirmTitle: '生成题目',
+        confirmContent: `确定要为单元 "${unit.name}" 生成题目吗？生成过程可能需要一些时间，请耐心等待。`,
+        loadingTitle: '正在生成题目',
+        loadingContent: `正在为单元 "${unit.name}" 生成题目，请稍候...`,
+        successTitle: '生成成功',
+        successContent: `单元 "${unit.name}" 的题目已生成完成！`,
+        errorTitle: '生成失败',
+      },
+    );
   };
 
   const columns: ProColumns<Unit>[] = [

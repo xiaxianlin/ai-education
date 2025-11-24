@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
-import React from 'react';
-import { Card, Empty, Button, Progress, Spin, Modal, Space } from 'antd';
+import { Card, Empty, Button, Space } from 'antd';
 import { Link } from '@umijs/max';
 import { StatisticCard } from '@ant-design/pro-components';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
@@ -8,7 +7,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { useDailyPractice } from '../hooks/useDailyPractice';
 import { StudentApi } from '@/services/student';
 import { fmtTime } from '@/utils/time';
-import { message } from 'antd';
+import { generateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
 type PracticeCardProps = {
   id: string;
@@ -23,57 +22,27 @@ export function PracticeCard({ id }: PracticeCardProps) {
     refreshTodayPractice,
   } = useDailyPractice(id);
 
-  const handleRegenerate = async () => {
+  const handleRegenerate = () => {
     if (!todaySession) return;
-
-    Modal.confirm({
-      title: '确认重新生成',
-      icon: <ExclamationCircleOutlined />,
-      content: '重新生成将重置全部进度，此操作不可恢复。确定要继续吗？',
-      okText: '确定',
-      cancelText: '取消',
-      onOk: async () => {
-        // 显示全局 loading 弹窗
-        const hide = Modal.info({
-          centered: true,
-          title: '正在重新生成每日练习',
-          content: React.createElement(
-            'div',
-            { style: { textAlign: 'center', padding: '20px 0' } },
-            React.createElement(Spin, { size: 'large' }),
-            React.createElement(
-              'div',
-              { style: { color: '#666', marginTop: 16 } },
-              '重新生成中，请稍候...',
-            ),
-          ),
-          okButtonProps: { style: { display: 'none' } },
-          closable: false,
-          maskClosable: false,
-          width: 400,
-        });
-
-        try {
-          await StudentApi.regenerateDailyPractice(id, todaySession.session_id);
-          hide.destroy();
-          Modal.success({
-            centered: true,
-            title: '重新生成成功',
-            content: '每日练习已重新生成完成！',
-            onOk: () => {
-              refreshTodayPractice();
-            },
-          });
-        } catch (error: any) {
-          hide.destroy();
-          Modal.error({
-            centered: true,
-            title: '重新生成失败',
-            content: error?.message || '重新生成失败，请稍后重试',
-          });
-        }
+    
+    generateWithConfirm(
+      async () => {
+        return await StudentApi.regenerateDailyPractice(id, todaySession.session_id);
       },
-    });
+      {
+        confirmTitle: '确认重新生成',
+        confirmIcon: <ExclamationCircleOutlined />,
+        confirmContent: '重新生成将重置全部进度，此操作不可恢复。确定要继续吗？',
+        loadingTitle: '正在重新生成每日练习',
+        loadingContent: '重新生成中，请稍候...',
+        successTitle: '重新生成成功',
+        successContent: '每日练习已重新生成完成！',
+        errorTitle: '重新生成失败',
+        onSuccess: () => {
+          refreshTodayPractice();
+        },
+      },
+    );
   };
 
   return (

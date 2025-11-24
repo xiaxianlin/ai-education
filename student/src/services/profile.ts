@@ -1,5 +1,10 @@
 import { api } from '@/lib/api';
+import type { Student, Textbook, CheckAuthResponse } from '@/lib/types/schema';
 
+/**
+ * 学生资料（兼容旧接口）
+ * 实际应使用 CheckAuthResponse
+ */
 export interface StudentProfile {
   id?: number;
   student_id?: string;
@@ -9,19 +14,8 @@ export interface StudentProfile {
   create_time?: number;
   update_time?: number;
   // 根据 API.md，check 接口返回的格式
-  student?: {
-    id: string;
-    name: string;
-    phone: string;
-    status: number;
-  };
-  textbook?: {
-    id: number;
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-  };
+  student?: Student;
+  textbook?: Textbook;
 }
 
 export interface UpdateProfileParams {
@@ -35,22 +29,8 @@ export const profileApi = {
    * 检查登录状态（根据 API.md: GET /api/student/check）
    * 返回学生信息和当前教材信息
    */
-  check: async (): Promise<{
-    student: {
-      id: string;
-      name: string;
-      phone: string;
-      status: number;
-    };
-    textbook?: {
-      id: number;
-      subject: string;
-      version: string;
-      grade: number;
-      semester: string;
-    };
-  }> => {
-    return api.get('/check');
+  check: async (): Promise<CheckAuthResponse> => {
+    return api.get<CheckAuthResponse>('/check');
   },
 
   /**
@@ -221,39 +201,5 @@ export interface CreateStudyRecordParams {
   study_date?: number;
 }
 
-export interface Textbook {
-  id: number;
-  subject: string;
-  version: string;
-  grade: number;
-  semester: string;
-  active?: number; // 是否激活（1-激活，0-未激活），根据 API.md
-  file?: string;
-  index_file_id?: string;
-  is_parsed?: number;
-  status?: number;
-  create_time?: number;
-  update_time?: number;
-}
-
-export interface Knowledge {
-  id: number;
-  textbook_id: number;
-  unit_id: number;
-  name: string;
-  content: string;
-  status: number;
-  create_time: number;
-  update_time?: number;
-}
-
-export interface Unit {
-  id: number;
-  textbook_id: number;
-  name: string;
-  content: string;
-  status: number;
-  create_time: number;
-  update_time?: number;
-  knowledges?: Knowledge[];
-}
+// 导出统一类型（兼容旧接口）
+export type { Textbook, Unit, Knowledge } from '@/lib/types/schema';

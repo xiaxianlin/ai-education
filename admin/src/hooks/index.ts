@@ -4,3 +4,4 @@ export * from './useConfigs';
 export * from './useTableColumns';
 export * from './useTableRequest';
 export * from './useDelete';
+export * from './useGenerateWithConfirm';

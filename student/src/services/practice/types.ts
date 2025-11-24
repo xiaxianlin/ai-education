@@ -1,58 +1,34 @@
 /**
  * 练习相关类型定义
- * 根据 API.md 规范定义
+ * 基于后端 schema 定义，与 server/student/schema.py 保持一致
+ * 
+ * 注意：基础类型已定义在 @/lib/types/schema.ts 中
  */
 
-// ===== 通用类型 =====
-export interface Question {
-  id: number;
-  type: string;
-  subtype?: string;
-  content: string;
-  options?: string;
-  difficulty?: string;
-  knowledge?: string;
-  resource?: string;
-  resource_type?: 'image' | 'audio' | null;
-  resource_content?: string;
-  answer?: string;
-  is_correct?: boolean;
-  order?: number;
-}
+// 导出统一的基础类型
+export type {
+  Question,
+  PracticeSession,
+  PracticeStats,
+  PracticeHistory,
+  PracticeAnswer,
+  PracticeWrongRecord,
+  PracticeReport,
+  SubmitAnswerParams,
+  SubmitAnswerResponse,
+  BeginPracticeResponse,
+  CompletePracticeResponse,
+  UnitPracticeStatus,
+  PracticeSessionType,
+  PracticeSessionStatus,
+} from '@/lib/types/schema';
 
-// 根据 API.md 定义的练习会话接口
-export interface PracticeSession {
-  session_id: number;
-  session_type: 'daily_practice' | 'unit_practice' | 'assessment';
-  target_id?: number; // 每日练习的日期（如 20241123），单元练习的单元ID，能力评估的目标ID
-  textbook_id?: number; // 教材ID（历史记录中）
-  question_count: number;
-  answer_count: number;
-  correct_count: number;
-  status: number; // 0-未开始, 1-进行中, 2-已完成
-  create_time?: number;
-  start_time?: number;
-  end_time?: number;
-  questions?: Question[];
-  // 每日练习特有字段
-  date?: number; // 日期（如 20241123）
-  score?: number; // 得分
-  // 单元练习特有字段
-  unit_id?: number;
-  difficulty?: 'easy' | 'medium' | 'hard' | 'adaptive';
-  // 能力评估特有字段
-  assessment_type?: 'unit' | 'comprehensive' | 'topic';
-  current_ability?: number; // 能力值
-  ability_level?: 'beginner' | 'intermediate' | 'advanced';
-  overall_score?: number; // 总分
-  confidence?: number; // 置信度（0-1）
-  answered_count?: number; // 已答题数
-  // 其他字段
-  total_time?: number; // 总用时（秒）
-  update_time?: number;
-}
+// ===== 扩展类型（用于特定场景） =====
 
-// 练习会话详情
+// ===== 练习会话详情 =====
+/**
+ * 练习会话详情（包含题目和答案）
+ */
 export interface PracticeSessionDetail {
   session: PracticeSession;
   questions?: Question[];
@@ -77,28 +53,6 @@ export interface PracticeSessionDetail {
   };
 }
 
-export interface SubmitAnswerParams {
-  session_id: number;
-  question_id: number;
-  answer: string;
-  time_spent?: number;
-  is_audio_answer?: boolean;
-  audio_data?: string; // 音频数据（base64编码）
-  audio_url?: string; // 录音文件 URL（兼容旧接口）
-}
-
-export interface AnswerResult {
-  is_correct: boolean;
-  correct_answer: string;
-  analysis?: string; // 解析说明
-  explanation?: string; // 兼容旧字段
-  session_progress?: {
-    answer_count: number;
-    correct_count: number;
-    question_count: number;
-  };
-}
-
 export interface KnowledgeScore {
   total: number;
   correct: number;
@@ -106,10 +60,13 @@ export interface KnowledgeScore {
 }
 
 // ===== 每日练习类型 =====
-// 兼容旧接口，实际使用 PracticeSession
+/**
+ * 每日练习会话（扩展 PracticeSession）
+ * 兼容旧接口，实际使用 PracticeSession
+ */
 export interface DailyPracticeSession extends PracticeSession {
   session_type: 'daily_practice';
-  date: number;
+  date: number; // 日期（如 20241123）
   target_id: number; // 等于 date
 }
 
@@ -135,7 +92,10 @@ export interface DailyPracticeReport {
   status: string;
 }
 
-export interface DailyPracticeHistoryItem extends PracticeSession {
+/**
+ * 每日练习历史记录（扩展 PracticeHistory）
+ */
+export interface DailyPracticeHistoryItem extends PracticeHistory {
   session_type: 'daily_practice';
   target_id: number; // 日期（如 20241123）
 }
@@ -204,7 +164,10 @@ export interface UnitProgress {
   }>;
 }
 
-export interface PracticeHistoryItem extends PracticeSession {
+/**
+ * 单元练习历史记录（扩展 PracticeHistory）
+ */
+export interface PracticeHistoryItem extends PracticeHistory {
   session_type: 'unit_practice';
   unit_id: number;
   target_id: number; // 等于 unit_id
@@ -265,13 +228,16 @@ export interface AssessmentReport {
   };
 }
 
-export interface AssessmentHistoryItem extends PracticeSession {
+/**
+ * 能力评估历史记录（扩展 PracticeHistory）
+ */
+export interface AssessmentHistoryItem extends PracticeHistory {
   session_type: 'assessment';
-  assessment_type: 'unit' | 'comprehensive' | 'topic';
-  current_ability: number;
-  ability_level: 'beginner' | 'intermediate' | 'advanced';
-  overall_score: number;
-  confidence: number;
-  answered_count: number;
+  assessment_type?: 'unit' | 'comprehensive' | 'topic';
+  current_ability?: number;
+  ability_level?: 'beginner' | 'intermediate' | 'advanced';
+  overall_score?: number;
+  confidence?: number;
+  answered_count?: number;
 }
 

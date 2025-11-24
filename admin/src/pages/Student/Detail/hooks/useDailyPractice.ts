@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
-import React from 'react';
 import { useRequest } from 'ahooks';
-import { Modal, Spin } from 'antd';
 
 import { StudentApi } from '@/services/student';
 import type { PracticeSession } from '@/services/practice';
+import { useGenerateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
 const PRACTICE_HISTORY_PATH = (id: string) => `/practice?student_id=${id}`;
 
@@ -43,49 +42,24 @@ export function useDailyPractice(id?: string, refreshStats?: () => void) {
     },
   );
 
-  const handleGenerateDailyPractice = async () => {
-    if (!id) return;
-
-    // 显示全局 loading 弹窗
-    const hide = Modal.info({
-      centered: true,
-      title: '正在生成每日练习',
-      content: React.createElement(
-        'div',
-        { style: { textAlign: 'center', padding: '20px 0' } },
-        React.createElement(Spin, { size: 'large' }),
-        React.createElement(
-          'div',
-          { style: { color: '#666', marginTop: 16 } },
-          '每日练习生成中，请稍候...',
-        ),
-      ),
-      okButtonProps: { style: { display: 'none' } },
-      closable: false,
-      maskClosable: false,
-      width: 400,
-    });
-
-    try {
-      await generateDailyPractice();
-      hide.destroy();
-      Modal.success({
-        centered: true,
-        title: '生成成功',
-        content: '每日练习已生成完成！',
-        onOk: () => {
-          refreshTodayPractice();
-        },
-      });
-    } catch (error: any) {
-      hide.destroy();
-      Modal.error({
-        centered: true,
-        title: '生成失败',
-        content: error?.message || '每日练习生成失败，请稍后重试',
-      });
-    }
-  };
+  const handleGenerateDailyPractice = useGenerateWithConfirm(
+    async () => {
+      if (!id) return;
+      return await generateDailyPractice();
+    },
+    {
+      confirmTitle: '确认生成每日练习',
+      confirmContent: '确定要为该学生生成今日的每日练习吗？生成过程可能需要一些时间，请耐心等待。',
+      loadingTitle: '正在生成每日练习',
+      loadingContent: '每日练习生成中，请稍候...',
+      successTitle: '生成成功',
+      successContent: '每日练习已生成完成！',
+      errorTitle: '生成失败',
+      onSuccess: () => {
+        refreshTodayPractice();
+      },
+    },
+  );
 
   const practiceHistoryLink = useMemo(
     () => (id ? PRACTICE_HISTORY_PATH(id) : '#'),
