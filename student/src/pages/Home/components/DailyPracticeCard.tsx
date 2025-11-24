@@ -48,17 +48,17 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
   // 未生成状态
   if (status === "not_generated") {
     return (
-      <div className="relative overflow-hidden bg-white rounded-3xl shadow-xl border-2 border-blue-100 hover:border-blue-200 transition-all">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+      <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative p-8 flex flex-col gap-6">
           {/* 内容区域 */}
           <div className="flex items-center gap-5">
             <div className="text-6xl">📚</div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 每日练习
               </h3>
-              <p className="text-base text-gray-600">
+              <p className="text-base text-muted-foreground">
                 今天还没有生成练习，快来开始吧！✨
               </p>
             </div>
@@ -68,7 +68,7 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
             onClick={handleCreate}
             disabled={creating}
             size="lg"
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg hover:shadow-xl font-semibold text-base transition-all"
+            className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl font-semibold text-base transition-all text-primary-foreground"
           >
             {creating ? (
               <>
@@ -90,8 +90,8 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
   // 生成中状态
   if (status === "generating") {
     return (
-      <div className="relative overflow-hidden bg-white rounded-3xl shadow-xl border-2 border-yellow-200">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 animate-pulse" />
+      <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-accent/50">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-accent/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 animate-pulse" />
         <div className="relative p-8">
           <div className="flex items-center gap-6">
             <div
@@ -101,15 +101,15 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
               ⚡
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 正在生成每日练习
               </h3>
-              <p className="text-base text-gray-600 mb-4">
+              <p className="text-base text-muted-foreground mb-4">
                 AI 正在为你精心准备题目，请稍候...
               </p>
               <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
-                <span className="text-sm font-medium text-yellow-600">
+                <Loader2 className="h-5 w-5 text-accent animate-spin" />
+                <span className="text-sm font-medium text-accent">
                   生成中
                 </span>
               </div>
@@ -132,30 +132,30 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
     const isCompleted = session.status === 2;
 
     return (
-      <div className="relative overflow-hidden bg-white rounded-3xl shadow-xl border-2 border-green-200 hover:border-green-300 transition-all">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-green-100/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+      <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative p-8 flex flex-col gap-6">
           {/* 内容区域 */}
           <div className="flex items-center gap-5">
             <div className="text-6xl">{isCompleted ? "🎉" : "📝"}</div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 每日练习
               </h3>
               {isCompleted ? (
-                <p className="text-base text-gray-600 mb-3">
+                <p className="text-base text-muted-foreground mb-3">
                   已完成 {correctCount}/{questionCount} 题 ✨
                 </p>
               ) : (
                 <>
-                  <p className="text-base text-gray-600 mb-3">
+                  <p className="text-base text-muted-foreground mb-3">
                     已完成 {answerCount}/{questionCount} 题 · 正确{" "}
                     {correctCount} 题
                   </p>
                   {questionCount > 0 && (
-                    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div className="w-full bg-muted rounded-full h-3 overflow-hidden shadow-inner">
                       <div
-                        className="h-full bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 transition-all duration-500 rounded-full shadow-sm"
+                        className="h-full bg-primary transition-all duration-500 rounded-full shadow-sm"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
@@ -169,10 +169,10 @@ export const DailyPracticeCard = memo(function DailyPracticeCard({
             onClick={handleStart}
             size="lg"
             className={cn(
-              "w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base",
+              "w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground",
               isCompleted
-                ? "bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
-                : "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                ? "bg-primary hover:bg-primary/90"
+                : "bg-primary hover:bg-primary/90"
             )}
           >
             <Play className="h-5 w-5 mr-2" fill="currentColor" />

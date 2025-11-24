@@ -4,7 +4,7 @@
 import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, X, RefreshCw } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { WrongQuestion } from '@/services/profile';
 
@@ -28,17 +28,17 @@ export const WrongQuestionCard = memo(function WrongQuestionCard({
 
   return (
     <Card className={cn(
-      'border-2 transition-all duration-200 hover:shadow-lg',
+      'border-2 transition-all duration-200 hover:shadow-lg bg-card',
       question.is_mastered === 1
-        ? 'border-green-200 bg-green-50/50'
-        : 'border-red-200 bg-red-50/50'
+        ? 'border-green-500/20 bg-green-500/5'
+        : 'border-destructive/20 bg-destructive/5'
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800">
+          <CardTitle className="text-lg font-semibold text-foreground">
             {question.question_content}
           </CardTitle>
-          <span className="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded">
+          <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded">
             {formatDate(question.last_wrong_time)}
           </span>
         </div>
@@ -49,13 +49,13 @@ export const WrongQuestionCard = memo(function WrongQuestionCard({
             <span className={cn(
               'px-3 py-1 rounded-full text-sm font-medium',
               question.is_mastered === 1
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
+                ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+                : 'bg-destructive/10 text-destructive'
             )}>
               {question.is_mastered === 1 ? '已掌握' : '待练习'}
             </span>
             {question.knowledge && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {question.knowledge}
               </span>
             )}

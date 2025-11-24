@@ -71,7 +71,7 @@ export interface Question {
   answer?: string; // 答案
   resource?: string; // 资源路径（图片/音频URL）
   difficulty?: string; // 难度
-  resource_type?: 'image' | 'audio' | null; // 资源类型
+  resource_type?: "image" | "audio" | null; // 资源类型
   resource_content?: string; // 资源内容（录音文本等）
   textbook_id: number;
   unit_id?: number; // 单元ID
@@ -94,27 +94,30 @@ export type PracticeSessionStatus = 0 | 1 | 2;
 /**
  * 练习类型
  */
-export type PracticeSessionType = 'daily_practice' | 'unit_practice' | 'assessment';
+export type PracticeSessionType =
+  | "daily_practice"
+  | "unit_practice"
+  | "assessment";
 
 /**
  * 练习会话（对应 PracticeSessionSchema）
- * 
+ *
  * 注意：后端不同接口可能返回不同格式：
  * - PracticeSessionSchema: 使用 id, question_count, answer_count, correct_count
  * - PracticeStatsSchem: 使用 session_id, total_questions, completed_questions, right_questions
- * 
+ *
  * 本类型兼容两种格式，前端使用时优先使用标准字段（id, question_count等）
  */
 export interface PracticeSession {
   // 会话ID（兼容两种格式）
   id?: number; // 标准字段（PracticeSessionSchema）
   session_id?: number; // 兼容字段（PracticeStatsSchem），如果存在则优先使用
-  
+
   student_id?: string; // 学生ID（某些接口可能不返回）
   session_type: PracticeSessionType;
   target_id?: number; // 单元ID或日期（如 20241123）
   textbook_id?: number; // 教材ID
-  
+
   // 题目统计（兼容两种格式）
   question_count?: number; // 标准字段：题目总数
   answer_count?: number; // 标准字段：已答题数
@@ -122,13 +125,13 @@ export interface PracticeSession {
   total_questions?: number; // 兼容字段：题目总数（PracticeStatsSchem）
   completed_questions?: number; // 兼容字段：已答题数（PracticeStatsSchem）
   right_questions?: number; // 兼容字段：正确数（PracticeStatsSchem）
-  
+
   status: PracticeSessionStatus; // 会话状态
   start_time?: number; // 开始时间（Unix时间戳，秒）
   end_time?: number; // 结束时间（Unix时间戳，秒）
   create_time?: number; // 创建时间（Unix时间戳，秒）
   update_time?: number; // 更新时间（Unix时间戳，秒）
-  
+
   // 扩展字段（某些接口返回时包含）
   questions?: Question[]; // 题目列表
   times?: number; // 练习次数（PracticeStatsSchem）
@@ -137,7 +140,7 @@ export interface PracticeSession {
 /**
  * 练习统计（对应 PracticeStatsSchem）
  * 用于返回练习的基本统计信息
- * 
+ *
  * 注意：这个类型对应后端 PracticeStatsSchem，字段名与 PracticeSession 不同
  */
 export interface PracticeStats {
@@ -147,7 +150,7 @@ export interface PracticeStats {
   completed_questions: number; // 已答题数
   right_questions: number; // 正确数
   times: number; // 练习次数（已完成次数）
-  
+
   // 可选：某些接口可能返回更多信息
   question_count?: number; // 兼容字段
   answer_count?: number; // 兼容字段
@@ -241,14 +244,6 @@ export interface PracticeReport {
 export interface LoginParams {
   phone: string;
   password: string;
-}
-
-/**
- * 登录响应
- */
-export interface LoginResponse {
-  token: string;
-  student?: Student;
 }
 
 /**

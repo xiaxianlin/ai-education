@@ -41,7 +41,7 @@ export const UnitCard = memo(function UnitCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer rounded-2xl',
+        'relative overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer rounded-2xl bg-card',
         theme.border
       )}
     >
@@ -59,14 +59,14 @@ export const UnitCard = memo(function UnitCard({
 
         {/* 单元标题和简介 */}
         <div className="flex items-start gap-3">
-          <div className={cn('p-2.5 rounded-xl bg-white/90 shadow-md flex-shrink-0')}>
+          <div className={cn('p-2.5 rounded-xl bg-background/90 shadow-md flex-shrink-0')}>
             <BookOpen className={cn('h-8 w-8', theme.icon)} />
           </div>
           <div className="flex-1 min-w-0 space-y-2">
-            <CardTitle className="text-xl font-bold text-gray-800 leading-tight">
+            <CardTitle className="text-xl font-bold text-foreground leading-tight">
               {unit.name}
             </CardTitle>
-            <CardDescription className="text-sm leading-relaxed text-gray-600 line-clamp-2">
+            <CardDescription className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
               {/* 根据 API.md，新接口可能不返回 content 字段，使用默认文本 */}
               {(unit as any).content || '本单元包含多个重点知识点，快来挑战吧！'}
             </CardDescription>
@@ -81,8 +81,8 @@ export const UnitCard = memo(function UnitCard({
             className={cn(
               'flex-1 h-11 rounded-xl text-sm font-semibold transition-all',
               hasKnowledges
-                ? 'bg-purple-100 text-purple-700 border border-purple-200 shadow-sm hover:bg-purple-200 hover:border-purple-300 hover:-translate-y-0.5 hover:shadow-md'
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
+                ? 'bg-secondary/50 text-secondary-foreground border-secondary shadow-sm hover:bg-secondary hover:border-secondary hover:-translate-y-0.5 hover:shadow-md'
+                : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
             )}
             onClick={() => hasKnowledges && onShowKnowledge(unit)}
             disabled={!hasKnowledges}
@@ -96,8 +96,8 @@ export const UnitCard = memo(function UnitCard({
             className={cn(
               'flex-1 h-11 rounded-xl text-sm font-semibold shadow-lg transition-all duration-300',
               isStartDisabled
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed hover:shadow-lg opacity-60'
-                : cn('text-white hover:shadow-xl', theme.button)
+                ? 'bg-muted text-muted-foreground cursor-not-allowed hover:shadow-lg opacity-60'
+                : cn('text-primary-foreground hover:shadow-xl', theme.button)
             )}
           >
             <Play className="h-5 w-5 mr-2" fill="currentColor" />

@@ -30,16 +30,16 @@ export function Login() {
   } = useLogin();
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 px-4 py-10">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-blue-200/50 blur-3xl" />
-        <div className="absolute bottom-[-120px] right-[-60px] h-96 w-96 rounded-full bg-pink-300/40 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/40 blur-3xl" />
+        <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute bottom-[-120px] right-[-60px] h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary/20 blur-3xl" />
       </div>
 
-      <Card className="relative z-10 w-full max-w-md border-2 border-white/60 bg-white/70 shadow-[0_25px_80px_-30px_rgba(79,70,229,0.6)] backdrop-blur-xl">
+      <Card className="relative z-10 w-full max-w-md border-border bg-card/80 shadow-xl backdrop-blur-xl">
         <CardHeader className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white bg-gradient-to-br from-white via-blue-50 to-purple-50 shadow-lg">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
             <img
               src={logo}
               alt="AI 学习助手 Logo"
@@ -47,10 +47,10 @@ export function Login() {
             />
           </div>
           <div className="space-y-2">
-            <CardTitle className="text-3xl font-bold text-gray-800">
+            <CardTitle className="text-3xl font-bold text-foreground">
               欢迎回来！
             </CardTitle>
-            <CardDescription className="text-base text-gray-600">
+            <CardDescription className="text-base text-muted-foreground">
               登录你的 AI 学习空间，继续专属的练习旅程
             </CardDescription>
           </div>
@@ -61,7 +61,7 @@ export function Login() {
             <div className="space-y-2">
               <label
                 htmlFor="phone"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground"
               >
                 手机号
               </label>
@@ -80,9 +80,9 @@ export function Login() {
                 required
                 disabled={loading}
                 className={cn(
-                  'h-12 rounded-xl border-2 border-gray-200 bg-white/80 text-base shadow-sm transition-all focus-visible:border-purple-400 focus-visible:ring-2 focus-visible:ring-purple-200/80',
+                  'h-12 rounded-xl border-input bg-background text-base shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-ring',
                   errors.phone &&
-                    'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/40'
+                    'border-destructive focus-visible:ring-destructive'
                 )}
               />
               {errors.phone && (
@@ -93,7 +93,7 @@ export function Login() {
             <div className="space-y-2">
               <label
                 htmlFor="password"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-medium text-foreground"
               >
                 密码
               </label>
@@ -113,9 +113,9 @@ export function Login() {
                 required
                 disabled={loading}
                 className={cn(
-                  'h-12 rounded-xl border-2 border-gray-200 bg-white/80 text-base shadow-sm transition-all focus-visible:border-purple-400 focus-visible:ring-2 focus-visible:ring-purple-200/80',
+                  'h-12 rounded-xl border-input bg-background text-base shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-ring',
                   errors.password &&
-                    'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/40'
+                    'border-destructive focus-visible:ring-destructive'
                 )}
               />
               {errors.password && (
@@ -125,14 +125,14 @@ export function Login() {
 
             <Button
               type="submit"
-              className="h-12 w-full rounded-xl bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-base font-semibold shadow-lg transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-xl focus-visible:ring-offset-0"
+              className="h-12 w-full rounded-xl bg-primary text-primary-foreground text-base font-semibold shadow-lg transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:bg-primary/90"
               disabled={loading}
             >
               {loading ? '登录中...' : '登录'}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             忘记密码或无法登录？请联系班主任或管理员协助重置。
           </p>
         </CardContent>

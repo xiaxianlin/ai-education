@@ -30,7 +30,7 @@ export function UnitPractice() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-6xl mx-auto px-4 py-6">
           <LoadingSpinner size="lg" text="正在加载..." />
@@ -40,17 +40,17 @@ export function UnitPractice() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
         {/* 头部卡片 */}
-        <Card className="border-2 border-green-300 shadow-2xl rounded-3xl overflow-hidden">
+        <Card className="border-2 border-primary/20 shadow-lg rounded-3xl overflow-hidden bg-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-4">
               <div className="text-6xl">📚</div>
               <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-800">单元练习</h1>
-                <p className="text-base text-gray-600">
+                <h1 className="text-3xl font-bold text-foreground">单元练习</h1>
+                <p className="text-base text-muted-foreground">
                   {currentTextbook
                     ? `${currentTextbook.subject} · ${currentTextbook.grade}年级 ${currentTextbook.semester}`
                     : '选择你要练习的单元'}
@@ -62,11 +62,11 @@ export function UnitPractice() {
 
         {/* 提示信息 */}
         {!currentTextbook && (
-          <Card className="border-2 border-yellow-300 bg-gradient-to-r from-yellow-100 to-orange-100 shadow-xl rounded-3xl">
+          <Card className="border-2 border-accent/50 bg-accent/10 shadow-lg rounded-3xl">
             <CardContent className="p-6 text-center">
               <div className="text-5xl mb-3">⚠️</div>
-              <p className="text-xl font-bold text-gray-800 mb-2">还没选教材呢！</p>
-              <p className="text-base text-gray-600">去设置里选择你的学习教材吧~ 📖</p>
+              <p className="text-xl font-bold text-foreground mb-2">还没选教材呢！</p>
+              <p className="text-base text-muted-foreground">去设置里选择你的学习教材吧~ 📖</p>
             </CardContent>
           </Card>
         )}
@@ -90,14 +90,14 @@ export function UnitPractice() {
 
         {/* 空状态 */}
         {!loading && units.length === 0 && (
-          <Card className="border-2 border-gray-300 bg-white shadow-2xl rounded-3xl">
+          <Card className="border-2 border-border bg-card shadow-lg rounded-3xl">
             <CardContent className="py-16 text-center">
               <div className="text-7xl mb-6">📖</div>
-              <p className="text-2xl font-bold text-gray-800 mb-3">
+              <p className="text-2xl font-bold text-foreground mb-3">
                 {currentTextbook ? '这个教材还没有单元哦' : '还没有选教材呢'}
               </p>
               {!currentTextbook && (
-                <p className="text-lg text-gray-600">去设置里选一个吧！🎯</p>
+                <p className="text-lg text-muted-foreground">去设置里选一个吧！🎯</p>
               )}
             </CardContent>
           </Card>

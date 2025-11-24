@@ -34,7 +34,7 @@ export function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 via-purple-50 to-pink-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <AlertDialog
         open={confirmDialog.open}
@@ -52,27 +52,27 @@ export function Settings() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* 页面标题 */}
         <div className="text-center space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">
             教材设置
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             选择你正在使用的教材，开始个性化学习之旅
           </p>
         </div>
 
         {/* 我的教材列表 */}
         {textbooks.length > 0 ? (
-          <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <CardHeader className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 pb-6 pt-8">
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-card animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <CardHeader className="bg-primary/5 pb-6 pt-8 border-b border-border">
               <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                  <BookOpen className="h-6 w-6 text-white" />
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-sm">
+                  <BookOpen className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-2xl sm:text-3xl font-bold text-white">
+                <CardTitle className="text-2xl sm:text-3xl font-bold text-foreground">
                   我的教材
                 </CardTitle>
               </div>
-              <CardDescription className="text-center text-base text-blue-100">
+              <CardDescription className="text-center text-base text-muted-foreground">
                 点击下方卡片选择你正在使用的教材
               </CardDescription>
             </CardHeader>
@@ -101,7 +101,7 @@ export function Settings() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-500">
+          <Card className="border-0 shadow-lg rounded-3xl overflow-hidden bg-card animate-in fade-in zoom-in-95 duration-500">
             <CardContent className="py-20 px-6">
               <div className="text-center space-y-6">
                 <div className="relative inline-block">
@@ -113,15 +113,15 @@ export function Settings() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">
                     还没有教材呢
                   </p>
-                  <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto">
+                  <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto">
                     请联系老师为你添加教材，添加后即可开始学习
                   </p>
                 </div>
                 <div className="pt-4">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-gray-700">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-muted-foreground">
                     <span className="text-xl">👨‍🏫</span>
                     <span className="text-sm font-medium">等待老师添加教材</span>
                   </div>

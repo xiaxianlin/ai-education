@@ -21,30 +21,30 @@ export const ProgressIndicator = memo(function ProgressIndicator({
   const answerProgress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   return (
-    <Card className="border-2 border-blue-200 shadow-lg rounded-2xl bg-white">
+    <Card className="border-2 border-primary/20 shadow-lg rounded-2xl bg-card">
       <CardContent className="p-6">
         <div className="space-y-4">
           {practiceType && (
-            <div className="text-lg font-semibold text-gray-800">
+            <div className="text-lg font-semibold text-foreground">
               {practiceType}
             </div>
           )}
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
             <span>第 {currentIndex + 1} 题 / 共 {totalQuestions} 题</span>
             <span>已完成 {answeredCount} 题</span>
           </div>
           <div className="space-y-2">
             {/* 当前进度 */}
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 rounded-full"
+                className="h-full bg-primary transition-all duration-300 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
             {/* 答题进度 */}
-            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted/50 rounded-full h-2 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-300 rounded-full"
+                className="h-full bg-green-500 transition-all duration-300 rounded-full"
                 style={{ width: `${answerProgress}%` }}
               />
             </div>

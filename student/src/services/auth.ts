@@ -1,13 +1,12 @@
-import { api } from '@/lib/api';
-import type { LoginParams, LoginResponse, CheckAuthResponse } from '@/lib/types/schema';
+import { api } from "@/lib/api";
+import type { LoginParams, CheckAuthResponse } from "@/lib/types/schema";
 
 export const authApi = {
   login: async (params: LoginParams): Promise<string> => {
-    const response = await api.post<LoginResponse>('/login', params);
-    return response.token;
+    const token = await api.post<string>("/login", params);
+    return token;
   },
   check: async (): Promise<CheckAuthResponse> => {
-    return api.get<CheckAuthResponse>('/check');
+    return api.get<CheckAuthResponse>("/check");
   },
 };
-

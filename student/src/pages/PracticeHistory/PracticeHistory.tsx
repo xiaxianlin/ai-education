@@ -30,7 +30,7 @@ export function PracticeHistory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-12 flex items-center justify-center">
+      <div className="min-h-screen bg-background pb-12 flex items-center justify-center">
         <LoadingSpinner size="lg" text="正在加载..." />
       </div>
     );
@@ -43,21 +43,21 @@ export function PracticeHistory() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* 头部 */}
-        <Card className="border-2 border-pink-300 shadow-lg bg-gradient-to-r from-yellow-100 via-pink-100 to-purple-100">
+        <Card className="border-2 border-primary/20 shadow-lg bg-card">
           <CardContent className="py-4 px-6">
             <div className="flex items-center justify-center gap-4">
-              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full shadow-lg bg-gradient-to-br from-purple-400 to-blue-500">
-                <Trophy className="h-8 w-8 text-white drop-shadow-md" />
+              <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 rounded-full shadow-lg bg-primary/10">
+                <Trophy className="h-8 w-8 text-primary drop-shadow-md" />
               </div>
               <div className="text-center">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-primary">
                   练习记录
                 </h1>
-                <p className="text-sm font-semibold text-purple-700 mt-1">查看你的学习历程</p>
+                <p className="text-sm font-semibold text-muted-foreground mt-1">查看你的学习历程</p>
               </div>
             </div>
           </CardContent>
@@ -73,15 +73,15 @@ export function PracticeHistory() {
                 'flex-1 py-4 px-4 rounded-2xl font-bold text-base transition-all duration-300',
                 'border-2 shadow-lg flex items-center justify-center gap-2',
                 activeTab === tab.key
-                  ? 'bg-purple-500 text-white border-purple-400 shadow-xl scale-105'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-purple-300 hover:shadow-xl'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-xl scale-105'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/50 hover:shadow-xl'
               )}
             >
               {tab.icon}
               <span>{tab.label}</span>
               <span className={cn(
                 'ml-1 px-2 py-0.5 rounded-full text-xs font-bold',
-                activeTab === tab.key ? 'bg-white/30' : 'bg-purple-100 text-purple-700'
+                activeTab === tab.key ? 'bg-white/30' : 'bg-primary/10 text-primary'
               )}>
                 {tab.count}
               </span>
@@ -101,7 +101,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-blue-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30"
+                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}
@@ -110,18 +110,18 @@ export function PracticeHistory() {
                       <div className="space-y-4">
                         {/* 头部 */}
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-500 shadow-md">
-                            <Calendar className="h-7 w-7 text-white" />
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 shadow-md">
+                            <Calendar className="h-7 w-7 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <div className="text-lg font-bold text-gray-800">每日练习</div>
-                              <div className="text-sm text-gray-600">{formatDate(item)}</div>
+                            <div className="text-lg font-bold text-foreground">每日练习</div>
+                              <div className="text-sm text-muted-foreground">{formatDate(item)}</div>
                           </div>
                           <div className={cn(
                             'px-3 py-1.5 rounded-full text-xs font-bold',
                               completed 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                              : 'bg-muted text-muted-foreground'
                           )}>
                               {completed ? '✓ 已完成' : getStatusText(item.status)}
                           </div>
@@ -129,17 +129,17 @@ export function PracticeHistory() {
 
                         {/* 统计数据 */}
                         <div className="grid grid-cols-3 gap-3">
-                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
-                              <div className="text-xl font-bold text-blue-600">{score}</div>
-                            <div className="text-xs text-gray-600 mt-1">得分</div>
+                          <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/10">
+                              <div className="text-xl font-bold text-primary">{score}</div>
+                            <div className="text-xs text-muted-foreground mt-1">得分</div>
                           </div>
-                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
-                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
-                            <div className="text-xs text-gray-600 mt-1">正确数</div>
+                          <div className="text-center p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+                              <div className="text-xl font-bold text-green-600 dark:text-green-400">{item.correct_count}/{item.question_count}</div>
+                            <div className="text-xs text-muted-foreground mt-1">正确数</div>
                           </div>
-                          <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
-                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-                            <div className="text-xs text-gray-600 mt-1">用时</div>
+                          <div className="text-center p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                              <div className="text-xl font-bold text-orange-600 dark:text-orange-400">{formatTime(timeSpent)}</div>
+                            <div className="text-xs text-muted-foreground mt-1">用时</div>
                           </div>
                         </div>
 
@@ -147,7 +147,7 @@ export function PracticeHistory() {
                           {completed && (
                           <button
                               onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                            className="w-full py-2.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                            className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
                             查看详情
@@ -161,11 +161,11 @@ export function PracticeHistory() {
                 })}
               </div>
             ) : (
-              <Card className="border-2 border-gray-300 shadow-lg">
+              <Card className="border-2 border-border shadow-lg bg-card">
                 <CardContent className="py-16 text-center">
                   <div className="text-6xl mb-4">📅</div>
-                  <p className="text-xl font-bold text-gray-800 mb-2">还没有每日练习记录</p>
-                  <p className="text-sm text-gray-600">开始你的第一次每日练习吧！</p>
+                  <p className="text-xl font-bold text-foreground mb-2">还没有每日练习记录</p>
+                  <p className="text-sm text-muted-foreground">开始你的第一次每日练习吧！</p>
                 </CardContent>
               </Card>
             )
@@ -182,7 +182,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-purple-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/30"
+                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}
@@ -191,18 +191,18 @@ export function PracticeHistory() {
                       <div className="space-y-4">
                         {/* 头部 */}
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 shadow-md">
-                            <BookOpen className="h-7 w-7 text-white" />
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-secondary/20 shadow-md">
+                            <BookOpen className="h-7 w-7 text-secondary-foreground" />
                           </div>
                           <div className="flex-1">
-                              <div className="text-lg font-bold text-gray-800">{unitName}</div>
-                              <div className="text-sm text-gray-600">{formatDate(item)}</div>
+                              <div className="text-lg font-bold text-foreground">{unitName}</div>
+                              <div className="text-sm text-muted-foreground">{formatDate(item)}</div>
                           </div>
                           <div className={cn(
                             'px-3 py-1.5 rounded-full text-xs font-bold',
                               completed 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                              : 'bg-muted text-muted-foreground'
                           )}>
                               {completed ? '✓ 已完成' : getStatusText(item.status)}
                           </div>
@@ -210,17 +210,17 @@ export function PracticeHistory() {
 
                         {/* 统计数据 */}
                         <div className="grid grid-cols-3 gap-3">
-                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
-                              <div className="text-xl font-bold text-blue-600">{score}</div>
-                            <div className="text-xs text-gray-600 mt-1">得分</div>
+                          <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/10">
+                              <div className="text-xl font-bold text-primary">{score}</div>
+                            <div className="text-xs text-muted-foreground mt-1">得分</div>
                           </div>
-                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
-                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
-                            <div className="text-xs text-gray-600 mt-1">正确数</div>
+                          <div className="text-center p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+                              <div className="text-xl font-bold text-green-600 dark:text-green-400">{item.correct_count}/{item.question_count}</div>
+                            <div className="text-xs text-muted-foreground mt-1">正确数</div>
                           </div>
-                          <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
-                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-                            <div className="text-xs text-gray-600 mt-1">用时</div>
+                          <div className="text-center p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                              <div className="text-xl font-bold text-orange-600 dark:text-orange-400">{formatTime(timeSpent)}</div>
+                            <div className="text-xs text-muted-foreground mt-1">用时</div>
                           </div>
                         </div>
 
@@ -228,7 +228,7 @@ export function PracticeHistory() {
                           {completed && (
                           <button
                               onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                            className="w-full py-2.5 px-4 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                            className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
                             查看详情
@@ -242,11 +242,11 @@ export function PracticeHistory() {
                 })}
               </div>
             ) : (
-              <Card className="border-2 border-gray-300 shadow-lg">
+              <Card className="border-2 border-border shadow-lg bg-card">
                 <CardContent className="py-16 text-center">
                   <div className="text-6xl mb-4">📚</div>
-                  <p className="text-xl font-bold text-gray-800 mb-2">还没有单元练习记录</p>
-                  <p className="text-sm text-gray-600">开始你的第一次单元练习吧！</p>
+                  <p className="text-xl font-bold text-foreground mb-2">还没有单元练习记录</p>
+                  <p className="text-sm text-muted-foreground">开始你的第一次单元练习吧！</p>
                 </CardContent>
               </Card>
             )
@@ -262,7 +262,7 @@ export function PracticeHistory() {
                   return (
                   <Card 
                       key={item.session_id} 
-                    className="border-2 border-green-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/30"
+                    className="border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
                     }}
@@ -271,18 +271,18 @@ export function PracticeHistory() {
                       <div className="space-y-4">
                         {/* 头部 */}
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-md">
-                            <TrendingUp className="h-7 w-7 text-white" />
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-accent/20 shadow-md">
+                            <TrendingUp className="h-7 w-7 text-accent-foreground" />
                           </div>
                           <div className="flex-1">
-                            <div className="text-lg font-bold text-gray-800">能力评测</div>
-                              <div className="text-sm text-gray-600">{formatDate(item)}</div>
+                            <div className="text-lg font-bold text-foreground">能力评测</div>
+                              <div className="text-sm text-muted-foreground">{formatDate(item)}</div>
                           </div>
                           <div className={cn(
                             'px-3 py-1.5 rounded-full text-xs font-bold',
                               completed 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-gray-100 text-gray-700'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                              : 'bg-muted text-muted-foreground'
                           )}>
                               {completed ? '✓ 已完成' : getStatusText(item.status)}
                           </div>
@@ -290,17 +290,17 @@ export function PracticeHistory() {
 
                         {/* 统计数据 */}
                         <div className="grid grid-cols-3 gap-3">
-                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
-                              <div className="text-xl font-bold text-blue-600">{score}</div>
-                              <div className="text-xs text-gray-600 mt-1">得分</div>
+                          <div className="text-center p-3 rounded-xl bg-primary/5 border border-primary/10">
+                              <div className="text-xl font-bold text-primary">{score}</div>
+                              <div className="text-xs text-muted-foreground mt-1">得分</div>
                           </div>
-                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
-                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
-                              <div className="text-xs text-gray-600 mt-1">正确数</div>
+                          <div className="text-center p-3 rounded-xl bg-green-500/5 border border-green-500/10">
+                              <div className="text-xl font-bold text-green-600 dark:text-green-400">{item.correct_count}/{item.question_count}</div>
+                              <div className="text-xs text-muted-foreground mt-1">正确数</div>
                             </div>
-                            <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
-                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-                              <div className="text-xs text-gray-600 mt-1">用时</div>
+                            <div className="text-center p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                              <div className="text-xl font-bold text-orange-600 dark:text-orange-400">{formatTime(timeSpent)}</div>
+                              <div className="text-xs text-muted-foreground mt-1">用时</div>
                           </div>
                         </div>
 
@@ -308,7 +308,7 @@ export function PracticeHistory() {
                           {completed && (
                           <button
                               onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                            className="w-full py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                            className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
                             查看详情
@@ -322,11 +322,11 @@ export function PracticeHistory() {
                 })}
               </div>
             ) : (
-              <Card className="border-2 border-gray-300 shadow-lg">
+              <Card className="border-2 border-border shadow-lg bg-card">
                 <CardContent className="py-16 text-center">
                   <div className="text-6xl mb-4">📊</div>
-                  <p className="text-xl font-bold text-gray-800 mb-2">还没有能力评测记录</p>
-                  <p className="text-sm text-gray-600">开始你的第一次能力评测吧！</p>
+                  <p className="text-xl font-bold text-foreground mb-2">还没有能力评测记录</p>
+                  <p className="text-sm text-muted-foreground">开始你的第一次能力评测吧！</p>
                 </CardContent>
               </Card>
             )

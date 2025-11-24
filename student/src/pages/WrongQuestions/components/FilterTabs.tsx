@@ -25,7 +25,7 @@ export const FilterTabs = memo(function FilterTabs({
 
   return (
     <div className="flex items-center gap-2">
-      <Filter className="h-5 w-5 text-gray-500" />
+      <Filter className="h-5 w-5 text-muted-foreground" />
       {filters.map((f) => (
         <Button
           key={f.value}
@@ -34,7 +34,7 @@ export const FilterTabs = memo(function FilterTabs({
           onClick={() => onFilterChange(f.value)}
           className={cn(
             'rounded-xl',
-            filter === f.value && 'bg-blue-500 hover:bg-blue-600'
+            filter === f.value && 'bg-primary hover:bg-primary/90'
           )}
         >
           {f.label}

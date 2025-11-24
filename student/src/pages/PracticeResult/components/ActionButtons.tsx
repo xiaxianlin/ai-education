@@ -55,7 +55,7 @@ export const ActionButtons = memo(function ActionButtons({
         )}
         <Button
           onClick={() => navigate({ to: '/practice-history' })}
-          className="h-14 rounded-xl text-base bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+          className="h-14 rounded-xl text-base bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <History className="h-5 w-5 mr-2" />
           查看历史记录
@@ -64,10 +64,10 @@ export const ActionButtons = memo(function ActionButtons({
 
       {/* 推荐操作 */}
       {sessionType === 'daily_practice' && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
+        <div className="bg-secondary/10 rounded-2xl p-6 border-2 border-secondary/20">
           <div className="flex items-center gap-3 mb-4">
-            <BookOpen className="h-5 w-5 text-blue-600" />
-            <p className="font-medium text-gray-800">推荐下一步</p>
+            <BookOpen className="h-5 w-5 text-primary" />
+            <p className="font-medium text-foreground">推荐下一步</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Button

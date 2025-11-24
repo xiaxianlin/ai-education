@@ -29,14 +29,14 @@ export function Home() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <LoadingSpinner size="lg" text="正在加载..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 pb-12">
+    <div className="min-h-screen bg-background pb-12">
       <Header />
       {showTextbookModal && <TextbookSetupModal onClose={closeTextbookModal} />}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">

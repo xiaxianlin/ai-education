@@ -19,7 +19,7 @@ export function PracticeResult() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <LoadingSpinner size="lg" text="加载结果中..." />
@@ -30,11 +30,11 @@ export function PracticeResult() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <p className="text-lg text-red-600 mb-4">{error}</p>
+            <p className="text-lg text-destructive mb-4">{error}</p>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export function PracticeResult() {
   const sessionId = sessionData.session.session_id ?? sessionData.session.id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 结果摘要 */}

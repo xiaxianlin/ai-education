@@ -4,58 +4,53 @@
  */
 import { memo } from 'react';
 import { Link } from '@tanstack/react-router';
-import { BookOpen, RefreshCw, History } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const QuickActions = memo(function QuickActions() {
   const actions = [
     {
-      icon: BookOpen,
       label: '单元练习',
       emoji: '📖',
       path: '/unit-practice',
-      gradient: 'from-green-400 to-emerald-500',
-      hoverGradient: 'hover:from-green-500 hover:to-emerald-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
     },
     {
-      icon: RefreshCw,
       label: '错题复习',
       emoji: '🔄',
       path: '/wrong',
-      gradient: 'from-orange-400 to-red-500',
-      hoverGradient: 'hover:from-orange-500 hover:to-red-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
     },
     {
-      icon: History,
       label: '练习记录',
       emoji: '📊',
       path: '/history',
-      gradient: 'from-indigo-400 to-blue-500',
-      hoverGradient: 'hover:from-indigo-500 hover:to-blue-600',
-      bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-200',
     },
   ];
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-800 px-2">快速开始 🚀</h2>
+      <h2 className="text-2xl font-bold text-foreground px-2">快速开始 🚀</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {actions.map((action) => (
           <Link key={action.path} to={action.path} className="group">
-            <div className={`relative h-32 rounded-2xl ${action.bgColor} border-2 ${action.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group-hover:scale-105`}>
+            <div className={cn(
+              "relative h-32 rounded-2xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group-hover:scale-105 bg-card",
+              action.path === '/unit-practice' && "border-green-500/20 bg-green-500/5",
+              action.path === '/wrong' && "border-destructive/20 bg-destructive/5",
+              action.path === '/history' && "border-primary/20 bg-primary/5"
+            )}>
               {/* 背景装饰 */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+              <div className={cn(
+                "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300",
+                action.path === '/unit-practice' && "bg-green-500",
+                action.path === '/wrong' && "bg-destructive",
+                action.path === '/history' && "bg-primary"
+              )} />
               
               {/* 内容 */}
               <div className="relative h-full flex flex-col items-center justify-center gap-3 p-4">
                 <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
                   {action.emoji}
                 </div>
-                <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
+                <span className="text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
                   {action.label}
                 </span>
               </div>

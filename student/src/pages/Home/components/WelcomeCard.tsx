@@ -11,7 +11,7 @@ export const WelcomeCard = memo(function WelcomeCard({}: WelcomeCardProps) {
   const randomGreeting = greetingEmojis[Math.floor(Math.random() * greetingEmojis.length)];
 
   return (
-    <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-xl border-2 border-purple-200">
+    <div className="bg-card rounded-3xl p-8 sm:p-10 shadow-xl border-2 border-primary/20">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         {/* 左侧欢迎信息 - 一行展示 */}
         <div className="flex items-center gap-5">
@@ -19,10 +19,10 @@ export const WelcomeCard = memo(function WelcomeCard({}: WelcomeCardProps) {
             {randomGreeting}
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
               你好呀！
             </h1>
-            <span className="text-lg sm:text-xl text-gray-600 font-medium">
+            <span className="text-lg sm:text-xl text-muted-foreground font-medium">
               今天也要加油学习哦~ 💪
             </span>
           </div>

@@ -66,7 +66,7 @@ export function PracticeSession() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <LoadingSpinner size="lg" text="加载中..." />
@@ -86,10 +86,10 @@ export function PracticeSession() {
 
   if (!session || !currentQuestion) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6 text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             练习会话不存在
           </h2>
           <Button onClick={() => navigate({ to: getBackPath() })}>返回</Button>
@@ -101,30 +101,30 @@ export function PracticeSession() {
   // 如果练习未开始，显示开始按钮
   if (session.status === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 pb-20">
+      <div className="min-h-screen bg-background pb-20">
         <Header />
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           <Button
             variant="outline"
             onClick={() => navigate({ to: getBackPath() })}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />
             返回
           </Button>
 
-          <div className="bg-white rounded-3xl p-12 shadow-xl border-2 border-blue-200 text-center">
+          <div className="bg-card rounded-3xl p-12 shadow-xl border-2 border-primary/20 text-center">
             <div className="text-6xl mb-6">🎯</div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
               {getPracticeTypeName()}
             </h2>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-muted-foreground mb-8">
               准备好开始挑战了吗？共有 {totalQuestions} 道题目等待你完成
             </p>
             <Button
               onClick={handleBegin}
               size="lg"
-              className="h-14 px-8 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-lg font-semibold text-lg"
+              className="h-14 px-8 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold text-lg"
             >
               开始练习 🚀
             </Button>
@@ -144,7 +144,7 @@ export function PracticeSession() {
     currentQuestion.type === "口语题" ? !!currentAudioUrl : !!currentAnswer;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* 返回按钮 */}

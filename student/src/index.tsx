@@ -19,13 +19,19 @@ const queryClient = new QueryClient({
   },
 });
 
+import { ThemeProvider } from './components/theme-provider';
+
+// ... existing imports
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Suspense fallback={<LoadingPage />}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <Suspense fallback={<LoadingPage />}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </QueryClientProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
 

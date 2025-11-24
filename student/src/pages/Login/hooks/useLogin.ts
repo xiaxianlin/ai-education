@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useFormValidation } from '@/lib/hooks/useFormValidation';
 import { validators } from '@/lib/utils/validators';
 import { ApiError } from '@/lib/types/api';
+import { toast } from '@/components/ui/toast';
 
 export function useLogin() {
   const [phone, setPhone] = useState('');
@@ -39,6 +40,8 @@ export function useLogin() {
         password: validators.sanitize(password),
       });
       setToken(token);
+      console.log('first', token)
+      toast.success('登录成功！');
       navigate({ to: '/home' });
     } catch (err) {
       let errorMessage = '登录失败，请检查手机号和密码';
@@ -48,6 +51,7 @@ export function useLogin() {
         errorMessage = err.message;
       }
       console.error('Login error:', err);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

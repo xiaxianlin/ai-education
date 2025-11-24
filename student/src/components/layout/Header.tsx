@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, ChevronDown, User, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ModeToggle } from '@/components/mode-toggle';
 
 export function Header() {
   const { logout } = useAuthStore();
@@ -103,38 +104,38 @@ export function Header() {
 
   if (loading) {
     return (
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
+      <header className="sticky top-0 z-50 w-full bg-background border-b border-border">
         <div className="h-16 flex items-center justify-between px-4">
-          <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-          <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+          <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+          <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
         </div>
       </header>
     );
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-background border-b border-border shadow-sm">
       <div className="h-16 flex items-center justify-between px-4 gap-4">
         {/* 左侧：教材信息 */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Dropdown
             trigger={
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer max-w-full">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer max-w-full">
                 <span className="text-xl">📚</span>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs text-gray-500">当前教材</span>
-                  <span className="text-sm font-semibold text-gray-900 truncate">
+                  <span className="text-xs text-muted-foreground">当前教材</span>
+                  <span className="text-sm font-semibold text-foreground truncate">
                     {currentTextbook
                       ? getTextbookDisplayName(currentTextbook)
                       : '未设置教材'}
                   </span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               </div>
             }
             align="left"
           >
-            <div className="py-1 max-h-[300px] overflow-y-auto">
+            <div className="py-1 max-h-[300px] overflow-y-auto bg-popover text-popover-foreground">
               {textbooks.length > 0 ? (
                 <>
                   {textbooks.map((textbook) => {
@@ -146,7 +147,7 @@ export function Header() {
                         disabled={isCurrent || switching}
                         className={cn(
                           'py-2 px-3',
-                          isCurrent && 'bg-blue-50 text-blue-700 font-semibold'
+                          isCurrent && 'bg-primary/10 text-primary font-semibold'
                         )}
                       >
                         <div className="flex items-center justify-between w-full">
@@ -154,13 +155,13 @@ export function Header() {
                             <span className="text-base">{isCurrent ? '✨' : '📖'}</span>
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">{textbook.subject}</div>
-                              <div className="text-xs text-gray-500 truncate">
+                              <div className="text-xs text-muted-foreground truncate">
                                 {textbook.version} · {getGradeLabel(textbook.grade)} · {textbook.semester}
                               </div>
                             </div>
                           </div>
                           {isCurrent && (
-                            <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded">当前</span>
+                            <span className="ml-2 px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded">当前</span>
                           )}
                         </div>
                       </DropdownItem>
@@ -168,7 +169,7 @@ export function Header() {
                   })}
                 </>
               ) : (
-                <DropdownItem disabled className="text-gray-500 text-center py-3">
+                <DropdownItem disabled className="text-muted-foreground text-center py-3">
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-xl">📚</span>
                     <span className="text-xs">暂无教材</span>
@@ -181,26 +182,28 @@ export function Header() {
 
         {/* 右侧：个人信息和操作 */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          <ModeToggle />
+          
           {!isHomePage && (
             <Link
               to="/home"
               title="返回首页"
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg hover:bg-muted transition-colors"
             >
-              <Home className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">首页</span>
+              <Home className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">首页</span>
             </Link>
           )}
 
           <Link
             to="/profile"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
           >
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-blue-600" />
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <User className="h-4 w-4 text-primary" />
             </div>
             <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-sm font-semibold text-gray-900 truncate">
+              <span className="text-sm font-semibold text-foreground truncate">
                 {student?.name || '学生'}
               </span>
             </div>
@@ -210,7 +213,7 @@ export function Header() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="h-9 px-2 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="h-9 px-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             title="退出登录"
           >
             <LogOut className="h-4 w-4" />

@@ -41,7 +41,7 @@ export function Dropdown({ trigger, children, align = 'right', className }: Drop
           />
           <div
             className={cn(
-              'absolute z-50 mt-2 min-w-[200px] rounded-md border bg-white shadow-lg',
+              'absolute z-50 mt-2 min-w-[200px] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md animate-in data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
               align === 'right' ? 'right-0' : 'left-0'
             )}
             onClick={(e) => e.stopPropagation()}
@@ -65,7 +65,7 @@ export function DropdownItem({ children, onClick, className, disabled }: Dropdow
   return (
     <div
       className={cn(
-        'px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 transition-colors',
+        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -81,6 +81,6 @@ interface DropdownSeparatorProps {
 }
 
 export function DropdownSeparator({ className }: DropdownSeparatorProps) {
-  return <div className={cn('h-px bg-gray-200 my-1', className)} />;
+  return <div className={cn('-mx-1 my-1 h-px bg-muted', className)} />;
 }
 
