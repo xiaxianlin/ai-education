@@ -44,7 +44,7 @@ export const QuickActions = memo(function QuickActions() {
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-gray-800 px-2">快速开始 🚀</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {actions.map((action) => (
+          {actions.map((action) => (
           <Link key={action.path} to={action.path} className="group">
             <div className={`relative h-32 rounded-2xl ${action.bgColor} border-2 ${action.borderColor} shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group-hover:scale-105`}>
               {/* 背景装饰 */}
@@ -60,9 +60,9 @@ export const QuickActions = memo(function QuickActions() {
                 </span>
               </div>
             </div>
-          </Link>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
     </div>
   );
 });

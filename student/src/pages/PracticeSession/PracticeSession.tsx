@@ -27,7 +27,7 @@ export function PracticeSession() {
     answeredCount,
     userAnswers,
     audioUrls,
-    answerResults,
+    answerStatus,
     submitting,
     report,
     handleAnswerChange,
@@ -134,10 +134,12 @@ export function PracticeSession() {
     );
   }
 
-  const hasAnswered = answerResults[currentQuestion.id] !== undefined;
+  // status: 0-未答, 1-正确, 2-错误
+  const answerStatusValue = answerStatus[currentQuestion.id];
+  const hasAnswered = answerStatusValue !== undefined && answerStatusValue !== 0;
   const currentAnswer = userAnswers[currentQuestion.id];
   const currentAudioUrl = audioUrls[currentQuestion.id];
-  const isCorrect = answerResults[currentQuestion.id];
+  const isCorrect = answerStatusValue === 1;
   const hasAnswer =
     currentQuestion.type === "口语题" ? !!currentAudioUrl : !!currentAnswer;
 
@@ -167,8 +169,7 @@ export function PracticeSession() {
         <QuestionCard
           question={currentQuestion}
           index={currentQuestionIndex}
-          hasAnswered={hasAnswered}
-          isCorrect={isCorrect}
+          answerStatus={answerStatusValue}
         />
 
         {/* 答题区域 */}

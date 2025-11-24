@@ -99,64 +99,64 @@ export function PracticeHistory() {
                   const timeSpent = calculateTimeSpent(item);
                   const completed = isCompleted(item.status);
                   return (
-                    <Card 
+                  <Card 
                       key={item.session_id} 
-                      className="border-2 border-blue-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30"
-                      style={{
-                        animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
-                      }}
-                    >
-                      <CardContent className="p-5">
-                        <div className="space-y-4">
-                          {/* 头部 */}
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-500 shadow-md">
-                              <Calendar className="h-7 w-7 text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="text-lg font-bold text-gray-800">每日练习</div>
+                    className="border-2 border-blue-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-blue-50/30"
+                    style={{
+                      animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="space-y-4">
+                        {/* 头部 */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-500 shadow-md">
+                            <Calendar className="h-7 w-7 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-lg font-bold text-gray-800">每日练习</div>
                               <div className="text-sm text-gray-600">{formatDate(item)}</div>
-                            </div>
-                            <div className={cn(
-                              'px-3 py-1.5 rounded-full text-xs font-bold',
+                          </div>
+                          <div className={cn(
+                            'px-3 py-1.5 rounded-full text-xs font-bold',
                               completed 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-gray-100 text-gray-700'
-                            )}>
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-700'
+                          )}>
                               {completed ? '✓ 已完成' : getStatusText(item.status)}
-                            </div>
                           </div>
-
-                          {/* 统计数据 */}
-                          <div className="grid grid-cols-3 gap-3">
-                            <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
-                              <div className="text-xl font-bold text-blue-600">{score}</div>
-                              <div className="text-xs text-gray-600 mt-1">得分</div>
-                            </div>
-                            <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
-                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
-                              <div className="text-xs text-gray-600 mt-1">正确数</div>
-                            </div>
-                            <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
-                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-                              <div className="text-xs text-gray-600 mt-1">用时</div>
-                            </div>
-                          </div>
-
-                          {/* 查看详情按钮 */}
-                          {completed && (
-                            <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                              className="w-full py-2.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                            >
-                              <Eye className="h-4 w-4" />
-                              查看详情
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          )}
                         </div>
-                      </CardContent>
-                    </Card>
+
+                        {/* 统计数据 */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
+                              <div className="text-xl font-bold text-blue-600">{score}</div>
+                            <div className="text-xs text-gray-600 mt-1">得分</div>
+                          </div>
+                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
+                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
+                            <div className="text-xs text-gray-600 mt-1">正确数</div>
+                          </div>
+                          <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
+                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
+                            <div className="text-xs text-gray-600 mt-1">用时</div>
+                          </div>
+                        </div>
+
+                        {/* 查看详情按钮 */}
+                          {completed && (
+                          <button
+                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                            className="w-full py-2.5 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                          >
+                            <Eye className="h-4 w-4" />
+                            查看详情
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                   );
                 })}
               </div>
@@ -180,64 +180,64 @@ export function PracticeHistory() {
                   const completed = isCompleted(item.status);
                   const unitName = getUnitName(item.target_id);
                   return (
-                    <Card 
+                  <Card 
                       key={item.session_id} 
-                      className="border-2 border-purple-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/30"
-                      style={{
-                        animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
-                      }}
-                    >
-                      <CardContent className="p-5">
-                        <div className="space-y-4">
-                          {/* 头部 */}
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 shadow-md">
-                              <BookOpen className="h-7 w-7 text-white" />
-                            </div>
-                            <div className="flex-1">
+                    className="border-2 border-purple-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-purple-50/30"
+                    style={{
+                      animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="space-y-4">
+                        {/* 头部 */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 shadow-md">
+                            <BookOpen className="h-7 w-7 text-white" />
+                          </div>
+                          <div className="flex-1">
                               <div className="text-lg font-bold text-gray-800">{unitName}</div>
                               <div className="text-sm text-gray-600">{formatDate(item)}</div>
-                            </div>
-                            <div className={cn(
-                              'px-3 py-1.5 rounded-full text-xs font-bold',
+                          </div>
+                          <div className={cn(
+                            'px-3 py-1.5 rounded-full text-xs font-bold',
                               completed 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-gray-100 text-gray-700'
-                            )}>
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-700'
+                          )}>
                               {completed ? '✓ 已完成' : getStatusText(item.status)}
-                            </div>
                           </div>
-
-                          {/* 统计数据 */}
-                          <div className="grid grid-cols-3 gap-3">
-                            <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
-                              <div className="text-xl font-bold text-blue-600">{score}</div>
-                              <div className="text-xs text-gray-600 mt-1">得分</div>
-                            </div>
-                            <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
-                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
-                              <div className="text-xs text-gray-600 mt-1">正确数</div>
-                            </div>
-                            <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
-                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
-                              <div className="text-xs text-gray-600 mt-1">用时</div>
-                            </div>
-                          </div>
-
-                          {/* 查看详情按钮 */}
-                          {completed && (
-                            <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                              className="w-full py-2.5 px-4 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                            >
-                              <Eye className="h-4 w-4" />
-                              查看详情
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          )}
                         </div>
-                      </CardContent>
-                    </Card>
+
+                        {/* 统计数据 */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
+                              <div className="text-xl font-bold text-blue-600">{score}</div>
+                            <div className="text-xs text-gray-600 mt-1">得分</div>
+                          </div>
+                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
+                              <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
+                            <div className="text-xs text-gray-600 mt-1">正确数</div>
+                          </div>
+                          <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
+                              <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
+                            <div className="text-xs text-gray-600 mt-1">用时</div>
+                          </div>
+                        </div>
+
+                        {/* 查看详情按钮 */}
+                          {completed && (
+                          <button
+                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                            className="w-full py-2.5 px-4 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                          >
+                            <Eye className="h-4 w-4" />
+                            查看详情
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                   );
                 })}
               </div>
@@ -260,64 +260,64 @@ export function PracticeHistory() {
                   const timeSpent = calculateTimeSpent(item);
                   const completed = isCompleted(item.status);
                   return (
-                    <Card 
+                  <Card 
                       key={item.session_id} 
-                      className="border-2 border-green-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/30"
-                      style={{
-                        animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
-                      }}
-                    >
-                      <CardContent className="p-5">
-                        <div className="space-y-4">
-                          {/* 头部 */}
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-md">
-                              <TrendingUp className="h-7 w-7 text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="text-lg font-bold text-gray-800">能力评测</div>
-                              <div className="text-sm text-gray-600">{formatDate(item)}</div>
-                            </div>
-                            <div className={cn(
-                              'px-3 py-1.5 rounded-full text-xs font-bold',
-                              completed 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-gray-100 text-gray-700'
-                            )}>
-                              {completed ? '✓ 已完成' : getStatusText(item.status)}
-                            </div>
+                    className="border-2 border-green-200 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-white to-green-50/30"
+                    style={{
+                      animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="space-y-4">
+                        {/* 头部 */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-md">
+                            <TrendingUp className="h-7 w-7 text-white" />
                           </div>
+                          <div className="flex-1">
+                            <div className="text-lg font-bold text-gray-800">能力评测</div>
+                              <div className="text-sm text-gray-600">{formatDate(item)}</div>
+                          </div>
+                          <div className={cn(
+                            'px-3 py-1.5 rounded-full text-xs font-bold',
+                              completed 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-700'
+                          )}>
+                              {completed ? '✓ 已完成' : getStatusText(item.status)}
+                          </div>
+                        </div>
 
-                          {/* 统计数据 */}
-                          <div className="grid grid-cols-3 gap-3">
-                            <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
+                        {/* 统计数据 */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-100">
                               <div className="text-xl font-bold text-blue-600">{score}</div>
                               <div className="text-xs text-gray-600 mt-1">得分</div>
-                            </div>
-                            <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
+                          </div>
+                          <div className="text-center p-3 rounded-xl bg-green-50 border border-green-100">
                               <div className="text-xl font-bold text-green-600">{item.correct_count}/{item.question_count}</div>
                               <div className="text-xs text-gray-600 mt-1">正确数</div>
                             </div>
                             <div className="text-center p-3 rounded-xl bg-orange-50 border border-orange-100">
                               <div className="text-xl font-bold text-orange-600">{formatTime(timeSpent)}</div>
                               <div className="text-xs text-gray-600 mt-1">用时</div>
-                            </div>
                           </div>
-
-                          {/* 查看详情按钮 */}
-                          {completed && (
-                            <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
-                              className="w-full py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                            >
-                              <Eye className="h-4 w-4" />
-                              查看详情
-                              <ArrowRight className="h-4 w-4" />
-                            </button>
-                          )}
                         </div>
-                      </CardContent>
-                    </Card>
+
+                        {/* 查看详情按钮 */}
+                          {completed && (
+                          <button
+                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                            className="w-full py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                          >
+                            <Eye className="h-4 w-4" />
+                            查看详情
+                            <ArrowRight className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                   );
                 })}
               </div>

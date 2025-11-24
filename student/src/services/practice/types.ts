@@ -110,9 +110,8 @@ export interface UnitPracticeSession extends PracticeSession {
 }
 
 // 单元练习状态（根据 API.md）
-export interface UnitPracticeStatus {
-  [unitId: string]: PracticeSession | null;
-}
+// 后端返回 Dict[int, PracticeStatsSchem]，键为 unit_id，值为 PracticeStatsSchem
+// 注意：这个类型在 schema.ts 中已定义，这里保留注释说明
 
 export interface UnitInfo {
   id: number;

@@ -42,6 +42,7 @@ export function useUnitPracticePage() {
       const sessions: Record<number, number> = {};
       
       // 从状态中提取未完成会话的 session_id
+      // 后端返回的 status 键是字符串（JSON 序列化后），值是 PracticeStats
       Object.entries(status).forEach(([unitId, session]) => {
         if (session && session.session_id) {
           sessions[parseInt(unitId)] = session.session_id;
@@ -72,7 +73,7 @@ export function useUnitPracticePage() {
 
       // 根据 API.md: GET /api/student/textbook/units?textbook_id=1
       // 新接口只返回 id, name, textbook_id，不包含 status 和 knowledges
-      const unitsData = await profileApi.getUnits(profile.current_textbook_id);
+      const unitsData = await profileApi.getUnits(checkResponse.textbook?.id);
       setUnits(unitsData);
     } catch (error) {
       handleError(error);
@@ -130,7 +131,7 @@ export function useUnitPracticePage() {
       // 后端接口只需要 unit_id，不支持 difficulty 和 count 参数
       const session = await practiceApi.createUnitPractice(practiceModal.unitId);
       
-      toast.success('练习已创建，开始答题！');
+        toast.success('练习已创建，开始答题！');
       
       const sessionId = session.session_id ?? session.id;
       if (sessionId) {
@@ -139,7 +140,7 @@ export function useUnitPracticePage() {
           ...prev,
           [practiceModal.unitId]: sessionId,
         }));
-        
+      
         navigate({ to: `/practice/${sessionId}` });
       }
     } catch (error) {
@@ -175,7 +176,7 @@ export function useUnitPracticePage() {
         unitName: unit.name,
         knowledges: [],
         loading: false,
-      });
+    });
     }
   }, []);
 

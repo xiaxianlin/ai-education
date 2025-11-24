@@ -18,7 +18,8 @@ export function usePracticeSession(sessionId: number) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [audioUrls, setAudioUrls] = useState<Record<number, string>>({});
-  const [answerResults, setAnswerResults] = useState<Record<number, boolean>>({});
+  // answerStatus: 0-未答, 1-正确, 2-错误
+  const [answerStatus, setAnswerStatus] = useState<Record<number, number>>({});
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [report, setReport] = useState<any>(null);
@@ -44,23 +45,24 @@ export function usePracticeSession(sessionId: number) {
         // 恢复已提交的答案
         if (detail.answers && detail.answers.length > 0) {
           const restoredAnswers: Record<number, string> = {};
-          const restoredResults: Record<number, boolean> = {};
+          const restoredStatus: Record<number, number> = {};
           
           detail.answers.forEach((answer: any) => {
             if (answer.text_answer) {
               restoredAnswers[answer.question_id] = answer.text_answer;
             }
+            // status: 0-未答, 1-正确, 2-错误
             if (answer.status !== undefined) {
-              restoredResults[answer.question_id] = answer.status === 1;
+              restoredStatus[answer.question_id] = answer.status;
             }
           });
           
           setUserAnswers(restoredAnswers);
-          setAnswerResults(restoredResults);
+          setAnswerStatus(restoredStatus);
           
-          // 找到第一个未回答的题目
+          // 找到第一个未回答的题目（status === 0）
           const firstUnansweredIndex = detail.questions.findIndex(
-            (q: Question) => !restoredResults[q.id]
+            (q: Question) => restoredStatus[q.id] === undefined || restoredStatus[q.id] === 0
           );
           if (firstUnansweredIndex !== -1) {
             setCurrentQuestionIndex(firstUnansweredIndex);
@@ -104,7 +106,8 @@ export function usePracticeSession(sessionId: number) {
 
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
-  const answeredCount = Object.keys(answerResults).length;
+  // 统计已答题数量（status !== 0 且 status !== undefined）
+  const answeredCount = Object.values(answerStatus).filter(status => status !== undefined && status !== 0).length;
 
   const handleAnswerChange = useCallback((answer: string, audioUrl?: string) => {
     if (!currentQuestion) return;
@@ -180,9 +183,10 @@ export function usePracticeSession(sessionId: number) {
         audio_data: audioData,
       });
 
-      setAnswerResults((prev) => ({
+      // 根据 is_correct 设置 status: 1-正确, 2-错误
+      setAnswerStatus((prev) => ({
         ...prev,
-        [currentQuestion.id]: result.is_correct,
+        [currentQuestion.id]: result.is_correct ? 1 : 2,
       }));
 
       // 更新会话状态
@@ -253,7 +257,7 @@ export function usePracticeSession(sessionId: number) {
     answeredCount,
     userAnswers,
     audioUrls,
-    answerResults,
+    answerStatus,
     submitting,
     report,
     handleAnswerChange,

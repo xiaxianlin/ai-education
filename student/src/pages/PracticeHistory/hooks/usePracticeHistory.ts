@@ -87,18 +87,18 @@ export function usePracticeHistory() {
     // 对于每日练习，target_id 是日期（如 20241123）
     if (item.session_type === 'daily_practice' && item.target_id) {
       const str = String(item.target_id);
-      if (str.length === 8) {
-        return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
+    if (str.length === 8) {
+      return `${str.slice(0, 4)}-${str.slice(4, 6)}-${str.slice(6, 8)}`;
       }
     }
     // 其他情况使用创建时间
     if (item.create_time) {
       const date = new Date(item.create_time * 1000);
-      return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
+    return date.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
     }
     return '未知日期';
   }, []);

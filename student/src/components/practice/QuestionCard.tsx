@@ -7,16 +7,18 @@ import type { Question } from '@/services/practice';
 interface QuestionCardProps {
   question: Question;
   index: number;
-  hasAnswered?: boolean;
-  isCorrect?: boolean;
+  // answerStatus: 0-未答, 1-正确, 2-错误
+  answerStatus?: number;
 }
 
 function QuestionCardComponent({
   question,
   index,
-  hasAnswered = false,
-  isCorrect,
+  answerStatus,
 }: QuestionCardProps) {
+  // status: 0-未答, 1-正确, 2-错误
+  const hasAnswered = answerStatus !== undefined && answerStatus !== 0;
+  const isCorrect = answerStatus === 1;
   return (
     <Card className="border-2 border-purple-200 shadow-lg relative overflow-visible min-h-[200px]">
       <CardContent className="pt-6 pb-6 space-y-6">
@@ -53,7 +55,7 @@ function QuestionCardComponent({
       </CardContent>
       <StampAnimation
         isCorrect={isCorrect === true}
-        show={hasAnswered && isCorrect !== undefined}
+        show={hasAnswered}
       />
     </Card>
   );
