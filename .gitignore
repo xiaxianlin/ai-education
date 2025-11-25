@@ -43,3 +43,7 @@ tmp
 __runtime__
 .langgraph_api
 .claude
+# 部署相关
+.deploy.conf
+*.tar.gz
+backups/
