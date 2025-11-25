@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     TMP_DIR: str
     # 日志目录
     LOG_DIR: str
+    # 是否启用日志文件输出
+    LOG_TO_FILE: bool = False
     # APP 运行密钥
     APP_SECRET_KEY: str
     # 阿里云访问配置

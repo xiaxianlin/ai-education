@@ -1,6 +1,9 @@
 import logging
+import os
 from loguru import logger
 from core.settings import envs
+from sqlalchemy.sql import Select
+from sqlalchemy.orm import Query
 
 
 class InterceptHandler(logging.Handler):
@@ -15,7 +18,9 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 # 接管标准库 logging（包括 uvicorn）
@@ -26,34 +31,34 @@ for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     log.handlers = [intercept_handler]
     log.propagate = False
 
-# 添加文件输出 - 普通日志
-logger.add(
-    f"{envs.LOG_DIR}/app.log",
-    rotation="500 MB",  # 单个文件最大500MB
-    retention="10 days",  # 保留10天
-    compression="zip",  # 压缩旧日志
-    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
-    level="INFO",
-    encoding="utf-8",
-    enqueue=True,  # 异步写入，提高性能
-)
+if envs.LOG_TO_FILE:
+    os.makedirs(envs.LOG_DIR, exist_ok=True)
 
-# 错误日志单独存储
-logger.add(
-    f"{envs.LOG_DIR}/error.log",
-    rotation="100 MB",  # 单个文件最大100MB
-    retention="30 days",  # 错误日志保留30天
-    compression="zip",
-    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
-    level="ERROR",
-    encoding="utf-8",
-    enqueue=True,
-    backtrace=True,  # 记录完整的堆栈跟踪
-    diagnose=True,  # 添加诊断信息
-)
+    # 添加文件输出 - 普通日志
+    logger.add(
+        f"{envs.LOG_DIR}/app.log",
+        rotation="500 MB",  # 单个文件最大500MB
+        retention="10 days",  # 保留10天
+        compression="zip",  # 压缩旧日志
+        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
+        level="INFO",
+        encoding="utf-8",
+        enqueue=True,  # 异步写入，提高性能
+    )
 
-from sqlalchemy.sql import Select
-from sqlalchemy.orm import Query
+    # 错误日志单独存储
+    logger.add(
+        f"{envs.LOG_DIR}/error.log",
+        rotation="100 MB",  # 单个文件最大100MB
+        retention="30 days",  # 错误日志保留30天
+        compression="zip",
+        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}",
+        level="ERROR",
+        encoding="utf-8",
+        enqueue=True,
+        backtrace=True,  # 记录完整的堆栈跟踪
+        diagnose=True,  # 添加诊断信息
+    )
 
 
 def print_sql(query, engine=None):
