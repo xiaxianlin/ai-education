@@ -215,6 +215,13 @@ export const PracticeApi = {
       total: res.data.total || 0,
     };
   },
+
+  // 删除练习记录
+  deletePracticeRecord: async (sessionId: number) => {
+    await request(`/practice/session/${sessionId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // 练习记录（包含学生信息）

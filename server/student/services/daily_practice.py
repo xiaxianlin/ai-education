@@ -2,7 +2,7 @@
 
 from typing import Optional
 from loguru import logger
-from sqlalchemy import select, desc, func
+from sqlalchemy import select, delete, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession, PracticeAnswer
@@ -12,11 +12,10 @@ from shared.services.practice import PracticeService
 from shared.utils.time import today, now
 
 
-async def check_daily_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
-    """检查是否有当天的每日练习"""
+async def get_daily_practice(db: AsyncSession, student_id: str) -> PracticeSession:
+    """获取每日练习信息（用于检查生成状态）"""
     current_date = today()
 
-    times = await count_daily_practice(db, student_id)
     session = await db.scalar(
         select(PracticeSession).where(
             PracticeSession.student_id == student_id,
@@ -25,37 +24,18 @@ async def check_daily_practice(db: AsyncSession, student_id: str) -> Optional[Pr
         )
     )
 
-    if not session:
-        return None
-
     logger.info(f"找到当天每日练习: session_id={session.id}, student_id={student_id}")
 
-    # 根据状态确定生成状态
-    generating_status = None
-    if session.status == 3:
-        generating_status = "generating"  # 生产中
-    elif session.status == 4:
-        generating_status = "generated"  # 生成完成
-    elif session.status == 5:
-        generating_status = "failed"  # 生成失败
+    if not session:
+        raise ValueError("当天没有每日练习")
 
-    return PracticeStatsSchem(
-        session_id=session.id,
-        status=session.status,
-        total_questions=session.question_count,
-        completed_questions=session.answer_count,
-        right_questions=session.correct_count,
-        times=times,
-        generating_status=generating_status,
-    )
+    return session
 
 
-async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
+async def get_last_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
     """检查是否存在往期未完成的每日练习，如果有则重置进度并更新为当前日期"""
-    current_date = today()
-
-    times = await count_daily_practice(db, student_id)
     # 查找往期未完成的每日练习
+    current_date = today()
     session = await db.scalar(
         select(PracticeSession)
         .where(
@@ -67,13 +47,31 @@ async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[Pra
         .order_by(desc(PracticeSession.target_id))
     )
 
-    if not session:
-        return None
+    return session
 
-    logger.info(
-        f"找到往期未完成的每日练习: session_id={session.id}, old_date={session.target_id}, student_id={student_id}"
+
+async def check_daily_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
+    """检查是否有当天的每日练习"""
+
+    times = await count_daily_practice(db, student_id)
+    session = await get_daily_practice(db, student_id)
+
+    return PracticeStatsSchem(
+        session_id=session.id,
+        status=session.status,
+        total_questions=session.question_count,
+        completed_questions=session.answer_count,
+        right_questions=session.correct_count,
+        times=times,
+        generating_status=session.generate_status,
     )
 
+
+async def reset_daily_practice(db: AsyncSession, student_id: str, session: PracticeSession) -> None:
+    """重置往期未完成的每日练习为当天的练习"""
+    current_date = today()
+
+    times = await count_daily_practice(db, student_id)
     try:
         # 重置进度
         session.target_id = current_date
@@ -98,23 +96,14 @@ async def check_last_practice(db: AsyncSession, student_id: str) -> Optional[Pra
 
         logger.info(f"往期练习已重置为当天: session_id={session.id}, new_date={current_date}")
 
-        # 根据状态确定生成状态
-        generating_status = None
-        if session.status == 3:
-            generating_status = "generating"  # 生产中
-        elif session.status == 4:
-            generating_status = "generated"  # 生成完成
-        elif session.status == 5:
-            generating_status = "failed"  # 生成失败
-
         return PracticeStatsSchem(
             session_id=session.id,
             status=session.status,
             total_questions=session.question_count,
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
-            times=times - 1,
-            generating_status=generating_status,
+            times=times,
+            generating_status=1,
         )
 
     except Exception as e:
@@ -171,11 +160,6 @@ async def create_daily_practice(
         raise ValueError(f"创建每日练习失败: {str(e)}")
 
 
-async def get_daily_practice(db: AsyncSession, student_id: str) -> Optional[PracticeStatsSchem]:
-    """获取每日练习信息（用于检查生成状态）"""
-    return await check_daily_practice(db, student_id)
-
-
 async def count_daily_practice(db: AsyncSession, student_id: str) -> int:
     """统计每日练习次数（已完成的）"""
     result = await db.scalar(
@@ -188,3 +172,19 @@ async def count_daily_practice(db: AsyncSession, student_id: str) -> int:
     count = result or 0
     logger.info(f"每日练习次数统计: student_id={student_id}, count={count}")
     return count
+
+
+async def delete_daily_practice(db: AsyncSession, session_id: int) -> None:
+    """删除每日练习及其答题记录"""
+    logger.info(f"开始删除每日练习: session_id={session_id}")
+    try:
+        # 删除答题记录
+        await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
+        # 删除练习会话
+        await db.execute(delete(PracticeSession).where(PracticeSession.id == session_id))
+        await db.commit()
+        logger.info(f"每日练习删除成功: session_id={session_id}")
+    except Exception as e:
+        logger.error(f"删除每日练习失败: session_id={session_id}, error={e}")
+        await db.rollback()
+        raise ValueError(f"删除每日练习失败: {str(e)}")

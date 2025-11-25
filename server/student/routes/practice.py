@@ -3,6 +3,7 @@
 import base64
 from typing import Dict, List
 from fastapi import APIRouter, Request
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
@@ -32,19 +33,32 @@ async def create_daily_practice_route(
     # 获取当前学生信息
     student = request.state.student
 
+    last_session = await daily_practice.get_last_practice(db, student.id)
+
+    if last_session:
+        logger.info(
+            f"找到往期未完成的每日练习: session_id={last_session.id}, old_date={last_session.target_id}, student_id={student.id}"
+        )
+        return await daily_practice.reset_daily_practice(db, student.id, last_session)
+
     # 检查是否有正在生成的每日练习
-    generating_session = await daily_practice.get_daily_practice(db, student.id)
-    if generating_session and generating_session.status == 3:
+    session = await daily_practice.get_daily_practice(db, student.id)
+    if session.generate_status == 0:
         raise ValueError("每日练习正在生成中，请稍候")
+
+    if session.generate_status == 1:
+        raise ValueError("每日练习已经生成，请刷新页面")
+
+    # 删除失败的练习记录
+    if session.generate_status == -1:
+        daily_practice.delete_daily_practice(db, session.id)
 
     # 获取学生当前激活的教材
     active_textbook = await textbook.get_active_textbook(db, student.id)
     if not active_textbook:
         raise ValueError("请先选择教材")
 
-    result = await daily_practice.create_daily_practice(db, student.id, active_textbook)
-
-    return result
+    return await daily_practice.create_daily_practice(db, student.id, active_textbook)
 
 
 @practice_router.get("/assessment")

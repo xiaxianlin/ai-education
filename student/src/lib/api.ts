@@ -77,6 +77,19 @@ axiosInstance.interceptors.response.use(
       const responseData = error.response.data;
       const httpStatus = error.response.status;
       
+      // 处理 HTTP 401 状态码（未授权）
+      if (httpStatus === 401) {
+        // 未授权，清除 token 并跳转到登录页
+        // 401 错误不显示 toast，直接跳转登录页
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('_t');
+          window.location.href = '/login';
+        }
+        throw new Error(responseData && typeof responseData === 'object' && 'message' in responseData
+          ? (responseData.message || '未授权，请重新登录')
+          : '未授权，请重新登录');
+      }
+      
       // 如果返回的是 ApiData 格式，使用其 message
       const errorMessage = responseData && typeof responseData === 'object' && 'message' in responseData
         ? (responseData.message || `请求失败: ${httpStatus}`)

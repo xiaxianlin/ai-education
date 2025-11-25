@@ -92,8 +92,8 @@ export default function QuestionDetailPage() {
   // 构建资源 URL
   // OSS 基础 URL
   const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
-  
-  const resourceUrl = question.resource 
+
+  const resourceUrl = question.resource
     ? (question.resource.startsWith('http://') || question.resource.startsWith('https://'))
       ? question.resource
       : `${OSS_BASE_URL}/${question.resource}`
@@ -152,7 +152,7 @@ export default function QuestionDetailPage() {
       }}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Card 
+        <Card
           title="基本信息"
           extra={
             <Space>
@@ -227,7 +227,7 @@ export default function QuestionDetailPage() {
           <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', lineHeight: '1.8' }}>
             {question.content}
           </div>
-          
+
           {/* 图片组件 */}
           {isImageQuestion && resourceUrl && (
             <div style={{ marginTop: '20px' }}>
@@ -243,19 +243,19 @@ export default function QuestionDetailPage() {
               />
               {question.resource_content && (
                 <div style={{ marginTop: '12px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
-                  <strong>录音文本：</strong>{question.resource_content}
+                  <strong>资源文本：</strong>{question.resource_content}
                 </div>
               )}
             </div>
           )}
-          
+
           {/* 音频组件 */}
           {isAudioQuestion && resourceUrl && (
             <div style={{ marginTop: '20px' }}>
               <AudioPlayer src={resourceUrl} resourceContent={question.resource_content} />
             </div>
           )}
-          
+
           {/* 资源未生成提示 */}
           {!resourceUrl && (isImageQuestion || isAudioQuestion) && (
             <div style={{ marginTop: '20px', padding: '12px', background: '#fffbe6', borderRadius: '4px', border: '1px solid #ffe58f' }}>
@@ -265,7 +265,7 @@ export default function QuestionDetailPage() {
               </div>
               {question.resource_content && (
                 <div style={{ marginTop: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
-                  <strong>录音文本：</strong>{question.resource_content}
+                  <strong>资源文本：</strong>{question.resource_content}
                 </div>
               )}
             </div>
