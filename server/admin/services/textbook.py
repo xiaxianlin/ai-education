@@ -10,7 +10,6 @@ from shared.provider.aliyun import AliyunRag
 from shared.services.textbook_parser import TextbookParser
 from core.database import Knowledge, Question, Textbook, Unit
 from core.schema import TextbookSchema, QuestionSchema
-from shared.utils.time import now
 from core.settings import envs
 from shared.question.graph import invoke_generate_workflow
 
