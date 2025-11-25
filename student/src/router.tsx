@@ -1,7 +1,6 @@
 import { lazy } from 'react';
 import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router';
 import { requireAuth, requireGuest } from './lib/router-utils';
-import { LoadingPage } from './components/biz/LoadingSpinner';
 
 // 懒加载页面组件
 const Login = lazy(() => import('./pages/Login/Login').then(m => ({ default: m.Login })));

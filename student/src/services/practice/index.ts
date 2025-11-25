@@ -12,7 +12,6 @@ import { dailyPracticeApi } from "./dailyPractice";
 import { unitPracticeApi } from "./unitPractice";
 import { assessmentApi } from "./assessment";
 import type {
-  CreateDailyPracticeParams,
   SubmitAnswerParams,
   PracticeSessionDetail,
 } from "./types";
@@ -83,7 +82,7 @@ export const practiceApi = {
   },
 
   // ===== 每日练习 API =====
-  createDailyPractice: (params: CreateDailyPracticeParams = {}) =>
+  createDailyPractice: () =>
     dailyPracticeApi.create(),
   getDailyPractice: () => dailyPracticeApi.getDaily(),
   getDailyPracticeSession: (sessionId: number) =>
@@ -95,8 +94,8 @@ export const practiceApi = {
   getDailyPracticeHistory: (limit?: number) =>
     dailyPracticeApi.getHistory(limit),
   checkTodayPractice: () => dailyPracticeApi.checkToday(),
-  getDailyPracticeProgress: (taskId: number) =>
-    dailyPracticeApi.getProgress(taskId),
+  getDailyPracticeProgress: () =>
+    dailyPracticeApi.getProgress(),
   getDailyPracticeStats: () => dailyPracticeApi.getStats(),
   uploadAudio: (audioBlob: Blob) => dailyPracticeApi.uploadAudio(audioBlob),
 

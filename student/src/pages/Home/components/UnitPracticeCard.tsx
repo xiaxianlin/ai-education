@@ -24,7 +24,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
 
   const handleStart = () => {
     if (session) {
-      const sessionId = session.session_id ?? session.id;
+      const sessionId = session.id;
       if (sessionId) {
         navigate({ to: `/practice/${sessionId}` });
       }
@@ -69,11 +69,9 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
 
   // 有进行中练习状态
   if (status === "in_progress" && session) {
-    const questionCount =
-      session.question_count ?? session.total_questions ?? 0;
-    const answerCount =
-      session.answer_count ?? session.completed_questions ?? 0;
-    const correctCount = session.correct_count ?? session.right_questions ?? 0;
+    const questionCount = session.question_count ?? 0;
+    const answerCount = session.answer_count ?? 0;
+    const correctCount = session.correct_count ?? 0;
     const progress =
       questionCount > 0 ? Math.round((answerCount / questionCount) * 100) : 0;
     const isCompleted = session.status === 2;

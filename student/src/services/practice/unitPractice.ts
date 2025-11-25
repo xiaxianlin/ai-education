@@ -54,8 +54,8 @@ export const unitPracticeApi = {
    */
   getSession: async (
     sessionId: number
-  ): Promise<{ session: PracticeSession; questions: any[]; unit?: any }> => {
-    return practiceApi.getSessionDetail(sessionId);
+  ): Promise<{ session: PracticeSession; questions?: any[]; unit?: any }> => {
+    return practiceApi.getSessionDetail(sessionId) as Promise<{ session: PracticeSession; questions?: any[]; unit?: any }>;
   },
 
   /**

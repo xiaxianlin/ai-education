@@ -3,7 +3,7 @@
  * 获取每日练习、单元练习和能力评测的历史记录
  * 根据后端接口 /api/student/practice/history/{type} 重构
  */
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { practiceApi } from '@/services/practice';
 import { profileApi } from '@/services/profile';
 import { useApiError } from '@/lib/hooks/useApiError';
@@ -49,9 +49,9 @@ export function usePracticeHistory() {
         practiceApi.getHistory('unit_practice', 50),
         practiceApi.getHistory('assessment', 50),
       ]);
-      setDailyHistory(daily || []);
-      setUnitHistory(unit || []);
-      setAssessmentHistory(assessment || []);
+      setDailyHistory(Array.isArray(daily) ? daily : []);
+      setUnitHistory(Array.isArray(unit) ? unit : []);
+      setAssessmentHistory(Array.isArray(assessment) ? assessment : []);
     } catch (error) {
       handleError(error);
     } finally {

@@ -117,9 +117,7 @@ export const dailyPracticeApi = {
   /**
    * 获取每日练习生成进度（已废弃）
    */
-  getProgress: async (
-    taskId: number
-  ): Promise<{
+  getProgress: async (): Promise<{
     status: string;
     progress: number;
     session?: PracticeSession;

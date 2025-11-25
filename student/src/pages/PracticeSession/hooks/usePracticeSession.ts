@@ -251,7 +251,7 @@ export function usePracticeSession(sessionId: number) {
 
     try {
       setSubmitting(true);
-      const result = await practiceApi.completePractice(session.id);
+      await practiceApi.completePractice(session.id);
 
       toast.success("练习已完成！");
 

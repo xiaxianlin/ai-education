@@ -72,10 +72,8 @@ export function useHomePage() {
         }
 
         // 更新统计数据
-        const totalQuestions =
-          session.question_count ?? session.total_questions ?? 0;
-        const answerCount =
-          session.answer_count ?? session.completed_questions ?? 0;
+        const totalQuestions = session.question_count ?? 0;
+        const answerCount = session.answer_count ?? 0;
 
         setDailyQuestions(totalQuestions);
         setCompletedQuestions(answerCount);
@@ -116,10 +114,8 @@ export function useHomePage() {
       setDailyPracticeStatus("ready");
 
       // 更新统计数据
-      const totalQuestions =
-        session.question_count ?? session.total_questions ?? 0;
-      const answerCount =
-        session.answer_count ?? session.completed_questions ?? 0;
+      const totalQuestions = session.question_count ?? 0;
+      const answerCount = session.answer_count ?? 0;
 
       setDailyQuestions(totalQuestions);
       setCompletedQuestions(answerCount);

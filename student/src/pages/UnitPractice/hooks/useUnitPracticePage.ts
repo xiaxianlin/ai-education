@@ -41,11 +41,11 @@ export function useUnitPracticePage() {
       const status = await practiceApi.getUnitsStatus(currentTextbook.id);
       const sessions: Record<number, number> = {};
       
-      // 从状态中提取未完成会话的 session_id
-      // 后端返回的 status 键是字符串（JSON 序列化后），值是 PracticeStats
+      // 从状态中提取未完成会话的 session id
+      // 后端返回的 status 键是字符串（JSON 序列化后），值是 PracticeSession
       Object.entries(status).forEach(([unitId, session]) => {
-        if (session && session.session_id) {
-          sessions[parseInt(unitId)] = session.session_id;
+        if (session && session.id) {
+          sessions[parseInt(unitId)] = session.id;
         }
       });
       
@@ -133,7 +133,7 @@ export function useUnitPracticePage() {
       
         toast.success('练习已创建，开始答题！');
       
-      const sessionId = session.session_id ?? session.id;
+      const sessionId = session.id;
       if (sessionId) {
         // 更新未完成会话列表
         setIncompleteSessions(prev => ({

@@ -46,7 +46,6 @@ export function PracticeResult() {
   }
 
   const sessionType = sessionData.session.session_type;
-  const sessionId = sessionData.session.session_id ?? sessionData.session.id;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -72,7 +71,6 @@ export function PracticeResult() {
         {/* 操作按钮 */}
         <ActionButtons
           sessionType={sessionType}
-          sessionId={sessionId}
         />
       </div>
     </div>

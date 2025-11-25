@@ -3,7 +3,7 @@
  */
 import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, CheckCircle, XCircle, Clock, BookOpen } from 'lucide-react';
+import { Trophy, CheckCircle, XCircle, Clock } from 'lucide-react';
 import type { PracticeSessionType } from '@/lib/types/schema';
 
 interface ResultSummaryProps {

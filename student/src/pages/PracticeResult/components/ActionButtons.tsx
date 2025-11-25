@@ -9,12 +9,10 @@ import type { PracticeSessionType } from '@/lib/types/schema';
 
 interface ActionButtonsProps {
   sessionType: PracticeSessionType;
-  sessionId?: number;
 }
 
 export const ActionButtons = memo(function ActionButtons({
   sessionType,
-  sessionId,
 }: ActionButtonsProps) {
   const navigate = useNavigate();
 
