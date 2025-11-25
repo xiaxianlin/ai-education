@@ -318,7 +318,7 @@ async def regenerate_daily_practice(db: AsyncSession, student_id: str) -> dict:
     if not session:
         raise ValueError("当天每日练习不存在，请先创建")
 
-    if session.status == 3:
+    if session.generate_status == 0:
         raise ValueError("每日练习正在生成中，请稍候")
 
     # 获取学生当前激活的教材
@@ -409,6 +409,7 @@ async def create_unit_practice(
             completed_questions=existing.answer_count,
             right_questions=existing.correct_count,
             times=0,
+            generate_status=existing.generate_status,
         )
 
     logger.info(f"[Admin] 开始创建单元练习: student_id={student_id}, unit_id={unit_id}")
@@ -443,6 +444,7 @@ async def create_unit_practice(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=0,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:
@@ -509,6 +511,7 @@ async def regenerate_unit_practice(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=0,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:
@@ -541,6 +544,7 @@ async def create_assessment(db: AsyncSession, student_id: str) -> PracticeStatsS
             completed_questions=existing.answer_count,
             right_questions=existing.correct_count,
             times=0,
+            generate_status=existing.generate_status,
         )
 
     # 获取学生当前激活的教材
@@ -582,6 +586,7 @@ async def create_assessment(db: AsyncSession, student_id: str) -> PracticeStatsS
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=0,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:
@@ -643,6 +648,7 @@ async def regenerate_assessment(db: AsyncSession, student_id: str) -> PracticeSt
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=0,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:

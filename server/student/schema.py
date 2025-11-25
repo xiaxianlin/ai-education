@@ -23,7 +23,7 @@ class PracticeStatsSchem(BaseModel):
     completed_questions: int  # 题目完成数
     right_questions: int  # 题目正确数
     times: int = 0  # 练习次数
-    generating_status: Optional[str] = None  # 会话生成状态: "generating"(生产中), "generated"(生成完成), "failed"(生成失败)
+    generate_status: int = 0  # 生成状态：-1：生成失败；0：生成中；1：生成成功
 
 
 class PracticeHistorySchema(BaseModel):

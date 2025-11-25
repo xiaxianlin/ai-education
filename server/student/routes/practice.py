@@ -34,7 +34,7 @@ async def create_daily_practice_route(
 
     # 检查是否有正在生成的每日练习
     generating_session = await daily_practice.get_daily_practice(db, student.id)
-    if generating_session and generating_session.status == 3:
+    if generating_session and generating_session.generate_status == 0:
         raise ValueError("每日练习正在生成中，请稍候")
 
     # 获取学生当前激活的教材

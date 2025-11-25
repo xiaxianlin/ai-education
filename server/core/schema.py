@@ -165,6 +165,7 @@ class PracticeSessionSchema(BaseModel):
     answer_count: int = 0  # 添加 answer_count 字段
     correct_count: int = 0
     status: int = 0  # 改为 int 类型，与数据库模型一致 (0-未开始, 1-进行中, 2-已完成)
+    generate_status: int = 0  # 生成状态：-1：生成失败；0：生成中；1：生成成功
     start_time: int
     end_time: Optional[int] = None
     create_time: int
@@ -178,12 +179,10 @@ class PracticeAnswerSchema(BaseModel):
     session_id: int
     question_id: int
     question_order: int
-    user_answer: Optional[str] = None
     text_answer: Optional[str] = None
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
-    create_time: int
 
     model_config = {"from_attributes": True}
 

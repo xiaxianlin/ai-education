@@ -2,7 +2,6 @@ import { memo, useState, useCallback } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AudioRecorder } from '@/components/ui/AudioRecorder';
-import { practiceApi } from '@/services/practice';
 import { toast } from 'sonner';
 import type { Question } from '@/services/practice';
 
@@ -124,8 +123,25 @@ function AnswerOptionsComponent({
   }
 
   // 口语题
-  const [isUploading, setIsUploading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [audioBase64, setAudioBase64] = useState<string | undefined>(undefined);
+
+  /**
+   * 将 Blob 转换为 base64 字符串
+   */
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // 移除 data URL 前缀，只保留 base64 数据
+        const base64Data = base64String.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
   const handleRecordingComplete = useCallback(async (audioBlob: Blob) => {
     if (hasAnswered) {
@@ -133,17 +149,19 @@ function AnswerOptionsComponent({
     }
 
     try {
-      setIsUploading(true);
-      const result = await practiceApi.uploadAudio(audioBlob);
-      setAudioUrl(result.audio_url);
-      // 口语题的答案通过 ASR 解析，这里先传空字符串，实际答案由后端 ASR 解析后返回
-      onAnswerChange('', result.audio_url);
-      toast.success('录音上传成功，正在识别...');
+      setIsProcessing(true);
+      // 将音频转换为 base64
+      const base64Data = await blobToBase64(audioBlob);
+      setAudioBase64(base64Data);
+      // 口语题的答案通过 ASR 解析，这里传递 base64 数据
+      // 实际的文本答案由后端 ASR 解析后返回
+      onAnswerChange('', base64Data);
+      toast.success('录音已完成，请点击提交按钮');
     } catch (error) {
-      console.error('上传录音失败:', error);
-      toast.error(error instanceof Error ? error.message : '上传录音失败');
+      console.error('处理录音失败:', error);
+      toast.error(error instanceof Error ? error.message : '处理录音失败');
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   }, [hasAnswered, onAnswerChange]);
 
@@ -152,12 +170,12 @@ function AnswerOptionsComponent({
       <div className="flex flex-col items-center gap-6">
         <AudioRecorder
           onRecordingComplete={handleRecordingComplete}
-          disabled={hasAnswered || isUploading}
+          disabled={hasAnswered || isProcessing}
           maxDuration={60}
         />
-        {audioUrl && !hasAnswered && (
+        {audioBase64 && !hasAnswered && (
           <div className="text-sm text-muted-foreground">
-            录音已上传，请点击提交按钮
+            录音已完成，请点击提交按钮
           </div>
         )}
         {hasAnswered && (

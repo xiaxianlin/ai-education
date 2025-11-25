@@ -49,6 +49,7 @@ async def get_units_practice_stats(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=times,
+            generate_status=session.generate_status,
         )
     
     logger.info(
@@ -87,6 +88,7 @@ async def check_unit_practice(
         completed_questions=session.answer_count,
         right_questions=session.correct_count,
         times=times,
+        generate_status=session.generate_status,
     )
 
 
@@ -137,6 +139,7 @@ async def create_unit_practice(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=times,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:

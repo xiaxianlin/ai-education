@@ -38,6 +38,7 @@ async def check_assessment(db: AsyncSession, student_id: str) -> Optional[Practi
         completed_questions=session.answer_count,
         right_questions=session.correct_count,
         times=times,
+        generate_status=session.generate_status,
     )
 
 
@@ -75,6 +76,7 @@ async def create_assessment(
             completed_questions=session.answer_count,
             right_questions=session.correct_count,
             times=times,
+            generate_status=session.generate_status,
         )
 
     except Exception as e:

@@ -126,7 +126,8 @@ export interface PracticeSession {
   completed_questions?: number; // 兼容字段：已答题数（PracticeStatsSchem）
   right_questions?: number; // 兼容字段：正确数（PracticeStatsSchem）
 
-  status: PracticeSessionStatus; // 会话状态
+  status: PracticeSessionStatus; // 会话状态：0-未开始, 1-进行中, 2-已完成
+  generate_status?: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
   start_time?: number; // 开始时间（Unix时间戳，秒）
   end_time?: number; // 结束时间（Unix时间戳，秒）
   create_time?: number; // 创建时间（Unix时间戳，秒）
@@ -150,6 +151,7 @@ export interface PracticeStats {
   completed_questions: number; // 已答题数
   right_questions: number; // 正确数
   times: number; // 练习次数（已完成次数）
+  generate_status: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
 
   // 可选：某些接口可能返回更多信息
   question_count?: number; // 兼容字段
@@ -294,6 +296,7 @@ export interface BeginPracticeResponse {
   question_count: number;
   answer_count: number;
   correct_count: number;
+  generate_status?: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
   start_time: number;
   create_time: number;
 }

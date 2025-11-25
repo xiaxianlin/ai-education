@@ -1,9 +1,11 @@
 /**
  * 练习相关类型定义
  * 基于后端 schema 定义，与 server/student/schema.py 保持一致
- * 
+ *
  * 注意：基础类型已定义在 @/lib/types/schema.ts 中
  */
+
+import { PracticeHistory, PracticeSession, Question } from "@/lib/types/schema";
 
 // 导出统一的基础类型
 export type {
@@ -21,7 +23,7 @@ export type {
   UnitPracticeStatus,
   PracticeSessionType,
   PracticeSessionStatus,
-} from '@/lib/types/schema';
+} from "@/lib/types/schema";
 
 // ===== 扩展类型（用于特定场景） =====
 
@@ -65,7 +67,7 @@ export interface KnowledgeScore {
  * 兼容旧接口，实际使用 PracticeSession
  */
 export interface DailyPracticeSession extends PracticeSession {
-  session_type: 'daily_practice';
+  session_type: "daily_practice";
   date: number; // 日期（如 20241123）
   target_id: number; // 等于 date
 }
@@ -96,17 +98,17 @@ export interface DailyPracticeReport {
  * 每日练习历史记录（扩展 PracticeHistory）
  */
 export interface DailyPracticeHistoryItem extends PracticeHistory {
-  session_type: 'daily_practice';
+  session_type: "daily_practice";
   target_id: number; // 日期（如 20241123）
 }
 
 // ===== 单元练习类型 =====
 // 兼容旧接口，实际使用 PracticeSession
 export interface UnitPracticeSession extends PracticeSession {
-  session_type: 'unit_practice';
+  session_type: "unit_practice";
   unit_id: number;
   target_id: number; // 等于 unit_id
-  difficulty: 'easy' | 'medium' | 'hard' | 'adaptive';
+  difficulty: "easy" | "medium" | "hard" | "adaptive";
 }
 
 // 单元练习状态（根据 API.md）
@@ -132,7 +134,7 @@ export interface CreatePracticeParams {
   count?: number;
 }
 
-export interface PracticeReport {
+export interface UnitPracticeReport {
   session_id: number;
   unit_id: number;
   unit_name: string;
@@ -167,7 +169,7 @@ export interface UnitProgress {
  * 单元练习历史记录（扩展 PracticeHistory）
  */
 export interface PracticeHistoryItem extends PracticeHistory {
-  session_type: 'unit_practice';
+  session_type: "unit_practice";
   unit_id: number;
   target_id: number; // 等于 unit_id
 }
@@ -175,10 +177,10 @@ export interface PracticeHistoryItem extends PracticeHistory {
 // ===== 能力评测类型 =====
 // 兼容旧接口，实际使用 PracticeSession
 export interface AssessmentTest extends PracticeSession {
-  session_type: 'assessment';
-  assessment_type: 'unit' | 'comprehensive' | 'topic';
+  session_type: "assessment";
+  assessment_type: "unit" | "comprehensive" | "topic";
   current_ability: number;
-  ability_level: 'beginner' | 'intermediate' | 'advanced';
+  ability_level: "beginner" | "intermediate" | "advanced";
   overall_score: number;
   confidence: number;
   answered_count: number;
@@ -231,12 +233,11 @@ export interface AssessmentReport {
  * 能力评估历史记录（扩展 PracticeHistory）
  */
 export interface AssessmentHistoryItem extends PracticeHistory {
-  session_type: 'assessment';
-  assessment_type?: 'unit' | 'comprehensive' | 'topic';
+  session_type: "assessment";
+  assessment_type?: "unit" | "comprehensive" | "topic";
   current_ability?: number;
-  ability_level?: 'beginner' | 'intermediate' | 'advanced';
+  ability_level?: "beginner" | "intermediate" | "advanced";
   overall_score?: number;
   confidence?: number;
   answered_count?: number;
 }
-
