@@ -7,15 +7,28 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
-from student.schema import AnswerQuestionSchema, PracticeStatsSchem, PracticeHistorySchema
-from student.services import textbook, daily_practice, assessment, unit_practice, practice, answer
+from student.schema import (
+    AnswerQuestionSchema,
+    PracticeStatsSchem,
+    PracticeHistorySchema,
+)
+from student.services import (
+    textbook,
+    daily_practice,
+    assessment,
+    unit_practice,
+    practice,
+    answer,
+)
 from student.services import unit as unit_service
 
 practice_router = APIRouter(prefix="/practice")
 
 
 @practice_router.get("/daily")
-async def get_daily_practice(request: Request, db: AsyncSession = Database) -> PracticeStatsSchem:
+async def get_daily_practice(
+    request: Request, db: AsyncSession = Database
+) -> PracticeStatsSchem:
     """获取每日练习信息"""
     student = request.state.student
 
@@ -62,7 +75,9 @@ async def create_daily_practice_route(
 
 
 @practice_router.get("/assessment")
-async def get_assessment(request: Request, db: AsyncSession = Database) -> PracticeStatsSchem:
+async def get_assessment(
+    request: Request, db: AsyncSession = Database
+) -> PracticeStatsSchem:
     """获取能力评估信息"""
     # 获取当前学生信息
     student = request.state.student
@@ -127,7 +142,9 @@ async def create_unit_practice_route(
     student = request.state.student
 
     # 检查是否存在进行中的单元练习
-    in_progress_session = await unit_service.get_in_progress_unit_practice(db, student.id)
+    in_progress_session = await unit_service.get_in_progress_unit_practice(
+        db, student.id
+    )
     if in_progress_session:
         raise ValueError("还有进行中的单元练习，请先完成后再创建新的练习")
 
@@ -197,7 +214,9 @@ async def answer_question(
 
 
 @practice_router.post("/{session_id}/begin")
-async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
+async def begin_practice_session(
+    session_id: int, request: Request, db: AsyncSession = Database
+):
     """开始练习"""
     # 获取当前学生信息
     student = request.state.student

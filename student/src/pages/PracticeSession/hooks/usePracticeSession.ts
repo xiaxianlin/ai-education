@@ -186,14 +186,21 @@ export function usePracticeSession(sessionId: number) {
         }
       }
 
-      const result = await practiceApi.submitAnswer({
+      const submitParams = {
         session_id: session.id,
         question_id: currentQuestion.id,
         answer: answer || "",
         time_spent: timeSpent,
         is_audio_answer: !!audioData,
         audio_data: audioData,
+      };
+      
+      console.log('[DEBUG] Submitting answer with params:', {
+        ...submitParams,
+        audio_data: submitParams.audio_data ? `[${submitParams.audio_data.length} chars]` : undefined
       });
+      
+      const result = await practiceApi.submitAnswer(submitParams);
 
       // 根据 is_correct 设置 status: 1-正确, 2-错误
       setAnswerStatus((prev) => ({

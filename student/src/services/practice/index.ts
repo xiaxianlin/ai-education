@@ -46,6 +46,10 @@ export const practiceApi = {
       status: number;
     };
   }> => {
+    console.log('[DEBUG API] submitAnswer received params:', {
+      ...params,
+      audio_data: params.audio_data ? `[${params.audio_data.length} chars]` : undefined
+    });
     return api.post("/practice/answer", params);
   },
 

@@ -31,6 +31,16 @@ axiosInstance.interceptors.request.use(
         config.headers['x-access-token'] = token;
       }
     }
+    
+    // Debug logging for practice answer submissions
+    if (config.url?.includes('/practice/answer')) {
+      console.log('[DEBUG AXIOS] Request config:', {
+        url: config.url,
+        method: config.method,
+        data: config.data,
+      });
+    }
+    
     return config;
   },
   (error) => {

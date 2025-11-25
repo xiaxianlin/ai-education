@@ -24,20 +24,10 @@ async def get_daily_practice(db: AsyncSession, student_id: str) -> PracticeSessi
         )
     )
 
-    logger.info(f"找到当天每日练习: session_id={session.id}, student_id={student_id}")
-    times = await count_daily_practice(db, student_id)
-    return PracticeStatsSchem(
-        session_id=session.id,
-        status=session.status,
-        total_questions=session.question_count,
-        completed_questions=session.answer_count,
-        right_questions=session.correct_count,
-        times=times,
-        generate_status=session.generate_status,
-    )
+    return session
 
 
-async def check_last_practice(
+async def get_last_practice(
     db: AsyncSession, student_id: str
 ) -> Optional[PracticeStatsSchem]:
     """检查是否存在往期未完成的每日练习，如果有则重置进度并更新为当前日期"""
@@ -62,8 +52,13 @@ async def check_daily_practice(
 ) -> Optional[PracticeStatsSchem]:
     """检查是否有当天的每日练习"""
 
-    times = await count_daily_practice(db, student_id)
     session = await get_daily_practice(db, student_id)
+
+    if not session:
+        return None
+
+    times = await count_daily_practice(db, student_id)
+    logger.info(f"找到当天每日练习: session_id={session.id}, student_id={student_id}")
 
     return PracticeStatsSchem(
         session_id=session.id,
@@ -72,7 +67,7 @@ async def check_daily_practice(
         completed_questions=session.answer_count,
         right_questions=session.correct_count,
         times=times,
-        generating_status=session.generate_status,
+        generate_status=session.generate_status,
     )
 
 
