@@ -1,9 +1,11 @@
-﻿export default [
+﻿﻿export default [
   { path: '/', redirect: '/home' },
   { path: '/home', name: '首页', icon: 'dashboard', component: './Home' },
   { path: '/manager', name: '账号管理', icon: 'user', component: './Manager' },
   { path: '/textbook', name: '教材管理', icon: 'book', component: './Textbook/List' },
   { path: '/textbook/detail/:id', component: './Textbook/Detail' },
+  { path: '/teacher_book', name: '教师用书管理', icon: 'read', component: './TeacherBook/List' },
+  { path: '/teacher_book/detail/:id', component: './TeacherBook/Detail' },
   { path: '/question', name: '题目管理', icon: 'question', component: './Question/List' },
   { path: '/question/edit/:id', component: './Question/Edit' },
   { path: '/question/detail/:id', component: './Question/Detail' },

@@ -61,6 +61,18 @@ class TextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TeacherBookSchema(BaseModel):
+    id: int
+    subject: str
+    version: str
+    grade: int
+    semester: str
+    file: Optional[str] = None
+    index_file_id: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 class UnitSchema(BaseModel):
     id: int
     textbook_id: int

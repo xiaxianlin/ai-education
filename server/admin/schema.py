@@ -94,6 +94,47 @@ class SearchTextbookSchema(SearchSchema):
     grade: Optional[str] = None
 
 
+class SaveTeacherBookSchema(BaseModel):
+    subject: str
+    version: str
+    grade: int
+    semester: str
+
+    @field_validator("subject")
+    @classmethod
+    def valid_subject(clas, v):
+        if v and v not in SUBJECTS:
+            raise ValueError(f"科目只能选择{"、".join(SUBJECTS)}")
+        return v
+
+    @field_validator("version")
+    @classmethod
+    def valid_version(clas, v):
+        if v and v not in TEXTBOOK_VERSIONS:
+            raise ValueError(f"版本只能选泽{"、".join(TEXTBOOK_VERSIONS)}")
+        return v
+
+    @field_validator("grade")
+    @classmethod
+    def valid_grade(clas, v):
+        if v and v not in range(1, 13):
+            raise ValueError("非法年级")
+        return v
+
+    @field_validator("semester")
+    @classmethod
+    def valid_semester(clas, v):
+        if v and v not in SEMESTERS:
+            raise ValueError(f"学期只能选择{"、".join(SEMESTERS)}")
+        return v
+
+
+class SearchTeacherBookSchema(SearchSchema):
+    version: Optional[str] = None
+    subject: Optional[str] = None
+    grade: Optional[str] = None
+
+
 class CreateUnitSchema(BaseModel):
     textbook_id: int
     name: str

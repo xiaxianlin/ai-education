@@ -80,6 +80,18 @@ class Textbook(BaseModel):
     is_parsed: Mapped[int] = mapped_column(default=0)
 
 
+class TeacherBook(BaseModel):
+    __tablename__ = "ah_teacher_book"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(255), nullable=False)
+    grade: Mapped[int] = mapped_column(nullable=False)
+    semester: Mapped[str] = mapped_column(String(255), nullable=False)
+    file: Mapped[str] = mapped_column(String(255), nullable=True)
+    index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
+
+
 class Unit(BaseModel):
     __tablename__ = "ah_unit"
 

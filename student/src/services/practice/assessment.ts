@@ -2,11 +2,8 @@
  * 能力评测 API 服务
  * 根据 API.md 规范实现
  */
-import { api } from '@/lib/api';
-import type {
-  PracticeSession,
-  AssessmentHistoryItem,
-} from './types';
+import { api } from "@/lib/api";
+import type { PracticeSession, AssessmentHistoryItem } from "./types";
 
 export const assessmentApi = {
   /**
@@ -14,7 +11,7 @@ export const assessmentApi = {
    * 获取未完成的能力评估
    */
   getAssessment: async (): Promise<PracticeSession | null> => {
-    return api.get<PracticeSession | null>('/practice/assessment');
+    return api.get<PracticeSession | null>("/practice/assessment");
   },
 
   /**
@@ -22,24 +19,28 @@ export const assessmentApi = {
    * 为学生生成能力评估
    */
   create: async (): Promise<PracticeSession> => {
-    return api.post<PracticeSession>('/practice/assessment');
+    return api.post<PracticeSession>("/practice/assessment");
   },
 
   /**
    * 获取能力评估历史（根据 API.md: GET /api/student/practice/history/assessment）
    */
   getHistory: async (limit?: number): Promise<AssessmentHistoryItem[]> => {
-    const params = limit ? `?limit=${limit}` : '';
-    return api.get<AssessmentHistoryItem[]>(`/practice/history/assessment${params}`);
+    const params = limit ? `?limit=${limit}` : "";
+    return api.get<AssessmentHistoryItem[]>(
+      `/practice/history/assessment${params}`
+    );
   },
 
   // ===== 兼容旧接口的方法 =====
 
   /**
-   * 获取下一道评测题目（兼容旧接口）
+   * 获取下一道评测题目
    * 从会话中获取下一题
    */
-  getNextQuestion: async (assessmentId: number): Promise<{
+  getNextQuestion: async (
+    assessmentId: number
+  ): Promise<{
     question: any;
     progress: {
       current: number;
@@ -50,19 +51,23 @@ export const assessmentApi = {
     confidence: number;
   } | null> => {
     try {
-      const { practiceApi } = await import('./index');
+      const { practiceApi } = await import("./index");
       const detail = await practiceApi.getSessionDetail(assessmentId);
-      
-      if (!detail.session || !detail.questions || detail.questions.length === 0) {
+
+      if (
+        !detail.session ||
+        !detail.questions ||
+        detail.questions.length === 0
+      ) {
         return null;
       }
 
       // 找到未答的题目
       const answeredIds = new Set(
-        detail.answers?.map(a => a.question_id) || []
+        detail.answers?.map((a) => a.question_id) || []
       );
-      const nextQuestion = detail.questions.find(q => !answeredIds.has(q.id));
-      
+      const nextQuestion = detail.questions.find((q) => !answeredIds.has(q.id));
+
       if (!nextQuestion) {
         return null;
       }
@@ -82,13 +87,13 @@ export const assessmentApi = {
         confidence: (session as any).confidence || 0,
       };
     } catch (error) {
-      console.error('获取下一题失败:', error);
+      console.error("获取下一题失败:", error);
       return null;
     }
   },
 
   /**
-   * 提交评测答案（兼容旧接口）
+   * 提交评测答案
    * 使用统一的答案提交接口
    */
   submitAnswer: async (params: {
@@ -105,13 +110,13 @@ export const assessmentApi = {
     confidence: number;
     answered_count: number;
   }> => {
-    const { practiceApi } = await import('./index');
+    const { practiceApi } = await import("./index");
     const result = await practiceApi.submitAnswer(params);
-    
+
     // 获取更新后的会话信息以获取能力值
     const detail = await practiceApi.getSessionDetail(params.session_id);
     const session = detail.session as any;
-    
+
     return {
       is_correct: result.is_correct,
       correct_answer: result.correct_answer,
@@ -122,49 +127,11 @@ export const assessmentApi = {
   },
 
   /**
-   * 完成能力评测（兼容旧接口）
+   * 完成能力评测
    * 使用统一的完成接口
    */
-  complete: async (assessmentId: number): Promise<{
-    assessment_id: number;
-    overall_score: number;
-    ability_level: string;
-    answered_count: number;
-    total_time: number;
-    report: {
-      knowledge_mastery: Record<string, { total: number; correct: number; rate: number }>;
-      ability_breakdown: Record<string, { total: number; correct: number; rate: number }>;
-      learning_speed: number;
-      consistency: number;
-      strengths: string[];
-      weaknesses: string[];
-      recommendations: string[];
-    };
-  }> => {
-    const { practiceApi } = await import('./index');
-    const reportId = await practiceApi.completePractice(assessmentId);
-    
-    // 获取报告详情（可能需要额外的接口）
-    // 这里返回基本结构，实际应该从后端获取完整报告
-    const detail = await practiceApi.getSessionDetail(assessmentId);
-    const session = detail.session as any;
-    
-    return {
-      assessment_id: assessmentId,
-      overall_score: session.overall_score || 0,
-      ability_level: session.ability_level || 'beginner',
-      answered_count: session.answer_count || 0,
-      total_time: session.total_time || 0,
-      report: {
-        knowledge_mastery: {},
-        ability_breakdown: {},
-        learning_speed: 0,
-        consistency: 0,
-        strengths: [],
-        weaknesses: [],
-        recommendations: [],
-      },
-    };
+  complete: async (assessmentId: number): Promise<{ report_id: number }> => {
+    const { practiceApi } = await import("./index");
+    return practiceApi.completePractice(assessmentId);
   },
 };
-

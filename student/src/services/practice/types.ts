@@ -63,7 +63,6 @@ export interface KnowledgeScore {
 // ===== 每日练习类型 =====
 /**
  * 每日练习会话（扩展 PracticeSession）
- * 兼容旧接口，实际使用 PracticeSession
  */
 export interface DailyPracticeSession extends PracticeSession {
   session_type: "daily_practice";
@@ -102,7 +101,6 @@ export interface DailyPracticeHistoryItem extends PracticeHistory {
 }
 
 // ===== 单元练习类型 =====
-// 兼容旧接口，实际使用 PracticeSession
 export interface UnitPracticeSession extends PracticeSession {
   session_type: "unit_practice";
   unit_id: number;

@@ -49,7 +49,7 @@ export const unitPracticeApi = {
   // ===== 兼容旧接口的方法 =====
 
   /**
-   * 获取单元练习会话详情（兼容旧接口）
+   * 获取单元练习会话详情
    * 使用统一的会话详情接口
    */
   getSession: async (
@@ -59,7 +59,7 @@ export const unitPracticeApi = {
   },
 
   /**
-   * 提交答案（兼容旧接口）
+   * 提交答案
    * 使用统一的答案提交接口
    */
   submitAnswer: async (params: {
@@ -76,14 +76,14 @@ export const unitPracticeApi = {
     session_progress: {
       answer_count: number;
       correct_count: number;
-      question_count: number;
+      total_count: number;
     };
   }> => {
     return practiceApi.submitAnswer(params);
   },
 
   /**
-   * 完成练习（兼容旧接口）
+   * 完成练习
    * 使用统一的完成接口
    */
   complete: async (sessionId: number): Promise<{ report_id: number }> => {
@@ -91,7 +91,7 @@ export const unitPracticeApi = {
   },
 
   /**
-   * 获取所有未完成的单元练习会话（兼容旧接口）
+   * 获取所有未完成的单元练习会话
    * 从教材状态中提取
    */
   getIncompleteSessions: async (
@@ -118,7 +118,7 @@ export const unitPracticeApi = {
   },
 
   /**
-   * 获取单元学习进度（兼容旧接口，可能需要后端支持）
+   * 获取单元学习进度
    */
   getUnitProgress: async (
     unitId: number

@@ -6,7 +6,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { practiceApi } from "@/services/practice";
 import { toast } from "sonner";
-import type { PracticeSession, Question } from "@/lib/types/schema";
+import type {
+  PracticeSession,
+  PracticeSessionStatus,
+  Question,
+} from "@/lib/types/schema";
 
 export function usePracticeSession(sessionId: number) {
   const navigate = useNavigate();
@@ -203,7 +207,7 @@ export function usePracticeSession(sessionId: number) {
           ...session,
           answer_count: result.session_progress.answer_count,
           correct_count: result.session_progress.correct_count,
-          status: result.session_progress.status,
+          status: result.session_progress.status as PracticeSessionStatus,
         });
       }
 

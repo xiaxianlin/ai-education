@@ -42,7 +42,7 @@ export const practiceApi = {
     session_progress: {
       answer_count: number;
       correct_count: number;
-      question_count: number;
+      total_count: number; // 题目总数
       status: number;
     };
   }> => {
