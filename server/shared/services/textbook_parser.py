@@ -70,7 +70,10 @@ class TextbookParser:
                     "每个知识点应包含知识点名称（topic_name）和知识点内容（topic_content）。"
                     "请严格按照 {format_instructions} 生成 JSON 输出。",
                 ),
-                ("human", "请分析以下教材单元内容，提取单元信息和知识点：\n\n{units_content}"),
+                (
+                    "human",
+                    "请分析以下教材单元内容，提取单元信息和知识点：\n\n{units_content}",
+                ),
             ]
         )
 
@@ -81,8 +84,8 @@ class TextbookParser:
 
         # 调用LLM
         llm = ChatOpenAI(
-            model_name="qwen3-max",
-            temperature=0.3,
+            model_name="qwen3-max-preview",
+            temperature=0.7,
             openai_api_key=envs.AI_PLATFORM_KEY,
             openai_api_base=envs.AI_PLATFORM_URL,
         )
@@ -105,7 +108,9 @@ class TextbookParser:
             raise ValueError(f"AI解析失败: {str(e)}")
 
     @staticmethod
-    async def parse_by_oss(oss_path: str, local_path: Optional[str] = None) -> List[UnitInfo]:
+    async def parse_by_oss(
+        oss_path: str, local_path: Optional[str] = None
+    ) -> List[UnitInfo]:
         """
         从OSS下载PDF文件并解析
 
@@ -173,11 +178,8 @@ class TextbookParser:
         logger.info(f"开始从RAG知识库获取文件切片，file_id: {file_id}")
         chunks = rag.get_all_chunks(file_id=file_id)
 
-        logger.info(chunks)
         if not chunks:
             raise ValueError(f"未找到文件ID为 {file_id} 的切片数据")
-
-        logger.info(f"共获取到 {len(chunks)} 个切片")
 
         # 合并所有切片内容
         full_content = "\n\n".join(chunks)

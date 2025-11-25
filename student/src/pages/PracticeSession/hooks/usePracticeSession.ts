@@ -7,7 +7,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { practiceApi } from "@/services/practice";
 import { toast } from "sonner";
 import type { PracticeSession, Question } from "@/lib/types/schema";
-import { getSessionId } from "@/lib/types/schema";
 
 export function usePracticeSession(sessionId: number) {
   const navigate = useNavigate();
@@ -92,8 +91,7 @@ export function usePracticeSession(sessionId: number) {
     if (!session) return;
 
     try {
-      const sessionIdValue = getSessionId(session);
-      await practiceApi.beginPractice(sessionIdValue);
+      await practiceApi.beginPractice(session.id);
 
       // 重新加载会话以获取最新状态
       await loadSession();
@@ -152,7 +150,6 @@ export function usePracticeSession(sessionId: number) {
     try {
       setSubmitting(true);
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
-      const sessionIdValue = getSessionId(session);
 
       // 如果是音频答案，需要转换为 base64
       let audioData: string | undefined;
@@ -186,7 +183,7 @@ export function usePracticeSession(sessionId: number) {
       }
 
       const result = await practiceApi.submitAnswer({
-        session_id: sessionIdValue,
+        session_id: session.id,
         question_id: currentQuestion.id,
         answer: answer || "",
         time_spent: timeSpent,
@@ -243,13 +240,12 @@ export function usePracticeSession(sessionId: number) {
 
     try {
       setSubmitting(true);
-      const sessionIdValue = getSessionId(session);
-      const result = await practiceApi.completePractice(sessionIdValue);
+      const result = await practiceApi.completePractice(session.id);
 
       toast.success("练习已完成！");
 
       // 导航到结果页
-      navigate({ to: `/practice-result/${sessionIdValue}` });
+      navigate({ to: `/practice-result/${session.id}` });
     } catch (error) {
       console.error("Failed to complete practice:", error);
       const errorMessage =

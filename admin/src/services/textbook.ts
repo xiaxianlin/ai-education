@@ -48,15 +48,8 @@ export const TextbookApi = {
   },
 
   getUnits: async (id: number) => {
-    try {
-      const res = await request<ApiData<Unit[]>>(`/unit/textbook/${id}`, {
-        skipErrorHandler: true,
-      });
-      return res.data;
-    } catch (error) {
-      const res = await request<ApiData<Unit[]>>(`/textbook/${id}/units`);
-      return res.data;
-    }
+    const res = await request<ApiData<Unit[]>>(`/textbook/${id}/units`);
+    return res.data || [];
   },
 
   getKnowledges: async (id: number) => {

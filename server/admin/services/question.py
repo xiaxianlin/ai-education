@@ -172,6 +172,8 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     )
 
     conditions = []
+    if params.question_id is not None:
+        conditions.append(Question.id == params.question_id)
     if params.keywords:
         conditions.append(Question.content.contains(params.keywords))
     if params.type:
@@ -238,6 +240,8 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
     ]
     conditions = base_conditions.copy()
 
+    if params.question_id is not None:
+        conditions.append(Question.id == params.question_id)
     if params.keywords:
         conditions.append(Question.content.contains(params.keywords))
     if params.type:

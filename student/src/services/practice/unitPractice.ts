@@ -110,8 +110,8 @@ export const unitPracticeApi = {
     const status = await unitPracticeApi.getUnitsStatus(textbookId);
     const result: Record<number, number> = {};
     Object.entries(status).forEach(([unitId, session]) => {
-      if (session && session.session_id) {
-        result[parseInt(unitId)] = session.session_id;
+      if (session && session.id) {
+        result[parseInt(unitId)] = session.id;
       }
     });
     return result;

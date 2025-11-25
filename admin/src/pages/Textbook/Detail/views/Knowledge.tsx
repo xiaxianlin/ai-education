@@ -8,7 +8,6 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
@@ -24,7 +23,7 @@ export const KnowledgeView: React.FC = () => {
   console.log(units);
 
   const columns: ProColumns<Knowledge>[] = [
-    { title: '知识点名称', width: 120, hideInSearch: true, dataIndex: 'name' },
+    { title: '知识点名称', hideInSearch: true, dataIndex: 'name' },
     { title: '知识点内容', hideInSearch: true, dataIndex: 'content', ellipsis: true },
     {
       key: 'unit',

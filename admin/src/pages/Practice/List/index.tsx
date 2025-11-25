@@ -4,6 +4,8 @@ import { Link, useSearchParams } from '@umijs/max';
 import { useRef, useMemo, useState } from 'react';
 import { PracticeApi, type PracticeRecord } from '@/services/practice';
 import { fmtTime } from '@/utils/time';
+import { DeleteButton } from '@/components/business/DeleteButton';
+import { useDelete } from '@/hooks/useDelete';
 
 type PracticeType = 'daily_practice' | 'unit_practice' | 'assessment';
 
@@ -12,6 +14,18 @@ export default function PracticeListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const studentId = searchParams.get('student_id') || undefined;
   const [practiceType, setPracticeType] = useState<PracticeType | undefined>(undefined);
+
+  // 删除功能
+  const { handleDelete, loading: deleteLoading } = useDelete<number>(
+    PracticeApi.deletePracticeRecord,
+    {
+      onSuccess: () => {
+        actionRef.current?.reload();
+      },
+      successMessage: '删除成功',
+      errorMessage: '删除失败',
+    },
+  );
 
   const getPracticeTypeLabel = (type: string) => {
     switch (type) {
@@ -124,7 +138,7 @@ export default function PracticeListPage() {
       {
         title: '操作',
         valueType: 'option',
-        width: 150,
+        width: 200,
         fixed: 'right',
         render: (_, record) => (
           <Space>
@@ -133,6 +147,13 @@ export default function PracticeListPage() {
                 查看详情
               </Button>
             </Link>
+            <DeleteButton
+              onConfirm={() => handleDelete(record.session_id)}
+              title="确定要删除这条练习记录吗？"
+              description={`删除后无法恢复，请谨慎操作。学生：${record.student_name}，练习类型：${getPracticeTypeLabel(record.session_type)}`}
+              buttonText="删除"
+              buttonProps={{ loading: deleteLoading }}
+            />
           </Space>
         ),
       },

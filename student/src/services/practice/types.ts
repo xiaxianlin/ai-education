@@ -11,7 +11,6 @@ import { PracticeHistory, PracticeSession, Question } from "@/lib/types/schema";
 export type {
   Question,
   PracticeSession,
-  PracticeStats,
   PracticeHistory,
   PracticeAnswer,
   PracticeWrongRecord,

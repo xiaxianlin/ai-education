@@ -136,13 +136,14 @@ export function PracticeSession() {
 
   // status: 0-未答, 1-正确, 2-错误
   const answerStatusValue = answerStatus[currentQuestion.id];
-  const hasAnswered = answerStatusValue !== undefined && answerStatusValue !== 0;
+  const hasAnswered =
+    answerStatusValue !== undefined && answerStatusValue !== 0;
   const currentAnswer = userAnswers[currentQuestion.id];
   const currentAudioUrl = audioUrls[currentQuestion.id];
   const isCorrect = answerStatusValue === 1;
   const hasAnswer =
     currentQuestion.type === "口语题" ? !!currentAudioUrl : !!currentAnswer;
-
+  console.log(currentQuestion);
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />

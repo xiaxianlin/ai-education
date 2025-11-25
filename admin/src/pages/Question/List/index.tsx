@@ -59,6 +59,13 @@ export default function QuestionListPage() {
 
   const questionColumns: ProColumns<Question>[] = [
     {
+      title: '题目ID',
+      dataIndex: 'id',
+      minWidth: 100,
+      valueType: 'digit',
+      renderText: (id) => id,
+    },
+    {
       title: '题目',
       dataIndex: 'content',
       minWidth: 300,
@@ -151,6 +158,13 @@ export default function QuestionListPage() {
 
   const resourceColumns: ProColumns<Question>[] = [
     {
+      title: '题目ID',
+      dataIndex: 'id',
+      minWidth: 100,
+      valueType: 'digit',
+      renderText: (id) => id,
+    },
+    {
       title: '题目',
       dataIndex: 'content',
       minWidth: 300,
@@ -217,6 +231,10 @@ export default function QuestionListPage() {
       size: params.pageSize || 10,
       keywords: params.content,
     };
+
+    if (params.id !== undefined && params.id !== null && params.id !== '') {
+      searchParams.question_id = Number(params.id);
+    }
 
     if (params.type !== undefined) {
       searchParams.type = params.type;

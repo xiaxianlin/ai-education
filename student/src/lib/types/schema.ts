@@ -101,63 +101,34 @@ export type PracticeSessionType =
 
 /**
  * 练习会话（对应 PracticeSessionSchema）
- *
- * 注意：后端不同接口可能返回不同格式：
- * - PracticeSessionSchema: 使用 id, question_count, answer_count, correct_count
- * - PracticeStatsSchem: 使用 session_id, total_questions, completed_questions, right_questions
- *
- * 本类型兼容两种格式，前端使用时优先使用标准字段（id, question_count等）
  */
 export interface PracticeSession {
-  // 会话ID（兼容两种格式）
-  id?: number; // 标准字段（PracticeSessionSchema）
-  session_id?: number; // 兼容字段（PracticeStatsSchem），如果存在则优先使用
-
-  student_id?: string; // 学生ID（某些接口可能不返回）
+  id: number;
+  student_id: string;
   session_type: PracticeSessionType;
   target_id?: number; // 单元ID或日期（如 20241123）
   textbook_id?: number; // 教材ID
-
-  // 题目统计（兼容两种格式）
-  question_count?: number; // 标准字段：题目总数
-  answer_count?: number; // 标准字段：已答题数
-  correct_count?: number; // 标准字段：正确数
-  total_questions?: number; // 兼容字段：题目总数（PracticeStatsSchem）
-  completed_questions?: number; // 兼容字段：已答题数（PracticeStatsSchem）
-  right_questions?: number; // 兼容字段：正确数（PracticeStatsSchem）
-
+  question_count: number; // 题目总数
+  answer_count: number; // 已答题数
+  correct_count: number; // 正确数
   status: PracticeSessionStatus; // 会话状态：0-未开始, 1-进行中, 2-已完成
-  generate_status?: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
-  start_time?: number; // 开始时间（Unix时间戳，秒）
+  generate_status: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
+  start_time: number; // 开始时间（Unix时间戳，秒）
   end_time?: number; // 结束时间（Unix时间戳，秒）
-  create_time?: number; // 创建时间（Unix时间戳，秒）
+  create_time: number; // 创建时间（Unix时间戳，秒）
   update_time?: number; // 更新时间（Unix时间戳，秒）
 
   // 扩展字段（某些接口返回时包含）
   questions?: Question[]; // 题目列表
-  times?: number; // 练习次数（PracticeStatsSchem）
 }
 
+// ===== 单元练习状态（字典类型） =====
 /**
- * 练习统计（对应 PracticeStatsSchem）
- * 用于返回练习的基本统计信息
- *
- * 注意：这个类型对应后端 PracticeStatsSchem，字段名与 PracticeSession 不同
+ * 单元练习状态映射
+ * key: unit_id (string)
+ * value: PracticeSession | null
  */
-export interface PracticeStats {
-  session_id: number; // 会话ID
-  status: PracticeSessionStatus; // 会话状态
-  total_questions: number; // 题目总数
-  completed_questions: number; // 已答题数
-  right_questions: number; // 正确数
-  times: number; // 练习次数（已完成次数）
-  generate_status: number; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
-
-  // 可选：某些接口可能返回更多信息
-  question_count?: number; // 兼容字段
-  answer_count?: number; // 兼容字段
-  correct_count?: number; // 兼容字段
-}
+export type UnitPracticeStatus = Record<string, PracticeSession | null>;
 
 /**
  * 练习历史记录（对应 PracticeHistorySchema）
@@ -306,60 +277,4 @@ export interface BeginPracticeResponse {
  */
 export interface CompletePracticeResponse {
   report_id: number;
-}
-
-// ===== 单元练习状态（字典类型） =====
-/**
- * 单元练习状态映射
- * key: unit_id (string)
- * value: PracticeStats | null
- */
-export type UnitPracticeStatus = Record<string, PracticeStats | null>;
-
-// ===== 工具函数 =====
-
-/**
- * 将 PracticeStats 转换为 PracticeSession
- * 用于统一处理不同格式的返回数据
- */
-export function practiceStatsToSession(
-  stats: PracticeStats,
-  sessionType: PracticeSessionType,
-  targetId?: number,
-  textbookId?: number
-): PracticeSession {
-  return {
-    id: stats.session_id,
-    session_id: stats.session_id,
-    session_type: sessionType,
-    target_id: targetId,
-    textbook_id: textbookId,
-    question_count: stats.total_questions,
-    answer_count: stats.completed_questions,
-    correct_count: stats.right_questions,
-    total_questions: stats.total_questions,
-    completed_questions: stats.completed_questions,
-    right_questions: stats.right_questions,
-    status: stats.status,
-    times: stats.times,
-  };
-}
-
-/**
- * 获取 PracticeSession 的标准字段值（兼容两种格式）
- */
-export function getSessionId(session: PracticeSession): number {
-  return session.session_id ?? session.id ?? 0;
-}
-
-export function getQuestionCount(session: PracticeSession): number {
-  return session.question_count ?? session.total_questions ?? 0;
-}
-
-export function getAnswerCount(session: PracticeSession): number {
-  return session.answer_count ?? session.completed_questions ?? 0;
-}
-
-export function getCorrectCount(session: PracticeSession): number {
-  return session.correct_count ?? session.right_questions ?? 0;
 }

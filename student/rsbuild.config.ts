@@ -15,7 +15,8 @@ export default defineConfig({
   },
   html: {
     title: 'Student',
-    template: './index.html',
+    template: './public/index.html',
+    favicon: './public/logo.ico',
   },
   source: {
     entry: {
