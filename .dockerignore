@@ -1,0 +1,56 @@
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
+
+# 文档
+*.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 环境配置(生产环境使用 docker-compose 传入)
+.env.local
+.env.development
+.env.test
+
+# 构建产物
+**/dist/
+**/build/
+**/.umi/
+**/node_modules/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/.pytest_cache/
+
+# 脚本
+scripts/
+*.sh
