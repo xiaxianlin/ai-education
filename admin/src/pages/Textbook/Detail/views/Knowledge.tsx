@@ -8,7 +8,6 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { fmtTime } from '@/utils/time';
 import { TextbookApi } from '@/services/textbook';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
