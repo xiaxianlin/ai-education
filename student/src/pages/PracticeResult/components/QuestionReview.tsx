@@ -4,7 +4,6 @@
 import { memo, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
-import type { Question } from '@/lib/types/schema';
 
 interface QuestionReviewProps {
   questions: Question[];

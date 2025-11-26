@@ -11,10 +11,7 @@ import { api } from "@/lib/api";
 import { dailyPracticeApi } from "./dailyPractice";
 import { unitPracticeApi } from "./unitPractice";
 import { assessmentApi } from "./assessment";
-import type {
-  SubmitAnswerParams,
-  PracticeSessionDetail,
-} from "./types";
+import type { PracticeSessionDetail } from "./types";
 
 /**
  * 统一的练习 API
@@ -45,9 +42,11 @@ export const practiceApi = {
       status: number;
     };
   }> => {
-    console.log('[DEBUG API] submitAnswer received params:', {
+    console.log("[DEBUG API] submitAnswer received params:", {
       ...params,
-      audio_data: params.audio_data ? `[${params.audio_data.length} chars]` : undefined
+      audio_data: params.audio_data
+        ? `[${params.audio_data.length} chars]`
+        : undefined,
     });
     return api.post("/practice/answer", params);
   },
@@ -82,8 +81,7 @@ export const practiceApi = {
   },
 
   // ===== 每日练习 API =====
-  createDailyPractice: () =>
-    dailyPracticeApi.create(),
+  createDailyPractice: () => dailyPracticeApi.create(),
   getDailyPractice: () => dailyPracticeApi.getDaily(),
   getDailyPracticeSession: (sessionId: number) =>
     dailyPracticeApi.getSession(sessionId),
@@ -94,8 +92,7 @@ export const practiceApi = {
   getDailyPracticeHistory: (limit?: number) =>
     dailyPracticeApi.getHistory(limit),
   checkTodayPractice: () => dailyPracticeApi.checkToday(),
-  getDailyPracticeProgress: () =>
-    dailyPracticeApi.getProgress(),
+  getDailyPracticeProgress: () => dailyPracticeApi.getProgress(),
   getDailyPracticeStats: () => dailyPracticeApi.getStats(),
   uploadAudio: (audioBlob: Blob) => dailyPracticeApi.uploadAudio(audioBlob),
 

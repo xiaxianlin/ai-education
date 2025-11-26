@@ -6,11 +6,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { practiceApi } from "@/services/practice";
 import { toast } from "sonner";
-import type {
-  PracticeSession,
-  PracticeSessionStatus,
-  Question,
-} from "@/lib/types/schema";
 
 export function usePracticeSession(sessionId: number) {
   const navigate = useNavigate();
@@ -194,12 +189,14 @@ export function usePracticeSession(sessionId: number) {
         is_audio_answer: !!audioData,
         audio_data: audioData,
       };
-      
-      console.log('[DEBUG] Submitting answer with params:', {
+
+      console.log("[DEBUG] Submitting answer with params:", {
         ...submitParams,
-        audio_data: submitParams.audio_data ? `[${submitParams.audio_data.length} chars]` : undefined
+        audio_data: submitParams.audio_data
+          ? `[${submitParams.audio_data.length} chars]`
+          : undefined,
       });
-      
+
       const result = await practiceApi.submitAnswer(submitParams);
 
       // 根据 is_correct 设置 status: 1-正确, 2-错误

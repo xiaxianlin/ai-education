@@ -1,10 +1,9 @@
 /**
  * 个人信息页面逻辑 Hook
  */
-import { useState, useEffect, useCallback } from 'react';
-import { profileApi } from '@/services/profile';
-import type { CheckAuthResponse } from '@/lib/types/schema';
-import { useApiError } from '@/lib/hooks/useApiError';
+import { useState, useEffect, useCallback } from "react";
+import { profileApi } from "@/services/profile";
+import { useApiError } from "@/hooks/useApiError";
 
 export function useProfile() {
   const { handleError } = useApiError();
@@ -32,4 +31,3 @@ export function useProfile() {
     loading,
   };
 }
-

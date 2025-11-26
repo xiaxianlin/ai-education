@@ -1,7 +1,7 @@
 """练习路由（每日练习 + 单元练习 + 能力评测）"""
 
 import base64
-from typing import Dict, List
+from typing import Dict
 from fastapi import APIRouter, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,7 +55,7 @@ async def create_practice_session(
     elif type == "assessment":
         return await PracticeService.create_assessment(db, student.id, count)
     else:
-        raise ValueError(f"无效的练习类型，可选值：daily_practice, unit_practice, assessment")
+        raise ValueError("无效的练习类型，可选值：daily_practice, unit_practice, assessment")
 
 
 @practice_router.get("/history/{type}")

@@ -6,7 +6,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { GRADES } from '@/stores/useSettingsStore';
 import { profileApi, Textbook } from '@/services/profile';
 import { toast } from 'sonner';
-import { useApiError } from '@/lib/hooks/useApiError';
+import { useApiError } from '@/hooks/useApiError';
 
 export function useSettings() {
   const navigate = useNavigate();

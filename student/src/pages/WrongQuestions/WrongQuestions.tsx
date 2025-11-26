@@ -2,7 +2,7 @@
  * 错题集页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Header } from '@/components/layout/Header';
+import { Header } from '@/components/biz/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';

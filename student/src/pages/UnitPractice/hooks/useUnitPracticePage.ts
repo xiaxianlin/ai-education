@@ -7,7 +7,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { profileApi, Unit, Textbook, Knowledge } from '@/services/profile';
 import { practiceApi } from '@/services/practice';
 import { toast } from 'sonner';
-import { useApiError } from '@/lib/hooks/useApiError';
+import { useApiError } from '@/hooks/useApiError';
 
 export function useUnitPracticePage() {
   const navigate = useNavigate();

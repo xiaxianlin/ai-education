@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { profileApi, WrongQuestion } from '@/services/profile';
 import { toast } from 'sonner';
-import { useApiError } from '@/lib/hooks/useApiError';
+import { useApiError } from '@/hooks/useApiError';
 
 export type FilterType = 'all' | 'unmastered' | 'mastered';
 

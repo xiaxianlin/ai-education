@@ -6,7 +6,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Trophy, CheckCircle, XCircle, Clock } from 'lucide-react';
-import type { PracticeSessionType } from '@/lib/types/schema';
 
 interface ResultModalProps {
   report: any;

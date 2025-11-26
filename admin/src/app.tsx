@@ -49,8 +49,7 @@ export const request: RequestConfig<ApiData<any>> = {
   responseInterceptors: [
     (response) => {
       const { data = {} as any } = response;
-      // 兼容 code 和 status 两种格式
-      const code = data.code ?? data.status;
+      const code = data.status;
       if (code === 401) {
         history.push('/login');
       } else if (code === 499) {

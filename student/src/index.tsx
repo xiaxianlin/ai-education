@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router } from './router';
-import { useAuthStore } from './stores/useAuthStore';
+import { AuthStore } from './stores/AuthStore';
 import { LoadingPage } from './components/biz/LoadingSpinner';
 import './index.css';
 
 // 初始化 auth store
-useAuthStore.getState().init();
+AuthStore.getState().init();
 
 const queryClient = new QueryClient({
   defaultOptions: {

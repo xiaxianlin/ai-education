@@ -5,25 +5,6 @@
  * 注意：基础类型已定义在 @/lib/types/schema.ts 中
  */
 
-import { PracticeHistory, PracticeSession, Question } from "@/lib/types/schema";
-
-// 导出统一的基础类型
-export type {
-  Question,
-  PracticeSession,
-  PracticeHistory,
-  PracticeAnswer,
-  PracticeWrongRecord,
-  PracticeReport,
-  SubmitAnswerParams,
-  SubmitAnswerResponse,
-  BeginPracticeResponse,
-  CompletePracticeResponse,
-  UnitPracticeStatus,
-  PracticeSessionType,
-  PracticeSessionStatus,
-} from "@/lib/types/schema";
-
 // ===== 扩展类型（用于特定场景） =====
 
 // ===== 练习会话详情 =====
@@ -109,7 +90,6 @@ export interface UnitPracticeSession extends PracticeSession {
 }
 
 // 单元练习状态（根据 API.md）
-// 后端返回 Dict[int, PracticeStatsSchem]，键为 unit_id，值为 PracticeStatsSchem
 // 注意：这个类型在 schema.ts 中已定义，这里保留注释说明
 
 export interface UnitInfo {

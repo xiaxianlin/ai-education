@@ -1,8 +1,8 @@
 """通用练习服务"""
 
-from typing import Optional, List, Dict
+from typing import Dict
 from loguru import logger
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question

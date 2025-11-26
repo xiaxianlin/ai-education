@@ -1,81 +1,114 @@
-import { lazy } from 'react';
-import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router';
-import { requireAuth, requireGuest } from './lib/router-utils';
+import { lazy } from "react";
+import {
+  createRouter,
+  createRootRoute,
+  createRoute,
+  redirect,
+} from "@tanstack/react-router";
+import { requireAuth, requireGuest } from "./lib/router";
 
 // 懒加载页面组件
-const Login = lazy(() => import('./pages/Login/Login').then(m => ({ default: m.Login })));
-const Home = lazy(() => import('./pages/Home/Home').then(m => ({ default: m.Home })));
-const WrongQuestions = lazy(() => import('./pages/WrongQuestions/WrongQuestions').then(m => ({ default: m.WrongQuestions })));
-const PracticeHistory = lazy(() => import('./pages/PracticeHistory/PracticeHistory').then(m => ({ default: m.PracticeHistory })));
-const Profile = lazy(() => import('./pages/Profile/Profile').then(m => ({ default: m.Profile })));
-const UnitPractice = lazy(() => import('./pages/UnitPractice/UnitPractice').then(m => ({ default: m.UnitPractice })));
-const PracticeSession = lazy(() => import('./pages/PracticeSession/PracticeSession').then(m => ({ default: m.PracticeSession })));
-const PracticeResult = lazy(() => import('./pages/PracticeResult/PracticeResult').then(m => ({ default: m.PracticeResult })));
-const Settings = lazy(() => import('./pages/Settings/Settings').then(m => ({ default: m.Settings })));
+const Login = lazy(() =>
+  import("./pages/Login").then((m) => ({ default: m.Login }))
+);
+const Home = lazy(() =>
+  import("./pages/Home").then((m) => ({ default: m.Home }))
+);
+const WrongQuestions = lazy(() =>
+  import("./pages/WrongQuestions/WrongQuestions").then((m) => ({
+    default: m.WrongQuestions,
+  }))
+);
+const PracticeHistory = lazy(() =>
+  import("./pages/PracticeHistory").then((m) => ({
+    default: m.PracticeHistory,
+  }))
+);
+const Profile = lazy(() =>
+  import("./pages/Profile").then((m) => ({ default: m.Profile }))
+);
+const UnitPractice = lazy(() =>
+  import("./pages/UnitPractice").then((m) => ({
+    default: m.UnitPractice,
+  }))
+);
+const PracticeSession = lazy(() =>
+  import("./pages/PracticeSession").then((m) => ({
+    default: m.PracticeSession,
+  }))
+);
+const PracticeResult = lazy(() =>
+  import("./pages/PracticeResult").then((m) => ({
+    default: m.PracticeResult,
+  }))
+);
+const Settings = lazy(() =>
+  import("./pages/Settings").then((m) => ({ default: m.Settings }))
+);
 
 const rootRoute = createRootRoute();
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   beforeLoad: () => {
     requireAuth();
-    throw redirect({ to: '/home' });
+    throw redirect({ to: "/home" });
   },
 });
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/login',
+  path: "/login",
   component: Login,
   beforeLoad: requireGuest,
 });
 
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/home',
+  path: "/home",
   component: Home,
   beforeLoad: requireAuth,
 });
 
 const wrongRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/wrong',
+  path: "/wrong",
   component: WrongQuestions,
   beforeLoad: requireAuth,
 });
 
 const historyRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/history',
+  path: "/history",
   component: PracticeHistory,
   beforeLoad: requireAuth,
 });
 
 const practiceHistoryRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/practice-history',
+  path: "/practice-history",
   component: PracticeHistory,
   beforeLoad: requireAuth,
 });
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/profile',
+  path: "/profile",
   component: Profile,
   beforeLoad: requireAuth,
 });
 
 const practiceResultRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/practice-result/$sessionId',
+  path: "/practice-result/$sessionId",
   component: PracticeResult,
   beforeLoad: requireAuth,
 });
 
 const unitPracticeRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/unit-practice',
+  path: "/unit-practice",
   component: UnitPractice,
   beforeLoad: requireAuth,
 });
@@ -83,14 +116,14 @@ const unitPracticeRoute = createRoute({
 // 通用练习会话路由
 const practiceSessionRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/practice/$sessionId',
+  path: "/practice/$sessionId",
   component: PracticeSession,
   beforeLoad: requireAuth,
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/settings',
+  path: "/settings",
   component: Settings,
   beforeLoad: requireAuth,
 });
@@ -111,9 +144,8 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
 }
-

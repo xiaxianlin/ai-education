@@ -1,5 +1,4 @@
-import { api } from '@/lib/api';
-import type { Textbook, CheckAuthResponse, PracticeSession, Unit, Knowledge } from '@/lib/types/schema';
+import { api } from "@/lib/api";
 
 export const profileApi = {
   /**
@@ -7,14 +6,14 @@ export const profileApi = {
    * 返回学生信息和当前教材信息
    */
   check: async (): Promise<CheckAuthResponse> => {
-    return api.get<CheckAuthResponse>('/check');
+    return api.get<CheckAuthResponse>("/check");
   },
 
   /**
    * 获取错题列表（GET /api/student/wrong-records）
    */
   getWrongQuestions: async (mastered?: number) => {
-    const params = mastered !== undefined ? `?mastered=${mastered}` : '';
+    const params = mastered !== undefined ? `?mastered=${mastered}` : "";
     return api.get<WrongQuestion[]>(`/wrong-records${params}`);
   },
 
@@ -33,12 +32,12 @@ export const profileApi = {
   },
 
   // ===== 教材相关接口（根据 API.md） =====
-  
+
   /**
    * 获取学生教材列表（根据 API.md: GET /api/student/textbook/all）
    */
   getTextbooks: async (): Promise<Textbook[]> => {
-    return api.get<Textbook[]>('/textbook/all');
+    return api.get<Textbook[]>("/textbook/all");
   },
 
   /**
@@ -46,7 +45,7 @@ export const profileApi = {
    * 如果不指定 textbook_id，则获取当前激活教材的单元
    */
   getUnits: async (textbookId?: number): Promise<Unit[]> => {
-    const params = textbookId ? `?textbook_id=${textbookId}` : '';
+    const params = textbookId ? `?textbook_id=${textbookId}` : "";
     return api.get<Unit[]>(`/textbook/units${params}`);
   },
 
@@ -61,7 +60,7 @@ export const profileApi = {
    * 获取进行中的单元练习（GET /api/student/unit/practice/in-progress）
    */
   getInProgressUnitPractice: async (): Promise<PracticeSession | null> => {
-    return api.get<PracticeSession | null>('/unit/practice/in-progress');
+    return api.get<PracticeSession | null>("/unit/practice/in-progress");
   },
 
   /**
@@ -89,6 +88,3 @@ export interface WrongQuestion {
   question_content?: string;
   knowledge?: string;
 }
-
-// 导出类型
-export type { Textbook, Unit, Knowledge } from '@/lib/types/schema';

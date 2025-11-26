@@ -6,8 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { practiceApi } from '@/services/practice';
 import { profileApi } from '@/services/profile';
-import { useApiError } from '@/lib/hooks/useApiError';
-import type { PracticeHistory, Unit } from '@/lib/types/schema';
+import { useApiError } from '@/hooks/useApiError';
 
 export type TabType = 'daily' | 'unit' | 'assessment';
 

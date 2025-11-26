@@ -5,7 +5,6 @@ import { memo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Home, RefreshCw, BookOpen, History } from 'lucide-react';
-import type { PracticeSessionType } from '@/lib/types/schema';
 
 interface ActionButtonsProps {
   sessionType: PracticeSessionType;
