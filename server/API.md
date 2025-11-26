@@ -768,48 +768,53 @@ GET /api/admin/practice/{student_id}/daily
 - 如果当天不存在每日练习，返回 `null`
 - `status`: 0-未开始, 1-进行中, 2-已完成
 
-#### 为学生创建每日练习
+#### 生成学生练习（每日/单元/能力评估）
 
 ```
-POST /api/admin/practice/{student_id}/daily/create
+POST /api/admin/practice/{student_id}/generate/{type}?count=15&unit_id=1
 ```
 
-**响应格式**: 与获取每日练习相同，返回新创建的练习会话信息
+**路径参数**:
+- `student_id`: 学生ID
+- `type`: 练习类型（`daily_practice` / `unit_practice` / `assessment`）
 
-**功能说明**: 如果当天已存在每日练习，直接返回现有练习会话
+**查询参数**:
+- `count`: 题目数量（默认15，可选）
+- `unit_id`: 单元ID，仅在 `type=unit_practice` 时必填
 
-#### 为学生重新生成每日练习
-
-```
-POST /api/admin/practice/{student_id}/daily/regenerate
-```
-
-**响应格式**: 与获取每日练习相同，返回重新生成的练习会话信息
-
-**功能说明**: 删除当天的练习（无论是否完成），重新生成新的每日练习
-
-#### 为学生创建单元练习
-
-```
-POST /api/admin/practice/{student_id}/unit/{unit_id}/create
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session_id": 456
+  }
+}
 ```
 
-#### 为学生重新生成单元练习
+**功能说明**:
+- 每日练习：若存在未完成会话会自动重置为当天目标
+- 单元练习：若该学生该单元存在未完成会话会返回错误
+- 能力评估：若存在未完成会话会返回错误
+
+#### 重新生成练习（按会话ID）
 
 ```
-POST /api/admin/practice/{student_id}/unit/{unit_id}/regenerate
+POST /api/admin/practice/{session_id}/regenerate
 ```
 
-#### 为学生创建能力评估
+**功能说明**: 根据会话ID重新生成题目，旧题目与答题记录会被清空并重新写入。
 
-```
-POST /api/admin/practice/{student_id}/assessment/create
-```
-
-#### 为学生重新生成能力评估
-
-```
-POST /api/admin/practice/{student_id}/assessment/regenerate
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session_id": 456,
+    "question_count": 15,
+    "generate_status": 1
+  }
+}
 ```
 
 #### 获取学生练习历史
@@ -878,6 +883,14 @@ GET /api/admin/practice/session/{session_id}/detail
 }
 ```
 
+#### 删除练习会话
+
+```
+DELETE /api/admin/practice/session/{session_id}
+```
+
+**功能说明**: 删除指定练习会话及其所有答题记录与报告，可用于清理异常数据。
+
 ---
 
 ### 配置管理
@@ -912,14 +925,6 @@ GET /api/admin/configs
 ```
 
 **功能说明**: 获取科目、版本、学期、题型等配置信息。如果指定了科目和年级，返回该科目年级对应的题型列表。
-
-#### 删除练习会话
-
-```
-DELETE /api/admin/practice/session/{session_id}
-```
-
-**功能说明**: 删除指定的练习会话，包括答题记录和报告。
 
 ---
 
@@ -1066,38 +1071,29 @@ GET /api/student/practice/daily
   "code": 0,
   "data": {
     "session_id": 123,
+    "session_type": "daily_practice",
+    "target_id": 20241123,
+    "textbook_id": 1,
+    "question_count": 10,
+    "answer_count": 5,
+    "correct_count": 4,
     "status": 0,
-    "total_questions": 10,
-    "completed_questions": 0,
-    "right_questions": 0,
-    "times": 0,
-    "generating_status": null
+    "generate_status": 1,
+    "start_time": 0,
+    "end_time": null
   }
 }
 ```
 
-**响应字段说明**:
-- `session_id`: 练习会话ID
-- `status`: 练习状态（0-未开始, 1-进行中, 2-已完成, 3-生产中, 4-生成完成, 5-生成失败）
-- `total_questions`: 题目总数
-- `completed_questions`: 已答题数
-- `right_questions`: 正确答题数
-- `times`: 练习次数
-- `generating_status`: 会话生成状态
-  - `null`: 非生成状态（正常练习状态）
-  - `"generating"`: 生产中（status=3）
-  - `"generated"`: 生成完成（status=4）
-  - `"failed"`: 生成失败（status=5）
+**功能说明**: 返回当天的每日练习（存在则返回 `PracticeSession`，否则返回 `null`）。若存在未完成会话且未开始，`status` 为 0。
 
-**功能说明**: 获取当天的每日练习。如果当天没有，返回最近一次未完成的练习。
-
-#### 创建每日练习
+#### 获取单元练习
 
 ```
-POST /api/student/practice/daily
+GET /api/student/practice/unit
 ```
 
-**功能说明**: 为学生生成今天的每日练习。
+**功能说明**: 返回当前激活教材下的未完成单元练习（最多一个）。`target_id` 表示单元ID，可用于定位单元。
 
 #### 获取能力评估
 
@@ -1105,53 +1101,35 @@ POST /api/student/practice/daily
 GET /api/student/practice/assessment
 ```
 
-**功能说明**: 获取未完成的能力评估。
+**功能说明**: 返回当前学生的未完成能力评估（若存在）。字段同 `PracticeSession`。
 
-#### 创建能力评估
-
-```
-POST /api/student/practice/assessment
-```
-
-**功能说明**: 为学生生成能力评估。
-
-#### 获取教材单元练习状态
+#### 创建练习会话
 
 ```
-GET /api/student/practice/units/{textbook_id}
+POST /api/student/practice/{type}/create?count=15&unit_id=1
 ```
+
+**路径参数**:
+- `type`: `daily_practice` / `unit_practice` / `assessment`
+
+**查询参数**:
+- `count`: 题目数量（默认15，可选）
+- `unit_id`: 单元ID，仅在创建单元练习时必填
 
 **响应示例**:
 ```json
 {
   "code": 0,
   "data": {
-    "1": {
-      "session_id": 123,
-      "session_type": "unit_practice",
-      "question_count": 10,
-      "answer_count": 5,
-      "correct_count": 4,
-      "status": 1
-    },
-    "2": null
+    "session_id": 456
   }
 }
 ```
 
-**功能说明**: 返回教材下所有单元的未完成练习记录，键为单元ID。
-
-#### 获取单元练习
-
-```
-GET /api/student/practice/unit/{unit_id}
-```
-
-#### 创建单元练习
-
-```
-POST /api/student/practice/unit/{unit_id}
-```
+**功能说明**:
+- 每日练习：如果存在未完成会话，将自动重置为当天
+- 单元练习：同一学生同一单元只允许一个未完成会话
+- 能力评估：存在未完成会话时不允许重复创建
 
 #### 获取练习历史
 
@@ -1254,6 +1232,14 @@ POST /api/student/practice/{session_id}/complete
 ```
 
 **功能说明**: 完成练习，生成练习报告。
+
+#### 获取练习会话详情
+
+```
+GET /api/student/practice/session/{session_id}
+```
+
+**功能说明**: 返回指定会话的题目、答题记录及报告，字段与管理端会话详情类似，包含 `session`、`questions`、`answers`、`report` 四部分。
 
 ---
 

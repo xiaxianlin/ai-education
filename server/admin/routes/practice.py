@@ -6,14 +6,11 @@ from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
-from student.schema import PracticeStatsSchem
+from shared.services.practice import PracticeService
 import admin.services.practice as practice_service
 
 
 practice_router = APIRouter(prefix="/practice", tags=["学生练习管理"])
-
-
-# ========== 每日练习相关接口 ==========
 
 
 @practice_router.get("/{student_id}/daily")
@@ -30,105 +27,53 @@ async def get_daily_practice(student_id: str, db: AsyncSession = Database) -> Op
     return await practice_service.get_daily_practice(db, student_id)
 
 
-@practice_router.post("/{student_id}/daily/create")
-async def create_daily_practice(student_id: str, db: AsyncSession = Database) -> Dict:
+@practice_router.post("/{student_id}/generate/{type}")
+async def generate_practice_session(
+    student_id: str,
+    type: str,
+    unit_id: int | None = Query(None),
+    count: int = Query(15),
+    db: AsyncSession = Database,
+):
     """
-    根据学生ID生成每日练习
+    根据学生ID和练习类型生成练习
 
     Args:
         student_id: 学生ID
+        type: 练习类型 (daily_practice/unit_practice/assessment)
+        unit_id: 单元ID (可选)
+        count: 练习题目数量 (可选)
 
     Returns:
         练习会话信息
     """
-    return await practice_service.create_daily_practice(db, student_id)
+
+    if type == "daily_practice":
+        return await PracticeService.create_daily_practice(db, student_id, count)
+    elif type == "unit_practice":
+        return await PracticeService.create_unit_practice(db, student_id, unit_id, count)
+    elif type == "assessment":
+        return await PracticeService.create_assessment(db, student_id, count)
+    else:
+        raise ValueError(f"无效的练习类型，可选值：daily_practice, unit_practice, assessment")
 
 
-@practice_router.post("/{student_id}/daily/regenerate")
-async def regenerate_daily_practice(student_id: str, db: AsyncSession = Database) -> Dict:
+@practice_router.post("/{session_id}/regenerate")
+async def regenerate_practice_session(session_id: int, db: AsyncSession = Database):
     """
-    根据学生ID重新生成每日练习
+    根据练习会话ID重新生成练习
 
     Args:
-        student_id: 学生ID
-
-    Returns:
-        练习会话信息
-    """
-    return await practice_service.regenerate_daily_practice(db, student_id)
-
-
-# ========== 单元练习相关接口 ==========
-
-
-@practice_router.post("/{student_id}/unit/{unit_id}/create", response_model=PracticeStatsSchem)
-async def create_unit_practice(student_id: str, unit_id: int, db: AsyncSession = Database):
-    """
-    根据学生ID和单元ID生成单元练习
-
-    Args:
-        student_id: 学生ID
-        unit_id: 单元ID
+        session_id: 练习会话ID
 
     Returns:
         练习统计信息
     """
-    return await practice_service.create_unit_practice(db, student_id, unit_id)
-
-
-@practice_router.post("/{student_id}/unit/{unit_id}/regenerate", response_model=PracticeStatsSchem)
-async def regenerate_unit_practice(student_id: str, unit_id: int, db: AsyncSession = Database):
-    """
-    根据学生ID和单元ID重新生成单元练习
-
-    Args:
-        student_id: 学生ID
-        unit_id: 单元ID
-
-    Returns:
-        练习统计信息
-    """
-    return await practice_service.regenerate_unit_practice(db, student_id, unit_id)
-
-
-# ========== 能力评估相关接口 ==========
-
-
-@practice_router.post("/{student_id}/assessment/create", response_model=PracticeStatsSchem)
-async def create_assessment(student_id: str, db: AsyncSession = Database):
-    """
-    根据学生ID生成能力评估
-
-    Args:
-        student_id: 学生ID
-
-    Returns:
-        练习统计信息
-    """
-    return await practice_service.create_assessment(db, student_id)
-
-
-@practice_router.post("/{student_id}/assessment/regenerate", response_model=PracticeStatsSchem)
-async def regenerate_assessment(student_id: str, db: AsyncSession = Database):
-    """
-    根据学生ID重新生成能力评估
-
-    Args:
-        student_id: 学生ID
-
-    Returns:
-        练习统计信息
-    """
-    return await practice_service.regenerate_assessment(db, student_id)
-
-
-# ========== 练习历史记录 ==========
+    return await PracticeService.regenerate_practice_session(db, session_id)
 
 
 @practice_router.get("/{student_id}/history/{practice_type}")
-async def get_practice_history(
-    student_id: str, practice_type: str, db: AsyncSession = Database
-) -> List[Dict]:
+async def get_practice_history(student_id: str, practice_type: str, db: AsyncSession = Database) -> List[Dict]:
     """
     根据学生ID和练习类型查询最近30条练习记录
 
@@ -145,40 +90,10 @@ async def get_practice_history(
         raise ValueError(f"无效的练习类型，可选值：{', '.join(valid_types)}")
 
     # 获取历史记录
-    history_list = await practice_service.get_practice_history(
-        db, student_id, practice_type, limit=30
-    )
+    history_list = await practice_service.get_practice_history(db, student_id, practice_type, limit=30)
 
     # 转换为字典列表
     return [item.model_dump() for item in history_list]
-
-
-@practice_router.get("/records")
-async def get_all_practice_records(
-    practice_type: Optional[str] = Query(None, description="练习类型筛选"),
-    student_id: Optional[str] = Query(None, description="学生ID筛选"),
-    limit: int = Query(100, description="返回记录数量"),
-    offset: int = Query(0, description="偏移量"),
-    db: AsyncSession = Database,
-) -> Dict:
-    """
-    获取所有学生的练习记录（支持筛选和分页）
-    
-    Args:
-        practice_type: 练习类型筛选 (daily_practice/unit_practice/assessment)
-        student_id: 学生ID筛选
-        limit: 返回记录数量，默认100条
-        offset: 偏移量，默认0
-        
-    Returns:
-        包含 records 和 total 的字典
-    """
-    return await practice_service.get_all_practice_records(
-        db, practice_type, student_id, limit, offset
-    )
-
-
-# ========== 练习会话详情 ==========
 
 
 @practice_router.get("/session/{session_id}/detail")
@@ -198,9 +113,6 @@ async def get_session_detail(session_id: int, db: AsyncSession = Database) -> Di
         会话详情，包含session、answers、report三部分
     """
     return await practice_service.get_session_detail(db, session_id)
-
-
-# ========== 删除练习会话 ==========
 
 
 @practice_router.delete("/session/{session_id}")

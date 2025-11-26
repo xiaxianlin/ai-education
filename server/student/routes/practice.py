@@ -2,180 +2,81 @@
 
 import base64
 from typing import Dict, List
-from fastapi import APIRouter, Request
-from loguru import logger
+from fastapi import APIRouter, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
-from student.schema import (
-    AnswerQuestionSchema,
-    PracticeStatsSchem,
-    PracticeHistorySchema,
-)
-from student.services import (
-    textbook,
-    daily_practice,
-    assessment,
-    unit_practice,
-    practice,
-    answer,
-)
-from student.services import unit as unit_service
+from shared.services.practice import PracticeService
+from student.schema import AnswerQuestionSchema
+from student.services import practice, answer
 
 practice_router = APIRouter(prefix="/practice")
 
 
 @practice_router.get("/daily")
-async def get_daily_practice(
-    request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
+async def get_daily_practice(request: Request, db: AsyncSession = Database):
     """获取每日练习信息"""
     student = request.state.student
-
-    result = await daily_practice.check_daily_practice(db, student.id)
-    if result is None:
-        raise ValueError("当天没有每日练习")
-    return result
+    active_textbook = request.state.active_textbook
+    return await practice.get_daily_practice(db, student.id, active_textbook.id)
 
 
-@practice_router.post("/daily")
-async def create_daily_practice_route(
-    request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
-    """创建每日练习"""
-    # 获取当前学生信息
+@practice_router.get("/unit")
+async def get_unit_practice(request: Request, db: AsyncSession = Database):
+    """获取单元练习信息"""
     student = request.state.student
-
-    last_session = await daily_practice.get_last_practice(db, student.id)
-
-    if last_session:
-        logger.info(
-            f"找到往期未完成的每日练习: session_id={last_session.id}, old_date={last_session.target_id}, student_id={student.id}"
-        )
-        return await daily_practice.reset_daily_practice(db, student.id, last_session)
-
-    # 检查是否有正在生成的每日练习
-    session = await daily_practice.get_daily_practice(db, student.id)
-    if session.generate_status == 0:
-        raise ValueError("每日练习正在生成中，请稍候")
-
-    if session.generate_status == 1:
-        raise ValueError("每日练习已经生成，请刷新页面")
-
-    # 删除失败的练习记录
-    if session.generate_status == -1:
-        daily_practice.delete_daily_practice(db, session.id)
-
-    # 获取学生当前激活的教材
-    active_textbook = await textbook.get_active_textbook(db, student.id)
-    if not active_textbook:
-        raise ValueError("请先选择教材")
-
-    return await daily_practice.create_daily_practice(db, student.id, active_textbook)
+    active_textbook = request.state.active_textbook
+    return await practice.get_unit_practice(db, student.id, active_textbook.id)
 
 
 @practice_router.get("/assessment")
-async def get_assessment(
-    request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
+async def get_assessment(request: Request, db: AsyncSession = Database):
     """获取能力评估信息"""
-    # 获取当前学生信息
+    student = request.state.student
+    active_textbook = request.state.active_textbook
+    return await practice.get_assessment(db, student.id, active_textbook.id)
+
+
+@practice_router.post("/{type}/create")
+async def create_practice_session(
+    request: Request,
+    type: str,
+    unit_id: int | None = Query(None),
+    count: int = Query(15),
+    db: AsyncSession = Database,
+):
+    """创建练习会话"""
     student = request.state.student
 
-    # 检查是否有未完成的能力评估
-    result = await assessment.check_assessment(db, student.id)
-    if result:
-        return result
-
-
-@practice_router.post("/assessment")
-async def create_assessment_route(
-    request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
-    """创建能力评估"""
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 获取学生当前激活的教材
-    active_textbook = await textbook.get_active_textbook(db, student.id)
-    if not active_textbook:
-        raise ValueError("请先选择教材")
-
-    result = await assessment.create_assessment(db, student.id, active_textbook)
-
-    return result
-
-
-@practice_router.get("/units/{textbook_id}")
-async def get_units_practice_stats(
-    textbook_id: int, request: Request, db: AsyncSession = Database
-) -> Dict[int, PracticeStatsSchem]:
-    """获取指定教材下所有单元的未完成练习记录"""
-    # 获取当前学生信息
-    student = request.state.student
-
-    result = await unit_practice.get_units_practice_stats(db, student.id, textbook_id)
-
-    return result
-
-
-@practice_router.get("/unit/{unit_id}")
-async def get_unit_practice(
-    unit_id: int, request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
-    """获取指定单元的练习信息"""
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 检查是否有未完成的单元练习
-    result = await unit_practice.check_unit_practice(db, student.id, unit_id)
-    if result:
-        return result
-
-
-@practice_router.post("/unit/{unit_id}")
-async def create_unit_practice_route(
-    unit_id: int, request: Request, db: AsyncSession = Database
-) -> PracticeStatsSchem:
-    """创建单元练习"""
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 检查是否存在进行中的单元练习
-    in_progress_session = await unit_service.get_in_progress_unit_practice(
-        db, student.id
-    )
-    if in_progress_session:
-        raise ValueError("还有进行中的单元练习，请先完成后再创建新的练习")
-
-    result = await unit_practice.create_unit_practice(db, student.id, unit_id)
-
-    return result
+    if type == "daily_practice":
+        return await PracticeService.create_daily_practice(db, student.id, count)
+    elif type == "unit_practice":
+        return await PracticeService.create_unit_practice(db, student.id, unit_id, count)
+    elif type == "assessment":
+        return await PracticeService.create_assessment(db, student.id, count)
+    else:
+        raise ValueError(f"无效的练习类型，可选值：daily_practice, unit_practice, assessment")
 
 
 @practice_router.get("/history/{type}")
-async def get_practice_history_route(
-    type: str, request: Request, db: AsyncSession = Database
-) -> List[PracticeHistorySchema]:
+async def get_practice_history(type: str, request: Request, db: AsyncSession = Database):
     """根据类型获取最近 30 条练习记录，type 可选值：daily_practice/unit_practice/assessment"""
+    student = request.state.student
+    return await practice.get_practice_history(db, student.id, type, limit=30)
+
+
+@practice_router.post("/{session_id}/begin")
+async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
+    """开始练习"""
     # 获取当前学生信息
     student = request.state.student
 
-    # 验证练习类型
-    valid_types = ["daily_practice", "unit_practice", "assessment"]
-    if type not in valid_types:
-        raise ValueError(f"无效的练习类型，可选值：{', '.join(valid_types)}")
-
-    # 获取练习历史记录
-    result = await practice.get_practice_history(db, student.id, type, limit=30)
-
-    return result
+    # 开始练习
+    await practice.begin_practice(db, student.id, session_id)
 
 
 @practice_router.post("/answer")
-async def answer_question(
-    params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database
-):
+async def answer_question(params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database):
     """
     提交练习答案
 
@@ -199,7 +100,7 @@ async def answer_question(
             raise ValueError(f"音频数据解码失败: {str(e)}")
 
     # 提交答案
-    result = await answer.submit_answer(
+    return await answer.submit_answer(
         db=db,
         student_id=student.id,
         session_id=params.session_id,
@@ -210,41 +111,19 @@ async def answer_question(
         audio_bytes=audio_bytes,
     )
 
-    return result
-
-
-@practice_router.post("/{session_id}/begin")
-async def begin_practice_session(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
-    """开始练习"""
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 开始练习
-    result = await practice.begin_practice(db, student.id, session_id)
-
-    return result
-
 
 @practice_router.post("/{session_id}/complete")
-async def complete_practice_practice(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
+async def complete_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """完成练习，生成练习报告"""
     # 获取当前学生信息
     student = request.state.student
 
     # 完成练习并生成报告
-    report_id = await practice.complete_practice(db, student.id, session_id)
-
-    return {"report_id": report_id}
+    return await practice.complete_practice(db, student.id, session_id)
 
 
 @practice_router.get("/session/{session_id}")
-async def get_session_detail(
-    session_id: int, request: Request, db: AsyncSession = Database
-) -> Dict:
+async def get_session_detail(session_id: int, request: Request, db: AsyncSession = Database) -> Dict:
     """
     获取练习会话详情
 
@@ -264,6 +143,4 @@ async def get_session_detail(
     student = request.state.student
 
     # 获取会话详情
-    result = await practice.get_session_detail(db, student.id, session_id)
-
-    return result
+    return await practice.get_session_detail(db, student.id, session_id)

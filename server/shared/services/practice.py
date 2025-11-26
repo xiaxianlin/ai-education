@@ -1,8 +1,8 @@
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, StudentTextbook, PracticeAnswer
+from core.database import PracticeSession, Question, StudentTextbook, PracticeAnswer, Unit
 from shared.utils.time import now, today
 from shared.question.graph import invoke_generate_workflow
 
@@ -10,161 +10,56 @@ from shared.question.graph import invoke_generate_workflow
 class PracticeService:
 
     @staticmethod
-    async def prepare_records(db: AsyncSession, session_id: int, question_ids: list[int]):
-        """
-        为练习会话预生成答题记录
+    async def create_answer_records(db: AsyncSession, session_id: int, questions: list[Question]):
+        """为练习会话创建答题记录"""
 
-        Args:
-            db: 数据库会话
-            session_id: 练习会话ID
-            question_ids: 题目ID列表
-        """
-        # 删除已存在的答题记录（如果重新生成）
-        existing_records = await db.scalars(
-            select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
-        for record in existing_records.all():
-            db.delete(record)
+        await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
         await db.flush()  # 确保删除操作完成
 
         # 批量创建答题记录
         answer_records = []
-        for order, question_id in enumerate(question_ids, start=1):
+        for question, index in questions:
             answer_record = PracticeAnswer(
                 session_id=session_id,
-                question_id=question_id,
-                question_order=order,
-                status=0,  # 0表示未答
+                question_id=question.id,
+                question_order=index + 1,
+                status=0,
                 time_spent=0,
             )
             answer_records.append(answer_record)
 
         db.add_all(answer_records)
-        await db.commit()
 
         logger.info(f"预生成答题记录完成: session_id={session_id}, count={len(answer_records)}")
 
     @staticmethod
     async def generate_practice_session(
-        *,
-        db: AsyncSession,
-        type: str,
-        count: int = 30,
-        unit_id: int | None = None,
-        textbook_id: int | None = None,
-        student_id: str | None = None,
+        *, db: AsyncSession, type: str, count: int, student_id: str, unit_id: int | None = None
     ):
-        # 对于能力评估，如果没有传入 textbook_id，从学生的激活教材获取
-        # 注意：这个 textbook_id 仅用于创建 PracticeSession，不传递给 invoke_generate_workflow
-        session_textbook_id = textbook_id
-        if type == "assessment" and session_textbook_id is None and student_id:
-            student_textbook = await db.scalar(
-                select(StudentTextbook).where(
-                    StudentTextbook.student_id == student_id, StudentTextbook.active == 1
-                )
-            )
-            if student_textbook:
-                session_textbook_id = student_textbook.textbook_id
-
-        # 1. 生成开始前，先创建会话记录
-        # target_id 根据类型设置：daily_practice 使用 today()，unit_practice 使用 unit_id，assessment 使用 today()
-        target_id_value = unit_id if type == "unit_practice" and unit_id else today()
-        session = PracticeSession(
-            student_id=student_id,
-            session_type=type,
-            target_id=target_id_value,
-            textbook_id=session_textbook_id,
-            question_count=0,
+        student_textbook = await db.scalar(
+            select(StudentTextbook).where(StudentTextbook.student_id == student_id, StudentTextbook.active == 1)
         )
-        db.add(session)
-        await db.flush()
-        await db.commit()
 
-        logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
+        if not student_textbook:
+            raise ValueError("学生未设置激活教材")
+
+        textbook_id = student_textbook.textbook_id
 
         try:
-            # 2. 调用 invoke_generate_workflow 生成题目
-            # 能力评估不传 textbook_id，由工作流内部通过 student_id 获取
-            # recall_count 从环境变量读取，能力评估类型不使用召回题目
-            questions = await invoke_generate_workflow(
-                db=db,
-                type=type,
-                count=count,
-                unit_id=unit_id,
-                textbook_id=textbook_id if type != "assessment" else None,
+            # 生成开始前，先创建会话记录
+            target_id = unit_id if type == "unit_practice" and unit_id else today()
+            session = PracticeSession(
                 student_id=student_id,
+                session_type=type,
+                target_id=target_id,
+                textbook_id=textbook_id,
             )
-
-            question_ids = [q.id for q in questions]
-
-            # 3. 题目生成完成，更新状态为"生成完成"（4）
-            session.question_count = len(question_ids)
-            session.update_time = now()
             db.add(session)
             await db.flush()
-            await db.commit()
 
-            logger.info(
-                f"题目生成完成: session_id={session.id}, question_count={len(question_ids)}"
-            )
+            logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
 
-            # 4. 预生成答题记录
-            await PracticeService.prepare_records(db, session.id, question_ids)
-
-            # 5. 答题记录预生成完成
-            session.generate_status = 1
-            session.update_time = now()
-            db.add(session)
-            await db.commit()
-
-            logger.info(
-                f"练习会话生成完成: session_id={session.id}, question_count={len(question_ids)}"
-            )
-
-        except Exception as e:
-            # 6. 生成失败后，更新状态为"生成失败"
-            logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
-            try:
-                session.generate_status = -1
-                db.add(session)
-                await db.commit()
-            except Exception as commit_error:
-                logger.error(f"更新失败状态失败: session_id={session.id}, error={commit_error}")
-                await db.rollback()
-            raise ValueError(f"会话生成失败: {str(e)}")
-
-        # 7. 返回会话ID
-        return session.id
-
-    @staticmethod
-    async def regenerate_practice_session(
-        *,
-        session_id: int,
-        db: AsyncSession,
-        type: str,
-        count: int = 30,
-        unit_id: int | None = None,
-        textbook_id: int | None = None,
-        student_id: str | None = None,
-    ):
-
-        session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
-        if not session:
-            raise ValueError("当前练习不存在")
-
-        if session.generate_status == 0:
-            raise ValueError("当前练习正在生成中，请稍后重试")
-
-        session.generate_status = 0
-        session.update_time = now()
-        db.add(session)
-        await db.commit()
-
-        logger.info(f"开始重新生成练习会话: session_id={session_id}, type={type}")
-
-        try:
-            # 2. 调用 invoke_generate_workflow 生成题目
-            # recall_count 从环境变量读取，能力评估类型不使用召回题目
+            # 调用 invoke_generate_workflow 生成题目
             questions = await invoke_generate_workflow(
                 db=db,
                 type=type,
@@ -173,49 +68,194 @@ class PracticeService:
                 textbook_id=textbook_id,
                 student_id=student_id,
             )
+            await PracticeService.create_answer_records(db, session.id, questions)
 
-            question_ids = [q.id for q in questions]
+            session.question_count = len(questions)
+            session.generate_status = 1
+            session.update_time = now()
+            await db.commit()
 
-            # 3. 题目生成完成，更新状态为"生成完成"（4）
-            session.question_count = len(question_ids)
-            session.status = 4  # 4表示生成完成
+            logger.info(f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}")
+            return session
+        except Exception as e:
+            # 生成失败后，更新状态为"生成失败"
+            logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
+            await db.rollback()
+            raise ValueError(f"会话生成失败: {str(e)}")
+
+    @staticmethod
+    async def regenerate_practice_session(db: AsyncSession, session_id: int):
+        # 查询练习会话
+        session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+        if not session:
+            raise ValueError("当前练习不存在")
+
+        if session.generate_status == 0:
+            raise ValueError("当前练习正在生成中，请稍后重试")
+
+        try:
+            # 更新练习会话状态
+            session.generate_status = 0
+            session.question_count = 0
             session.correct_count = 0
             session.start_time = 0
             session.answer_count = 0
-            session.update_time = now()
-            db.add(session)
-            await db.flush()
+
+            logger.info(f"开始重新生成练习会话: session_id={session_id}, type={type}")
+
+            unit_id = session.target_id if session.session_type == "unit_practice" else None
+
+            questions = await invoke_generate_workflow(
+                db=db,
+                type=session.session_type,
+                count=session.question_count,
+                unit_id=unit_id,
+                textbook_id=session.textbook_id,
+                student_id=session.student_id,
+            )
+            await PracticeService.create_answer_records(db, session.id, questions)
+
+            session.question_count = len(questions)
+            session.generate_status = 1
             await db.commit()
 
-            logger.info(
-                f"题目生成完成: session_id={session_id}, question_count={len(question_ids)}"
-            )
-
-            # 4. 预生成答题记录
-            await PracticeService.prepare_records(db, session.id, question_ids)
-
-            # 5. 答题记录预生成完成，更新状态为"未开始"（0），可以开始答题
-            session.status = 0  # 0表示未开始，可以开始答题
-            session.update_time = now()
-            db.add(session)
-            await db.commit()
-
-            logger.info(
-                f"练习会话重新生成完成: session_id={session_id}, question_count={len(question_ids)}"
-            )
-
+            logger.info(f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}")
+            return session
         except Exception as e:
-            # 6. 生成失败后，更新状态为"生成失败"（5）
             logger.error(f"重新生成练习会话失败: session_id={session_id}, error={e}")
-            try:
-                session.status = 5  # 5表示生成失败
-                session.update_time = now()
-                db.add(session)
-                await db.commit()
-            except Exception as commit_error:
-                logger.error(f"更新失败状态失败: session_id={session_id}, error={commit_error}")
-                await db.rollback()
+            await db.rollback()
             raise ValueError(f"会话重新生成失败: {str(e)}")
 
-        # 7. 返回会话ID
+    async def create_daily_practice(db: AsyncSession, student_id: str, count: int):
+        """为学生生成每日练习"""
+        current_date = today()
+
+        session = await db.scalar(
+            select(PracticeSession).where(
+                PracticeSession.student_id == student_id,
+                PracticeSession.session_type == "daily_practice",
+                PracticeSession.target_id == current_date,
+            )
+        )
+
+        if session:
+            raise ValueError("当天每日练习已存在")
+
+        uncompleted_session = await db.scalar(
+            select(PracticeSession)
+            .where(
+                PracticeSession.student_id == student_id,
+                PracticeSession.session_type == "daily_practice",
+                PracticeSession.status != 2,
+            )
+            .order_by(desc(PracticeSession.create_time))
+        )
+
+        if uncompleted_session:
+
+            logger.info(f"找到未完成的每日练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}")
+
+            try:
+                # 重置所有答题记录的信息
+                answer_records = await db.scalars(
+                    select(PracticeAnswer).where(PracticeAnswer.session_id == uncompleted_session.id)
+                )
+                for answer in answer_records.all():
+                    answer.text_answer = None
+                    answer.status = 0
+                    answer.time_spent = 0
+                    answer.submit_time = None
+                    answer.audio_answer = None
+
+                # 重置进度并更新为当天的每日练习
+                uncompleted_session.target_id = current_date
+                uncompleted_session.status = 0
+                uncompleted_session.answer_count = 0
+                uncompleted_session.correct_count = 0
+                uncompleted_session.start_time = 0
+                uncompleted_session.end_time = None
+
+                await db.commit()
+
+                logger.info(f"未完成每日练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}")
+
+                return uncompleted_session.id
+
+            except Exception as e:
+                await db.rollback()
+                logger.error(
+                    f"重置未完成每日练习失败: student_id={student_id}, session_id={uncompleted_session.id}, error={e}"
+                )
+                raise ValueError(f"重置未完成每日练习失败: {str(e)}")
+
+        logger.info(f"开始创建每日练习: student_id={student_id}")
+        session = await PracticeService.generate_practice_session(
+            db=db,
+            type="daily_practice",
+            count=count,
+            student_id=student_id,
+        )
+
+        return session.id
+
+    async def create_unit_practice(db: AsyncSession, student_id: str, unit_id: int, count: int):
+        """为学生生成单元练习"""
+
+        # 获取单元信息
+        unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
+
+        if not unit:
+            raise ValueError("单元不存在")
+
+        # 检查是否已存在未完成的单元练习
+        session = await db.scalar(
+            select(PracticeSession).where(
+                PracticeSession.student_id == student_id,
+                PracticeSession.session_type == "unit_practice",
+                PracticeSession.target_id == unit_id,
+                PracticeSession.status != 2,
+            )
+        )
+
+        if session:
+            raise ValueError("还存在未完成的单元练习，请先删除")
+
+        logger.info(f"开始创建单元练习: student_id={student_id}, unit_id={unit_id}")
+
+        session = await PracticeService.generate_practice_session(
+            db=db,
+            type="unit_practice",
+            count=count,
+            unit_id=unit_id,
+            textbook_id=unit.textbook.id,
+            student_id=student_id,
+        )
+
+        logger.info(f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}")
+
+        return session.id
+
+    async def create_assessment(db: AsyncSession, student_id: str, count: int):
+        """为学生生成能力评测"""
+
+        session = await db.scalar(
+            select(PracticeSession).where(
+                PracticeSession.student_id == student_id,
+                PracticeSession.session_type == "assessment",
+                PracticeSession.status != 2,
+            )
+        )
+
+        if session:
+            raise ValueError("还存在未完成的能力评测，请先删除")
+
+        logger.info(f"开始创建能力评测: student_id={student_id}")
+
+        session = await PracticeService.generate_practice_session(
+            db=db,
+            type="assessment",
+            count=count,
+            student_id=student_id,
+        )
+
         return session.id

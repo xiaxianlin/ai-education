@@ -7,13 +7,13 @@ from shared.services.prompt import PromptService
 class AliyunAIService:
 
     @staticmethod
-    def asr(file_url: str, language: str = "zh"):
-        logger.info(f"开始语音识别，文件URL: {file_url}, 语言: {language}")
-
+    def asr(file_path: str, language: str = "zh"):
+        logger.info(f"开始语音识别，文件地址: {file_path}, 语言: {language}")
+        audio_file_path = f"file://{file_path}"
         response = dashscope.MultiModalConversation.call(
             api_key=envs.AI_PLATFORM_KEY,
             model="qwen3-asr-flash",
-            messages=[{"role": "user", "content": [{"audio": file_url}]}],
+            messages=[{"role": "user", "content": [{"audio": audio_file_path}]}],
             result_format="message",
             asr_options={"language": language, "enable_itn": True},
         )
@@ -24,32 +24,9 @@ class AliyunAIService:
 
         # 处理不同的响应格式
         try:
-            content = response.output.choices[0].message.content
-
-            # 如果 content 是列表，取第一个元素
-            if isinstance(content, list):
-                if len(content) > 0:
-                    # 检查第一个元素是否有 text 属性
-                    if hasattr(content[0], "text"):
-                        result_text = content[0].text
-                    elif isinstance(content[0], dict) and "text" in content[0]:
-                        result_text = content[0]["text"]
-                    else:
-                        # 如果第一个元素是字符串，直接使用
-                        result_text = str(content[0])
-                else:
-                    raise ValueError("ASR 响应内容为空")
-            # 如果 content 是对象，直接获取 text 属性
-            elif hasattr(content, "text"):
-                result_text = content.text
-            elif isinstance(content, dict) and "text" in content:
-                result_text = content["text"]
-            else:
-                # 如果 content 本身就是字符串
-                result_text = str(content)
-
-            logger.info(f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {result_text[:100]}...")
-            return result_text
+            content = response.output.choices[0].message.content[0].get("text")
+            logger.info(f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {content[:100]}...")
+            return content
         except Exception as e:
             logger.error(f"解析 ASR 响应失败: {e}, 响应内容: {response.output}")
             raise ValueError(f"语音识别响应格式错误: {str(e)}")
