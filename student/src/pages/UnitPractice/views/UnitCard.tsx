@@ -1,0 +1,115 @@
+/**
+ * 单元卡片组件
+ * 展示单个单元的信息
+ */
+import { memo } from 'react';
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { BookOpen, Play } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface UnitCardProps {
+  unit: Unit;
+  theme: {
+    bg: string;
+    border: string;
+    icon: string;
+    button: string;
+  };
+  onStart: (unit: Unit) => void;
+  onShowKnowledge: (unit: Unit) => void;
+  hasIncompletePractice?: boolean;
+  hasInProgressPractice?: boolean; // 是否有任何进行中的单元练习
+}
+
+export const UnitCard = memo(function UnitCard({
+  unit,
+  theme,
+  onStart,
+  onShowKnowledge,
+  hasIncompletePractice = false,
+  hasInProgressPractice = false,
+}: UnitCardProps) {
+  // 知识点查看功能已启用，点击时会调用接口获取知识点
+  // 这里暂时设为 true，允许用户点击查看知识点按钮
+  const hasKnowledges = true;
+  
+  // 如果存在进行中的练习，且当前单元没有进行中的练习，则禁用开始练习按钮
+  const isStartDisabled = hasInProgressPractice && !hasIncompletePractice;
+
+  return (
+    <Card
+      className={cn(
+        'relative overflow-hidden border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer rounded-2xl bg-card',
+        theme.border
+      )}
+    >
+      <div className={cn('absolute inset-0 bg-gradient-to-br opacity-40', theme.bg)} />
+      <CardContent className="relative z-10 p-5 space-y-4">
+        {/* 未完成练习标识 */}
+        {hasIncompletePractice && (
+          <div className="absolute top-3 right-3 z-20">
+            <div className="px-2.5 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+              <span>⏸️</span>
+              <span>未完成</span>
+            </div>
+          </div>
+        )}
+
+        {/* 单元标题和简介 */}
+        <div className="flex items-start gap-3">
+          <div className={cn('p-2.5 rounded-xl bg-background/90 shadow-md flex-shrink-0')}>
+            <BookOpen className={cn('h-8 w-8', theme.icon)} />
+          </div>
+          <div className="flex-1 min-w-0 space-y-2">
+            <CardTitle className="text-xl font-bold text-foreground leading-tight">
+              {unit.name}
+            </CardTitle>
+            <CardDescription className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
+              {/* 根据 API.md，新接口可能不返回 content 字段，使用默认文本 */}
+              {(unit as any).content || '本单元包含多个重点知识点，快来挑战吧！'}
+            </CardDescription>
+          </div>
+        </div>
+
+        {/* 操作按钮 */}
+        <div className="pt-1 flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              'flex-1 h-11 rounded-xl text-sm font-semibold transition-all',
+              hasKnowledges
+                ? 'bg-secondary/50 text-foreground border-secondary shadow-sm hover:bg-secondary/80 hover:text-foreground hover:border-secondary hover:-translate-y-0.5 hover:shadow-md'
+                : 'bg-muted text-muted-foreground cursor-not-allowed opacity-70 shadow-sm hover:translate-y-0 hover:shadow-sm'
+            )}
+            onClick={() => hasKnowledges && onShowKnowledge(unit)}
+            disabled={!hasKnowledges}
+          >
+            查看知识点
+          </Button>
+
+          <Button
+            onClick={() => !isStartDisabled && onStart(unit)}
+            disabled={isStartDisabled}
+            className={cn(
+              'flex-1 h-11 rounded-xl text-sm font-semibold shadow-lg transition-all duration-300',
+              isStartDisabled
+                ? 'bg-muted text-muted-foreground cursor-not-allowed hover:shadow-lg opacity-60'
+                : cn('text-primary-foreground hover:shadow-xl', theme.button)
+            )}
+          >
+            <Play className="h-5 w-5 mr-2" fill="currentColor" />
+            {hasIncompletePractice ? '继续练习' : '开始练习'}
+          </Button>
+        </div>
+
+        {/* 暂时隐藏知识点提示，因为新接口不返回知识点信息 */}
+      </CardContent>
+      {/* 装饰性元素 */}
+      <div className={cn('absolute -top-6 -right-6 w-32 h-32 rounded-full opacity-20 blur-3xl', theme.bg)} />
+      <div className={cn('absolute -bottom-6 -left-6 w-36 h-36 rounded-full opacity-15 blur-3xl', theme.bg)} />
+    </Card>
+  );
+});
+

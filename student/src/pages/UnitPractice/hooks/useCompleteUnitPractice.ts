@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { practiceApi } from "@/services/practice";
+import { practiceService } from "@/services/practice";
 import { toast } from "sonner";
 
 export function useCompleteUnitPractice() {
@@ -17,7 +17,7 @@ export function useCompleteUnitPractice() {
 
       try {
         setSubmitting(true);
-        const result = await practiceApi.completePractice(sessionId);
+        const result = await practiceService.completePractice(sessionId);
         setReportId(result.report_id);
         return result.report_id;
       } catch (error) {

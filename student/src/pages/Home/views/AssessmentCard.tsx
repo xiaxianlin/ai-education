@@ -1,15 +1,15 @@
 import { useRequest } from "ahooks";
 import { useNavigate } from "@tanstack/react-router";
-import { PracticeApi } from "@/services/practice";
-import { PracticeCard } from "../components/PracticeCard";
+import { practiceService } from "@/services/practice";
+import { PracticeCard } from "@/components/business/PracticeCard";
 
 export const AssessmentCard = () => {
   const navigate = useNavigate();
 
-  const { data: session } = useRequest(() => PracticeApi.getAssessment());
+  const { data: session } = useRequest(() => practiceService.getAssessment());
 
   const { loading: creating, run: handleCreate } = useRequest(
-    () => PracticeApi.createAssessment(),
+    () => practiceService.createPractice("assessment"),
     { manual: true }
   );
 

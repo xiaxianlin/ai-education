@@ -2,13 +2,13 @@
  * 单元练习页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Header } from '@/components/biz/Header';
+import { Header } from '@/components/business/Header';
 import { Card, CardContent } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { LoadingSpinner } from '@/components/business/LoadingSpinner';
 import { useUnitPracticePage } from './hooks/useUnitPracticePage';
-import { UnitCard } from './components/UnitCard';
-import { KnowledgeModal } from './components/KnowledgeModal';
-import { PracticeModal } from './components/PracticeModal';
+import { UnitCard } from './views/UnitCard';
+import { KnowledgeModal } from './views/KnowledgeModal';
+import { PracticeModal } from './views/PracticeModal';
 import { getColorTheme } from './utils/colorThemes';
 
 export function UnitPractice() {

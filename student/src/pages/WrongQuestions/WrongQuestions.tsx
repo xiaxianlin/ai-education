@@ -2,14 +2,14 @@
  * 错题集页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Header } from '@/components/biz/Header';
+import { Header } from '@/components/business/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { LoadingSpinner } from '@/components/business/LoadingSpinner';
 import { useWrongQuestions } from './hooks/useWrongQuestions';
-import { WrongQuestionCard } from './components/WrongQuestionCard';
-import { FilterTabs } from './components/FilterTabs';
+import { WrongQuestionCard } from './views/WrongQuestionCard';
+import { FilterTabs } from './views/FilterTabs';
 
 export function WrongQuestions() {
   const {

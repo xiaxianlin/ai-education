@@ -2,17 +2,18 @@
  * 通用练习结果页面
  * 根据 session_id 显示练习结果
  */
-import { Header } from '@/components/biz/Header';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { Header } from '@/components/business/Header';
+import { LoadingSpinner } from '@/components/business/LoadingSpinner';
 import { usePracticeResult } from './hooks/usePracticeResult';
-import { ResultSummary } from './components/ResultSummary';
-import { QuestionReview } from './components/QuestionReview';
-import { ActionButtons } from './components/ActionButtons';
+import { ResultSummary } from './views/ResultSummary';
+import { QuestionReview } from './views/QuestionReview';
+import { ActionButtons } from './views/ActionButtons';
 
 export function PracticeResult() {
   const {
     loading,
     sessionData,
+    unitName,
     report,
     error,
   } = usePracticeResult();
@@ -56,7 +57,7 @@ export function PracticeResult() {
           <ResultSummary
             report={report}
             sessionType={sessionType}
-            unitName={sessionData.unit?.name}
+            unitName={unitName}
           />
         )}
 

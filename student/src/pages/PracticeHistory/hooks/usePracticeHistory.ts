@@ -4,18 +4,15 @@
  * 根据后端接口 /api/student/practice/history/{type} 重构
  */
 import { useState, useEffect, useCallback } from 'react';
-import { practiceApi } from '@/services/practice';
-import { profileApi } from '@/services/profile';
-import { useApiError } from '@/hooks/useApiError';
+import { practiceService } from '@/services/practice'; import { profileApi } from '@/services/profile';
 
 export type TabType = 'daily' | 'unit' | 'assessment';
 
 export function usePracticeHistory() {
-  const { handleError } = useApiError();
   const [activeTab, setActiveTab] = useState<TabType>('daily');
-  const [dailyHistory, setDailyHistory] = useState<PracticeHistory[]>([]);
-  const [unitHistory, setUnitHistory] = useState<PracticeHistory[]>([]);
-  const [assessmentHistory, setAssessmentHistory] = useState<PracticeHistory[]>([]);
+  const [dailyHistory, setDailyHistory] = useState<PracticeSession[]>([]);
+  const [unitHistory, setUnitHistory] = useState<PracticeSession[]>([]);
+  const [assessmentHistory, setAssessmentHistory] = useState<PracticeSession[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,19 +41,19 @@ export function usePracticeHistory() {
     try {
       setLoading(true);
       const [daily, unit, assessment] = await Promise.all([
-        practiceApi.getHistory('daily_practice', 50),
-        practiceApi.getHistory('unit_practice', 50),
-        practiceApi.getHistory('assessment', 50),
+        practiceService.getHistory('daily_practice', 50),
+        practiceService.getHistory('unit_practice', 50),
+        practiceService.getHistory('assessment', 50),
       ]);
       setDailyHistory(Array.isArray(daily) ? daily : []);
       setUnitHistory(Array.isArray(unit) ? unit : []);
       setAssessmentHistory(Array.isArray(assessment) ? assessment : []);
     } catch (error) {
-      handleError(error);
+      console.error('Failed to load practice history:', error);
     } finally {
       setLoading(false);
     }
-  }, [handleError]);
+  }, []);
 
   // 根据 target_id 获取单元名称
   const getUnitName = useCallback((targetId?: number): string => {
@@ -66,13 +63,13 @@ export function usePracticeHistory() {
   }, [units]);
 
   // 计算得分
-  const calculateScore = useCallback((item: PracticeHistory): number => {
+  const calculateScore = useCallback((item: PracticeSession): number => {
     if (item.question_count === 0) return 0;
     return Math.round((item.correct_count / item.question_count) * 100);
   }, []);
 
   // 计算用时（秒）
-  const calculateTimeSpent = useCallback((item: PracticeHistory): number => {
+  const calculateTimeSpent = useCallback((item: PracticeSession): number => {
     if (!item.start_time) return 0;
     if (item.end_time) {
       return item.end_time - item.start_time;
@@ -82,7 +79,7 @@ export function usePracticeHistory() {
   }, []);
 
   // 格式化日期
-  const formatDate = useCallback((item: PracticeHistory) => {
+  const formatDate = useCallback((item: PracticeSession) => {
     // 对于每日练习，target_id 是日期（如 20241123）
     if (item.session_type === 'daily_practice' && item.target_id) {
       const str = String(item.target_id);

@@ -4,9 +4,9 @@
  */
 import { Link } from '@tanstack/react-router';
 import { Card, CardContent } from '@/components/ui/card';
-import { Header } from '@/components/biz/Header';
+import { Header } from '@/components/business/Header';
 import { TrendingUp } from 'lucide-react';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { LoadingSpinner } from '@/components/business/LoadingSpinner';
 import { useProfile } from './hooks/useProfile';
 
 export function Profile() {

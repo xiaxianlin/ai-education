@@ -16,8 +16,8 @@ import {
 import { validators } from "@/lib/validators";
 import { useState } from "react";
 import { useRequest } from "ahooks";
-import { AuthApi } from "@/services/auth";
-import { useAuthStore } from "@/stores/AuthStore";
+import { authService } from "@/services/auth";
+import { useAuthStore } from "@/stores/auth-store";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "@/components/ui/toast";
@@ -31,7 +31,7 @@ export function Login() {
 
   const { errors, validate, clearError } = useFormValidation<LoginParams>();
 
-  const { loading, run: login } = useRequest(AuthApi.login, {
+  const { loading, run: login } = useRequest(authService.login, {
     manual: true,
     onSuccess: (res) => {
       setToken(res);

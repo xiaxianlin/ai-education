@@ -46,5 +46,12 @@ declare global {
     answers: PracticeAnswer[];
     report: PracticeReport;
   }
+
+  /**
+   * 完成练习响应
+   */
+  interface CompletePracticeResponse {
+    report_id: number;
+  }
 }
 export {};

@@ -1,15 +1,15 @@
 import { useRequest } from "ahooks";
 import { useNavigate } from "@tanstack/react-router";
-import { PracticeApi } from "@/services/practice";
-import { PracticeCard } from "../components/PracticeCard";
+import { practiceService } from "@/services/practice";
+import { PracticeCard } from "@/components/business/PracticeCard";
 
 export const DailyPracticeCard = () => {
   const navigate = useNavigate();
 
-  const { data: session } = useRequest(() => PracticeApi.getDailyPractice());
+  const { data: session } = useRequest(() => practiceService.getDailyPractice());
 
   const { loading: creating, run: handleCreate } = useRequest(
-    () => PracticeApi.createDailyPractice(),
+    () => practiceService.createPractice("daily_practice"),
     { manual: true }
   );
 
@@ -24,7 +24,7 @@ export const DailyPracticeCard = () => {
       title="每日练习"
       description="今天还没有生成练习，快来开始吧！✨"
       createButtonText="生成练习"
-      icon="�"
+      icon="📝"
       session={session}
       creating={creating}
       onCreate={handleCreate}

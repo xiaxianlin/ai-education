@@ -3,16 +3,16 @@
  * 根据 session_id 进行答题，支持所有类型的练习
  */
 import { useParams, useNavigate } from "@tanstack/react-router";
-import { Header } from "@/components/biz/Header";
-import { LoadingSpinner } from "@/components/biz/LoadingSpinner";
+import { Header } from "@/components/business/Header";
+import { LoadingSpinner } from "@/components/business/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { usePracticeSession } from "./hooks/usePracticeSession";
-import { ProgressIndicator } from "./components/ProgressIndicator";
-import { QuestionCard } from "@/pages/PracticeSession/components/QuestionCard";
-import { AnswerOptions } from "@/pages/PracticeSession/components/AnswerOptions";
-import { NavigationButtons } from "@/pages/PracticeSession/components/NavigationButtons";
-import { ResultModal } from "./components/ResultModal";
+import { ProgressIndicator } from "./views/ProgressIndicator";
+import { QuestionCard } from "@/pages/PracticeSession/views/QuestionCard";
+import { AnswerOptions } from "@/pages/PracticeSession/views/AnswerOptions";
+import { NavigationButtons } from "@/pages/PracticeSession/views/NavigationButtons";
+import { ResultModal } from "./views/ResultModal";
 
 export function PracticeSession() {
   const { sessionId } = useParams({ from: "/practice/$sessionId" });

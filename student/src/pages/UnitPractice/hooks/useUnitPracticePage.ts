@@ -4,14 +4,12 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { profileApi, Unit, Textbook, Knowledge } from '@/services/profile';
-import { practiceApi } from '@/services/practice';
+import { profileApi } from '@/services/profile';
+import { practiceService } from '@/services/practice';
 import { toast } from 'sonner';
-import { useApiError } from '@/hooks/useApiError';
 
 export function useUnitPracticePage() {
   const navigate = useNavigate();
-  const { handleError } = useApiError();
 
   const [units, setUnits] = useState<Unit[]>([]);
   const [currentTextbook, setCurrentTextbook] = useState<Textbook | null>(null);
@@ -38,16 +36,16 @@ export function useUnitPracticePage() {
       }
       
       // 使用 getUnitsStatus 获取所有单元的未完成练习记录
-      const status = await practiceApi.getUnitsStatus(currentTextbook.id);
+      // TODO: Need to implement getUnitsStatus in practiceService
+      // const status = await practiceService.getUnitsStatus(currentTextbook.id);
       const sessions: Record<number, number> = {};
       
-      // 从状态中提取未完成会话的 session id
-      // 后端返回的 status 键是字符串（JSON 序列化后），值是 PracticeSession
-      Object.entries(status).forEach(([unitId, session]) => {
-        if (session && session.id) {
-          sessions[parseInt(unitId)] = session.id;
-        }
-      });
+      // Temporarily disabled until API is implemented
+      // Object.entries(status).forEach(([unitId, session]) => {
+      //   if (session && session.id) {
+      //     sessions[parseInt(unitId)] = session.id;
+      //   }
+      // });
       
       setIncompleteSessions(sessions);
     } catch (error) {
@@ -76,12 +74,12 @@ export function useUnitPracticePage() {
       const unitsData = await profileApi.getUnits(checkResponse.textbook?.id);
       setUnits(unitsData);
     } catch (error) {
-      handleError(error);
+      console.error('Failed to load units:', error);
       setUnits([]);
     } finally {
       setLoading(false);
     }
-  }, [handleError]);
+  }, []);
 
   useEffect(() => {
     loadUnits();
@@ -129,11 +127,12 @@ export function useUnitPracticePage() {
     try {
       setCreating(true);
       // 后端接口只需要 unit_id，不支持 difficulty 和 count 参数
-      const session = await practiceApi.createUnitPractice(practiceModal.unitId);
+      const sessionId = await practiceService.createPractice('unit_practice', {
+        unit_id: practiceModal.unitId,
+      });
       
         toast.success('练习已创建，开始答题！');
       
-      const sessionId = session.id;
       if (sessionId) {
         // 更新未完成会话列表
         setIncompleteSessions(prev => ({
@@ -144,11 +143,11 @@ export function useUnitPracticePage() {
         navigate({ to: `/practice/${sessionId}` });
       }
     } catch (error) {
-      handleError(error);
+      console.error('Failed to create practice:', error);
     } finally {
       setCreating(false);
     }
-  }, [practiceModal.unitId, navigate, handleError]);
+  }, [practiceModal.unitId, navigate]);
 
   const openKnowledgeModal = useCallback(async (unit: Unit) => {
     // 先显示弹窗，设置加载状态

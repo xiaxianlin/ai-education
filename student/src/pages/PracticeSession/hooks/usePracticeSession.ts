@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { practiceApi } from "@/services/practice";
+import { practiceService } from "@/services/practice";
 import { toast } from "sonner";
 
 export function usePracticeSession(sessionId: number) {
@@ -33,7 +33,7 @@ export function usePracticeSession(sessionId: number) {
       setLoading(true);
 
       // 获取会话详情
-      const detail = await practiceApi.getSessionDetail(sessionId);
+      const detail = await practiceService.getSessionDetail(sessionId);
       setSession(detail.session);
 
       // 如果有题目列表，设置题目
@@ -90,7 +90,7 @@ export function usePracticeSession(sessionId: number) {
     if (!session) return;
 
     try {
-      await practiceApi.beginPractice(session.id);
+      await practiceService.beginPractice(session.id);
 
       // 重新加载会话以获取最新状态
       await loadSession();
@@ -197,7 +197,7 @@ export function usePracticeSession(sessionId: number) {
           : undefined,
       });
 
-      const result = await practiceApi.submitAnswer(submitParams);
+      const result = await practiceService.submitAnswer(submitParams);
 
       // 根据 is_correct 设置 status: 1-正确, 2-错误
       setAnswerStatus((prev) => ({
@@ -248,7 +248,7 @@ export function usePracticeSession(sessionId: number) {
 
     try {
       setSubmitting(true);
-      await practiceApi.completePractice(session.id);
+      await practiceService.completePractice(session.id);
 
       toast.success("练习已完成！");
 

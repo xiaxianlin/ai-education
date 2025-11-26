@@ -2,7 +2,7 @@
  * 首页
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Header } from "@/components/biz/Header";
+import { Header } from "@/components/business/Header";
 import { WelcomeCard } from "./views/WelcomeCard";
 import { DailyPracticeCard } from "./views/DailyPracticeCard";
 import { AssessmentCard } from "./views/AssessmentCard";

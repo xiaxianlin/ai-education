@@ -1,12 +1,12 @@
 import { useRequest } from "ahooks";
 import { useNavigate } from "@tanstack/react-router";
-import { PracticeApi } from "@/services/practice";
-import { PracticeCard } from "../components/PracticeCard";
+import { practiceService } from "@/services/practice";
+import { PracticeCard } from "@/components/business/PracticeCard";
 
 export const UnitPracticeCard = () => {
   const navigate = useNavigate();
 
-  const { data: session } = useRequest(() => PracticeApi.getUnitPractice());
+  const { data: session } = useRequest(() => practiceService.getUnitPractice());
 
   const handleCreate = () => {
     navigate({ to: "/unit-practice" });

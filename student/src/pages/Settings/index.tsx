@@ -10,12 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { Header } from "@/components/biz/Header";
-import { AlertDialog } from "@/components/ui/AlertDialog";
+import { Header } from "@/components/business/Header";
+import { AlertDialog } from "@/components/ui/dialog";
 import { BookOpen } from "lucide-react";
-import { LoadingSpinner } from "@/components/biz/LoadingSpinner";
+import { LoadingSpinner } from "@/components/business/LoadingSpinner";
 import { useSettings } from "./hooks/useSettings";
-import { TextbookCard } from "./components/TextbookCard";
+import { TextbookCard } from "./views/TextbookCard";
 
 export function Settings() {
   const {

@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import { useAuthStore } from "@/stores/AuthStore";
+import { useAuthStore } from "@/stores/auth-store";
 
 /**
  * 路由守卫：要求用户已登录

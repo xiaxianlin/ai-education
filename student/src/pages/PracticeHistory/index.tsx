@@ -3,9 +3,9 @@
  * 展示每日练习、单元练习和能力评测的历史记录
  */
 import { Card, CardContent } from '@/components/ui/card';
-import { Header } from '@/components/biz/Header';
+import { Header } from '@/components/business/Header';
 import { Calendar, BookOpen, TrendingUp, Trophy, Eye, ArrowRight } from 'lucide-react';
-import { LoadingSpinner } from '@/components/biz/LoadingSpinner';
+import { LoadingSpinner } from '@/components/business/LoadingSpinner';
 import { usePracticeHistory, TabType } from './hooks/usePracticeHistory';
 import { cn } from '@/lib/utils';
 import { useNavigate } from '@tanstack/react-router';
@@ -100,7 +100,7 @@ export function PracticeHistory() {
                   const completed = isCompleted(item.status);
                   return (
                   <Card 
-                      key={item.session_id} 
+                      key={item.id} 
                     className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
@@ -146,7 +146,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                           {completed && (
                           <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                              onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
@@ -181,7 +181,7 @@ export function PracticeHistory() {
                   const unitName = getUnitName(item.target_id);
                   return (
                   <Card 
-                      key={item.session_id} 
+                      key={item.id} 
                     className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
@@ -227,7 +227,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                           {completed && (
                           <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                              onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
@@ -261,7 +261,7 @@ export function PracticeHistory() {
                   const completed = isCompleted(item.status);
                   return (
                   <Card 
-                      key={item.session_id} 
+                      key={item.id} 
                     className="border-2 border-primary/20 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-card"
                     style={{
                       animation: `slideIn 0.3s ease-out ${index * 0.05}s backwards`
@@ -307,7 +307,7 @@ export function PracticeHistory() {
                         {/* 查看详情按钮 */}
                           {completed && (
                           <button
-                              onClick={() => navigate({ to: `/practice/${item.session_id}` })}
+                              onClick={() => navigate({ to: `/practice/${item.id}` })}
                             className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                           >
                             <Eye className="h-4 w-4" />
