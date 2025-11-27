@@ -11,8 +11,8 @@ const axiosInstance: AxiosInstance = axios.create({
 // 请求拦截器：添加 token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem("_t");
-    if (token && config.headers) {
+    const token = localStorage.getItem("_t");
+    if (token) {
       config.headers["x-access-token"] = token;
     }
     return config;
@@ -21,28 +21,36 @@ axiosInstance.interceptors.request.use(
 );
 
 // 响应拦截器：处理错误和数据格式
-axiosInstance.interceptors.response.use((response: AxiosResponse<ApiData>) => {
-  const { data = {} as ApiData } = response;
-
-  switch (data.status) {
-    case 401:
-      sessionStorage.removeItem("_t");
-      window.location.href = "/login";
-      break;
-    case 403:
-      toast.error("未设置当前学习教材");
-      window.location.href = "/settings";
-      break;
-    case 400:
-      toast.error(data.message || "请求参数错误");
-      break;
-    default:
-      if (data.status !== 0 && data.status !== undefined) {
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse<ApiData>) => {
+    const { data = {} as ApiData } = response;
+    console.log("data", data);
+    if (data.status !== 0 && data.status !== undefined) {
+      toast(data.message || "网络异常");
+    }
+    return response;
+  },
+  (error) => {
+    const { data = {} as ApiData } = error.response;
+    switch (data.status) {
+      case 400:
+        toast.error(data.message || "请求参数错误");
+        break;
+      case 401:
+      case 403:
+        localStorage.removeItem("_t");
+        window.location.href = "/login";
+        break;
+      case 405:
+        toast.error("未设置当前学习教材");
+        window.location.href = "/settings";
+        break;
+      default:
         toast.error(data.message || "网络异常");
-      }
+    }
+    return Promise.reject(error);
   }
-  return response;
-});
+);
 
 export const api = {
   get: async <T = unknown>(url: string): Promise<T> => {
