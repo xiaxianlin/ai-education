@@ -2,7 +2,7 @@
  * 通用练习会话页面
  * 根据 session_id 进行答题，支持所有类型的练习
  */
-import { useParams, useNavigate } from "@tanstack/react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/business/Header";
 import { LoadingSpinner } from "@/components/business/LoadingSpinner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { NavigationButtons } from "@/pages/PracticeSession/views/NavigationButto
 import { ResultModal } from "./views/ResultModal";
 
 export function PracticeSession() {
-  const { sessionId } = useParams({ from: "/practice/$sessionId" });
+  const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 
   const {
@@ -92,7 +92,7 @@ export function PracticeSession() {
           <h2 className="text-2xl font-bold text-foreground mb-4">
             练习会话不存在
           </h2>
-          <Button onClick={() => navigate({ to: getBackPath() })}>返回</Button>
+          <Button onClick={() => navigate(getBackPath())}>返回</Button>
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ export function PracticeSession() {
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
           <Button
             variant="outline"
-            onClick={() => navigate({ to: getBackPath() })}
+            onClick={() => navigate(getBackPath())}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />

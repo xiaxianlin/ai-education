@@ -10,15 +10,13 @@ declare global {
   }
 
   interface ApiData<T = any> {
-    code?: number;
-    status?: number; // 兼容旧格式
+    status?: number;
     message?: string;
     data: T;
   }
 
   interface ListApiData<T = any> {
-    code?: number;
-    status?: number; // 兼容旧格式
+    status?: number;
     message?: string;
     data: ListData<T>;
   }

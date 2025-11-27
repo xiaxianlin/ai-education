@@ -20,6 +20,7 @@ async def get_practice_history(db: AsyncSession, student_id: str, practice_type:
     )
 
     result = [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
+    print(result)
 
     logger.info(f"[Admin] 获取练习历史: student_id={student_id}, type={practice_type}, count={len(result)}")
     return result

@@ -132,23 +132,6 @@ declare global {
   type UnitPracticeStatus = Record<string, PracticeSession | null>;
 
   /**
-   * 练习历史记录（对应 PracticeHistorySchema）
-   */
-  interface PracticeHistory {
-    session_id: number;
-    session_type: PracticeSessionType;
-    status: PracticeSessionStatus;
-    target_id?: number; // 单元ID或日期
-    textbook_id?: number; // 教材ID
-    question_count: number; // 题目总数
-    answer_count: number; // 已答题数
-    correct_count: number; // 正确数
-    start_time: number; // 开始时间
-    end_time?: number; // 结束时间
-    create_time: number; // 创建时间
-  }
-
-  /**
    * 答题记录（对应 PracticeAnswerSchema）
    */
   interface PracticeAnswer {

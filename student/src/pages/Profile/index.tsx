@@ -2,7 +2,7 @@
  * 个人信息页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Link } from '@tanstack/react-router';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/business/Header';
 import { TrendingUp } from 'lucide-react';

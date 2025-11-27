@@ -19,6 +19,12 @@ export default function MainView() {
   const columns = useMemo<ProColumns<Textbook>[]>(
     () => [
       {
+        title: 'ID',
+        dataIndex: 'id',
+        valueType: 'digit',
+        hideInSearch: true,
+      },
+      {
         title: '版本',
         dataIndex: 'version',
         valueType: 'select',

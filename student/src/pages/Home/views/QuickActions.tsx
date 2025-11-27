@@ -3,7 +3,7 @@
  * 简单、活泼、大气、可爱的设计
  */
 import { memo } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export const QuickActions = memo(function QuickActions() {

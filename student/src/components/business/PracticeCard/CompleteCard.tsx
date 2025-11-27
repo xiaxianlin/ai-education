@@ -4,10 +4,13 @@
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { PracticeCardProps } from "./types";
 
-export const CompleteCard: FC<PracticeCardProps> = ({ title, session, onStart }) => {
+export const CompleteCard: FC<PracticeCardProps> = ({
+  title,
+  session,
+  onStart,
+}) => {
   const { question_count, answer_count, correct_count, status } = session || {};
   const isCompleted = status === 2;
 
@@ -17,25 +20,19 @@ export const CompleteCard: FC<PracticeCardProps> = ({ title, session, onStart })
       <div className="relative p-8 flex flex-col gap-6">
         {/* 内容区域 */}
         <div className="flex items-center gap-5">
-          <div className="text-6xl">{isCompleted ? "🎉" : "📝"}</div>
+          <div className="text-2xl">{isCompleted ? "🎉" : "📝"}</div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-2xl font-bold text-foreground mb-2">{title}</h3>
-            <p className="text-base text-muted-foreground mb-3">
-              ✨ 已完成 {answer_count}/{question_count} 题 · 正确{" "}
-              {correct_count} 题
-            </p>
+            <h3 className="text-2xl font-bold text-foreground">{title}</h3>
           </div>
         </div>
+        <p className="text-base text-muted-foreground mb-3">
+          ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
+        </p>
         {/* 操作按钮 */}
         <Button
-          onClick={onStart}
           size="lg"
-          className={cn(
-            "w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground",
-            isCompleted
-              ? "bg-primary hover:bg-primary/90"
-              : "bg-primary hover:bg-primary/90"
-          )}
+          onClick={onStart}
+          className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
         >
           <Play className="h-5 w-5 mr-2" fill="currentColor" />
           {isCompleted ? "查看结果" : "继续练习"}

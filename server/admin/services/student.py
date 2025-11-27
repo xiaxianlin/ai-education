@@ -95,19 +95,41 @@ async def search_student(db: AsyncSession, params: SearchStudentSchema):
     )
 
 
-async def save_student_textbook(db: AsyncSession, id: str, textbook_ids: list[str]):
-    """保存学生的教材"""
+async def add_student_textbook(db: AsyncSession, id: str, textbook_id: int):
+    """添加学生的教材"""
     student = await db.scalar(select(Student).where(Student.id == id))
     if not student:
         raise ValueError("学生不存在")
 
-    await db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == id))
+    textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
+    if not textbook:
+        raise ValueError("教材不存在")
 
-    models = [
-        StudentTextbook(student_id=id, textbook_id=textbook_id) for textbook_id in textbook_ids
-    ]
+    record = await db.scalar(
+        select(StudentTextbook).where(
+            StudentTextbook.student_id == id, StudentTextbook.textbook_id == textbook_id
+        )
+    )
 
-    db.add_all(models)
+    if record:
+        raise ValueError("教材已经添加过了")
+
+    record = StudentTextbook(student_id=id, textbook_id=textbook_id)
+    db.add(record)
+    await db.commit()
+
+
+async def remove_student_textbook(db: AsyncSession, id: str, textbook_id: int):
+    """移除学生的教材"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
+
+    await db.execute(
+        delete(StudentTextbook).where(
+            StudentTextbook.student_id == id, StudentTextbook.textbook_id == textbook_id
+        )
+    )
     await db.commit()
 
 
@@ -137,26 +159,19 @@ async def reset_student_password(db: AsyncSession, id: str):
 
 async def get_student_detail(db: AsyncSession, id: str):
     """获取学生详情"""
-    student_model = await db.scalar(select(Student).where(Student.id == id))
-    if not student_model:
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
         raise ValueError("学生不存在")
-    return StudentSchema.model_validate(student_model)
 
-
-async def get_student_profile(db: AsyncSession, id: str):
-    """获取学生资料（包含当前教材信息）"""
-    student_model = await db.scalar(select(Student).where(Student.id == id))
-    if not student_model:
-        raise ValueError("学生不存在")
-    
-    # 获取当前激活的教材
     active_textbook = await db.scalar(
-        select(StudentTextbook).where(
-            StudentTextbook.student_id == id,
-            StudentTextbook.active == 1
-        )
+        select(StudentTextbook).where(StudentTextbook.student_id == id, StudentTextbook.active == 1)
     )
-    
+
+    print(active_textbook)
+
     return {
-        'current_textbook_id': active_textbook.textbook_id if active_textbook else None
+        "student": StudentSchema.model_validate(student),
+        "textbook": (
+            TextbookSchema.model_validate(active_textbook.textbook) if active_textbook else None
+        ),
     }

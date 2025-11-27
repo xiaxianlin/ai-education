@@ -1,4 +1,6 @@
 declare global {
+  // ===== 学生相关类型 =====
+
   interface Student {
     id: string;
     name: string;
@@ -7,16 +9,14 @@ declare global {
     status: number;
     create_time: number;
     update_time?: number;
-    textbooks?: Textbook[];
+  }
+
+  interface StudentProfile {
+    student: Student;
+    textbook?: Textbook;
   }
 
   interface StudentForm {
-    name: string;
-    phone: string;
-    password?: string;
-  }
-
-  interface StudentUpdateForm {
     name?: string;
     phone?: string;
     status?: number;
@@ -31,120 +31,97 @@ declare global {
     password: string;
   }
 
-  // 学生配置信息
-  interface StudentProfile {
-    id?: number;
-    student_id: string;
-    current_textbook_id?: number;
-    preferred_subjects?: string;
-    difficulty_preference?: string;
-    created_at?: number;
-    updated_at?: number;
-  }
+  // ===== 练习相关类型 =====
 
-  // 学习统计
-  interface StudentStats {
-    id?: number;
-    student_id: string;
-    total_practice: number;
-    total_questions: number;
-    correct_questions: number;
-    accuracy: number;
-    current_streak: number;
-    max_streak: number;
-    total_time: number;
-    created_at?: number;
-    updated_at?: number;
-  }
+  /**
+   * 练习会话状态
+   * 0: 未开始
+   * 1: 进行中
+   * 2: 已完成
+   */
+  type PracticeSessionStatus = 0 | 1 | 2;
 
-  // 今日练习会话
-  interface DailyPracticeSession {
+  /** 练习生成状态
+   * -1: 生成失败
+   * 0: 生成中
+   * 1: 生成成功
+   */
+  type PracticeGenerateStatus = -1 | 0 | 1;
+
+  /**
+   * 练习类型
+   */
+  type PracticeSessionType = 'daily_practice' | 'unit_practice' | 'assessment';
+
+  /**
+   * 练习会话（对应 PracticeSessionSchema）
+   */
+  interface PracticeSession {
     id: number;
     student_id: string;
-    date: number; // YYYYMMDD格式
-    total_questions: number;
-    correct_questions: number;
-    total_time: number;
-    score: number;
-    practice_type: string;
-    knowledge_coverage: string; // JSON
-    question_distribution: string; // JSON
-    question_ids: string; // JSON数组
-    answers: string; // JSON
-    status: string; // in_progress/completed
-    create_time: number;
-    update_time: number;
+    session_type: PracticeSessionType;
+    target_id?: number; // 单元ID或日期（如 20241123）
+    textbook_id?: number; // 教材ID
+    question_count: number; // 题目总数
+    answer_count: number; // 已答题数
+    correct_count: number; // 正确数
+    status: PracticeSessionStatus; // 会话状态：0-未开始, 1-进行中, 2-已完成
+    generate_status: PracticeGenerateStatus; // 生成状态：-1-生成失败, 0-生成中, 1-生成成功
+    start_time: number; // 开始时间（Unix时间戳，秒）
+    end_time?: number; // 结束时间（Unix时间戳，秒）
+    create_time: number; // 创建时间（Unix时间戳，秒）
+    update_time?: number; // 更新时间（Unix时间戳，秒）
   }
 
-  // 今日练习详情
-  interface DailyPracticeSessionDetail {
-    session: DailyPracticeSession;
-    questions: Array<{
-      id: number;
-      type: string;
-      subtype?: string;
-      content: string;
-      options?: string;
-      difficulty: string;
-      knowledge: string;
-      resource?: string;
-      resource_type?: string;
-      resource_content?: string;
-      answer?: string;
-      is_correct?: boolean;
-    }>;
-  }
-
-  // 错题
-  interface StudentWrongQuestion {
+  /**
+   * 答题记录（对应 PracticeAnswerSchema）
+   */
+  interface PracticeAnswer {
     id: number;
-    student_id: string;
+    session_id: number;
     question_id: number;
-    question_content?: string;
-    wrong_count: number;
-    is_mastered: number;
-    last_wrong_time: number;
-    created_at: number;
-    updated_at: number;
+    question_order: number; // 题目顺序
+    text_answer?: string; // 文本答案
+    status: number; // 答题状态: 0-未答, 1-正确, 2-错误
+    time_spent: number; // 耗时（秒）
+    submit_time?: number; // 提交时间
+    audio_answer?: string; // 音频答案（base64编码，前端使用）
   }
 
-  // 学生配置表单
-  interface StudentProfileForm {
-    current_textbook_id?: number;
-    preferred_subjects?: string;
-    difficulty_preference?: string;
+  /**
+   * 练习报告（对应 PracticeReportSchema）
+   */
+  interface PracticeReport {
+    id: number;
+    session_id: number;
+    student_id: string;
+    total_questions: number;
+    correct_questions: number;
+    total_time: number; // 总耗时（秒）
+    overall_score: number; // 总得分
+    current_ability?: number; // 当前能力值（-3到+3，主要用于assessment）
+    confidence?: number; // 置信度
+    ability_level?: string; // 能力等级
+    percentile?: number; // 百分位排名
+    knowledge_scores?: string; // 知识点掌握情况（JSON字符串）
+    question_distribution?: string; // 题目来源分布（JSON字符串）
+    ability_breakdown?: string; // 能力分解（JSON字符串）
+    learning_speed?: number; // 学习速度
+    consistency?: number; // 稳定性
+    strengths?: string; // 优势（JSON数组字符串）
+    weaknesses?: string; // 薄弱点（JSON数组字符串）
+    recommendations?: string; // 学习建议（JSON数组字符串）
+    create_time: number;
   }
 
-  // 错题查询参数
-  interface WrongQuestionQueryParams {
-    mastered?: number;
-  }
-
-  // 兼容旧的Manager页面导入
-  interface User {
-    id: string;
-    username: string;
-    nickname?: string;
-    avatar?: string;
-    phone?: string;
-    email?: string;
-    status: number;
-    created_at?: string;
-    updated_at?: string;
-  }
-
-  interface UserCreateSchema {
-    username: string;
-    password: string;
-    nickname?: string;
-    phone?: string;
-    email?: string;
-  }
-
-  interface UserUpdateSchema {
-    nickname?: string;
-    phone?: string;
-    email?: string;
+  /**
+   * 练习会话详情
+   */
+  interface PracticeSessionDetail {
+    session: PracticeSession;
+    questions: Question[];
+    answers: PracticeAnswer[];
+    report: PracticeReport;
   }
 }
 

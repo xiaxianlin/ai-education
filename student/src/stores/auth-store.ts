@@ -7,7 +7,6 @@ interface AuthStoreState {
   textbook?: Textbook;
   isAuthenticated: boolean;
   setToken: (token: string) => void;
-  setStudent: (student: Student) => void;
   logout: () => void;
   init: () => Promise<void>;
 }
@@ -23,7 +22,6 @@ export const useAuthStore = create<AuthStoreState>((set) => {
       localStorage.setItem("_t", token);
       set({ token, isAuthenticated: true });
     },
-    setStudent: (student) => set({ student }),
     logout: () => {
       localStorage.removeItem("_t");
       set({ token: undefined, student: undefined, isAuthenticated: false });

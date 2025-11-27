@@ -2,7 +2,7 @@
  * 练习结果弹窗组件
  */
 import { memo } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Trophy, CheckCircle, XCircle, Clock } from 'lucide-react';
@@ -87,13 +87,13 @@ export const ResultModal = memo(function ResultModal({
             <div className="flex gap-4 pt-4">
               <Button
                 variant="outline"
-                onClick={() => navigate({ to: getBackPath() })}
+                onClick={() => navigate(getBackPath())}
                 className="flex-1 h-12 rounded-xl"
               >
                 返回
               </Button>
               <Button
-                onClick={() => navigate({ to: '/history' })}
+                onClick={() => navigate('/history')}
                 className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 查看历史记录

@@ -1,5 +1,5 @@
 import { useRequest } from "ahooks";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { practiceService } from "@/services/practice";
 import { PracticeCard } from "@/components/business/PracticeCard";
 
@@ -9,12 +9,12 @@ export const UnitPracticeCard = () => {
   const { data: session } = useRequest(() => practiceService.getUnitPractice());
 
   const handleCreate = () => {
-    navigate({ to: "/unit-practice" });
+    navigate("/unit-practice");
   };
 
   const handleStart = () => {
     if (session?.id) {
-      navigate({ to: `/practice/${session.id}` });
+      navigate(`/practice/${session.id}`);
     }
   };
 

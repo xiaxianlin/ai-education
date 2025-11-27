@@ -24,7 +24,7 @@ export function PracticeCard({ id }: PracticeCardProps) {
 
   const handleRegenerate = () => {
     if (!todaySession) return;
-    
+
     generateWithConfirm(
       async () => {
         return await StudentApi.regenerateDailyPractice(id, todaySession.session_id);
@@ -49,7 +49,6 @@ export function PracticeCard({ id }: PracticeCardProps) {
     <Card
       title={<span style={{ fontSize: '16px', fontWeight: 600 }}>📝 每日练习</span>}
       loading={loadingTodayPractice}
-      extra={<Link to={practiceHistoryLink}>查看历史 →</Link>}
       style={{
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',

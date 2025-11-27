@@ -2,7 +2,7 @@
  * 操作按钮组件
  */
 import { memo } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Home, RefreshCw, BookOpen, History } from 'lucide-react';
 
@@ -34,7 +34,7 @@ export const ActionButtons = memo(function ActionButtons({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Button
           variant="outline"
-          onClick={() => navigate({ to: getBackPath() })}
+          onClick={() => navigate(getBackPath())}
           className="h-14 rounded-xl text-base"
         >
           <Home className="h-5 w-5 mr-2" />
@@ -43,7 +43,7 @@ export const ActionButtons = memo(function ActionButtons({
         {sessionType === 'daily_practice' && (
           <Button
             variant="outline"
-            onClick={() => navigate({ to: '/wrong' })}
+            onClick={() => navigate('/wrong')}
             className="h-14 rounded-xl text-base"
           >
             <RefreshCw className="h-5 w-5 mr-2" />
@@ -51,7 +51,7 @@ export const ActionButtons = memo(function ActionButtons({
           </Button>
         )}
         <Button
-          onClick={() => navigate({ to: '/practice-history' })}
+          onClick={() => navigate('/practice-history')}
           className="h-14 rounded-xl text-base bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <History className="h-5 w-5 mr-2" />
@@ -69,7 +69,7 @@ export const ActionButtons = memo(function ActionButtons({
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
-              onClick={() => navigate({ to: '/wrong' })}
+              onClick={() => navigate('/wrong')}
               className="w-full"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -77,7 +77,7 @@ export const ActionButtons = memo(function ActionButtons({
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate({ to: '/unit-practice' })}
+              onClick={() => navigate('/unit-practice')}
               className="w-full"
             >
               <BookOpen className="h-4 w-4 mr-2" />

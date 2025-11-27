@@ -2,7 +2,7 @@
  * 信息设置页面逻辑 Hook
  */
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { GRADES } from "@/stores/settings-store";
 import { profileApi } from "@/services/profile";
 import { toast } from "sonner";

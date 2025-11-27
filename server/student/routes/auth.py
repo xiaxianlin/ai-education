@@ -12,7 +12,7 @@ auth_router = APIRouter()
 async def check(request: Request, db: AsyncSession = Database):
     """检查当前学生登录状态，并返回学生信息以及当前使用的教材"""
     student = request.state.student
-    active_textbook = request.state.student_textbook
+    active_textbook = request.state.active_textbook
     return {"student": student, "textbook": active_textbook}
 
 

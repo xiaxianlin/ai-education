@@ -19,7 +19,7 @@ import { useRequest } from "ahooks";
 import { authService } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useFormValidation } from "@/hooks/useFormValidation";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/toast";
 
 export function Login() {
@@ -36,7 +36,7 @@ export function Login() {
     onSuccess: (res) => {
       setToken(res);
       toast.success("登录成功！");
-      navigate({ to: "/home" });
+      navigate("/home");
     },
   });
 

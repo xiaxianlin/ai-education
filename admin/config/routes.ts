@@ -11,9 +11,7 @@
   { path: '/question/detail/:id', component: './Question/Detail' },
   { path: '/student', name: '学生管理', icon: 'Github', component: './Student/List' },
   { path: '/student/detail/:id', component: './Student/Detail' },
-  { path: '/practice', name: '学生练习记录', icon: 'FileText', component: './Practice/List' },
-  { path: '/practice/detail/:sessionId', component: './Practice/Detail' },
-  { path: '/password', component: './ModifyPassword' },
+  { path: '/practice/detail/:session_id', component: './Student/PraticeDetail' },
   { path: '/login', layout: false, component: './Login' },
   { path: '*', layout: false, component: './404' },
 ];

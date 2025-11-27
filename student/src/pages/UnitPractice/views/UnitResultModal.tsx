@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -230,14 +230,14 @@ export function UnitResultModal({ report }: UnitResultModalProps) {
         <div className="flex gap-4 animate-in slide-in-from-bottom duration-500 delay-400">
           <Button
             variant="outline"
-            onClick={() => navigate({ to: "/unit-practice" })}
+            onClick={() => navigate("/unit-practice")}
             className="flex-1 h-14 text-lg font-bold border-3 rounded-2xl bg-gradient-to-br from-white to-purple-50 border-purple-300 text-purple-700 hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300"
           >
             <Home className="h-5 w-5 mr-2" />
             返回单元列表
           </Button>
           <Button
-            onClick={() => navigate({ to: "/practice-history" })}
+            onClick={() => navigate("/practice-history")}
             className="flex-1 h-14 text-lg font-bold rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:from-pink-600 hover:via-purple-600 hover:to-blue-600 text-white shadow-xl hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300"
           >
             <History className="h-5 w-5 mr-2" />

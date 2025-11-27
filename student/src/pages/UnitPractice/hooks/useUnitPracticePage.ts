@@ -3,7 +3,7 @@
  * 负责单元练习页面的业务逻辑
  */
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router-dom';
 import { profileApi } from '@/services/profile';
 import { practiceService } from '@/services/practice';
 import { toast } from 'sonner';
@@ -111,7 +111,7 @@ export function useUnitPracticePage() {
     const sessionId = incompleteSessions[unit.id];
     if (sessionId) {
       // 有未完成的练习，直接跳转
-      navigate({ to: `/practice/${sessionId}` });
+      navigate(`/practice/${sessionId}`);
       return;
     }
     
@@ -140,7 +140,7 @@ export function useUnitPracticePage() {
           [practiceModal.unitId]: sessionId,
         }));
       
-        navigate({ to: `/practice/${sessionId}` });
+        navigate(`/practice/${sessionId}`);
       }
     } catch (error) {
       console.error('Failed to create practice:', error);

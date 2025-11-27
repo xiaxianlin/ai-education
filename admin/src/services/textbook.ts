@@ -12,10 +12,7 @@ export const TextbookApi = {
   },
 
   create: async (data: TextbookForm) => {
-    const res = await request<ApiData<Textbook>>('/textbook', {
-      method: 'POST',
-      data,
-    });
+    const res = await request<ApiData<Textbook>>('/textbook', { method: 'POST', data });
     return res.data;
   },
 

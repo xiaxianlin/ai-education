@@ -2,12 +2,12 @@
  * 练习结果页面逻辑 Hook
  */
 import { useState, useEffect } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useParams } from 'react-router-dom';
 import { practiceService } from '@/services/practice';
 import { profileApi } from '@/services/profile';
 
 export function usePracticeResult() {
-  const { sessionId } = useParams({ from: '/practice-result/$sessionId' });
+  const { sessionId } = useParams<{ sessionId: string }>();
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState<PracticeSessionDetail | null>(null);
   const [unitName, setUnitName] = useState<string | undefined>(undefined);

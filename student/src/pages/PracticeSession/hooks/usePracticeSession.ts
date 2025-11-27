@@ -3,7 +3,7 @@
  * 管理练习会话的状态、答题、提交等功能
  */
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "react-router-dom";
 import { practiceService } from "@/services/practice";
 import { toast } from "sonner";
 
@@ -80,7 +80,7 @@ export function usePracticeSession(sessionId: number) {
       const errorMessage =
         error instanceof Error ? error.message : "加载练习失败";
       toast.error(errorMessage);
-      navigate({ to: "/home" });
+      navigate("/home");
     } finally {
       setLoading(false);
     }
@@ -253,7 +253,7 @@ export function usePracticeSession(sessionId: number) {
       toast.success("练习已完成！");
 
       // 导航到结果页
-      navigate({ to: `/practice-result/${session.id}` });
+      navigate(`/practice-result/${session.id}`);
     } catch (error) {
       console.error("Failed to complete practice:", error);
       const errorMessage =
