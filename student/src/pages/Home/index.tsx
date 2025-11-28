@@ -10,7 +10,7 @@ import { QuickActions } from "./views/QuickActions";
 
 export default function Home() {
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
+    <div>
       {/* 欢迎区域 */}
       <WelcomeCard />
       {/* 主要内容区域 */}
