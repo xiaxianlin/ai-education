@@ -39,6 +39,8 @@ async def update_student(db: AsyncSession, id: str, params: UpdateStudentSchema)
         student.name = params.name
     if params.phone is not None:
         student.phone = params.phone
+    if params.grade is not None:
+        student.grade = params.grade
     if params.status is not None:
         student.status = params.status
 
@@ -133,12 +135,22 @@ async def remove_student_textbook(db: AsyncSession, id: str, textbook_id: int):
     await db.commit()
 
 
-async def query_student_textbook(db: AsyncSession, id: str):
+async def get_student_textbooks(db: AsyncSession, id: str):
     """查询学生的教材"""
     result = await db.scalars(
         select(Textbook)
         .join(StudentTextbook, StudentTextbook.textbook_id == Textbook.id)
         .where(StudentTextbook.student_id == id)
+    )
+    return [TextbookSchema.model_validate(item) for item in result.all()]
+
+
+async def get_student_unused_textbooks(db: AsyncSession, id: str):
+    """查询学生的教材"""
+    used_textbooks = await get_student_textbooks(db, id)
+    ids = [textbook.id for textbook in used_textbooks]
+    result = await db.scalars(
+        select(Textbook).where(Textbook.id.not_in(ids)).order_by(Textbook.grade)
     )
     return [TextbookSchema.model_validate(item) for item in result.all()]
 
@@ -163,15 +175,4 @@ async def get_student_detail(db: AsyncSession, id: str):
     if not student:
         raise ValueError("学生不存在")
 
-    active_textbook = await db.scalar(
-        select(StudentTextbook).where(StudentTextbook.student_id == id, StudentTextbook.active == 1)
-    )
-
-    print(active_textbook)
-
-    return {
-        "student": StudentSchema.model_validate(student),
-        "textbook": (
-            TextbookSchema.model_validate(active_textbook.textbook) if active_textbook else None
-        ),
-    }
+    return StudentSchema.model_validate(student)

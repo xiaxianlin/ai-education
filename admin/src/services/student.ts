@@ -17,7 +17,7 @@ export const StudentApi = {
   },
 
   getDetail: async (id: string) => {
-    const res = await request<ApiData<StudentProfile>>(`/student/${id}`);
+    const res = await request<ApiData<Student>>(`/student/${id}`);
     return res.data;
   },
 
@@ -37,6 +37,11 @@ export const StudentApi = {
     return res.data;
   },
 
+  getUnusedTextbooks: async (id: string) => {
+    const res = await request<ApiData<Textbook[]>>(`/student/${id}/unused_textbooks`);
+    return res.data;
+  },
+
   addTextbook: async (id: string, textbookId: number) => {
     await request<ApiData<void>>(`/student/${id}/textbook/${textbookId}`, { method: 'POST' });
   },
@@ -53,48 +58,6 @@ export const StudentApi = {
     );
     return res.data;
   },
-  // 为学生创建每日练习
-  createDailyPractice: async (studentId: string) => {
-    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/daily/create`, {
-      method: 'POST',
-    });
-    return res.data;
-  },
-
-  // 为学生重新生成每日练习
-  regenerateDailyPractice: async (studentId: string, sessionId: number) => {
-    const res = await request<ApiData<PracticeSession>>(`/practice/${studentId}/daily/regenerate`, {
-      method: 'POST',
-    });
-    return res.data;
-  },
-
-  // 为学生重新生成单元练习
-  regenerateUnitPractice: async (studentId: string, unitId: number) => {
-    const res = await request<ApiData<PracticeSession>>(
-      `/practice/${studentId}/unit/${unitId}/regenerate`,
-      { method: 'POST' },
-    );
-    return res.data;
-  },
-
-  // 为学生创建能力评估
-  createAssessment: async (studentId: string) => {
-    const res = await request<ApiData<PracticeSession>>(
-      `/practice/${studentId}/assessment/create`,
-      { method: 'POST' },
-    );
-    return res.data;
-  },
-
-  // 为学生重新生成能力评估
-  regenerateAssessment: async (studentId: string) => {
-    const res = await request<ApiData<PracticeSession>>(
-      `/practice/${studentId}/assessment/regenerate`,
-      { method: 'POST' },
-    );
-    return res.data;
-  },
 
   // 获取练习会话详情
   getPracticeSession: async (sessionId: number) => {
@@ -102,6 +65,7 @@ export const StudentApi = {
     return res.data;
   },
 
+  // 删除练习会话
   removePracticeSession: async (sessionId: number) => {
     await request<ApiData<void>>(`/practice/session/${sessionId}`, { method: 'DELETE' });
   },

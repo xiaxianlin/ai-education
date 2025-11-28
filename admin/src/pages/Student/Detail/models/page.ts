@@ -12,11 +12,15 @@ const useContainer = () => {
   const [editForm] = ProForm.useForm<StudentForm>();
   const [editFormVisible, setEditFormVisible] = useState(false);
 
-  const { data, loading, refresh } = useRequest(() => StudentApi.getDetail(id!), {
+  const {
+    data: student,
+    error,
+    loading,
+    refresh,
+  } = useRequest(() => StudentApi.getDetail(id!), {
     ready: !!id,
     refreshDeps: [id],
   });
-  const { student, textbook } = data || {};
   const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.delete(id!), {
     manual: true,
     onSuccess: () => {
@@ -51,8 +55,7 @@ const useContainer = () => {
   );
   return {
     student,
-    textbook,
-    loading,
+    loading: !student && !error,
     deleting,
     resetting,
     toggling,

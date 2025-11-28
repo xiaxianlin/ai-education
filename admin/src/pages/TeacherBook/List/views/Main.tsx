@@ -49,23 +49,7 @@ export default function MainView() {
         valueType: 'select',
         valueEnum: gradeEnum,
         hideInTable: false,
-        render: (_, record) => {
-          const gradeInfo = record.grade ? GRADES[record.grade] : null;
-          if (!gradeInfo) return '-';
-          const semester = record.semester || '';
-          // 简化学期显示：上学期 -> 上，下学期 -> 下，整学期 -> 整
-          let semesterShort = '';
-          if (semester === '上学期') {
-            semesterShort = '上';
-          } else if (semester === '下学期') {
-            semesterShort = '下';
-          } else if (semester === '整学期') {
-            semesterShort = '整';
-          } else if (semester) {
-            semesterShort = semester;
-          }
-          return `${gradeInfo.stage}${gradeInfo.grade}${semesterShort}`;
-        },
+        render: (_, record) => `${GRADES[record.grade]}${record.semester}`,
       },
       {
         title: '文件上传',

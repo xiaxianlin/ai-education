@@ -1,5 +1,5 @@
 import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Tabs } from 'antd';
+import { Button, Tag, Space, Card } from 'antd';
 import { Link } from '@umijs/max';
 import { useRef, useMemo, useState } from 'react';
 import { fmtTime } from '@/utils/time';
@@ -8,6 +8,7 @@ import { useStudentDetailModel } from '../models/page';
 import { StudentApi } from '@/services/student';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { useRequest } from 'ahooks';
+import { GRADES } from '@/constants/course';
 
 export function PracticeHistory() {
   const actionRef = useRef<ActionType>();
@@ -35,6 +36,15 @@ export function PracticeHistory() {
           }
           return targetId || '-';
         },
+      },
+      {
+        title: '教材',
+        dataIndex: 'textbook',
+        width: 200,
+        renderText: (textbook: Textbook) =>
+          `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${
+            textbook.semester
+          }`,
       },
       {
         title: '总题数',
@@ -113,19 +123,19 @@ export function PracticeHistory() {
   );
 
   return (
-    <div className="simple-list-page">
-      <Tabs
-        activeKey={practiceType}
-        onChange={(key) => {
-          setPracticeType(key as PracticeSessionType);
-          actionRef.current?.reload();
-        }}
-        items={[
-          { key: 'daily_practice', label: '每日练习' },
-          { key: 'unit_practice', label: '单元练习' },
-          { key: 'assessment', label: '能力评估' },
-        ]}
-      />
+    <Card
+      className="table-card"
+      activeTabKey={practiceType}
+      onTabChange={(key) => {
+        setPracticeType(key as PracticeSessionType);
+        actionRef.current?.reload();
+      }}
+      tabList={[
+        { key: 'daily_practice', label: '每日练习' },
+        { key: 'unit_practice', label: '单元练习' },
+        { key: 'assessment', label: '能力评估' },
+      ]}
+    >
       <ProTable<PracticeSession>
         actionRef={actionRef}
         rowKey="id"
@@ -142,6 +152,6 @@ export function PracticeHistory() {
         scroll={{ x: 'max-content' }}
         pagination={{ defaultPageSize: 10 }}
       />
-    </div>
+    </Card>
   );
 }

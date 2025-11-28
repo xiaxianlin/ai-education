@@ -1,38 +1,21 @@
 """练习管理路由 - Admin端"""
 
-from fastapi import Query
+from fastapi import Depends
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
 from shared.services.practice import PracticeService
-import admin.services.practice as practice_service
+from admin.services import practice
+from admin.schema import GeneratePracticeSchema
 
 
 practice_router = APIRouter(prefix="/practice", tags=["学生练习管理"])
 
 
-@practice_router.get("/{student_id}/daily")
-async def get_daily_practice(student_id: str, db: AsyncSession = Database):
-    """
-    根据学生ID查询当天的每日练习
-
-    Args:
-        student_id: 学生ID
-
-    Returns:
-        练习会话信息（如果存在）或 None
-    """
-    return await practice_service.get_daily_practice(db, student_id)
-
-
-@practice_router.post("/{student_id}/generate/{type}")
+@practice_router.post("/generate")
 async def generate_practice_session(
-    student_id: str,
-    type: str,
-    unit_id: int | None = Query(None),
-    count: int = Query(15),
-    db: AsyncSession = Database,
+    params: GeneratePracticeSchema = Depends(), db: AsyncSession = Database
 ):
     """
     根据学生ID和练习类型生成练习
@@ -46,13 +29,23 @@ async def generate_practice_session(
     Returns:
         练习会话信息
     """
-
+    type = params.type
+    student_id = params.student_id
+    textbook_id = params.textbook_id
+    unit_id = params.unit_id
+    count = params.count
     if type == "daily_practice":
-        return await PracticeService.create_daily_practice(db, student_id, count)
+        return await PracticeService.create_daily_practice(
+            db=db, student_id=student_id, texbook_id=textbook_id, count=count
+        )
     elif type == "unit_practice":
-        return await PracticeService.create_unit_practice(db, student_id, unit_id, count)
+        return await PracticeService.create_unit_practice(
+            db=db, student_id=student_id, texbook_id=textbook_id, count=count, unit_id=unit_id
+        )
     elif type == "assessment":
-        return await PracticeService.create_assessment(db, student_id, count)
+        return await PracticeService.create_assessment(
+            db=db, student_id=student_id, texbook_id=textbook_id, count=count
+        )
     else:
         raise ValueError("无效的练习类型，可选值：daily_practice, unit_practice, assessment")
 
@@ -89,10 +82,10 @@ async def get_practice_history(student_id: str, practice_type: str, db: AsyncSes
         raise ValueError(f"无效的练习类型，可选值：{', '.join(valid_types)}")
 
     # 获取历史记录
-    return await practice_service.get_practice_history(db, student_id, practice_type)
+    return await practice.get_practice_history(db, student_id, practice_type)
 
 
-@practice_router.get("/session/{session_id}/detail")
+@practice_router.get("/session/{session_id}")
 async def get_session_detail(session_id: int, db: AsyncSession = Database):
     """
     根据练习会话ID查询会话详情
@@ -108,7 +101,7 @@ async def get_session_detail(session_id: int, db: AsyncSession = Database):
     Returns:
         会话详情，包含session、answers、report三部分
     """
-    return await practice_service.get_session_detail(db, session_id)
+    return await practice.get_session_detail(db, session_id)
 
 
 @practice_router.delete("/session/{session_id}")
@@ -119,4 +112,4 @@ async def delete_session(session_id: int, db: AsyncSession = Database):
     Args:
         session_id: 练习会话ID
     """
-    await practice_service.delete_session(db, session_id)
+    await practice.delete_session(db, session_id)

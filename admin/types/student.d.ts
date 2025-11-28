@@ -5,20 +5,16 @@ declare global {
     id: string;
     name: string;
     phone: string;
-    grade?: number;
+    grade: number;
     status: number;
     create_time: number;
     update_time?: number;
   }
 
-  interface StudentProfile {
-    student: Student;
-    textbook?: Textbook;
-  }
-
   interface StudentForm {
     name?: string;
     phone?: string;
+    grade?: number;
     status?: number;
   }
 
@@ -71,6 +67,8 @@ declare global {
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
     update_time?: number; // 更新时间（Unix时间戳，秒）
+
+    textbook?: Textbook;
   }
 
   /**
@@ -86,6 +84,8 @@ declare global {
     time_spent: number; // 耗时（秒）
     submit_time?: number; // 提交时间
     audio_answer?: string; // 音频答案（base64编码，前端使用）
+
+    question?: Question;
   }
 
   /**
@@ -119,7 +119,6 @@ declare global {
    */
   interface PracticeSessionDetail {
     session: PracticeSession;
-    questions: Question[];
     answers: PracticeAnswer[];
     report: PracticeReport;
   }

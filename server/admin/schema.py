@@ -196,9 +196,18 @@ class SaveStudentSubjectSchema(BaseModel):
 class UpdateStudentSchema(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
+    grade: Optional[int] = None
     status: Optional[int] = None
 
 
 class SearchStudentSchema(SearchSchema):
     phone: Optional[str] = None
     status: Optional[int] = None
+
+
+class GeneratePracticeSchema(BaseModel):
+    student_id: str
+    type: str
+    textbook_id: int
+    unit_id: Optional[int] = None
+    count: int = 15

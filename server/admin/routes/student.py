@@ -57,6 +57,12 @@ async def remove_student_textbook(id: str, textbook_id, db: AsyncSession = Datab
 
 
 @student_router.get("/{id}/textbooks")
-async def query_student_textbook(id: str, db: AsyncSession = Database):
+async def get_student_textbooks(id: str, db: AsyncSession = Database):
     """查询学生教材"""
-    return await student.query_student_textbook(db, id)
+    return await student.get_student_textbooks(db, id)
+
+
+@student_router.get("/{id}/unused_textbooks")
+async def get_student_unused_textbooks(id: str, db: AsyncSession = Database):
+    """查询学生教材"""
+    return await student.get_student_unused_textbooks(db, id)

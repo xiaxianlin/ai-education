@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { Button, Card, Empty, Flex, message } from 'antd';
-import { ModalForm, ProForm, ProFormText } from '@ant-design/pro-components';
+import { ModalForm, ProForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { useStudentDetailModel } from '../models/page';
 import { TextbookCard } from '../components/TextbookCard';
 import { StudentApi } from '@/services/student';
 import { useRequest } from 'ahooks';
+import { GRADES } from '@/constants/course';
 
 export function TextbookList() {
-  const { student, textbook: activeTextbook } = useStudentDetailModel();
+  const { student } = useStudentDetailModel();
   const [visible, setVisible] = useState(false);
   const [form] = ProForm.useForm<{ textbookId: number }>();
   const { data, loading, refresh } = useRequest(() => StudentApi.getTextbooks(student?.id!), {
+    ready: !!student?.id,
+  });
+
+  const { data: unusedTextbooks } = useRequest(() => StudentApi.getUnusedTextbooks(student?.id!), {
     ready: !!student?.id,
   });
 
@@ -56,7 +61,6 @@ export function TextbookList() {
               <TextbookCard
                 key={textbook.id}
                 textbook={textbook}
-                active={activeTextbook?.id === textbook.id}
                 onDelete={() => handleRemoveTextbook(textbook.id)}
               />
             ))}
@@ -86,11 +90,18 @@ export function TextbookList() {
         }}
       >
         <div style={{ paddingTop: '16px' }} />
-        <ProFormText
+        <ProFormSelect
+          showSearch
           name="textbookId"
-          label="教材ID"
-          placeholder="请输入教材ID"
-          rules={[{ required: true, message: '请输入教材ID' }]}
+          label="教材"
+          placeholder="请选择教材"
+          rules={[{ required: true, message: '请选择教材' }]}
+          options={unusedTextbooks?.map((textbook) => ({
+            label: `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${
+              textbook.semester
+            }`,
+            value: textbook.id,
+          }))}
         />
       </ModalForm>
     </>

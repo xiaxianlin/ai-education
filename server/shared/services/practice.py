@@ -34,14 +34,22 @@ class PracticeService:
 
     @staticmethod
     async def generate_practice_session(
-        *, db: AsyncSession, type: str, count: int, student_id: str, unit_id: int | None = None
+        *,
+        db: AsyncSession,
+        type: str,
+        count: int,
+        student_id: str,
+        texbook_id: int,
+        unit_id: int | None = None,
     ):
         student_textbook = await db.scalar(
-            select(StudentTextbook).where(StudentTextbook.student_id == student_id, StudentTextbook.active == 1)
+            select(StudentTextbook).where(
+                StudentTextbook.student_id == student_id, StudentTextbook.texbook_id == texbook_id
+            )
         )
 
         if not student_textbook:
-            raise ValueError("学生未设置激活教材")
+            raise ValueError("未找到学生相应的教材")
 
         textbook_id = student_textbook.textbook_id
 
@@ -75,7 +83,9 @@ class PracticeService:
             session.update_time = now()
             await db.commit()
 
-            logger.info(f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}")
+            logger.info(
+                f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}"
+            )
             return session
         except Exception as e:
             # 生成失败后，更新状态为"生成失败"
@@ -119,20 +129,29 @@ class PracticeService:
             session.generate_status = 1
             await db.commit()
 
-            logger.info(f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}")
+            logger.info(
+                f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}"
+            )
             return session
         except Exception as e:
             logger.error(f"重新生成练习会话失败: session_id={session_id}, error={e}")
             await db.rollback()
             raise ValueError(f"会话重新生成失败: {str(e)}")
 
-    async def create_daily_practice(db: AsyncSession, student_id: str, count: int):
+    async def create_daily_practice(
+        *,
+        db: AsyncSession,
+        student_id: str,
+        texbook_id: int,
+        count: int,
+    ):
         """为学生生成每日练习"""
         current_date = today()
 
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
+                PracticeSession.texbook_id == texbook_id,
                 PracticeSession.session_type == "daily_practice",
                 PracticeSession.target_id == current_date,
             )
@@ -145,6 +164,7 @@ class PracticeService:
             select(PracticeSession)
             .where(
                 PracticeSession.student_id == student_id,
+                PracticeSession.texbook_id == texbook_id,
                 PracticeSession.session_type == "daily_practice",
                 PracticeSession.status != 2,
             )
@@ -153,12 +173,16 @@ class PracticeService:
 
         if uncompleted_session:
 
-            logger.info(f"找到未完成的每日练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}")
+            logger.info(
+                f"找到未完成的每日练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}"
+            )
 
             try:
                 # 重置所有答题记录的信息
                 answer_records = await db.scalars(
-                    select(PracticeAnswer).where(PracticeAnswer.session_id == uncompleted_session.id)
+                    select(PracticeAnswer).where(
+                        PracticeAnswer.session_id == uncompleted_session.id
+                    )
                 )
                 for answer in answer_records.all():
                     answer.text_answer = None
@@ -177,7 +201,9 @@ class PracticeService:
 
                 await db.commit()
 
-                logger.info(f"未完成每日练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}")
+                logger.info(
+                    f"未完成每日练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}"
+                )
 
                 return uncompleted_session.id
 
@@ -190,15 +216,19 @@ class PracticeService:
 
         logger.info(f"开始创建每日练习: student_id={student_id}")
         session = await PracticeService.generate_practice_session(
-            db=db,
-            type="daily_practice",
-            count=count,
-            student_id=student_id,
+            db=db, type="daily_practice", count=count, student_id=student_id, texbook_id=texbook_id
         )
 
         return session.id
 
-    async def create_unit_practice(db: AsyncSession, student_id: str, unit_id: int, count: int):
+    async def create_unit_practice(
+        *,
+        db: AsyncSession,
+        student_id: str,
+        texbook_id: int,
+        unit_id: int,
+        count: int,
+    ):
         """为学生生成单元练习"""
 
         # 获取单元信息
@@ -211,6 +241,7 @@ class PracticeService:
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
+                PracticeSession.texbook_id == texbook_id,
                 PracticeSession.session_type == "unit_practice",
                 PracticeSession.target_id == unit_id,
                 PracticeSession.status != 2,
@@ -227,20 +258,29 @@ class PracticeService:
             type="unit_practice",
             count=count,
             unit_id=unit_id,
-            textbook_id=unit.textbook.id,
+            textbook_id=texbook_id,
             student_id=student_id,
         )
 
-        logger.info(f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}")
+        logger.info(
+            f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}"
+        )
 
         return session.id
 
-    async def create_assessment(db: AsyncSession, student_id: str, count: int):
+    async def create_assessment(
+        *,
+        db: AsyncSession,
+        student_id: str,
+        texbook_id: int,
+        count: int,
+    ):
         """为学生生成能力评测"""
 
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
+                PracticeSession.texbook_id == texbook_id,
                 PracticeSession.session_type == "assessment",
                 PracticeSession.status != 2,
             )
@@ -256,6 +296,7 @@ class PracticeService:
             type="assessment",
             count=count,
             student_id=student_id,
+            texbook_id=texbook_id,
         )
 
         return session.id

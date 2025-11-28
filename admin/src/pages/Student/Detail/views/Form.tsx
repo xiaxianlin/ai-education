@@ -1,14 +1,15 @@
 import { useRequest } from 'ahooks';
-import { ModalForm, ProFormText } from '@ant-design/pro-components';
+import { ModalForm, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { StudentApi } from '@/services/student';
 import { useStudentDetailModel } from '../models/page';
 import { message } from 'antd';
+import { GRADES } from '@/constants/course';
 
 export function EditForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =
     useStudentDetailModel();
   const { runAsync: handleEditSubmit, loading: editing } = useRequest(
-    async (values: StudentUpdateForm) => StudentApi.update(student?.id || '', values),
+    async (values: StudentForm) => StudentApi.update(student?.id || '', values),
     {
       manual: true,
       onSuccess: () => {
@@ -21,7 +22,7 @@ export function EditForm() {
   );
 
   return (
-    <ModalForm<StudentUpdateForm>
+    <ModalForm<StudentForm>
       width={500}
       form={editForm}
       open={editFormVisible}
@@ -59,6 +60,24 @@ export function EditForm() {
           { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' },
         ]}
         fieldProps={{ maxLength: 11 }}
+      />
+      <ProFormSelect
+        name="grade"
+        label="年级"
+        placeholder="请选择年级"
+        rules={[{ required: true, message: '请选择年级' }]}
+        options={Object.keys(GRADES).map((grade) => ({
+          label: GRADES[Number(grade)],
+          value: Number(grade),
+        }))}
+      />
+      <ProFormRadio.Group
+        name="status"
+        label="状态"
+        options={[
+          { label: '启用', value: 1 },
+          { label: '禁用', value: 0 },
+        ]}
       />
     </ModalForm>
   );

@@ -6,6 +6,7 @@ import { BasicInfo } from './BasicInfo';
 import { TextbookList } from './TextbookList';
 import { useStudentDetailModel } from '../models/page';
 import { PracticeHistory } from './PracticeHistory';
+import { EditForm } from './Form';
 
 export function Entry() {
   const { loading } = useStudentDetailModel();
@@ -27,6 +28,7 @@ export function Entry() {
 
         <TextbookList />
         <PracticeHistory />
+        <EditForm />
       </Space>
     </PageContainer>
   );

@@ -2,16 +2,14 @@ import { Card, Button } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { StatusTag } from '@/components/ui';
 import { useStudentDetailModel } from '../models/page';
+import { GRADES } from '@/constants/course';
 
 export function BasicInfo() {
   const { student, loading, editForm, setEditFormVisible } = useStudentDetailModel();
 
   const handleEdit = () => {
     if (student) {
-      editForm.setFieldsValue({
-        name: student.name,
-        phone: student.phone,
-      });
+      editForm.setFieldsValue({ ...student });
       setEditFormVisible(true);
     }
   };
@@ -30,6 +28,7 @@ export function BasicInfo() {
         <ProDescriptions column={3}>
           <ProDescriptions.Item label="姓名">{student.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="手机号">{student.phone}</ProDescriptions.Item>
+          <ProDescriptions.Item label="年级">{GRADES[student.grade]}</ProDescriptions.Item>
           <ProDescriptions.Item label="状态">
             <StatusTag status={student.status === 1} />
           </ProDescriptions.Item>

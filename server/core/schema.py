@@ -129,6 +129,7 @@ class StudentSchema(BaseModel):
     id: str
     name: str = ""
     phone: str
+    grade: int
     status: int = 0
     create_time: int
     update_time: Optional[int] = None
@@ -183,6 +184,8 @@ class PracticeSessionSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None  # 添加 update_time 字段
 
+    textbook: Optional["TextbookSchema"] = None
+
     model_config = {"from_attributes": True}
 
 
@@ -195,6 +198,8 @@ class PracticeAnswerSchema(BaseModel):
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
+
+    question: Optional["QuestionSchema"] = None
 
     model_config = {"from_attributes": True}
 

@@ -4,11 +4,9 @@ import { GRADES } from '@/constants/course';
 
 export function TextbookCard({
   textbook,
-  active,
   onDelete,
 }: {
   textbook: Textbook;
-  active?: boolean;
   onDelete?: () => void;
 }) {
   return (
@@ -16,8 +14,7 @@ export function TextbookCard({
       hoverable
       size="small"
       style={{ width: 300 }}
-      title={active ? <Tag color="green">当前使用</Tag> : undefined}
-      extra={
+      actions={[
         <Button
           key="delete"
           danger
@@ -25,16 +22,16 @@ export function TextbookCard({
           type="text"
           onClick={onDelete}
           icon={<DeleteOutlined />}
-        />
-      }
+        >
+          删除
+        </Button>,
+      ]}
     >
       <div style={{ padding: '12px 0' }}>
         <Card.Meta
           avatar={<Avatar shape="square" size={56} icon={<BookOutlined />} />}
           title={textbook.subject}
-          description={`${textbook.version} - ${GRADES[textbook.grade]?.grade} - ${
-            textbook.semester
-          }`}
+          description={`${textbook.version} | ${GRADES[textbook.grade]} | ${textbook.semester}`}
         />
       </div>
     </Card>

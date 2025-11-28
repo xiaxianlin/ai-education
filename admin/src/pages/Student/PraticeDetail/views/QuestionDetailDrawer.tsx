@@ -65,12 +65,12 @@ export function QuestionDetailDrawer({
     <Drawer
       title="题目详情"
       placement="right"
-      width={600}
+      width={750}
       open={open}
       onClose={onClose}
       destroyOnHidden
     >
-      <ProDescriptions>
+      <ProDescriptions bordered column={1}>
         <ProDescriptions.Item label="题目ID" valueType="text">
           {question.id}
         </ProDescriptions.Item>
@@ -99,14 +99,7 @@ export function QuestionDetailDrawer({
 
         <ProDescriptions.Item label="题目资源" valueType="text">
           {question.resource_type === 'image' && resourceUrl && (
-            <Image
-              src={resourceUrl}
-              alt="题目资源"
-              style={{ maxWidth: '100%', borderRadius: '4px' }}
-              preview={{
-                mask: '预览',
-              }}
-            />
+            <Image width={120} src={resourceUrl} alt="题目资源" preview={{ mask: '预览' }} />
           )}
           {question.resource_type === 'audio' && resourceUrl && (
             <AudioPlayer src={resourceUrl} resourceContent={question.resource_content} />

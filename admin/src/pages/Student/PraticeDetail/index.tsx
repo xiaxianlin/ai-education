@@ -11,7 +11,7 @@ import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
-import { QuestionDetailDrawer } from '@/components/business';
+import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import {
   PRACTICE_STATUS_COLORS,
   PRACTICE_STATUS_LABELS,
@@ -28,7 +28,7 @@ export default function PracticeDetailPage() {
     { ready: !!session_id },
   );
 
-  const { session, questions = [], answers = [] } = data || {};
+  const { session, answers = [] } = data || {};
 
   const answersMap = useMemo(() => {
     return answers.reduce((acc, answer) => {
@@ -175,76 +175,74 @@ export default function PracticeDetailPage() {
       }
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        {/* 练习进度卡片 */}
-        <Card title="📈 基本信息">
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <ProDescriptions column={3}>
-              <ProDescriptions.Item label="练习类型">
-                <Tag color="blue">{PRACTICE_TYPE_LABELS[session.session_type]}</Tag>
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="状态">
-                <Tag color={PRACTICE_STATUS_COLORS[session.status]}>
-                  {PRACTICE_STATUS_LABELS[session.status]}
-                </Tag>
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="开始时间" valueType="dateTime">
-                {fmtTime(session.start_time)}
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="结束时间" valueType="dateTime">
-                {fmtTime(session.end_time)}
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="创建时间" valueType="dateTime">
-                {fmtTime(session.create_time)}
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="更新时间" valueType="dateTime">
-                {fmtTime(session.update_time)}
-              </ProDescriptions.Item>
-            </ProDescriptions>
-            <Row gutter={16}>
-              <Col span={6}>
-                <Statistic
-                  title="总题数"
-                  value={session.question_count}
-                  suffix="题"
-                  valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
-                />
-              </Col>
-              <Col span={6}>
-                <Statistic
-                  title="已完成"
-                  value={session.answer_count}
-                  suffix="题"
-                  valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}
-                />
-              </Col>
-              <Col span={6}>
-                <Statistic
-                  title="正确"
-                  value={session.correct_count}
-                  suffix="题"
-                  valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}
-                />
-              </Col>
-              <Col span={6}>
-                <Statistic
-                  title="错误"
-                  value={session.answer_count - session.correct_count}
-                  suffix="题"
-                  valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#ff4d4f' }}
-                />
-              </Col>
-            </Row>
-          </Space>
+        <Card title="基本信息">
+          <ProDescriptions column={3}>
+            <ProDescriptions.Item label="练习类型">
+              <Tag color="blue">{PRACTICE_TYPE_LABELS[session.session_type]}</Tag>
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="状态">
+              <Tag color={PRACTICE_STATUS_COLORS[session.status]}>
+                {PRACTICE_STATUS_LABELS[session.status]}
+              </Tag>
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="开始时间" valueType="dateTime">
+              {fmtTime(session.start_time)}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="结束时间" valueType="dateTime">
+              {fmtTime(session.end_time)}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="创建时间" valueType="dateTime">
+              {fmtTime(session.create_time)}
+            </ProDescriptions.Item>
+            <ProDescriptions.Item label="更新时间" valueType="dateTime">
+              {fmtTime(session.update_time)}
+            </ProDescriptions.Item>
+          </ProDescriptions>
+        </Card>
+        <Card title="练习进度">
+          <Row gutter={16}>
+            <Col span={6}>
+              <Statistic
+                title="总题数"
+                value={session.question_count}
+                suffix="题"
+                valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="已完成"
+                value={session.answer_count}
+                suffix="题"
+                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="正确"
+                value={session.correct_count}
+                suffix="题"
+                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}
+              />
+            </Col>
+            <Col span={6}>
+              <Statistic
+                title="错误"
+                value={session.answer_count - session.correct_count}
+                suffix="题"
+                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#ff4d4f' }}
+              />
+            </Col>
+          </Row>
         </Card>
 
-        {/* 题目列表 */}
-        <Card title={`题目列表（共 ${questions} 题）`}>
+        <Card className="table-card" title={`题目列表（共 ${session.question_count} 题）`}>
           <ProTable
             rowKey="id"
             columns={columns}
             search={false}
             pagination={false}
-            dataSource={questions}
+            dataSource={answers.map((answer) => answer.question!)}
             loading={loading}
             options={false}
             toolbar={{ actions: [] }}
@@ -252,7 +250,6 @@ export default function PracticeDetailPage() {
           />
         </Card>
 
-        {/* 题目详情抽屉 */}
         <QuestionDetailDrawer
           open={!!selectedQuestion}
           onClose={() => setSelectedQuestion(undefined)}
