@@ -22,7 +22,7 @@ export function Header() {
       <div className="h-16 flex items-center justify-between px-4 gap-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer max-w-full">
-            <span className="text-xl">📚</span>
+            <span className="text-4xl">🎓</span>
             <div className="flex flex-col min-w-0">
               <span className="text-xs text-muted-foreground">当前年级</span>
               <span className="text-sm font-semibold text-foreground truncate">

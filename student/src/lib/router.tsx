@@ -15,7 +15,7 @@ const AssessmentPractice = lazy(() => import("@/pages/Practice/Assessment"));
 const PracticeSession = lazy(() => import("@/pages/Practice/Session"));
 const PracticeHistory = lazy(() => import("@/pages/Practice/History"));
 const PracticeReport = lazy(() => import("@/pages/Practice/Report"));
-const Settings = lazy(() => import("@/pages/Settings"));
+
 const WrongRecords = lazy(() => import("@/pages/WrongRecords"));
 
 export const router = createBrowserRouter([
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
           { path: "practice/session/:sessionId", element: <PracticeSession /> },
           { path: "practice/report/:sessionId", element: <PracticeReport /> },
           { path: "wrong-records", element: <WrongRecords /> },
-          { path: "settings", element: <Settings /> },
+
         ],
       },
     ],

@@ -4,9 +4,9 @@
  */
 import { memo } from 'react';
 
-interface WelcomeCardProps {}
+interface WelcomeCardProps { }
 
-export const WelcomeCard = memo(function WelcomeCard({}: WelcomeCardProps) {
+export const WelcomeCard = memo(function WelcomeCard({ }: WelcomeCardProps) {
   const greetingEmojis = ['👋', '😊', '🎈', '🌈', '🎨'];
   const randomGreeting = greetingEmojis[Math.floor(Math.random() * greetingEmojis.length)];
 
