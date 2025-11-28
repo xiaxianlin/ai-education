@@ -5,8 +5,12 @@
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-const BG_COLORS = ["border-green-500/20 bg-green-500/5", "border-destructive/20 bg-destructive/5", "border-primary/20 bg-primary/5"];
-const BG_COLORS_1 = ['bg-green-500', 'bg-destructive', 'bg-primary'];
+const BG_COLORS = [
+  "border-green-500/20 bg-green-500/5",
+  "border-destructive/20 bg-destructive/5",
+  "border-primary/20 bg-primary/5",
+];
+const BG_COLORS_1 = ["bg-green-500", "bg-destructive", "bg-primary"];
 const actions = [
   {
     label: "练习记录",
@@ -22,13 +26,10 @@ const actions = [
     label: "敬请期待",
     emoji: "🤩",
   },
-
 ];
 
 export function QuickActions() {
-
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4">
@@ -38,23 +39,23 @@ export function QuickActions() {
           <div
             onClick={() => action.path && navigate(action.path)}
             className={cn(
-              "relative h-32 rounded-2xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group-hover:scale-105 bg-card",
+              "relative h-32 rounded-2xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden hover:scale-105 bg-card",
               BG_COLORS[i]
             )}
           >
             {/* 背景装饰 */}
             <div
               className={cn(
-                "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300",
+                "absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300",
                 BG_COLORS_1[i]
               )}
             />
             {/* 内容 */}
             <div className="relative h-full flex flex-col items-center justify-center gap-3 p-4">
-              <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
+              <div className="text-4xl hover:scale-110 transition-transform duration-300">
                 {action.emoji}
               </div>
-              <span className="text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
+              <span className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 {action.label}
               </span>
             </div>
@@ -63,4 +64,4 @@ export function QuickActions() {
       </div>
     </div>
   );
-};
+}
