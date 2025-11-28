@@ -1,3 +1,3 @@
-export default function DailyPractice() {
-  return <div>DailyPractice</div>;
+export default function AssessmentPractice() {
+  return <div>AssessmentPractice</div>;
 }

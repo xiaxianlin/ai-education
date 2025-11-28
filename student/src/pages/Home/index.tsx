@@ -8,7 +8,7 @@ import { AssessmentCard } from "./views/AssessmentCard";
 import { UnitPracticeCard } from "./views/UnitPracticeCard";
 import { QuickActions } from "./views/QuickActions";
 
-export function Home() {
+export default function Home() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
       {/* 欢迎区域 */}

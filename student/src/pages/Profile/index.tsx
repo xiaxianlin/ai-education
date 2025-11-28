@@ -2,14 +2,14 @@
  * 个人信息页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Header } from '@/components/business/Header';
-import { TrendingUp } from 'lucide-react';
-import { LoadingSpinner } from '@/components/business/LoadingSpinner';
-import { useProfile } from './hooks/useProfile';
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Header } from "@/components/business/Header";
+import { TrendingUp } from "lucide-react";
+import { LoadingSpinner } from "@/components/business/LoadingSpinner";
+import { useProfile } from "./hooks/useProfile";
 
-export function Profile() {
+export default function Profile() {
   const { loading } = useProfile();
 
   if (loading) {
@@ -84,4 +84,3 @@ export function Profile() {
     </div>
   );
 }
-

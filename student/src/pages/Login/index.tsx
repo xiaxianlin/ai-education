@@ -22,7 +22,7 @@ import { useFormValidation } from "@/hooks/useFormValidation";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/toast";
 
-export function Login() {
+export default function Login() {
   const navigate = useNavigate();
   const { setToken } = useAuthStore();
 

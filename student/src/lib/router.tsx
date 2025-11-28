@@ -6,23 +6,17 @@ import { GuestRouteGuard } from "@/components/guards/GuestRouteGuard";
 import { ProtectedRouteGuard } from "@/components/guards/ProtectedRouteGuard";
 
 // 懒加载页面组件
-const Login = lazy(() =>
-  import("../pages/Login").then((m) => ({ default: m.Login }))
-);
-const Home = lazy(() =>
-  import("../pages/Home").then((m) => ({ default: m.Home }))
-);
-
-const Profile = lazy(() =>
-  import("../pages/Profile").then((m) => ({ default: m.Profile }))
-);
-const DailyPractice = lazy(() => import("../pages/Practice/Daily"));
-const UnitPractice = lazy(() => import("../pages/Practice/Unit"));
-const AssessmentPractice = lazy(() => import("../pages/Practice/Assessment"));
-const PracticeSession = lazy(() => import("../pages/Practice/Session"));
-const PracticeHistory = lazy(() => import("../pages/Practice/History"));
-const PracticeReport = lazy(() => import("../pages/Practice/Report"));
-const Settings = lazy(() => import("../pages/Settings"));
+const Login = lazy(() => import("@/pages/Login"));
+const Home = lazy(() => import("@/pages/Home"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const DailyPractice = lazy(() => import("@/pages/Practice/Daily"));
+const UnitPractice = lazy(() => import("@/pages/Practice/Unit"));
+const AssessmentPractice = lazy(() => import("@/pages/Practice/Assessment"));
+const PracticeSession = lazy(() => import("@/pages/Practice/Session"));
+const PracticeHistory = lazy(() => import("@/pages/Practice/History"));
+const PracticeReport = lazy(() => import("@/pages/Practice/Report"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const WrongRecords = lazy(() => import("@/pages/WrongRecords"));
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +48,7 @@ export const router = createBrowserRouter([
           { path: "practice/history", element: <PracticeHistory /> },
           { path: "practice/session/:sessionId", element: <PracticeSession /> },
           { path: "practice/report/:sessionId", element: <PracticeReport /> },
+          { path: "wrong-records", element: <WrongRecords /> },
           { path: "settings", element: <Settings /> },
         ],
       },
