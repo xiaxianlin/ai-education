@@ -2,16 +2,16 @@
  * 单元练习页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Header } from '@/components/business/Header';
-import { Card, CardContent } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/business/LoadingSpinner';
-import { useUnitPracticePage } from './hooks/useUnitPracticePage';
-import { UnitCard } from './views/UnitCard';
-import { KnowledgeModal } from './views/KnowledgeModal';
-import { PracticeModal } from './views/PracticeModal';
-import { getColorTheme } from './utils/colorThemes';
+import { Header } from "@/components/business/Header";
+import { Card, CardContent } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/business/LoadingSpinner";
+import { useUnitPracticePage } from "./hooks/useUnitPracticePage";
+import { UnitCard } from "./views/UnitCard";
+import { KnowledgeModal } from "./views/KnowledgeModal";
+import { PracticeModal } from "./views/PracticeModal";
+import { getColorTheme } from "./utils/colorThemes";
 
-export function UnitPractice() {
+export default function UnitPractice() {
   const {
     units,
     currentTextbook,
@@ -53,7 +53,7 @@ export function UnitPractice() {
                 <p className="text-base text-muted-foreground">
                   {currentTextbook
                     ? `${currentTextbook.subject} · ${currentTextbook.grade}年级 ${currentTextbook.semester}`
-                    : '选择你要练习的单元'}
+                    : "选择你要练习的单元"}
                 </p>
               </div>
             </div>
@@ -65,8 +65,12 @@ export function UnitPractice() {
           <Card className="border-2 border-accent/50 bg-accent/10 shadow-lg rounded-3xl">
             <CardContent className="p-6 text-center">
               <div className="text-5xl mb-3">⚠️</div>
-              <p className="text-xl font-bold text-foreground mb-2">还没选教材呢！</p>
-              <p className="text-base text-muted-foreground">去设置里选择你的学习教材吧~ 📖</p>
+              <p className="text-xl font-bold text-foreground mb-2">
+                还没选教材呢！
+              </p>
+              <p className="text-base text-muted-foreground">
+                去设置里选择你的学习教材吧~ 📖
+              </p>
             </CardContent>
           </Card>
         )}
@@ -94,10 +98,12 @@ export function UnitPractice() {
             <CardContent className="py-16 text-center">
               <div className="text-7xl mb-6">📖</div>
               <p className="text-2xl font-bold text-foreground mb-3">
-                {currentTextbook ? '这个教材还没有单元哦' : '还没有选教材呢'}
+                {currentTextbook ? "这个教材还没有单元哦" : "还没有选教材呢"}
               </p>
               {!currentTextbook && (
-                <p className="text-lg text-muted-foreground">去设置里选一个吧！🎯</p>
+                <p className="text-lg text-muted-foreground">
+                  去设置里选一个吧！🎯
+                </p>
               )}
             </CardContent>
           </Card>
@@ -124,4 +130,3 @@ export function UnitPractice() {
     </div>
   );
 }
-

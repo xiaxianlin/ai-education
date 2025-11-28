@@ -20,5 +20,10 @@ declare global {
     page: number;
     pageSize: number;
   }
+
+  interface Profile {
+    student: Student;
+    textbooks: Textbook[];
+  }
 }
 export {};

@@ -2,21 +2,15 @@
  * 通用练习结果页面
  * 根据 session_id 显示练习结果
  */
-import { Header } from '@/components/business/Header';
-import { LoadingSpinner } from '@/components/business/LoadingSpinner';
-import { usePracticeResult } from './hooks/usePracticeResult';
-import { ResultSummary } from './views/ResultSummary';
-import { QuestionReview } from './views/QuestionReview';
-import { ActionButtons } from './views/ActionButtons';
+import { Header } from "@/components/business/Header";
+import { LoadingSpinner } from "@/components/business/LoadingSpinner";
+import { usePracticeResult } from "./hooks/usePracticeResult";
+import { ResultSummary } from "./views/ResultSummary";
+import { QuestionReview } from "./views/QuestionReview";
+import { ActionButtons } from "./views/ActionButtons";
 
-export function PracticeResult() {
-  const {
-    loading,
-    sessionData,
-    unitName,
-    report,
-    error,
-  } = usePracticeResult();
+export default function PracticeReport() {
+  const { loading, sessionData, unitName, report, error } = usePracticeResult();
 
   if (loading) {
     return (
@@ -70,11 +64,8 @@ export function PracticeResult() {
         )}
 
         {/* 操作按钮 */}
-        <ActionButtons
-          sessionType={sessionType}
-        />
+        <ActionButtons sessionType={sessionType} />
       </div>
     </div>
   );
 }
-

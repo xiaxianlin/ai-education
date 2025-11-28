@@ -6,15 +6,6 @@ declare global {
     phone: string;
     password: string;
   }
-
-  /**
-   * 检查登录状态响应
-   */
-  interface CheckAuthResponse {
-    student: Student;
-    textbook?: Textbook;
-  }
-
   /**
    * 提交答案请求参数（对应 AnswerQuestionSchema）
    */

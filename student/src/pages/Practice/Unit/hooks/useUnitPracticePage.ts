@@ -4,7 +4,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { profileApi } from '@/services/profile';
+import { profileService } from '@/services/profile';
 import { practiceService } from '@/services/practice';
 import { toast } from 'sonner';
 
@@ -58,14 +58,14 @@ export function useUnitPracticePage() {
   const loadUnits = useCallback(async () => {
     try {
       setLoading(true);
-      const checkResponse = await profileApi.check();
+      const checkResponse = await profileService.check();
       if (!checkResponse.textbook?.id) {
         setUnits([]);
         setCurrentTextbook(null);
         return;
       }
 
-      const textbooks = await profileApi.getTextbooks();
+      const textbooks = await profileService.getTextbooks();
       const textbook = textbooks.find((t) => t.id === checkResponse.textbook?.id);
       setCurrentTextbook(textbook || null);
 

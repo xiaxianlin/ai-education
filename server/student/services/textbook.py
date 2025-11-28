@@ -5,7 +5,7 @@ from core.database import StudentTextbook, Unit
 from core.schema import TextbookSchema, UnitSchema
 
 
-async def query_student_textbook(db: AsyncSession, id: str):
+async def query_student_textbooks(db: AsyncSession, id: str):
     """查询学生的教材"""
     result = await db.scalars(
         select(StudentTextbook)

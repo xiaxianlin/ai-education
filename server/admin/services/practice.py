@@ -1,6 +1,5 @@
 """练习管理服务 - Admin端"""
 
-from typing import Dict
 from loguru import logger
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession

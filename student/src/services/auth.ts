@@ -18,6 +18,6 @@ export const authService = {
    * GET /check
    */
   check: async () => {
-    return api.get<CheckAuthResponse>("/check");
+    return api.get<void>("/check");
   },
 };

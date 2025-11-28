@@ -14,7 +14,7 @@ import { AnswerOptions } from "@/pages/PracticeSession/views/AnswerOptions";
 import { NavigationButtons } from "@/pages/PracticeSession/views/NavigationButtons";
 import { ResultModal } from "./views/ResultModal";
 
-export function PracticeSession() {
+export default function PracticeSession() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 

@@ -17,7 +17,7 @@ import { LoadingSpinner } from "@/components/business/LoadingSpinner";
 import { useSettings } from "./hooks/useSettings";
 import { TextbookCard } from "./views/TextbookCard";
 
-export function Settings() {
+export default function Settings() {
   const {
     textbooks,
     loading,

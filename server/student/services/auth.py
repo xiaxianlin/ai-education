@@ -2,7 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, HTTPException
 from loguru import logger
-from core.database import AsyncSessionLocal, Student, StudentTextbook
+from core.database import AsyncSessionLocal, Student
+from core.schema import StudentSchema
 from shared.utils import encrypt
 from shared.utils.time import now
 
@@ -36,15 +37,7 @@ async def student_router_filter(request: Request):
     if student.status == 0:
         raise HTTPException(status_code=403, detail="账号被禁用")
 
-    async with AsyncSessionLocal() as db:
-        active_textbook = await db.scalar(
-            select(StudentTextbook).where(StudentTextbook.student_id == student.id, StudentTextbook.active == 1)
-        )
-        if not active_textbook:
-            raise HTTPException(status_code=405, detail="请先选择教材")
-
-    request.state.student = student
-    request.state.active_textbook = active_textbook.textbook
+    request.state.student = StudentSchema.model_validate(student)
 
 
 async def student_login(db: AsyncSession, phone: str, password: str):

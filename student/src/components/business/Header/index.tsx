@@ -1,40 +1,20 @@
-import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Home } from "lucide-react";
 import { ModeToggle } from "@/components/business/ModeToggle";
+import { useProfileStore } from "@/stores/profile-store";
+import { GRADES } from "@/constants/profile";
 
 export function Header() {
   const location = useLocation();
-  const { student, textbook, init, logout } = useAuthStore();
+  const { logout } = useAuthStore();
+  const { student } = useProfileStore();
   const isHomePage = location.pathname === "/home";
-
-  useEffect(() => {
-    init();
-  }, []);
 
   const handleLogout = () => {
     logout();
     window.location.href = "/login";
-  };
-
-  const getGradeLabel = (grade: number) => {
-    const gradeMap: Record<number, string> = {
-      1: "一年级",
-      2: "二年级",
-      3: "三年级",
-      4: "四年级",
-      5: "五年级",
-      6: "六年级",
-    };
-    return gradeMap[grade] || `年级${grade}`;
-  };
-
-  const getTextbookDisplayName = (textbook: Textbook) => {
-    return `${textbook.subject} ${textbook.version} ${getGradeLabel(
-      textbook.grade
-    )} ${textbook.semester}`;
   };
 
   return (
@@ -44,9 +24,9 @@ export function Header() {
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer max-w-full">
             <span className="text-xl">📚</span>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs text-muted-foreground">当前教材</span>
+              <span className="text-xs text-muted-foreground">当前年级</span>
               <span className="text-sm font-semibold text-foreground truncate">
-                {textbook ? getTextbookDisplayName(textbook) : "未设置教材"}
+                {GRADES[student?.grade || 0] || "未设置年级"}
               </span>
             </div>
           </div>
