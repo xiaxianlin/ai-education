@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    /* Base Tone: Bright Blue ("Travel in space") */
-    --primary: 215 100% 50%;
+    /* Base Tone: Bright Violet/Indigo (Kid-friendly, Magic) */
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
     /* Auxiliary: Gray-Green (Illustrations/Backgrounds) */
@@ -35,7 +35,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 215 100% 50%;
+    --ring: 262 83% 58%;
 
     --radius: 1rem; /* Rounded style */
 
@@ -58,7 +58,7 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 215 100% 50%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217 32% 17%;
@@ -75,7 +75,7 @@
 
     --border: 217 32% 17%;
     --input: 217 32% 17%;
-    --ring: 215 100% 50%;
+    --ring: 262 83% 58%;
   }
 }
 

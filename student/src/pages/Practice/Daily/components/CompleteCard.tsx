@@ -20,24 +20,28 @@ export const CompleteCard: FC<CompleteCardProps> = ({
   const isCompleted = status === 2;
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all">
+    <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative p-8 flex flex-col gap-6">
+      <div className="relative p-8 flex flex-col h-full">
         {/* 内容区域 */}
-        <div className="flex items-center gap-5">
-          <div className="text-2xl">{isCompleted ? "🎉" : "📝"}</div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-xl font-bold text-foreground line-clamp-2">
+        <div className="flex-1 flex flex-col gap-6">
+          <div className="flex items-center justify-center gap-2">
+            <div className="text-4xl">{isCompleted ? "🎉" : "✨"}</div>
+            <h3 className="text-2xl font-bold text-foreground text-center">
               {textbookTitle}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
+          </div>
+
+          <div className="text-center space-y-2">
+            <p className="text-base text-muted-foreground">
               今日练习已为你准备完成，随时可以开始答题或继续完成剩余题目。
+            </p>
+            <p className="text-base text-muted-foreground font-medium">
+              ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count}{" "}
+              题
             </p>
           </div>
         </div>
-        <p className="text-base text-muted-foreground mb-3">
-          ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
-        </p>
         {/* 操作按钮 */}
         <Button
           size="lg"

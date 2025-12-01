@@ -15,8 +15,10 @@
   - [配置管理](#配置管理)
 - [学生端接口](#学生端接口)
   - [学生认证](#学生认证)
+  - [学生资料](#学生资料)
   - [教材功能](#教材功能)
   - [练习功能](#练习功能)
+  - [错题记录](#错题记录)
 
 ---
 
@@ -369,6 +371,80 @@ GET /api/admin/textbook/{id}/questions?page=1&size=10
 
 ---
 
+### 教师用书管理
+
+#### 创建教师用书
+
+```
+POST /api/admin/teacher_book/
+```
+
+**请求参数**:
+```json
+{
+  "subject": "数学",
+  "version": "人教版",
+  "grade": 1,
+  "semester": "上学期"
+}
+```
+
+#### 上传教师用书文件
+
+```
+POST /api/admin/teacher_book/{id}/upload
+```
+
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `file`: PDF文件
+
+#### 修改教师用书信息
+
+```
+PUT /api/admin/teacher_book/{id}
+```
+
+**请求参数**:
+```json
+{
+  "subject": "数学",
+  "version": "人教版",
+  "grade": 1,
+  "semester": "上学期"
+}
+```
+
+#### 删除教师用书
+
+```
+DELETE /api/admin/teacher_book/{id}
+```
+
+**权限要求**: 需要超级管理员权限
+
+#### 搜索教师用书
+
+```
+GET /api/admin/teacher_book/search?keyword=数学&page=1&size=10
+```
+
+**查询参数**:
+- `keyword`: 搜索关键词（可选）
+- `subject`: 科目筛选（可选）
+- `grade`: 年级筛选（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+
+#### 获取教师用书详情
+
+```
+GET /api/admin/teacher_book/{id}
+```
+
+---
+
 ### 单元管理
 
 #### 创建课程单元
@@ -389,11 +465,11 @@ POST /api/admin/unit/
 #### 生成单元题目
 
 ```
-POST /api/admin/unit/{id}/generate?count=30
+POST /api/admin/unit/{id}/generate?count=10
 ```
 
 **查询参数**:
-- `count`: 生成题目数量，默认30
+- `count`: 生成题目数量，默认10
 
 #### 更新课程单元
 
@@ -694,20 +770,21 @@ GET /api/admin/student/{id}
 }
 ```
 
-#### 保存学生教材
+#### 添加学生教材
 
 ```
-POST /api/admin/student/{id}/textbooks
+POST /api/admin/student/{id}/textbook/{textbook_id}
 ```
 
-**请求参数**:
-```json
-{
-  "ids": [1, 2, 3]
-}
+**功能说明**: 为学生绑定单个教材。
+
+#### 删除学生教材
+
+```
+DELETE /api/admin/student/{id}/textbook/{textbook_id}
 ```
 
-**功能说明**: 为学生批量绑定教材。
+**功能说明**: 删除学生的某个教材。
 
 #### 查询学生教材
 
@@ -715,72 +792,32 @@ POST /api/admin/student/{id}/textbooks
 GET /api/admin/student/{id}/textbooks
 ```
 
-#### 获取学生资料
+**功能说明**: 获取学生已绑定的教材列表。
+
+#### 查询学生未使用的教材
 
 ```
-GET /api/admin/student/{id}/profile
+GET /api/admin/student/{id}/unused_textbooks
 ```
 
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "current_textbook_id": 1
-  }
-}
-```
-
-**功能说明**: 返回学生的当前学习教材 ID（active=1 的教材）。
+**功能说明**: 获取学生尚未绑定的教材列表。
 
 ---
 
 ### 练习管理
 
-#### 获取学生每日练习
-
-```
-GET /api/admin/practice/{student_id}/daily
-```
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "session_id": 123,
-    "session_type": "daily_practice",
-    "target_id": 20241123,
-    "textbook_id": 1,
-    "question_count": 10,
-    "answer_count": 5,
-    "correct_count": 4,
-    "status": 1,
-    "start_time": 1234567890,
-    "end_time": null,
-    "create_time": 1234567890
-  }
-}
-```
-
-**功能说明**: 
-- 如果当天存在每日练习，返回练习会话信息
-- 如果当天不存在每日练习，返回 `null`
-- `status`: 0-未开始, 1-进行中, 2-已完成
-
 #### 生成学生练习（每日/单元/能力评估）
 
 ```
-POST /api/admin/practice/{student_id}/generate/{type}?count=15&unit_id=1
+POST /api/admin/practice/generate?student_id={student_id}&type={type}&count=15&unit_id=1
 ```
 
-**路径参数**:
-- `student_id`: 学生ID
-- `type`: 练习类型（`daily_practice` / `unit_practice` / `assessment`）
-
 **查询参数**:
+- `student_id`: 学生ID（必填）
+- `type`: 练习类型（必填，可选值：`daily_practice` / `unit_practice` / `assessment`）
 - `count`: 题目数量（默认15，可选）
 - `unit_id`: 单元ID，仅在 `type=unit_practice` 时必填
+- `textbook_id`: 教材ID（可选）
 
 **响应示例**:
 ```json
@@ -824,6 +861,7 @@ GET /api/admin/practice/{student_id}/history/{practice_type}
 ```
 
 **路径参数**:
+- `student_id`: 学生ID
 - `practice_type`: 练习类型（daily_practice/unit_practice/assessment）
 
 **响应示例**:
@@ -845,10 +883,12 @@ GET /api/admin/practice/{student_id}/history/{practice_type}
 }
 ```
 
+**功能说明**: 获取最近30条练习记录。
+
 #### 获取练习会话详情
 
 ```
-GET /api/admin/practice/session/{session_id}/detail
+GET /api/admin/practice/session/{session_id}
 ```
 
 **响应示例**:
@@ -942,23 +982,11 @@ GET /api/student/check
 ```json
 {
   "code": 0,
-  "data": {
-    "student": {
-      "id": "student_xxx",
-      "name": "张三",
-      "phone": "13800138000",
-      "status": 0
-    },
-    "textbook": {
-      "id": 1,
-      "subject": "数学",
-      "version": "人教版",
-      "grade": 1,
-      "semester": "上学期"
-    }
-  }
+  "data": "student_xxx"
 }
 ```
+
+**功能说明**: 返回当前登录学生的ID。
 
 #### 学生登录
 
@@ -991,47 +1019,52 @@ POST /api/student/login
 
 ---
 
-### 教材功能
+### 学生资料
 
-#### 获取学生教材列表
+#### 获取学生资料
 
 ```
-GET /api/student/textbook/all
+GET /api/student/profile
 ```
 
 **响应示例**:
 ```json
 {
   "code": 0,
-  "data": [
-    {
-      "id": 1,
-      "subject": "数学",
-      "version": "人教版",
-      "grade": 1,
-      "semester": "上学期",
-      "active": 1
+  "data": {
+    "student": {
+      "id": "student_xxx",
+      "name": "张三",
+      "phone": "13800138000",
+      "status": 0
     },
-    {
-      "id": 2,
-      "subject": "英语",
-      "version": "人教版",
-      "grade": 1,
-      "semester": "上学期",
-      "active": 0
-    }
-  ]
+    "textbooks": [
+      {
+        "id": 1,
+        "subject": "数学",
+        "version": "人教版",
+        "grade": 1,
+        "semester": "上学期"
+      }
+    ]
+  }
 }
 ```
+
+**功能说明**: 返回学生信息及已绑定的教材列表。
+
+---
+
+### 教材功能
 
 #### 获取教材单元列表
 
 ```
-GET /api/student/textbook/units?textbook_id=1
+GET /api/student/textbook/{textbook_id}/units
 ```
 
-**查询参数**:
-- `textbook_id`: 教材ID，如果不指定则获取当前激活教材的单元
+**路径参数**:
+- `textbook_id`: 教材ID
 
 **响应示例**:
 ```json
@@ -1047,13 +1080,34 @@ GET /api/student/textbook/units?textbook_id=1
 }
 ```
 
-#### 激活教材
+**功能说明**: 获取指定教材的单元列表。
+
+#### 获取单元知识点列表
 
 ```
-POST /api/student/textbook/acitve/{textbook_id}
+GET /api/student/textbook/{unit_id}/knowledges
 ```
 
-**功能说明**: 将指定教材设置为当前使用教材。
+**路径参数**:
+- `unit_id`: 单元ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": [
+    {
+      "id": 1,
+      "name": "10以内数的认识",
+      "unit_id": 1,
+      "difficulty": "简单",
+      "importance": 8
+    }
+  ]
+}
+```
+
+**功能说明**: 获取指定单元的知识点列表（需要验证学生权限）。
 
 ---
 
@@ -1106,15 +1160,24 @@ GET /api/student/practice/assessment
 #### 创建练习会话
 
 ```
-POST /api/student/practice/{type}/create?count=15&unit_id=1
+POST /api/student/practice/create
 ```
 
-**路径参数**:
-- `type`: `daily_practice` / `unit_practice` / `assessment`
+**请求参数**:
+```json
+{
+  "type": "daily_practice",
+  "count": 15,
+  "unit_id": 1,
+  "textbook_id": 1
+}
+```
 
-**查询参数**:
+**参数说明**:
+- `type`: 练习类型（必填，可选值：`daily_practice` / `unit_practice` / `assessment`）
 - `count`: 题目数量（默认15，可选）
 - `unit_id`: 单元ID，仅在创建单元练习时必填
+- `textbook_id`: 教材ID（可选）
 
 **响应示例**:
 ```json
@@ -1233,13 +1296,123 @@ POST /api/student/practice/{session_id}/complete
 
 **功能说明**: 完成练习，生成练习报告。
 
+---
+
+### 错题记录
+
+#### 获取错题列表
+
+```
+GET /api/student/wrong-records?mastered=0
+```
+
+**查询参数**:
+- `mastered`: 是否已掌握（可选，0-未掌握，1-已掌握）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": [
+    {
+      "question_id": 1,
+      "content": "1 + 1 = ?",
+      "answer": "B",
+      "wrong_count": 3,
+      "mastered": 0,
+      "last_wrong_time": 1234567890
+    }
+  ]
+}
+```
+
+**功能说明**: 
+- 不传 `mastered` 参数：返回所有错题
+- `mastered=0`：返回未掌握的错题
+- `mastered=1`：返回已掌握的错题
+
+#### 标记题目为已掌握
+
+```
+POST /api/student/wrong-records/{question_id}/master
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "message": "已标记为已掌握"
+  }
+}
+```
+
+**功能说明**: 将错题标记为已掌握状态。
+
+#### 标记题目为未掌握
+
+```
+POST /api/student/wrong-records/{question_id}/unmaster
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "message": "已标记为未掌握"
+  }
+}
+```
+
+**功能说明**: 将错题标记为未掌握状态。
+
 #### 获取练习会话详情
 
 ```
-GET /api/student/practice/session/{session_id}
+GET /api/student/practice/detail/{session_id}
 ```
 
-**功能说明**: 返回指定会话的题目、答题记录及报告，字段与管理端会话详情类似，包含 `session`、`questions`、`answers`、`report` 四部分。
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session": {
+      "id": 123,
+      "session_type": "daily_practice",
+      "question_count": 10,
+      "answer_count": 5,
+      "correct_count": 4,
+      "status": 1
+    },
+    "questions": [
+      {
+        "id": 1,
+        "content": "1 + 1 = ?",
+        "options": "A. 1\nB. 2\nC. 3",
+        "type": "选择题"
+      }
+    ],
+    "answers": [
+      {
+        "question_id": 1,
+        "text_answer": "B",
+        "status": 1,
+        "time_spent": 5
+      }
+    ],
+    "report": {
+      "total_questions": 10,
+      "correct_questions": 4,
+      "overall_score": 40.0,
+      "total_time": 150
+    }
+  }
+}
+```
+
+**功能说明**: 返回指定会话的题目、答题记录及报告，包含 `session`、`questions`、`answers`、`report` 四部分。会验证学生权限。
 
 ---
 

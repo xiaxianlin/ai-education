@@ -3,6 +3,7 @@ import { useRequest } from "ahooks";
 import { GeneratingCard } from "../components/GeneratingCard";
 import { CompleteCard } from "../components/CompleteCard";
 import { WaitCard } from "../components/WaitCard";
+import { GRADES } from "@/constants/profile";
 
 interface PracticeCardProps {
   textbook: Textbook;
@@ -15,7 +16,7 @@ export function PracticeCard({ textbook, practice }: PracticeCardProps) {
     { manual: true }
   );
 
-  const textbookTitle = `${textbook.subject} · ${textbook.grade}年级 ${textbook.semester}`;
+  const textbookTitle = `${GRADES[textbook.grade]}${textbook.semester}`;
 
   if (!practice) {
     return <WaitCard title={textbookTitle} onCreate={createPractice} />;
