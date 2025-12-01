@@ -51,12 +51,17 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
   if (!practice) {
     return (
       <>
-        <Card className="relative overflow-hidden border-2 border-border transition-all duration-300 hover:shadow-lg hover:bg-muted/30 rounded-2xl bg-card">
+        <Card className="relative overflow-hidden border-2 border-border transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:bg-primary/5 rounded-2xl bg-card">
           <CardContent className="relative z-10 p-5 flex flex-col h-full">
             {/* 单元标题 */}
             <div className="flex items-start gap-3 flex-1">
-              <div className="p-2.5 rounded-xl bg-muted/40 shadow-sm flex-shrink-0">
-                <BookOpen className="h-8 w-8 text-foreground/70" />
+              <div
+                className={cn(
+                  "p-2.5 rounded-xl shadow-sm flex-shrink-0",
+                  theme.button
+                )}
+              >
+                <BookOpen className="h-8 w-8 text-white" />
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 <h3 className="text-xl font-bold text-foreground leading-tight">
@@ -73,7 +78,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all bg-muted/60 hover:bg-muted hover:text-foreground border-transparent"
+                className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all bg-muted/70 hover:bg-muted hover:text-foreground border-transparent"
                 onClick={() => onShowKnowledge(unit)}
               >
                 <Lightbulb className="h-4 w-4 mr-2" />
@@ -155,11 +160,16 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
   // 生成中状态
   if (generating) {
     return (
-      <Card className="relative overflow-hidden border-2 border-border transition-all hover:shadow-lg hover:bg-muted/30 rounded-2xl bg-card">
+      <Card className="relative overflow-hidden border-2 border-border transition-all hover:border-primary/40 hover:shadow-lg hover:bg-primary/5 rounded-2xl bg-card">
         <CardContent className="relative z-10 p-5 flex flex-col h-full">
           <div className="flex items-start gap-3 flex-1">
-            <div className="p-2.5 rounded-xl bg-muted/40 shadow-sm flex-shrink-0">
-              <BookOpen className="h-8 w-8 text-foreground/70" />
+            <div
+              className={cn(
+                "p-2.5 rounded-xl shadow-sm flex-shrink-0",
+                theme.button
+              )}
+            >
+              <BookOpen className="h-8 w-8 text-white" />
             </div>
             <div className="flex-1 min-w-0 space-y-2">
               <h3 className="text-xl font-bold text-foreground leading-tight">
@@ -184,19 +194,24 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
 
   // 已完成或进行中状态
   return (
-    <Card
-      className={cn(
-        "relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:bg-muted/30 rounded-2xl bg-card",
-        isInProgress
-          ? "border-primary shadow-lg ring-2 ring-primary/20"
-          : "border-border"
-      )}
-    >
-      <CardContent className="relative z-10 p-5 flex flex-col h-full ">
+      <Card
+        className={cn(
+          "relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:bg-primary/5 rounded-2xl bg-card",
+          isInProgress
+            ? "border-primary shadow-lg ring-2 ring-primary/20 bg-primary/5"
+            : "border-border"
+        )}
+      >
+      <CardContent className="relative z-10 p-5 flex flex-col h-full">
         {/* 单元标题 */}
         <div className="flex items-start gap-3 flex-1">
-          <div className="p-2.5 rounded-xl bg-muted/40 shadow-sm flex-shrink-0">
-            <BookOpen className="h-8 w-8 text-foreground/70" />
+          <div
+            className={cn(
+              "p-2.5 rounded-xl shadow-sm flex-shrink-0",
+              theme.button
+            )}
+          >
+            <BookOpen className="h-8 w-8 text-white" />
           </div>
           <div className="flex-1 min-w-0 space-y-2">
             <h3 className="text-xl font-bold text-foreground leading-tight">
