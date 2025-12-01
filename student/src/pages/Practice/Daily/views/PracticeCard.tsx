@@ -15,15 +15,17 @@ export function PracticeCard({ textbook, practice }: PracticeCardProps) {
     { manual: true }
   );
 
+  const textbookTitle = `${textbook.subject} · ${textbook.grade}年级 ${textbook.semester}`;
+
   if (!practice) {
-    return <WaitCard onCreate={createPractice} />;
+    return <WaitCard title={textbookTitle} onCreate={createPractice} />;
   }
 
   const generating = loading || practice.generate_status === 0;
 
   if (generating) {
-    return <GeneratingCard />;
+    return <GeneratingCard title={textbookTitle} />;
   }
 
-  return <CompleteCard session={practice} />;
+  return <CompleteCard session={practice} textbookTitle={textbookTitle} />;
 }

@@ -6,7 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export const CompleteCard: FC<{ session: PracticeSession }> = ({ session }) => {
+interface CompleteCardProps {
+  session: PracticeSession;
+  textbookTitle: string;
+}
+
+export const CompleteCard: FC<CompleteCardProps> = ({
+  session,
+  textbookTitle,
+}) => {
   const navigate = useNavigate();
   const { question_count, answer_count, correct_count, status } = session || {};
   const isCompleted = status === 2;
@@ -19,9 +27,12 @@ export const CompleteCard: FC<{ session: PracticeSession }> = ({ session }) => {
         <div className="flex items-center gap-5">
           <div className="text-2xl">{isCompleted ? "🎉" : "📝"}</div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-2xl font-bold text-foreground">
-              {/** TODO: 教材名称 */}
+            <h3 className="text-xl font-bold text-foreground line-clamp-2">
+              {textbookTitle}
             </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              今日练习已为你准备完成，随时可以开始答题或继续完成剩余题目。
+            </p>
           </div>
         </div>
         <p className="text-base text-muted-foreground mb-3">
