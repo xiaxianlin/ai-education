@@ -50,7 +50,7 @@ export default function DailyPractice() {
 
           return (
             <div key={subject} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-2 gap-5">
                 {textbooks.map((t) => {
                   const practice = practices.find(
                     (p) => p.textbook_id === t.id
