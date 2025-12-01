@@ -1,9 +1,9 @@
 /**
  * 知识点弹窗组件
  */
-import { memo } from 'react';
-import { Button } from '@/components/ui/button';
-import { X, Lightbulb } from 'lucide-react';
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import { X, Lightbulb } from "lucide-react";
 
 interface KnowledgeModalProps {
   open: boolean;
@@ -54,15 +54,21 @@ export const KnowledgeModal = memo(function KnowledgeModal({
                   <Lightbulb className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{knowledge.name}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {knowledge.name}
+                  </p>
                   {knowledge.content && (
-                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{knowledge.content}</p>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                      {knowledge.content}
+                    </p>
                   )}
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">该单元暂未配置知识点。</p>
+            <p className="text-sm text-muted-foreground">
+              该单元暂未配置知识点。
+            </p>
           )}
         </div>
         <div className="px-6 py-4 border-t border-border bg-background flex justify-end">
@@ -72,4 +78,3 @@ export const KnowledgeModal = memo(function KnowledgeModal({
     </div>
   );
 });
-

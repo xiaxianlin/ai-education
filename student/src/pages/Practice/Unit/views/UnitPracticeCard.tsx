@@ -45,7 +45,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
 
   const generating = loading || practice?.generate_status === 0;
   const isCompleted = practice?.status === 2;
-  const isInProgress = practice?.status === 1 && !isCompleted; // 进行中但未完成
+  const isInProgress = practice?.status === 1 || practice?.status === 0;
 
   // 无练习状态：显示创建按钮
   if (!practice) {
@@ -193,16 +193,6 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
       )}
     >
       <CardContent className="relative z-10 p-5 flex flex-col h-full ">
-        {/* 继续练习标识 */}
-        {isInProgress && (
-          <div className="absolute top-3 right-3 z-20">
-            <div className="px-2.5 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-              <span>⏸️</span>
-              <span>继续练习</span>
-            </div>
-          </div>
-        )}
-
         {/* 单元标题 */}
         <div className="flex items-start gap-3 flex-1">
           <div className="p-2.5 rounded-xl bg-muted/40 shadow-sm flex-shrink-0">
