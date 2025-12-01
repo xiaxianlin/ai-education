@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { usePracticeSession } from "./hooks/usePracticeSession";
 import { ProgressIndicator } from "./views/ProgressIndicator";
-import { QuestionCard } from "@/pages/PracticeSession/views/QuestionCard";
-import { AnswerOptions } from "@/pages/PracticeSession/views/AnswerOptions";
-import { NavigationButtons } from "@/pages/PracticeSession/views/NavigationButtons";
+import { QuestionCard } from "./views/QuestionCard";
+import { AnswerOptions } from "./views/AnswerOptions";
+import { NavigationButtons } from "./views/NavigationButtons";
 import { ResultModal } from "./views/ResultModal";
 
 export default function PracticeSession() {
