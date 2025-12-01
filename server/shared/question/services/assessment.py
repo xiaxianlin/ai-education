@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload
 from loguru import logger
 
-from core.database import Knowledge, StudentTextbook
+from core.database import Knowledge, Textbook
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.assessment import build_assessment_prompt
 from shared.question.services.recall import RecallService
@@ -34,78 +34,36 @@ class AssessmentGenerateService:
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
-        """验证能力评估的状态参数
-
-        Args:
-            state: 题目生成状态
-
-        Raises:
-            ValueError: 参数验证失败
-
-        Note:
-            对应 Graph 节点: check_assessment_node
-        """
-        if state.get("student_id") is None:
-            raise ValueError("学生 ID (student_id) 不能为空")
+        """验证能力评估的状态参数"""
+        pass
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """加载能力评估所需的上下文数据
-
-        Args:
-            state: 题目生成状态
-
-        Returns:
-            包含以下字段的字典：
-            - textbook: 教材对象
-            - knowledges: 全部知识点名称列表（跨单元）
-            - recall_questions: 召回的历史题目列表
-
-        Raises:
-            ValueError: 教材不存在
-
-        Note:
-            对应 Graph 节点: load_assessment_data_node
-            数据将用于 build_assessment_prompt 构建提示词
-        """
+        """加载能力评估所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
+            textbook: Textbook = state["textbook"]
 
-            # 1. 从学生的激活教材获取教材信息
-            student_textbook = await db.scalar(
-                select(StudentTextbook).where(
-                    StudentTextbook.student_id == student_id, StudentTextbook.active == 1
-                )
-            )
-            if not student_textbook:
-                raise ValueError(f"学生没有激活的教材: student_id={student_id}")
-
-            textbook = student_textbook.textbook
-            textbook_id = student_textbook.textbook_id
-
-            # 2. 加载所有知识点（跨单元，用于能力维度评估）
             knowledge_rows = await db.scalars(
                 select(Knowledge)
                 .options(noload(Knowledge.textbook), noload(Knowledge.unit))
-                .where(Knowledge.textbook_id == textbook_id)
+                .where(Knowledge.textbook_id == textbook.id)
             )
             knowledges = [k.name for k in knowledge_rows.all()]
 
-            # 3. 召回历史题目（用于避免重复）
             recalled_questions = await RecallService.recall_for_assessment(
-                db, textbook_id, student_id=student_id
+                db, textbook.id, student_id
             )
 
             logger.info(
-                f"✓ 能力评估数据加载完成: student_id={student_id}, textbook_id={textbook_id}, "
+                f"✓ 能力评估数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
                 f"subject={textbook.subject}, version={textbook.version}, "
                 f"grade={textbook.grade}, semester={textbook.semester}, "
                 f"知识点={len(knowledges)}个, 召回题目={len(recalled_questions)}道"
             )
 
             return {
-                "textbook": textbook,
                 "knowledges": knowledges,
                 "recall_questions": recalled_questions,
             }
@@ -115,19 +73,5 @@ class AssessmentGenerateService:
 
     @classmethod
     def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """构建能力评估的 Prompt
-
-        Args:
-            state: 题目生成状态（必须已包含 load_data 返回的数据）
-
-        Returns:
-            包含以下字段的字典：
-            - prompt: ChatPromptTemplate 对象
-            - prompt_input: Prompt 输入参数
-            - parser: JSON 输出解析器
-
-        Note:
-            对应 Graph 节点: build_assessment_prompt_node
-            对应 Prompt 函数: shared/question/prompts/assessment.py::build_assessment_prompt
-        """
+        """构建能力评估的 Prompt"""
         return build_assessment_prompt(state)

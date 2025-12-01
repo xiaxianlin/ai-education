@@ -1,10 +1,25 @@
 from typing import Optional
 from pydantic import BaseModel
 
+from enum import Enum
+
+
+class PracticeType(str, Enum):
+    daily = "daily_practice"
+    unit = "unit_practice"
+    assessment = "assessment"
+
 
 class LoginSchema(BaseModel):
     phone: str
     password: str
+
+
+class CreatePracticeSchema(BaseModel):
+    type: PracticeType
+    textbook_id: int
+    count: int = 15
+    unit_id: Optional[int] = None
 
 
 class AnswerQuestionSchema(BaseModel):

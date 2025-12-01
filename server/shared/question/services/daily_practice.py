@@ -11,11 +11,10 @@
 """
 
 from typing import Any, Dict
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from core.database import StudentTextbook
+from core.database import Textbook
 from shared.question.types import QuestionGenerationState
 from shared.question.prompts.daily_practice import build_daily_practice_prompt
 from shared.question.services.recall import RecallService
@@ -32,50 +31,16 @@ class DailyPracticeGenerateService:
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
-        """验证每日练习的状态参数
-
-        Args:
-            state: 题目生成状态
-
-        Raises:
-            ValueError: 参数验证失败
-
-        Note:
-            对应 Graph 节点: check_daily_practice_node
-        """
-        if state.get("student_id") is None:
-            raise ValueError("学生 ID (student_id) 不能为空")
+        """验证每日练习的状态参数"""
+        pass
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """加载每日练习所需的上下文数据
-
-        Args:
-            state: 题目生成状态
-
-        Returns:
-            包含以下字段的字典：
-            - recall_questions: 召回的历史题目列表
-
-        Note:
-            对应 Graph 节点: load_daily_practice_data_node
-            数据将用于 build_daily_practice_prompt 构建提示词
-            学生学习画像数据（薄弱知识点等）在 build_prompt 中获取
-        """
+        """加载每日练习所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
-
-            # 1. 从学生的激活教材获取教材信息
-            student_textbook = await db.scalar(
-                select(StudentTextbook).where(
-                    StudentTextbook.student_id == student_id, StudentTextbook.active == 1
-                )
-            )
-            if not student_textbook:
-                raise ValueError(f"学生没有激活的教材: student_id={student_id}")
-
-            textbook = student_textbook.textbook
+            textbook: Textbook = state["textbook"]
 
             # 召回历史题目（用于避免重复）
             recalled_questions = await RecallService.recall_for_daily_practice(
@@ -98,21 +63,5 @@ class DailyPracticeGenerateService:
 
     @classmethod
     async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """构建每日练习的 Prompt（异步方法）
-
-        Args:
-            state: 题目生成状态（必须已包含 load_data 返回的数据）
-
-        Returns:
-            包含以下字段的字典：
-            - prompt: ChatPromptTemplate 对象
-            - prompt_input: Prompt 输入参数
-            - parser: JSON 输出解析器
-
-        Note:
-            对应 Graph 节点: build_daily_practice_prompt_node
-            对应 Prompt 函数: shared/question/prompts/daily_practice.py::build_daily_practice_prompt
-
-            ⚠️ 此方法是异步的，因为需要获取学生学习画像数据
-        """
+        """构建每日练习的 Prompt"""
         return await build_daily_practice_prompt(state)

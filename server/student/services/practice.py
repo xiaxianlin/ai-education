@@ -3,6 +3,7 @@
 from typing import Dict
 from loguru import logger
 from sqlalchemy import select, desc
+from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
@@ -10,57 +11,47 @@ from core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSch
 from shared.utils.time import now, today
 
 
-async def get_daily_practice(db: AsyncSession, student_id: str, textbook_id: int):
-    """获取每日练习信息（用于检查生成状态）"""
-    session = await db.scalar(
+async def get_daily_practice(db: AsyncSession, student_id: str):
+    """获取每日所有的日常练习记录"""
+    result = await db.scalars(
         select(PracticeSession).where(
             PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
             PracticeSession.session_type == "daily_practice",
             PracticeSession.target_id == today(),
         )
     )
 
-    return PracticeSessionSchema.model_validate(session) if session else None
+    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
-async def get_unit_practice(db: AsyncSession, student_id: str, textbook_id: int):
-    """
-    获取指定教材下所有单元的未完成练习记录
-
-    Args:
-        db: 数据库会话
-        student_id: 学生ID
-        textbook_id: 教材ID
-
-    Returns:
-        PracticeSessionSchema: 单元练习信息
-    """
-    session = await db.scalar(
-        select(PracticeSession).where(
+async def get_unit_practice(db: AsyncSession, student_id: str):
+    """获取所有未完成单元练习记录"""
+    result = await db.scalars(
+        select(PracticeSession)
+        .options(noload(PracticeSession.textbook))
+        .where(
             PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
             PracticeSession.session_type == "unit_practice",
             PracticeSession.status != 2,
         )
     )
 
-    return PracticeSessionSchema.model_validate(session) if session else None
+    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
-async def get_assessment(db: AsyncSession, student_id: str, textbook_id: int):
-    """检查是否有未完成的能力评估"""
-    # 查找未完成的能力评估（不限日期）
-    session = await db.scalar(
-        select(PracticeSession).where(
+async def get_assessment(db: AsyncSession, student_id: str):
+    """获取所有未完成综合评估记录"""
+    result = await db.scalars(
+        select(PracticeSession)
+        .options(noload(PracticeSession.textbook))
+        .where(
             PracticeSession.student_id == student_id,
             PracticeSession.session_type == "assessment",
-            PracticeSession.textbook_id == textbook_id,
             PracticeSession.status != 2,
         )
     )
 
-    return PracticeSessionSchema.model_validate(session) if session else None
+    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
 async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> dict:
@@ -143,7 +134,9 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
     return report_id
 
 
-async def get_practice_history(db: AsyncSession, student_id: str, practice_type: str, limit: int = 30):
+async def get_practice_history(
+    db: AsyncSession, student_id: str, practice_type: str, limit: int = 30
+):
     """
     获取指定类型的练习历史记录
 
@@ -159,7 +152,9 @@ async def get_practice_history(db: AsyncSession, student_id: str, practice_type:
     # 查询最近的练习记录（按创建时间倒序）
     sessions = await db.scalars(
         select(PracticeSession)
-        .where(PracticeSession.student_id == student_id, PracticeSession.session_type == practice_type)
+        .where(
+            PracticeSession.student_id == student_id, PracticeSession.session_type == practice_type
+        )
         .order_by(desc(PracticeSession.create_time))
         .limit(limit)
     )
@@ -192,7 +187,9 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
 
     # 查询答题记录和题目信息
     answer_records = await db.scalars(
-        select(PracticeAnswer).where(PracticeAnswer.session_id == session_id).order_by(PracticeAnswer.question_order)
+        select(PracticeAnswer)
+        .where(PracticeAnswer.session_id == session_id)
+        .order_by(PracticeAnswer.question_order)
     )
 
     # 获取所有题目ID
@@ -221,7 +218,9 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
     # 查询报告（如果练习已完成）
     report = None
     if session.status == 2:
-        report_obj = await db.scalar(select(PracticeReport).where(PracticeReport.session_id == session_id))
+        report_obj = await db.scalar(
+            select(PracticeReport).where(PracticeReport.session_id == session_id)
+        )
         if report_obj:
             report = PracticeReportSchema.model_validate(report_obj).model_dump()
 
@@ -237,6 +236,8 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
         "report": report,
     }
 
-    logger.info(f"[Student] 获取会话详情成功: session_id={session_id}, question_count={len(questions)}")
+    logger.info(
+        f"[Student] 获取会话详情成功: session_id={session_id}, question_count={len(questions)}"
+    )
 
     return result

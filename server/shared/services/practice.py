@@ -2,7 +2,7 @@ from loguru import logger
 from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, Question, StudentTextbook, PracticeAnswer, Unit
+from core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
 from shared.utils.time import now, today
 from shared.question.graph import invoke_generate_workflow
 
@@ -18,7 +18,7 @@ class PracticeService:
 
         # 批量创建答题记录
         answer_records = []
-        for question, index in questions:
+        for index, question in enumerate(questions):
             answer_record = PracticeAnswer(
                 session_id=session_id,
                 question_id=question.id,
@@ -39,43 +39,40 @@ class PracticeService:
         type: str,
         count: int,
         student_id: str,
-        texbook_id: int,
+        textbook_id: int,
         unit_id: int | None = None,
     ):
-        student_textbook = await db.scalar(
-            select(StudentTextbook).where(
-                StudentTextbook.student_id == student_id, StudentTextbook.texbook_id == texbook_id
-            )
+
+        textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
+
+        if not textbook:
+            raise ValueError("教材不纯粹")
+        unit = None
+        target_id = today()
+        if type == "unit_practice":
+            unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
+            target_id = unit_id
+        # 生成开始前，先创建会话记录
+        session = PracticeSession(
+            student_id=student_id,
+            session_type=type,
+            target_id=target_id,
+            textbook_id=textbook_id,
         )
-
-        if not student_textbook:
-            raise ValueError("未找到学生相应的教材")
-
-        textbook_id = student_textbook.textbook_id
+        db.add(session)
+        await db.flush()
 
         try:
-            # 生成开始前，先创建会话记录
-            target_id = unit_id if type == "unit_practice" and unit_id else today()
-            session = PracticeSession(
-                student_id=student_id,
-                session_type=type,
-                target_id=target_id,
-                textbook_id=textbook_id,
-            )
-            db.add(session)
-            await db.flush()
-
             logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
-
-            # 调用 invoke_generate_workflow 生成题目
             questions = await invoke_generate_workflow(
                 db=db,
                 type=type,
                 count=count,
-                unit_id=unit_id,
-                textbook_id=textbook_id,
+                unit=unit,
+                textbook=textbook,
                 student_id=student_id,
             )
+
             await PracticeService.create_answer_records(db, session.id, questions)
 
             session.question_count = len(questions)
@@ -88,9 +85,9 @@ class PracticeService:
             )
             return session
         except Exception as e:
-            # 生成失败后，更新状态为"生成失败"
             logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
             await db.rollback()
+            await db.delete(session)
             raise ValueError(f"会话生成失败: {str(e)}")
 
     @staticmethod
@@ -139,11 +136,7 @@ class PracticeService:
             raise ValueError(f"会话重新生成失败: {str(e)}")
 
     async def create_daily_practice(
-        *,
-        db: AsyncSession,
-        student_id: str,
-        texbook_id: int,
-        count: int,
+        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, **kwargs
     ):
         """为学生生成每日练习"""
         current_date = today()
@@ -151,7 +144,7 @@ class PracticeService:
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
-                PracticeSession.texbook_id == texbook_id,
+                PracticeSession.textbook_id == textbook_id,
                 PracticeSession.session_type == "daily_practice",
                 PracticeSession.target_id == current_date,
             )
@@ -164,7 +157,7 @@ class PracticeService:
             select(PracticeSession)
             .where(
                 PracticeSession.student_id == student_id,
-                PracticeSession.texbook_id == texbook_id,
+                PracticeSession.textbook_id == textbook_id,
                 PracticeSession.session_type == "daily_practice",
                 PracticeSession.status != 2,
             )
@@ -216,18 +209,17 @@ class PracticeService:
 
         logger.info(f"开始创建每日练习: student_id={student_id}")
         session = await PracticeService.generate_practice_session(
-            db=db, type="daily_practice", count=count, student_id=student_id, texbook_id=texbook_id
+            db=db,
+            type="daily_practice",
+            count=count,
+            student_id=student_id,
+            textbook_id=textbook_id,
         )
 
         return session.id
 
     async def create_unit_practice(
-        *,
-        db: AsyncSession,
-        student_id: str,
-        texbook_id: int,
-        unit_id: int,
-        count: int,
+        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, unit_id: int, **kwargs
     ):
         """为学生生成单元练习"""
 
@@ -241,7 +233,7 @@ class PracticeService:
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
-                PracticeSession.texbook_id == texbook_id,
+                PracticeSession.textbook_id == textbook_id,
                 PracticeSession.session_type == "unit_practice",
                 PracticeSession.target_id == unit_id,
                 PracticeSession.status != 2,
@@ -258,7 +250,7 @@ class PracticeService:
             type="unit_practice",
             count=count,
             unit_id=unit_id,
-            textbook_id=texbook_id,
+            textbook_id=textbook_id,
             student_id=student_id,
         )
 
@@ -269,18 +261,14 @@ class PracticeService:
         return session.id
 
     async def create_assessment(
-        *,
-        db: AsyncSession,
-        student_id: str,
-        texbook_id: int,
-        count: int,
+        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, **kwargs
     ):
         """为学生生成能力评测"""
 
         session = await db.scalar(
             select(PracticeSession).where(
                 PracticeSession.student_id == student_id,
-                PracticeSession.texbook_id == texbook_id,
+                PracticeSession.textbook_id == textbook_id,
                 PracticeSession.session_type == "assessment",
                 PracticeSession.status != 2,
             )
@@ -296,7 +284,7 @@ class PracticeService:
             type="assessment",
             count=count,
             student_id=student_id,
-            texbook_id=texbook_id,
+            textbook_id=textbook_id,
         )
 
         return session.id

@@ -32,73 +32,38 @@ class TextbookGenerateService:
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
-        """验证教材生成的状态参数
-
-        Args:
-            state: 题目生成状态
-
-        Raises:
-            ValueError: 参数验证失败
-
-        Note:
-            对应 Graph 节点: check_textbook_node
-            注意：textbook_id 已在 entry_node 中校验，此处不再重复校验
-        """
+        """验证教材生成的状态参数"""
         pass
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """加载教材生成所需的上下文数据
-
-        Args:
-            state: 题目生成状态
-
-        Returns:
-            包含以下字段的字典：
-            - textbook: 教材对象
-            - units: 单元列表（用于显示教材结构）
-            - knowledges: 全部知识点名称列表（跨单元）
-            - recall_questions: 召回的历史题目列表
-
-        Raises:
-            ValueError: 教材不存在
-
-        Note:
-            对应 Graph 节点: load_textbook_data_node
-            数据将用于 build_textbook_prompt 构建提示词
-        """
+        """加载教材生成所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
-            textbook_id: int = state["textbook_id"]
+            textbook: Textbook = state["textbook"]
 
-            # 1. 加载教材信息
-            textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
-            if not textbook:
-                raise ValueError(f"教材不存在: textbook_id={textbook_id}")
-
-            # 2. 加载所有单元（用于显示教材结构）
+            # 加载所有单元（用于显示教材结构）
             unit_rows = await db.scalars(
-                select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
+                select(Unit).where(Unit.textbook_id == textbook.id).order_by(Unit.id)
             )
             units = unit_rows.all()
 
-            # 3. 加载所有知识点（跨单元）
+            # 加载所有知识点（跨单元）
             knowledge_rows = await db.scalars(
                 select(Knowledge)
                 .options(noload(Knowledge.textbook), noload(Knowledge.unit))
-                .where(Knowledge.textbook_id == textbook_id)
+                .where(Knowledge.textbook_id == textbook.id)
             )
-            knowledges = knowledge_rows.all()  # 返回完整的知识点对象列表，而不是只返回名称
+            knowledges = knowledge_rows.all()
 
             logger.info(
-                f"✓ 教材数据加载完成: textbook_id={textbook_id}, "
+                f"✓ 教材数据加载完成: textbook_id={textbook.id}, "
                 f"subject={textbook.subject}, version={textbook.version}, "
                 f"grade={textbook.grade}, semester={textbook.semester}, "
                 f"单元数={len(units)}, 知识点数={len(knowledges)}"
             )
 
             return {
-                "textbook": textbook,  # 确保返回 textbook 对象
                 "units": units,
                 "knowledges": knowledges,
             }
@@ -108,19 +73,5 @@ class TextbookGenerateService:
 
     @classmethod
     def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """构建教材生成的 Prompt
-
-        Args:
-            state: 题目生成状态（必须已包含 load_data 返回的数据）
-
-        Returns:
-            包含以下字段的字典：
-            - prompt: ChatPromptTemplate 对象
-            - prompt_input: Prompt 输入参数
-            - parser: JSON 输出解析器
-
-        Note:
-            对应 Graph 节点: build_textbook_prompt_node
-            对应 Prompt 函数: shared/question/prompts/textbook.py::build_textbook_prompt
-        """
+        """构建教材生成的 Prompt"""
         return build_textbook_prompt(state)

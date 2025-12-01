@@ -7,8 +7,7 @@ from langgraph.graph import END, StateGraph
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Question
-from core.settings import envs
+from core.database import Question, Textbook, Unit
 from shared.question.types import GenerationType, QuestionGenerationState
 from shared.question.services import llm as llm_service
 from shared.question.services import resource as resource_service
@@ -34,6 +33,12 @@ def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
     if state.get("count") is None:
         raise ValueError("题目数量（count）不能为空")
+
+    if state.get("student_id") is None:
+        raise ValueError("学生 ID (student_id) 不能为空")
+
+    if state.get("textbook") is None:
+        raise ValueError("教材 (textbook) 不能为空")
 
     return {}
 
@@ -161,10 +166,7 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
         text_questions = result.get("text_questions", [])
 
         logger.info(
-            "问题转换完成: 辨识题 %s, 音频题 %s, 其他题目 %s",
-            len(image_questions),
-            len(audio_questions),
-            len(text_questions),
+            f"问题转换完成: 辨识题 {len(image_questions)}, 音频题 {len(audio_questions)}, 其他题目 {len(text_questions)}",
         )
 
         # 保存题目到数据库
@@ -186,7 +188,9 @@ async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
             logger.info("跳过图片处理（没有需要生成图片的题目）")
             return {}
 
-        logger.info("开始为 %s 道题目生成图片", needs_image_count)
+        logger.info(
+            f"开始为 {needs_image_count} 道题目生成图片",
+        )
         result = await resource_service.generate_images(state)
         logger.info("图片生成完成")
         return result
@@ -205,7 +209,9 @@ async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
             logger.info("跳过音频处理（没有需要生成语音的题目）")
             return {}
 
-        logger.info("开始为 %s 道题目生成语音", needs_audio_count)
+        logger.info(
+            f"开始为 {needs_audio_count} 道题目生成语音",
+        )
         result = await resource_service.generate_audio(state)
         logger.info("语音生成完成")
         return result
@@ -222,7 +228,9 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
         logger.info("跳过文本处理（没有文本题）")
         return {}
 
-    logger.info("文本题目处理完成，共 %s 道题目", len(text_questions))
+    logger.info(
+        "文本题目处理完成，f共 {len(text_questions)} 道题目",
+    )
     return {}
 
 
@@ -254,17 +262,14 @@ async def gather_questions_node(state: QuestionGenerationState) -> Dict[str, Any
     """汇总数据节点 - 合并召回题目和生成题目"""
     generated_questions: List[Question] = state.get("questions", [])
     recall_questions: List[Question] = state.get("recall_questions", [])
-    
+
     # 合并召回题目和生成题目
     all_questions = list(recall_questions) + list(generated_questions)
-    
+
     logger.info(
-        "题目汇总完成: 召回题目=%s道, 生成题目=%s道, 总计=%s道",
-        len(recall_questions),
-        len(generated_questions),
-        len(all_questions),
+        f"题目汇总完成: 召回题目={len(recall_questions)}道, 生成题目={len(generated_questions)}道, 总计={len(all_questions)}道",
     )
-    
+
     return {"questions": all_questions}
 
 
@@ -379,45 +384,23 @@ async def invoke_generate_workflow(
     db: AsyncSession,
     count: int,
     type: str,
-    unit_id: int | None = None,
-    textbook_id: int | None = None,
-    student_id: str | None = None,
+    student_id: str,
+    textbook: Textbook,
+    unit: Unit | None = None,
     **kwargs,
 ) -> List[Question]:
     """执行问题生成流程"""
     # 记录开始时间
     start_time = time.time()
 
-    # 构建日志信息
-    log_parts = [
-        f"type={type}",
-        f"count={count}",
-    ]
-    if unit_id is not None:
-        log_parts.append(f"unit_id={unit_id}")
-    if textbook_id is not None:
-        log_parts.append(f"textbook_id={textbook_id}")
-    if student_id is not None:
-        log_parts.append(f"student_id={student_id}")
-
-    logger.info("开始生成题目 | " + " | ".join(log_parts))
-
-    # 从环境变量读取 recall_count，能力评估类型不使用召回题目
-    recall_count = 0 if type == "assessment" else envs.QUESTION_RECALL_COUNT
-
-    initial_state: QuestionGenerationState = {
-        "db": db,
-        "count": count,
-        "type": type,
-        "recall_count": recall_count,
-    }
-    update_kwargs = {
-        "unit_id": unit_id,
-        "textbook_id": textbook_id,
-        "student_id": student_id,
-        **kwargs,
-    }
-    initial_state.update({k: v for k, v in update_kwargs.items() if v is not None})
+    initial_state = QuestionGenerationState(
+        db=db,
+        count=count,
+        type=type,
+        student_id=student_id,
+        textbook=textbook,
+        unit=unit,
+    )
 
     try:
         result = await app.ainvoke(initial_state)
@@ -426,48 +409,28 @@ async def invoke_generate_workflow(
         # 计算生成时长
         elapsed_time = time.time() - start_time
 
-        # 从结果中获取 textbook 信息用于日志
-        textbook = result.get("textbook")
-        if textbook:
-            logger.info(
-                "题目生成完成 | type={type} | subject={subject} | grade={grade} | "
-                "生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
-                type=type,
-                subject=textbook.subject,
-                grade=textbook.grade,
-                question_count=len(questions),
-                elapsed_time=elapsed_time,
-            )
-        else:
-            logger.info(
-                "题目生成完成 | type={type} | 生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
-                type=type,
-                question_count=len(questions),
-                elapsed_time=elapsed_time,
-            )
+        logger.info(
+            "题目生成完成 | type={type} | subject={subject} | grade={grade} | "
+            "生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
+            type=type,
+            subject=textbook.subject,
+            grade=textbook.grade,
+            question_count=len(questions),
+            elapsed_time=elapsed_time,
+        )
 
         return questions
     except Exception as e:
         # 计算失败时的时长
         elapsed_time = time.time() - start_time
 
-        # 尝试从 state 中获取 textbook 信息用于日志
-        textbook = initial_state.get("textbook")
-        if textbook:
-            logger.error(
-                "题目生成失败 | type={type} | subject={subject} | grade={grade} | "
-                "耗时={elapsed_time:.2f}秒 | 错误={error}",
-                type=type,
-                subject=textbook.subject,
-                grade=textbook.grade,
-                elapsed_time=elapsed_time,
-                error=str(e),
-            )
-        else:
-            logger.error(
-                "题目生成失败 | type={type} | 耗时={elapsed_time:.2f}秒 | 错误={error}",
-                type=type,
-                elapsed_time=elapsed_time,
-                error=str(e),
-            )
+        logger.error(
+            "题目生成失败 | type={type} | subject={subject} | grade={grade} | "
+            "耗时={elapsed_time:.2f}秒 | 错误={error}",
+            type=type,
+            subject=textbook.subject,
+            grade=textbook.grade,
+            elapsed_time=elapsed_time,
+            error=str(e),
+        )
         raise

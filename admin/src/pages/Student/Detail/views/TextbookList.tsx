@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Card, Empty, Flex, message } from 'antd';
+import { Button, Card, Empty, Flex, message, Modal } from 'antd';
 import { ModalForm, ProForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { useStudentDetailModel } from '../models/page';
 import { TextbookCard } from '../components/TextbookCard';
@@ -32,7 +32,7 @@ export function TextbookList() {
     },
   );
 
-  const { runAsync: handleRemoveTextbook } = useRequest(
+  const { runAsync: removeTextbook } = useRequest(
     (textbookId: number) => StudentApi.removeTextbook(student?.id!, textbookId),
     {
       manual: true,
@@ -43,6 +43,14 @@ export function TextbookList() {
       },
     },
   );
+
+  const handleRemoveTextbook = (textbookId: number) => {
+    Modal.confirm({
+      title: '删除教材',
+      content: '确定要删除该教材吗？',
+      onOk: () => removeTextbook(textbookId),
+    });
+  };
 
   return (
     <>

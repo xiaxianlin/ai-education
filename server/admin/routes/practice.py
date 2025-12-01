@@ -17,37 +17,18 @@ practice_router = APIRouter(prefix="/practice", tags=["学生练习管理"])
 async def generate_practice_session(
     params: GeneratePracticeSchema = Depends(), db: AsyncSession = Database
 ):
-    """
-    根据学生ID和练习类型生成练习
-
-    Args:
-        student_id: 学生ID
-        type: 练习类型 (daily_practice/unit_practice/assessment)
-        unit_id: 单元ID (可选)
-        count: 练习题目数量 (可选)
-
-    Returns:
-        练习会话信息
-    """
+    """根据学生ID和练习类型生成练习"""
     type = params.type
-    student_id = params.student_id
-    textbook_id = params.textbook_id
-    unit_id = params.unit_id
-    count = params.count
+    params = params.model_dump()
+    params["db"] = db
     if type == "daily_practice":
-        return await PracticeService.create_daily_practice(
-            db=db, student_id=student_id, texbook_id=textbook_id, count=count
-        )
-    elif type == "unit_practice":
-        return await PracticeService.create_unit_practice(
-            db=db, student_id=student_id, texbook_id=textbook_id, count=count, unit_id=unit_id
-        )
-    elif type == "assessment":
-        return await PracticeService.create_assessment(
-            db=db, student_id=student_id, texbook_id=textbook_id, count=count
-        )
-    else:
-        raise ValueError("无效的练习类型，可选值：daily_practice, unit_practice, assessment")
+        return await PracticeService.create_daily_practice(**params)
+
+    if type == "unit_practice":
+        return await PracticeService.create_unit_practice(**params)
+
+    if type == "assessment":
+        return await PracticeService.create_assessment(**params)
 
 
 @practice_router.post("/{session_id}/regenerate")

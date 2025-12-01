@@ -55,14 +55,10 @@ class QuestionGenerationState(TypedDict, total=False):
     type: GenerationType
     # 需要生成的题目数量
     count: int
-    # 教材对象（必需，所有生成类型都需要）
-    textbook: NotRequired[Textbook]
-    # 单元 ID，单元生成和单元练习需要
-    unit_id: NotRequired[int]
-    # 教材 ID，教材生成和能力评估需要
-    textbook_id: NotRequired[int]
+    # 教材对象
+    textbook: Textbook
     # 学生 ID，每日练习需要
-    student_id: NotRequired[str]
+    student_id: str
     # 单元模型
     unit: NotRequired[Unit]
     # 单元模型列表
