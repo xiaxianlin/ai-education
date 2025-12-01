@@ -32,7 +32,8 @@ class DailyPracticeGenerateService:
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证每日练习的状态参数"""
-        pass
+        if state.get("student_id") is None:
+            raise ValueError("学生 ID (student_id) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:

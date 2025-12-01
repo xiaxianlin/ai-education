@@ -4,13 +4,10 @@
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import type { PracticeCardProps } from "./types";
+import { useNavigate } from "react-router-dom";
 
-export const CompleteCard: FC<PracticeCardProps> = ({
-  title,
-  session,
-  onStart,
-}) => {
+export const CompleteCard: FC<{ session: PracticeSession }> = ({ session }) => {
+  const navigate = useNavigate();
   const { question_count, answer_count, correct_count, status } = session || {};
   const isCompleted = status === 2;
 
@@ -22,7 +19,9 @@ export const CompleteCard: FC<PracticeCardProps> = ({
         <div className="flex items-center gap-5">
           <div className="text-2xl">{isCompleted ? "🎉" : "📝"}</div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-2xl font-bold text-foreground">{title}</h3>
+            <h3 className="text-2xl font-bold text-foreground">
+              {/** TODO: 教材名称 */}
+            </h3>
           </div>
         </div>
         <p className="text-base text-muted-foreground mb-3">
@@ -31,7 +30,7 @@ export const CompleteCard: FC<PracticeCardProps> = ({
         {/* 操作按钮 */}
         <Button
           size="lg"
-          onClick={onStart}
+          onClick={() => navigate(`/practice/session/${session.id}`)}
           className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
         >
           <Play className="h-5 w-5 mr-2" fill="currentColor" />

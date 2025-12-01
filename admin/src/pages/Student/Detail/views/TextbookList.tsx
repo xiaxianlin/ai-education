@@ -69,6 +69,7 @@ export function TextbookList() {
               <TextbookCard
                 key={textbook.id}
                 textbook={textbook}
+                active={textbook.grade === student?.grade}
                 onDelete={() => handleRemoveTextbook(textbook.id)}
               />
             ))}

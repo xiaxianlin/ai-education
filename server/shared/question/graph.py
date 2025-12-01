@@ -34,9 +34,6 @@ def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     if state.get("count") is None:
         raise ValueError("题目数量（count）不能为空")
 
-    if state.get("student_id") is None:
-        raise ValueError("学生 ID (student_id) 不能为空")
-
     if state.get("textbook") is None:
         raise ValueError("教材 (textbook) 不能为空")
 
@@ -384,21 +381,20 @@ async def invoke_generate_workflow(
     db: AsyncSession,
     count: int,
     type: str,
-    student_id: str,
     textbook: Textbook,
-    unit: Unit | None = None,
-    **kwargs,
+    student_id: str | None = None,  # 学生练习需要
+    unit: Unit | None = None,  # 单元练习需要
 ) -> List[Question]:
     """执行问题生成流程"""
-    # 记录开始时间
+
     start_time = time.time()
 
     initial_state = QuestionGenerationState(
         db=db,
         count=count,
         type=type,
-        student_id=student_id,
         textbook=textbook,
+        student_id=student_id,
         unit=unit,
     )
 
@@ -421,7 +417,7 @@ async def invoke_generate_workflow(
 
         return questions
     except Exception as e:
-        # 计算失败时的时长
+
         elapsed_time = time.time() - start_time
 
         logger.error(
@@ -433,4 +429,4 @@ async def invoke_generate_workflow(
             elapsed_time=elapsed_time,
             error=str(e),
         )
-        raise
+        raise e

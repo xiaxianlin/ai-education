@@ -7,7 +7,6 @@ from core.schema import SearchResultSchema, SearchSchema, UnitSchema, QuestionSc
 from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from shared.question.graph import invoke_generate_workflow
-from shared.question.types import GenerationType
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
@@ -138,15 +137,11 @@ async def generate_unit_questions(
     try:
         # 4. 调用题目生成工作流
         questions = await invoke_generate_workflow(
-            db=db,
-            type=GenerationType.UNIT.value,
-            count=count,
-            unit_id=unit_id,
+            db=db, type="unit", count=count, textbook=textbook, unit=unit
         )
 
         logger.info(
-            f"[Admin] 单元题目生成成功: unit_id={unit_id}, "
-            f"generated_count={len(questions)}"
+            f"[Admin] 单元题目生成成功: unit_id={unit_id}, " f"generated_count={len(questions)}"
         )
 
         # 5. 返回题目列表

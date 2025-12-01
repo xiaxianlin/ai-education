@@ -229,20 +229,7 @@ async def generate_textbook_questions(
     textbook_id: int,
     count: int = 30,
 ) -> List[QuestionSchema]:
-    """
-    根据教材ID生成题目
-
-    Args:
-        db: 数据库会话
-        textbook_id: 教材ID
-        count: 生成题目数量，默认30道
-
-    Returns:
-        生成的题目列表
-
-    Raises:
-        ValueError: 教材不存在或未解析
-    """
+    """根据教材ID生成题目"""
     # 1. 查询教材信息
     textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
     if not textbook:
@@ -272,10 +259,7 @@ async def generate_textbook_questions(
     try:
         # 3. 调用题目生成工作流
         questions = await invoke_generate_workflow(
-            db=db,
-            type="textbook",
-            count=count,
-            textbook_id=textbook_id,
+            db=db, type="textbook", count=count, textbook=textbook
         )
 
         logger.info(

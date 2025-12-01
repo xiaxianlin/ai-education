@@ -36,6 +36,9 @@ class UnitPracticeGenerateService:
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证单元练习的状态参数"""
+        if state.get("student_id") is None:
+            raise ValueError("学生 ID (student_id) 不能为空")
+        
         if state.get("unit") is None:
             raise ValueError("单元 (unit) 不能为空")
 

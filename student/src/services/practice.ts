@@ -6,13 +6,13 @@ import { api } from "@/lib/api";
 
 export const practiceService = {
   // ===== 获取练习信息 =====
-  
+
   /**
    * 获取每日练习
    * GET /practice/daily
    */
   getDailyPractice: async () => {
-    return api.get<PracticeSession | undefined>("/practice/daily");
+    return api.get<PracticeSession[]>("/practice/daily");
   },
 
   /**
@@ -20,7 +20,7 @@ export const practiceService = {
    * GET /practice/unit
    */
   getUnitPractice: async () => {
-    return api.get<PracticeSession | undefined>("/practice/unit");
+    return api.get<PracticeSession[]>("/practice/unit");
   },
 
   /**
@@ -28,32 +28,25 @@ export const practiceService = {
    * GET /practice/assessment
    */
   getAssessment: async () => {
-    return api.get<PracticeSession | undefined>("/practice/assessment");
+    return api.get<PracticeSession[]>("/practice/assessment");
   },
 
   // ===== 创建练习 =====
-  
+
   /**
    * 创建练习
-   * POST /practice/{type}/create
-   * @param type - daily_practice | unit_practice | assessment
-   * @param params - 可选参数（如 unit_id, count）
+   * POST /practice/create
    */
   createPractice: async (
     type: "daily_practice" | "unit_practice" | "assessment",
-    params?: { unit_id?: number; count?: number }
+    textbook_id: number,
+    unit_id?: number
   ) => {
-    const queryParams = new URLSearchParams();
-    if (params?.unit_id) queryParams.append("unit_id", params.unit_id.toString());
-    if (params?.count) queryParams.append("count", params.count.toString());
-    const queryString = queryParams.toString();
-    return api.post<number>(
-      `/practice/${type}/create${queryString ? `?${queryString}` : ""}`
-    );
+    return api.post<number>(`/practice/create`, { type, textbook_id, unit_id });
   },
 
   // ===== 练习操作 =====
-  
+
   /**
    * 开始练习
    * POST /practice/{session_id}/begin
@@ -75,11 +68,13 @@ export const practiceService = {
    * POST /practice/{session_id}/complete
    */
   completePractice: async (sessionId: number) => {
-    return api.post<CompletePracticeResponse>(`/practice/${sessionId}/complete`);
+    return api.post<CompletePracticeResponse>(
+      `/practice/${sessionId}/complete`
+    );
   },
 
   // ===== 获取详情 =====
-  
+
   /**
    * 获取练习会话详情
    * GET /practice/session/{session_id}

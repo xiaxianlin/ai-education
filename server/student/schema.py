@@ -18,7 +18,6 @@ class LoginSchema(BaseModel):
 class CreatePracticeSchema(BaseModel):
     type: PracticeType
     textbook_id: int
-    count: int = 15
     unit_id: Optional[int] = None
 
 

@@ -3,6 +3,7 @@ from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
+from core.constants import GENERATE_QUESTION_COUNT
 from shared.utils.time import now, today
 from shared.question.graph import invoke_generate_workflow
 
@@ -37,7 +38,6 @@ class PracticeService:
         *,
         db: AsyncSession,
         type: str,
-        count: int,
         student_id: str,
         textbook_id: int,
         unit_id: int | None = None,
@@ -63,6 +63,10 @@ class PracticeService:
         await db.flush()
 
         try:
+            count = GENERATE_QUESTION_COUNT[textbook.grade][type]
+            if not count:
+                raise ValueError("生成数量异常")
+
             logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
             questions = await invoke_generate_workflow(
                 db=db,
@@ -136,7 +140,7 @@ class PracticeService:
             raise ValueError(f"会话重新生成失败: {str(e)}")
 
     async def create_daily_practice(
-        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, **kwargs
+        *, db: AsyncSession, student_id: str, textbook_id: int, **kwargs
     ):
         """为学生生成每日练习"""
         current_date = today()
@@ -211,7 +215,6 @@ class PracticeService:
         session = await PracticeService.generate_practice_session(
             db=db,
             type="daily_practice",
-            count=count,
             student_id=student_id,
             textbook_id=textbook_id,
         )
@@ -219,7 +222,7 @@ class PracticeService:
         return session.id
 
     async def create_unit_practice(
-        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, unit_id: int, **kwargs
+        *, db: AsyncSession, student_id: str, textbook_id: int, unit_id: int, **kwargs
     ):
         """为学生生成单元练习"""
 
@@ -248,7 +251,6 @@ class PracticeService:
         session = await PracticeService.generate_practice_session(
             db=db,
             type="unit_practice",
-            count=count,
             unit_id=unit_id,
             textbook_id=textbook_id,
             student_id=student_id,
@@ -260,9 +262,7 @@ class PracticeService:
 
         return session.id
 
-    async def create_assessment(
-        *, db: AsyncSession, student_id: str, textbook_id: int, count: int, **kwargs
-    ):
+    async def create_assessment(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
         """为学生生成能力评测"""
 
         session = await db.scalar(
@@ -282,7 +282,6 @@ class PracticeService:
         session = await PracticeService.generate_practice_session(
             db=db,
             type="assessment",
-            count=count,
             student_id=student_id,
             textbook_id=textbook_id,
         )
