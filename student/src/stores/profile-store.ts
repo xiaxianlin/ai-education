@@ -18,9 +18,15 @@ export const useProfileStore = create<ProfileStoreState>((set) => {
         student: profile.student,
         textbooks: profile.textbooks,
         subjects: uniq(profile.textbooks.map((t) => t.subject)),
-        activeTextbooks: profile.textbooks.filter(
-          (t) => t.grade === profile.student.grade
-        ),
+
+        activeTextbooks: profile.textbooks
+          .filter((t) => t.grade === profile.student.grade)
+          .sort((a, b) => {
+            const semesterOrder = { '上学期': 0, '下学期': 1 };
+            const orderA = semesterOrder[a.semester as '上学期' | '下学期'] ?? 2;
+            const orderB = semesterOrder[b.semester as '上学期' | '下学期'] ?? 2;
+            return orderA - orderB;
+          }),
       }),
   };
 });
