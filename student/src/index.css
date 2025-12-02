@@ -3,48 +3,129 @@
 @tailwind utilities;
 
 @layer base {
+  /* Default Theme: Low Grade (Grade 1-2) - Joyful Land 快乐乐园 */
   :root {
-    /* Base Tone: Bright Violet/Indigo (Kid-friendly, Magic) */
-    --primary: 262 83% 58%;
+    /* Primary: Bright Sky Blue/Candy Blue - Energetic and lively */
+    --primary: 210 90% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Auxiliary: Gray-Green (Illustrations/Backgrounds) */
-    --secondary: 160 25% 95%;
-    --secondary-foreground: 215 47% 11%;
+    /* Secondary: Light Cream/Soft Warm White - Warm secondary background */
+    --secondary: 45 100% 96%;
+    --secondary-foreground: 25 90% 45%;
 
-    /* Emphasis: Orange-Yellow */
-    --accent: 35 95% 55%;
+    /* Accent: Vibrant Sun Yellow/Orange - Rewards and highlights */
+    --accent: 35 95% 60%;
     --accent-foreground: 0 0% 100%;
 
-    /* Emphasis: Red (Warnings) */
-    --destructive: 0 85% 60%;
+    /* Destructive: Soft Red/Pink - Avoid being too alarming */
+    --destructive: 0 80% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Neutral / Backgrounds */
+    /* Background: Pure white or very light warm white */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%; /* Deep Blue-Black for better contrast */
+    --foreground: 222 47% 15%; /* Deep blue-black text, softer than pure black */
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 15%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262 83% 58%;
+    /* Border: Thicker soft color border */
+    --border: 210 40% 90%;
+    --input: 210 40% 90%;
+    --ring: 210 90% 60%;
 
-    --radius: 1rem; /* Rounded style */
+    /* Radius: Very rounded - safe and soft feeling */
+    --radius: 1rem; /* 16px */
 
-    /* Chart Colors (kept from original but adjusted slightly if needed) */
+    /* Chart Colors */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+  }
+
+  /* Middle Grade (Grade 3-4) - Adventure World 探索世界 */
+  [data-grade="middle"] {
+    /* Primary: Emerald Green/Teal - Growth and calmness */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Light Mint Green/Gray-Green - Fresh and eye-friendly */
+    --secondary: 150 30% 96%;
+    --secondary-foreground: 160 40% 20%;
+
+    /* Accent: Coral Red/Orange-Red - Action points */
+    --accent: 12 85% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Standard Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Background: Cool white or gray-white */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    --muted: 150 20% 96%;
+    --muted-foreground: 160 15% 50%;
+
+    --border: 160 20% 90%;
+    --input: 160 20% 90%;
+    --ring: 160 84% 39%;
+
+    /* Radius: Medium - neither childish nor too stiff */
+    --radius: 0.75rem; /* 12px */
+  }
+
+  /* High Grade (Grade 5-6) - Focus Studio 专注学堂 */
+  [data-grade="high"] {
+    /* Primary: Classic Tech Blue/Indigo - Professional and focused */
+    --primary: 220 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Cool Gray - Minimalist */
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Accent: Electric Purple/Cyan - Highlight key information */
+    --accent: 262 80% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Deep Red */
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Background: Pure cool white */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 10%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 220 15% 50%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 80% 50%;
+
+    /* Radius: Refined small radius - sleek */
+    --radius: 0.5rem; /* 8px */
   }
 
   /* Dark Theme (Optional/Future-proof) */

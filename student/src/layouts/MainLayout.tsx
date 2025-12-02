@@ -4,13 +4,17 @@ import { Outlet } from "react-router-dom";
 import { profileService } from "@/services/profile";
 import { useProfileStore } from "@/stores/profile-store";
 import { LoadingPage } from "@/components/business/LoadingSpinner";
+import { useGradeTheme } from "@/hooks/useGradeTheme";
 
 export const MainLayout = () => {
-  const { setProfile } = useProfileStore();
+  const { setProfile, student } = useProfileStore();
 
   const { loading } = useRequest(profileService.getProfile, {
     onSuccess: setProfile,
   });
+
+  // Apply grade-based theme
+  useGradeTheme(student?.grade);
 
   if (loading) {
     return <LoadingPage />;
