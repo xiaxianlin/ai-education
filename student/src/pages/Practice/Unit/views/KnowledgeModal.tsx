@@ -1,25 +1,14 @@
 /**
  * 知识点弹窗组件
  */
-import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Lightbulb } from "lucide-react";
+import { useUnitPracticeStore } from "../stores/unit-practice-store";
 
-interface KnowledgeModalProps {
-  open: boolean;
-  unitName: string;
-  knowledges: Knowledge[];
-  loading?: boolean;
-  onClose: () => void;
-}
+export function KnowledgeModal() {
+  const { knowledgeModal, closeKnowledgeModal } = useUnitPracticeStore();
+  const { open, unitName, knowledges, loading } = knowledgeModal;
 
-export const KnowledgeModal = memo(function KnowledgeModal({
-  open,
-  unitName,
-  knowledges,
-  loading = false,
-  onClose,
-}: KnowledgeModalProps) {
   if (!open) return null;
 
   return (
@@ -34,7 +23,7 @@ export const KnowledgeModal = memo(function KnowledgeModal({
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-foreground"
-            onClick={onClose}
+            onClick={closeKnowledgeModal}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -72,9 +61,9 @@ export const KnowledgeModal = memo(function KnowledgeModal({
           )}
         </div>
         <div className="px-6 py-4 border-t border-border bg-background flex justify-end">
-          <Button onClick={onClose}>知道了</Button>
+          <Button onClick={closeKnowledgeModal}>知道了</Button>
         </div>
       </div>
     </div>
   );
-});
+}

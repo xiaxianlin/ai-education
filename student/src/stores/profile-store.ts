@@ -22,6 +22,10 @@ export const useProfileStore = create<ProfileStoreState>((set) => {
         activeTextbooks: profile.textbooks
           .filter((t) => t.grade === profile.student.grade)
           .sort((a, b) => {
+            // 先按 subject 排序
+            if (a.subject > b.subject) return -1;
+            if (a.subject < b.subject) return 1;
+            // subject 相同再按 semester 排序
             const semesterOrder = { '上学期': 0, '下学期': 1 };
             const orderA = semesterOrder[a.semester as '上学期' | '下学期'] ?? 2;
             const orderB = semesterOrder[b.semester as '上学期' | '下学期'] ?? 2;
