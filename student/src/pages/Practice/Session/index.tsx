@@ -51,7 +51,7 @@ export default function PracticeSession() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <BackButton onClick={handleBack} label={`返回${practiceTypeName}`} />
       <QuestionStep />
     </div>

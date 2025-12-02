@@ -1,6 +1,7 @@
 """答题服务"""
 
 import os
+import base64
 from pathlib import Path
 from loguru import logger
 from sqlalchemy import select
@@ -9,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from core.database import PracticeSession, PracticeAnswer, PracticeWrongRecord, Question
-from student.schema import AnswerQuestionSchema
+from student.schema import AnswerQuestionSchema, AnswerResultSchema
 from shared.services.aliyun import AliyunAIService
 from shared.utils.time import now
 from core.settings import envs
@@ -159,11 +160,13 @@ async def _handle_audio_answer(params: AnswerQuestionSchema) -> str:
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
         # 创建临时文件
-        file_path = tmp_dir / f"{params.student_id}_{params.session_id}_{params.question_id}_{now()}.mp3"
-
+        file_path = (
+            tmp_dir / f"{params.student_id}_{params.session_id}_{params.question_id}_{now()}.mp3"
+        )
+        audio_bytes = base64.b64decode(params.audio_data)
         # 写入音频数据
         with open(file_path, "wb") as f:
-            f.write(params.audio_data)
+            f.write(audio_bytes)
 
         logger.info(f"音频临时文件创建成功: {file_path}")
         # ASR 语音识别
@@ -180,24 +183,17 @@ async def _handle_audio_answer(params: AnswerQuestionSchema) -> str:
             logger.info(f"临时文件已删除: {file_path}")
 
 
-async def submit_answer(db: AsyncSession, params: AnswerQuestionSchema) -> dict:
-    """
-    提交答题答案
-
-    Args:
-        db: 数据库会话
-        params: 答题参数
-
-    Returns:
-        答题结果
-    """
+async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestionSchema) -> dict:
+    """提交答题答案"""
     try:
         # 1. 查询练习会话
-        session = await db.scalar(select(PracticeSession).where(PracticeSession.id == params.session_id))
+        session = await db.scalar(
+            select(PracticeSession).where(PracticeSession.id == params.session_id)
+        )
         if not session:
             raise ValueError("练习会话不存在")
 
-        if session.student_id != params.student_id:
+        if session.student_id != student_id:
             raise ValueError("无权操作此练习")
 
         # 2. 查询题目信息
@@ -208,7 +204,8 @@ async def submit_answer(db: AsyncSession, params: AnswerQuestionSchema) -> dict:
         # 3. 查询答题记录
         answer_record = await db.scalar(
             select(PracticeAnswer).where(
-                PracticeAnswer.session_id == params.session_id, PracticeAnswer.question_id == params.question_id
+                PracticeAnswer.session_id == params.session_id,
+                PracticeAnswer.question_id == params.question_id,
             )
         )
         if not answer_record:
@@ -245,16 +242,16 @@ async def submit_answer(db: AsyncSession, params: AnswerQuestionSchema) -> dict:
         await db.commit()
 
         logger.info(
-            f"答题提交成功: student_id={params.student_id}, session_id={params.session_id}, "
+            f"答题提交成功: student_id={student_id}, session_id={params.session_id}, "
             f"question_id={params.question_id}, is_correct={is_correct}"
         )
 
-        return {
-            "is_correct": is_correct,
-            "correct_answer": question.answer,
-            "user_answer": text_answer,
-            "analysis": analysis if not is_correct else None,
-        }
+        return AnswerResultSchema(
+            is_correct=is_correct,
+            correct_answer=question.answer,
+            user_answer=text_answer,
+            analysis=analysis if not is_correct else None,
+        )
 
     except ValueError:
         raise
@@ -263,7 +260,7 @@ async def submit_answer(db: AsyncSession, params: AnswerQuestionSchema) -> dict:
         # 发生异常时回滚事务
         await db.rollback()
         logger.error(
-            f"答题提交失败: student_id={params.student_id}, session_id={params.session_id}, "
+            f"答题提交失败: student_id={student_id}, session_id={params.session_id}, "
             f"question_id={params.question_id}, error={str(e)}",
             exc_info=e,
         )

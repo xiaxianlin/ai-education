@@ -221,22 +221,27 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       const result = await practiceService.submitAnswer(submitParams);
 
       // 更新答案状态
-      set((state) => ({
-        answerStatus: {
-          ...state.answerStatus,
-          [currentQuestion.id]: result.is_correct ? 1 : 2,
-        },
-        // 更新会话状态
-        session: state.session
-          ? {
-              ...state.session,
-              answer_count: result.session_progress.answer_count,
-              correct_count: result.session_progress.correct_count,
-              status: result.session_progress.status,
-            }
-          : null,
-        startTime: Date.now(), // 重置开始时间
-      }));
+      set((state) => {
+        const progress = (result as any).session_progress;
+
+        return {
+          answerStatus: {
+            ...state.answerStatus,
+            [currentQuestion.id]: result.is_correct ? 1 : 2,
+          },
+          // 如果后端返回了会话进度，则同步更新会话统计；否则保持原有会话数据
+          session:
+            state.session && progress
+              ? {
+                  ...state.session,
+                  answer_count: progress.answer_count,
+                  correct_count: progress.correct_count,
+                  status: progress.status,
+                }
+              : state.session,
+          startTime: Date.now(), // 重置开始时间
+        };
+      });
 
       return result;
     } catch (error) {

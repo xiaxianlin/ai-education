@@ -28,3 +28,10 @@ class AnswerQuestionSchema(BaseModel):
     time_spent: int  # 答题耗时，单位秒
     is_audio_answer: bool = False  # 是否为音频回答
     audio_data: Optional[str] = None  # 音频数据（base64编码字符串）
+
+
+class AnswerResultSchema(BaseModel):
+    is_correct: bool
+    correct_answer: str
+    user_answer: str
+    analysis: Optional[str] = None

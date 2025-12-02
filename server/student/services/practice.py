@@ -200,7 +200,7 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
     questions = []
     if question_ids:
         question_objs = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
-        questions = [QuestionSchema.model_validate(q).model_dump() for q in question_objs.all()]
+        questions = [QuestionSchema.model_validate(q) for q in question_objs.all()]
 
     # 构建答题记录列表
     answer_list = []
@@ -222,12 +222,10 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
             select(PracticeReport).where(PracticeReport.session_id == session_id)
         )
         if report_obj:
-            report = PracticeReportSchema.model_validate(report_obj).model_dump()
+            report = PracticeReportSchema.model_validate(report_obj)
 
     # 构建返回结果
-    session_dict = PracticeSessionSchema.model_validate(session).model_dump()
-    # 将 id 字段映射为 session_id，以符合前端接口定义
-    session_dict["session_id"] = session_dict.pop("id", session.id)
+    session_dict = PracticeSessionSchema.model_validate(session)
 
     result = {
         "session": session_dict,

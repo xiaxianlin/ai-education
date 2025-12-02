@@ -1,6 +1,5 @@
 """练习路由（每日练习 + 单元练习 + 能力评测）"""
 
-import base64
 from typing import Dict
 from fastapi import APIRouter, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -104,39 +103,11 @@ async def begin_practice_session(session_id: int, request: Request, db: AsyncSes
 async def answer_question(
     params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database
 ):
-    """
-    提交练习答案
-
-    Args:
-        params.session_id: 练习会话ID
-        params.question_id: 题目ID
-        params.answer: 用户答案
-        params.time_spent: 答题耗时（秒）
-        params.is_audio_answer: 是否为音频回答
-        params.audio_data: 音频数据（base64编码字符串）
-    """
+    """提交练习答案"""
     # 获取当前学生信息
     student = request.state.student
 
-    # 如果是音频答案，解码 base64 数据
-    audio_bytes = None
-    if params.is_audio_answer and params.audio_data:
-        try:
-            audio_bytes = base64.b64decode(params.audio_data)
-        except Exception as e:
-            raise ValueError(f"音频数据解码失败: {str(e)}")
-
-    # 提交答案
-    return await answer.submit_answer(
-        db=db,
-        student_id=student.id,
-        session_id=params.session_id,
-        question_id=params.question_id,
-        answer=params.answer,
-        time_spent=params.time_spent,
-        is_video_answer=params.is_audio_answer,
-        audio_bytes=audio_bytes,
-    )
+    return await answer.submit_answer(db, student.id, params)
 
 
 @practice_router.post("/{session_id}/complete")
