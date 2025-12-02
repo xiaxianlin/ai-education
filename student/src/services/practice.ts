@@ -80,7 +80,7 @@ export const practiceService = {
    * GET /practice/session/{session_id}
    */
   getSessionDetail: async (sessionId: number) => {
-    return api.get<PracticeSessionDetail>(`/practice/session/${sessionId}`);
+    return api.get<PracticeSessionDetail>(`/practice/detail/${sessionId}`);
   },
 
   /**

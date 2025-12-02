@@ -15,7 +15,7 @@ export const QuestionDisplay: FC<QuestionDisplayProps> = ({
 }) => {
   const getStatusBadge = () => {
     if (answerStatus === undefined || answerStatus === 0) return null;
-    
+
     return (
       <Badge
         variant={answerStatus === 1 ? "default" : "destructive"}
