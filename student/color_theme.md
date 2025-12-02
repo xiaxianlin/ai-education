@@ -13,9 +13,10 @@
 
 ### 配色方案 (CSS Variables)
 
+#### Light Mode (亮色)
 ```css
-/* Theme: Low Grade (Grade 1-2) */
-:root {
+/* Theme: Low Grade - Light */
+:root, [data-grade="low"] {
   /* 主色：明亮的天空蓝/糖果蓝，充满活力 */
   --primary: 210 90% 60%;
   --primary-foreground: 0 0% 100%;
@@ -28,25 +29,56 @@
   --accent: 35 95% 60%;
   --accent-foreground: 0 0% 100%;
 
-  /* 破坏/警告色：柔和的红/粉红，避免过于惊吓 */
+  /* 破坏/警告色：柔和的红/粉红 */
   --destructive: 0 80% 65%;
   --destructive-foreground: 0 0% 100%;
 
   /* 背景：纯白或极淡的暖调白 */
   --background: 0 0% 100%;
-  --foreground: 222 47% 15%; /* 深蓝黑文字，比纯黑更柔和 */
+  --foreground: 222 47% 15%;
 
-  /* 卡片：白色，带暖色阴影（阴影在 CSS 中另设，此处为底色） */
   --card: 0 0% 100%;
   --card-foreground: 222 47% 15%;
 
-  /* 边框：较粗的柔和色边框 */
   --border: 210 40% 90%;
   --input: 210 40% 90%;
   --ring: 210 90% 60%;
 
-  /* 圆角：非常圆润 */
-  --radius: 1rem; /* 16px - 24px */
+  --radius: 1rem; /* 16px */
+}
+```
+
+#### Dark Mode (暗色)
+低年级的暗色模式不应过于压抑，建议使用深邃的午夜蓝作为背景，像夜晚的星空。
+
+```css
+/* Theme: Low Grade - Dark */
+.dark [data-grade="low"], [data-grade="low"].dark {
+  /* 主色：提亮的天空蓝，确保在深色背景上的可见度 */
+  --primary: 210 90% 70%;
+  --primary-foreground: 222 47% 11%;
+
+  /* 辅助色：深午夜蓝，比背景稍亮 */
+  --secondary: 220 40% 20%;
+  --secondary-foreground: 210 40% 98%;
+
+  /* 强调色：萤火虫黄，发光感 */
+  --accent: 35 95% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 60% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* 背景：深蓝色系，而非纯黑 */
+  --background: 225 40% 10%;
+  --foreground: 210 40% 98%;
+
+  --card: 225 40% 13%;
+  --card-foreground: 210 40% 98%;
+
+  --border: 220 30% 20%;
+  --input: 220 30% 20%;
+  --ring: 210 90% 70%;
 }
 ```
 
@@ -61,26 +93,25 @@
 
 ### 配色方案 (CSS Variables)
 
+#### Light Mode (亮色)
 ```css
-/* Theme: Middle Grade (Grade 3-4) */
-:root {
+/* Theme: Middle Grade - Light */
+[data-grade="middle"] {
   /* 主色：翡翠绿/蓝绿色，象征成长与平静 */
   --primary: 160 84% 39%;
   --primary-foreground: 0 0% 100%;
 
-  /* 辅助色：淡薄荷绿/灰绿，清爽护眼 */
+  /* 辅助色：淡薄荷绿/灰绿 */
   --secondary: 150 30% 96%;
   --secondary-foreground: 160 40% 20%;
 
-  /* 强调色：珊瑚红/橙红，用于行动点 */
+  /* 强调色：珊瑚红/橙红 */
   --accent: 12 85% 65%;
   --accent-foreground: 0 0% 100%;
 
-  /* 破坏/警告色：标准红 */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  /* 背景：冷调白或灰白 */
   --background: 0 0% 100%;
   --foreground: 215 25% 15%;
 
@@ -91,8 +122,40 @@
   --input: 160 20% 90%;
   --ring: 160 84% 39%;
 
-  /* 圆角：适中 */
   --radius: 0.75rem; /* 12px */
+}
+```
+
+#### Dark Mode (暗色)
+中年级暗色模式采用深森林绿或深灰绿，营造一种丛林探险的静谧感。
+
+```css
+/* Theme: Middle Grade - Dark */
+.dark [data-grade="middle"], [data-grade="middle"].dark {
+  /* 主色：明亮的翡翠绿 */
+  --primary: 160 70% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  /* 辅助色：深苔藓绿 */
+  --secondary: 160 30% 15%;
+  --secondary-foreground: 150 20% 98%;
+
+  --accent: 12 85% 65%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 60% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* 背景：深灰绿/Slate */
+  --background: 170 30% 8%;
+  --foreground: 150 20% 98%;
+
+  --card: 170 30% 10%;
+  --card-foreground: 150 20% 98%;
+
+  --border: 160 20% 18%;
+  --input: 160 20% 18%;
+  --ring: 160 70% 50%;
 }
 ```
 
@@ -107,26 +170,25 @@
 
 ### 配色方案 (CSS Variables)
 
+#### Light Mode (亮色)
 ```css
-/* Theme: High Grade (Grade 5-6) */
-:root {
-  /* 主色：经典的科技蓝/靛蓝，专业、专注 */
-  --primary: 220 80% 50%; /* 或者使用当前代码中的紫色 262 83% 58% */
+/* Theme: High Grade - Light */
+[data-grade="high"] {
+  /* 主色：经典的科技蓝/靛蓝 */
+  --primary: 220 80% 50%;
   --primary-foreground: 0 0% 100%;
 
-  /* 辅助色：冷灰色，极简 */
+  /* 辅助色：冷灰色 */
   --secondary: 210 20% 96%;
   --secondary-foreground: 222 47% 11%;
 
-  /* 强调色：电光紫或青色，用于高亮关键信息 */
+  /* 强调色：电光紫或青色 */
   --accent: 262 80% 60%;
   --accent-foreground: 0 0% 100%;
 
-  /* 破坏/警告色：深红 */
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  /* 背景：纯净的冷白 */
   --background: 0 0% 100%;
   --foreground: 222 47% 10%;
 
@@ -137,8 +199,40 @@
   --input: 220 13% 91%;
   --ring: 220 80% 50%;
 
-  /* 圆角：精致小圆角 */
   --radius: 0.5rem; /* 8px */
+}
+```
+
+#### Dark Mode (暗色)
+高年级暗色模式采用标准的极简暗黑风格（Zinc/Slate），减少视觉疲劳，适合长时间学习。
+
+```css
+/* Theme: High Grade - Dark */
+.dark [data-grade="high"], [data-grade="high"].dark {
+  /* 主色：稍亮的科技蓝 */
+  --primary: 220 80% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  /* 辅助色：深灰 */
+  --secondary: 217 32% 17%;
+  --secondary-foreground: 210 40% 98%;
+
+  --accent: 262 80% 60%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 210 40% 98%;
+
+  /* 背景：接近纯黑的深灰 */
+  --background: 240 10% 4%;
+  --foreground: 210 40% 98%;
+
+  --card: 240 10% 6%;
+  --card-foreground: 210 40% 98%;
+
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 220 80% 60%;
 }
 ```
 
@@ -148,30 +242,25 @@
     可以通过在 `<body>` 或应用根节点添加 `data-grade="low" | "middle" | "high"` 属性，然后在全局 CSS 中使用属性选择器来覆盖变量。
 
     ```css
-    /* 默认 (可以设为其中一种，例如低年级) */
+    /* 基础设置（可作为 fallback） */
     :root { ... }
 
-    /* 低年级覆盖 */
-    [data-grade="low"] {
-       --primary: 210 90% 60%;
-       /* ...其他变量 */
-       --radius: 1rem;
-    }
+    /* 年级主题覆盖 - 亮色模式 */
+    [data-grade="low"] { ... }
+    [data-grade="middle"] { ... }
+    [data-grade="high"] { ... }
 
-    /* 中年级覆盖 */
-    [data-grade="middle"] {
-       --primary: 160 84% 39%;
-       /* ...其他变量 */
-       --radius: 0.75rem;
-    }
-
-    /* 高年级覆盖 */
-    [data-grade="high"] {
-       --primary: 220 80% 50%;
-       /* ...其他变量 */
-       --radius: 0.5rem;
-    }
+    /* 年级主题覆盖 - 暗色模式 */
+    /* 确保 HTML 标签上有 class="dark" 且 body/div 上有 data-grade="..." */
+    .dark [data-grade="low"] { ... }
+    .dark [data-grade="middle"] { ... }
+    .dark [data-grade="high"] { ... }
     ```
 
 2.  **暗色模式适配**：
-    上述配色主要针对亮色模式。对于学生应用，建议主要优化亮色模式的阅读体验。若需支持暗色模式，需为每个年级段单独调整其 Dark Mode 下的饱和度和亮度，避免高饱和度颜色在黑底上产生视觉残像。
+    已为每个年级设计了专属的暗色模式（Dark Mode）。
+    - **低年级**：午夜蓝背景，保持梦幻感。
+    - **中年级**：深森林绿背景，保持探索感。
+    - **高年级**：标准深空灰背景，保持专注感。
+    
+    请确保 Tailwind 配置中开启了 `darkMode: 'class'`，并在切换开关时同步切换 `class="dark"` 和 `data-grade` 属性。

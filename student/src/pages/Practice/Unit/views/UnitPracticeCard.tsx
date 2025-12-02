@@ -61,7 +61,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
                   theme.button
                 )}
               >
-                <BookOpen className="h-8 w-8 text-white" />
+                <BookOpen className="h-8 w-8" />
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 <h3 className="text-xl font-bold text-foreground leading-tight">
@@ -169,7 +169,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
                 theme.button
               )}
             >
-              <BookOpen className="h-8 w-8 text-white" />
+              <BookOpen className="h-8 w-8" />
             </div>
             <div className="flex-1 min-w-0 space-y-2">
               <h3 className="text-xl font-bold text-foreground leading-tight">
@@ -211,7 +211,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
               theme.button
             )}
           >
-            <BookOpen className="h-8 w-8 text-white" />
+            <BookOpen className="h-8 w-8" />
           </div>
           <div className="flex-1 min-w-0 space-y-2">
             <h3 className="text-xl font-bold text-foreground leading-tight">
