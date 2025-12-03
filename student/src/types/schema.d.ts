@@ -122,6 +122,7 @@ declare global {
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
     update_time?: number; // 更新时间（Unix时间戳，秒）
+    textbook?: Textbook; // 教材信息（可选）
   }
 
   // ===== 单元练习状态（字典类型） =====
