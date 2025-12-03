@@ -64,6 +64,23 @@ export const practiceService = {
   },
 
   /**
+   * 上传口语题录音并进行语音识别
+   * POST /practice/answer/{session_id}/{question_id}/upload
+   */
+  uploadRecording: async (
+    sessionId: number,
+    questionId: number,
+    audioBlob: Blob
+  ) => {
+    const formData = new FormData();
+    formData.append("audio_file", audioBlob, "audio.webm");
+    return api.postForm<UploadRecordingResult>(
+      `/practice/answer/${sessionId}/${questionId}/upload`,
+      formData
+    );
+  },
+
+  /**
    * 完成练习
    * POST /practice/{session_id}/complete
    */

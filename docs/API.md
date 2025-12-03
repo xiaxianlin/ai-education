@@ -1248,10 +1248,10 @@ POST /api/student/practice/answer
 **参数说明**:
 - `session_id`: 练习会话ID
 - `question_id`: 题目ID
-- `answer`: 文本答案
+- `answer`: 文本答案（口语题为 ASR 识别后的文本）
 - `time_spent`: 答题耗时（秒）
 - `is_audio_answer`: 是否为音频答案
-- `audio_data`: 音频数据（base64编码）
+- `audio_data`: 音频 OSS 存储路径（仅口语题有值）
 
 **响应示例**:
 ```json

@@ -145,7 +145,7 @@ declare global {
     status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number; // 耗时（秒）
     submit_time?: number; // 提交时间
-    audio_answer?: string; // 音频答案（base64编码，前端使用）
+    audio_answer?: string; // 音频答案（OSS 存储路径）
   }
 
   /**
@@ -203,8 +203,8 @@ declare global {
     question_id: number;
     answer: string;
     time_spent: number; // 答题耗时（秒）
-    is_audio_answer?: boolean; // 是否为音频回答
-    audio_data?: string; // 音频数据（base64编码字符串）
+    is_audio_answer?: boolean; // 是否为音频回答（口语题）
+    audio_data?: string; // 音频 OSS 存储路径
   }
 
   /**
@@ -221,6 +221,14 @@ declare global {
       total_count: number; // 题目总数
       status: PracticeSessionStatus;
     };
+  }
+
+  /**
+   * 上传录音结果（对应 UploadRecordingResultSchema）
+   */
+  interface UploadRecordingResult {
+    oss_path: string; // OSS 存储路径
+    transcription: string; // ASR 识别文本
   }
 
   /**

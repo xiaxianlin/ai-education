@@ -1,12 +1,17 @@
 """练习路由（每日练习 + 单元练习 + 能力评测）"""
 
 from typing import Dict
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import Database
 from shared.services.practice import PracticeService
-from student.schema import PracticeType, AnswerQuestionSchema, CreatePracticeSchema
+from student.schema import (
+    PracticeType,
+    AnswerQuestionSchema,
+    CreatePracticeSchema,
+    UploadRecordingResultSchema,
+)
 from student.services import practice, answer
 
 
@@ -118,3 +123,54 @@ async def complete_practice_session(session_id: int, request: Request, db: Async
 
     # 完成练习并生成报告
     return await practice.complete_practice(db, student.id, session_id)
+
+
+@practice_router.post(
+    "/answer/{session_id}/{question_id}/upload", response_model=UploadRecordingResultSchema
+)
+async def upload_recording(
+    request: Request,
+    session_id: int,
+    question_id: int,
+    audio_file: UploadFile = File(...),
+    db: AsyncSession = Database,
+):
+    """
+    上传录音接口
+
+    接收录音 blob 数据后上传到 OSS，然后通过 ASR 进行语音识别
+
+    Args:
+        session_id: 练习会话ID
+        question_id: 问题ID
+        audio_file: 音频文件 (blob)
+
+    Returns:
+        oss_path: OSS 存储路径
+        transcription: 语音识别结果
+    """
+    student = request.state.student
+
+    # 读取文件内容
+    audio_data = await audio_file.read()
+
+    # 从文件名获取扩展名，默认为 webm
+    filename = audio_file.filename or "audio.webm"
+    audio_type = filename.split(".")[-1] if "." in filename else "webm"
+
+    oss_path, analysis = await practice.upload_recording(
+        db=db,
+        student_id=student.id,
+        session_id=session_id,
+        question_id=question_id,
+        audio_data=audio_data,
+        audio_type=audio_type,
+    )
+
+    return UploadRecordingResultSchema(
+        oss_path=oss_path,
+        transcription=analysis.recognized_text,
+        match=analysis.match,
+        reason=analysis.reason,
+        suggestion=analysis.suggestion,
+    )

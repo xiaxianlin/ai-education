@@ -57,6 +57,12 @@ export const api = {
     const response = await axiosInstance.get<ApiData<T>>(url);
     return response.data.data;
   },
+  postForm: async <T = unknown>(url: string, data: FormData): Promise<T> => {
+    const response = await axiosInstance.post<ApiData<T>>(url, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data.data;
+  },
   post: async <T = unknown>(url: string, data?: unknown): Promise<T> => {
     const response = await axiosInstance.post<ApiData<T>>(url, data);
     return response.data.data;

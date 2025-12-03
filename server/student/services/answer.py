@@ -1,8 +1,5 @@
 """答题服务"""
 
-import os
-import base64
-from pathlib import Path
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +8,6 @@ from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from core.database import PracticeSession, PracticeAnswer, PracticeWrongRecord, Question
 from student.schema import AnswerQuestionSchema, AnswerResultSchema
-from shared.services.aliyun import AliyunAIService
 from shared.utils.time import now
 from core.settings import envs
 
@@ -151,38 +147,6 @@ async def _ai_analysis_answer(
         raise ValueError(f"生成答案分析失败: {str(e)}")
 
 
-async def _handle_audio_answer(params: AnswerQuestionSchema) -> str:
-    # 创建临时文件保存音频
-    file_path = None
-    try:
-        # 创建临时目录
-        tmp_dir = Path(envs.TMP_DIR) / "answers"
-        tmp_dir.mkdir(parents=True, exist_ok=True)
-
-        # 创建临时文件
-        file_path = (
-            tmp_dir / f"{params.student_id}_{params.session_id}_{params.question_id}_{now()}.mp3"
-        )
-        audio_bytes = base64.b64decode(params.audio_data)
-        # 写入音频数据
-        with open(file_path, "wb") as f:
-            f.write(audio_bytes)
-
-        logger.info(f"音频临时文件创建成功: {file_path}")
-        # ASR 语音识别
-        text_answer = AliyunAIService.asr(file_path, language="zh")
-        logger.info(f"ASR识别结果: {text_answer}")
-        return text_answer
-    except Exception as e:
-        logger.error(f"音频处理失败: {e}")
-        raise ValueError(f"音频处理失败: {str(e)}")
-    finally:
-        # 清理临时文件
-        if file_path and file_path.exists():
-            os.remove(file_path)
-            logger.info(f"临时文件已删除: {file_path}")
-
-
 async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestionSchema) -> dict:
     """提交答题答案"""
     try:
@@ -211,11 +175,8 @@ async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestio
         if not answer_record:
             raise ValueError("答题记录不存在")
 
+        # 4. 使用传入的文本答案（口语题已在单独接口中完成 ASR 解析）
         text_answer = params.answer
-
-        # 4. 处理音频答案（如果是音频题）
-        if params.is_audio_answer and params.audio_data:
-            text_answer = await _handle_audio_answer(params)
 
         # 5. 使用 AI 分析答案，判断是否正确并生成分析
         if text_answer != question.answer:

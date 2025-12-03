@@ -1,6 +1,8 @@
 """通用练习服务"""
 
-from typing import Dict
+import os
+from pathlib import Path
+from typing import Dict, Tuple
 from loguru import logger
 from sqlalchemy import select, desc
 from sqlalchemy.orm import noload
@@ -8,6 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
 from core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
+from core.settings import envs
+from shared.services.aliyun import AliyunAIService, AudioUnderstandingResult
+from shared.provider.aliyun import AliyunOSS
 from shared.utils.time import now, today
 
 
@@ -239,3 +244,80 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
     )
 
     return result
+
+
+async def upload_recording(
+    db: AsyncSession,
+    student_id: str,
+    session_id: int,
+    question_id: int,
+    audio_data: bytes,
+    audio_type: str = "webm",
+) -> Tuple[str, AudioUnderstandingResult]:
+    """
+    上传录音并进行语音识别
+
+    Args:
+        student_id: 学生ID
+        session_id: 练习会话ID
+        question_id: 问题ID
+        audio_data: 音频数据 (bytes)
+        audio_type: 音频格式，默认为webm
+
+    Returns:
+        Tuple[oss_path, analysis]: OSS 存储路径和音频理解结果模型
+    """
+    # 构建 OSS 存储路径
+    oss_path = f"answer/{student_id}_{session_id}_{question_id}.{audio_type}"
+
+    file_path = None
+    try:
+        # 创建临时目录保存音频文件（ASR 需要文件路径）
+        tmp_dir = Path(envs.TMP_DIR) / "recordings"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        file_path = tmp_dir / f"{student_id}_{session_id}_{question_id}.{audio_type}"
+
+        # 写入临时文件
+        with open(file_path, "wb") as f:
+            f.write(audio_data)
+        logger.info(f"录音临时文件创建成功: {file_path}")
+
+        # 上传到 OSS
+        oss = AliyunOSS()
+        if oss.exist(oss_path):
+            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
+            oss.delete(oss_path)
+        oss.upload(oss_path, audio_data)
+        logger.info(f"录音上传 OSS 成功: {oss_path}")
+
+        # 获取 OSS 访问地址
+        audio_url = oss.get_access_url(oss_path)
+        logger.info(f"获取 OSS 访问地址成功: {audio_url}")
+
+        # 查询题目信息，用于构造问题提示
+        question = await db.scalar(select(Question).where(Question.id == question_id))
+        if not question:
+            raise ValueError("题目不存在")
+
+        # 调用音频理解函数（包含转写 + 匹配分析）
+        analysis_result = AliyunAIService.audio_understanding(
+            audio_url=audio_url,
+            audio_type=audio_type,
+            question=question.content,
+        )
+        logger.info(
+            "音频理解成功: match=%s, recognized_text_length=%s",
+            analysis_result.match,
+            len(analysis_result.recognized_text),
+        )
+
+        return oss_path, analysis_result
+
+    except Exception as e:
+        logger.error(f"上传录音失败: {e}")
+        raise ValueError(f"上传录音失败: {str(e)}")
+    finally:
+        # 清理临时文件
+        if file_path and file_path.exists():
+            os.remove(file_path)
+            logger.info(f"临时文件已删除: {file_path}")

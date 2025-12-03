@@ -83,7 +83,7 @@ declare global {
     status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number; // 耗时（秒）
     submit_time?: number; // 提交时间
-    audio_answer?: string; // 音频答案（base64编码，前端使用）
+    audio_answer?: string; // 音频答案（OSS 存储路径）
 
     question?: Question;
   }

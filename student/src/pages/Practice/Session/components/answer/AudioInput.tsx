@@ -4,35 +4,20 @@
 import { FC, memo, useState, useCallback } from "react";
 import { AudioRecorder } from "@/components/business/AudioRecorder";
 import { toast } from "sonner";
+import { useAudioUpload } from "../../hooks/useAudioUpload";
 
 interface AudioInputProps {
-  value?: string; // base64 字符串或 data URL
+  value?: string; // OSS 存储路径
   disabled?: boolean;
   hasAnswered?: boolean;
-  onChange: (answer: string, audioBase64: string) => void;
+  onChange: (answer: string, audioOssPath: string) => void;
   maxDuration?: number;
 }
-
-/**
- * 将 Blob 转换为 base64 字符串
- */
-const blobToBase64 = (blob: Blob): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      // 移除 data URL 前缀，只保留 base64 数据
-      const base64Data = base64String.split(",")[1];
-      resolve(base64Data);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
 
 export const AudioInput: FC<AudioInputProps> = memo(
   ({ value, disabled, hasAnswered, onChange, maxDuration = 60 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
+    const { upload, uploading } = useAudioUpload();
 
     const handleRecordingComplete = useCallback(
       async (audioBlob: Blob) => {
@@ -42,12 +27,11 @@ export const AudioInput: FC<AudioInputProps> = memo(
 
         try {
           setIsProcessing(true);
-          // 将音频转换为 base64
-          const base64Data = await blobToBase64(audioBlob);
-          // 口语题的答案通过 ASR 解析，这里传递 base64 数据
-          // 实际的文本答案由后端 ASR 解析后返回
-          onChange("", base64Data);
-          toast.success("录音已完成，请点击提交按钮");
+          // 上传录音并进行 ASR 解析
+          const result = await upload(audioBlob);
+          // 使用解析后的文本作为答案，OSS 路径作为音频答案存储
+          onChange(result.transcription, result.oss_path);
+          toast.success("录音已上传并解析完成，请点击提交按钮");
         } catch (error) {
           console.error("处理录音失败:", error);
           toast.error(
@@ -57,14 +41,14 @@ export const AudioInput: FC<AudioInputProps> = memo(
           setIsProcessing(false);
         }
       },
-      [hasAnswered, disabled, onChange]
+      [hasAnswered, disabled, onChange, upload]
     );
 
     return (
       <div className="flex flex-col items-center gap-6">
         <AudioRecorder
           onRecordingComplete={handleRecordingComplete}
-          disabled={hasAnswered || disabled || isProcessing}
+          disabled={hasAnswered || disabled || isProcessing || uploading}
           maxDuration={maxDuration}
         />
         {value && !hasAnswered && (

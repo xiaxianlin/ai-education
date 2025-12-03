@@ -198,6 +198,7 @@ class PracticeAnswerSchema(BaseModel):
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
+    audio_answer: Optional[str] = None
 
     question: Optional["QuestionSchema"] = None
 

@@ -26,8 +26,16 @@ class AnswerQuestionSchema(BaseModel):
     question_id: int
     answer: str
     time_spent: int  # 答题耗时，单位秒
-    is_audio_answer: bool = False  # 是否为音频回答
-    audio_data: Optional[str] = None  # 音频数据（base64编码字符串）
+    is_audio_answer: bool = False  # 是否为音频回答（口语题）
+    audio_data: Optional[str] = None  # 音频 OSS 存储路径
+
+
+class UploadRecordingResultSchema(BaseModel):
+    oss_path: str  # OSS 存储路径
+    transcription: str  # 语音识别结果（转写文本）
+    match: bool  # 是否匹配题目要求
+    reason: str  # 匹配/不匹配的原因说明
+    suggestion: Optional[str] = None  # 改进建议（可选）
 
 
 class AnswerResultSchema(BaseModel):

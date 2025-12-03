@@ -17,7 +17,7 @@ interface SessionStoreState {
   questions: Question[];
   currentQuestionIndex: number;
   userAnswers: Record<number, string>; // questionId -> answer text
-  audioAnswers: Record<number, string>; // questionId -> audio base64
+  audioAnswers: Record<number, string>; // questionId -> audio OSS path
   answerStatus: Record<number, AnswerStatus>; // questionId -> status
   startTime: number; // 当前题目开始时间（毫秒时间戳）
   submitting: boolean;
@@ -63,12 +63,16 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
 
       // 恢复已提交的答案
       const restoredAnswers: Record<number, string> = {};
+      const restoredAudioAnswers: Record<number, string> = {};
       const restoredStatus: Record<number, AnswerStatus> = {};
 
       if (answers && answers.length > 0) {
         answers.forEach((answer: PracticeAnswer) => {
           if (answer.text_answer) {
             restoredAnswers[answer.question_id] = answer.text_answer;
+          }
+          if (answer.audio_answer) {
+            restoredAudioAnswers[answer.question_id] = answer.audio_answer;
           }
           if (answer.status !== undefined) {
             restoredStatus[answer.question_id] = answer.status as AnswerStatus;
@@ -92,6 +96,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         session,
         questions: questions || [],
         userAnswers: restoredAnswers,
+        audioAnswers: restoredAudioAnswers,
         answerStatus: restoredStatus,
         currentQuestionIndex: firstUnansweredIndex,
         report: report || null,
@@ -132,13 +137,13 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   },
 
   /**
-   * 设置音频答案（base64）
+   * 设置音频答案（OSS 路径）
    */
-  setAudioAnswer: (questionId: number, audioBase64: string) => {
+  setAudioAnswer: (questionId: number, audioOssPath: string) => {
     set((state) => ({
       audioAnswers: {
         ...state.audioAnswers,
-        [questionId]: audioBase64,
+        [questionId]: audioOssPath,
       },
     }));
   },
@@ -165,11 +170,11 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       throw new Error("当前题目不存在");
     }
 
-    const answer = userAnswers[currentQuestion.id];
-    const audioBase64 = audioAnswers[currentQuestion.id];
+      const answer = userAnswers[currentQuestion.id];
+      const audioOssPath = audioAnswers[currentQuestion.id];
 
     // 验证答案
-    if (currentQuestion.type === "口语题" && !audioBase64) {
+    if (currentQuestion.type === "口语题" && !audioOssPath) {
       throw new Error("请先录音");
     }
     if (currentQuestion.type !== "口语题" && !answer) {
@@ -181,41 +186,13 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
 
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
-      // 处理音频数据：如果已经是 base64 字符串，直接使用；否则需要转换
-      let finalAudioData: string | undefined;
-      if (audioBase64 && currentQuestion.type === "口语题") {
-        // 如果已经是纯 base64（不包含 data: 前缀），直接使用
-        if (
-          !audioBase64.startsWith("http") &&
-          !audioBase64.startsWith("data:")
-        ) {
-          finalAudioData = audioBase64;
-        } else if (audioBase64.startsWith("data:")) {
-          // 提取 base64 部分
-          finalAudioData = audioBase64.split(",")[1];
-        } else {
-          // 从 URL 获取音频数据并转换为 base64
-          const response = await fetch(audioBase64);
-          const blob = await response.blob();
-          const reader = new FileReader();
-          finalAudioData = await new Promise<string>((resolve, reject) => {
-            reader.onloadend = () => {
-              const base64 = reader.result as string;
-              resolve(base64.split(",")[1]);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-        }
-      }
-
       const submitParams: SubmitAnswerParams = {
         session_id: session.id,
         question_id: currentQuestion.id,
         answer: answer || "",
         time_spent: timeSpent,
-        is_audio_answer: !!finalAudioData,
-        audio_data: finalAudioData,
+        is_audio_answer: !!audioOssPath,
+        audio_data: audioOssPath,
       };
 
       const result = await practiceService.submitAnswer(submitParams);

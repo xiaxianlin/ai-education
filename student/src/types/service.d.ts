@@ -15,7 +15,7 @@ declare global {
     answer: string;
     time_spent?: number;
     is_audio_answer?: boolean;
-    audio_data?: string;
+    audio_data?: string; // 音频 OSS 存储路径
   }
 
   /**

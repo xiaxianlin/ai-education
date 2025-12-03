@@ -1,13 +1,133 @@
+import json
 import dashscope
 from loguru import logger
+from openai import OpenAI
+from pydantic import BaseModel, Field
 from core.settings import envs
 from shared.services.prompt import PromptService
 
 
+class AudioUnderstandingResult(BaseModel):
+    """音频理解结果模型"""
+
+    recognized_text: str = Field(description="用户说的内容（转写文本）")
+    match: bool = Field(description="是否匹配题目要求")
+    reason: str = Field(description="匹配或不匹配的原因说明")
+    suggestion: str = Field(default="", description="改进建议（可选）")
+
+    model_config = {"extra": "forbid"}
+
+
 class AliyunAIService:
 
+    client = OpenAI(
+        api_key=envs.AI_PLATFORM_KEY,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+
     @staticmethod
-    def asr(file_path: str, language: str = "zh"):
+    def audio_understanding(
+        audio_url: str, audio_type: str, question: str
+    ) -> AudioUnderstandingResult:
+        """
+        音频理解函数
+
+        Args:
+            audio_url: OSS 音频访问地址
+            audio_type: 音频格式（如 webm/mp3）
+            question: 问题模型/题目要求
+
+        Returns:
+            AudioUnderstandingResult: 音频理解结果模型
+        """
+        logger.info(f"开始音频理解，音频地址: {audio_url}, 问题: {question[:100]}...")
+
+        # 系统提示：无论是否符合题目要求，都必须先完整解析用户的发音内容，
+        # 然后再给出是否匹配以及不匹配原因，最终严格按 JSON 返回
+        system_prompt = f"""你是一个英语口语评估助手，需要对学生的录音进行理解和分析。
+
+你必须完成以下任务（所有任务都必须执行，不得省略）：
+1. 先"准确转写"音频中用户说的内容，尽量还原原句（recognized_text）
+2. 判断用户说的内容与题目要求（question）是否匹配（match 字段，true/false）
+3. 无论是否匹配，都要给出简要说明（reason）：
+   - 如果匹配：简单说明哪里做得好，例如是否发音清晰、语调自然等
+   - 如果不匹配：明确指出不匹配的原因，例如内容完全不相关、语法错误太多、关键词缺失等
+4. 可选：给出一条简短的改进建议（suggestion），帮助学生下次说得更好
+
+题目要求（question）：{question}
+
+重要要求：
+- 必须先完整解析和转写用户说的内容，而不是只判断对错
+- 必须始终返回 JSON 格式，且字段必须为：
+  - recognized_text: string
+  - match: boolean
+  - reason: string
+  - suggestion: string（可以为空字符串）
+- 不要在 JSON 之外输出任何多余文字（如解释、前后缀等）"""
+
+        try:
+            completion = AliyunAIService.client.chat.completions.create(
+                model="qwen3-omni-flash",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": audio_url,
+                                    "format": audio_type,
+                                },
+                            },
+                            {"type": "text", "text": "请按照要求返回 JSON 结果。"},
+                        ],
+                    },
+                ],
+                modalities=["text"],
+            )
+
+            result_text = completion.choices[0].message.content
+            logger.info(f"音频理解成功，结果长度: {len(result_text)}")
+            logger.debug(f"音频理解结果(JSON): {result_text[:200]}...")
+
+            # 尝试解析 JSON，处理可能的 markdown 代码块包裹
+            try:
+                # 移除可能的 markdown 代码块标记
+                cleaned_text = result_text.strip()
+                if cleaned_text.startswith("```json"):
+                    cleaned_text = cleaned_text[7:]
+                if cleaned_text.startswith("```"):
+                    cleaned_text = cleaned_text[3:]
+                if cleaned_text.endswith("```"):
+                    cleaned_text = cleaned_text[:-3]
+                cleaned_text = cleaned_text.strip()
+
+                # 解析 JSON
+                result_dict = json.loads(cleaned_text)
+                # 转换为 Pydantic 模型
+                result = AudioUnderstandingResult.model_validate(result_dict)
+                logger.info(
+                    f"音频理解结果解析成功: match={result.match}, "
+                    f"recognized_text长度={len(result.recognized_text)}"
+                )
+                return result
+
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON 解析失败: {e}, 原始结果: {result_text[:500]}")
+                raise ValueError(f"音频理解返回的 JSON 格式错误: {str(e)}")
+            except Exception as e:
+                logger.error(f"结果模型验证失败: {e}, 原始结果: {result_text[:500]}")
+                raise ValueError(f"音频理解结果验证失败: {str(e)}")
+
+        except ValueError:
+            raise
+        except Exception as e:
+            logger.error(f"音频理解失败: {e}", exc_info=True)
+            raise ValueError(f"音频理解失败: {str(e)}")
+
+    @staticmethod
+    def asr(file_path: str, language: str = "en"):
         logger.info(f"开始语音识别，文件地址: {file_path}, 语言: {language}")
         audio_file_path = f"file://{file_path}"
         response = dashscope.MultiModalConversation.call(
@@ -19,13 +139,17 @@ class AliyunAIService:
         )
 
         if response.status_code != 200:
-            logger.error(f"语音识别失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
+            logger.error(
+                f"语音识别失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
+            )
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
 
         # 处理不同的响应格式
         try:
             content = response.output.choices[0].message.content[0].get("text")
-            logger.info(f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {content[:100]}...")
+            logger.info(
+                f"语音识别成功，任务 ID: {response.request_id}, 识别结果: {content[:100]}..."
+            )
             return content
         except Exception as e:
             logger.error(f"解析 ASR 响应失败: {e}, 响应内容: {response.output}")
@@ -48,7 +172,9 @@ class AliyunAIService:
         logger.info(response)
 
         if response.status_code != 200:
-            logger.error(f"文本转语音失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
+            logger.error(
+                f"文本转语音失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
+            )
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
 
         audio_url = response.output.audio.url
@@ -56,7 +182,9 @@ class AliyunAIService:
         return audio_url
 
     @staticmethod
-    def generate_image(text: str, width: int = None, height: int = None, optimize_prompt: bool = True):
+    def generate_image(
+        text: str, width: int = None, height: int = None, optimize_prompt: bool = True
+    ):
         """
         生成图片
 
@@ -96,7 +224,9 @@ class AliyunAIService:
 
         logger.info(response)
         if response.status_code != 200:
-            logger.error(f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
+            logger.error(
+                f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
+            )
             raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
         image_url = response.output.choices[0].message.content[0].get("image")
         logger.info(f"图片生成成功，任务 ID: {response.request_id}, 图片URL: {image_url}")

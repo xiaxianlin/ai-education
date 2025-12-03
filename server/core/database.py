@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import String, Text, LargeBinary
+from sqlalchemy import String, Text
 from sqlalchemy.orm import (
     relationship,
     Mapped,
@@ -259,8 +259,8 @@ class PracticeAnswer(BaseModel):
     status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
-    audio_answer: Mapped[bytes] = mapped_column(
-        LargeBinary, nullable=True, comment="语音回答（音频字节数据）"
+    audio_answer: Mapped[str] = mapped_column(
+        String(255), nullable=True, comment="语音回答（OSS 存储路径）"
     )
 
     question: Mapped["Question"] = relationship(
