@@ -18,6 +18,7 @@ interface SessionStoreState {
   currentQuestionIndex: number;
   userAnswers: Record<number, string>; // questionId -> answer text
   audioAnswers: Record<number, string>; // questionId -> audio OSS path
+  audioAnalysis: Record<number, UploadRecordingResult>; // questionId -> audio analysis result
   answerStatus: Record<number, AnswerStatus>; // questionId -> status
   startTime: number; // 当前题目开始时间（毫秒时间戳）
   submitting: boolean;
@@ -28,6 +29,7 @@ interface SessionStoreState {
   beginPractice: () => Promise<void>;
   setAnswer: (questionId: number, answer: string) => void;
   setAudioAnswer: (questionId: number, audioBase64: string) => void;
+  setAudioAnalysis: (questionId: number, analysis: UploadRecordingResult) => void;
   submitCurrentAnswer: () => Promise<SubmitAnswerResponse>;
   goPrev: () => void;
   goNext: () => void;
@@ -42,6 +44,7 @@ const initialState = {
   currentQuestionIndex: 0,
   userAnswers: {},
   audioAnswers: {},
+  audioAnalysis: {},
   answerStatus: {},
   startTime: Date.now(),
   submitting: false,
@@ -149,6 +152,18 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
   },
 
   /**
+   * 设置音频理解分析结果
+   */
+  setAudioAnalysis: (questionId: number, analysis: UploadRecordingResult) => {
+    set((state) => ({
+      audioAnalysis: {
+        ...state.audioAnalysis,
+        [questionId]: analysis,
+      },
+    }));
+  },
+
+  /**
    * 提交当前题目答案
    */
   submitCurrentAnswer: async () => {
@@ -158,6 +173,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       currentQuestionIndex,
       userAnswers,
       audioAnswers,
+      audioAnalysis,
       startTime,
     } = get();
 
@@ -170,8 +186,9 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       throw new Error("当前题目不存在");
     }
 
-      const answer = userAnswers[currentQuestion.id];
-      const audioOssPath = audioAnswers[currentQuestion.id];
+    const answer = userAnswers[currentQuestion.id];
+    const audioOssPath = audioAnswers[currentQuestion.id];
+    const audioAnalysisResult = audioAnalysis[currentQuestion.id];
 
     // 验证答案
     if (currentQuestion.type === "口语题" && !audioOssPath) {
@@ -193,13 +210,20 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         time_spent: timeSpent,
         is_audio_answer: !!audioOssPath,
         audio_data: audioOssPath,
+        // 如果是口语题且有音频理解结果，传递分析结果
+        audio_match: audioAnalysisResult?.match,
+        audio_reason: audioAnalysisResult?.reason,
+        audio_suggestion: audioAnalysisResult?.suggestion,
       };
 
       const result = await practiceService.submitAnswer(submitParams);
+      if (!result) {
+        throw new Error("提交答案失败：服务器未返回结果");
+      }
 
       // 更新答案状态
       set((state) => {
-        const progress = (result as any).session_progress;
+        const progress = (result as any)?.session_progress;
 
         return {
           answerStatus: {

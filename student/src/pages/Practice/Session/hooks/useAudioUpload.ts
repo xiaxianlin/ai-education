@@ -31,7 +31,13 @@ export const useAudioUpload = (): UseAudioUploadResult => {
           currentQuestion.id,
           audioBlob
         );
+        if (!result) {
+          throw new Error("上传录音失败：服务器未返回结果");
+        }
         return result;
+      } catch (error) {
+        console.error("上传录音失败:", error);
+        throw error;
       } finally {
         setUploading(false);
       }

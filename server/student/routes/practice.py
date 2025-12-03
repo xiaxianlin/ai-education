@@ -171,6 +171,5 @@ async def upload_recording(
         oss_path=oss_path,
         transcription=analysis.recognized_text,
         match=analysis.match,
-        reason=analysis.reason,
-        suggestion=analysis.suggestion,
+        analysis=analysis.analysis,
     )

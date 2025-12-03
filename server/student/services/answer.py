@@ -134,7 +134,7 @@ async def _ai_analysis_answer(
                 create_time=now(),
                 update_time=now(),
             )
-            await db.add(wrong_record)
+            db.add(wrong_record)
             logger.info(
                 f"添加错题记录: student_id={params.student_id}, question_id={params.question_id}, "
                 f"session_id={params.session_id}"
@@ -178,12 +178,45 @@ async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestio
         # 4. 使用传入的文本答案（口语题已在单独接口中完成 ASR 解析）
         text_answer = params.answer
 
-        # 5. 使用 AI 分析答案，判断是否正确并生成分析
-        if text_answer != question.answer:
-            is_correct, analysis = await _ai_analysis_answer(db, params, question, text_answer)
+        # 5. 判断答案是否正确并生成分析
+        # 对于口语题，如果已有音频理解结果，直接使用，不进行 AI 分析
+        if params.is_audio_answer and params.audio_match is not None:
+            # 口语题：直接使用音频理解结果
+            is_correct = params.audio_match
+            # 如果错误，使用音频理解返回的 reason 作为分析
+            if not is_correct:
+                analysis = params.audio_reason or "答案不符合题目要求"
+                # 添加错题记录
+                wrong_record = PracticeWrongRecord(
+                    student_id=student_id,
+                    session_id=params.session_id,
+                    question_id=params.question_id,
+                    unit_id=question.unit_id,
+                    textbook_id=question.textbook_id,
+                    knowledge=question.knowledge,
+                    user_answer=text_answer,
+                    correct_answer=question.answer,
+                    analysis=analysis,
+                    time_spent=params.time_spent,
+                    is_corrected=0,
+                    corrected_time=0,
+                    create_time=now(),
+                    update_time=now(),
+                )
+                db.add(wrong_record)
+                logger.info(
+                    f"添加错题记录: student_id={student_id}, question_id={params.question_id}, "
+                    f"session_id={params.session_id}"
+                )
+            else:
+                analysis = None
         else:
-            is_correct = True
-            analysis = None
+            # 非口语题或口语题但没有音频理解结果：使用 AI 分析
+            if text_answer != question.answer:
+                is_correct, analysis = await _ai_analysis_answer(db, params, question, text_answer)
+            else:
+                is_correct = True
+                analysis = None
 
         # 6. 更新答题记录
         answer_record.text_answer = text_answer

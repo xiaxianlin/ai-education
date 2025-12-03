@@ -12,8 +12,9 @@ class AudioUnderstandingResult(BaseModel):
 
     recognized_text: str = Field(description="用户说的内容（转写文本）")
     match: bool = Field(description="是否匹配题目要求")
-    reason: str = Field(description="匹配或不匹配的原因说明")
-    suggestion: str = Field(default="", description="改进建议（可选）")
+    analysis: str = Field(
+        description="综合分析文本（同时包含原因说明和改进建议）"
+    )
 
     model_config = {"extra": "forbid"}
 
@@ -43,26 +44,25 @@ class AliyunAIService:
         logger.info(f"开始音频理解，音频地址: {audio_url}, 问题: {question[:100]}...")
 
         # 系统提示：无论是否符合题目要求，都必须先完整解析用户的发音内容，
-        # 然后再给出是否匹配以及不匹配原因，最终严格按 JSON 返回
+        # 然后再给出是否匹配以及不匹配原因，并给出改进建议，最终严格按 JSON 返回
         system_prompt = f"""你是一个英语口语评估助手，需要对学生的录音进行理解和分析。
 
 你必须完成以下任务（所有任务都必须执行，不得省略）：
 1. 先"准确转写"音频中用户说的内容，尽量还原原句（recognized_text）
-2. 判断用户说的内容与题目要求（question）是否匹配（match 字段，true/false）
-3. 无论是否匹配，都要给出简要说明（reason）：
-   - 如果匹配：简单说明哪里做得好，例如是否发音清晰、语调自然等
-   - 如果不匹配：明确指出不匹配的原因，例如内容完全不相关、语法错误太多、关键词缺失等
-4. 可选：给出一条简短的改进建议（suggestion），帮助学生下次说得更好
+2. 判断学生说的内容与题目要求（question）是否匹配（match 字段，true/false）
+3. 生成一段完整的分析文本（analysis），其中需要同时包含：
+   - 原因说明：为什么匹配 / 不匹配，具体问题出在哪（内容、语法、发音、语调等）
+   - 改进建议：学生可以如何改进（给出 1-3 条可操作性强的建议）
 
 题目要求（question）：{question}
 
 重要要求：
+- 输出内容的对象是学生，请使用温和鼓励的语气
 - 必须先完整解析和转写用户说的内容，而不是只判断对错
 - 必须始终返回 JSON 格式，且字段必须为：
   - recognized_text: string
   - match: boolean
-  - reason: string
-  - suggestion: string（可以为空字符串）
+  - analysis: string（同时包含原因说明和改进建议）
 - 不要在 JSON 之外输出任何多余文字（如解释、前后缀等）"""
 
         try:
@@ -109,7 +109,7 @@ class AliyunAIService:
                 result = AudioUnderstandingResult.model_validate(result_dict)
                 logger.info(
                     f"音频理解结果解析成功: match={result.match}, "
-                    f"recognized_text长度={len(result.recognized_text)}"
+                    f"recognized_text长度={len(result.analysis)}"
                 )
                 return result
 

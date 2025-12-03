@@ -205,6 +205,9 @@ declare global {
     time_spent: number; // 答题耗时（秒）
     is_audio_answer?: boolean; // 是否为音频回答（口语题）
     audio_data?: string; // 音频 OSS 存储路径
+    audio_match?: boolean; // 音频理解结果：是否匹配题目要求（仅口语题）
+    audio_reason?: string; // 音频理解结果：匹配/不匹配的原因说明（仅口语题）
+    audio_suggestion?: string; // 音频理解结果：改进建议（仅口语题）
   }
 
   /**
@@ -229,6 +232,9 @@ declare global {
   interface UploadRecordingResult {
     oss_path: string; // OSS 存储路径
     transcription: string; // ASR 识别文本
+    match: boolean; // 是否匹配题目要求
+    reason: string; // 匹配/不匹配的原因说明
+    suggestion?: string; // 改进建议（可选）
   }
 
   /**

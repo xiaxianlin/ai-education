@@ -10,7 +10,7 @@ interface AudioInputProps {
   value?: string; // OSS 存储路径
   disabled?: boolean;
   hasAnswered?: boolean;
-  onChange: (answer: string, audioOssPath: string) => void;
+  onChange: (answer: string, audioOssPath: string, analysis: UploadRecordingResult) => void;
   maxDuration?: number;
 }
 
@@ -27,10 +27,14 @@ export const AudioInput: FC<AudioInputProps> = memo(
 
         try {
           setIsProcessing(true);
-          // 上传录音并进行 ASR 解析
+          // 上传录音并进行音频理解（包含 ASR 解析和匹配分析）
           const result = await upload(audioBlob);
-          // 使用解析后的文本作为答案，OSS 路径作为音频答案存储
-          onChange(result.transcription, result.oss_path);
+          // 验证返回结果
+          if (!result || !result.transcription || !result.oss_path) {
+            throw new Error("上传录音失败：返回数据不完整");
+          }
+          // 使用解析后的文本作为答案，OSS 路径作为音频答案存储，同时保存分析结果
+          onChange(result.transcription, result.oss_path, result);
           toast.success("录音已上传并解析完成，请点击提交按钮");
         } catch (error) {
           console.error("处理录音失败:", error);

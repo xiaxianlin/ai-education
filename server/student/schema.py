@@ -28,14 +28,15 @@ class AnswerQuestionSchema(BaseModel):
     time_spent: int  # 答题耗时，单位秒
     is_audio_answer: bool = False  # 是否为音频回答（口语题）
     audio_data: Optional[str] = None  # 音频 OSS 存储路径
+    audio_match: Optional[bool] = None  # 音频理解结果：是否匹配题目要求（仅口语题）
+    audio_analysis: Optional[str] = None  # 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
 
 
 class UploadRecordingResultSchema(BaseModel):
     oss_path: str  # OSS 存储路径
     transcription: str  # 语音识别结果（转写文本）
     match: bool  # 是否匹配题目要求
-    reason: str  # 匹配/不匹配的原因说明
-    suggestion: Optional[str] = None  # 改进建议（可选）
+    analysis: str  # 综合分析（包含原因和改进建议）
 
 
 class AnswerResultSchema(BaseModel):

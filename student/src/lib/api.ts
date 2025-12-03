@@ -61,6 +61,12 @@ export const api = {
     const response = await axiosInstance.post<ApiData<T>>(url, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    if (response.data.status !== 0 && response.data.status !== undefined) {
+      throw new Error(response.data.message || "请求失败");
+    }
+    if (response.data.data === undefined || response.data.data === null) {
+      throw new Error("服务器返回数据为空");
+    }
     return response.data.data;
   },
   post: async <T = unknown>(url: string, data?: unknown): Promise<T> => {

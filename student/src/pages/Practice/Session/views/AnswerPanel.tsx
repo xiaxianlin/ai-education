@@ -29,10 +29,15 @@ export const AnswerPanel = memo(() => {
 
   const isCorrect = answerStatus === 1;
 
-  const handleChange = (value: string, audioBase64?: string) => {
+  const setAudioAnalysis = useSessionStore((state) => state.setAudioAnalysis);
+
+  const handleChange = (value: string, audioBase64?: string, audioAnalysis?: UploadRecordingResult) => {
     setAnswer(question.id, value);
     if (audioBase64) {
       setAudioAnswer(question.id, audioBase64);
+    }
+    if (audioAnalysis) {
+      setAudioAnalysis(question.id, audioAnalysis);
     }
   };
 
@@ -70,7 +75,7 @@ export const AnswerPanel = memo(() => {
         value={audioAnswer}
         disabled={hasAnswered}
         hasAnswered={hasAnswered}
-        onChange={(text, base64) => handleChange(text, base64)}
+        onChange={(text, base64, analysis) => handleChange(text, base64, analysis)}
       />
     );
   }
