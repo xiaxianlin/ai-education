@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
@@ -8,10 +9,39 @@ class Storage {
   Storage._();
 
   static SharedPreferences? _prefs;
+  static Future<void>? _initFuture;
+  static final Completer<void> _initCompleter = Completer<void>();
 
-  /// 初始化存储
+  /// 初始化存储（确保只初始化一次）
   static Future<void> init() async {
-    _prefs ??= await SharedPreferences.getInstance();
+    // 如果已经初始化，直接返回
+    if (_prefs != null) {
+      return;
+    }
+
+    // 如果正在初始化，等待初始化完成
+    if (_initFuture != null) {
+      return _initFuture;
+    }
+
+    // 开始初始化
+    _initFuture = _doInit();
+    return _initFuture;
+  }
+
+  /// 执行初始化
+  static Future<void> _doInit() async {
+    try {
+      _prefs = await SharedPreferences.getInstance();
+      if (!_initCompleter.isCompleted) {
+        _initCompleter.complete();
+      }
+    } catch (e) {
+      if (!_initCompleter.isCompleted) {
+        _initCompleter.completeError(e);
+      }
+      rethrow;
+    }
   }
 
   /// 保存 JWT Token

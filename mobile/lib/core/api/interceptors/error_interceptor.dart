@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../utils/storage.dart';
+import '../../utils/navigation_helper.dart';
+import '../../../app/router.dart';
 
 /// 错误拦截器
 /// 统一处理 HTTP 错误和业务错误
@@ -29,7 +31,13 @@ class ErrorInterceptor extends Interceptor {
           // 未授权或禁止访问，清除 token
           Storage.removeToken();
           Storage.clearAll();
-          // 注意：路由跳转需要在调用方处理
+          
+          // 通知路由守卫认证状态已更新
+          AppRouter.authNotifier.updateAuthStatus();
+          
+          // 自动跳转到登录页
+          NavigationHelper.navigateToLogin();
+          
           handler.reject(
             DioException(
               requestOptions: err.requestOptions,

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
+import 'interceptors/retry_interceptor.dart';
 
 /// API 响应格式
 class ApiResponse<T> {
@@ -37,9 +38,14 @@ class ApiClient {
   static ApiClient get instance => _instance;
 
   late final Dio _dio;
+  bool _initialized = false;
 
   /// 初始化 Dio 客户端
   void init() {
+    if (_initialized) {
+      return;
+    }
+
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.apiBaseUrl,
@@ -52,7 +58,9 @@ class ApiClient {
       ),
     );
 
-    // 添加拦截器
+    // 添加拦截器（注意顺序：重试 -> 认证 -> 错误处理）
+    // 重试拦截器需要使用相同的 Dio 实例
+    _dio.interceptors.add(RetryInterceptor(dio: _dio));
     _dio.interceptors.add(AuthInterceptor());
     _dio.interceptors.add(ErrorInterceptor());
     _dio.interceptors.add(
@@ -80,6 +88,8 @@ class ApiClient {
         },
       ),
     );
+
+    _initialized = true;
   }
 
   /// GET 请求

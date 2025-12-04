@@ -5,6 +5,7 @@
 这是一个全栈教育平台项目，包含：
 - **管理端 (admin/)**: React + UmiJS + Ant Design
 - **学生端 (student/)**: React + Rsbuild + shadcn/ui + Tailwind CSS
+- **移动端 (mobile/)**: Flutter 3.x + Riverpod + go_router
 - **后端 (server/)**: FastAPI + Python + SQLAlchemy + MySQL
 
 ## 技术栈详情
@@ -29,6 +30,18 @@
 - **路由**: react-router-dom
 - **HTTP 客户端**: Axios
 - **语言**: TypeScript 5
+
+### 移动端技术栈 (mobile/)
+
+- **框架**: Flutter 3.x, Dart 3.x
+- **状态管理**: Riverpod 2.x, flutter_hooks
+- **路由**: go_router
+- **网络请求**: dio + 拦截器
+- **本地存储**: shared_preferences
+- **UI 组件**: Material 3
+- **代码生成**: json_serializable, freezed, build_runner
+- **音频录制**: record, permission_handler
+- **图片加载**: cached_network_image
 
 ### 后端技术栈
 
@@ -79,6 +92,20 @@
 
 **工作目录**: 所有前端样式和组件文件
 
+### Flutter 开发者 (Flutter Developer)
+专注于移动端应用开发，包括：
+- Flutter 应用架构设计
+- Widget 树设计和组件开发
+- 状态管理和数据流设计
+- 路由和导航实现
+- API 集成和数据获取
+- 平台特定功能实现（iOS/Android）
+- 性能优化和内存管理
+- 用户体验优化（动画、交互、响应式）
+- 代码审查和问题修复
+
+**工作目录**: `mobile/`
+
 ### 全栈开发者 (Fullstack Developer)
 专注于端到端的完整功能开发，包括：
 - 前后端完整功能实现
@@ -89,18 +116,19 @@
 - 端到端性能优化
 - 前后端安全性设计
 
-**工作目录**: `admin/src/`, `student/src/`, `server/`
+**工作目录**: `admin/src/`, `student/src/`, `mobile/`, `server/`
 
 ## 角色切换方法
 
 ### 方法一：使用命令文件
-在对话中使用 `@frontend`, `@backend`, `@ui-designer`, `@fullstack` 命令
+在对话中使用 `@frontend`, `@backend`, `@flutter`, `@ui-designer`, `@fullstack` 命令
 
 ### 方法二：明确声明
 在对话开始时明确说明：
 ```
 我现在是前端开发者，请帮我...
 我现在是后端开发者，请帮我...
+我现在是 Flutter 开发者，请帮我...
 我现在是 UI 设计师，请帮我...
 我现在是全栈开发者，请帮我实现一个完整功能...
 ```
@@ -108,6 +136,7 @@
 ### 方法三：通过文件上下文
 打开相关文件后，AI 会自动识别上下文：
 - 打开 `student/src/` 或 `admin/src/` 下的文件 → 前端开发模式
+- 打开 `mobile/` 下的文件 → Flutter 开发模式
 - 打开 `server/` 下的文件 → 后端开发模式
 - 打开样式文件 → UI 设计模式
 - 同时打开前后端文件 → 全栈开发模式
@@ -185,6 +214,15 @@
 - 使用 Pydantic 进行数据验证
 - 错误处理使用 HTTPException
 
+### Flutter 规范
+- 遵循 Dart 官方代码规范
+- 使用 Clean Architecture 分层架构
+- 功能模块化组织代码（features/）
+- 使用 Riverpod 管理状态
+- 使用 const 构造函数优化性能
+- 及时释放资源，避免内存泄漏
+- 遵循 Material 3 设计规范
+
 ### UI 设计规范
 - 使用 Tailwind CSS 工具类
 - 遵循设计系统规范
@@ -205,6 +243,16 @@ cd student && pnpm type-check # 类型检查
 cd admin && pnpm start        # 启动开发服务器
 cd admin && pnpm build        # 构建生产版本
 cd admin && pnpm tsc         # 类型检查
+```
+
+### 移动端开发
+```bash
+cd mobile
+flutter pub get              # 安装依赖
+flutter pub run build_runner build --delete-conflicting-outputs  # 生成代码
+flutter run                   # 运行应用
+flutter analyze              # 代码分析
+flutter format .             # 格式化代码
 ```
 
 ### 后端开发
@@ -230,6 +278,12 @@ ai-eduaction/
 │       ├── components/ # UI 组件
 │       ├── stores/     # Zustand 状态
 │       └── services/   # API 服务
+├── mobile/             # 移动端应用
+│   └── lib/
+│       ├── core/       # 核心功能（API、模型、工具）
+│       ├── features/   # 功能模块
+│       ├── shared/     # 共享组件
+│       └── app/        # 应用配置
 └── server/             # 后端服务
     ├── admin/          # 管理端 API
     ├── student/        # 学生端 API
@@ -243,7 +297,8 @@ ai-eduaction/
 2. **明确上下文**: 切换角色时提供足够的上下文信息
 3. **参考现有代码**: 利用项目中的现有代码作为参考
 4. **保持一致性**: 遵循项目的代码风格和架构模式
-5. **分阶段完成**: 先设计再实现，先后端再前端
-6. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端
-7. **数据一致性**: 确保前后端数据模型和类型定义保持一致
+5. **分阶段完成**: 先设计再实现，先后端再前端/移动端
+6. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端/移动端
+7. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
+8. **跨平台一致性**: Flutter 移动端应参考 Web 端（student/）的实现逻辑，保持功能一致性
 

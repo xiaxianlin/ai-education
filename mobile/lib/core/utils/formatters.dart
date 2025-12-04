@@ -52,5 +52,24 @@ class Formatters {
   static String formatPercent(double value, {int decimals = 1}) {
     return '${(value * 100).toStringAsFixed(decimals)}%';
   }
+
+  /// 格式化相对时间
+  /// [timestamp] Unix 时间戳（秒）
+  /// 例如: "2小时前"、"3天前"、"刚刚"
+  static String formatRelativeTime(int timestamp) {
+    final now = DateTime.now();
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}天前';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}小时前';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}分钟前';
+    } else {
+      return '刚刚';
+    }
+  }
 }
 
