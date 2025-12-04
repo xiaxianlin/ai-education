@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-edu/shared-types':
+        specifier: file:../shared-types
+        version: file:../shared-types
       '@ant-design/icons':
         specifier: ^4.8.1
         version: 4.8.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -169,6 +172,9 @@ packages:
     resolution: {integrity: sha512-xhVaM4fyIiAMdVFuuU5i3CFUdFa/IblF+fvITVMFaUEO3w/V5tVCAF6WIA3T03n1/RPuzRkA7Ao1PFtSGtGelw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0
+
+  '@ai-edu/shared-types@file:../shared-types':
+    resolution: {directory: ../shared-types, type: directory}
 
   '@alita/babel-transform-jsx-class@0.0.2':
     resolution: {integrity: sha512-TW4KukvBsmMcebUWfquhFQ36Uo+wFrRB4NiimXhtQ+QXrYBmHoVm5GgVojQ3AJKIAjTVicYsz4lEo/MPN+ZgNw==}
@@ -11093,6 +11099,8 @@ snapshots:
       lodash.debounce: 4.0.8
       lodash.throttle: 4.1.1
       react: 18.3.1
+
+  '@ai-edu/shared-types@file:../shared-types': {}
 
   '@alita/babel-transform-jsx-class@0.0.2': {}
 

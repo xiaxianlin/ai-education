@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@ai-edu/shared-types": "file:shared-types"
+  }
+}

@@ -3,6 +3,16 @@
  * 对应后端 server/student/routes/practice.py
  */
 import { api } from "@/lib/api";
+import type {
+  PracticeSession,
+  PracticeType,
+  CreatePracticeRequest,
+  SubmitAnswerRequest,
+  SubmitAnswerResponse,
+  UploadRecordingResult,
+  CompletePracticeResponse,
+  Question
+} from "@/types";
 
 export const practiceService = {
   // ===== 获取练习信息 =====
@@ -37,12 +47,8 @@ export const practiceService = {
    * 创建练习
    * POST /practice/create
    */
-  createPractice: async (
-    type: "daily_practice" | "unit_practice" | "assessment",
-    textbook_id: number,
-    unit_id?: number
-  ) => {
-    return api.post<number>(`/practice/create`, { type, textbook_id, unit_id });
+  createPractice: async (params: CreatePracticeRequest) => {
+    return api.post<PracticeSession>(`/practice/create`, params);
   },
 
   // ===== 练习操作 =====

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@ai-edu/shared-types':
+        specifier: file:../shared-types
+        version: file:../shared-types
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.8(@types/react-dom@18.3.7(@types/react@18.3.26))(@types/react@18.3.26)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -89,6 +92,9 @@ importers:
         version: 5.9.3
 
 packages:
+
+  '@ai-edu/shared-types@file:../shared-types':
+    resolution: {directory: ../shared-types, type: directory}
 
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -1133,6 +1139,8 @@ packages:
         optional: true
 
 snapshots:
+
+  '@ai-edu/shared-types@file:../shared-types': {}
 
   '@alloc/quick-lru@5.2.0': {}
 

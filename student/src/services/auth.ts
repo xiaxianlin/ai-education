@@ -3,14 +3,15 @@
  * 对应后端 server/student/routes/auth.py
  */
 import { api } from "@/lib/api";
+import type { StudentLoginRequest, LoginResponse } from "@/types";
 
 export const authService = {
   /**
-   * 用户登录
+   * 学生登录
    * POST /login
    */
-  login: async (params: LoginParams) => {
-    return api.post<string>("/login", params);
+  login: async (params: StudentLoginRequest) => {
+    return api.post<LoginResponse>("/login", params);
   },
 
   /**

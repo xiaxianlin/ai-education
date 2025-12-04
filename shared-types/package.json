@@ -1,0 +1,46 @@
+{
+  "name": "@ai-edu/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for AI Education platform",
+  "main": "build/types/index.js",
+  "types": "build/types/index.d.ts",
+  "files": [
+    "build",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc && npm run build:python && npm run build:dart",
+    "build:python": "node scripts/generate-python-types-improved.js",
+    "build:dart": "node scripts/generate-dart-types.js",
+    "validate": "node scripts/validate-types.js",
+    "test:consistency": "node scripts/test-consistency.js",
+    "generate:python": "npm run build:python",
+    "generate:dart": "npm run build:dart",
+    "dev": "tsc --watch",
+    "clean": "rimraf build",
+    "prepublishOnly": "npm run clean && npm run build && npm run validate && npm run test:consistency",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "education",
+    "api"
+  ],
+  "author": "AI Education Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "rimraf": "^5.0.5",
+    "@types/node": "^20.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/ai-education.git",
+    "directory": "shared-types"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "registry": "https://npm.your-registry.com/"
+  }
+}

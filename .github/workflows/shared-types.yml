@@ -1,0 +1,140 @@
+name: Build and Validate Shared Types
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'shared-types/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'shared-types/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Test Shared Types
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: shared-types/package-lock.json
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        sdk: stable
+
+    - name: Install shared-types dependencies
+      run: |
+        cd shared-types
+        npm ci
+
+    - name: Validate TypeScript types
+      run: |
+        cd shared-types
+        npm run validate
+
+    - name: Build TypeScript output
+      run: |
+        cd shared-types
+        npm run build
+
+    - name: Generate Python types
+      run: |
+        cd shared-types
+        npm run generate:python
+
+    - name: Validate Python types
+      run: |
+        cd shared-types
+        python -m py_compile shared_types_python/__init__.py
+        echo "Python types compilation validated"
+
+    - name: Generate Dart types
+      run: |
+        cd shared-types
+        npm run generate:dart
+
+    - name: Validate Dart types
+      run: |
+        cd shared-types
+        dart analyze shared_types_dart/
+
+    - name: Test type consistency
+      run: |
+        cd shared-types
+        npm run test:consistency
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: shared-types-output
+        path: |
+          shared-types/dist/
+          shared-types/shared_types_python/
+          shared-types/shared_types_dart/
+        retention-days: 30
+
+  deploy:
+    name: Deploy to Projects
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: shared-types-output
+        path: artifacts/
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Deploy to Frontend Projects
+      run: |
+        echo "Deploying to student project..."
+        mkdir -p student/src/types/shared
+        cp -r artifacts/shared_types_python/* student/src/types/shared/ || true
+
+        echo "Deploying to admin project..."
+        mkdir -p admin/src/types/shared
+        cp -r artifacts/shared_types_python/* admin/src/types/shared/ || true
+
+    - name: Deploy to Backend Project
+      run: |
+        echo "Deploying to server project..."
+        mkdir -p server/shared_types
+        cp -r artifacts/shared_types_python/* server/shared_types/
+
+    - name: Deploy to Mobile Project
+      run: |
+        echo "Deploying to mobile project..."
+        mkdir -p mobile/lib/core/shared_types
+        cp -r artifacts/shared_types_dart/* mobile/lib/core/shared_types/
+
+    - name: Commit deployments
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        git commit -m "chore: update shared types across projects [automated]" || exit 0
+        git push
