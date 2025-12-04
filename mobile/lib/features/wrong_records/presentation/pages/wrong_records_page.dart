@@ -151,6 +151,7 @@ class _WrongRecordsPageState extends ConsumerState<WrongRecordsPage>
       emptyWidget: EmptyState(
         icon: emptyIcon,
         message: emptyMessage,
+        subMessage: emptySubMessage,
       ),
       errorWidget: (error, onRetry) => Center(
         child: Column(

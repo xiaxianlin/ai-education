@@ -164,18 +164,3 @@ class AnswerPanel extends ConsumerWidget {
   }
 }
 
-/// 用于传递 sessionId 的包装组件
-class _AudioInputWithSessionId extends InheritedWidget {
-  final int sessionId;
-
-  const _AudioInputWithSessionId({
-    required this.sessionId,
-    required super.child,
-  });
-
-  @override
-  bool updateShouldNotify(_AudioInputWithSessionId oldWidget) {
-    return sessionId != oldWidget.sessionId;
-  }
-}
-

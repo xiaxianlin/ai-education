@@ -11,6 +11,9 @@ class SelectedHistoryTypeNotifier extends StateNotifier<String> {
   void setType(String type) {
     state = type;
   }
+
+  /// 获取当前状态（公共方法，用于 Provider 访问）
+  String get currentState => state;
 }
 
 /// 当前选中的历史类型 Provider (Riverpod 3.x compatible)
@@ -20,7 +23,7 @@ final selectedHistoryTypeProvider = Provider<SelectedHistoryTypeNotifier>((ref) 
 
 /// 当前选中的历史类型状态 Provider
 final selectedHistoryTypeStateProvider = Provider<String>((ref) {
-  return ref.watch(selectedHistoryTypeProvider).state;
+  return ref.watch(selectedHistoryTypeProvider).currentState;
 });
 
 /// 每日练习历史数据

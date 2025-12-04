@@ -16,6 +16,9 @@ class SelectedFilterNotifier extends StateNotifier<int?> {
   void setFilter(int? filter) {
     state = filter;
   }
+
+  /// 获取当前状态（公共方法，用于 Provider 访问）
+  int? get currentState => state;
 }
 
 /// 当前选中的筛选类型 Provider (Riverpod 3.x compatible)
@@ -25,7 +28,7 @@ final selectedFilterProvider = Provider<SelectedFilterNotifier>((ref) {
 
 /// 当前选中的筛选类型状态 Provider
 final selectedFilterStateProvider = Provider<int?>((ref) {
-  return ref.watch(selectedFilterProvider).state;
+  return ref.watch(selectedFilterProvider).currentState;
 });
 
 /// 全部错题列表
