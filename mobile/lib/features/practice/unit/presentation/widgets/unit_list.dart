@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/models/textbook.dart';
-import '../../../../../core/models/unit.dart';
 import '../../../../../core/models/practice_session.dart';
 import '../../providers/unit_practice_provider.dart';
 import 'unit_practice_card.dart';

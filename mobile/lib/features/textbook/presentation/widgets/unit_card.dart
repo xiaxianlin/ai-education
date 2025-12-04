@@ -120,7 +120,7 @@ class _UnitCardState extends ConsumerState<UnitCard> {
                               .map((knowledge) => KnowledgeItem(
                                     key: ValueKey(knowledge.id),
                                     knowledge: knowledge,
-                                  ))
+                                  ),)
                               .toList(),
                         ),
                       ),

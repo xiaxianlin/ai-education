@@ -170,8 +170,8 @@ class _AudioInputWithSessionId extends InheritedWidget {
 
   const _AudioInputWithSessionId({
     required this.sessionId,
-    required Widget child,
-  }) : super(child: child);
+    required super.child,
+  });
 
   @override
   bool updateShouldNotify(_AudioInputWithSessionId oldWidget) {

@@ -39,14 +39,14 @@ class StrengthsWeaknesses extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Text(
+                        Text(
                           '✅',
                           style: TextStyle(fontSize: 20),
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        SizedBox(width: 8),
+                        Text(
                           '优势',
                           style: TextStyle(
                             fontSize: 16,
@@ -78,7 +78,7 @@ class StrengthsWeaknesses extends StatelessWidget {
                               ),
                             ],
                           ),
-                        )),
+                        ),),
                   ],
                 ),
               ),
@@ -101,14 +101,14 @@ class StrengthsWeaknesses extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Text(
+                        Text(
                           '⚠️',
                           style: TextStyle(fontSize: 20),
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        SizedBox(width: 8),
+                        Text(
                           '薄弱点',
                           style: TextStyle(
                             fontSize: 16,
@@ -140,7 +140,7 @@ class StrengthsWeaknesses extends StatelessWidget {
                               ),
                             ],
                           ),
-                        )),
+                        ),),
                   ],
                 ),
               ),

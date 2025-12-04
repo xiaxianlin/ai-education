@@ -145,7 +145,7 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
             const SizedBox(height: 16),
             // 题目卡片
             QuestionCard(
-              question: currentQuestion!,
+              question: currentQuestion,
               index: currentQuestionIndex,
               answerStatus: currentAnswerStatus,
             ),
@@ -157,7 +157,7 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
             NavigationButtons(
               canGoPrevious: currentQuestionIndex > 0,
               hasAnswered: hasAnsweredCurrent,
-              hasAnswer: currentQuestion?.type == 'oral'
+              hasAnswer: currentQuestion.type == 'oral'
                   ? currentAudioAnswer != null
                   : currentAnswer != null,
               submitting: submitting,

@@ -269,7 +269,7 @@ class QuestionCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 14),
                 ),
               ),
-            )),
+            ),),
       ],
     );
   }

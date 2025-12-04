@@ -62,7 +62,7 @@ class _SlideAnimationState extends State<SlideAnimation>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: widget.curve,
-    ));
+    ),);
 
     _controller.forward();
   }

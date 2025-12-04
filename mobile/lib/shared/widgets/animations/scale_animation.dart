@@ -39,7 +39,7 @@ class _ScaleAnimationState extends State<ScaleAnimation>
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: widget.curve,
-    ));
+    ),);
     _controller.forward();
   }
 

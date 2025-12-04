@@ -1,7 +1,7 @@
-import '../../lib/core/models/student.dart';
-import '../../lib/core/models/textbook.dart';
-import '../../lib/core/models/question.dart';
-import '../../lib/core/models/practice_session.dart';
+import 'package:mobile/core/models/student.dart';
+import 'package:mobile/core/models/textbook.dart';
+import 'package:mobile/core/models/question.dart';
+import 'package:mobile/core/models/practice_session.dart';
 
 /// 模拟数据
 class MockData {
@@ -22,7 +22,7 @@ class MockData {
 
   /// 模拟教材数据
   static Textbook mockTextbook() {
-    return Textbook(
+    return const Textbook(
       id: 1,
       subject: '数学',
       version: '人教版',

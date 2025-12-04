@@ -76,7 +76,7 @@ class _WelcomeCardState extends State<WelcomeCard>
                 children: [
                   // 渐变标题
                   ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
+                    shaderCallback: (bounds) => const LinearGradient(
                       colors: [
                         AppColors.primary,
                         AppColors.success,
@@ -93,7 +93,7 @@ class _WelcomeCardState extends State<WelcomeCard>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '今天也要加油学习哦~ 💪',
                     style: TextStyle(
                       fontSize: 16,

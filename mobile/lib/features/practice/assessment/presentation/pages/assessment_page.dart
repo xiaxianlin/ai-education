@@ -5,7 +5,6 @@ import '../../../../profile/providers/profile_provider.dart';
 import '../../../daily/presentation/widgets/subject_tabs.dart';
 import '../widgets/assessment_card.dart';
 import '../../../../../core/models/practice_session.dart';
-import '../../../../../core/models/textbook.dart';
 
 /// 能力评测页面
 class AssessmentPage extends ConsumerStatefulWidget {

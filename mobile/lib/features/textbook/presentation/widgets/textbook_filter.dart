@@ -84,7 +84,7 @@ class TextbookFilter extends ConsumerWidget {
     ValueChanged<String?> onChanged,
   ) {
     return DropdownButtonFormField<String>(
-      value: selectedSubject,
+      initialValue: selectedSubject,
       decoration: InputDecoration(
         labelText: '科目',
         border: OutlineInputBorder(
@@ -100,7 +100,7 @@ class TextbookFilter extends ConsumerWidget {
         ...subjects.map((subject) => DropdownMenuItem<String>(
               value: subject,
               child: Text(subject),
-            )),
+            ),),
       ],
       onChanged: onChanged,
     );
@@ -113,7 +113,7 @@ class TextbookFilter extends ConsumerWidget {
     ValueChanged<int?> onChanged,
   ) {
     return DropdownButtonFormField<int>(
-      value: selectedGrade,
+      initialValue: selectedGrade,
       decoration: InputDecoration(
         labelText: '年级',
         border: OutlineInputBorder(
@@ -129,7 +129,7 @@ class TextbookFilter extends ConsumerWidget {
         ...grades.map((grade) => DropdownMenuItem<int>(
               value: grade,
               child: Text('$grade 年级'),
-            )),
+            ),),
       ],
       onChanged: onChanged,
     );

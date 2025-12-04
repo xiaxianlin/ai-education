@@ -9,10 +9,10 @@ class ResultPanel extends ConsumerWidget {
 
   /// 格式化时间
   String _formatTime(int seconds) {
-    if (seconds < 60) return '${seconds}秒';
+    if (seconds < 60) return '$seconds秒';
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
-    return secs > 0 ? '${minutes}分${secs}秒' : '${minutes}分钟';
+    return secs > 0 ? '$minutes分$secs秒' : '$minutes分钟';
   }
 
   /// 获取评价

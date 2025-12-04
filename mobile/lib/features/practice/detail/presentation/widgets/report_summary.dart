@@ -45,14 +45,14 @@ class ReportSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 标题
-            Row(
+            const Row(
               children: [
-                const Text(
+                Text(
                   '📊',
                   style: TextStyle(fontSize: 24),
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   '练习报告',
                   style: TextStyle(
                     fontSize: 18,

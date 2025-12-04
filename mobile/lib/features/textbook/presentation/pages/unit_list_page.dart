@@ -41,7 +41,7 @@ class _UnitListPageState extends ConsumerState<UnitListPage> {
         .firstWhere((book) => book.id == widget.textbookId, orElse: () {
       // 如果找不到教材，返回一个默认值（这种情况不应该发生）
       throw Exception('教材不存在');
-    });
+    },);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +70,7 @@ class _UnitListPageState extends ConsumerState<UnitListPage> {
 
     // 空状态
     if (unitState.units.isEmpty) {
-      return EmptyState(
+      return const EmptyState(
         icon: Icons.book_outlined,
         message: '该教材暂无单元',
       );

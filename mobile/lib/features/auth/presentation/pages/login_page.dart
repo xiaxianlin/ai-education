@@ -142,7 +142,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.error_outline,
                                 color: Colors.red,
                                 size: 20,
@@ -151,7 +151,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.red,
                                     fontSize: 14,
                                   ),

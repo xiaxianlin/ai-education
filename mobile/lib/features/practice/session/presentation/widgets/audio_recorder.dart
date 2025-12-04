@@ -239,7 +239,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
                   Container(
                     width: 12,
                     height: 12,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
                     ),
@@ -308,10 +308,10 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
                   label: const Text('取消'),
                 ),
               ] else if (_isUploading) ...[
-                Expanded(
+                const Expanded(
                   child: OutlinedButton(
                     onPressed: null,
-                    child: const Text('上传中...'),
+                    child: Text('上传中...'),
                   ),
                 ),
               ],
