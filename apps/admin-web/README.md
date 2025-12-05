@@ -39,10 +39,7 @@ admin/
 │   │   └── validation.ts   # 验证工具
 │   ├── constants/          # 常量定义
 │   └── assets/             # 静态资源
-├── config/                 # 配置文件
-│   ├── config.ts          # 主配置
-│   ├── routes.ts          # 路由配置
-│   └── proxy.ts           # 代理配置
+├── rsbuild.config.ts      # Rsbuild 配置文件
 ├── types/                  # 类型定义
 ├── COMPONENT_GUIDE.md      # 组件使用指南
 ├── OPTIMIZATION_REPORT.md  # 优化报告
@@ -60,7 +57,7 @@ pnpm install
 ### 启动开发服务器
 
 ```bash
-pnpm start
+pnpm dev
 ```
 
 ### 构建生产版本
@@ -99,11 +96,11 @@ pnpm build
 
 ## 技术栈
 
-- **框架**: React 18 + UmiJS 4
+- **框架**: React 18 + React Router 6
 - **UI 库**: Ant Design 5 + Ant Design Pro Components
 - **状态管理**: ahooks
-- **HTTP 客户端**: umi-request
-- **构建工具**: Webpack 5
+- **HTTP 客户端**: axios
+- **构建工具**: Rsbuild
 - **代码规范**: ESLint + Prettier
 - **类型检查**: TypeScript 5
 
@@ -268,7 +265,7 @@ import './index.less';
 ### 1. 如何添加新页面？
 
 1. 在 `pages/` 目录创建页面组件
-2. 在 `config/routes.ts` 添加路由配置
+2. 在 `src/lib/router.tsx` 添加路由配置
 3. 使用通用组件快速开发
 
 ### 2. 如何添加新的 API？
@@ -279,7 +276,7 @@ import './index.less';
 
 ### 3. 如何自定义主题？
 
-修改 `config/config.ts` 中的 `theme` 配置。
+修改 `rsbuild.config.ts` 中的相关配置，或使用 Ant Design 的主题定制功能。
 
 ## 贡献指南
 
