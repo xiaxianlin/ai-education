@@ -3,7 +3,7 @@
  * 用于处理问题资源的 URL，自动拼接 OSS base_url
  */
 
-const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
+const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
 
 /**
  * 获取完整的资源 URL

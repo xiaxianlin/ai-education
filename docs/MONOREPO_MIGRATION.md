@@ -395,7 +395,7 @@ export * from './common';
 
 ```toml
 [project]
-name = "ai-helper-server"
+name = "ai-education-server"
 version = "0.1.0"
 description = "AI Education Platform Backend Server"
 readme = "README.md"

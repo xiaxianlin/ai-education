@@ -3,7 +3,7 @@ import { AudioPlayer } from '@/components/ui';
 import { ProDescriptions } from '@ant-design/pro-components';
 
 // OSS 基础 URL
-const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
+const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
 
 interface QuestionDetailDrawerProps {
   open: boolean;

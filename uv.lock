@@ -4,11 +4,11 @@ requires-python = "==3.12.*"
 
 [manifest]
 members = [
-    "ai-helper-server",
+    "ai-education-server",
 ]
 
 [[package]]
-name = "ai-helper-server"
+name = "ai-education-server"
 version = "0.1.0"
 source = { virtual = "apps/server" }
 dependencies = [

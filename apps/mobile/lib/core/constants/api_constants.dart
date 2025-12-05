@@ -21,6 +21,6 @@ class ApiConstants {
 
   /// OSS 资源基础 URL
   static const String ossBaseUrl =
-      'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
+      'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
 }
 

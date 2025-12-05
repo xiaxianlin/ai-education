@@ -5,21 +5,22 @@ import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
-import { StatusTag, AudioPlayer } from '@/components/ui';
+import { AudioPlayer } from '@/components/ui';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: question, loading, refresh } = useRequest(
-    () => adminApi.getQuestion(id!),
-    {
-      ready: !!id,
-      onError: () => {
-        message.error('加载问题失败');
-        history.back();
-      },
-    }
-  );
+  const {
+    data: question,
+    loading,
+    refresh,
+  } = useRequest(() => adminApi.getQuestion(id!), {
+    ready: !!id,
+    onError: () => {
+      message.error('加载问题失败');
+      history.back();
+    },
+  });
 
   // 生成图片
   const { runAsync: handleGenerateImage, loading: generatingImage } = useRequest(
@@ -36,7 +37,7 @@ export default function QuestionDetailPage() {
       onError: (error: any) => {
         message.error(error?.message || '图片生成失败');
       },
-    }
+    },
   );
 
   // 生成语音
@@ -54,7 +55,7 @@ export default function QuestionDetailPage() {
       onError: (error: any) => {
         message.error(error?.message || '语音生成失败');
       },
-    }
+    },
   );
 
   // 删除题目
@@ -72,7 +73,7 @@ export default function QuestionDetailPage() {
       onError: (error: any) => {
         message.error(error?.message || '删除失败');
       },
-    }
+    },
   );
 
   if (loading) {
@@ -91,10 +92,10 @@ export default function QuestionDetailPage() {
 
   // 构建资源 URL
   // OSS 基础 URL
-  const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
+  const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
 
   const resourceUrl = question.resource
-    ? (question.resource.startsWith('http://') || question.resource.startsWith('https://'))
+    ? question.resource.startsWith('http://') || question.resource.startsWith('https://')
       ? question.resource
       : `${OSS_BASE_URL}/${question.resource}`
     : null;
@@ -105,7 +106,9 @@ export default function QuestionDetailPage() {
     try {
       const parsed = JSON.parse(question.options);
       if (Array.isArray(parsed)) {
-        optionsList = parsed.map((opt: any) => (typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt)));
+        optionsList = parsed.map((opt: any) =>
+          typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt),
+        );
       } else {
         // 如果不是数组，尝试按换行符分割
         optionsList = question.options.split('\n').filter((line) => line.trim());
@@ -132,7 +135,11 @@ export default function QuestionDetailPage() {
       header={{
         breadcrumb: {},
         extra: [
-          <Button key="edit" type="primary" onClick={() => history.push(`/question/edit/${question.id}`)}>
+          <Button
+            key="edit"
+            type="primary"
+            onClick={() => history.push(`/question/edit/${question.id}`)}
+          >
             编辑
           </Button>,
           <Popconfirm
@@ -157,20 +164,12 @@ export default function QuestionDetailPage() {
           extra={
             <Space>
               {isImageQuestion && (
-                <Button
-                  type="primary"
-                  onClick={handleGenerateImage}
-                  loading={generatingImage}
-                >
+                <Button type="primary" onClick={handleGenerateImage} loading={generatingImage}>
                   生成图片
                 </Button>
               )}
               {isAudioQuestion && (
-                <Button
-                  type="primary"
-                  onClick={handleGenerateAudio}
-                  loading={generatingAudio}
-                >
+                <Button type="primary" onClick={handleGenerateAudio} loading={generatingAudio}>
                   生成语音
                 </Button>
               )}
@@ -180,8 +179,7 @@ export default function QuestionDetailPage() {
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
-            <ProDescriptions.Item label="阶段">{gradeInfo?.stage || '-'}</ProDescriptions.Item>
-            <ProDescriptions.Item label="年级">{gradeInfo?.grade || '-'}</ProDescriptions.Item>
+            <ProDescriptions.Item label="年级">{gradeInfo || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
             {question.subtype && (
               <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>
@@ -190,14 +188,26 @@ export default function QuestionDetailPage() {
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="资源类型">
-              {question.resource_type ? <Tag color={question.resource_type === 'image' ? 'blue' : 'green'}>{question.resource_type === 'image' ? '图片' : '音频'}</Tag> : '-'}
+              {question.resource_type ? (
+                <Tag color={question.resource_type === 'image' ? 'blue' : 'green'}>
+                  {question.resource_type === 'image' ? '图片' : '音频'}
+                </Tag>
+              ) : (
+                '-'
+              )}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="资源状态">
               {question.resource_type ? (
-                <Tag color={question.resource && question.resource.trim() !== '' ? 'success' : 'warning'}>
+                <Tag
+                  color={
+                    question.resource && question.resource.trim() !== '' ? 'success' : 'warning'
+                  }
+                >
                   {question.resource && question.resource.trim() !== '' ? '已生成' : '未生成'}
                 </Tag>
-              ) : '-'}
+              ) : (
+                '-'
+              )}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="资源路径">{question.resource || '-'}</ProDescriptions.Item>
             {question.resource_content && (
@@ -206,17 +216,17 @@ export default function QuestionDetailPage() {
               </ProDescriptions.Item>
             )}
             {question.textbook && (
-              <ProDescriptions.Item label="所属教材" span={2}>
-                {question.textbook.subject} - {question.textbook.version} - {gradeInfo?.grade} - {question.textbook.semester}
+              <ProDescriptions.Item label="教材" span={1}>
+                {question.textbook.version}
               </ProDescriptions.Item>
             )}
             {question.unit && (
-              <ProDescriptions.Item label="所属单元" span={2}>
+              <ProDescriptions.Item label="单元" span={1}>
                 {question.unit.name}
               </ProDescriptions.Item>
             )}
             {question.knowledge && (
-              <ProDescriptions.Item label="所属知识点" span={2}>
+              <ProDescriptions.Item label="知识点" span={2}>
                 {String(question.knowledge)}
               </ProDescriptions.Item>
             )}
@@ -224,7 +234,14 @@ export default function QuestionDetailPage() {
         </Card>
 
         <Card title="题目内容">
-          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', lineHeight: '1.8' }}>
+          <div
+            style={{
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontSize: '14px',
+              lineHeight: '1.8',
+            }}
+          >
             {question.content}
           </div>
 
@@ -242,8 +259,17 @@ export default function QuestionDetailPage() {
                 }}
               />
               {question.resource_content && (
-                <div style={{ marginTop: '12px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
-                  <strong>资源文本：</strong>{question.resource_content}
+                <div
+                  style={{
+                    marginTop: '12px',
+                    padding: '8px',
+                    background: '#f5f5f5',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  <strong>资源文本：</strong>
+                  {question.resource_content}
                 </div>
               )}
             </div>
@@ -258,14 +284,31 @@ export default function QuestionDetailPage() {
 
           {/* 资源未生成提示 */}
           {!resourceUrl && (isImageQuestion || isAudioQuestion) && (
-            <div style={{ marginTop: '20px', padding: '12px', background: '#fffbe6', borderRadius: '4px', border: '1px solid #ffe58f' }}>
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '12px',
+                background: '#fffbe6',
+                borderRadius: '4px',
+                border: '1px solid #ffe58f',
+              }}
+            >
               <div style={{ marginBottom: '8px', color: '#666' }}>
                 {isImageQuestion && '该题目需要图片资源，但尚未生成。'}
                 {isAudioQuestion && '该题目需要音频资源，但尚未生成。'}
               </div>
               {question.resource_content && (
-                <div style={{ marginTop: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
-                  <strong>资源文本：</strong>{question.resource_content}
+                <div
+                  style={{
+                    marginTop: '8px',
+                    padding: '8px',
+                    background: '#f5f5f5',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  <strong>资源文本：</strong>
+                  {question.resource_content}
                 </div>
               )}
             </div>
@@ -276,7 +319,10 @@ export default function QuestionDetailPage() {
           <Card title="选项">
             <Space direction="vertical" style={{ width: '100%' }}>
               {optionsList.map((option, index) => (
-                <div key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                <div
+                  key={index}
+                  style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}
+                >
                   <strong>{String.fromCharCode(65 + index)}.</strong> {option}
                 </div>
               ))}
@@ -286,7 +332,14 @@ export default function QuestionDetailPage() {
 
         {question.answer && (
           <Card title="答案">
-            <div style={{ fontSize: '14px', padding: '12px', background: '#e6f7ff', borderRadius: '4px' }}>
+            <div
+              style={{
+                fontSize: '14px',
+                padding: '12px',
+                background: '#e6f7ff',
+                borderRadius: '4px',
+              }}
+            >
               {question.answer}
             </div>
           </Card>
@@ -295,4 +348,3 @@ export default function QuestionDetailPage() {
     </PageContainer>
   );
 }
-
