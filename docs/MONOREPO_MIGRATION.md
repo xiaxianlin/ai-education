@@ -32,7 +32,7 @@ ai-eduaction/
 │   ├── shared-utils/              # 共享工具函数 (TypeScript)
 │   └── shared-api-client/         # 共享 API 客户端 (TypeScript)
 │
-├── infrastructure/                # 基础设施配置
+├── infra/                # 基础设施配置
 │   ├── mysql/                     # 数据库初始化脚本
 │   ├── nginx/                     # Nginx 配置
 │   └── docker/                    # Docker 相关配置（可选）
@@ -424,7 +424,7 @@ services:
     # ... 配置保持不变，但路径更新 ...
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./infrastructure/mysql/init:/docker-entrypoint-initdb.d
+      - ./infra/mysql/init:/docker-entrypoint-initdb.d
 
   redis:
     # ... 配置保持不变 ...
@@ -449,8 +449,8 @@ services:
 
   nginx:
     volumes:
-      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./infrastructure/nginx/ssl:/etc/nginx/ssl
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./infra/nginx/ssl:/etc/nginx/ssl
       - nginx_logs:/var/log/nginx
     # ... 其他配置保持不变 ...
 
@@ -514,8 +514,8 @@ mkdir -p apps
 mkdir -p packages/shared-types/src
 mkdir -p packages/shared-utils/src
 mkdir -p packages/shared-api-client/src
-mkdir -p infrastructure/mysql
-mkdir -p infrastructure/nginx
+mkdir -p infra/mysql
+mkdir -p infra/nginx
 
 # 2. 移动应用目录
 log_info "移动应用目录..."
@@ -544,15 +544,15 @@ fi
 log_info "移动基础设施配置..."
 
 if [ -d "mysql" ]; then
-    mv mysql/* infrastructure/mysql/ 2>/dev/null || true
+    mv mysql/* infra/mysql/ 2>/dev/null || true
     rmdir mysql 2>/dev/null || true
-    log_success "mysql 配置已移动到 infrastructure/"
+    log_success "mysql 配置已移动到 infra/"
 fi
 
 if [ -d "nginx" ]; then
-    mv nginx/* infrastructure/nginx/ 2>/dev/null || true
+    mv nginx/* infra/nginx/ 2>/dev/null || true
     rmdir nginx 2>/dev/null || true
-    log_success "nginx 配置已移动到 infrastructure/"
+    log_success "nginx 配置已移动到 infra/"
 fi
 
 # 4. 创建根配置文件
@@ -595,14 +595,14 @@ if [ -f "docker-compose.yml" ]; then
         sed -i '' 's|context: ./server|context: ./apps/server|g' docker-compose.yml
         sed -i '' 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
         sed -i '' 's|context: ./student|context: ./apps/student|g' docker-compose.yml
-        sed -i '' 's|./mysql/init|./infrastructure/mysql/init|g' docker-compose.yml
-        sed -i '' 's|./nginx/|./infrastructure/nginx/|g' docker-compose.yml
+        sed -i '' 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
+        sed -i '' 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     else
         sed -i 's|context: ./server|context: ./apps/server|g' docker-compose.yml
         sed -i 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
         sed -i 's|context: ./student|context: ./apps/student|g' docker-compose.yml
-        sed -i 's|./mysql/init|./infrastructure/mysql/init|g' docker-compose.yml
-        sed -i 's|./nginx/|./infrastructure/nginx/|g' docker-compose.yml
+        sed -i 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
+        sed -i 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     fi
     log_success "docker-compose.yml 路径已更新"
 fi

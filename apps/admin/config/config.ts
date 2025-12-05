@@ -32,9 +32,7 @@ export default defineConfig({
    * @doc umi 的theme 配置 https://umijs.org/docs/api/config#theme
    */
   theme: {
-    // 如果不想要 configProvide 动态设置主题需要把这个设置为 default
-    // 只有设置为 variable， 才能使用 configProvide 动态设置主色调
-    'root-entry-name': 'variable',
+    // Ant Design v5 主题配置
   },
   /**
    * @name moment 的国际化配置

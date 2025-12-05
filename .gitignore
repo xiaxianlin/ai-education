@@ -48,20 +48,23 @@ __runtime__
 *.tar.gz
 backups/
 
+# Turborepo
+.turbo/
+
 # Flutter
-mobile/.dart_tool/
-mobile/.flutter-plugins
-mobile/.flutter-plugins-dependencies
-mobile/.packages
-mobile/.pub-cache/
-mobile/.pub/
-mobile/build/
-mobile/.ios/
-mobile/.android/
-mobile/*.iml
-mobile/.idea/
-mobile/.vscode/
-mobile/*.g.dart
-mobile/*.freezed.dart
-mobile/.metadata
-mobile/pubspec.lock
+apps/mobile/.dart_tool/
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+apps/mobile/.packages
+apps/mobile/.pub-cache/
+apps/mobile/.pub/
+apps/mobile/build/
+apps/mobile/.ios/
+apps/mobile/.android/
+apps/mobile/*.iml
+apps/mobile/.idea/
+apps/mobile/.vscode/
+apps/mobile/*.g.dart
+apps/mobile/*.freezed.dart
+apps/mobile/.metadata
+apps/mobile/pubspec.lock

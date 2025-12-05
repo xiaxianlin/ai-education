@@ -54,8 +54,8 @@ mkdir -p apps
 mkdir -p packages/shared-types/src
 mkdir -p packages/shared-utils/src
 mkdir -p packages/shared-api-client/src
-mkdir -p infrastructure/mysql
-mkdir -p infrastructure/nginx
+mkdir -p infra/mysql
+mkdir -p infra/nginx
 
 # 2. 移动应用目录
 log_info "移动应用目录..."
@@ -91,34 +91,34 @@ fi
 # 3. 移动基础设施配置
 log_info "移动基础设施配置..."
 
-if [ -d "mysql" ] && [ ! -d "infrastructure/mysql/init" ]; then
+if [ -d "mysql" ] && [ ! -d "infra/mysql/init" ]; then
     if [ -d "mysql/init" ]; then
-        mv mysql/init/* infrastructure/mysql/ 2>/dev/null || true
+        mv mysql/init/* infra/mysql/ 2>/dev/null || true
         rmdir mysql/init 2>/dev/null || true
     fi
     if [ -z "$(ls -A mysql 2>/dev/null)" ]; then
         rmdir mysql 2>/dev/null || true
     fi
-    log_success "mysql 配置已移动到 infrastructure/"
-elif [ -d "infrastructure/mysql/init" ]; then
-    log_warn "infrastructure/mysql 已存在，跳过"
+    log_success "mysql 配置已移动到 infra/"
+elif [ -d "infra/mysql/init" ]; then
+    log_warn "infra/mysql 已存在，跳过"
 fi
 
-if [ -d "nginx" ] && [ ! -f "infrastructure/nginx/default.conf" ]; then
+if [ -d "nginx" ] && [ ! -f "infra/nginx/default.conf" ]; then
     if [ -f "nginx/default.conf" ]; then
-        mv nginx/default.conf infrastructure/nginx/ 2>/dev/null || true
+        mv nginx/default.conf infra/nginx/ 2>/dev/null || true
     fi
     if [ -d "nginx/ssl" ]; then
-        mkdir -p infrastructure/nginx/ssl
-        mv nginx/ssl/* infrastructure/nginx/ssl/ 2>/dev/null || true
+        mkdir -p infra/nginx/ssl
+        mv nginx/ssl/* infra/nginx/ssl/ 2>/dev/null || true
         rmdir nginx/ssl 2>/dev/null || true
     fi
     if [ -z "$(ls -A nginx 2>/dev/null)" ]; then
         rmdir nginx 2>/dev/null || true
     fi
-    log_success "nginx 配置已移动到 infrastructure/"
-elif [ -f "infrastructure/nginx/default.conf" ]; then
-    log_warn "infrastructure/nginx 已存在，跳过"
+    log_success "nginx 配置已移动到 infra/"
+elif [ -f "infra/nginx/default.conf" ]; then
+    log_warn "infra/nginx 已存在，跳过"
 fi
 
 # 4. 创建根配置文件
@@ -166,17 +166,17 @@ if [ -f "docker-compose.yml" ]; then
     
     # 使用 sed 更新路径（macOS 和 Linux 兼容）
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' 's|context: ./server|context: ./apps/server|g' docker-compose.yml
-        sed -i '' 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i '' 's|context: ./student|context: ./apps/student|g' docker-compose.yml
-        sed -i '' 's|./mysql/init|./infrastructure/mysql/init|g' docker-compose.yml
-        sed -i '' 's|./nginx/|./infrastructure/nginx/|g' docker-compose.yml
+        sed -i '' 's|context: ./apps/server|context: ./apps/server|g' docker-compose.yml
+        sed -i '' 's|context: ./apps/admin|context: ./apps/admin|g' docker-compose.yml
+        sed -i '' 's|context: ./apps/student|context: ./apps/student|g' docker-compose.yml
+        sed -i '' 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
+        sed -i '' 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     else
-        sed -i 's|context: ./server|context: ./apps/server|g' docker-compose.yml
-        sed -i 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i 's|context: ./student|context: ./apps/student|g' docker-compose.yml
-        sed -i 's|./mysql/init|./infrastructure/mysql/init|g' docker-compose.yml
-        sed -i 's|./nginx/|./infrastructure/nginx/|g' docker-compose.yml
+        sed -i 's|context: ./apps/server|context: ./apps/server|g' docker-compose.yml
+        sed -i 's|context: ./apps/admin|context: ./apps/admin|g' docker-compose.yml
+        sed -i 's|context: ./apps/student|context: ./apps/student|g' docker-compose.yml
+        sed -i 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
+        sed -i 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     fi
     log_success "docker-compose.yml 路径已更新"
 else
@@ -188,13 +188,13 @@ log_info "更新脚本中的路径引用..."
 if [ -d "scripts" ]; then
     find scripts/ -type f -name "*.sh" | while read -r file; do
         if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' 's|\./server|./apps/server|g' "$file"
-            sed -i '' 's|\./admin|./apps/admin|g' "$file"
-            sed -i '' 's|\./student|./apps/student|g' "$file"
+            sed -i '' 's|\./apps/server|./apps/server|g' "$file"
+            sed -i '' 's|\./apps/admin|./apps/admin|g' "$file"
+            sed -i '' 's|\./apps/student|./apps/student|g' "$file"
         else
-            sed -i 's|\./server|./apps/server|g' "$file"
-            sed -i 's|\./admin|./apps/admin|g' "$file"
-            sed -i 's|\./student|./apps/student|g' "$file"
+            sed -i 's|\./apps/server|./apps/server|g' "$file"
+            sed -i 's|\./apps/admin|./apps/admin|g' "$file"
+            sed -i 's|\./apps/student|./apps/student|g' "$file"
         fi
     done
     log_success "脚本路径已更新"
