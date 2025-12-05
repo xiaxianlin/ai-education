@@ -1,7 +1,7 @@
 import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
-import { TeacherBookApi } from '@/services/teacher_book';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useNavigate, useParams } from '@umijs/max';
 
 const useContainer = () => {
@@ -11,11 +11,11 @@ const useContainer = () => {
     data: teacherBook,
     loading,
     refresh,
-  } = useRequest(() => TeacherBookApi.get(Number(id)), {
+  } = useRequest(() => adminApi.getTeacherBook(Number(id)), {
     ready: !!id,
   });
 
-  const { runAsync: deleteTeacherBook } = useRequest(TeacherBookApi.delete, {
+  const { runAsync: deleteTeacherBook } = useRequest(adminApi.deleteTeacherBook, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -24,7 +24,7 @@ const useContainer = () => {
   });
 
   const { loading: uploading, run: upload } = useRequest(
-    (data) => TeacherBookApi.upload(teacherBook!.id, data),
+    (data) => adminApi.uploadTeacherBook(teacherBook!.id, data),
     {
       manual: true,
       onSuccess: () => {

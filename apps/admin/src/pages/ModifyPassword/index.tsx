@@ -3,13 +3,13 @@ import { history, useModel } from '@umijs/max';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Form, Input, message } from 'antd';
 import { validPassword } from '@/utils/validation';
-import { AuthApi } from '@/services/auth';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useRequest } from 'ahooks';
 
 export default function MoidfyPasswordPage() {
   const { initialState } = useModel('@@initialState');
 
-  const { runAsync } = useRequest(AuthApi.modifyPassword, {
+  const { runAsync } = useRequest(adminApi.modifyPassword, {
     manual: true,
     ready: !!initialState?.manager?.id,
     onSuccess: () => {

@@ -4,7 +4,7 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { CourseUnitApi } from '@/services/unit';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useTextbookDetailModel } from './page';
 
 const useContainer = () => {
@@ -12,7 +12,7 @@ const useContainer = () => {
   const actionRef = useRef<ActionType>();
   const formProps = useSimpleForm<TextbookContentForm, Unit>();
 
-  const { runAsync: deleteUnit } = useRequest(CourseUnitApi.delete, {
+  const { runAsync: deleteUnit } = useRequest(adminApi.deleteUnit, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -23,9 +23,9 @@ const useContainer = () => {
   const { runAsync: handleSubmit } = useRequest(
     async (values: TextbookContentForm) => {
       if (formProps.edited) {
-        await CourseUnitApi.update(formProps.edited.id, values);
+        await adminApi.updateUnit(formProps.edited.id, values);
       } else {
-        await CourseUnitApi.create({ ...values, textbook_id: id });
+        await adminApi.createUnit({ ...values, textbook_id: id });
       }
     },
     {

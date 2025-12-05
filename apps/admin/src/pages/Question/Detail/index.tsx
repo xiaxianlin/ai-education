@@ -1,6 +1,6 @@
 import { useParams, history } from '@umijs/max';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
-import { QuestionApi } from '@/services/question';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -11,7 +11,7 @@ export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
 
   const { data: question, loading, refresh } = useRequest(
-    () => QuestionApi.get(id!),
+    () => adminApi.getQuestion(id!),
     {
       ready: !!id,
       onError: () => {
@@ -25,7 +25,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleGenerateImage, loading: generatingImage } = useRequest(
     async () => {
       if (!id) return;
-      await QuestionApi.generateImage(id);
+      await adminApi.generateQuestionImage(id);
     },
     {
       manual: true,
@@ -43,7 +43,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleGenerateAudio, loading: generatingAudio } = useRequest(
     async () => {
       if (!id) return;
-      await QuestionApi.generateAudio(id);
+      await adminApi.generateQuestionAudio(id);
     },
     {
       manual: true,
@@ -61,7 +61,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleDelete, loading: deleting } = useRequest(
     async () => {
       if (!id) return;
-      await QuestionApi.delete(id);
+      await adminApi.deleteQuestion(id);
     },
     {
       manual: true,

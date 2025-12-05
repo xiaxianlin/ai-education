@@ -1,6 +1,6 @@
 import { useRequest } from 'ahooks';
 import { ModalForm, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useStudentDetailModel } from '../models/page';
 import { message } from 'antd';
 import { GRADES } from '@/constants/course';
@@ -9,7 +9,7 @@ export function EditForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =
     useStudentDetailModel();
   const { runAsync: handleEditSubmit, loading: editing } = useRequest(
-    async (values: StudentForm) => StudentApi.update(student?.id || '', values),
+    async (values: StudentForm) => adminApi.updateStudent(student?.id || '', values),
     {
       manual: true,
       onSuccess: () => {

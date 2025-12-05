@@ -27,10 +27,39 @@
     "docker:up": "./scripts/deploy.sh start",
     "docker:down": "./scripts/deploy.sh down"
   },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    
+    "dev:admin": "cd apps/admin && pnpm dev",
+    "dev:student": "cd apps/student && pnpm dev",
+    "dev:server": "cd apps/server && uv run uvicorn main:app --reload",
+    "dev:all": "concurrently \"pnpm dev:admin\" \"pnpm dev:student\" \"pnpm dev:server\"",
+    
+    "build:admin": "cd apps/admin && pnpm build",
+    "build:student": "cd apps/student && pnpm build",
+    "build:server": "cd apps/server && uv build",
+    "build:all": "turbo run build",
+    
+    "install:all": "pnpm install && cd apps/server && uv sync",
+    
+    "generate:types": "tsx scripts/generate-types.ts",
+    "generate:types:build": "cd packages/shared-types && pnpm build",
+    
+    "docker:build": "./scripts/build.sh",
+    "docker:up": "./scripts/deploy.sh start",
+    "docker:down": "./scripts/deploy.sh down"
+  },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "concurrently": "^8.2.2",
+    "openapi-typescript": "^6.7.0",
     "prettier": "^3.2.5",
+    "tsx": "^4.7.0",
     "turbo": "^2.0.0",
     "typescript": "^5.3.3"
   },

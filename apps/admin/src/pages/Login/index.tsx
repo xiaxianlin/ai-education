@@ -3,18 +3,18 @@ import { history, useModel } from '@umijs/max';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
-import { AuthApi } from '@/services/auth';
+import { adminApi } from '@ai-education/shared-api-client';
+import type { LoginRequest } from '@ai-education/shared-types';
 import styles from './index.less';
 import { useEffect } from 'react';
 
 export default function LoginPage() {
   const { initialState, refresh } = useModel('@@initialState');
 
-  const { runAsync: login } = useRequest(AuthApi.login, {
+  const { runAsync: login } = useRequest(adminApi.login.bind(adminApi), {
     manual: true,
     onSuccess: (res) => {
       refresh();
-      localStorage.setItem('token', res);
       history.replace('/');
     },
   });
@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className={styles.layout}>
       <div className={styles.container}>
-        <LoginForm<LoginModel>
+        <LoginForm<LoginRequest>
           size="large"
           title="管理员登录"
           subTitle="请输入您的凭据以访问管理后台"

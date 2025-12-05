@@ -4,6 +4,10 @@
     "**/.env.*local"
   ],
   "tasks": {
+    "generate:types": {
+      "cache": false,
+      "outputs": ["packages/shared-types/src/api/**"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**", ".next/**"]

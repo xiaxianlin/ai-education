@@ -2,7 +2,7 @@ import { useProfileStore } from "@/stores/profile-store";
 import { SubjectTabs } from "@/components/business/SubjectTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRequest } from "ahooks";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { PracticeCard } from "./views/PracticeCard";
 
 export default function DailyPractice() {
@@ -10,7 +10,7 @@ export default function DailyPractice() {
     (state) => state.activeTextbooks || []
   );
 
-  const { data: practices = [] } = useRequest(practiceService.getDailyPractice);
+  const { data: practices = [] } = useRequest(studentApi.getDailyPractice);
 
   return (
     <div>

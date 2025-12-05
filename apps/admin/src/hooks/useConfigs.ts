@@ -15,7 +15,7 @@ export const useConfigs = () => {
   const subjectEnum = subjects?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   const gradeEnum = Object.keys(GRADES).reduce(
-    (prev, key) => ({ ...prev, [key]: GRADES[Number(key)].grade }),
+    (prev, key) => ({ ...prev, [key]: GRADES[Number(key)] }),
     {},
   );
   // question_types 可能是数组或对象格式，需要兼容处理

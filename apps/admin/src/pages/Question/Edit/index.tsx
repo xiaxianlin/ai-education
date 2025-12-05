@@ -6,8 +6,7 @@ import {
   ProFormTextArea,
   ProFormText,
 } from '@ant-design/pro-components';
-import { QuestionApi } from '@/services/question';
-import { TextbookApi } from '@/services/textbook';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Button, Space, Card } from 'antd';
@@ -46,7 +45,7 @@ export default function QuestionEditPage() {
 
   // 获取所有教材列表
   const { data: textbookOptions } = useRequest(async () => {
-    const res = await TextbookApi.search({ page: 1, size: 1000 });
+    const res = await adminApi.searchTextbooks({ page: 1, size: 1000 });
     return (res.data || []).reduce((prev: Record<number, string>, curr) => {
       const gradeInfo = GRADES[curr.grade];
       const label = `${curr.subject} - ${curr.version} - ${gradeInfo?.grade || curr.grade}年级 - ${
@@ -61,7 +60,7 @@ export default function QuestionEditPage() {
   const { data: unitOptions } = useRequest(
     async () => {
       if (!selectedTextbookId) return [];
-      const units = await TextbookApi.getUnits(selectedTextbookId);
+      const units = await adminApi.getTextbookUnits(selectedTextbookId);
       return units.reduce((prev: Record<number, string>, curr) => {
         prev[curr.id] = curr.name;
         return prev;
@@ -73,7 +72,7 @@ export default function QuestionEditPage() {
     },
   );
 
-  const { data: question, loading } = useRequest(() => QuestionApi.get(id!), {
+  const { data: question, loading } = useRequest(() => adminApi.getQuestion(id!), {
     ready: !!id,
     onError: () => {
       message.error('加载问题失败');
@@ -84,7 +83,7 @@ export default function QuestionEditPage() {
   const { runAsync: handleSubmit, loading: submitting } = useRequest(
     async (values: QuestionUpdateForm) => {
       const submitData: QuestionUpdateForm = { ...values };
-      await QuestionApi.update(id!, submitData);
+      await adminApi.updateQuestion(id!, submitData);
     },
     {
       manual: true,

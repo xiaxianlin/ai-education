@@ -3,8 +3,7 @@
  * 使用 zustand 管理单元练习页面的业务逻辑
  */
 import { create } from "zustand";
-import { textbookService } from "@/services/textbook";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { toast } from "sonner";
 
 interface KnowledgeModalState {
@@ -57,17 +56,17 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set) => {
     },
 
     queryPractices: async () => {
-      const practices = await practiceService.getUnitPractice();
+      const practices = await studentApi.getUnitPractice();
       set({ practices });
     },
     createPractice: async (textbookId: number, unitId: number) => {
       try {
         set({ loading: true });
-        await practiceService.createPractice(
-          "unit_practice",
-          textbookId,
-          unitId
-        );
+        await studentApi.createPractice({
+          type: "unit_practice",
+          textbook_id: textbookId,
+          unit_id: unitId
+        });
       } catch (error) {
         console.error("Failed to create practice:", error);
         toast.error("创建练习失败");
@@ -90,7 +89,7 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set) => {
 
       try {
         // 调用接口获取单元知识点
-        const knowledges = await textbookService.getUnitKnowledge(unit.id);
+        const knowledges = await studentApi.getUnitKnowledge(unit.id);
         set({
           knowledgeModal: {
             open: true,

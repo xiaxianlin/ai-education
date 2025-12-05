@@ -1,7 +1,7 @@
 import { Header } from "@/components/business/Header";
 import { useRequest } from "ahooks";
 import { Outlet } from "react-router-dom";
-import { profileService } from "@/services/profile";
+import { studentApi } from "@ai-education/shared-api-client";
 import { useProfileStore } from "@/stores/profile-store";
 import { LoadingPage } from "@/components/business/LoadingSpinner";
 import { useGradeTheme } from "@/hooks/useGradeTheme";
@@ -9,7 +9,7 @@ import { useGradeTheme } from "@/hooks/useGradeTheme";
 export const MainLayout = () => {
   const { setProfile, student } = useProfileStore();
 
-  const { loading } = useRequest(profileService.getProfile, {
+  const { loading } = useRequest(studentApi.getProfile.bind(studentApi), {
     onSuccess: setProfile,
   });
 

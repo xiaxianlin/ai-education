@@ -6,7 +6,7 @@ import {
   ProColumns,
   ProSkeleton,
 } from '@ant-design/pro-components';
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -25,7 +25,7 @@ export default function PracticeDetailPage() {
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
   // 使用统一的会话详情接口
   const { data, loading, error } = useRequest(
-    () => StudentApi.getPracticeSession(Number(session_id)),
+    () => adminApi.getPracticeSession(Number(session_id)),
     { ready: !!session_id },
   );
 
@@ -173,7 +173,7 @@ export default function PracticeDetailPage() {
 
   return (
     <PageContainer title={<PageHeader title="练习详情" />}>
-      <Space vertical style={{ width: '100%' }} size="large">
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">

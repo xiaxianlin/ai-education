@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRequest } from "ahooks";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { HistoryCard } from "./components/HistoryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -25,15 +25,15 @@ export default function PracticeHistory() {
 
   // 获取各类型的历史记录
   const { data: dailyHistory = [], loading: dailyLoading } = useRequest(() =>
-    practiceService.getHistory("daily_practice")
+    studentApi.getPracticeHistory("daily_practice")
   );
 
   const { data: unitHistory = [], loading: unitLoading } = useRequest(() =>
-    practiceService.getHistory("unit_practice")
+    studentApi.getPracticeHistory("unit_practice")
   );
 
   const { data: assessmentHistory = [], loading: assessmentLoading } =
-    useRequest(() => practiceService.getHistory("assessment"));
+    useRequest(() => studentApi.getPracticeHistory("assessment"));
 
   const getHistoryByType = (type: PracticeSessionType) => {
     switch (type) {

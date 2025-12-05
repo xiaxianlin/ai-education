@@ -3,7 +3,7 @@
  * 显示某个教材下的所有单元练习卡片
  */
 import { useRequest } from "ahooks";
-import { textbookService } from "@/services/textbook";
+import { studentApi } from "@ai-education/shared-api-client";
 import { UnitPracticeCard } from "./UnitPracticeCard";
 import { useUnitPracticeStore } from "../stores/unit-practice-store";
 
@@ -14,7 +14,7 @@ interface TextbookUnitsSectionProps {
 export function TextbookUnits({ textbook }: TextbookUnitsSectionProps) {
   const { practices, openKnowledgeModal } = useUnitPracticeStore();
   const { data: units = [], loading } = useRequest(
-    () => textbookService.getTextbookUnits(textbook.id),
+    () => studentApi.getTextbookUnits(textbook.id),
     { refreshDeps: [textbook.id] }
   );
 

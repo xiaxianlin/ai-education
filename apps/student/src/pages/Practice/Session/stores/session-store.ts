@@ -3,7 +3,7 @@
  * 使用 zustand 管理练习会话的所有状态和业务逻辑
  */
 import { create } from "zustand";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 
 /**
  * 答案状态：0-未答, 1-正确, 2-错误
@@ -61,7 +61,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
     try {
       set({ loading: true });
 
-      const detail = await practiceService.getSessionDetail(sessionId);
+      const detail = await studentApi.getSessionDetail(sessionId);
       const { session, questions, answers, report } = detail;
 
       // 恢复已提交的答案
@@ -122,7 +122,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       throw new Error("会话不存在");
     }
 
-    await practiceService.beginPractice(session.id);
+    await studentApi.beginPractice(session.id);
     // 重新加载会话以获取最新状态
     await get().loadSession(session.id);
   },
@@ -203,20 +203,16 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
 
       const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
-      const submitParams: SubmitAnswerParams = {
+      const submitParams = {
         session_id: session.id,
         question_id: currentQuestion.id,
         answer: answer || "",
         time_spent: timeSpent,
         is_audio_answer: !!audioOssPath,
         audio_data: audioOssPath,
-        // 如果是口语题且有音频理解结果，传递分析结果
-        audio_match: audioAnalysisResult?.match,
-        audio_reason: audioAnalysisResult?.reason,
-        audio_suggestion: audioAnalysisResult?.suggestion,
       };
 
-      const result = await practiceService.submitAnswer(submitParams);
+      const result = await studentApi.submitAnswer(submitParams);
       if (!result) {
         throw new Error("提交答案失败：服务器未返回结果");
       }
@@ -288,7 +284,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       throw new Error("会话不存在");
     }
 
-    await practiceService.completePractice(session.id);
+    await studentApi.completePractice(session.id);
     // 重新加载会话以获取报告
     await get().loadSession(session.id);
   },

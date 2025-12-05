@@ -1,7 +1,7 @@
 import { ModalForm, PageContainer, ProColumns, ProFormSelect } from '@ant-design/pro-components';
 import { useTextbookListModel } from '../models/page';
 import { Button, Space, Tag } from 'antd';
-import { TextbookApi } from '@/services/textbook';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { Link } from '@umijs/max';
@@ -104,7 +104,7 @@ export default function MainView() {
           </Button>
         }
         request={async ({ pageSize, current, ...filter }) => {
-          const data = await TextbookApi.search({
+          const data = await adminApi.searchTextbooks({
             page: current || 1,
             size: pageSize || 10,
             ...filter,

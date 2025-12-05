@@ -8,7 +8,7 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { TextbookApi } from '@/services/textbook';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
 
@@ -69,7 +69,7 @@ export const KnowledgeView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async (params) => {
-          const data = await TextbookApi.getKnowledges(id);
+          const data = await adminApi.getTextbookKnowledges(id);
           const filtered = data.filter((item) => {
             const results = ['unit']
               .filter((key) => Boolean(params[key]))

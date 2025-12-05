@@ -3,7 +3,7 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { TextbookApi } from '@/services/textbook';
+import { adminApi } from '@ai-education/shared-api-client';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {
@@ -16,9 +16,9 @@ const useContainer = () => {
   const { runAsync: handleSubmit } = useRequest(
     async (values: TextbookForm) => {
       if (form.edited) {
-        await TextbookApi.update(form.edited.id, values);
+        await adminApi.updateTextbook(form.edited.id, values);
       } else {
-        await TextbookApi.create(values);
+        await adminApi.createTextbook(values);
       }
     },
     {

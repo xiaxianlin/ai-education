@@ -1,4 +1,4 @@
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { useRequest } from "ahooks";
 import { GeneratingCard } from "../components/GeneratingCard";
 import { CompleteCard } from "../components/CompleteCard";
@@ -12,7 +12,7 @@ interface PracticeCardProps {
 
 export function PracticeCard({ textbook, practice }: PracticeCardProps) {
   const { loading, run: createPractice } = useRequest(
-    () => practiceService.createPractice("daily_practice", textbook.id),
+    () => studentApi.createPractice({ type: "daily_practice", textbook_id: textbook.id }),
     { manual: true }
   );
 

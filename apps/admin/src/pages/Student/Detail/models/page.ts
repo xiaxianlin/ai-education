@@ -1,4 +1,4 @@
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { ProForm } from '@ant-design/pro-components';
 import { useParams, useNavigate } from '@umijs/max';
 import { useRequest } from 'ahooks';
@@ -17,11 +17,11 @@ const useContainer = () => {
     error,
     loading,
     refresh,
-  } = useRequest(() => StudentApi.getDetail(id!), {
+  } = useRequest(() => adminApi.getStudentDetail(id!), {
     ready: !!id,
     refreshDeps: [id],
   });
-  const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.delete(id!), {
+  const { runAsync: handleDelete, loading: deleting } = useRequest(() => adminApi.deleteStudent(id!), {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -30,13 +30,13 @@ const useContainer = () => {
   });
 
   const { runAsync: handleResetPassword, loading: resetting } = useRequest(
-    () => StudentApi.resetPassword(id!),
+    () => adminApi.resetStudentPassword(id!),
     {
       manual: true,
       onSuccess: (password) => {
         Modal.success({
           title: '密码重置成功',
-          content: `新密码：${password}，请妥善保管`,
+          content: `新密码：${password.password}，请妥善保管`,
           okText: '确定',
         });
       },
@@ -44,7 +44,7 @@ const useContainer = () => {
   );
 
   const { runAsync: handleToggleStatus, loading: toggling } = useRequest(
-    async (status: number) => StudentApi.update(id!, { status }),
+    async (status: number) => adminApi.updateStudent(id!, { status }),
     {
       manual: true,
       onSuccess: (_, [status]) => {

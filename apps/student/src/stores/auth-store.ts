@@ -1,4 +1,4 @@
-import { authService } from "@/services/auth";
+import { studentApi } from "@ai-education/shared-api-client";
 import { create } from "zustand";
 
 interface AuthStoreState {
@@ -21,6 +21,6 @@ export const useAuthStore = create<AuthStoreState>((set) => {
       localStorage.removeItem("_t");
       set({ isAuthenticated: false });
     },
-    check: () => authService.check(),
+    check: () => studentApi.check(),
   };
 });

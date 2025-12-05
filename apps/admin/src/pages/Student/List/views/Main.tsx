@@ -1,7 +1,7 @@
 import { PageContainer, ProColumns, ProFormText } from '@ant-design/pro-components';
 import { useStudentListModel } from '../models/page';
 import { Button } from 'antd';
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useMemo } from 'react';
 import { Link } from '@umijs/max';
 import { CommonTable, FormModal } from '@/components/business';
@@ -64,7 +64,7 @@ export default function MainView() {
           </Button>
         }
         request={async ({ pageSize, current, ...filter }) => {
-          const data = await StudentApi.search({
+          const data = await adminApi.searchStudents({
             page: current || 1,
             size: pageSize || 10,
             ...filter,

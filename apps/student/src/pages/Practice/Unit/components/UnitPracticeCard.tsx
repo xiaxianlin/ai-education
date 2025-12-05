@@ -4,7 +4,7 @@
  */
 import { memo } from "react";
 import { useRequest } from "ahooks";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { WaitCard } from "./WaitCard";
 import { GeneratingCard } from "./GeneratingCard";
 import { InProgressCard } from "./InProgressCard";
@@ -23,7 +23,7 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
   onShowKnowledge,
 }: UnitPracticeCardProps) {
   const { loading, run: createPractice } = useRequest(
-    () => practiceService.createPractice("unit_practice", textbook.id, unit.id),
+    () => studentApi.createPractice({ type: "unit_practice", textbook_id: textbook.id, unit_id: unit.id }),
     { manual: true }
   );
 

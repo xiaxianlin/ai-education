@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRequest } from "ahooks";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { QuestionAnswerCard } from "./components/QuestionAnswerCard";
 import { ReportSummary } from "./components/ReportSummary";
 import { formatDateTime } from "@/utils/time";
@@ -57,7 +57,7 @@ export default function PracticeDetail() {
     loading,
     error,
   } = useRequest(
-    () => practiceService.getSessionDetail(sessionIdNum),
+    () => studentApi.getSessionDetail(sessionIdNum),
     {
       ready: !!sessionIdNum,
       refreshDeps: [sessionIdNum],

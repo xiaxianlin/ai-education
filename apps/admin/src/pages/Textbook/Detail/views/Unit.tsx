@@ -8,8 +8,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
-import { TextbookApi } from '@/services/textbook';
-import { CourseUnitApi } from '@/services/unit';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
 import { generateWithConfirm } from '@/hooks/useGenerateWithConfirm';
@@ -26,7 +25,7 @@ export const UnitView: React.FC = () => {
   const handleGenerateQuestions = (unit: Unit) => {
     generateWithConfirm(
       async () => {
-        return await CourseUnitApi.generateQuestions(unit.id);
+        return await adminApi.generateUnitQuestions(unit.id);
       },
       {
         confirmTitle: '生成题目',
@@ -84,7 +83,7 @@ export const UnitView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async () => {
-          const data = await TextbookApi.getUnits(id);
+          const data = await adminApi.getTextbookUnits(id);
           setUnits(data);
           return { data, success: true, total: data.length };
         }}

@@ -1,7 +1,7 @@
 import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
-import { TextbookApi } from '@/services/textbook';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useNavigate, useParams } from '@umijs/max';
 import { useState } from 'react';
 import { useGenerateWithConfirm } from '@/hooks/useGenerateWithConfirm';
@@ -14,18 +14,18 @@ const useContainer = () => {
     data: textbook,
     loading,
     refresh,
-  } = useRequest(() => TextbookApi.get(Number(id)), {
+  } = useRequest(() => adminApi.getTextbook(Number(id)), {
     ready: !!id,
   });
 
-  const { runAsync: deleteTextbook } = useRequest(TextbookApi.delete, {
+  const { runAsync: deleteTextbook } = useRequest(adminApi.deleteTextbook, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
       navigate('/course/textbook');
     },
   });
-  const { loading: parsing, runAsync: parse } = useRequest(TextbookApi.parse, {
+  const { loading: parsing, runAsync: parse } = useRequest(adminApi.parseTextbook, {
     manual: true,
     onSuccess: () => {
       message.success('解析完成');
@@ -35,7 +35,7 @@ const useContainer = () => {
 
 
   const { loading: uploading, run: upload } = useRequest(
-    (data) => TextbookApi.upload(textbook!.id, data),
+    (data) => adminApi.uploadTextbook(textbook!.id, data),
     {
       manual: true,
       onSuccess: () => {
@@ -76,7 +76,7 @@ const useContainer = () => {
   const handleGenerateQuestions = useGenerateWithConfirm(
     async () => {
       if (!textbook) return;
-      return await TextbookApi.generateQuestions(textbook.id);
+      return await adminApi.generateTextbookQuestions(textbook.id);
     },
     {
       confirmTitle: '生成题目',

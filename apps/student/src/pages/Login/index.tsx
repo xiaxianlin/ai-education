@@ -16,7 +16,7 @@ import {
 import { validators } from "@/lib/validators";
 import { useState } from "react";
 import { useRequest } from "ahooks";
-import { authService } from "@/services/auth";
+import { studentApi } from "@ai-education/shared-api-client";
 import { useAuthStore } from "@/stores/auth-store";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useNavigate } from "react-router-dom";
@@ -31,14 +31,20 @@ export default function Login() {
 
   const { errors, validate, clearError } = useFormValidation<LoginParams>();
 
-  const { loading, run: login } = useRequest(authService.login, {
-    manual: true,
-    onSuccess: (res) => {
-      setToken(res);
-      toast.success("登录成功！");
-      navigate("/home");
+  const { loading, run: login } = useRequest(
+    async (params: { phone: string; password: string }) => {
+      const token = await studentApi.login(params);
+      return token;
     },
-  });
+    {
+      manual: true,
+      onSuccess: (res) => {
+        setToken(res);
+        toast.success("登录成功！");
+        navigate("/home");
+      },
+    }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

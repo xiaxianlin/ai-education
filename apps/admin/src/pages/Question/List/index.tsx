@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
-import { QuestionApi } from '@/services/question';
+import { adminApi } from '@ai-education/shared-api-client';
 import { GRADES } from '@/constants/course';
 import { Link } from '@umijs/max';
 import { useConfigs, createTimeColumn, useDelete } from '@/hooks';
@@ -27,7 +27,7 @@ export default function QuestionListPage() {
   const [generateLoadingId, setGenerateLoadingId] = React.useState<string | null>(null);
 
   // 删除题目
-  const { handleDelete } = useDelete(QuestionApi.delete, {
+  const { handleDelete } = useDelete(adminApi.deleteQuestion, {
     onSuccess: () => actionRef.current?.reload(),
   });
 
@@ -40,9 +40,9 @@ export default function QuestionListPage() {
     try {
       setGenerateLoadingId(String(record.id));
       if (record.resource_type === 'image') {
-        await QuestionApi.generateImage(String(record.id));
+        await adminApi.generateQuestionImage(String(record.id));
       } else if (record.resource_type === 'audio') {
-        await QuestionApi.generateAudio(String(record.id));
+        await adminApi.generateQuestionAudio(String(record.id));
       } else {
         message.warning(`暂不支持生成 ${record.resource_type} 资源`);
         return;
@@ -277,7 +277,7 @@ export default function QuestionListPage() {
           columns={questionColumns}
           request={async (params) => {
             const searchParams = buildSearchParams(params);
-            const res = await QuestionApi.search(searchParams);
+            const res = await adminApi.searchQuestions(searchParams);
             return {
               data: res?.data || [],
               total: res?.total || 0,
@@ -293,7 +293,7 @@ export default function QuestionListPage() {
           columns={resourceColumns}
           request={async (params) => {
             const searchParams = buildSearchParams(params);
-            const res = await QuestionApi.searchResource(searchParams);
+            const res = await adminApi.searchResourceQuestions(searchParams);
             return {
               data: res?.data || [],
               total: res?.total || 0,

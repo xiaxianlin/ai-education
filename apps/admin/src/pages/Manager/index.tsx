@@ -7,7 +7,7 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button, message, Modal, Space } from 'antd';
-import { ManagerApi } from '@/services/manager';
+import { adminApi } from '@ai-education/shared-api-client';
 import { ManagerType, ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
 import { CommonTable } from '@/components/business';
@@ -18,7 +18,7 @@ export default function ManagerPage() {
   const actionRef = useRef<any>();
   const [formVisible, setFormVisible] = React.useState(false);
 
-  const { runAsync: remove } = useRequest((id: string) => ManagerApi.delete(id), {
+  const { runAsync: remove } = useRequest((id: string) => adminApi.deleteManager(id), {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -26,20 +26,20 @@ export default function ManagerPage() {
     },
   });
 
-  const { runAsync: add } = useRequest((values) => ManagerApi.add(values), {
+  const { runAsync: add } = useRequest((values) => adminApi.createManager(values), {
     manual: true,
     onSuccess: (passwd) => {
       setFormVisible(false);
       actionRef.current?.reload();
       Modal.success({
         title: '添加成功',
-        content: `请保存好密码：${passwd}`,
+        content: `请保存好密码：${passwd.password}`,
       });
     },
   });
 
   const { runAsync: updateStatus } = useRequest(
-    (id: string, status: number) => ManagerApi.updateStatus(id, status),
+    (id: string, status: number) => adminApi.updateManagerStatus(id, status),
     {
       manual: true,
       onSuccess: () => {
@@ -49,15 +49,15 @@ export default function ManagerPage() {
     },
   );
 
-  const { runAsync: resetPassword } = useRequest((id: string) => ManagerApi.resetPassword(id), {
+  const { runAsync: resetPassword } = useRequest((id: string) => adminApi.resetManagerPassword(id), {
     manual: true,
-    onSuccess: (passwd) => {
-      message.success('密码重置成功');
-      Modal.success({
-        title: '密码重置成功',
-        content: `新密码：${passwd}，请保存好密码`,
-      });
-    },
+      onSuccess: (passwd) => {
+        message.success('密码重置成功');
+        Modal.success({
+          title: '密码重置成功',
+          content: `新密码：${passwd.password}，请保存好密码`,
+        });
+      },
   });
 
   const handleDelete = (manager: Manager) => {
@@ -152,7 +152,7 @@ export default function ManagerPage() {
         rowKey="id"
         columns={columns}
         request={async () => {
-          const data = await ManagerApi.all();
+          const data = await adminApi.getAllManagers();
           return {
             data: data || [],
             success: true,

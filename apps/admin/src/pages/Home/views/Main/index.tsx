@@ -7,9 +7,7 @@ import {
   CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { StudentApi } from '@/services/student';
-import { TextbookApi } from '@/services/textbook';
-import { QuestionApi } from '@/services/question';
+import { adminApi } from '@ai-education/shared-api-client';
 import { useState } from 'react';
 import { Link } from '@umijs/max';
 import { GRADES } from '@/constants/course';
@@ -21,17 +19,17 @@ export default function MainView() {
 
   // 获取系统概览数据
   const { data: studentData } = useRequest(async () => {
-    const res = await StudentApi.search({ page: 1, size: 1000 });
+    const res = await adminApi.searchStudents({ page: 1, size: 1000 });
     return res;
   });
 
   const { data: textbookData } = useRequest(async () => {
-    const res = await TextbookApi.search({ page: 1, size: 1000 });
+    const res = await adminApi.searchTextbooks({ page: 1, size: 1000 });
     return res;
   });
 
   const { data: questionData } = useRequest(async () => {
-    const res = await QuestionApi.search({ page: 1, size: 1000 });
+    const res = await adminApi.searchQuestions({ page: 1, size: 1000 });
     return res;
   });
 

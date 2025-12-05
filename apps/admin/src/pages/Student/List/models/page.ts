@@ -3,7 +3,7 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {
@@ -15,12 +15,12 @@ const useContainer = () => {
   const { runAsync: handleSubmit } = useRequest(
     async (values: StudentForm | StudentUpdateForm) => {
       if (form.edited) {
-        await StudentApi.update(form.edited.id, values as StudentUpdateForm);
+        await adminApi.updateStudent(form.edited.id, values as StudentUpdateForm);
       } else {
-        const password = await StudentApi.create(values as StudentForm);
+        await adminApi.createStudent(values as StudentForm);
         Modal.success({
           title: '创建成功',
-          content: `学生密码：${password}，请妥善保管`,
+          content: `学生已创建，默认密码为手机号后6位`,
           okText: '确定',
         });
       }
@@ -42,7 +42,7 @@ const useContainer = () => {
       content: `确定要删除学生「${student.name}」吗？`,
       okType: 'danger',
       onOk: async () => {
-        await StudentApi.delete(student.id);
+        await adminApi.deleteStudent(student.id);
         message.success('删除成功');
         actionRef.current?.reload();
       },

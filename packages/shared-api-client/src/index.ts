@@ -1,6 +1,7 @@
-// Shared API client for AI Education Platform
-// This package will contain shared API client code used across admin and student apps
+export * from './client';
+export * from './admin';
+export * from './student';
 
-// Placeholder - API client will be migrated here in a later phase
-export {};
-
+// 导出实例以便直接使用
+export { adminApi } from './admin';
+export { studentApi } from './student';

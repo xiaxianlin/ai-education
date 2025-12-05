@@ -3,12 +3,11 @@ import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { AvatarDropdown } from './components/ui';
 import logo from '@/assets/logo.png';
 import { ConfigProvider, message } from 'antd';
-import { AuthApi } from './services/auth';
-import { CommonApi } from './services/common';
+import { adminApi } from '@ai-education/shared-api-client';
 
 export async function getInitialState(): Promise<InitialState> {
   try {
-    const [manager, configs] = await Promise.all([AuthApi.check(), CommonApi.configs()]);
+    const [manager, configs] = await Promise.all([adminApi.check(), adminApi.getConfigs()]);
     return { manager, configs };
   } catch (e) {
     history.push('/login');

@@ -5,7 +5,7 @@ import { useRef, useMemo, useState } from 'react';
 import { fmtTime } from '@/utils/time';
 import { DeleteButton } from '@/components/business/DeleteButton';
 import { useStudentDetailModel } from '../models/page';
-import { StudentApi } from '@/services/student';
+import { adminApi } from '@ai-education/shared-api-client';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';
@@ -19,7 +19,7 @@ export function PracticeHistory() {
 
   // 删除功能
   const { runAsync: handleDelete, loading: deleteLoading } = useRequest(
-    StudentApi.removePracticeSession,
+    adminApi.removePracticeSession,
     { manual: true, onSuccess: () => actionRef.current?.reload() },
   );
 
@@ -143,7 +143,7 @@ export function PracticeHistory() {
         search={false}
         toolbar={{ settings: [] }}
         request={async (params) => {
-          const res = await StudentApi.getPracticeHistory(
+          const res = await adminApi.getPracticeHistory(
             student?.id!,
             practiceType as PracticeSessionType,
           );

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { practiceService } from "@/services/practice";
+import { studentApi } from "@ai-education/shared-api-client";
 import { useSessionStore } from "../stores/session-store";
 import { useCurrentQuestion } from "../stores/session-store";
 
@@ -26,7 +26,7 @@ export const useAudioUpload = (): UseAudioUploadResult => {
 
       setUploading(true);
       try {
-        const result = await practiceService.uploadRecording(
+        const result = await studentApi.uploadRecording(
           session.id,
           currentQuestion.id,
           audioBlob
