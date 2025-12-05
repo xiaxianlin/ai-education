@@ -265,9 +265,10 @@ AI Education Platform - Docker 部署脚本
   help              显示帮助信息
 
 服务名:
-  server            后端服务
-  admin             管理后台
-  student           学生端
+  server-api        后端API服务
+  server-task       任务服务
+  admin-web         管理后台
+  student-web       学生端
   mysql             数据库
   redis             缓存
   nginx             网关
@@ -277,8 +278,8 @@ AI Education Platform - Docker 部署脚本
 
 示例:
   $0 start                    # 启动所有服务
-  $0 start server             # 只启动后端服务
-  $0 logs server              # 查看后端日志
+  $0 start server-api         # 只启动后端API服务
+  $0 logs server-api          # 查看后端日志
   $0 restart                  # 重启所有服务
   $0 build                    # 构建并启动服务
   $0 update                   # 更新服务

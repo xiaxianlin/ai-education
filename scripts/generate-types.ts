@@ -13,7 +13,7 @@ import * as path from 'path';
 
 const SERVER_URL = process.env.SERVER_URL || 'http://localhost:7890';
 const OPENAPI_URL = `${SERVER_URL}/openapi.json`;
-const OUTPUT_PATH = path.join(__dirname, '../packages/shared-types/src/api/index.ts');
+const OUTPUT_PATH = path.join(__dirname, '../packages/shared-student/src/types/api/index.ts');
 
 async function generateTypes() {
   try {
@@ -38,7 +38,7 @@ async function generateTypes() {
  * 来源: ${OPENAPI_URL}
  * 
  * 使用方法:
- * import type { paths, components } from '@ai-education/shared-types/api';
+ * import type { paths, components } from '@ai-education/shared-student/types/api';
  */
 
 `;

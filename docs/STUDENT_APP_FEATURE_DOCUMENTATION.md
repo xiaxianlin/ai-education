@@ -1419,7 +1419,7 @@ const restoreAnswers = (answers: PracticeAnswer[]) => {
 #### 1.1 基础配置
 ```typescript
 // 使用 workspace 共享包
-import { studentApi } from "@ai-education/shared-api-client";
+import { studentApi } from "@ai-education/shared-student";
 
 // 自动 token 管理
 // 统一错误处理

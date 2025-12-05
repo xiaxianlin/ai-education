@@ -86,15 +86,15 @@ ai-eduaction/
     
     "dev:admin": "pnpm --filter admin dev",
     "dev:student": "pnpm --filter student dev",
-    "dev:server": "cd apps/server && uv run uvicorn main:app --reload",
+    "dev:server": "cd apps/server-api && uv run uvicorn main:app --reload",
     "dev:all": "concurrently \"pnpm dev:admin\" \"pnpm dev:student\" \"pnpm dev:server\"",
     
     "build:admin": "pnpm --filter admin build",
     "build:student": "pnpm --filter student build",
-    "build:server": "cd apps/server && uv build",
+    "build:server": "cd apps/server-api && uv build",
     "build:all": "turbo run build",
     
-    "install:all": "pnpm install && cd apps/server && uv sync",
+    "install:all": "pnpm install && cd apps/server-api && uv sync",
     
     "docker:build": "./scripts/build.sh",
     "docker:up": "./scripts/deploy.sh start",
@@ -163,7 +163,7 @@ workspace = true
 
 [workspace]
 members = [
-    "apps/server"
+    "apps/server-api"
 ]
 exclude = []
 
@@ -357,7 +357,7 @@ export * from './common';
 
 ## 四、应用配置更新
 
-### 1. `apps/admin/package.json` (更新)
+### 1. `apps/admin-web/package.json` (更新)
 
 在现有依赖基础上添加：
 
@@ -374,7 +374,7 @@ export * from './common';
 }
 ```
 
-### 2. `apps/student/package.json` (更新)
+### 2. `apps/student-web/package.json` (更新)
 
 在现有依赖基础上添加：
 
@@ -391,7 +391,7 @@ export * from './common';
 }
 ```
 
-### 3. `apps/server/pyproject.toml` (更新)
+### 3. `apps/server-api/pyproject.toml` (更新)
 
 ```toml
 [project]
@@ -431,19 +431,19 @@ services:
 
   server:
     build:
-      context: ./apps/server
+      context: ./apps/server-api
       dockerfile: Dockerfile
     # ... 其他配置保持不变 ...
 
   admin:
     build:
-      context: ./apps/admin
+      context: ./apps/admin-web
       dockerfile: Dockerfile
     # ... 其他配置保持不变 ...
 
   student:
     build:
-      context: ./apps/student
+      context: ./apps/student-web
       dockerfile: Dockerfile
     # ... 其他配置保持不变 ...
 
@@ -578,7 +578,7 @@ workspace = true
 
 [workspace]
 members = [
-    "apps/server"
+    "apps/server-api"
 ]
 exclude = []
 EOF
@@ -592,15 +592,15 @@ if [ -f "docker-compose.yml" ]; then
     cp docker-compose.yml docker-compose.yml.bak
     # 使用 sed 更新路径（macOS 和 Linux 兼容）
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' 's|context: ./server|context: ./apps/server|g' docker-compose.yml
-        sed -i '' 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i '' 's|context: ./student|context: ./apps/student|g' docker-compose.yml
+        sed -i '' 's|context: ./server|context: ./apps/server-api|g' docker-compose.yml
+        sed -i '' 's|context: ./admin|context: ./apps/admin-web|g' docker-compose.yml
+        sed -i '' 's|context: ./student|context: ./apps/student-web|g' docker-compose.yml
         sed -i '' 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
         sed -i '' 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     else
-        sed -i 's|context: ./server|context: ./apps/server|g' docker-compose.yml
-        sed -i 's|context: ./admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i 's|context: ./student|context: ./apps/student|g' docker-compose.yml
+        sed -i 's|context: ./server|context: ./apps/server-api|g' docker-compose.yml
+        sed -i 's|context: ./admin|context: ./apps/admin-web|g' docker-compose.yml
+        sed -i 's|context: ./student|context: ./apps/student-web|g' docker-compose.yml
         sed -i 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
         sed -i 's|./nginx/|./infra/nginx/|g' docker-compose.yml
     fi
@@ -609,9 +609,9 @@ fi
 
 # 6. 更新脚本路径
 log_info "更新脚本中的路径引用..."
-find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./server|./apps/server|g' {} \;
-find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./admin|./apps/admin|g' {} \;
-find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./student|./apps/student|g' {} \;
+find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./server|./apps/server-api|g' {} \;
+find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./admin|./apps/admin-web|g' {} \;
+find scripts/ -type f -name "*.sh" -exec sed -i.bak 's|\./student|./apps/student-web|g' {} \;
 log_success "脚本路径已更新"
 
 log_success "=========================================="
@@ -621,7 +621,7 @@ log_info "下一步："
 log_info "1. 检查并更新所有配置文件"
 log_info "2. 创建根目录 package.json 和 turbo.json"
 log_info "3. 运行 pnpm install 安装依赖"
-log_info "4. 运行 cd apps/server && uv sync 安装 Python 依赖"
+log_info "4. 运行 cd apps/server-api && uv sync 安装 Python 依赖"
 log_info "5. 测试各个应用是否正常运行"
 ```
 
@@ -679,12 +679,12 @@ touch packages/shared-api-client/src/index.ts
 ### 阶段 3: 更新配置
 
 1. **更新应用 package.json**
-   - 在 `apps/admin/package.json` 中添加共享包依赖
-   - 在 `apps/student/package.json` 中添加共享包依赖
+   - 在 `apps/admin-web/package.json` 中添加共享包依赖
+   - 在 `apps/student-web/package.json` 中添加共享包依赖
 
 2. **更新 TypeScript 配置**
-   - 检查 `apps/admin/tsconfig.json` 路径别名
-   - 检查 `apps/student/tsconfig.json` 路径别名
+   - 检查 `apps/admin-web/tsconfig.json` 路径别名
+   - 检查 `apps/student-web/tsconfig.json` 路径别名
 
 3. **更新 Docker 配置**
    - 验证 `docker-compose.yml` 中的路径
@@ -697,7 +697,7 @@ touch packages/shared-api-client/src/index.ts
 pnpm install
 
 # 安装 Python 依赖
-cd apps/server
+cd apps/server-api
 uv sync
 cd ../..
 ```
@@ -723,7 +723,7 @@ pnpm docker:build
 ### 阶段 6: 逐步迁移共享代码
 
 1. **提取共享类型**
-   - 从 `apps/admin/types/` 和 `apps/student/src/types/` 提取共享类型
+   - 从 `apps/admin-web/types/` 和 `apps/student-web/src/types/` 提取共享类型
    - 移动到 `packages/shared-types/src/`
 
 2. **提取共享工具**
@@ -819,15 +819,15 @@ git filter-repo --path admin --path student --path server --path mobile \
 
 ### 配置阶段
 - [ ] 创建共享包基础结构
-- [ ] 更新 apps/admin/package.json
-- [ ] 更新 apps/student/package.json
-- [ ] 更新 apps/server/pyproject.toml
+- [ ] 更新 apps/admin-web/package.json
+- [ ] 更新 apps/student-web/package.json
+- [ ] 更新 apps/server-api/pyproject.toml
 - [ ] 检查 TypeScript 配置
 - [ ] 检查 Dockerfile 配置
 
 ### 安装和测试
 - [ ] 运行 pnpm install
-- [ ] 运行 cd apps/server && uv sync
+- [ ] 运行 cd apps/server-api && uv sync
 - [ ] 测试 pnpm dev:admin
 - [ ] 测试 pnpm dev:student
 - [ ] 测试 pnpm dev:server
@@ -915,7 +915,7 @@ jobs:
 
 ### Q3: Flutter 项目如何集成？
 
-**A**: Flutter 项目保持独立管理，不纳入 pnpm workspace。可以放在 `apps/mobile/` 目录下，但依赖管理仍然使用 `pub`。
+**A**: Flutter 项目保持独立管理，不纳入 pnpm workspace。可以放在 `apps/student-app/` 目录下，但依赖管理仍然使用 `pub`。
 
 ### Q4: Python worker 如何添加？
 

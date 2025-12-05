@@ -30,14 +30,11 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
-  apps/admin:
+  apps/admin-web:
     dependencies:
-      '@ai-education/shared-api-client':
+      '@ai-education/shared-student':
         specifier: workspace:*
-        version: link:../../packages/shared-api-client
-      '@ai-education/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
+        version: link:../../packages/shared-student
       '@ant-design/icons':
         specifier: ^5.2.6
         version: 5.6.1(react-dom@18.3.1)(react@18.3.1)
@@ -193,16 +190,13 @@ importers:
         specifier: ^1.9.11
         version: 1.9.11(@babel/core@7.28.5)
 
-  apps/server: {}
+  apps/server-api: {}
 
-  apps/student:
+  apps/student-web:
     dependencies:
-      '@ai-education/shared-api-client':
+      '@ai-education/shared-student':
         specifier: workspace:*
-        version: link:../../packages/shared-api-client
-      '@ai-education/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
+        version: link:../../packages/shared-student
       '@radix-ui/react-progress':
         specifier: ^1.1.8
         version: 1.1.8(@types/react-dom@18.3.7)(@types/react@18.3.27)(react-dom@18.3.1)(react@18.3.1)
@@ -283,30 +277,15 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
-  packages/shared-api-client:
+  packages/shared-student:
     dependencies:
-      '@ai-education/shared-types':
-        specifier: workspace:*
-        version: link:../shared-types
       axios:
         specifier: ^1.13.1
         version: 1.13.2
     devDependencies:
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-
-  packages/shared-types:
-    devDependencies:
       openapi-typescript:
         specifier: ^6.7.0
         version: 6.7.6
-      typescript:
-        specifier: ^5.3.3
-        version: 5.9.3
-
-  packages/shared-utils:
-    devDependencies:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
@@ -2297,6 +2276,19 @@ packages:
       - supports-color
     dev: true
 
+  /@babel/plugin-transform-destructuring@7.28.5(@babel/core@7.4.5):
+    resolution: {integrity: sha512-Kl9Bc6D0zTUcFUvkNuQh4eGXPKKNDOJQXVyyM4ZAQPMveniJdxi8XMJwLo+xSoW3MIq81bD33lcUe9kZpl0MCw==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.4.5
+      '@babel/helper-plugin-utils': 7.27.1
+      '@babel/traverse': 7.28.5
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@babel/plugin-transform-destructuring@7.4.4(@babel/core@7.4.5):
     resolution: {integrity: sha512-/aOx+nW0w8eHiEHm+BTERB2oJn5D127iye/SUQl7NjHy0lf+j7h4MKMMSOwdazGq9OxgiNADncE+SRJkCxjZpQ==}
     peerDependencies:
@@ -3302,7 +3294,7 @@ packages:
       '@babel/plugin-transform-block-scoping': 7.28.5(@babel/core@7.4.5)
       '@babel/plugin-transform-classes': 7.28.4(@babel/core@7.4.5)
       '@babel/plugin-transform-computed-properties': 7.27.1(@babel/core@7.4.5)
-      '@babel/plugin-transform-destructuring': 7.4.4(@babel/core@7.4.5)
+      '@babel/plugin-transform-destructuring': 7.28.5(@babel/core@7.4.5)
       '@babel/plugin-transform-dotall-regex': 7.27.1(@babel/core@7.4.5)
       '@babel/plugin-transform-duplicate-keys': 7.27.1(@babel/core@7.4.5)
       '@babel/plugin-transform-exponentiation-operator': 7.28.5(@babel/core@7.4.5)
@@ -10994,7 +10986,6 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
     dev: true
-    bundledDependencies: false
 
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
@@ -16642,7 +16633,7 @@ packages:
   /md5.js@1.3.5:
     resolution: {integrity: sha512-xitP+WxNPcTTOgnTJcrhM0xvdPepipPSf3I8EIpGKeFLjt3PlJLIDG3u8EX53ZIubkb+5U2+3rELYpEhHhzdkg==}
     dependencies:
-      hash-base: 3.0.5
+      hash-base: 3.1.2
       inherits: 2.0.4
       safe-buffer: 5.2.1
 

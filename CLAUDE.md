@@ -9,10 +9,11 @@ This is an AI Education Platform (K12 educational tutoring tool) built as a mono
 ## Architecture
 
 ### Applications (`apps/`)
-- **admin** - Management dashboard (React + UmiJS + Ant Design Pro)
-- **student** - Student frontend application (React + Rsbuild + TailwindCSS)
-- **server** - Backend API server (Python FastAPI)
-- **mobile** - Mobile application (Flutter)
+- **admin-web** - Management dashboard (React + UmiJS + Ant Design Pro)
+- **student-web** - Student frontend application (React + Rsbuild + TailwindCSS)
+- **server-api** - Backend API server (Python FastAPI)
+- **server-task** - Task service (Python FastAPI)
+- **student-app** - Mobile application (Flutter)
 
 ### Shared Packages (`packages/`)
 - **shared-types** - Shared TypeScript type definitions
@@ -34,7 +35,7 @@ pnpm install:all
 pnpm install
 
 # Install Python dependencies
-cd apps/server && uv sync
+cd apps/server-api && uv sync
 ```
 
 ### Development
@@ -112,8 +113,7 @@ pnpm docker:down
 - **Student**: Built with Rsbuild (React build tool), uses modern React patterns
 
 ### Shared Code
-- Types are shared between frontend applications via `@ai-education/shared-types`
-- API client is shared via `@ai-education/shared-api-client`
+- Types, API client, and utilities are shared between frontend applications via `@ai-education/shared-student`
 - Use `workspace:*` protocol for internal dependencies
 
 ### Backend
@@ -151,6 +151,6 @@ pnpm docker:down
 ## Common Troubleshooting
 
 - If dependencies are missing, run `pnpm install:all`
-- If Python dependencies are missing, run `cd apps/server && uv sync`
+- If Python dependencies are missing, run `cd apps/server-api && uv sync`
 - If build fails, try `pnpm clean && pnpm build`
 - For type errors, ensure shared types are built: `pnpm generate:types`

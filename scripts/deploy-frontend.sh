@@ -398,8 +398,8 @@ AI Education Platform - 前端部署脚本
 用法: $0 [选项] <项目名>
 
 项目名:
-  admin             部署管理后台
-  student           部署学生端
+  admin-web         部署管理后台
+  student-web       部署学生端
   all               部署所有前端项目
 
 选项:
@@ -491,7 +491,7 @@ main() {
                 show_help
                 exit 0
                 ;;
-            admin|student|all)
+            admin-web|student-web|all)
                 project="$1"
                 shift
                 ;;
@@ -506,7 +506,7 @@ main() {
 
     # 检查项目名
     if [ -z "$project" ]; then
-        log_error "请指定要部署的项目: admin, student, all"
+        log_error "请指定要部署的项目: admin-web, student-web, all"
         echo ""
         show_help
         exit 1
@@ -530,15 +530,15 @@ main() {
 
     # 部署项目
     case $project in
-        admin)
-            deploy_project "admin" "$use_rsync"
+        admin-web)
+            deploy_project "admin-web" "$use_rsync"
             ;;
-        student)
-            deploy_project "student" "$use_rsync"
+        student-web)
+            deploy_project "student-web" "$use_rsync"
             ;;
         all)
-            deploy_project "admin" "$use_rsync"
-            deploy_project "student" "$use_rsync"
+            deploy_project "admin-web" "$use_rsync"
+            deploy_project "student-web" "$use_rsync"
             ;;
     esac
 
@@ -557,10 +557,10 @@ main() {
     # 显示访问地址
     echo ""
     log_info "访问地址:"
-    if [ "$project" = "admin" ] || [ "$project" = "all" ]; then
+    if [ "$project" = "admin-web" ] || [ "$project" = "all" ]; then
         echo "  管理后台: http://$SSH_HOST/admin"
     fi
-    if [ "$project" = "student" ] || [ "$project" = "all" ]; then
+    if [ "$project" = "student-web" ] || [ "$project" = "all" ]; then
         echo "  学生端:   http://$SSH_HOST/student"
     fi
 }

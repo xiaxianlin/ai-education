@@ -85,13 +85,16 @@ build_all() {
     log_info "=========================================="
 
     # 构建后端服务
-    build_image "Server" "$PROJECT_ROOT/server" "ai-education-server:$VERSION"
+    build_image "Server API" "$PROJECT_ROOT/apps/server-api" "ai-education-server-api:$VERSION"
+
+    # 构建任务服务
+    build_image "Server Task" "$PROJECT_ROOT/apps/server-task" "ai-education-server-task:$VERSION"
 
     # 构建管理后台
-    build_image "Admin" "$PROJECT_ROOT/admin" "ai-education-admin:$VERSION"
+    build_image "Admin Web" "$PROJECT_ROOT/apps/admin-web" "ai-education-admin-web:$VERSION"
 
     # 构建学生端
-    build_image "Student" "$PROJECT_ROOT/student" "ai-education-student:$VERSION"
+    build_image "Student Web" "$PROJECT_ROOT/apps/student-web" "ai-education-student-web:$VERSION"
 
     log_success "=========================================="
     log_success "所有镜像构建完成!"
@@ -103,18 +106,21 @@ build_single() {
     local service=$1
 
     case $service in
-        server)
-            build_image "Server" "$PROJECT_ROOT/server" "ai-education-server:$VERSION"
+        server-api)
+            build_image "Server API" "$PROJECT_ROOT/apps/server-api" "ai-education-server-api:$VERSION"
             ;;
-        admin)
-            build_image "Admin" "$PROJECT_ROOT/admin" "ai-education-admin:$VERSION"
+        server-task)
+            build_image "Server Task" "$PROJECT_ROOT/apps/server-task" "ai-education-server-task:$VERSION"
             ;;
-        student)
-            build_image "Student" "$PROJECT_ROOT/student" "ai-education-student:$VERSION"
+        admin-web)
+            build_image "Admin Web" "$PROJECT_ROOT/apps/admin-web" "ai-education-admin-web:$VERSION"
+            ;;
+        student-web)
+            build_image "Student Web" "$PROJECT_ROOT/apps/student-web" "ai-education-student-web:$VERSION"
             ;;
         *)
             log_error "未知的服务: $service"
-            log_info "可用的服务: server, admin, student"
+            log_info "可用的服务: server-api, server-task, admin-web, student-web"
             exit 1
             ;;
     esac
@@ -151,9 +157,10 @@ main() {
         echo "  --help, -h        显示帮助信息"
         echo ""
         echo "服务名:"
-        echo "  server            只构建后端服务"
-        echo "  admin             只构建管理后台"
-        echo "  student           只构建学生端"
+        echo "  server-api        只构建后端API服务"
+        echo "  server-task       只构建任务服务"
+        echo "  admin-web         只构建管理后台"
+        echo "  student-web       只构建学生端"
         echo "  (无参数)          构建所有服务"
         echo ""
         echo "环境变量:"
@@ -162,10 +169,10 @@ main() {
         echo ""
         echo "示例:"
         echo "  $0                          # 构建所有服务"
-        echo "  $0 server                   # 只构建后端服务"
+        echo "  $0 server-api               # 只构建后端API服务"
         echo "  $0 --compose                # 使用 docker-compose 构建所有服务"
         echo "  VERSION=v1.0.0 $0           # 指定版本构建"
-        echo "  NO_CACHE=true $0 server     # 禁用缓存构建后端"
+        echo "  NO_CACHE=true $0 server-api # 禁用缓存构建后端"
         exit 0
     else
         # 构建指定的服务

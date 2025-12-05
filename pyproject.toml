@@ -1,5 +1,6 @@
 [tool.uv.workspace]
 members = [
-    "apps/server"
+    "apps/server-api",
+    "apps/server-task"
 ]
 exclude = []

@@ -6,6 +6,8 @@
 
 后端服务是基于 FastAPI 的 Python 后端应用，为管理端、学生端和移动端提供 API 服务。
 
+**注意**: 后端服务目录已重命名为 `apps/server-api/`。
+
 ## 技术栈
 
 - **框架**: FastAPI 0.115+
@@ -21,7 +23,7 @@
 
 ## 工作目录
 
-- `apps/server/` - 后端源代码
+- `apps/server-api/` - 后端源代码
   - `admin/` - 管理端 API
     - `routes/` - 路由层（API 端点）
     - `services/` - 业务逻辑层
@@ -42,7 +44,7 @@
 ## 项目结构
 
 ```
-apps/server/
+apps/server-api/
 ├── admin/                  # 管理端 API
 │   ├── routes/            # 路由层（API 端点）
 │   ├── services/          # 业务逻辑层
@@ -75,7 +77,7 @@ apps/server/
 
 ### 路由定义
 ```python
-# apps/server/admin/routes/some.py
+# apps/server-api/admin/routes/some.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
@@ -94,7 +96,7 @@ async def create_something(
 
 ### 服务层
 ```python
-# apps/server/admin/services/some.py
+# apps/server-api/admin/services/some.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.database import SomeModel
@@ -111,7 +113,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 
 ### 数据模型
 ```python
-# apps/server/core/database.py
+# apps/server-api/core/database.py
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String
 from core.database import BaseModel
@@ -126,7 +128,7 @@ class SomeModel(BaseModel):
 
 ### Pydantic Schema
 ```python
-# apps/server/admin/schema.py
+# apps/server-api/admin/schema.py
 from pydantic import BaseModel
 
 class SomeSchema(BaseModel):
@@ -221,8 +223,8 @@ await db.commit()
 
 ## 相关资源
 
-- 管理端 API: `apps/server/admin/`
-- 学生端 API: `apps/server/student/`
+- 管理端 API: `apps/server-api/admin/`
+- 学生端 API: `apps/server-api/student/`
 - FastAPI 文档: https://fastapi.tiangolo.com/
 - SQLAlchemy 文档: https://docs.sqlalchemy.org/
 

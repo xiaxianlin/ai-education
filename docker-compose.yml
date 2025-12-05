@@ -48,11 +48,11 @@ services:
       retries: 5
 
   # 后端服务
-  server:
+  server-api:
     build:
-      context: ./apps/server
+      context: ./apps/server-api
       dockerfile: Dockerfile
-    container_name: ai-education-server
+    container_name: ai-education-server-api
     restart: always
     ports:
       - "${SERVER_PORT:-7890}:7890"
@@ -103,27 +103,40 @@ services:
       retries: 3
       start_period: 40s
 
-  # 管理后台前端
-  admin:
+  # 任务服务
+  server-task:
     build:
-      context: ./apps/admin
+      context: ./apps/server-task
       dockerfile: Dockerfile
-    container_name: ai-education-admin
+    container_name: ai-education-server-task
     restart: always
     depends_on:
-      - server
+      - server-api
+      - redis
+    networks:
+      - ai-education-network
+
+  # 管理后台前端
+  admin-web:
+    build:
+      context: ./apps/admin-web
+      dockerfile: Dockerfile
+    container_name: ai-education-admin-web
+    restart: always
+    depends_on:
+      - server-api
     networks:
       - ai-education-network
 
   # 学生端前端
-  student:
+  student-web:
     build:
-      context: ./apps/student
+      context: ./apps/student-web
       dockerfile: Dockerfile
-    container_name: ai-education-student
+    container_name: ai-education-student-web
     restart: always
     depends_on:
-      - server
+      - server-api
     networks:
       - ai-education-network
 
@@ -140,9 +153,9 @@ services:
       - ./infra/nginx/ssl:/etc/nginx/ssl
       - nginx_logs:/var/log/nginx
     depends_on:
-      - server
-      - admin
-      - student
+      - server-api
+      - admin-web
+      - student-web
     networks:
       - ai-education-network
     healthcheck:

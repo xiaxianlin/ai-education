@@ -8,14 +8,13 @@
 
 ```
 ├── apps/              # 应用目录
-│   ├── admin/         # 管理后台前端 (React + UmiJS)
-│   ├── student/       # 学生端前端 (React + Rsbuild)
-│   ├── server/        # 后端服务 (Python FastAPI)
-│   └── mobile/        # 移动应用 (Flutter)
+│   ├── admin-web/     # 管理后台前端 (React + UmiJS)
+│   ├── student-web/   # 学生端前端 (React + Rsbuild)
+│   ├── server-api/    # 后端API服务 (Python FastAPI)
+│   ├── server-task/   # 任务服务 (Python FastAPI)
+│   └── student-app/   # 移动应用 (Flutter)
 ├── packages/          # 共享包目录
-│   ├── shared-types/  # 共享 TypeScript 类型定义
-│   ├── shared-utils/  # 共享工具函数
-│   └── shared-api-client/ # 共享 API 客户端
+│   └── shared-student/ # 共享包（类型、API客户端、工具函数）
 ├── infra/     # 基础设施配置
 │   ├── mysql/         # 数据库初始化脚本
 │   └── nginx/         # Nginx 配置
@@ -31,7 +30,7 @@
 pnpm install
 
 # 安装 Python 依赖
-cd apps/server && uv sync
+cd apps/server-api && uv sync
 ```
 
 ### 开发
@@ -59,10 +58,11 @@ pnpm build:student
 
 ## 目录说明
 
--   apps/server: 服务端
--   apps/student: 学生系统
--   apps/admin: 后台管理
--   apps/mobile: 移动应用
+-   apps/server-api: 后端API服务
+-   apps/server-task: 任务服务
+-   apps/student-web: 学生端前端
+-   apps/admin-web: 管理后台前端
+-   apps/student-app: 移动应用
 -   docs: 文档目录
 
 详细迁移说明请查看 [docs/MONOREPO_MIGRATION.md](docs/MONOREPO_MIGRATION.md)
