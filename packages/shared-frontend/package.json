@@ -1,0 +1,41 @@
+{
+  "name": "@ai-education/shared-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./admin": {
+      "types": "./dist/api-client/admin/index.d.ts",
+      "default": "./dist/api-client/admin/index.js"
+    },
+    "./student": {
+      "types": "./dist/api-client/student/index.d.ts",
+      "default": "./dist/api-client/student/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "watch": "tsc --watch",
+    "generate:api-types": "openapi-typescript http://localhost:7890/openapi.json -o src/types/api/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.13.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "openapi-typescript": "^6.7.0"
+  }
+}
+

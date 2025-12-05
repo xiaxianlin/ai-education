@@ -14,7 +14,7 @@
 │   ├── server-task/   # 任务服务 (Python FastAPI)
 │   └── student-app/   # 移动应用 (Flutter)
 ├── packages/          # 共享包目录
-│   └── shared-student/ # 共享包（类型、API客户端、工具函数）
+│   └── shared-frontend/ # 共享包（类型、API客户端、工具函数）
 ├── infra/     # 基础设施配置
 │   ├── mysql/         # 数据库初始化脚本
 │   └── nginx/         # Nginx 配置

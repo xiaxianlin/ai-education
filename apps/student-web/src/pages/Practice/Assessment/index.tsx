@@ -2,7 +2,7 @@ import { useProfileStore } from "@/stores/profile-store";
 import { SubjectTabs } from "@/components/business/SubjectTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRequest } from "ahooks";
-import { studentApi } from "@ai-education/shared-student";
+import { studentApi } from "@ai-education/shared-frontend";
 import { PracticeCard } from "./views/PracticeCard";
 
 export default function AssessmentPractice() {

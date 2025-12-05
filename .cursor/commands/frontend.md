@@ -15,27 +15,29 @@
 
 ## 技术栈
 
-### 管理端 (admin/)
-- **框架**: React 18 + UmiJS 4
+### 管理端 (admin-web)
+- **框架**: React 18
+- **构建工具**: Rsbuild
 - **UI 库**: Ant Design 5 + Ant Design Pro Components
 - **状态管理**: ahooks
-- **HTTP**: umi-request
+- **HTTP 客户端**: Axios
 - **样式**: Less + Tailwind CSS
-- **构建**: Webpack 5
+- **语言**: TypeScript 5
 
-### 学生端 (student/)
+### 学生端 Web (student-web)
 - **框架**: React 18
-- **构建**: Rsbuild
-- **UI 组件**: shadcn/ui (Radix UI)
+- **构建工具**: Rsbuild
+- **UI 组件**: shadcn/ui (基于 Radix UI)
 - **状态管理**: Zustand
 - **路由**: react-router-dom
-- **HTTP**: Axios
+- **HTTP 客户端**: Axios
 - **样式**: Tailwind CSS
+- **语言**: TypeScript 5
 
 ## 工作目录
 
-- `admin/src/` - 管理端源代码
-- `student/src/` - 学生端源代码
+- `apps/admin-web/src/` - 管理端源代码
+- `apps/student-web/src/` - 学生端 Web 源代码
 
 ## 开发原则
 

@@ -1,4 +1,4 @@
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 
 export interface InitialState {
   manager?: any;

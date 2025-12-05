@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Form, Input, message } from 'antd';
 import { validPassword } from '@/utils/validation';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { useRequest } from 'ahooks';
 import { useInitialState } from '@/hooks/useInitialState';
 import { clearState } from '@/lib/initialState';

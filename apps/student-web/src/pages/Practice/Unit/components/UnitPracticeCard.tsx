@@ -4,7 +4,7 @@
  */
 import { memo } from "react";
 import { useRequest } from "ahooks";
-import { studentApi } from "@ai-education/shared-student";
+import { studentApi } from "@ai-education/shared-frontend";
 import { WaitCard } from "./WaitCard";
 import { GeneratingCard } from "./GeneratingCard";
 import { InProgressCard } from "./InProgressCard";

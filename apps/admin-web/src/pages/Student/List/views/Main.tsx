@@ -1,7 +1,7 @@
 import { PageContainer, ProColumns, ProFormText } from '@ant-design/pro-components';
 import { useStudentListModel } from '../models/page';
 import { Button } from 'antd';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CommonTable, FormModal } from '@/components/business';

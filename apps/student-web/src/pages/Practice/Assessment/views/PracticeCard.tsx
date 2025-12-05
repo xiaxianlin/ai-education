@@ -1,4 +1,4 @@
-import { studentApi } from "@ai-education/shared-student";
+import { studentApi } from "@ai-education/shared-frontend";
 import { useRequest } from "ahooks";
 import { GeneratingCard } from "../components/GeneratingCard";
 import { CompleteCard } from "../components/CompleteCard";

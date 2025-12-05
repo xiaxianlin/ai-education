@@ -3,7 +3,7 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {

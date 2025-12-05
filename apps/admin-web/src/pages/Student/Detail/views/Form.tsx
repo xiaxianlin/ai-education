@@ -1,6 +1,6 @@
 import { useRequest } from 'ahooks';
 import { ModalForm, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { useStudentDetailModel } from '../models/page';
 import { message } from 'antd';
 import { GRADES } from '@/constants/course';

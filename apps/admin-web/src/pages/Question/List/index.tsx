@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
 import { useConfigs, createTimeColumn, useDelete } from '@/hooks';

@@ -2,49 +2,68 @@
 
 ## 项目概述
 
-这是一个全栈教育平台项目，包含：
-- **管理端 (admin/)**: React + UmiJS + Ant Design
-- **学生端 (student/)**: React + Rsbuild + shadcn/ui + Tailwind CSS
-- **移动端 (mobile/)**: Flutter 3.x + Riverpod + go_router
-- **后端 (server/)**: FastAPI + Python + SQLAlchemy + MySQL
+这是一个全栈教育平台项目，采用 Monorepo 架构，包含 5 个主要应用：
+
+### 项目结构
+
+1. **admin-web** - 管理端前端应用
+   - React 18 + Rsbuild + Ant Design 5
+   - 位置: `apps/admin-web/`
+
+2. **student-web** - 学生端 Web 应用
+   - React 18 + Rsbuild + shadcn/ui + Tailwind CSS
+   - 位置: `apps/student-web/`
+
+3. **student-app** - 学生端移动应用
+   - React Native 0.73 + TypeScript + NativeWind
+   - 位置: `apps/student-app/`
+
+4. **server-api** - 后端 API 服务
+   - FastAPI + Python 3.12 + SQLAlchemy + MySQL
+   - 位置: `apps/server-api/`
+
+5. **server-task** - 后端任务处理服务
+   - FastAPI + Python 3.12 + Redis Queue
+   - 位置: `apps/server-task/`
 
 ## 技术栈详情
 
 ### 前端技术栈
 
-#### 管理端 (admin/)
-- **框架**: React 18 + UmiJS 4
+#### 管理端 (admin-web)
+- **框架**: React 18
+- **构建工具**: Rsbuild
 - **UI 库**: Ant Design 5 + Ant Design Pro Components
 - **状态管理**: ahooks
-- **HTTP 客户端**: umi-request (基于 axios)
-- **构建工具**: Webpack 5 (通过 UmiJS)
-- **语言**: TypeScript 5
+- **HTTP 客户端**: Axios
 - **样式**: Less + Tailwind CSS
+- **语言**: TypeScript 5
 
-#### 学生端 (student/)
+#### 学生端 Web (student-web)
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 组件**: shadcn/ui (基于 Radix UI)
-- **样式**: Tailwind CSS
 - **状态管理**: Zustand
 - **路由**: react-router-dom
 - **HTTP 客户端**: Axios
+- **样式**: Tailwind CSS
 - **语言**: TypeScript 5
 
-### 移动端技术栈 (mobile/)
+### 移动端技术栈 (student-app)
 
-- **框架**: Flutter 3.x, Dart 3.x
-- **状态管理**: Riverpod 2.x, flutter_hooks
-- **路由**: go_router
-- **网络请求**: dio + 拦截器
-- **本地存储**: shared_preferences
-- **UI 组件**: Material 3
-- **代码生成**: json_serializable, freezed, build_runner
-- **音频录制**: record, permission_handler
-- **图片加载**: cached_network_image
+- **框架**: React Native 0.73
+- **语言**: TypeScript 5
+- **状态管理**: Zustand
+- **路由**: React Navigation (Stack + Bottom Tabs)
+- **网络请求**: Axios + React Query (@tanstack/react-query)
+- **样式**: NativeWind (Tailwind CSS for React Native)
+- **本地存储**: AsyncStorage, MMKV
+- **UI 组件**: Lucide React Native + 自定义组件
+- **表单**: React Hook Form + Zod
 
 ### 后端技术栈
 
+#### API 服务 (server-api)
 - **框架**: FastAPI 0.115+
 - **语言**: Python 3.12
 - **数据库**: MySQL (通过 SQLAlchemy 2.0 异步 ORM)
@@ -55,56 +74,76 @@
 - **日志**: Loguru
 - **异步运行时**: Uvicorn
 
+#### 任务服务 (server-task)
+- **框架**: FastAPI 0.115+
+- **语言**: Python 3.12
+- **任务队列**: Redis Queue (RQ)
+- **日志**: Loguru
+- **异步运行时**: Uvicorn
+
 ## 角色定义
 
 ### 前端开发者 (Frontend Developer)
-专注于客户端应用开发，包括：
-- React 组件开发
-- 状态管理和数据流
-- 路由和导航
-- API 集成
+专注于 Web 客户端应用开发，包括：
+- React 组件开发和架构设计
+- 状态管理和数据流设计
+- 路由和导航实现
+- API 集成和数据获取
 - 用户体验优化
-- 性能优化
+- 性能优化（代码分割、懒加载、缓存）
 - TypeScript 类型安全
+- 响应式设计实现
 
-**工作目录**: `apps/admin/src/`, `apps/student/src/`
+**负责项目**: `apps/admin-web/`, `apps/student-web/`
+
+**工作目录**: `apps/admin-web/src/`, `apps/student-web/src/`
 
 ### 后端开发者 (Backend Developer)
 专注于服务端应用开发，包括：
-- API 设计和实现
-- 数据模型设计
+- API 设计和 RESTful 规范实现
+- 数据模型设计和数据库操作
 - 业务逻辑实现
-- 数据库操作
-- 认证和授权
-- 错误处理
-- 性能优化
+- 认证和授权机制
+- 数据验证和错误处理
+- 性能优化和缓存策略
+- 日志记录和监控
+- 异步编程和并发处理
+- 任务队列和后台任务处理
 
-**工作目录**: `apps/server/`
+**负责项目**: `apps/server-api/`, `apps/server-task/`
 
-### UI 设计师 (UI Designer)
-专注于用户界面和体验设计，包括：
-- 视觉设计系统
-- 交互设计
-- 响应式布局
-- 组件样式
-- 用户体验优化
-- 可访问性
+**工作目录**: `apps/server-api/`, `apps/server-task/`
 
-**工作目录**: 所有前端样式和组件文件
-
-### Flutter 开发者 (Flutter Developer)
+### 移动端开发者 (Mobile Developer)
 专注于移动端应用开发，包括：
-- Flutter 应用架构设计
-- Widget 树设计和组件开发
+- React Native 应用架构设计
+- 组件开发和 UI 实现
 - 状态管理和数据流设计
 - 路由和导航实现
 - API 集成和数据获取
 - 平台特定功能实现（iOS/Android）
 - 性能优化和内存管理
 - 用户体验优化（动画、交互、响应式）
-- 代码审查和问题修复
+- 原生模块集成
 
-**工作目录**: `apps/mobile/`
+**负责项目**: `apps/student-app/`
+
+**工作目录**: `apps/student-app/src/`
+
+### 架构师 (Architect)
+专注于系统架构和技术决策，包括：
+- 整体技术架构设计
+- 系统模块划分和边界定义
+- 技术选型和评估
+- 性能架构设计
+- 安全架构设计
+- 可扩展性和可维护性设计
+- 技术债务管理
+- 代码审查和最佳实践指导
+
+**负责范围**: 整个 Monorepo 项目
+
+**工作目录**: 项目根目录及各应用目录
 
 ### 全栈开发者 (Fullstack Developer)
 专注于端到端的完整功能开发，包括：
@@ -116,7 +155,24 @@
 - 端到端性能优化
 - 前后端安全性设计
 
-**工作目录**: `apps/admin/src/`, `apps/student/src/`, `apps/mobile/`, `apps/server/`
+**负责项目**: 所有项目
+
+**工作目录**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`, `apps/server-api/`, `apps/server-task/`
+
+### UI 设计师 (UI Designer)
+专注于用户界面和体验设计，包括：
+- 视觉设计系统设计
+- 交互设计和用户体验优化
+- 响应式布局设计
+- 组件样式实现
+- 动画和过渡效果
+- 可访问性 (a11y) 设计
+- 设计一致性维护
+- 用户流程设计
+
+**负责项目**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`
+
+**工作目录**: 所有前端样式和组件文件
 
 ## 角色切换方法
 
@@ -124,36 +180,40 @@
 
 #### 通用角色命令
 在对话中使用以下命令切换通用开发角色：
-- `@frontend` - 前端开发者（管理端 + 学生端）
-- `@backend` - 后端开发者
-- `@flutter` - Flutter 开发者（移动端）
-- `@ui-designer` - UI 设计师
+- `@frontend` - 前端开发者（管理端 + 学生端 Web）
+- `@backend` - 后端开发者（API 服务 + 任务服务）
+- `@app` - 移动端开发者（React Native）
+- `@architect` - 架构师
 - `@fullstack` - 全栈开发者
+- `@ui-designer` - UI 设计师
 
 #### 应用专用命令
 在对话中使用以下命令专注于特定应用开发：
-- `@admin` - 管理端开发（React + UmiJS + Ant Design）
-- `@student` - 学生端开发（React + Rsbuild + shadcn/ui）
-- `@server` - 后端服务开发（FastAPI + Python）
-- `@mobile` - 移动端开发（Flutter + Riverpod）
+- `@admin-web` - 管理端开发（React + Rsbuild + Ant Design）
+- `@student-web` - 学生端 Web 开发（React + Rsbuild + shadcn/ui）
+- `@student-app` - 学生端移动应用开发（React Native）
+- `@server-api` - 后端 API 服务开发（FastAPI + Python）
+- `@server-task` - 后端任务服务开发（FastAPI + Python）
 
 ### 方法二：明确声明
 在对话开始时明确说明：
 ```
 我现在是前端开发者，请帮我...
 我现在是后端开发者，请帮我...
-我现在是 Flutter 开发者，请帮我...
-我现在是 UI 设计师，请帮我...
+我现在是移动端开发者，请帮我...
+我现在是架构师，请帮我...
 我现在是全栈开发者，请帮我实现一个完整功能...
+我现在是 UI 设计师，请帮我...
 ```
 
 ### 方法三：通过文件上下文
 打开相关文件后，AI 会自动识别上下文：
-- 打开 `apps/student/src/` 或 `apps/admin/src/` 下的文件 → 前端开发模式
-- 打开 `apps/mobile/` 下的文件 → Flutter 开发模式
-- 打开 `apps/server/` 下的文件 → 后端开发模式
+- 打开 `apps/admin-web/src/` 或 `apps/student-web/src/` 下的文件 → 前端开发模式
+- 打开 `apps/student-app/src/` 下的文件 → 移动端开发模式
+- 打开 `apps/server-api/` 或 `apps/server-task/` 下的文件 → 后端开发模式
 - 打开样式文件 → UI 设计模式
 - 同时打开前后端文件 → 全栈开发模式
+- 打开项目根目录配置文件 → 架构师模式
 
 ## 开发工作流
 
@@ -161,24 +221,30 @@
 
 #### 方式一：分角色协作（适合团队开发）
 
-1. **需求分析** (UI 设计师)
+1. **需求分析** (UI 设计师 + 架构师)
    - 分析用户需求
    - 设计界面布局
    - 定义交互流程
+   - 确定技术方案
 
-2. **后端开发** (后端开发者)
+2. **架构设计** (架构师)
+   - 设计系统架构
+   - 定义模块边界
+   - 确定技术选型
+
+3. **后端开发** (后端开发者)
    - 设计 API 接口
    - 实现数据模型
    - 编写业务逻辑
    - 添加数据验证
 
-3. **前端开发** (前端开发者)
+4. **前端/移动端开发** (前端/移动端开发者)
    - 实现 UI 组件
    - 集成后端 API
    - 实现状态管理
    - 优化用户体验
 
-4. **测试和优化** (全角色协作)
+5. **测试和优化** (全角色协作)
    - 功能测试
    - 性能优化
    - 用户体验优化
@@ -200,7 +266,7 @@
    - 编写业务逻辑
    - 数据验证和错误处理
 
-4. **前端实现** (全栈开发者)
+4. **前端/移动端实现** (全栈开发者)
    - 实现 UI 组件
    - 集成后端 API
    - 状态管理和用户体验
@@ -220,6 +286,13 @@
 - 组件文件使用 PascalCase
 - 工具函数使用 camelCase
 
+### 移动端规范
+- 使用 TypeScript 严格模式
+- 组件使用函数式组件 + Hooks
+- 遵循 React Native 最佳实践
+- 使用 NativeWind 进行样式管理
+- 优化性能和内存使用
+
 ### 后端规范
 - 遵循 PEP 8 Python 代码规范
 - 使用类型提示 (Type Hints)
@@ -227,15 +300,6 @@
 - 路由使用 RESTful 规范
 - 使用 Pydantic 进行数据验证
 - 错误处理使用 HTTPException
-
-### Flutter 规范
-- 遵循 Dart 官方代码规范
-- 使用 Clean Architecture 分层架构
-- 功能模块化组织代码（features/）
-- 使用 Riverpod 管理状态
-- 使用 const 构造函数优化性能
-- 及时释放资源，避免内存泄漏
-- 遵循 Material 3 设计规范
 
 ### UI 设计规范
 - 使用 Tailwind CSS 工具类
@@ -248,32 +312,35 @@
 
 ### 前端开发
 ```bash
-# 学生端
-cd apps/student && pnpm dev        # 启动开发服务器 (端口 7030)
-cd apps/student && pnpm build      # 构建生产版本
-cd apps/student && pnpm type-check # 类型检查
-
 # 管理端
-cd apps/admin && pnpm start        # 启动开发服务器
-cd apps/admin && pnpm build        # 构建生产版本
-cd apps/admin && pnpm tsc         # 类型检查
+cd apps/admin-web && pnpm dev        # 启动开发服务器
+cd apps/admin-web && pnpm build      # 构建生产版本
+cd apps/admin-web && pnpm tsc        # 类型检查
+
+# 学生端 Web
+cd apps/student-web && pnpm dev      # 启动开发服务器
+cd apps/student-web && pnpm build    # 构建生产版本
+cd apps/student-web && pnpm type-check # 类型检查
 ```
 
 ### 移动端开发
 ```bash
-cd apps/mobile
-flutter pub get              # 安装依赖
-flutter pub run build_runner build --delete-conflicting-outputs  # 生成代码
-flutter run                   # 运行应用
-flutter analyze              # 代码分析
-flutter format .             # 格式化代码
+cd apps/student-app
+pnpm start                    # 启动 Metro bundler
+pnpm android                  # 运行 Android 应用
+pnpm ios                      # 运行 iOS 应用
+pnpm type-check              # 类型检查
 ```
 
 ### 后端开发
 ```bash
-cd apps/server
+# API 服务
+cd apps/server-api
 uvicorn main:app --reload    # 启动开发服务器
-pytest                        # 运行测试
+
+# 任务服务
+cd apps/server-task
+uvicorn main:app --reload    # 启动开发服务器
 ```
 
 ## 项目结构
@@ -281,41 +348,50 @@ pytest                        # 运行测试
 ```
 ai-eduaction/
 ├── apps/
-│   ├── admin/              # 管理端前端
+│   ├── admin-web/           # 管理端前端
 │   │   └── src/
-│   │       ├── pages/      # 页面组件
-│   │       ├── components/ # 业务组件
-│   │       ├── services/   # API 服务
-│   │       └── hooks/      # 自定义 Hooks
-│   ├── student/            # 学生端前端
+│   │       ├── pages/       # 页面组件
+│   │       ├── components/  # 业务组件
+│   │       ├── hooks/       # 自定义 Hooks
+│   │       └── utils/       # 工具函数
+│   ├── student-web/         # 学生端 Web
 │   │   └── src/
-│   │       ├── pages/      # 页面组件
+│   │       ├── pages/       # 页面组件
 │   │       ├── components/ # UI 组件
-│   │       ├── stores/     # Zustand 状态
-│   │       └── services/   # API 服务
-│   ├── mobile/             # 移动端应用
-│   │   └── lib/
-│   │       ├── core/       # 核心功能（API、模型、工具）
-│   │       ├── features/   # 功能模块
-│   │       ├── shared/     # 共享组件
-│   │       └── app/        # 应用配置
-│   └── server/             # 后端服务
-│       ├── admin/          # 管理端 API
-│       ├── student/        # 学生端 API
-│       ├── core/           # 核心模块
-│       └── shared/         # 共享模块
+│   │       ├── stores/      # Zustand 状态
+│   │       └── hooks/       # 自定义 Hooks
+│   ├── student-app/         # 学生端移动应用
+│   │   └── src/
+│   │       ├── screens/     # 页面组件
+│   │       ├── components/  # UI 组件
+│   │       ├── navigation/  # 路由配置
+│   │       ├── stores/      # Zustand 状态
+│   │       └── hooks/       # 自定义 Hooks
+│   ├── server-api/          # 后端 API 服务
+│   │   ├── admin/           # 管理端 API
+│   │   ├── student/         # 学生端 API
+│   │   ├── core/            # 核心模块
+│   │   └── shared/          # 共享模块
+│   └── server-task/         # 后端任务服务
+│       ├── routes/          # 路由
+│       ├── services/        # 业务逻辑
+│       └── workers/         # 任务工作器
+├── packages/
+│   └── shared-frontend/     # 前端共享包
 └── .cursor/
-    ├── roles.md            # 角色切换指南
-    └── commands/           # 命令文件
-        ├── admin.md        # 管理端开发命令
-        ├── student.md      # 学生端开发命令
-        ├── server.md       # 后端开发命令
-        ├── mobile.md       # 移动端开发命令
-        ├── frontend.md     # 前端开发命令
-        ├── backend.md      # 后端开发命令
-        ├── flutter.md      # Flutter 开发命令
-        ├── fullstack.md    # 全栈开发命令
-        └── ui-designer.md  # UI 设计命令
+    ├── roles.md             # 角色切换指南
+    └── commands/             # 命令文件
+        ├── frontend.md       # 前端开发命令
+        ├── backend.md        # 后端开发命令
+        ├── app.md            # 移动端开发命令
+        ├── architect.md      # 架构师命令
+        ├── fullstack.md      # 全栈开发命令
+        ├── ui-designer.md    # UI 设计命令
+        ├── admin-web.md      # 管理端开发命令
+        ├── student-web.md    # 学生端 Web 开发命令
+        ├── student-app.md    # 学生端移动应用开发命令
+        ├── server-api.md     # API 服务开发命令
+        └── server-task.md    # 任务服务开发命令
 ```
 
 ## 最佳实践
@@ -327,6 +403,6 @@ ai-eduaction/
 5. **分阶段完成**: 先设计再实现，先后端再前端/移动端
 6. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端/移动端
 7. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
-8. **跨平台一致性**: Flutter 移动端应参考 Web 端（apps/student/）的实现逻辑，保持功能一致性
-9. **应用专用命令**: 使用 `@admin`, `@student`, `@server`, `@mobile` 命令可以更精确地专注于特定应用的开发
-
+8. **跨平台一致性**: 移动端应参考 Web 端（student-web）的实现逻辑，保持功能一致性
+9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server-api`, `@server-task` 命令可以更精确地专注于特定应用的开发
+10. **架构决策**: 重大技术决策应由架构师参与，确保系统整体一致性

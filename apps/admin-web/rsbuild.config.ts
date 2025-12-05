@@ -38,7 +38,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@ai-education/shared-student': path.resolve(__dirname, '../../packages/shared-student/dist'),
+      '@ai-education/shared-frontend': path.resolve(__dirname, '../../packages/shared-frontend/dist'),
     },
   },
   output: {

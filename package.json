@@ -24,7 +24,7 @@
     "install:all": "pnpm install && cd apps/server-api && uv sync",
     
     "generate:types": "tsx scripts/generate-types.ts",
-    "generate:types:build": "cd packages/shared-student && pnpm build",
+    "generate:types:build": "cd packages/shared-frontend && pnpm build",
     
     "docker:build": "./scripts/build.sh",
     "docker:up": "./scripts/deploy.sh start",

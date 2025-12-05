@@ -113,7 +113,7 @@ pnpm docker:down
 - **Student**: Built with Rsbuild (React build tool), uses modern React patterns
 
 ### Shared Code
-- Types, API client, and utilities are shared between frontend applications via `@ai-education/shared-student`
+- Types, API client, and utilities are shared between frontend applications via `@ai-education/shared-frontend`
 - Use `workspace:*` protocol for internal dependencies
 
 ### Backend

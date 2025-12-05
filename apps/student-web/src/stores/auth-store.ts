@@ -1,4 +1,4 @@
-import { studentApi } from "@ai-education/shared-student";
+import { studentApi } from "@ai-education/shared-frontend";
 import { create } from "zustand";
 
 interface AuthStoreState {

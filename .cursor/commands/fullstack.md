@@ -16,14 +16,16 @@
 ## 技术栈
 
 ### 前端
-- **管理端**: React 18 + UmiJS 4 + Ant Design 5
-- **学生端**: React 18 + Rsbuild + shadcn/ui + Tailwind CSS
+- **管理端**: React 18 + Rsbuild + Ant Design 5
+- **学生端 Web**: React 18 + Rsbuild + shadcn/ui + Tailwind CSS
+- **学生端移动**: React Native 0.73 + NativeWind + React Navigation
 - **状态管理**: Zustand, ahooks
-- **路由**: react-router-dom
-- **HTTP**: Axios, umi-request
+- **路由**: react-router-dom, React Navigation
+- **HTTP**: Axios
 
 ### 后端
-- **框架**: FastAPI 0.115+
+- **API 服务**: FastAPI 0.115+ + SQLAlchemy + MySQL
+- **任务服务**: FastAPI 0.115+ + Redis Queue
 - **语言**: Python 3.12
 - **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
 - **缓存**: Redis
@@ -32,9 +34,11 @@
 
 ## 工作目录
 
-- `admin/src/` - 管理端前端
-- `student/src/` - 学生端前端
-- `server/` - 后端服务
+- `apps/admin-web/src/` - 管理端前端
+- `apps/student-web/src/` - 学生端 Web 前端
+- `apps/student-app/src/` - 学生端移动应用
+- `apps/server-api/` - API 服务
+- `apps/server-task/` - 任务服务
 
 ## 开发原则
 
@@ -73,7 +77,7 @@ interface SomeType {
 
 ### 3. 后端 API 实现
 ```python
-# server/admin/routes/some.py
+# apps/server-api/admin/routes/some.py
 @router.post("/create")
 async def create_something(
     params: CreateSchema,
@@ -81,7 +85,7 @@ async def create_something(
 ):
     return await some_service.create(db, params)
 
-# server/admin/services/some.py
+# apps/server-api/admin/services/some.py
 async def create(db: AsyncSession, params: CreateSchema):
     instance = SomeModel(**params.model_dump())
     db.add(instance)
@@ -91,7 +95,7 @@ async def create(db: AsyncSession, params: CreateSchema):
 
 ### 4. 前端服务层
 ```typescript
-// student/src/services/some.ts
+// apps/student-web/src/services/some.ts
 import { api } from '@/lib/api';
 
 export const someService = {
@@ -104,7 +108,7 @@ export const someService = {
 
 ### 5. 前端状态管理
 ```typescript
-// student/src/stores/some-store.ts
+// apps/student-web/src/stores/some-store.ts
 import { create } from 'zustand';
 import { someService } from '@/services/some';
 
@@ -115,7 +119,7 @@ interface SomeStore {
   createItem: (data: CreateData) => Promise<void>;
 }
 
-export const useSomeStore = create<SomeStore>((set) => ({
+export const useSomeStore = create<SomeStore>((set, get) => ({
   items: [],
   loading: false,
   fetchItems: async () => {
@@ -132,7 +136,8 @@ export const useSomeStore = create<SomeStore>((set) => ({
 
 ### 6. 前端 UI 实现
 ```tsx
-// student/src/pages/Some/index.tsx
+// apps/student-web/src/pages/Some/index.tsx
+import { useEffect } from 'react';
 import { useSomeStore } from '@/stores/some-store';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -231,7 +236,7 @@ try {
 
 **后端**:
 ```python
-# routes
+# apps/server-api/student/routes/some.py
 @router.get("/list")
 async def list_items(
     page: int = 1,
@@ -240,7 +245,7 @@ async def list_items(
 ):
     return await some_service.list(db, page, size)
 
-# services
+# apps/server-api/student/services/some.py
 async def list(db: AsyncSession, page: int, size: int):
     offset = (page - 1) * size
     total = await db.scalar(select(func.count()).select_from(SomeModel))
@@ -252,6 +257,7 @@ async def list(db: AsyncSession, page: int, size: int):
 
 **前端**:
 ```tsx
+// apps/student-web/src/pages/Some/index.tsx
 const { data, loading, pagination } = useTableRequest({
   url: '/api/student/some/list',
   method: 'GET',
@@ -264,19 +270,22 @@ const { data, loading, pagination } = useTableRequest({
 
 **后端**:
 ```python
-# schema
+# apps/server-api/student/schema.py
 class CreateSchema(BaseModel):
     name: str
     description: Optional[str] = None
 
-# routes
+# apps/server-api/student/routes/some.py
 @router.post("/create")
 async def create(params: CreateSchema, db: AsyncSession = Database):
     return await some_service.create(db, params)
 ```
 
-**前端**:
+**前端** (管理端使用 Ant Design):
 ```tsx
+// apps/admin-web/src/pages/Some/index.tsx
+import { Form, Input, Button, message } from 'antd';
+
 const [form] = Form.useForm();
 
 const handleSubmit = async (values: CreateData) => {
@@ -295,6 +304,31 @@ const handleSubmit = async (values: CreateData) => {
   </Form.Item>
   <Button htmlType="submit">提交</Button>
 </Form>
+```
+
+**前端** (学生端使用 shadcn/ui):
+```tsx
+// apps/student-web/src/pages/Some/index.tsx
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+
+const { register, handleSubmit } = useForm();
+
+const onSubmit = async (values: CreateData) => {
+  try {
+    await someService.create(values);
+    toast.success('创建成功');
+  } catch (error) {
+    toast.error('创建失败');
+  }
+};
+
+<form onSubmit={handleSubmit(onSubmit)}>
+  <Input {...register('name')} placeholder="名称" />
+  <Button type="submit">提交</Button>
+</form>
 ```
 
 ## 注意事项

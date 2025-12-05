@@ -6,7 +6,7 @@ import {
   ProColumns,
   ProSkeleton,
 } from '@ant-design/pro-components';
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';

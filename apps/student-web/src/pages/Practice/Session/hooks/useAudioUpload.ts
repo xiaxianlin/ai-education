@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { studentApi } from "@ai-education/shared-student";
+import { studentApi } from "@ai-education/shared-frontend";
 import { useSessionStore } from "../stores/session-store";
 import { useCurrentQuestion } from "../stores/session-store";
 

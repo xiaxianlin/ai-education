@@ -1,4 +1,4 @@
-import { adminApi } from '@ai-education/shared-student';
+import { adminApi } from '@ai-education/shared-frontend';
 import { ProForm } from '@ant-design/pro-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRequest } from 'ahooks';

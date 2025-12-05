@@ -27,16 +27,21 @@
 
 ## 工作目录
 
-- `server/` - 后端源代码
+- `apps/server-api/` - API 服务源代码
   - `admin/` - 管理端 API
   - `student/` - 学生端 API
   - `core/` - 核心模块（数据库、配置、中间件）
   - `shared/` - 共享模块（工具、服务）
+- `apps/server-task/` - 任务服务源代码
+  - `routes/` - 路由层
+  - `services/` - 业务逻辑层
+  - `workers/` - 任务工作器
 
 ## 项目结构
 
+### API 服务 (server-api)
 ```
-server/
+apps/server-api/
 ├── admin/
 │   ├── routes/        # 路由层（API 端点）
 │   ├── services/      # 业务逻辑层
@@ -55,6 +60,15 @@ server/
     └── utils/         # 工具函数
 ```
 
+### 任务服务 (server-task)
+```
+apps/server-task/
+├── routes/            # 路由层
+├── services/          # 业务逻辑层
+├── workers/           # 任务工作器
+└── core/              # 核心模块
+```
+
 ## 开发原则
 
 1. **分层架构**: 路由层 → 服务层 → 数据层
@@ -66,7 +80,7 @@ server/
 
 ## 常用模式
 
-### 路由定义
+### 路由定义 (server-api)
 ```python
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -82,6 +96,19 @@ async def create_something(
     db: AsyncSession = Database
 ):
     return await some_service.create(db, params)
+```
+
+### 任务服务路由 (server-task)
+```python
+from fastapi import APIRouter
+from services.task_manager import TaskManager
+
+router = APIRouter(prefix="/api/task", tags=["Task"])
+
+@router.post("/submit")
+async def submit_task(task_data: dict):
+    task_id = await TaskManager.submit_task(task_data)
+    return {"task_id": task_id, "status": "submitted"}
 ```
 
 ### 服务层

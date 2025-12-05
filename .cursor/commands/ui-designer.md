@@ -28,10 +28,11 @@
 
 ## 工作目录
 
-- `student/src/components/ui/` - shadcn/ui 组件
-- `student/src/components/business/` - 业务组件
-- `admin/src/components/ui/` - UI 组件
-- `admin/src/components/business/` - 业务组件
+- `apps/student-web/src/components/ui/` - shadcn/ui 组件
+- `apps/student-web/src/components/business/` - 业务组件
+- `apps/admin-web/src/components/ui/` - UI 组件
+- `apps/admin-web/src/components/business/` - 业务组件
+- `apps/student-app/src/components/` - 移动端组件
 - 所有样式文件和组件文件
 
 ## 设计原则
@@ -62,7 +63,7 @@
 </div>
 ```
 
-### shadcn/ui 组件
+### shadcn/ui 组件 (student-web)
 ```tsx
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -75,6 +76,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
     内容
   </CardContent>
 </Card>
+```
+
+### NativeWind 样式 (student-app)
+```tsx
+import { View, Text } from 'react-native';
+
+<View className="flex-1 bg-white p-4">
+  <Text className="text-lg font-bold text-gray-900">
+    标题
+  </Text>
+</View>
 ```
 
 ### Ant Design 组件
@@ -143,13 +155,17 @@ import { Button, Card, Space } from 'antd';
 
 ## 设计系统组件
 
-### 学生端 (shadcn/ui)
+### 学生端 Web (shadcn/ui)
 - Button, Card, Input, Select, Dialog 等
-- 位置: `student/src/components/ui/`
+- 位置: `apps/student-web/src/components/ui/`
 
 ### 管理端 (Ant Design)
 - Button, Table, Form, Modal, Select 等
-- 位置: `admin/src/components/`
+- 位置: `apps/admin-web/src/components/`
+
+### 学生端移动 (NativeWind + 自定义组件)
+- 使用 NativeWind (Tailwind CSS) 进行样式管理
+- 位置: `apps/student-app/src/components/`
 
 ## 注意事项
 
