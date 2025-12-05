@@ -10,22 +10,21 @@
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    
     "dev:admin": "cd apps/admin-web && pnpm dev",
     "dev:student": "cd apps/student-web && pnpm dev",
     "dev:server": "cd apps/server-api && uv run uvicorn main:app --reload",
     "dev:all": "concurrently \"pnpm dev:admin\" \"pnpm dev:student\" \"pnpm dev:server\"",
-    
+    "dev:app": "cd apps/student-app && flutter run",
     "build:admin": "cd apps/admin-web && pnpm build",
     "build:student": "cd apps/student-web && pnpm build",
     "build:server": "cd apps/server-api && uv build",
+    "build:app": "cd apps/student-app && flutter build",
+    "build:app:ios": "cd apps/student-app && flutter build ios",
+    "build:app:android": "cd apps/student-app && flutter build apk",
     "build:all": "turbo run build",
-    
-    "install:all": "pnpm install && cd apps/server-api && uv sync",
-    
+    "install:all": "pnpm install && cd apps/server-api && uv sync && cd ../student-app && flutter pub get",
     "generate:types": "tsx scripts/generate-types.ts",
     "generate:types:build": "cd packages/shared-frontend && pnpm build",
-    
     "docker:build": "./scripts/build.sh",
     "docker:up": "./scripts/deploy.sh start",
     "docker:down": "./scripts/deploy.sh down"
