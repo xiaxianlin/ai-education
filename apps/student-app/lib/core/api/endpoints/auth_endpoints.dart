@@ -16,10 +16,7 @@ class AuthEndpoints {
   }) async {
     return await _api.post<String>(
       '/login',
-      data: {
-        'phone': phone,
-        'password': password,
-      },
+      data: {'phone': phone, 'password': password},
     );
   }
 
@@ -30,4 +27,3 @@ class AuthEndpoints {
     return await _api.get<String>('/check');
   }
 }
-

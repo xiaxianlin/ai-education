@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:state_notifier/state_notifier.dart' show StateNotifier;
+import 'package:dio/dio.dart';
 import 'package:student_app/core/api/endpoints/profile_endpoints.dart';
 import 'package:student_app/core/models/profile_response.dart';
 import 'package:student_app/core/models/student.dart';
@@ -91,10 +92,27 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
         error: null,
       );
     } catch (e) {
+      final errorMessage = ErrorHandler.getErrorMessage(e);
       state = state.copyWith(
         isLoading: false,
-        error: ErrorHandler.getErrorMessage(e),
+        error: errorMessage,
       );
+      
+      // 如果是认证错误（登录失效），不要 rethrow，避免未处理异常
+      // ErrorInterceptor 已经处理了清除 token 和跳转登录的逻辑
+      if (e is DioException) {
+        final isAuthError = errorMessage.contains('登录失效') ||
+            errorMessage.contains('登录已失效') ||
+            errorMessage.contains('未授权') ||
+            (e.response?.statusCode == 401 || e.response?.statusCode == 403);
+        
+        if (isAuthError) {
+          // 认证错误已经由 ErrorInterceptor 处理，不需要继续传播
+          return;
+        }
+      }
+      
+      // 其他错误继续传播
       rethrow;
     }
   }

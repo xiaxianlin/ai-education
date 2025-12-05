@@ -4,6 +4,7 @@ import 'package:student_app/core/api/endpoints/auth_endpoints.dart';
 import 'package:student_app/core/utils/storage.dart';
 import 'package:student_app/core/utils/error_handler.dart';
 import 'package:student_app/app/router.dart';
+import 'package:student_app/core/utils/logger.dart';
 
 /// 认证状态
 class AuthState {
@@ -49,20 +50,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       state = state.copyWith(isLoading: true);
       await AuthEndpoints.check();
-      state = state.copyWith(
-        isAuthenticated: true,
-        isLoading: false,
-        error: null,
-      );
+      state =
+          state.copyWith(isAuthenticated: true, isLoading: false, error: null);
     } catch (e) {
       // Token无效，清除本地存储
       await Storage.removeToken();
       await Storage.clearAll();
-      state = state.copyWith(
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      );
+      state =
+          state.copyWith(isAuthenticated: false, isLoading: false, error: null);
     }
   }
 
@@ -73,7 +68,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       // 调用登录API
       final token = await AuthEndpoints.login(phone: phone, password: password);
-
+      Logger.debug('AuthNotifier: token = $token', 'AuthNotifier');
       // 保存token
       await Storage.saveToken(token);
 
@@ -83,7 +78,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
         error: null,
       );
-      
+
       // 通知路由守卫认证状态已更新
       AppRouter.authNotifier.updateAuthStatus();
     } catch (e) {
@@ -105,7 +100,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     // 更新状态
     state = const AuthState(isAuthenticated: false);
-    
+
     // 通知路由守卫认证状态已更新
     AppRouter.authNotifier.updateAuthStatus();
   }
@@ -131,4 +126,3 @@ final authStateProvider = Provider<AuthState>((ref) {
   final notifier = ref.watch(authProvider);
   return notifier.currentState;
 });
-

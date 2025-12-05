@@ -1,6 +1,6 @@
-import 'dart:developer' as developer;
+import 'package:logger/logger.dart' as logger_package show Logger, Level, PrettyPrinter, DateTimeFormat;
 
-/// 日志级别
+/// 日志级别（保持向后兼容）
 enum LogLevel {
   debug,
   info,
@@ -9,9 +9,12 @@ enum LogLevel {
 }
 
 /// 日志工具类
-/// 提供统一的日志记录功能
+/// 提供统一的日志记录功能，基于 logger 包实现
 class Logger {
   Logger._();
+
+  /// 内部 Logger 实例
+  static logger_package.Logger? _loggerInstance;
 
   /// 是否启用日志（生产环境可以关闭）
   static bool enabled = true;
@@ -19,36 +22,80 @@ class Logger {
   /// 设置日志级别（只记录该级别及以上的日志）
   static LogLevel level = LogLevel.debug;
 
+  /// 获取或创建 Logger 实例
+  static logger_package.Logger get _logger {
+    _loggerInstance ??= logger_package.Logger(
+      printer: logger_package.PrettyPrinter(
+        methodCount: 0, // 不显示调用栈
+        errorMethodCount: 5, // 错误时显示 5 层调用栈
+        lineLength: 120,
+        colors: true,
+        printEmojis: false,
+        dateTimeFormat: logger_package.DateTimeFormat.onlyTimeAndSinceStart,
+      ),
+      level: _convertLogLevel(level),
+    );
+    return _loggerInstance!;
+  }
+
+  /// 转换 LogLevel 到 logger 包的 Level
+  static logger_package.Level _convertLogLevel(LogLevel logLevel) {
+    switch (logLevel) {
+      case LogLevel.debug:
+        return logger_package.Level.debug;
+      case LogLevel.info:
+        return logger_package.Level.info;
+      case LogLevel.warning:
+        return logger_package.Level.warning;
+      case LogLevel.error:
+        return logger_package.Level.error;
+    }
+  }
+
+  /// 更新日志级别
+  static void setLevel(LogLevel newLevel) {
+    level = newLevel;
+    // 重新创建 logger 实例以应用新的级别
+    _loggerInstance = logger_package.Logger(
+      printer: logger_package.PrettyPrinter(
+        methodCount: 0,
+        errorMethodCount: 5,
+        lineLength: 120,
+        colors: true,
+        printEmojis: false,
+        dateTimeFormat: logger_package.DateTimeFormat.onlyTimeAndSinceStart,
+      ),
+      level: _convertLogLevel(newLevel),
+    );
+  }
+
   /// Debug 日志
   static void debug(String message, [String? tag]) {
-    if (enabled && level.index <= LogLevel.debug.index) {
-      developer.log(
-        message,
-        name: tag ?? 'DEBUG',
-        level: 0,
-      );
+    if (!enabled) return;
+    if (tag != null) {
+      _logger.d('[$tag] $message');
+    } else {
+      _logger.d(message);
     }
   }
 
   /// Info 日志
   static void info(String message, [String? tag]) {
-    if (enabled && level.index <= LogLevel.info.index) {
-      developer.log(
-        message,
-        name: tag ?? 'INFO',
-        level: 100,
-      );
+    if (!enabled) return;
+    if (tag != null) {
+      _logger.i('[$tag] $message');
+    } else {
+      _logger.i(message);
     }
   }
 
   /// Warning 日志
   static void warning(String message, [String? tag]) {
-    if (enabled && level.index <= LogLevel.warning.index) {
-      developer.log(
-        message,
-        name: tag ?? 'WARNING',
-        level: 900,
-      );
+    if (!enabled) return;
+    if (tag != null) {
+      _logger.w('[$tag] $message');
+    } else {
+      _logger.w(message);
     }
   }
 
@@ -59,52 +106,41 @@ class Logger {
     StackTrace? stackTrace,
     String? tag,
   ]) {
-    if (enabled && level.index <= LogLevel.error.index) {
-      developer.log(
-        message,
-        name: tag ?? 'ERROR',
+    if (!enabled) return;
+    final prefix = tag != null ? '[$tag] ' : '';
+    if (error != null || stackTrace != null) {
+      _logger.e(
+        '$prefix$message',
         error: error,
         stackTrace: stackTrace,
-        level: 1000,
       );
+    } else {
+      _logger.e('$prefix$message');
     }
   }
 
   /// 记录 API 请求
   static void logApiRequest(String method, String url, [Map<String, dynamic>? data]) {
-    if (enabled && level.index <= LogLevel.debug.index) {
-      final dataStr = data != null ? ' | Data: $data' : '';
-      developer.log(
-        '$method $url$dataStr',
-        name: 'API_REQUEST',
-        level: 0,
-      );
-    }
+    if (!enabled) return;
+    final dataStr = data != null ? ' | Data: $data' : '';
+    _logger.d('API_REQUEST: $method $url$dataStr');
   }
 
   /// 记录 API 响应
   static void logApiResponse(String method, String url, int? statusCode, [dynamic data]) {
-    if (enabled && level.index <= LogLevel.debug.index) {
-      final dataStr = data != null ? ' | Response: $data' : '';
-      developer.log(
-        '$method $url | Status: $statusCode$dataStr',
-        name: 'API_RESPONSE',
-        level: 0,
-      );
-    }
+    if (!enabled) return;
+    final dataStr = data != null ? ' | Response: $data' : '';
+    _logger.d('API_RESPONSE: $method $url | Status: $statusCode$dataStr');
   }
 
   /// 记录 API 错误
   static void logApiError(String method, String url, Object error, [StackTrace? stackTrace]) {
-    if (enabled) {
-      developer.log(
-        '$method $url | Error: $error',
-        name: 'API_ERROR',
-        error: error,
-        stackTrace: stackTrace,
-        level: 1000,
-      );
-    }
+    if (!enabled) return;
+    _logger.e(
+      'API_ERROR: $method $url | Error: $error',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }
 

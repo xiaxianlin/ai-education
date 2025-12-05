@@ -3,6 +3,7 @@ import 'package:student_app/core/constants/api_constants.dart';
 import 'package:student_app/core/api/interceptors/auth_interceptor.dart';
 import 'package:student_app/core/api/interceptors/error_interceptor.dart';
 import 'package:student_app/core/api/interceptors/retry_interceptor.dart';
+import 'package:student_app/core/utils/logger.dart';
 
 /// API 响应格式
 class ApiResponse<T> {
@@ -68,10 +69,21 @@ class ApiClient {
         onResponse: (response, handler) {
           // 统一解析响应格式
           final data = response.data;
+
+          // 如果响应是 ApiResponse 格式，提取 data 字段
           if (data is Map<String, dynamic>) {
             final apiResponse = ApiResponse.fromJson(data, null);
+
             // 如果 status 不为 0，说明有业务错误
             if (apiResponse.status != null && apiResponse.status != 0) {
+              // 如果业务错误码是 401 或 403，需要设置正确的 HTTP 状态码
+              // 这样 ErrorInterceptor 才能正确识别为认证错误
+              final statusCode = apiResponse.status;
+              if (statusCode == 401 || statusCode == 403) {
+                // 修改响应的状态码，让 ErrorInterceptor 能识别
+                response.statusCode = statusCode;
+              }
+
               return handler.reject(
                 DioException(
                   requestOptions: response.requestOptions,
@@ -81,9 +93,12 @@ class ApiClient {
                 ),
               );
             }
-            // 提取 data 字段
-            response.data = apiResponse.data;
+
+            Logger.debug('ApiClient: response11111 = ${apiResponse.data.data}', 'ApiClient');
+            // 成功时，只返回 ApiResponse.data
+            response.data = apiResponse.data.data;
           }
+
           return handler.next(response);
         },
       ),
@@ -192,4 +207,3 @@ class ApiClient {
     return response.data as T;
   }
 }
-
