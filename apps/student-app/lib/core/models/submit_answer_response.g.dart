@@ -7,25 +7,26 @@ part of 'submit_answer_response.dart';
 // **************************************************************************
 
 SubmitAnswerResponse _$SubmitAnswerResponseFromJson(
-        Map<String, dynamic> json) =>
-    SubmitAnswerResponse(
-      isCorrect: json['is_correct'] as bool,
-      correctAnswer: json['correct_answer'] as String,
-      userAnswer: json['user_answer'] as String?,
-      analysis: json['analysis'] as String?,
-      sessionProgress: SessionProgress.fromJson(
-          json['session_progress'] as Map<String, dynamic>),
-    );
+  Map<String, dynamic> json,
+) => SubmitAnswerResponse(
+  isCorrect: json['is_correct'] as bool,
+  correctAnswer: json['correct_answer'] as String,
+  userAnswer: json['user_answer'] as String?,
+  analysis: json['analysis'] as String?,
+  sessionProgress: SessionProgress.fromJson(
+    json['session_progress'] as Map<String, dynamic>,
+  ),
+);
 
 Map<String, dynamic> _$SubmitAnswerResponseToJson(
-        SubmitAnswerResponse instance) =>
-    <String, dynamic>{
-      'is_correct': instance.isCorrect,
-      'correct_answer': instance.correctAnswer,
-      'user_answer': instance.userAnswer,
-      'analysis': instance.analysis,
-      'session_progress': instance.sessionProgress,
-    };
+  SubmitAnswerResponse instance,
+) => <String, dynamic>{
+  'is_correct': instance.isCorrect,
+  'correct_answer': instance.correctAnswer,
+  'user_answer': instance.userAnswer,
+  'analysis': instance.analysis,
+  'session_progress': instance.sessionProgress,
+};
 
 SessionProgress _$SessionProgressFromJson(Map<String, dynamic> json) =>
     SessionProgress(

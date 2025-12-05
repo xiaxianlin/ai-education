@@ -26,21 +26,21 @@ PracticeWrongRecord _$PracticeWrongRecordFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PracticeWrongRecordToJson(
-        PracticeWrongRecord instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'student_id': instance.studentId,
-      'question_id': instance.questionId,
-      'session_id': instance.sessionId,
-      'unit_id': instance.unitId,
-      'knowledge': instance.knowledge,
-      'textbook_id': instance.textbookId,
-      'user_answer': instance.userAnswer,
-      'correct_answer': instance.correctAnswer,
-      'analysis': instance.analysis,
-      'time_spent': instance.timeSpent,
-      'is_corrected': instance.isCorrected,
-      'corrected_time': instance.correctedTime,
-      'create_time': instance.createTime,
-      'update_time': instance.updateTime,
-    };
+  PracticeWrongRecord instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'student_id': instance.studentId,
+  'question_id': instance.questionId,
+  'session_id': instance.sessionId,
+  'unit_id': instance.unitId,
+  'knowledge': instance.knowledge,
+  'textbook_id': instance.textbookId,
+  'user_answer': instance.userAnswer,
+  'correct_answer': instance.correctAnswer,
+  'analysis': instance.analysis,
+  'time_spent': instance.timeSpent,
+  'is_corrected': instance.isCorrected,
+  'corrected_time': instance.correctedTime,
+  'create_time': instance.createTime,
+  'update_time': instance.updateTime,
+};
