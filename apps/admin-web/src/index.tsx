@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider } from 'react-router-dom';
+import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 import { ConfigProvider, Spin } from 'antd';
-import { router } from './lib/router';
+import { history, Router } from './lib/router';
+import { InitialStateModel } from './models/initialState';
 import './global.less';
 import './global.tsx';
 
@@ -14,9 +15,13 @@ const LoadingPage = () => (
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <ConfigProvider>
-    <Suspense fallback={<LoadingPage />}>
-      <RouterProvider router={router} />
-    </Suspense>
+    <InitialStateModel.Provider>
+      <Suspense fallback={<LoadingPage />}>
+        <HistoryRouter history={history as any} >
+          <Router />
+        </HistoryRouter>
+      </Suspense>
+    </InitialStateModel.Provider>
   </ConfigProvider>
 );
 

@@ -4,7 +4,7 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from './page';
 
 const useContainer = () => {

@@ -5,7 +5,7 @@ import { useRef, useMemo, useState } from 'react';
 import { fmtTime } from '@/utils/time';
 import { DeleteButton } from '@/components/business/DeleteButton';
 import { useStudentDetailModel } from '../models/page';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';

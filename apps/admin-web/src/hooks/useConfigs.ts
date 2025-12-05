@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
-import { useInitialState } from './useInitialState';
+import { useInitialStateModel } from '@/models/initialState';
 
 export const useConfigs = () => {
-  const { initialState } = useInitialState();
+  const initialState = useInitialStateModel();
   const {
     semesters,
     subjects,

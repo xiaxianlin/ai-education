@@ -3,7 +3,7 @@
  * 显示某个教材下的所有单元练习卡片
  */
 import { useRequest } from "ahooks";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 import { UnitPracticeCard } from "./UnitPracticeCard";
 import { useUnitPracticeStore } from "../stores/unit-practice-store";
 

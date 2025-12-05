@@ -25,10 +25,6 @@ export default defineConfig({
   html: {
     title: 'AI 教育',
     template: './public/index.html',
-    script: [
-      // 解决首次加载时白屏的问题
-      { src: '/scripts/loading.js', async: true },
-    ],
   },
   source: {
     entry: {
@@ -38,7 +34,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@ai-education/shared-frontend': path.resolve(__dirname, '../../packages/shared-frontend/dist'),
     },
   },
   output: {
@@ -57,8 +52,4 @@ export default defineConfig({
       },
     },
   },
-  define: {
-    'process.env.WS_API': isDev ? 'ws://127.0.0.1:8000/api' : 'wss://ai.ixxl.me/api',
-  },
 });
-

@@ -7,7 +7,7 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button, message, Modal, Space } from 'antd';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { ManagerType, ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
 import { CommonTable } from '@/components/business';

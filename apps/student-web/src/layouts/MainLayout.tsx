@@ -1,7 +1,7 @@
 import { Header } from "@/components/business/Header";
 import { useRequest } from "ahooks";
 import { Outlet } from "react-router-dom";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 import { useProfileStore } from "@/stores/profile-store";
 import { LoadingPage } from "@/components/business/LoadingSpinner";
 import { useGradeTheme } from "@/hooks/useGradeTheme";

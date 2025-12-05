@@ -1,8 +1,19 @@
 import { lazy } from 'react';
-import { createHashRouter, Navigate } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
 import { AdminLayout } from '@/layouts/AdminLayout';
-import { ProtectedRouteGuard } from '@/components/guards/ProtectedRouteGuard';
-import { GuestRouteGuard } from '@/components/guards/GuestRouteGuard';
+import { InitialStateModel } from '../models/initialState';
+import { createBrowserHistory } from "history";
+
+export const history = createBrowserHistory();
+
+export function go(path: string, replace = false) {
+  if (replace) {
+    history.replace(path);
+  } else {
+    history.push(path);
+  }
+}
+
 
 // 懒加载页面组件
 const Login = lazy(() => import('@/pages/Login'));
@@ -21,39 +32,38 @@ const PracticeDetail = lazy(() => import('@/pages/Student/PraticeDetail'));
 const ModifyPassword = lazy(() => import('@/pages/ModifyPassword'));
 const NotFound = lazy(() => import('@/pages/404'));
 
-export const router = createHashRouter([
-  {
-    path: '/login',
-    element: (
-      <GuestRouteGuard>
-        <Login />
-      </GuestRouteGuard>
-    ),
-  },
-  {
-    path: '/',
-    element: (
-      <ProtectedRouteGuard>
-        <AdminLayout />
-      </ProtectedRouteGuard>
-    ),
-    children: [
-      { index: true, element: <Navigate to="/home" replace /> },
-      { path: 'home', element: <Home /> },
-      { path: 'manager', element: <Manager /> },
-      { path: 'textbook', element: <TextbookList /> },
-      { path: 'textbook/detail/:id', element: <TextbookDetail /> },
-      { path: 'teacher_book', element: <TeacherBookList /> },
-      { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
-      { path: 'question', element: <QuestionList /> },
-      { path: 'question/edit/:id', element: <QuestionEdit /> },
-      { path: 'question/detail/:id', element: <QuestionDetail /> },
-      { path: 'student', element: <StudentList /> },
-      { path: 'student/detail/:id', element: <StudentDetail /> },
-      { path: 'practice/detail/:session_id', element: <PracticeDetail /> },
-      { path: 'password', element: <ModifyPassword /> },
-      { path: '*', element: <NotFound /> },
-    ],
-  },
-]);
+export function Router() {
+  return useRoutes([
+    {
+      path: '/login',
+      element: <Login />,
+    },
+    {
+      path: '/',
+      element: (
+        <InitialStateModel.Provider>
+          <AdminLayout />
+        </InitialStateModel.Provider>
+      ),
+      children: [
+        { index: true, element: <Navigate to="/home" replace /> },
+        { path: 'home', element: <Home /> },
+        { path: 'manager', element: <Manager /> },
+        { path: 'textbook', element: <TextbookList /> },
+        { path: 'textbook/detail/:id', element: <TextbookDetail /> },
+        { path: 'teacher_book', element: <TeacherBookList /> },
+        { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
+        { path: 'question', element: <QuestionList /> },
+        { path: 'question/edit/:id', element: <QuestionEdit /> },
+        { path: 'question/detail/:id', element: <QuestionDetail /> },
+        { path: 'student', element: <StudentList /> },
+        { path: 'student/detail/:id', element: <StudentDetail /> },
+        { path: 'practice/detail/:session_id', element: <PracticeDetail /> },
+        { path: 'password', element: <ModifyPassword /> },
+        { path: '*', element: <NotFound /> },
+      ],
+    },
+  ])
+}
+
 

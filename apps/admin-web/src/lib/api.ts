@@ -1,39 +1,138 @@
-import { ApiClient } from '../client';
-import type {
-  Manager,
-  LoginRequest,
-  LoginResponse,
-  ModifyPasswordRequest,
-  CreateManagerRequest,
-  UpdateManagerRequest,
-  Student,
-  Question,
-  Textbook,
-  Unit,
-  Knowledge,
-  TeacherBook,
-  Configs,
-  PracticeSession,
-  PracticeDetail,
-  ListResponse,
-  SearchParams,
-} from '../../types';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { go } from './router';
+
+const TOKEN_KEY = 'token';
+/**
+ * 基础 API 客户端
+ */
+export class ApiClient {
+  private client: AxiosInstance;
+
+  constructor(config?: AxiosRequestConfig) {
+    this.client = axios.create({
+      baseURL: '/api/admin',
+      timeout: 10 * 60 * 1000, // 10 minutes
+      headers: { 'Content-Type': 'application/json' },
+      ...config,
+    });
+
+    // 请求拦截器
+    this.client.interceptors.request.use(
+      (config) => {
+        // 添加认证 token
+        const token = this.getToken();
+        if (token) {
+          config.headers['x-access-token'] = token;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
+
+    // 响应拦截器
+    this.client.interceptors.response.use(
+      (response: AxiosResponse<ApiResponse>) => {
+        return response;
+      },
+      (error) => {
+        // 统一错误处理
+        const response = error.response;
+        if (response) {
+          const data = response.data as ApiResponse;
+          const status = data?.status || response.status;
+
+          // 处理认证错误
+          if (status === 401 || status === 403) {
+            this.removeToken();
+            go('/login');
+            return data?.message || error.message || '网络错误';
+          }
+          return response.data;
+        }
+      },
+    );
+  }
+
+  /**
+   * 获取 token
+   */
+  private getToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  /**
+   * 移除 token
+   */
+  private removeToken(): void {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
+  /**
+   * GET 请求
+   */
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.get<ApiResponse<T>>(url, config);
+    return response.data.data as T;
+  }
+
+  /**
+   * POST 请求
+   */
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.post<ApiResponse<T>>(url, data, config);
+    return response.data.data as T;
+  }
+
+  /**
+   * PUT 请求
+   */
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.put<ApiResponse<T>>(url, data, config);
+    return response.data.data as T;
+  }
+
+  /**
+   * DELETE 请求
+   */
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<ApiResponse<T>>(url, config);
+    return response.data.data as T;
+  }
+
+  /**
+   * PATCH 请求
+   */
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.patch<ApiResponse<T>>(url, data, config);
+    return response.data.data as T;
+  }
+
+  /**
+   * POST FormData 请求（用于文件上传）
+   */
+  async postForm<T = any>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.post<ApiResponse<T>>(url, formData, {
+      ...config,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...config?.headers,
+      },
+    });
+    return response.data.data as T;
+  }
+}
 
 /**
  * 管理端 API 客户端类
  */
 export class AdminApiClient extends ApiClient {
-  constructor(baseURL: string = '/api/admin') {
-    super(baseURL, 'token');
-  }
-
   // ========== 认证相关 ==========
 
   /**
    * 登录
    */
-  async login(data: LoginRequest): Promise<LoginResponse> {
-    return this.post<LoginResponse>('/login', data);
+  async login(data: LoginModel): Promise<string> {
+    return this.post<string>('/login', data);
   }
 
   /**
@@ -46,7 +145,7 @@ export class AdminApiClient extends ApiClient {
   /**
    * 修改密码
    */
-  async modifyPassword(data: ModifyPasswordRequest): Promise<void> {
+  async modifyPassword(data: ModifyPasswordModel): Promise<void> {
     return this.post<void>('/modify_password', data);
   }
 
@@ -55,7 +154,7 @@ export class AdminApiClient extends ApiClient {
   /**
    * 创建管理员
    */
-  async createManager(data: CreateManagerRequest): Promise<Manager> {
+  async createManager(data: CreateManagerModel): Promise<Manager> {
     return this.post<Manager>('/manager', data);
   }
 
@@ -113,7 +212,10 @@ export class AdminApiClient extends ApiClient {
   /**
    * 更新学生
    */
-  async updateStudent(id: string, data: { name?: string; phone?: string; grade?: number; status?: number }): Promise<Student> {
+  async updateStudent(
+    id: string,
+    data: { name?: string; phone?: string; grade?: number; status?: number },
+  ): Promise<Student> {
     return this.patch<Student>(`/student/${id}`, data);
   }
 
@@ -178,56 +280,63 @@ export class AdminApiClient extends ApiClient {
   /**
    * 搜索题目
    */
-  async searchQuestions(params?: SearchParams & {
-    question_id?: number;
-    keyword?: string;
-    textbook_id?: number;
-    unit_id?: number;
-    type?: string;
-    subtype?: string;
-    difficulty?: string;
-    subject?: string;
-    grade?: number;
-  }): Promise<ListResponse<Question>> {
+  async searchQuestions(
+    params?: SearchParams & {
+      question_id?: number;
+      keyword?: string;
+      textbook_id?: number;
+      unit_id?: number;
+      type?: string;
+      subtype?: string;
+      difficulty?: string;
+      subject?: string;
+      grade?: number;
+    },
+  ): Promise<ListResponse<Question>> {
     return this.get<ListResponse<Question>>('/question/search', { params });
   }
 
   /**
    * 搜索资源题目
    */
-  async searchResourceQuestions(params?: SearchParams & {
-    question_id?: number;
-    keyword?: string;
-    textbook_id?: number;
-    unit_id?: number;
-    type?: string;
-    subtype?: string;
-    difficulty?: string;
-    subject?: string;
-    grade?: number;
-  }): Promise<ListResponse<Question>> {
+  async searchResourceQuestions(
+    params?: SearchParams & {
+      question_id?: number;
+      keyword?: string;
+      textbook_id?: number;
+      unit_id?: number;
+      type?: string;
+      subtype?: string;
+      difficulty?: string;
+      subject?: string;
+      grade?: number;
+    },
+  ): Promise<ListResponse<Question>> {
     return this.get<ListResponse<Question>>('/question/resource/search', { params });
   }
 
   /**
    * 更新题目
    */
-  async updateQuestion(id: string, data: {
-    subject?: string;
-    grade?: number;
-    type?: string;
-    subtype?: string;
-    content?: string;
-    options?: string | string[];
-    answer?: string;
-    resource?: string;
-    resource_type?: string;
-    resource_content?: string;
-    difficulty?: string;
-    knowledge?: string;
-    unit_id?: number;
-    textbook_id?: number;
-  }): Promise<Question> {
+  async updateQuestion(
+    id: string,
+    data: {
+      subject?: string;
+      grade?: number;
+      type?: string;
+      subtype?: string;
+      content?: string;
+      options?: string | string[];
+      answer?: string;
+      resource?: string;
+      resource_type?: string;
+      resource_content?: string;
+      difficulty?: string;
+      knowledge?: string;
+      unit_id?: number;
+      textbook_id?: number;
+    },
+  ): Promise<Question> {
     return this.patch<Question>(`/question/${id}`, data);
   }
 
@@ -264,35 +373,35 @@ export class AdminApiClient extends ApiClient {
   /**
    * 搜索教材
    */
-  async searchTextbooks(params?: SearchParams & {
-    version?: string;
-    subject?: string;
-    grade?: string;
-  }): Promise<ListResponse<Textbook>> {
+  async searchTextbooks(
+    params?: SearchParams & {
+      version?: string;
+      subject?: string;
+      grade?: string;
+    },
+  ): Promise<ListResponse<Textbook>> {
     return this.get<ListResponse<Textbook>>('/textbook/search', { params });
   }
 
   /**
    * 创建教材
    */
-  async createTextbook(data: {
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-  }): Promise<Textbook> {
+  async createTextbook(data: { subject: string; version: string; grade: number; semester: string }): Promise<Textbook> {
     return this.post<Textbook>('/textbook', data);
   }
 
   /**
    * 更新教材
    */
-  async updateTextbook(id: number, data: {
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-  }): Promise<Textbook> {
+  async updateTextbook(
+    id: number,
+    data: {
+      subject: string;
+      version: string;
+      grade: number;
+      semester: string;
+    },
+  ): Promise<Textbook> {
     return this.put<Textbook>(`/textbook/${id}`, data);
   }
 
@@ -357,21 +466,20 @@ export class AdminApiClient extends ApiClient {
   /**
    * 创建单元
    */
-  async createUnit(data: {
-    textbook_id: number;
-    name: string;
-    content: string;
-  }): Promise<Unit> {
+  async createUnit(data: { textbook_id: number; name: string; content: string }): Promise<Unit> {
     return this.post<Unit>('/unit', data);
   }
 
   /**
    * 更新单元
    */
-  async updateUnit(id: number, data: {
-    name?: string;
-    content?: string;
-  }): Promise<Unit> {
+  async updateUnit(
+    id: number,
+    data: {
+      name?: string;
+      content?: string;
+    },
+  ): Promise<Unit> {
     return this.patch<Unit>(`/unit/${id}`, data);
   }
 
@@ -427,10 +535,13 @@ export class AdminApiClient extends ApiClient {
   /**
    * 更新知识点
    */
-  async updateKnowledge(id: number, data: {
-    name?: string;
-    content?: string;
-  }): Promise<Knowledge> {
+  async updateKnowledge(
+    id: number,
+    data: {
+      name?: string;
+      content?: string;
+    },
+  ): Promise<Knowledge> {
     return this.patch<Knowledge>(`/knowledge/${id}`, data);
   }
 
@@ -467,11 +578,13 @@ export class AdminApiClient extends ApiClient {
   /**
    * 搜索教师用书
    */
-  async searchTeacherBooks(params?: SearchParams & {
-    version?: string;
-    subject?: string;
-    grade?: string;
-  }): Promise<ListResponse<TeacherBook>> {
+  async searchTeacherBooks(
+    params?: SearchParams & {
+      version?: string;
+      subject?: string;
+      grade?: string;
+    },
+  ): Promise<ListResponse<TeacherBook>> {
     return this.get<ListResponse<TeacherBook>>('/teacher_book/search', { params });
   }
 
@@ -490,12 +603,15 @@ export class AdminApiClient extends ApiClient {
   /**
    * 更新教师用书
    */
-  async updateTeacherBook(id: number, data: {
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-  }): Promise<TeacherBook> {
+  async updateTeacherBook(
+    id: number,
+    data: {
+      subject: string;
+      version: string;
+      grade: number;
+      semester: string;
+    },
+  ): Promise<TeacherBook> {
     return this.put<TeacherBook>(`/teacher_book/${id}`, data);
   }
 
@@ -551,4 +667,3 @@ export class AdminApiClient extends ApiClient {
  * 直接使用此实例调用 API 方法
  */
 export const adminApi = new AdminApiClient();
-

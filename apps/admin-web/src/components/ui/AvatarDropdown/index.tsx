@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import React, { PropsWithChildren } from 'react';
 import { createStyles } from 'antd-style';
 import { Dropdown } from 'antd';
-import { clearState } from '@/lib/initialState';
+import { useInitialStateModel } from '@/models/initialState';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -18,7 +18,7 @@ const useStyles = createStyles(({ token }) => {
 export function AvatarDropdown({ children }: PropsWithChildren) {
   const { styles } = useStyles();
   const navigate = useNavigate();
-  
+  const { clearState } = useInitialStateModel();
   return (
     <Dropdown
       overlayClassName={styles.dropdown}

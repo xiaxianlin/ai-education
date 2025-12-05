@@ -1,7 +1,7 @@
 import { ModalForm, PageContainer, ProColumns, ProFormSelect } from '@ant-design/pro-components';
 import { useTextbookListModel } from '../models/page';
 import { Button, Space, Tag } from 'antd';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';

@@ -7,7 +7,7 @@ import {
   CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GRADES } from '@/constants/course';

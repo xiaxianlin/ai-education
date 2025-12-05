@@ -2,9 +2,9 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ProLayout } from '@ant-design/pro-components';
 import { DashboardOutlined, UserOutlined, BookOutlined, ReadOutlined, QuestionCircleOutlined, GithubOutlined } from '@ant-design/icons';
 import { AvatarDropdown } from '@/components/ui';
-import { getState } from '@/lib/initialState';
 import logo from '@/assets/logo.png';
 import type { MenuDataItem } from '@ant-design/pro-components';
+import { useInitialStateModel } from '@/models/initialState';
 
 const menuDataRender = (): MenuDataItem[] => [
   {
@@ -42,7 +42,7 @@ const menuDataRender = (): MenuDataItem[] => [
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = getState();
+  const { manager } = useInitialStateModel();
 
   return (
     <ProLayout
@@ -59,7 +59,7 @@ export function AdminLayout() {
         <div onClick={() => navigate(item.path || '/')}>{dom}</div>
       )}
       avatarProps={{
-        title: state?.manager?.username,
+        title: manager?.username,
         render: (_, avatarChildren) => {
           return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
         },

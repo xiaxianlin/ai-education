@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRequest } from "ahooks";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 import { QuestionAnswerCard } from "./components/QuestionAnswerCard";
 import { ReportSummary } from "./components/ReportSummary";
 import { formatDateTime } from "@/utils/time";

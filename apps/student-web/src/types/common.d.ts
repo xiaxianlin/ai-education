@@ -8,7 +8,7 @@
 // 导出统一的数据类型
 declare global {
   // ===== 通用类型 =====
-  interface ApiData<T = unknown> {
+  interface ApiResponse<T = unknown> {
     data: T;
     message?: string;
     status?: number;

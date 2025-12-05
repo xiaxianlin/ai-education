@@ -3,7 +3,7 @@ import { Button, Card, Empty, Flex, message, Modal } from 'antd';
 import { ModalForm, ProForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { useStudentDetailModel } from '../models/page';
 import { TextbookCard } from '../components/TextbookCard';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';
 

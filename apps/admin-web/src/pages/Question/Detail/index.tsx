@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';

@@ -8,7 +8,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
 import { generateWithConfirm } from '@/hooks/useGenerateWithConfirm';

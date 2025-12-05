@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRequest } from "ahooks";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 import { HistoryCard } from "./components/HistoryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 

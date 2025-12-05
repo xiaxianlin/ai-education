@@ -3,7 +3,7 @@
  * 使用 zustand 管理单元练习页面的业务逻辑
  */
 import { create } from "zustand";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 import { toast } from "sonner";
 
 interface KnowledgeModalState {

@@ -24,7 +24,6 @@
     "build:all": "turbo run build",
     "install:all": "pnpm install && cd apps/server-api && uv sync && cd ../student-app && flutter pub get",
     "generate:types": "tsx scripts/generate-types.ts",
-    "generate:types:build": "cd packages/shared-frontend && pnpm build",
     "docker:build": "./scripts/build.sh",
     "docker:up": "./scripts/deploy.sh start",
     "docker:down": "./scripts/deploy.sh down"

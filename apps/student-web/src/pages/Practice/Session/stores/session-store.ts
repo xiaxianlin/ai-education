@@ -3,7 +3,7 @@
  * 使用 zustand 管理练习会话的所有状态和业务逻辑
  */
 import { create } from "zustand";
-import { studentApi } from "@ai-education/shared-frontend";
+import { studentApi } from "@/lib/api";
 
 /**
  * 答案状态：0-未答, 1-正确, 2-错误

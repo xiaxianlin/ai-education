@@ -8,7 +8,7 @@ import {
   ProFormSelect,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
 

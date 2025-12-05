@@ -6,7 +6,7 @@ import {
   ProFormTextArea,
   ProFormText,
 } from '@ant-design/pro-components';
-import { adminApi } from '@ai-education/shared-frontend';
+import { adminApi } from '@/lib/api';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Button, Space, Card } from 'antd';

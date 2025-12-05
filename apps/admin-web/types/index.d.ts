@@ -9,13 +9,13 @@ declare global {
     total?: number;
   }
 
-  interface ApiData<T = any> {
+  interface ApiResponse<T = any> {
     status?: number;
     message?: string;
     data: T;
   }
 
-  interface ListApiData<T = any> {
+  interface ListResponse<T = any> {
     status?: number;
     message?: string;
     data: ListData<T>;

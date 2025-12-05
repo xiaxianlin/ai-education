@@ -3,41 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
-import { adminApi } from '@ai-education/shared-frontend';
-import type { LoginRequest } from '@ai-education/shared-frontend';
-import { getInitialState, setState } from '@/lib/initialState';
-import styles from './index.less';
-import { useEffect } from 'react';
+import { adminApi } from '@/lib/api';
+import './index.less';
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const { runAsync: login } = useRequest(adminApi.login.bind(adminApi), {
+  const { runAsync: login } = useRequest(data => adminApi.login(data), {
     manual: true,
     onSuccess: async (res) => {
-      await getInitialState();
+      localStorage.setItem('token', res);
       navigate('/home', { replace: true });
     },
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const state = await getInitialState();
-        if (state.manager) {
-          navigate('/home', { replace: true });
-        }
-      } catch (error) {
-        // 未登录，继续显示登录页
-      }
-    };
-    checkAuth();
-  }, [navigate]);
 
   return (
-    <div className={styles.layout}>
-      <div className={styles.container}>
-        <LoginForm<LoginRequest>
+    <div className="layout">
+      <div className="container">
+        <LoginForm<LoginModel>
           size="large"
           title="管理员登录"
           subTitle="请输入您的凭据以访问管理后台"
