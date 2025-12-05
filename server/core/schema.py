@@ -148,26 +148,6 @@ class StudentTextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class StudentWrongRecordSchema(BaseModel):
-    id: int
-    student_id: str
-    question_id: int
-    session_id: int
-    unit_id: Optional[int] = None
-    knowledge: Optional[str] = None
-    textbook_id: Optional[int] = None
-    user_answer: Optional[str] = None
-    correct_answer: Optional[str] = None
-    analysis: Optional[str] = None
-    time_spent: int = 0
-    is_corrected: int = 0
-    corrected_time: int = 0
-    create_time: int
-    update_time: int
-
-    model_config = {"from_attributes": True}
-
-
 class PracticeSessionSchema(BaseModel):
     id: int
     student_id: str
@@ -205,6 +185,26 @@ class PracticeAnswerSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PracticeWrongRecordSchema(BaseModel):
+    id: int
+    student_id: str
+    question_id: int
+    session_id: int
+    unit_id: Optional[int] = None
+    knowledge: Optional[str] = None
+    textbook_id: Optional[int] = None
+    user_answer: Optional[str] = None
+    correct_answer: Optional[str] = None
+    analysis: Optional[str] = None
+    time_spent: int = 0
+    is_corrected: int = 0
+    corrected_time: int = 0
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
 class PracticeReportSchema(BaseModel):
     id: int
     session_id: int
@@ -226,5 +226,14 @@ class PracticeReportSchema(BaseModel):
     weaknesses: str = "[]"
     recommendations: str = "[]"
     create_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class PracticeDetailSchema(BaseModel):
+    session: PracticeSessionSchema
+    answers: list[PracticeAnswerSchema]
+    report: PracticeReportSchema
+    wrong_records: list[PracticeWrongRecordSchema]
 
     model_config = {"from_attributes": True}

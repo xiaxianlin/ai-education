@@ -61,7 +61,7 @@ export const StudentApi = {
 
   // 获取练习会话详情
   getPracticeSession: async (sessionId: number) => {
-    const res = await request<ApiData<PracticeSessionDetail>>(`/practice/session/${sessionId}`);
+    const res = await request<ApiData<PracticeDetail>>(`/practice/session/${sessionId}`);
     return res.data;
   },
 

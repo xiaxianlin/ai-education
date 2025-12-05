@@ -149,7 +149,7 @@ declare global {
   }
 
   /**
-   * 错题记录（对应 StudentWrongRecordSchema）
+   * 错题记录（对应 PracticeWrongRecordSchema
    */
   interface PracticeWrongRecord {
     id: number;

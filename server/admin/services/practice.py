@@ -4,12 +4,18 @@ from loguru import logger
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
+from core.database import (
+    PracticeSession,
+    PracticeAnswer,
+    PracticeReport,
+    PracticeWrongRecord,
+)
 from core.schema import (
     PracticeAnswerSchema,
     PracticeSessionSchema,
     PracticeReportSchema,
-    QuestionSchema,
+    PracticeWrongRecordSchema,
+    PracticeDetailSchema,
 )
 
 
@@ -36,7 +42,7 @@ async def get_practice_history(db: AsyncSession, student_id: str, practice_type:
 async def get_session_detail(db: AsyncSession, session_id: int):
     """
     根据练习会话ID查询会话详情
-    包括：会话基本信息、问题列表、已完成练习的报告
+    包括：会话基本信息、问题列表、已完成练习的报告、错题记录
     """
     # 查询会话基本信息
     session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
@@ -58,11 +64,21 @@ async def get_session_detail(db: AsyncSession, session_id: int):
             select(PracticeReport).where(PracticeReport.session_id == session_id)
         )
 
-    return {
-        "session": PracticeSessionSchema.model_validate(session),
-        "report": PracticeReportSchema.model_validate(report) if report else None,
-        "answers": [PracticeAnswerSchema.model_validate(answer) for answer in answers.all()],
-    }
+    # 查询错题记录
+    wrong_records = await db.scalars(
+        select(PracticeWrongRecord)
+        .where(PracticeWrongRecord.session_id == session_id)
+        .order_by(desc(PracticeWrongRecord.create_time))
+    )
+
+    return PracticeDetailSchema(
+        session=PracticeSessionSchema.model_validate(session),
+        answers=[PracticeAnswerSchema.model_validate(answer) for answer in answers.all()],
+        report=PracticeReportSchema.model_validate(report) if report else None,
+        wrong_records=[
+            PracticeWrongRecordSchema.model_validate(record) for record in wrong_records.all()
+        ],
+    )
 
 
 async def delete_session(db: AsyncSession, session_id: int):

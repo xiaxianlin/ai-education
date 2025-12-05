@@ -7,9 +7,10 @@ const OSS_BASE_URL = 'https://xxl-ai-helper.oss-cn-hangzhou.aliyuncs.com';
 
 interface QuestionDetailDrawerProps {
   open: boolean;
-  onClose: () => void;
   question?: Question;
   answer?: PracticeAnswer;
+  wrongRecord?: PracticeWrongRecord;
+  onClose: () => void;
 }
 
 /**
@@ -50,17 +51,15 @@ function parseOptions(options?: string): string[] {
 
 export function QuestionDetailDrawer({
   open,
-  onClose,
   question,
   answer,
+  wrongRecord,
+  onClose,
 }: QuestionDetailDrawerProps) {
   if (!question) return null;
 
   const resourceUrl = buildResourceUrl(question.resource);
   const optionsList = parseOptions(question.options);
-  const hasanswer =
-    answer && answer.status !== undefined && answer.status !== null && answer.status !== 0;
-
   return (
     <Drawer
       title="题目详情"
@@ -84,6 +83,7 @@ export function QuestionDetailDrawer({
           {question.content}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="选项" valueType="text">
+          {optionsList.length === 0 && '-'}
           {optionsList.map((option, index) => {
             const optionLabel = String.fromCharCode(65 + index); // A, B, C, D...
             return (
@@ -98,6 +98,7 @@ export function QuestionDetailDrawer({
         </ProDescriptions.Item>
 
         <ProDescriptions.Item label="题目资源" valueType="text">
+          {!resourceUrl && '-'}
           {question.resource_type === 'image' && resourceUrl && (
             <Image width={120} src={resourceUrl} alt="题目资源" preview={{ mask: '预览' }} />
           )}
@@ -111,6 +112,11 @@ export function QuestionDetailDrawer({
         <ProDescriptions.Item label="学生答案" valueType="text">
           {answer?.text_answer || '未作答'}
         </ProDescriptions.Item>
+        {wrongRecord && (
+          <ProDescriptions.Item label="错题分析" valueType="text">
+            {wrongRecord?.analysis || '-'}
+          </ProDescriptions.Item>
+        )}
       </ProDescriptions>
     </Drawer>
   );

@@ -89,6 +89,27 @@ declare global {
   }
 
   /**
+   * 错题记录（对应 PracticeWrongRecordSchema）
+   */
+  interface PracticeWrongRecord {
+    id: number;
+    student_id: string;
+    question_id: number;
+    session_id: number;
+    unit_id?: number;
+    knowledge?: string;
+    textbook_id?: number;
+    user_answer?: string;
+    correct_answer?: string;
+    analysis?: string;
+    time_spent: number;
+    is_corrected: number;
+    corrected_time: number;
+    create_time: number;
+    update_time: number;
+  }
+
+  /**
    * 练习报告（对应 PracticeReportSchema）
    */
   interface PracticeReport {
@@ -115,12 +136,13 @@ declare global {
   }
 
   /**
-   * 练习会话详情
+   * 练习会话详情（对应 PracticeDetailSchema）
    */
-  interface PracticeSessionDetail {
+  interface PracticeDetail {
     session: PracticeSession;
     answers: PracticeAnswer[];
-    report: PracticeReport;
+    report?: PracticeReport;
+    wrong_records: PracticeWrongRecord[];
   }
 }
 

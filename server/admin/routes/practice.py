@@ -75,12 +75,13 @@ async def get_session_detail(session_id: int, db: AsyncSession = Database):
     - 会话基本信息
     - 问题列表（带答题记录）
     - 已完成练习的报告（如果存在）
+    - 错题记录列表
 
     Args:
         session_id: 练习会话ID
 
     Returns:
-        会话详情，包含session、answers、report三部分
+        会话详情，包含session、answers、report、wrong_records四部分
     """
     return await practice.get_session_detail(db, session_id)
 

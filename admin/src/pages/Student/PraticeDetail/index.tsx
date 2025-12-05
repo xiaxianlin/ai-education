@@ -10,7 +10,7 @@ import { StudentApi } from '@/services/student';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useMemo, useState } from 'react';
+import { SetStateAction, useMemo, useState } from 'react';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import {
   PRACTICE_STATUS_COLORS,
@@ -18,6 +18,7 @@ import {
   PRACTICE_TYPE_LABELS,
 } from '@/constants/practice';
 import { fmtTime } from '@/utils/time';
+import { PageHeader } from '@/components/business';
 
 export default function PracticeDetailPage() {
   const { session_id } = useParams<{ session_id: string }>();
@@ -28,14 +29,24 @@ export default function PracticeDetailPage() {
     { ready: !!session_id },
   );
 
-  const { session, answers = [] } = data || {};
+  const { session, answers = [], wrong_records = [] } = data || {};
 
   const answersMap = useMemo(() => {
-    return answers.reduce((acc, answer) => {
+    return answers.reduce((acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
       acc[answer.question_id] = answer;
       return acc;
     }, {} as Record<number, PracticeAnswer>);
   }, [answers]);
+
+  const wrongRecordsMap = useMemo(() => {
+    return wrong_records.reduce(
+      (acc: { [x: string]: PracticeWrongRecord }, record: PracticeWrongRecord) => {
+        acc[record.question_id] = record;
+        return acc;
+      },
+      {} as Record<number, PracticeWrongRecord>,
+    );
+  }, [wrong_records]);
 
   const columns = useMemo<ProColumns<Question>[]>(
     () => [
@@ -113,7 +124,7 @@ export default function PracticeDetailPage() {
         valueType: 'option',
         width: 100,
         fixed: 'right',
-        render: (_, record) => (
+        render: (_: unknown, record: SetStateAction<Question | undefined>) => (
           <Button type="link" size="small" onClick={() => setSelectedQuestion(record)}>
             详情
           </Button>
@@ -161,28 +172,18 @@ export default function PracticeDetailPage() {
   }
 
   return (
-    <PageContainer
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => history.back()}
-            style={{ padding: 0, height: 'auto' }}
-          />
-          <span>练习详情</span>
-        </div>
-      }
-    >
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <PageContainer title={<PageHeader title="练习详情" />}>
+      <Space vertical style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">
-              <Tag color="blue">{PRACTICE_TYPE_LABELS[session.session_type]}</Tag>
+              <Tag color="blue">
+                {PRACTICE_TYPE_LABELS[session.session_type as PracticeSessionType]}
+              </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
-              <Tag color={PRACTICE_STATUS_COLORS[session.status]}>
-                {PRACTICE_STATUS_LABELS[session.status]}
+              <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
+                {PRACTICE_STATUS_LABELS[session.status as PracticeSessionStatus]}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="开始时间" valueType="dateTime">
@@ -202,35 +203,19 @@ export default function PracticeDetailPage() {
         <Card title="练习进度">
           <Row gutter={16}>
             <Col span={6}>
-              <Statistic
-                title="总题数"
-                value={session.question_count}
-                suffix="题"
-                valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
-              />
+              <Statistic title="总题数" value={session.question_count} suffix="题" />
             </Col>
             <Col span={6}>
-              <Statistic
-                title="已完成"
-                value={session.answer_count}
-                suffix="题"
-                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}
-              />
+              <Statistic title="已完成" value={session.answer_count} suffix="题" />
             </Col>
             <Col span={6}>
-              <Statistic
-                title="正确"
-                value={session.correct_count}
-                suffix="题"
-                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}
-              />
+              <Statistic title="正确" value={session.correct_count} suffix="题" />
             </Col>
             <Col span={6}>
               <Statistic
                 title="错误"
                 value={session.answer_count - session.correct_count}
                 suffix="题"
-                valueStyle={{ fontSize: '20px', fontWeight: 'bold', color: '#ff4d4f' }}
               />
             </Col>
           </Row>
@@ -242,7 +227,7 @@ export default function PracticeDetailPage() {
             columns={columns}
             search={false}
             pagination={false}
-            dataSource={answers.map((answer) => answer.question!)}
+            dataSource={answers.map((answer: PracticeAnswer) => answer.question!)}
             loading={loading}
             options={false}
             toolbar={{ actions: [] }}
@@ -255,6 +240,7 @@ export default function PracticeDetailPage() {
           onClose={() => setSelectedQuestion(undefined)}
           question={selectedQuestion}
           answer={selectedQuestion ? answersMap[Number(selectedQuestion.id)] : undefined}
+          wrongRecord={selectedQuestion ? wrongRecordsMap[Number(selectedQuestion.id)] : undefined}
         />
       </Space>
     </PageContainer>
