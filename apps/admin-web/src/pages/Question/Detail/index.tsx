@@ -1,4 +1,4 @@
-import { useParams, history } from '@umijs/max';
+import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { adminApi } from '@ai-education/shared-student';
 import { useRequest } from 'ahooks';
@@ -9,6 +9,7 @@ import { AudioPlayer } from '@/components/ui';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const {
     data: question,
@@ -18,7 +19,7 @@ export default function QuestionDetailPage() {
     ready: !!id,
     onError: () => {
       message.error('加载问题失败');
-      history.back();
+      navigate(-1);
     },
   });
 
@@ -68,7 +69,7 @@ export default function QuestionDetailPage() {
       manual: true,
       onSuccess: () => {
         message.success('删除成功');
-        history.push('/question/list');
+        navigate('/question');
       },
       onError: (error: any) => {
         message.error(error?.message || '删除失败');
@@ -126,7 +127,7 @@ export default function QuestionDetailPage() {
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={() => history.back()}
+            onClick={() => navigate(-1)}
             style={{ padding: 0, height: 'auto' }}
           />
           <span>题目详情</span>
@@ -138,7 +139,7 @@ export default function QuestionDetailPage() {
           <Button
             key="edit"
             type="primary"
-            onClick={() => history.push(`/question/edit/${question.id}`)}
+            onClick={() => navigate(`/question/edit/${question.id}`)}
           >
             编辑
           </Button>,

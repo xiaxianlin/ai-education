@@ -1,4 +1,4 @@
-import { useParams, history } from '@umijs/max';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   PageContainer,
   ProForm,
@@ -23,6 +23,7 @@ const resourceTypeOptions = {
 
 export default function QuestionEditPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } =
     useConfigs();
   const [form] = ProForm.useForm<QuestionUpdateForm>();
@@ -76,7 +77,7 @@ export default function QuestionEditPage() {
     ready: !!id,
     onError: () => {
       message.error('加载问题失败');
-      history.back();
+      navigate(-1);
     },
   });
 
@@ -89,7 +90,7 @@ export default function QuestionEditPage() {
       manual: true,
       onSuccess: () => {
         message.success('更新成功');
-        history.back();
+        navigate(-1);
       },
       onError: () => {
         message.error('更新失败');
@@ -124,7 +125,7 @@ export default function QuestionEditPage() {
           <Button
             type="text"
             icon={<ArrowLeftOutlined />}
-            onClick={() => history.back()}
+            onClick={() => navigate(-1)}
             style={{ padding: 0, height: 'auto' }}
           />
           <span>编辑题目</span>
@@ -142,7 +143,7 @@ export default function QuestionEditPage() {
             render: (props) => {
               return (
                 <Space style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                  <Button onClick={() => history.back()}>取消</Button>
+                  <Button onClick={() => navigate(-1)}>取消</Button>
                   <Button
                     type="primary"
                     loading={submitting}

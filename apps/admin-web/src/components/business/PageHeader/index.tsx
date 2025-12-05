@@ -1,6 +1,6 @@
 import { Button } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { useNavigate } from 'react-router-dom';
 
 interface PageHeaderProps {
   title: string;
@@ -8,11 +8,13 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, onBack }: PageHeaderProps) {
+  const navigate = useNavigate();
+  
   const handleBack = () => {
     if (onBack) {
       onBack();
     } else {
-      history.back();
+      navigate(-1);
     }
   };
 

@@ -1,6 +1,6 @@
 import { adminApi } from '@ai-education/shared-student';
 import { ProForm } from '@ant-design/pro-components';
-import { useParams, useNavigate } from '@umijs/max';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
 import { useState } from 'react';

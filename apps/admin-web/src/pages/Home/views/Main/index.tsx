@@ -9,7 +9,7 @@ import {
 import { useRequest } from 'ahooks';
 import { adminApi } from '@ai-education/shared-student';
 import { useState } from 'react';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router-dom';
 import { GRADES } from '@/constants/course';
 
 const { Title, Text } = Typography;

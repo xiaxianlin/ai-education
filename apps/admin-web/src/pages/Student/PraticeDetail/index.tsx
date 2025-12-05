@@ -1,4 +1,4 @@
-import { useParams, history } from '@umijs/max';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   PageContainer,
   ProDescriptions,
@@ -22,6 +22,7 @@ import { PageHeader } from '@/components/business';
 
 export default function PracticeDetailPage() {
   const { session_id } = useParams<{ session_id: string }>();
+  const navigate = useNavigate();
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
   // 使用统一的会话详情接口
   const { data, loading, error } = useRequest(
@@ -151,7 +152,7 @@ export default function PracticeDetailPage() {
             </div>
           }
         >
-          <Button type="primary" onClick={() => history.back()}>
+          <Button type="primary" onClick={() => navigate(-1)}>
             返回上一页
           </Button>
         </Empty>
@@ -163,7 +164,7 @@ export default function PracticeDetailPage() {
     return (
       <PageContainer>
         <Empty description="练习详情不存在">
-          <Button type="primary" onClick={() => history.back()}>
+          <Button type="primary" onClick={() => navigate(-1)}>
             返回上一页
           </Button>
         </Empty>

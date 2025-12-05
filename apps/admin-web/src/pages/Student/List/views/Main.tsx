@@ -3,7 +3,7 @@ import { useStudentListModel } from '../models/page';
 import { Button } from 'antd';
 import { adminApi } from '@ai-education/shared-student';
 import { useMemo } from 'react';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router-dom';
 import { CommonTable, FormModal } from '@/components/business';
 import {
   createTimeColumn,

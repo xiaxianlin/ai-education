@@ -1,5 +1,5 @@
 {
-  "name": "ai-education-server",
+  "name": "server-api",
   "version": "0.1.0",
   "private": true,
   "description": "AI Education Platform Server",

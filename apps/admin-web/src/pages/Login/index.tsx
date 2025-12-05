@@ -1,29 +1,38 @@
 import { useRequest } from 'ahooks';
-import { history, useModel } from '@umijs/max';
+import { useNavigate } from 'react-router-dom';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
 import { adminApi } from '@ai-education/shared-student';
 import type { LoginRequest } from '@ai-education/shared-student';
+import { getInitialState, setState } from '@/lib/initialState';
 import styles from './index.less';
 import { useEffect } from 'react';
 
 export default function LoginPage() {
-  const { initialState, refresh } = useModel('@@initialState');
+  const navigate = useNavigate();
 
   const { runAsync: login } = useRequest(adminApi.login.bind(adminApi), {
     manual: true,
-    onSuccess: (res) => {
-      refresh();
-      history.replace('/');
+    onSuccess: async (res) => {
+      await getInitialState();
+      navigate('/home', { replace: true });
     },
   });
 
   useEffect(() => {
-    if (initialState?.manager) {
-      history.replace('/');
-    }
-  }, [initialState]);
+    const checkAuth = async () => {
+      try {
+        const state = await getInitialState();
+        if (state.manager) {
+          navigate('/home', { replace: true });
+        }
+      } catch (error) {
+        // 未登录，继续显示登录页
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   return (
     <div className={styles.layout}>

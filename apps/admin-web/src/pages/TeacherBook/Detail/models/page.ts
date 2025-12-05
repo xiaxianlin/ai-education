@@ -2,7 +2,7 @@ import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
 import { adminApi } from '@ai-education/shared-student';
-import { useNavigate, useParams } from '@umijs/max';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const useContainer = () => {
   const navigate = useNavigate();

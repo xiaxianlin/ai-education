@@ -4,7 +4,7 @@ import { Button, Space, Tag } from 'antd';
 import { adminApi } from '@ai-education/shared-student';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router-dom';
 import { useConfigs } from '@/hooks';
 import { CommonTable } from '@/components/business';
 

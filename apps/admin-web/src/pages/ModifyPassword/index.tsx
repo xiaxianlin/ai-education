@@ -1,13 +1,16 @@
 import React from 'react';
-import { history, useModel } from '@umijs/max';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Form, Input, message } from 'antd';
 import { validPassword } from '@/utils/validation';
 import { adminApi } from '@ai-education/shared-student';
 import { useRequest } from 'ahooks';
+import { useInitialState } from '@/hooks/useInitialState';
+import { clearState } from '@/lib/initialState';
 
 export default function MoidfyPasswordPage() {
-  const { initialState } = useModel('@@initialState');
+  const navigate = useNavigate();
+  const { initialState } = useInitialState();
 
   const { runAsync } = useRequest(adminApi.modifyPassword, {
     manual: true,
@@ -15,7 +18,8 @@ export default function MoidfyPasswordPage() {
     onSuccess: () => {
       message.success('修改成功');
       localStorage.removeItem('token');
-      history.replace('/login');
+      clearState();
+      navigate('/login', { replace: true });
     },
   });
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { adminApi } from '@ai-education/shared-student';
 import { GRADES } from '@/constants/course';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router-dom';
 import { useConfigs, createTimeColumn, useDelete } from '@/hooks';
 import { Space, Button, message } from 'antd';
 import { useRequest } from 'ahooks';

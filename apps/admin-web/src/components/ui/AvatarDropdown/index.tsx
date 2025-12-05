@@ -1,8 +1,9 @@
 import { EditOutlined, LogoutOutlined } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { useNavigate } from 'react-router-dom';
 import React, { PropsWithChildren } from 'react';
 import { createStyles } from 'antd-style';
 import { Dropdown } from 'antd';
+import { clearState } from '@/lib/initialState';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -16,6 +17,8 @@ const useStyles = createStyles(({ token }) => {
 
 export function AvatarDropdown({ children }: PropsWithChildren) {
   const { styles } = useStyles();
+  const navigate = useNavigate();
+  
   return (
     <Dropdown
       overlayClassName={styles.dropdown}
@@ -25,10 +28,11 @@ export function AvatarDropdown({ children }: PropsWithChildren) {
           switch (e.key) {
             case 'logout':
               localStorage.removeItem('token');
-              history.replace('/login');
+              clearState();
+              navigate('/login', { replace: true });
               break;
             case 'password':
-              history.push('/password');
+              navigate('/password');
               break;
           }
         },

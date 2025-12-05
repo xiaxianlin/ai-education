@@ -1,6 +1,6 @@
 import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Card } from 'antd';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router-dom';
 import { useRef, useMemo, useState } from 'react';
 import { fmtTime } from '@/utils/time';
 import { DeleteButton } from '@/components/business/DeleteButton';

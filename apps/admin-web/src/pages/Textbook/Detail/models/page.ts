@@ -2,7 +2,7 @@ import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
 import { adminApi } from '@ai-education/shared-student';
-import { useNavigate, useParams } from '@umijs/max';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useGenerateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
@@ -22,7 +22,7 @@ const useContainer = () => {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
-      navigate('/course/textbook');
+      navigate('/textbook');
     },
   });
   const { loading: parsing, runAsync: parse } = useRequest(adminApi.parseTextbook, {
