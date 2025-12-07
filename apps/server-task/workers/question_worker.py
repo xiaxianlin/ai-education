@@ -1,12 +1,17 @@
 """题目生成 Worker"""
 from typing import Dict, Any
 from loguru import logger
+import httpx
 
-from services.llm_service import LLMService
+from core.settings import envs
 
 
 class QuestionWorker:
     """题目生成 Worker"""
+    
+    def __init__(self):
+        self.ai_service_url = envs.AI_SERVICE_URL  # http://server-ai:7892
+        self.timeout = 600.0  # 题目生成可能需要较长时间
     
     async def generate(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -14,38 +19,43 @@ class QuestionWorker:
         
         Args:
             payload: 包含以下字段：
-                - prompt: LangChain ChatPromptTemplate（需要序列化后传递，或传递 prompt 配置）
-                - prompt_input: Prompt 输入数据
-                - parser_config: Parser 配置（用于重建 JsonOutputParser）
-                - model_name: 模型名称（可选）
-                - temperature: 温度参数（可选）
+                - type: 生成类型 (unit, textbook, daily_practice, unit_practice, assessment)
+                - count: 生成题目数量
+                - textbook_id: 教材ID
+                - unit_id: 单元ID（可选）
+                - student_id: 学生ID（可选，每日练习时需要）
                 
         Returns:
             Dict: 生成的题目数据
         """
-        logger.info(f"开始生成题目: payload_keys={list(payload.keys())}")
+        logger.info(f"开始生成题目: type={payload.get('type')}, count={payload.get('count')}")
         
-        # 注意：由于 LangChain 的 prompt 和 parser 对象无法直接序列化，
-        # 实际使用时需要通过配置重建这些对象
-        # 这里提供一个简化的实现示例
-        
-        # 从 payload 中提取数据
-        prompt_text = payload.get("prompt_text", "")
-        prompt_input = payload.get("prompt_input", {})
-        model_name = payload.get("model_name", "qwen3-max")
-        temperature = payload.get("temperature", 0.7)
-        
-        # 调用 LLM 生成文本
-        result_text = await LLMService.generate_text(
-            prompt_text=prompt_text,
-            model_name=model_name,
-            temperature=temperature,
-        )
-        
-        logger.info(f"题目生成完成: result_length={len(result_text)}")
-        
-        return {
-            "result": result_text,
-            "model": model_name,
-        }
-
+        try:
+            async with httpx.AsyncClient(
+                base_url=self.ai_service_url,
+                timeout=self.timeout,
+                headers={"Content-Type": "application/json"}
+            ) as client:
+                response = await client.post(
+                    "/api/v1/question/generate",
+                    json=payload
+                )
+                response.raise_for_status()
+                result = response.json()
+                
+                logger.info(
+                    f"题目生成完成: type={payload.get('type')}, "
+                    f"generated_count={len(result.get('questions', []))}"
+                )
+                
+                return result
+                
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                f"题目生成失败: {e.response.status_code}, "
+                f"{e.response.text}"
+            )
+            raise ValueError(f"题目生成失败: {e.response.text}")
+        except Exception as e:
+            logger.error(f"题目生成异常: {e}", exc_info=True)
+            raise

@@ -1,3 +1,5 @@
+import uuid
+import asyncio
 from loguru import logger
 from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
 from core.constants import GENERATE_QUESTION_COUNT
 from shared.utils.time import now, today
-from shared.question.graph import invoke_generate_workflow
+from services.task_client import TaskServiceClient
 
 
 class PracticeService:
@@ -68,14 +70,55 @@ class PracticeService:
                 raise ValueError("生成数量异常")
 
             logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
-            questions = await invoke_generate_workflow(
-                db=db,
-                type=type,
-                count=count,
-                unit=unit,
-                textbook=textbook,
-                student_id=student_id,
+            
+            # 提交任务到 server-task
+            task_id = str(uuid.uuid4())
+            task_client = TaskServiceClient()
+            
+            payload = {
+                "type": type,
+                "count": count,
+                "textbook_id": textbook.id,
+                "student_id": student_id,
+            }
+            if unit:
+                payload["unit_id"] = unit.id
+            
+            await task_client.submit_task(
+                task_id=task_id,
+                task_type="question_generation",
+                payload=payload,
+                timeout=600,
             )
+            
+            # 轮询任务状态直到完成
+            max_wait_time = 600
+            poll_interval = 2
+            elapsed_time = 0
+            
+            while elapsed_time < max_wait_time:
+                status = await task_client.get_task_status(task_id)
+                if not status:
+                    raise ValueError("任务不存在")
+                
+                task_status = status.get("status")
+                if task_status == "completed":
+                    # 从数据库查询生成的题目（根据类型和参数）
+                    query = select(Question).where(Question.textbook_id == textbook.id)
+                    if unit:
+                        query = query.where(Question.unit_id == unit.id)
+                    query = query.order_by(Question.id.desc()).limit(count)
+                    questions_result = await db.scalars(query)
+                    questions = questions_result.all()
+                    break
+                elif task_status == "failed":
+                    error_msg = status.get("error", "未知错误")
+                    raise ValueError(f"题目生成失败: {error_msg}")
+                
+                await asyncio.sleep(poll_interval)
+                elapsed_time += poll_interval
+            else:
+                raise ValueError("题目生成超时")
 
             await PracticeService.create_answer_records(db, session.id, questions)
 
@@ -112,18 +155,58 @@ class PracticeService:
             session.start_time = 0
             session.answer_count = 0
 
-            logger.info(f"开始重新生成练习会话: session_id={session_id}, type={type}")
+            logger.info(f"开始重新生成练习会话: session_id={session_id}, type={session.session_type}")
 
             unit_id = session.target_id if session.session_type == "unit_practice" else None
 
-            questions = await invoke_generate_workflow(
-                db=db,
-                type=session.session_type,
-                count=session.question_count,
-                unit_id=unit_id,
-                textbook_id=session.textbook_id,
-                student_id=session.student_id,
+            # 提交任务到 server-task
+            task_id = str(uuid.uuid4())
+            task_client = TaskServiceClient()
+            
+            payload = {
+                "type": session.session_type,
+                "count": session.question_count,
+                "textbook_id": session.textbook_id,
+                "student_id": session.student_id,
+            }
+            if unit_id:
+                payload["unit_id"] = unit_id
+            
+            await task_client.submit_task(
+                task_id=task_id,
+                task_type="question_generation",
+                payload=payload,
+                timeout=600,
             )
+            
+            # 轮询任务状态直到完成
+            max_wait_time = 600
+            poll_interval = 2
+            elapsed_time = 0
+            
+            while elapsed_time < max_wait_time:
+                status = await task_client.get_task_status(task_id)
+                if not status:
+                    raise ValueError("任务不存在")
+                
+                task_status = status.get("status")
+                if task_status == "completed":
+                    # 从数据库查询生成的题目
+                    query = select(Question).where(Question.textbook_id == session.textbook_id)
+                    if unit_id:
+                        query = query.where(Question.unit_id == unit_id)
+                    query = query.order_by(Question.id.desc()).limit(session.question_count)
+                    questions_result = await db.scalars(query)
+                    questions = questions_result.all()
+                    break
+                elif task_status == "failed":
+                    error_msg = status.get("error", "未知错误")
+                    raise ValueError(f"题目生成失败: {error_msg}")
+                
+                await asyncio.sleep(poll_interval)
+                elapsed_time += poll_interval
+            else:
+                raise ValueError("题目生成超时")
             await PracticeService.create_answer_records(db, session.id, questions)
 
             session.question_count = len(questions)

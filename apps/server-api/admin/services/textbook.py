@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import List
 from fastapi import UploadFile
 from loguru import logger
+import uuid
+import asyncio
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
@@ -11,7 +13,7 @@ from shared.services.textbook_parser import TextbookParser
 from core.database import Knowledge, Question, Textbook, Unit
 from core.schema import TextbookSchema, QuestionSchema
 from core.settings import envs
-from shared.question.graph import invoke_generate_workflow
+from services.task_client import TaskServiceClient
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -257,18 +259,53 @@ async def generate_textbook_questions(
     )
 
     try:
-        # 3. 调用题目生成工作流
-        questions = await invoke_generate_workflow(
-            db=db, type="textbook", count=count, textbook=textbook
+        # 3. 提交任务到 server-task
+        task_id = str(uuid.uuid4())
+        task_client = TaskServiceClient()
+        
+        payload = {
+            "type": "textbook",
+            "count": count,
+            "textbook_id": textbook_id,
+        }
+        
+        await task_client.submit_task(
+            task_id=task_id,
+            task_type="question_generation",
+            payload=payload,
+            timeout=600,  # 10分钟超时
         )
-
-        logger.info(
-            f"[Admin] 教材题目生成成功: textbook_id={textbook_id}, "
-            f"generated_count={len(questions)}"
-        )
-
-        # 4. 返回题目列表
-        return [QuestionSchema.model_validate(q) for q in questions]
+        
+        # 4. 轮询任务状态直到完成
+        max_wait_time = 600  # 最多等待10分钟
+        poll_interval = 2  # 每2秒轮询一次
+        elapsed_time = 0
+        
+        while elapsed_time < max_wait_time:
+            status = await task_client.get_task_status(task_id)
+            if not status:
+                raise ValueError("任务不存在")
+            
+            task_status = status.get("status")
+            if task_status == "completed":
+                logger.info(f"[Admin] 教材题目生成成功: textbook_id={textbook_id}")
+                # 从数据库查询生成的题目
+                questions_result = await db.scalars(
+                    select(Question)
+                    .where(Question.textbook_id == textbook_id)
+                    .order_by(Question.id.desc())
+                    .limit(count)
+                )
+                questions = questions_result.all()
+                return [QuestionSchema.model_validate(q) for q in questions]
+            elif task_status == "failed":
+                error_msg = status.get("error", "未知错误")
+                raise ValueError(f"题目生成失败: {error_msg}")
+            
+            await asyncio.sleep(poll_interval)
+            elapsed_time += poll_interval
+        
+        raise ValueError("题目生成超时")
 
     except Exception as e:
         logger.error(f"[Admin] 教材题目生成失败: textbook_id={textbook_id}, error={e}")

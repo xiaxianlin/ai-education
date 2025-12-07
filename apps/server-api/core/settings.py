@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "*"  # 多个域名用逗号分隔
     # 题目召回数量配置
     QUESTION_RECALL_COUNT: int = 0
+    
+    # 服务间通信配置
+    TASK_SERVICE_URL: str = "http://server-task:7891"
+    AI_SERVICE_URL: str = "http://server-ai:7892"
 
     class Config:
         env_file = ".env"

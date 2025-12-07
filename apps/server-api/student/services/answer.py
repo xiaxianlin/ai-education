@@ -81,40 +81,24 @@ async def _ai_analysis_answer(
         (is_correct, analysis): 是否正确和分析结果
     """
     try:
-        # 创建 JSON 输出解析器
-        parser = JsonOutputParser(pydantic_object=AnswerAnalysisResult)
-        format_instructions = parser.get_format_instructions()
-
-        # 格式化提示词
-        analysis_prompt = ANALYSIS_PROMPT.format(
-            content=question.content,
-            options=question.options if question.options else "无",
-            knowledge=question.knowledge if question.knowledge else "无",
-            question_answer=question.answer,
-            student_answer=text_answer,
-            format_instructions=format_instructions,
-        )
-
-        # 调用 LLM
-        llm = ChatOpenAI(
-            model_name="qwen3-max-preview",
-            openai_api_base=envs.AI_PLATFORM_URL,
-            openai_api_key=envs.AI_PLATFORM_KEY,
-            temperature=0.7,
-        )
-
-        # 使用 chain 进行调用和解析
-        chain = llm | parser
-        result = await chain.ainvoke(analysis_prompt)
-
-        # 验证结果
-        if not isinstance(result, dict):
-            raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
-
-        # 解析结果
-        analysis_result = AnswerAnalysisResult.model_validate(result)
-        is_correct = analysis_result.is_correct
-        analysis = analysis_result.analysis
+        # 使用 AI 服务客户端调用 server-ai
+        from services.ai_client import AIServiceClient
+        
+        ai_client = AIServiceClient()
+        
+        try:
+            result = await ai_client.analyze_answer(
+                content=question.content,
+                options=question.options if question.options else "无",
+                knowledge=question.knowledge if question.knowledge else "无",
+                question_answer=question.answer,
+                student_answer=text_answer,
+            )
+            
+            is_correct = result["is_correct"]
+            analysis = result["analysis"]
+        finally:
+            await ai_client.close()
 
         # 如果判断为错误，添加错题记录
         if not is_correct:

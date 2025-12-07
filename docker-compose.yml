@@ -87,12 +87,20 @@ services:
 
       # CORS 配置
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      
+      # 服务间通信配置
+      TASK_SERVICE_URL: http://server-task:7891
+      AI_SERVICE_URL: http://server-ai:7892
     volumes:
       - server_tmp:/app/tmp
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      server-task:
+        condition: service_healthy
+      server-ai:
         condition: service_healthy
     networks:
       - ai-education-network
@@ -110,11 +118,78 @@ services:
       dockerfile: Dockerfile
     container_name: ai-education-server-task
     restart: always
+    ports:
+      - "${TASK_SERVER_PORT:-7891}:7891"
+    environment:
+      # 运行环境
+      RUN_ENV: ${RUN_ENV:-production}
+      LOG_DIR: /app/tmp/logs
+      LOG_TO_FILE: ${LOG_TO_FILE:-false}
+      
+      # AI 配置
+      AI_PLATFORM: ${AI_PLATFORM}
+      AI_PLATFORM_KEY: ${AI_PLATFORM_KEY}
+      AI_PLATFORM_URL: ${AI_PLATFORM_URL}
+      
+      # AI 服务配置
+      AI_SERVICE_URL: http://server-ai:7892
+      
+      # Redis 配置
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redispassword}
+      REDIS_DB: 0
     depends_on:
-      - server-api
       - redis
+      - server-ai
     networks:
       - ai-education-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7891/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # AI 服务
+  server-ai:
+    build:
+      context: ./apps/server-ai
+      dockerfile: Dockerfile
+    container_name: ai-education-server-ai
+    restart: always
+    ports:
+      - "${AI_SERVER_PORT:-7892}:7892"
+    environment:
+      # 运行环境
+      RUN_ENV: ${RUN_ENV:-production}
+      AI_SERVER_HOST: 0.0.0.0
+      AI_SERVER_PORT: 7892
+      LOG_DIR: /app/tmp/logs
+      LOG_TO_FILE: ${LOG_TO_FILE:-false}
+      
+      # AI 配置
+      AI_PLATFORM: ${AI_PLATFORM}
+      AI_PLATFORM_KEY: ${AI_PLATFORM_KEY}
+      AI_PLATFORM_URL: ${AI_PLATFORM_URL}
+      
+      # 阿里云配置
+      ALIYUN_ACCESS_KEY_ID: ${ALIYUN_ACCESS_KEY_ID}
+      ALIYUN_ACCESS_KEY_SECRET: ${ALIYUN_ACCESS_KEY_SECRET}
+      ALIYUN_OSS_ENDPOINT: ${ALIYUN_OSS_ENDPOINT}
+      ALIYUN_OSS_BUCKET: ${ALIYUN_OSS_BUCKET}
+      ALIYUN_OSS_REGION: ${ALIYUN_OSS_REGION}
+      ALIYUN_WORKSPACE_ID: ${ALIYUN_WORKSPACE_ID}
+      ALIYUN_RAG_INDEX_ID: ${ALIYUN_RAG_INDEX_ID}
+      ALIYUN_RAG_CATEGORY_ID: ${ALIYUN_RAG_CATEGORY_ID}
+    volumes:
+      - server_ai_tmp:/app/tmp
+    networks:
+      - ai-education-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7892/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 管理后台前端
   admin-web:
@@ -174,6 +249,8 @@ volumes:
   redis_data:
     driver: local
   server_tmp:
+    driver: local
+  server_ai_tmp:
     driver: local
   nginx_logs:
     driver: local

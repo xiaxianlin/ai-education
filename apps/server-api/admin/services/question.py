@@ -1,6 +1,3 @@
-import os
-import requests
-from pathlib import Path
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,10 +5,7 @@ from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from core.database import Question, Unit
 from core.schema import QuestionSchema, SearchResultSchema
-from core.settings import envs
-from shared.services.aliyun import AliyunAIService
-from shared.provider.aliyun import AliyunOSS
-from shared.utils.question import build_full_question_text
+from services.ai_client import AIServiceClient
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
@@ -286,17 +280,6 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
     )
 
 
-async def _download_file(url: str, file_path: str) -> None:
-    """下载文件到本地"""
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-
-
 async def generate_question_image(db: AsyncSession, question_id: str) -> QuestionSchema:
     """为单个问题生成图片并上传到 OSS"""
     question = await db.scalar(select(Question).where(Question.id == question_id))
@@ -313,47 +296,19 @@ async def generate_question_image(db: AsyncSession, question_id: str) -> Questio
         )
 
     try:
-        # 构建完整的问题内容（包含题目、选项、答案）
-        full_question_text = build_full_question_text(question)
-
-        # 生成图片
+        # 直接调用 AI 服务生成图片
         logger.info(f"开始为问题 {question_id} 生成图片")
-        # 使用允许的尺寸：1328*1328（最接近正方形的尺寸）
-        image_url = AliyunAIService.generate_image(
-            text=full_question_text, width=1328, height=1328, optimize_prompt=True
-        )
-
-        # 下载图片到临时目录
-        oss = AliyunOSS()
-        tmp_dir = Path(envs.TMP_DIR)
-        tmp_dir.mkdir(parents=True, exist_ok=True)
-        image_path = tmp_dir / f"question_{question_id}_image.jpg"
-
-        await _download_file(image_url, str(image_path))
-
-        # 读取文件内容
-        with open(image_path, "rb") as f:
-            file_data = f.read()
-
-        # 上传到 OSS
-        unit_id = question.unit_id or 0
-        oss_path = f"questions/{unit_id}/images/{question_id}.jpg"
-
-        # 检查文件是否存在，如果存在则先删除
-        if oss.exist(oss_path):
-            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
-            oss.delete(oss_path)
-
-        oss.upload(oss_path, file_data)
-
+        ai_client = AIServiceClient()
+        result = await ai_client.generate_question_image(int(question_id))
+        
         # 更新问题的 resource 字段
-        question.resource = oss_path
+        question.resource = result.get("resource")
         await db.commit()
+        await db.refresh(question)
 
-        # 清理临时文件
-        os.remove(image_path)
-
-        logger.info(f"成功为问题 {question_id} 生成并上传图片: {oss_path}")
+        logger.info(f"成功为问题 {question_id} 生成并上传图片: {result.get('resource')}")
+        
+        return QuestionSchema.model_validate(question)
 
     except Exception as e:
         logger.error(f"为问题 {question_id} 生成图片失败: {e}")
@@ -377,50 +332,19 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
         )
 
     try:
-        # 生成语音，优先使用 resource_content，如果没有则使用完整的问题内容
-        if question.resource_content:
-            text_to_speak = question.resource_content
-            logger.info(f"使用 resource_content 生成语音: {text_to_speak[:50]}...")
-        else:
-            # 构建完整的问题内容（包含题目、选项、答案）
-            text_to_speak = build_full_question_text(question)
-            logger.info("使用完整问题内容生成语音")
-
-        # 生成语音
+        # 直接调用 AI 服务生成语音
         logger.info(f"开始为问题 {question_id} 生成语音")
-        audio_url = AliyunAIService.tts(text=text_to_speak, voice="Cherry", language="Chinese")
-
-        # 下载音频到临时目录
-        oss = AliyunOSS()
-        tmp_dir = Path(envs.TMP_DIR)
-        tmp_dir.mkdir(parents=True, exist_ok=True)
-        audio_path = tmp_dir / f"question_{question_id}_audio.mp3"
-
-        await _download_file(audio_url, str(audio_path))
-
-        # 读取文件内容
-        with open(audio_path, "rb") as f:
-            file_data = f.read()
-
-        # 上传到 OSS
-        unit_id = question.unit_id or 0
-        oss_path = f"questions/{unit_id}/audio/{question_id}.mp3"
-
-        # 检查文件是否存在，如果存在则先删除
-        if oss.exist(oss_path):
-            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
-            oss.delete(oss_path)
-
-        oss.upload(oss_path, file_data)
-
+        ai_client = AIServiceClient()
+        result = await ai_client.generate_question_audio(int(question_id))
+        
         # 更新问题的 resource 字段
-        question.resource = oss_path
+        question.resource = result.get("resource")
         await db.commit()
+        await db.refresh(question)
 
-        # 清理临时文件
-        os.remove(audio_path)
-
-        logger.info(f"成功为问题 {question_id} 生成并上传语音: {oss_path}")
+        logger.info(f"成功为问题 {question_id} 生成并上传语音: {result.get('resource')}")
+        
+        return QuestionSchema.model_validate(question)
 
     except Exception as e:
         logger.error(f"为问题 {question_id} 生成语音失败: {e}")

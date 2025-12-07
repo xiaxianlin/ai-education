@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     AI_PLATFORM_KEY: str
     AI_PLATFORM_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     
+    # AI 服务配置
+    AI_SERVICE_URL: str = "http://server-ai:7892"
+    
     # 阿里云配置
     ALIYUN_ACCESS_KEY_ID: str = ""
     ALIYUN_ACCESS_KEY_SECRET: str = ""

@@ -2,7 +2,7 @@
 from typing import Dict, Any
 from loguru import logger
 
-from services.analysis_service import AnalysisService
+from services.ai_client import AIServiceClient
 
 
 class AnalysisWorker:
@@ -42,7 +42,8 @@ class AnalysisWorker:
         if not student_answer:
             raise ValueError("student_answer 字段不能为空")
         
-        result = await AnalysisService.analyze_answer(
+        ai_client = AIServiceClient()
+        result = await ai_client.analyze_answer_async(
             content=content,
             options=options,
             knowledge=knowledge,

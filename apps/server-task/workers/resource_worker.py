@@ -2,8 +2,7 @@
 from typing import Dict, Any
 from loguru import logger
 
-from services.image_service import ImageService
-from services.audio_service import AudioService
+from services.ai_client import AIServiceClient
 
 
 class ResourceWorker:
@@ -33,7 +32,8 @@ class ResourceWorker:
         if not text:
             raise ValueError("text 字段不能为空")
         
-        image_url = ImageService.generate_image(
+        ai_client = AIServiceClient()
+        image_url = await ai_client.generate_image_async(
             text=text,
             width=width,
             height=height,
@@ -70,7 +70,8 @@ class ResourceWorker:
         if not text:
             raise ValueError("text 字段不能为空")
         
-        audio_url = AudioService.generate_audio(
+        ai_client = AIServiceClient()
+        audio_url = await ai_client.generate_audio_async(
             text=text,
             voice=voice,
             language=language,
