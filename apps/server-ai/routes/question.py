@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 
-from api.schemas.question import (
+from schemas.question import (
     QuestionGenerateRequest,
     QuestionGenerateResponse,
     QuestionSchema,

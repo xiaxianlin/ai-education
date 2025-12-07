@@ -851,7 +851,7 @@ class QuestionWorker:
 ```python
 # apps/server-ai/api/routes/llm.py
 from fastapi import APIRouter, HTTPException
-from api.schemas.llm import LLMGenerateRequest, LLMGenerateResponse
+from schemas.llm import LLMGenerateRequest, LLMGenerateResponse
 from services.llm.service import LLMService
 
 router = APIRouter(prefix="/api/v1/llm", tags=["LLM"])

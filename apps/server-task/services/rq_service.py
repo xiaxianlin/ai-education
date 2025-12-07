@@ -5,9 +5,9 @@ from loguru import logger
 from rq import Queue, Job
 from rq.job import JobStatus
 
-from core.redis_client import get_redis_connection
+from core.redis import get_redis_connection
 from models.task import TaskRequest, TaskResponse, TaskStatus, TaskType
-from workers.task_executor import execute_task
+from core.executor import execute_task
 
 
 class RQService:

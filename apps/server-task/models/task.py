@@ -8,9 +8,6 @@ from pydantic import BaseModel, Field
 class TaskType(str, Enum):
     """任务类型枚举"""
     QUESTION_GENERATION = "question_generation"  # 题目生成
-    IMAGE_GENERATION = "image_generation"       # 图片生成
-    AUDIO_GENERATION = "audio_generation"       # 语音生成
-    ANSWER_ANALYSIS = "answer_analysis"         # 答题分析
 
 
 class TaskStatus(str, Enum):
@@ -29,6 +26,15 @@ class TaskRequest(BaseModel):
     payload: Dict[str, Any] = Field(..., description="任务负载数据")
     priority: int = Field(default=0, description="优先级，数字越大优先级越高")
     timeout: Optional[int] = Field(default=None, description="超时时间（秒）")
+
+
+class QuestionSubmitRequest(BaseModel):
+    """题目生成提交请求模型（与 invoke_generate_workflow 参数一致）"""
+    count: int = Field(..., description="生成题目数量")
+    type: str = Field(..., description="生成类型: unit, textbook, daily_practice, unit_practice, assessment")
+    textbook_id: int = Field(..., description="教材ID")
+    student_id: Optional[str] = Field(None, description="学生ID（每日练习时需要）")
+    unit_id: Optional[int] = Field(None, description="单元ID（单元生成时需要）")
 
 
 class TaskResponse(BaseModel):

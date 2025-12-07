@@ -1,4 +1,5 @@
 """AI Service 主应用"""
+
 import os
 import dotenv
 import uvicorn
@@ -15,7 +16,7 @@ from core.exception import (
     global_exception_handler,
     validation_exception_handler,
 )
-from api.routes import llm, image, audio, analysis, health, question
+from routes import llm, image, audio, analysis, question
 
 dotenv.load_dotenv()
 
@@ -24,12 +25,12 @@ dotenv.load_dotenv()
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     logger.info(">" * 10 + "AI Service 启动" + "<" * 10)
-    
+
     # 初始化运行目录
     os.makedirs(envs.LOG_DIR, exist_ok=True)
-    
+
     yield
-    
+
     logger.info("AI Service 关闭")
 
 
@@ -61,7 +62,6 @@ app.include_router(image.router)
 app.include_router(audio.router)
 app.include_router(question.router)
 app.include_router(analysis.router)
-app.include_router(health.router)
 
 
 @app.get("/")
@@ -70,7 +70,7 @@ async def root():
     return {
         "service": "AI Education AI Service",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running",
     }
 
 
@@ -82,4 +82,3 @@ if __name__ == "__main__":
         reload=envs.RUN_ENV == "development",
         log_level="info",
     )
-

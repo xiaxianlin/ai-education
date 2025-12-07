@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
-from api.schemas.llm import (
+from schemas.llm import (
     LLMGenerateRequest,
     LLMGenerateResponse,
     LLMStructuredRequest,

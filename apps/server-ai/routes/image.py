@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 
-from api.schemas.image import ImageGenerateRequest, ImageGenerateResponse
+from schemas.image import ImageGenerateRequest, ImageGenerateResponse
 from core.database import Database, Question
 from services.image_service import ImageService
 from services.oss_service import OSSService

@@ -13,7 +13,7 @@ class QuestionWorker:
         self.ai_service_url = envs.AI_SERVICE_URL  # http://server-ai:7892
         self.timeout = 600.0  # 题目生成可能需要较长时间
     
-    async def generate(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def run(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         生成题目
         

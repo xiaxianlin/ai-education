@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
 
-from api.schemas.audio import AudioTTSRequest, AudioTTSResponse
+from schemas.audio import AudioTTSRequest, AudioTTSResponse
 from core.database import Database, Question
 from services.audio_service import AudioService
 from services.oss_service import OSSService

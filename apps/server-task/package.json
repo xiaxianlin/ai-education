@@ -4,9 +4,10 @@
   "private": true,
   "description": "AI Education Platform Server",
   "scripts": {
-    "dev": "uv run main.py",
+    "dev": "concurrently -n task-worker,task-app -c cyan,magenta \"uv run worker.py\" \"uv run main.py\"",
     "build": "uv build",
     "start": "uv run main.py",
+    "worker": "uv run worker.py",
     "test": "uv run pytest"
   }
 }

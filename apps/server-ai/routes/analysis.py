@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
-from api.schemas.analysis import AnswerAnalysisRequest, AnswerAnalysisResponse
+from schemas.analysis import AnswerAnalysisRequest, AnswerAnalysisResponse
 from services.analysis_service import AnalysisService
 
 router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])

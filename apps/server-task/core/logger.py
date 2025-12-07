@@ -1,4 +1,5 @@
 """日志配置"""
+
 import sys
 import os
 from loguru import logger
@@ -10,7 +11,7 @@ def setup_logger():
     """配置日志"""
     # 移除默认的 logger
     logger.remove()
-    
+
     # 控制台输出
     logger.add(
         sys.stderr,
@@ -18,9 +19,8 @@ def setup_logger():
         level="INFO" if envs.RUN_ENV == "production" else "DEBUG",
         colorize=True,
     )
-    
-    # 文件输出（如果启用）
-    if envs.LOG_TO_FILE:
+
+    if envs.RUN_ENV == "production":
         os.makedirs(envs.LOG_DIR, exist_ok=True)
         logger.add(
             os.path.join(envs.LOG_DIR, "task_{time:YYYY-MM-DD}.log"),
@@ -42,4 +42,3 @@ def setup_logger():
 
 # 初始化日志
 setup_logger()
-

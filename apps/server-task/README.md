@@ -1,13 +1,10 @@
 # AI Education Task Service
 
-AI 生成任务处理服务，专注于处理各种 AI 生成任务，包括题目生成、图片生成、语音生成和答题分析。
+AI 题目生成任务处理服务，专注于处理题目生成的后台任务。
 
 ## 功能特性
 
-- ✅ **题目生成**: 使用 LLM 生成教育题目
-- ✅ **图片生成**: 使用 AI 生成教育图片，支持提示词优化
-- ✅ **语音生成**: 文本转语音（TTS）
-- ✅ **答题分析**: 分析学生答题情况，提供反馈
+- ✅ **题目生成**: 使用 LLM 生成教育题目（当前唯一支持的任务类型）
 - ✅ **异步任务处理**: 支持异步任务提交和状态查询
 - ✅ **任务管理**: 支持任务状态查询、取消等操作
 
@@ -15,7 +12,6 @@ AI 生成任务处理服务，专注于处理各种 AI 生成任务，包括题�
 
 - **框架**: FastAPI
 - **任务队列**: RQ (Redis Queue)
-- **AI**: LangChain, OpenAI API, DashScope
 - **异步**: asyncio
 - **日志**: Loguru
 - **配置**: Pydantic Settings
@@ -33,26 +29,21 @@ apps/server-task/
 ├── core/              # 核心模块
 │   ├── settings.py   # 配置管理
 │   ├── logger.py     # 日志配置
-│   └── redis_client.py  # Redis 客户端
+│   └── redis.py  # Redis 客户端
 ├── services/         # 服务层
-│   ├── llm_service.py         # LLM 服务
-│   ├── image_service.py       # 图片生成服务
-│   ├── audio_service.py      # 语音生成服务
-│   ├── analysis_service.py    # 答题分析服务
-│   ├── prompt_service.py     # 提示词优化服务
-│   ├── rq_service.py         # RQ 队列服务
-│   └── task_manager.py       # 任务管理器
+│   └── rq_service.py         # RQ 队列服务
 ├── workers/          # Worker 层
-│   ├── question_worker.py    # 题目生成 Worker
-│   ├── resource_worker.py    # 资源生成 Worker
-│   ├── analysis_worker.py    # 答题分析 Worker
-│   └── task_executor.py      # RQ 任务执行器
+│   └── question_worker.py    # 题目生成 Worker
+├── core/             # 核心模块
+│   ├── settings.py   # 配置管理
+│   ├── logger.py     # 日志配置
+│   ├── redis.py  # Redis 客户端
+│   └── executor.py   # RQ 任务执行器
+├── utils/            # 工具模块
 ├── routes/           # 路由层
 │   ├── health.py     # 健康检查
 │   └── task.py       # 任务相关 API
 ├── main.py           # API 服务入口
-├── worker.py         # RQ Worker 启动脚本
-├── start_worker.sh   # Worker 启动脚本
 ├── pyproject.toml    # 依赖配置
 └── Dockerfile        # Docker 镜像
 ```
@@ -96,11 +87,15 @@ AI_PLATFORM_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 # 日志配置
 LOG_DIR=./tmp/logs
 LOG_TO_FILE=false
+
+# 任务队列配置
+RQ_QUEUE_NAME=default  # RQ 队列名称
+ENABLE_WORKER=true     # 是否在启动应用时同时启动 Worker
 ```
 
 ### 3. 启动服务
 
-**启动 API 服务**:
+**启动服务**（默认同时启动 API 服务和 Worker）:
 ```bash
 # 开发模式
 python main.py
@@ -109,19 +104,24 @@ python main.py
 uvicorn main:app --host 0.0.0.0 --port 7891 --workers 4
 ```
 
-**启动 RQ Worker**（必需）:
-```bash
-# 使用脚本启动（推荐）
-./start_worker.sh
+**配置说明**:
+- `ENABLE_WORKER=true` (默认): 启动应用时同时启动 Worker
+- `ENABLE_WORKER=false`: 仅启动 API 服务，不启动 Worker
+- `RQ_QUEUE_NAME=default`: Worker 监听的队列名称（默认 "default"）
 
-# 或直接使用 Python
-python worker.py
+**仅启动 Worker**（用于单独运行 Worker）:
+```bash
+# 使用默认队列
+python main.py worker
 
 # 指定队列名称
-python worker.py default
+python main.py worker default
 ```
 
-**注意**: RQ Worker 必须单独运行，用于处理队列中的任务。可以启动多个 Worker 实例来提高并发处理能力。
+**注意**: 
+- 默认情况下，启动应用时会自动在后台启动 Worker，无需单独运行
+- 如果需要启动多个 Worker 实例，可以使用 `python main.py worker` 命令单独启动
+- 可以通过设置 `ENABLE_WORKER=false` 来禁用自动启动 Worker
 
 ## API 文档
 
@@ -140,15 +140,15 @@ Content-Type: application/json
 
 {
     "task_id": "task_123",
-    "task_type": "image_generation",
+    "task_type": "question_generation",
     "payload": {
-        "text": "一只可爱的小猫",
-        "width": 1328,
-        "height": 1328,
-        "optimize_prompt": true
+        "type": "unit",
+        "count": 10,
+        "textbook_id": "textbook_001",
+        "unit_id": "unit_001"
     },
     "priority": 0,
-    "timeout": 300
+    "timeout": 600
 }
 ```
 
@@ -172,67 +172,31 @@ GET /api/task/?status=completed&limit=100
 
 ## 任务类型
 
-### 1. 题目生成 (question_generation)
+### 题目生成 (question_generation)
+
+当前服务只支持题目生成任务。
 
 ```json
 {
     "task_id": "task_001",
     "task_type": "question_generation",
     "payload": {
-        "prompt_text": "生成一道小学数学题",
-        "prompt_input": {},
-        "model_name": "qwen3-max",
-        "temperature": 0.7
-    }
+        "type": "unit",
+        "count": 10,
+        "textbook_id": "textbook_001",
+        "unit_id": "unit_001"
+    },
+    "priority": 0,
+    "timeout": 600
 }
 ```
 
-### 2. 图片生成 (image_generation)
-
-```json
-{
-    "task_id": "task_002",
-    "task_type": "image_generation",
-    "payload": {
-        "text": "一只可爱的小猫",
-        "width": 1328,
-        "height": 1328,
-        "optimize_prompt": true
-    }
-}
-```
-
-### 3. 语音生成 (audio_generation)
-
-```json
-{
-    "task_id": "task_003",
-    "task_type": "audio_generation",
-    "payload": {
-        "text": "这是一道数学题",
-        "voice": "Cherry",
-        "language": "Chinese"
-    }
-}
-```
-
-### 4. 答题分析 (answer_analysis)
-
-```json
-{
-    "task_id": "task_004",
-    "task_type": "answer_analysis",
-    "payload": {
-        "content": "题目内容",
-        "options": "选项A、选项B",
-        "knowledge": "知识点",
-        "question_answer": "正确答案",
-        "student_answer": "学生答案",
-        "model_name": "qwen3-max-preview",
-        "temperature": 0.7
-    }
-}
-```
+**payload 字段说明**:
+- `type`: 生成类型 (unit, textbook, daily_practice, unit_practice, assessment)
+- `count`: 生成题目数量
+- `textbook_id`: 教材ID
+- `unit_id`: 单元ID（可选）
+- `student_id`: 学生ID（可选，每日练习时需要）
 
 ## RQ 任务队列
 
@@ -241,7 +205,7 @@ GET /api/task/?status=completed&limit=100
 本服务使用 RQ (Redis Queue) 进行任务队列管理：
 
 1. **API 服务** (`main.py`): 接收任务请求，将任务提交到 RQ 队列
-2. **RQ Worker** (`worker.py`): 从队列中获取任务并执行
+2. **RQ Worker**: 从队列中获取任务并执行（默认在后台自动启动）
 3. **Redis**: 作为任务队列的存储后端
 
 ### 启动流程
@@ -251,23 +215,25 @@ GET /api/task/?status=completed&limit=100
 redis-server
 ```
 
-2. **启动 API 服务**:
+2. **启动服务**（默认同时启动 API 服务和 Worker）:
 ```bash
 python main.py
 ```
 
-3. **启动 RQ Worker**（可以启动多个）:
+3. **单独启动 Worker**（可选，用于启动多个 Worker 实例）:
 ```bash
-# 启动一个 Worker
-python worker.py
-
-# 或使用脚本
-./start_worker.sh
+# 启动一个 Worker（使用默认队列）
+python main.py worker
 
 # 启动多个 Worker（在不同终端）
-python worker.py default
-python worker.py default  # 第二个 Worker
+python main.py worker default
+python main.py worker default  # 第二个 Worker
 ```
+
+**配置说明**:
+- 默认情况下，启动应用时会自动在后台启动一个 Worker
+- 可以通过 `ENABLE_WORKER=false` 禁用自动启动 Worker
+- 可以通过 `RQ_QUEUE_NAME` 配置 Worker 监听的队列名称
 
 ### 任务状态
 
@@ -321,7 +287,7 @@ docker run -d \
   -e AI_PLATFORM_KEY=your-api-key \
   -e AI_PLATFORM_URL=https://dashscope.aliyuncs.com/compatible-mode/v1 \
   ai-education-task:latest \
-  python worker.py
+  python main.py worker
 ```
 
 ### Docker Compose 示例
@@ -349,7 +315,7 @@ services:
   
   task-worker:
     build: .
-    command: python worker.py
+    command: python main.py worker
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
