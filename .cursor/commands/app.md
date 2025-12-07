@@ -4,266 +4,270 @@
 
 ## 应用概述
 
-移动端是一个基于 React Native 0.73 的跨平台移动应用，为学生提供学习、练习、评测等功能，与 Web 端（student-web）保持功能一致性。
+移动端是一个基于 Flutter 3.0+ 的跨平台移动应用，为学生提供学习、练习、评测等功能，与 Web 端（student-web）保持功能一致性。
 
 ## 技术栈
 
-- **框架**: React Native 0.73
-- **语言**: TypeScript 5
-- **状态管理**: Zustand
-- **路由**: React Navigation (Stack Navigator + Bottom Tabs Navigator)
-- **网络请求**: Axios + React Query (@tanstack/react-query)
-- **样式**: NativeWind 4.0 (Tailwind CSS for React Native)
-- **本地存储**: AsyncStorage, MMKV
-- **UI 组件**: Lucide React Native + 自定义组件
-- **表单**: React Hook Form + Zod
-- **动画**: React Native Reanimated
-- **图片**: React Native Fast Image
-- **音频**: React Native Audio Recorder Player
-- **权限**: React Native Permissions
+- **框架**: Flutter 3.0+ (Dart SDK >=3.8.0)
+- **语言**: Dart 3.8+
+- **状态管理**: Riverpod 3.0.3 (flutter_riverpod, hooks_riverpod, flutter_hooks)
+- **路由**: GoRouter 17.0
+- **网络请求**: Dio 5.4.0
+- **本地存储**: SharedPreferences 2.2.2
+- **UI 组件**: Material Design + 自定义组件
+- **代码生成**: json_serializable 6.11.2, freezed 3.2.3, build_runner 2.10.4
+- **音频录制**: record 6.1.2
+- **权限管理**: permission_handler 12.0.1
+- **图片缓存**: cached_network_image 3.3.1, flutter_cache_manager 3.3.1
+- **工具库**: intl 0.20.2, freezed_annotation 3.1.0, logger 2.6.2
+- **代码检查**: flutter_lints 6.0.0
 
 ## 工作目录
 
-- `apps/student-app/` - React Native 移动端源代码
-  - `src/screens/` - 页面组件
-  - `src/components/` - UI 组件
-  - `src/navigation/` - 路由配置
-  - `src/stores/` - Zustand 状态管理
-  - `src/hooks/` - 自定义 Hooks
-  - `src/lib/` - 工具库和 API 客户端
+- `apps/student-app/lib/` - Flutter 源代码
+  - `screens/` - 功能模块（auth, home, practice, profile, textbook, wrong_records）
+  - `core/` - 核心功能（api, models, theme, utils）
+  - `shared/` - 共享组件和工具
+  - `app/` - 应用配置（路由等）
 
 ## 项目结构
 
 ```
-apps/student-app/src/
-├── screens/                  # 页面组件
-│   ├── Home/                # 首页
-│   ├── Practice/            # 练习相关页面
-│   └── ...
-├── components/               # UI 组件
-│   ├── ui/                  # 基础 UI 组件
-│   └── business/            # 业务组件
-├── navigation/               # 路由配置
-│   ├── RootNavigator.tsx    # 根导航器
-│   └── ...
-├── stores/                   # Zustand 状态管理
-│   ├── auth-store.ts        # 认证状态
-│   └── ...
-├── hooks/                    # 自定义 Hooks
-├── lib/                      # 工具库
-│   ├── api.ts               # API 客户端
-│   └── ...
-└── types/                    # TypeScript 类型定义
+apps/student-app/lib/
+├── screens/                  # 功能模块
+│   ├── auth/                # 认证模块
+│   ├── home/                # 首页模块
+│   ├── practice/            # 练习模块（daily, unit, session, report, history, detail, assessment）
+│   ├── profile/             # 个人中心模块
+│   ├── textbook/            # 教材模块
+│   └── wrong_records/       # 错题记录模块
+├── core/                     # 核心功能
+│   ├── api/                 # API 客户端和端点
+│   ├── models/              # 数据模型（使用 json_serializable）
+│   ├── constants/           # 常量定义
+│   ├── theme/               # 主题配置
+│   └── utils/               # 工具类
+├── shared/                   # 共享组件
+│   └── widgets/             # 共享 Widget（animations, loading, error 等）
+├── app/                      # 应用配置
+│   └── router.dart          # GoRouter 路由配置
+└── main.dart                 # 应用入口
 ```
 
 ## 开发原则
 
-1. **组件化**: 创建可复用的 React Native 组件
-2. **类型安全**: 充分利用 TypeScript 类型系统
-3. **性能优先**: 优化渲染性能，避免不必要的重渲染
-4. **用户体验**: 流畅的动画（60 FPS），友好的加载和错误状态
-5. **代码规范**: 遵循项目现有的代码风格和结构
-6. **跨平台一致性**: 参考 Web 端（student-web）的实现逻辑，保持功能一致性
-7. **原生体验**: 使用原生组件和 API，提供原生体验
+1. **跨平台一致性**: 参考 Web 端（student-web）的实现逻辑，保持功能一致性
+2. **原生体验**: 使用 Flutter 原生组件和 Material Design
+3. **性能优化**: 使用 Riverpod 进行状态管理，优化渲染性能
+4. **用户体验**: 流畅的动画和交互，使用自定义动画组件
+5. **类型安全**: 充分利用 Dart 的类型系统和代码生成
+6. **代码生成**: 使用 build_runner 生成 JSON 序列化代码
+
+## 重要注意事项
+
+### 代码生成
+
+项目使用了 `json_serializable` 和 `freezed` 来生成代码。在首次运行或修改模型后，**必须**运行以下命令：
+
+```bash
+cd apps/student-app
+./build.sh
+# 或
+flutter pub run build_runner build --delete-conflicting-outputs
+```
 
 ## 常用模式
 
-### 组件结构
-```tsx
-// src/screens/Home/index.tsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import { useSomeStore } from '@/stores';
+### Widget 结构
+```dart
+// screens/home/presentation/pages/home_page.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-export default function HomeScreen() {
-  const { data, loading } = useSomeStore();
-  
-  return (
-    <View className="flex-1">
-      <Text>Home</Text>
-    </View>
-  );
+class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(someProvider);
+    
+    return Scaffold(
+      appBar: AppBar(title: const Text('Home')),
+      body: state.when(
+        data: (data) => ListView(...),
+        loading: () => const CircularProgressIndicator(),
+        error: (error, stack) => ErrorWidget(error),
+      ),
+    );
+  }
 }
 ```
 
-### 状态管理 (Zustand)
-```tsx
-// src/stores/some-store.ts
-import { create } from 'zustand';
+### 状态管理 (Riverpod)
+```dart
+// providers/example_provider.dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:state_notifier/state_notifier.dart';
 
-interface SomeStore {
-  data: DataType[];
-  loading: boolean;
-  fetchData: () => Promise<void>;
-}
-
-export const useSomeStore = create<SomeStore>((set) => ({
-  data: [],
-  loading: false,
-  fetchData: async () => {
-    set({ loading: true });
-    try {
-      const result = await api.get('/endpoint');
-      set({ data: result, loading: false });
-    } catch (error) {
-      set({ loading: false });
-    }
-  },
-}));
-```
-
-### API 调用 (React Query)
-```tsx
-// 使用 React Query
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-
-function SomeComponent() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['someData'],
-    queryFn: async () => {
-      const response = await api.get('/endpoint');
-      return response.data;
-    },
-  });
-  
-  if (isLoading) return <Loading />;
-  if (error) return <Error />;
-  return <Content data={data} />;
-}
-```
-
-### 路由配置 (React Navigation)
-```tsx
-// src/navigation/RootNavigator.tsx
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from '@/screens/Home';
-
-const Stack = createStackNavigator();
-
-export function RootNavigator() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
-```
-
-### 样式 (NativeWind)
-```tsx
-import { View, Text } from 'react-native';
-
-// 使用 Tailwind CSS 类名
-<View className="flex-1 bg-white p-4">
-  <Text className="text-lg font-bold text-gray-900">
-    Hello World
-  </Text>
-</View>
-```
-
-### 表单处理 (React Hook Form + Zod)
-```tsx
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-
-const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
+final exampleProvider = StateNotifierProvider<ExampleNotifier, ExampleState>((ref) {
+  return ExampleNotifier(ref);
 });
 
-function FormComponent() {
-  const { control, handleSubmit } = useForm({
-    resolver: zodResolver(schema),
-  });
+class ExampleState {
+  final List<Data> data;
+  final bool loading;
   
-  const onSubmit = (data) => {
-    console.log(data);
-  };
+  ExampleState({required this.data, required this.loading});
   
-  return (
-    <View>
-      {/* 表单字段 */}
-      <Button onPress={handleSubmit(onSubmit)}>Submit</Button>
-    </View>
-  );
+  ExampleState copyWith({List<Data>? data, bool? loading}) {
+    return ExampleState(
+      data: data ?? this.data,
+      loading: loading ?? this.loading,
+    );
+  }
 }
+
+class ExampleNotifier extends StateNotifier<ExampleState> {
+  ExampleNotifier(this.ref) : super(ExampleState(data: [], loading: false));
+  final Ref ref;
+  
+  Future<void> fetchData() async {
+    state = state.copyWith(loading: true);
+    try {
+      final result = await ApiClient.instance.get('/endpoint');
+      state = state.copyWith(data: result, loading: false);
+    } catch (e) {
+      state = state.copyWith(loading: false);
+    }
+  }
+}
+```
+
+### API 调用
+```dart
+// 使用 ApiClient
+import 'package:student_app/core/api/api_client.dart';
+
+final response = await ApiClient.instance.get('/endpoint');
+final data = response.data;
+
+// 或使用 Repository
+final repository = ref.read(exampleRepositoryProvider);
+final data = await repository.fetchData();
+```
+
+### 路由导航 (GoRouter)
+```dart
+import 'package:go_router/go_router.dart';
+
+// 导航到新页面
+context.go('/path');
+context.push('/path');
+
+// 返回上一页
+context.pop();
+
+// 带参数导航
+context.push('/practice/session', extra: {'sessionId': 123});
+```
+
+### 样式 (Material Design)
+```dart
+import 'package:flutter/material.dart';
+
+// 使用 Material Design 组件
+Scaffold(
+  appBar: AppBar(
+    title: const Text('Title'),
+    backgroundColor: Theme.of(context).colorScheme.primary,
+  ),
+  body: Container(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      children: [
+        Text(
+          'Hello World',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+      ],
+    ),
+  ),
+)
 ```
 
 ## 性能优化技巧
 
-1. **使用 React.memo**: 避免不必要的组件重渲染
-```tsx
-export default React.memo(SomeComponent);
+1. **使用 const 构造函数**: 减少不必要的重建
+```dart
+const Text('Static Text');
+const SizedBox(height: 16);
 ```
 
-2. **FlatList 优化**: 处理长列表
-```tsx
-<FlatList
-  data={items}
-  renderItem={({ item }) => <ItemComponent item={item} />}
-  keyExtractor={(item) => item.id.toString()}
-  removeClippedSubviews={true}
-  maxToRenderPerBatch={10}
-/>
+2. **ListView.builder**: 处理长列表
+```dart
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) {
+    return ListTile(title: Text(items[index].name));
+  },
+)
 ```
 
-3. **图片优化**: 使用 Fast Image
-```tsx
-import FastImage from 'react-native-fast-image';
+3. **图片缓存**: 使用 cached_network_image
+```dart
+import 'package:cached_network_image/cached_network_image.dart';
 
-<FastImage
-  source={{ uri: imageUrl }}
-  style={styles.image}
-  resizeMode={FastImage.resizeMode.cover}
-/>
+CachedNetworkImage(
+  imageUrl: imageUrl,
+  placeholder: (context, url) => const CircularProgressIndicator(),
+  errorWidget: (context, url, error) => const Icon(Icons.error),
+)
 ```
 
-4. **避免内联函数**: 使用 useCallback
-```tsx
-const handlePress = useCallback(() => {
-  // handle logic
-}, [dependencies]);
+4. **避免不必要的重建**: 使用 Consumer 和 select
+```dart
+// 只监听特定状态变化
+final count = ref.watch(counterProvider.select((state) => state.count));
 ```
 
 ## 平台特定处理
 
 ### iOS vs Android
-```tsx
-import { Platform } from 'react-native';
+```dart
+import 'dart:io';
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: Platform.OS === 'ios' ? 20 : 0,
-  },
-});
+if (Platform.isIOS) {
+  // iOS 特定代码
+} else if (Platform.isAndroid) {
+  // Android 特定代码
+}
 ```
 
 ### 安全区域处理
-```tsx
-import { SafeAreaView } from 'react-native-safe-area-context';
+```dart
+import 'package:flutter/material.dart';
 
-<SafeAreaView style={{ flex: 1 }}>
-  {/* 内容 */}
-</SafeAreaView>
+SafeArea(
+  child: Scaffold(
+    body: Column(
+      children: [
+        // 内容会自动适配安全区域
+      ],
+    ),
+  ),
+)
 ```
 
 ## 注意事项
 
-- 遵循项目既定的代码结构和命名规范
-- **参考 Web 端（student-web）的实现逻辑，保持功能一致性**
-- 保持与后端 API (`server-api/student/`) 的一致性
-- 使用 NativeWind 进行样式管理，保持与 Web 端样式一致
-- 处理平台特定问题（iOS/Android 差异）
-- 实现适当的错误处理和加载状态
-- 优化渲染性能，避免不必要的 rebuild
-- 使用 React Query 进行数据缓存和同步
-- 注意内存管理，及时释放资源
-- 测试不同屏幕尺寸和设备的适配
+- **代码生成**: 修改模型后必须运行 `./build.sh` 生成 `.g.dart` 文件
+- **参考 Web 端**: 保持与 Web 端（student-web）的实现逻辑一致
+- **API 一致性**: 保持与后端 API (`server-api/student/`) 的一致性
+- **错误处理**: 实现适当的错误处理和加载状态
+- **性能优化**: 优化渲染性能，避免不必要的 rebuild
+- **内存管理**: 注意内存管理，及时释放资源
+- **测试适配**: 测试不同屏幕尺寸和设备的适配
+- **类型安全**: 充分利用 Dart 的类型系统
 
 ## 常用命令
 
@@ -271,29 +275,49 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 cd apps/student-app
 
 # 安装依赖
-pnpm install
+flutter pub get
 
-# 启动 Metro bundler
-pnpm start
+# 生成代码（必须！）
+./build.sh
+# 或
+flutter pub run build_runner build --delete-conflicting-outputs
 
-# 运行 Android 应用
-pnpm android
+# Watch 模式（开发时推荐）
+flutter pub run build_runner watch --delete-conflicting-outputs
 
-# 运行 iOS 应用
-pnpm ios
-
-# 类型检查
-pnpm type-check
+# 运行应用
+flutter run
+flutter run -d android  # Android
+flutter run -d ios       # iOS
 
 # 代码检查
-pnpm lint
+flutter analyze
+
+# 格式化代码
+flutter format .
+
+# 运行测试
+flutter test
 ```
+
+## 常见问题
+
+1. **编译错误：找不到 `_$*FromJson` 或 `_$*ToJson` 方法**
+   - 解决：运行 `./build.sh` 或 `flutter pub run build_runner build --delete-conflicting-outputs`
+
+2. **Provider 未找到错误**
+   - 检查是否在 `ProviderScope` 内使用
+   - 检查 provider 是否正确导入
+
+3. **路由跳转失败**
+   - 检查路由是否在 `app/router.dart` 中定义
+   - 检查认证状态（某些路由需要登录）
 
 ## 相关资源
 
 - Web 端参考: `apps/student-web/src/`（保持逻辑一致性）
 - 后端 API: `apps/server-api/student/routes/`
-- React Native 文档: https://reactnative.dev/
-- React Navigation 文档: https://reactnavigation.org/
-- NativeWind 文档: https://www.nativewind.dev/
-- React Query 文档: https://tanstack.com/query/latest
+- Flutter 文档: https://flutter.dev/
+- Riverpod 文档: https://riverpod.dev/
+- GoRouter 文档: https://pub.dev/packages/go_router
+- Material Design: https://material.io/design

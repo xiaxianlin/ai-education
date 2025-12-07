@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-这是一个全栈教育平台项目，采用 Monorepo 架构，包含 5 个主要应用：
+这是一个全栈教育平台项目，采用 Monorepo 架构，包含 6 个主要应用：
 
 ### 项目结构
 
@@ -15,14 +15,18 @@
    - 位置: `apps/student-web/`
 
 3. **student-app** - 学生端移动应用
-   - React Native 0.73 + TypeScript + NativeWind
+   - Flutter 3.0+ + Dart 3.8+ + Riverpod + GoRouter
    - 位置: `apps/student-app/`
 
 4. **server-api** - 后端 API 服务
    - FastAPI + Python 3.12 + SQLAlchemy + MySQL
    - 位置: `apps/server-api/`
 
-5. **server-task** - 后端任务处理服务
+5. **server-ai** - AI 服务
+   - FastAPI + Python 3.12 + LangChain + LangGraph
+   - 位置: `apps/server-ai/`
+
+6. **server-task** - 后端任务处理服务
    - FastAPI + Python 3.12 + Redis Queue
    - 位置: `apps/server-task/`
 
@@ -51,15 +55,17 @@
 
 ### 移动端技术栈 (student-app)
 
-- **框架**: React Native 0.73
-- **语言**: TypeScript 5
-- **状态管理**: Zustand
-- **路由**: React Navigation (Stack + Bottom Tabs)
-- **网络请求**: Axios + React Query (@tanstack/react-query)
-- **样式**: NativeWind (Tailwind CSS for React Native)
-- **本地存储**: AsyncStorage, MMKV
-- **UI 组件**: Lucide React Native + 自定义组件
-- **表单**: React Hook Form + Zod
+- **框架**: Flutter 3.0+
+- **语言**: Dart 3.8+
+- **状态管理**: Riverpod (flutter_riverpod, hooks_riverpod)
+- **路由**: GoRouter 17.0
+- **网络请求**: Dio 5.4.0
+- **本地存储**: SharedPreferences 2.2.2
+- **UI 组件**: Material Design + 自定义组件
+- **代码生成**: json_serializable, freezed, build_runner
+- **音频录制**: record 6.1.2
+- **权限管理**: permission_handler 12.0.1
+- **图片缓存**: cached_network_image, flutter_cache_manager
 
 ### 后端技术栈
 
@@ -73,6 +79,16 @@
 - **对象存储**: 阿里云 OSS
 - **日志**: Loguru
 - **异步运行时**: Uvicorn
+
+#### AI 服务 (server-ai)
+- **框架**: FastAPI 0.115+
+- **语言**: Python 3.12
+- **AI 框架**: LangChain, LangGraph
+- **AI 平台**: 阿里云百炼AI (DashScope SDK), OpenAI API
+- **功能**: LLM 文本生成、图片生成、语音生成、答题分析、题目生成工作流
+- **日志**: Loguru
+- **异步运行时**: Uvicorn
+- **端口**: 7892
 
 #### 任务服务 (server-task)
 - **框架**: FastAPI 0.115+
@@ -109,26 +125,27 @@
 - 日志记录和监控
 - 异步编程和并发处理
 - 任务队列和后台任务处理
+- AI 服务集成和工作流设计
 
-**负责项目**: `apps/server-api/`, `apps/server-task/`
+**负责项目**: `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
 
-**工作目录**: `apps/server-api/`, `apps/server-task/`
+**工作目录**: `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
 
 ### 移动端开发者 (Mobile Developer)
 专注于移动端应用开发，包括：
-- React Native 应用架构设计
-- 组件开发和 UI 实现
-- 状态管理和数据流设计
-- 路由和导航实现
-- API 集成和数据获取
+- Flutter 应用架构设计
+- Widget 开发和 UI 实现
+- 状态管理和数据流设计（Riverpod）
+- 路由和导航实现（GoRouter）
+- API 集成和数据获取（Dio）
 - 平台特定功能实现（iOS/Android）
 - 性能优化和内存管理
 - 用户体验优化（动画、交互、响应式）
-- 原生模块集成
+- 代码生成和模型序列化（json_serializable, freezed）
 
 **负责项目**: `apps/student-app/`
 
-**工作目录**: `apps/student-app/src/`
+**工作目录**: `apps/student-app/lib/`
 
 ### 架构师 (Architect)
 专注于系统架构和技术决策，包括：
@@ -157,7 +174,7 @@
 
 **负责项目**: 所有项目
 
-**工作目录**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`, `apps/server-api/`, `apps/server-task/`
+**工作目录**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`, `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
 
 ### UI 设计师 (UI Designer)
 专注于用户界面和体验设计，包括：
@@ -191,8 +208,9 @@
 在对话中使用以下命令专注于特定应用开发：
 - `@admin-web` - 管理端开发（React + Rsbuild + Ant Design）
 - `@student-web` - 学生端 Web 开发（React + Rsbuild + shadcn/ui）
-- `@student-app` - 学生端移动应用开发（React Native）
+- `@student-app` - 学生端移动应用开发（Flutter + Riverpod + GoRouter）
 - `@server-api` - 后端 API 服务开发（FastAPI + Python）
+- `@server-ai` - AI 服务开发（FastAPI + LangChain + LangGraph）
 - `@server-task` - 后端任务服务开发（FastAPI + Python）
 
 ### 方法二：明确声明
@@ -209,8 +227,8 @@
 ### 方法三：通过文件上下文
 打开相关文件后，AI 会自动识别上下文：
 - 打开 `apps/admin-web/src/` 或 `apps/student-web/src/` 下的文件 → 前端开发模式
-- 打开 `apps/student-app/src/` 下的文件 → 移动端开发模式
-- 打开 `apps/server-api/` 或 `apps/server-task/` 下的文件 → 后端开发模式
+- 打开 `apps/student-app/lib/` 下的文件 → 移动端开发模式
+- 打开 `apps/server-api/`、`apps/server-ai/` 或 `apps/server-task/` 下的文件 → 后端开发模式
 - 打开样式文件 → UI 设计模式
 - 同时打开前后端文件 → 全栈开发模式
 - 打开项目根目录配置文件 → 架构师模式
@@ -287,10 +305,12 @@
 - 工具函数使用 camelCase
 
 ### 移动端规范
-- 使用 TypeScript 严格模式
-- 组件使用函数式组件 + Hooks
-- 遵循 React Native 最佳实践
-- 使用 NativeWind 进行样式管理
+- 使用 Dart 3.8+ 语言特性
+- Widget 使用函数式组件和 StatefulWidget/StatelessWidget
+- 遵循 Flutter 最佳实践
+- 使用 Material Design 进行 UI 设计
+- 使用 Riverpod 进行状态管理
+- 使用 json_serializable 和 freezed 进行代码生成
 - 优化性能和内存使用
 
 ### 后端规范
@@ -326,21 +346,29 @@ cd apps/student-web && pnpm type-check # 类型检查
 ### 移动端开发
 ```bash
 cd apps/student-app
-pnpm start                    # 启动 Metro bundler
-pnpm android                  # 运行 Android 应用
-pnpm ios                      # 运行 iOS 应用
-pnpm type-check              # 类型检查
+flutter pub get               # 安装依赖
+./build.sh                   # 生成代码（json_serializable, freezed）
+flutter run                  # 运行应用
+flutter run -d android       # 运行 Android 应用
+flutter run -d ios           # 运行 iOS 应用
+flutter analyze              # 代码检查
+flutter format .             # 格式化代码
+flutter test                 # 运行测试
 ```
 
 ### 后端开发
 ```bash
 # API 服务
 cd apps/server-api
-uvicorn main:app --reload    # 启动开发服务器
+uvicorn main:app --reload --port 7890    # 启动开发服务器
+
+# AI 服务
+cd apps/server-ai
+uvicorn main:app --reload --port 7892    # 启动开发服务器
 
 # 任务服务
 cd apps/server-task
-uvicorn main:app --reload    # 启动开发服务器
+uvicorn main:app --reload --port 7891    # 启动开发服务器
 ```
 
 ## 项目结构
@@ -361,17 +389,21 @@ ai-eduaction/
 │   │       ├── stores/      # Zustand 状态
 │   │       └── hooks/       # 自定义 Hooks
 │   ├── student-app/         # 学生端移动应用
-│   │   └── src/
-│   │       ├── screens/     # 页面组件
-│   │       ├── components/  # UI 组件
-│   │       ├── navigation/  # 路由配置
-│   │       ├── stores/      # Zustand 状态
-│   │       └── hooks/       # 自定义 Hooks
+│   │   └── lib/
+│   │       ├── screens/     # 功能模块（auth, home, practice, profile, textbook, wrong_records）
+│   │       ├── core/        # 核心功能（api, models, theme, utils）
+│   │       ├── shared/      # 共享组件和工具
+│   │       └── app/         # 应用配置（路由等）
 │   ├── server-api/          # 后端 API 服务
 │   │   ├── admin/           # 管理端 API
 │   │   ├── student/         # 学生端 API
 │   │   ├── core/            # 核心模块
 │   │   └── shared/          # 共享模块
+│   ├── server-ai/           # AI 服务
+│   │   ├── api/             # API 层
+│   │   ├── services/        # 服务层
+│   │   ├── question/        # 题目生成工作流
+│   │   └── core/            # 核心模块
 │   └── server-task/         # 后端任务服务
 │       ├── routes/          # 路由
 │       ├── services/        # 业务逻辑
@@ -391,6 +423,7 @@ ai-eduaction/
         ├── student-web.md    # 学生端 Web 开发命令
         ├── student-app.md    # 学生端移动应用开发命令
         ├── server-api.md     # API 服务开发命令
+        ├── server-ai.md      # AI 服务开发命令
         └── server-task.md    # 任务服务开发命令
 ```
 
@@ -404,5 +437,6 @@ ai-eduaction/
 6. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端/移动端
 7. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
 8. **跨平台一致性**: 移动端应参考 Web 端（student-web）的实现逻辑，保持功能一致性
-9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server-api`, `@server-task` 命令可以更精确地专注于特定应用的开发
+9. **代码生成**: Flutter 项目使用 json_serializable 和 freezed，修改模型后必须运行 `./build.sh` 或 `flutter pub run build_runner build --delete-conflicting-outputs`
+9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server-api`, `@server-ai`, `@server-task` 命令可以更精确地专注于特定应用的开发
 10. **架构决策**: 重大技术决策应由架构师参与，确保系统整体一致性
