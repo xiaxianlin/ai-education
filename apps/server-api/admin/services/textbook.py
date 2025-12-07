@@ -3,17 +3,14 @@ from pathlib import Path
 from typing import List
 from fastapi import UploadFile
 from loguru import logger
-import uuid
-import asyncio
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from shared.provider.aliyun import AliyunRag
 from shared.services.textbook_parser import TextbookParser
 from core.database import Knowledge, Question, Textbook, Unit
-from core.schema import TextbookSchema, QuestionSchema
+from core.schema import TextbookSchema
 from core.settings import envs
-from core.task_client import TaskServiceClient
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -213,100 +210,8 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
         with open(tmp_file_path, "wb") as buffer:
             buffer.write(data)
 
-        rag = AliyunRag()
-        # 更新索引（同步）
-        textbook.index_file_id = rag.exec_upload(
-            file.filename, tmp_file_path, textbook.index_file_id
-        )
-
-        await db.commit()
+        # TODO: 调用 ai_client 上传文件到知识库
     except ValueError as e:
         raise e
     finally:
         os.remove(tmp_file_path)
-
-
-async def generate_textbook_questions(
-    db: AsyncSession,
-    textbook_id: int,
-    count: int = 30,
-) -> List[QuestionSchema]:
-    """根据教材ID生成题目"""
-    # 1. 查询教材信息
-    textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
-    if not textbook:
-        raise ValueError("教材不存在")
-
-    if not textbook.is_parsed:
-        raise ValueError("教材尚未解析，请先解析教材")
-
-    # 2. 检查是否有单元和知识点
-    unit_count = await db.scalar(
-        select(func.count()).select_from(Unit).where(Unit.textbook_id == textbook_id)
-    )
-    if not unit_count or unit_count == 0:
-        raise ValueError("教材没有单元信息，请先解析教材")
-
-    knowledge_count = await db.scalar(
-        select(func.count()).select_from(Knowledge).where(Knowledge.textbook_id == textbook_id)
-    )
-    if not knowledge_count or knowledge_count == 0:
-        raise ValueError("教材没有知识点信息，请先解析教材")
-
-    logger.info(
-        f"[Admin] 开始为教材生成题目: textbook_id={textbook_id}, "
-        f"subject={textbook.subject}, grade={textbook.grade}, count={count}"
-    )
-
-    try:
-        # 3. 提交任务到 server-task
-        task_id = str(uuid.uuid4())
-        task_client = TaskServiceClient()
-        
-        payload = {
-            "type": "textbook",
-            "count": count,
-            "textbook_id": textbook_id,
-        }
-        
-        await task_client.submit_task(
-            task_id=task_id,
-            task_type="question_generation",
-            payload=payload,
-            timeout=600,  # 10分钟超时
-        )
-        
-        # 4. 轮询任务状态直到完成
-        max_wait_time = 600  # 最多等待10分钟
-        poll_interval = 2  # 每2秒轮询一次
-        elapsed_time = 0
-        
-        while elapsed_time < max_wait_time:
-            status = await task_client.get_task_status(task_id)
-            if not status:
-                raise ValueError("任务不存在")
-            
-            task_status = status.get("status")
-            if task_status == "completed":
-                logger.info(f"[Admin] 教材题目生成成功: textbook_id={textbook_id}")
-                # 从数据库查询生成的题目
-                questions_result = await db.scalars(
-                    select(Question)
-                    .where(Question.textbook_id == textbook_id)
-                    .order_by(Question.id.desc())
-                    .limit(count)
-                )
-                questions = questions_result.all()
-                return [QuestionSchema.model_validate(q) for q in questions]
-            elif task_status == "failed":
-                error_msg = status.get("error", "未知错误")
-                raise ValueError(f"题目生成失败: {error_msg}")
-            
-            await asyncio.sleep(poll_interval)
-            elapsed_time += poll_interval
-        
-        raise ValueError("题目生成超时")
-
-    except Exception as e:
-        logger.error(f"[Admin] 教材题目生成失败: textbook_id={textbook_id}, error={e}")
-        raise ValueError(f"题目生成失败: {str(e)}")

@@ -11,8 +11,6 @@ import { fmtTime } from '@/utils/time';
 import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
-import { generateWithConfirm } from '@/hooks/useGenerateWithConfirm';
-
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
   const {
@@ -21,23 +19,6 @@ export const UnitView: React.FC = () => {
     handleDelete,
     handleSubmit,
   } = useTextbookUnitModel();
-
-  const handleGenerateQuestions = (unit: Unit) => {
-    generateWithConfirm(
-      async () => {
-        return await adminApi.generateUnitQuestions(unit.id);
-      },
-      {
-        confirmTitle: '生成题目',
-        confirmContent: `确定要为单元 "${unit.name}" 生成题目吗？生成过程可能需要一些时间，请耐心等待。`,
-        loadingTitle: '正在生成题目',
-        loadingContent: `正在为单元 "${unit.name}" 生成题目，请稍候...`,
-        successTitle: '生成成功',
-        successContent: `单元 "${unit.name}" 的题目已生成完成！`,
-        errorTitle: '生成失败',
-      },
-    );
-  };
 
   const columns: ProColumns<Unit>[] = [
     { title: 'ID', dataIndex: 'id' },
@@ -52,9 +33,6 @@ export const UnitView: React.FC = () => {
         <Space>
           <Button type="link" onClick={() => showForm(record)}>
             编辑
-          </Button>
-          <Button type="link" onClick={() => handleGenerateQuestions(record)}>
-            生成题目
           </Button>
           <Button type="link" danger onClick={() => handleDelete(record)}>
             删除

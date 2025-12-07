@@ -1,14 +1,11 @@
 from sqlalchemy import delete, or_, select, func
-from sqlalchemy.orm import noload, joinedload
+from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from loguru import logger
-import uuid
-import asyncio
-from core.schema import SearchResultSchema, SearchSchema, UnitSchema, QuestionSchema
-from core.database import Unit, Knowledge, Textbook, Question
+from core.schema import SearchResultSchema, SearchSchema, UnitSchema
+from core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
-from core.task_client import TaskServiceClient
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
@@ -93,99 +90,3 @@ async def query_unit_by_textbook(db: AsyncSession, textbook_id: int) -> List[Uni
         select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
     )
     return units_result.all()
-
-
-async def generate_unit_questions(
-    db: AsyncSession, unit_id: int, count: int = 30
-) -> List[QuestionSchema]:
-    """
-    根据单元ID生成题目
-
-    Args:
-        db: 数据库会话
-        unit_id: 单元ID
-        count: 生成题目数量，默认30道
-
-    Returns:
-        生成的题目列表
-
-    Raises:
-        ValueError: 单元不存在或没有知识点
-    """
-    # 1. 查询单元信息（联合查询教材）
-    unit = await db.scalar(
-        select(Unit).options(joinedload(Unit.textbook)).where(Unit.id == unit_id)
-    )
-    if not unit:
-        raise ValueError("单元不存在")
-
-    # 2. 获取教材信息
-    textbook = unit.textbook
-    if not textbook:
-        raise ValueError("单元关联的教材不存在")
-
-    # 3. 检查是否有知识点
-    knowledge_count = await db.scalar(
-        select(func.count()).select_from(Knowledge).where(Knowledge.unit_id == unit_id)
-    )
-    if not knowledge_count or knowledge_count == 0:
-        raise ValueError("单元没有知识点信息，请先添加知识点")
-
-    logger.info(
-        f"[Admin] 开始为单元生成题目: unit_id={unit_id}, unit_name={unit.name}, "
-        f"subject={textbook.subject}, grade={textbook.grade}, count={count}"
-    )
-
-    try:
-        # 4. 提交任务到 server-task
-        task_id = str(uuid.uuid4())
-        task_client = TaskServiceClient()
-        
-        payload = {
-            "type": "unit",
-            "count": count,
-            "textbook_id": textbook.id,
-            "unit_id": unit_id,
-        }
-        
-        await task_client.submit_task(
-            task_id=task_id,
-            task_type="question_generation",
-            payload=payload,
-            timeout=600,  # 10分钟超时
-        )
-        
-        # 5. 轮询任务状态直到完成
-        max_wait_time = 600  # 最多等待10分钟
-        poll_interval = 2  # 每2秒轮询一次
-        elapsed_time = 0
-        
-        while elapsed_time < max_wait_time:
-            status = await task_client.get_task_status(task_id)
-            if not status:
-                raise ValueError("任务不存在")
-            
-            task_status = status.get("status")
-            if task_status == "completed":
-                logger.info(f"[Admin] 单元题目生成成功: unit_id={unit_id}")
-                # 从数据库查询生成的题目
-                questions_result = await db.scalars(
-                    select(Question)
-                    .where(Question.unit_id == unit_id)
-                    .order_by(Question.id.desc())
-                    .limit(count)
-                )
-                questions = questions_result.all()
-                return [QuestionSchema.model_validate(q) for q in questions]
-            elif task_status == "failed":
-                error_msg = status.get("error", "未知错误")
-                raise ValueError(f"题目生成失败: {error_msg}")
-            
-            await asyncio.sleep(poll_interval)
-            elapsed_time += poll_interval
-        
-        raise ValueError("题目生成超时")
-
-    except Exception as e:
-        logger.error(f"[Admin] 单元题目生成失败: unit_id={unit_id}, error={e}")
-        raise ValueError(f"题目生成失败: {str(e)}")

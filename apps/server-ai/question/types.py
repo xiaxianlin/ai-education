@@ -34,10 +34,6 @@ class QuestionGenerationResult(BaseModel):
 class GenerationType(str, Enum):
     """题目生成类型"""
 
-    # 单元生成
-    UNIT = "unit"
-    # 教材生成
-    TEXTBOOK = "textbook"
     # 每日练习
     DAILY_PRACTICE = "daily_practice"
     # 单元练习

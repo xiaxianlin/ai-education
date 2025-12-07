@@ -16,7 +16,7 @@ from core.exception import (
     global_exception_handler,
     validation_exception_handler,
 )
-from routes import llm, image, audio, analysis, question
+from routes import image, audio, analysis, question
 
 dotenv.load_dotenv()
 
@@ -57,7 +57,6 @@ app.add_middleware(
 )
 
 # 注册路由
-app.include_router(llm.router)
 app.include_router(image.router)
 app.include_router(audio.router)
 app.include_router(question.router)

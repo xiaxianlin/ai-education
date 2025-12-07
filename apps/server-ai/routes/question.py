@@ -1,4 +1,5 @@
 """题目生成路由"""
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -12,7 +13,7 @@ from schemas.question import (
 from core.database import Database, Textbook, Unit
 from question.graph import invoke_generate_workflow
 
-router = APIRouter(prefix="/api/v1/question", tags=["Question"])
+router = APIRouter(prefix="question", tags=["Question"])
 
 
 @router.post("/generate", response_model=QuestionGenerateResponse)
@@ -29,7 +30,7 @@ async def generate_questions(
         if not textbook:
             raise ValueError(f"教材不存在: {request.textbook_id}")
 
-        # 获取单元（如果需要）
+        # 获取单元（如果需要，用于 unit_practice）
         unit = None
         if request.unit_id:
             unit = await db.scalar(select(Unit).where(Unit.id == request.unit_id))
@@ -52,4 +53,3 @@ async def generate_questions(
     except Exception as e:
         logger.error(f"题目生成失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-

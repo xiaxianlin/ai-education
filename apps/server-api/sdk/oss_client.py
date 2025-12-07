@@ -81,7 +81,9 @@ class AliyunRag:
             "X-bailian-extra": headers["X-bailian-extra"],
             "Content-Type": headers["Content-Type"],
         }
-        response = requests.put(pre_signed_url, data=file_content, headers=upload_headers)
+        response = requests.put(
+            pre_signed_url, data=file_content, headers=upload_headers
+        )
         response.raise_for_status()
 
     def add_file(self, lease_id: str):
@@ -198,7 +200,9 @@ class AliyunRag:
             runtime,
         )
 
-    def get_chunks_paginated(self, file_id: str = None, page_num: int = 1, page_size: int = 100):
+    def get_chunks_paginated(
+        self, file_id: str = None, page_num: int = 1, page_size: int = 100
+    ):
         """
         获取知识库中的所有切片数据
 
@@ -350,7 +354,9 @@ class AliyunOSS:
                     body=chunk,
                 )
             )
-            upload_parts.append(oss.UploadPart(part_number=part_number, etag=up_result.etag))
+            upload_parts.append(
+                oss.UploadPart(part_number=part_number, etag=up_result.etag)
+            )
             offset += part_size
             part_number += 1
 
@@ -380,12 +386,3 @@ class AliyunOSS:
         req = oss.GetObjectRequest(bucket=self.bucket, key=filepath)
         res = self.client.presign(req, expires=timedelta(days=days))
         return res.url
-
-
-class AliyunLLM:
-    def __init__(self):
-        self.llm = ChatOpenAI(
-            model_name="qwen3-max",
-            openai_api_key=envs.AI_PLATFORM_KEY,
-            openai_api_base=envs.AI_PLATFORM_URL,
-        )

@@ -73,25 +73,6 @@ const useContainer = () => {
     });
   };
 
-  const handleGenerateQuestions = useGenerateWithConfirm(
-    async () => {
-      if (!textbook) return;
-      return await adminApi.generateTextbookQuestions(textbook.id);
-    },
-    {
-      confirmTitle: '生成题目',
-      confirmContent: '确定要为该教材生成题目吗？生成过程可能需要一些时间，请耐心等待。',
-      loadingTitle: '正在生成题目',
-      loadingContent: '题目生成中，请稍候...',
-      successTitle: '生成成功',
-      successContent: '题目生成完成！',
-      errorTitle: '生成失败',
-      onSuccess: () => {
-        refresh();
-      },
-    },
-  );
-
   return {
     id: Number(id),
     units,
@@ -103,7 +84,6 @@ const useContainer = () => {
     setUnits,
     handleParse,
     handleDelete,
-    handleGenerateQuestions,
   };
 };
 

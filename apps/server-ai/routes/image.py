@@ -1,4 +1,5 @@
 """图片生成路由"""
+
 import os
 import requests
 from pathlib import Path
@@ -9,25 +10,24 @@ from loguru import logger
 
 from schemas.image import ImageGenerateRequest, ImageGenerateResponse
 from core.database import Database, Question
-from services.image_service import ImageService
-from services.oss_service import OSSService
+from services import image, oss
 from utils.question import build_full_question_text
 from core.settings import envs
 
-router = APIRouter(prefix="/api/v1/image", tags=["Image"])
+router = APIRouter(prefix="/image", tags=["Image"])
 
 
 @router.post("/generate", response_model=ImageGenerateResponse)
 async def generate_image(request: ImageGenerateRequest):
     """生成图片"""
     try:
-        image_url = ImageService.generate_image(
+        image_url = image.generate_image(
             text=request.text,
             width=request.width,
             height=request.height,
             optimize_prompt=request.optimize_prompt,
         )
-        
+
         return ImageGenerateResponse(image_url=image_url)
     except Exception as e:
         logger.error(f"图片生成失败: {e}", exc_info=True)
@@ -42,9 +42,7 @@ async def generate_question_image(
     """为指定题目生成图片并更新数据库"""
     try:
         # 获取题目
-        question = await db.scalar(
-            select(Question).where(Question.id == question_id)
-        )
+        question = await db.scalar(select(Question).where(Question.id == question_id))
         if not question:
             raise ValueError(f"题目不存在: {question_id}")
 
@@ -52,7 +50,7 @@ async def generate_question_image(
         full_question_text = build_full_question_text(question)
 
         # 生成图片
-        image_url = ImageService.generate_image(
+        image_url = image.generate_image(
             text=full_question_text,
             width=1328,
             height=1328,
@@ -63,7 +61,7 @@ async def generate_question_image(
         tmp_dir = Path(envs.TMP_DIR)
         tmp_dir.mkdir(parents=True, exist_ok=True)
         image_path = tmp_dir / f"question_{question_id}_image.jpg"
-        
+
         response = requests.get(image_url, stream=True)
         response.raise_for_status()
         with open(image_path, "wb") as f:
@@ -76,8 +74,7 @@ async def generate_question_image(
 
         # 上传到 OSS
         oss_path = f"questions/{question.textbook_id}/images/{question_id}.jpg"
-        oss = OSSService()
-        
+
         # 检查文件是否存在，如果存在则先删除
         if oss.exist(oss_path):
             logger.info(f"OSS 文件已存在，先删除: {oss_path}")
@@ -97,6 +94,7 @@ async def generate_question_image(
         logger.info(f"题目 {question_id} 图片生成并更新成功")
         return {"message": "图片生成成功", "resource": oss_path}
     except Exception as e:
-        logger.error(f"题目图片生成失败: question_id={question_id}, error={e}", exc_info=True)
+        logger.error(
+            f"题目图片生成失败: question_id={question_id}, error={e}", exc_info=True
+        )
         raise HTTPException(status_code=500, detail=str(e))
-

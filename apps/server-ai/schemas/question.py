@@ -5,10 +5,10 @@ from typing import List, Optional, Dict, Any
 
 class QuestionGenerateRequest(BaseModel):
     """题目生成请求"""
-    type: str = Field(description="生成类型: unit, textbook, daily_practice, unit_practice, assessment")
+    type: str = Field(description="生成类型: daily_practice, unit_practice, assessment")
     count: int = Field(description="生成题目数量")
     textbook_id: int = Field(description="教材ID")
-    unit_id: Optional[int] = Field(None, description="单元ID（单元生成时需要）")
+    unit_id: Optional[int] = Field(None, description="单元ID（单元练习时需要）")
     student_id: Optional[str] = Field(None, description="学生ID（每日练习时需要）")
 
 

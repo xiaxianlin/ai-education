@@ -14,7 +14,7 @@ import { UploadButton } from '@/components/util';
 
 export default function MainView() {
   const navigate = useNavigate();
-  const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete, handleGenerateQuestions } =
+  const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete } =
     useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
@@ -42,14 +42,6 @@ export default function MainView() {
         ),
         breadcrumb: {},
         extra: [
-          <Button
-            key="generate"
-            type="primary"
-            disabled={!textbook?.is_parsed}
-            onClick={handleGenerateQuestions}
-          >
-            生成题目
-          </Button>,
           <Button
             key="parse"
             type="primary"

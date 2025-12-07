@@ -448,13 +448,6 @@ export class AdminApiClient extends ApiClient {
   }
 
   /**
-   * 生成教材题目
-   */
-  async generateTextbookQuestions(id: number): Promise<void> {
-    return this.post<void>(`/textbook/${id}/generate`);
-  }
-
-  /**
    * 上传教材文件
    */
   async uploadTextbook(id: number, formData: FormData): Promise<any> {
@@ -511,12 +504,6 @@ export class AdminApiClient extends ApiClient {
     return this.get<ListResponse<Question>>(`/unit/${id}/questions`, { params });
   }
 
-  /**
-   * 生成单元题目
-   */
-  async generateUnitQuestions(id: number, count: number = 30): Promise<void> {
-    return this.post<void>(`/unit/${id}/generate`, undefined, { params: { count } });
-  }
 
   // ========== 知识点管理 ==========
 
