@@ -82,7 +82,7 @@ async def _ai_analysis_answer(
     """
     try:
         # 使用 AI 服务客户端调用 server-ai
-        from services.ai_client import AIServiceClient
+        from core.ai_client import AIServiceClient
         
         ai_client = AIServiceClient()
         

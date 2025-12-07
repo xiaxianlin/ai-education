@@ -8,7 +8,7 @@ import asyncio
 from core.schema import SearchResultSchema, SearchSchema, UnitSchema, QuestionSchema
 from core.database import Unit, Knowledge, Textbook, Question
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
-from services.task_client import TaskServiceClient
+from core.task_client import TaskServiceClient
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:

@@ -5,7 +5,7 @@ from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from core.database import Question, Unit
 from core.schema import QuestionSchema, SearchResultSchema
-from services.ai_client import AIServiceClient
+from core.ai_client import AIServiceClient
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):

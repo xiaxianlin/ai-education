@@ -13,7 +13,7 @@ from shared.services.textbook_parser import TextbookParser
 from core.database import Knowledge, Question, Textbook, Unit
 from core.schema import TextbookSchema, QuestionSchema
 from core.settings import envs
-from services.task_client import TaskServiceClient
+from core.task_client import TaskServiceClient
 
 
 async def _clean_textbook(db: AsyncSession, id: int):

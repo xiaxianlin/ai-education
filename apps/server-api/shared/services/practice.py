@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
 from core.constants import GENERATE_QUESTION_COUNT
 from shared.utils.time import now, today
-from services.task_client import TaskServiceClient
+from core.task_client import TaskServiceClient
 
 
 class PracticeService:

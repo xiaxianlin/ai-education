@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # AI 服务配置
     AI_SERVICE_URL: str = "http://server-ai:7892"
 
+    # API 服务配置
+    API_SERVICE_URL: str = "http://server-api:7890"
+
     # 日志配置
     LOG_DIR: str = "/app/tmp/logs"
 
