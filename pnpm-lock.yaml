@@ -181,11 +181,7 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
-  apps/server-ai: {}
-
-  apps/server-api: {}
-
-  apps/server-task: {}
+  apps/server: {}
 
   apps/student-app: {}
 

@@ -18,17 +18,10 @@
    - Flutter 3.0+ + Dart 3.8+ + Riverpod + GoRouter
    - 位置: `apps/student-app/`
 
-4. **server-api** - 后端 API 服务
-   - FastAPI + Python 3.12 + SQLAlchemy + MySQL
-   - 位置: `apps/server-api/`
-
-5. **server-ai** - AI 服务
-   - FastAPI + Python 3.12 + LangChain + LangGraph
-   - 位置: `apps/server-ai/`
-
-6. **server-task** - 后端任务处理服务
-   - FastAPI + Python 3.12 + Redis Queue
-   - 位置: `apps/server-task/`
+4. **server** - 服务端（单体应用）
+   - FastAPI + Python 3.12 + SQLAlchemy + MySQL + Redis
+   - LangChain + LangGraph（AI 工作流） / RQ (Redis Queue) 任务处理
+   - 位置: `apps/server/`
 
 ## 技术栈详情
 
@@ -69,31 +62,14 @@
 
 ### 后端技术栈
 
-#### API 服务 (server-api)
+#### 服务端（单体，apps/server）
 - **框架**: FastAPI 0.115+
 - **语言**: Python 3.12
-- **数据库**: MySQL (通过 SQLAlchemy 2.0 异步 ORM)
-- **缓存**: Redis
-- **认证**: JWT (PyJWT)
-- **AI 平台**: 阿里云百炼AI (DashScope SDK)
+- **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
+- **缓存/队列**: Redis + RQ (任务队列)
+- **AI**: LangChain + LangGraph + 阿里云百炼AI (DashScope SDK)
 - **对象存储**: 阿里云 OSS
-- **日志**: Loguru
-- **异步运行时**: Uvicorn
-
-#### AI 服务 (server-ai)
-- **框架**: FastAPI 0.115+
-- **语言**: Python 3.12
-- **AI 框架**: LangChain, LangGraph
-- **AI 平台**: 阿里云百炼AI (DashScope SDK), OpenAI API
-- **功能**: LLM 文本生成、图片生成、语音生成、答题分析、题目生成工作流
-- **日志**: Loguru
-- **异步运行时**: Uvicorn
-- **端口**: 7892
-
-#### 任务服务 (server-task)
-- **框架**: FastAPI 0.115+
-- **语言**: Python 3.12
-- **任务队列**: Redis Queue (RQ)
+- **认证**: JWT (PyJWT)
 - **日志**: Loguru
 - **异步运行时**: Uvicorn
 
@@ -127,9 +103,9 @@
 - 任务队列和后台任务处理
 - AI 服务集成和工作流设计
 
-**负责项目**: `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
+**负责项目**: `apps/server/`
 
-**工作目录**: `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
+**工作目录**: `apps/server/`
 
 ### 移动端开发者 (Mobile Developer)
 专注于移动端应用开发，包括：
@@ -174,7 +150,7 @@
 
 **负责项目**: 所有项目
 
-**工作目录**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`, `apps/server-api/`, `apps/server-ai/`, `apps/server-task/`
+**工作目录**: `apps/admin-web/`, `apps/student-web/`, `apps/student-app/`, `apps/server/`
 
 ### UI 设计师 (UI Designer)
 专注于用户界面和体验设计，包括：
@@ -209,9 +185,7 @@
 - `@admin-web` - 管理端开发（React + Rsbuild + Ant Design）
 - `@student-web` - 学生端 Web 开发（React + Rsbuild + shadcn/ui）
 - `@student-app` - 学生端移动应用开发（Flutter + Riverpod + GoRouter）
-- `@server-api` - 后端 API 服务开发（FastAPI + Python）
-- `@server-ai` - AI 服务开发（FastAPI + LangChain + LangGraph）
-- `@server-task` - 后端任务服务开发（FastAPI + Python）
+- `@server` - 服务端单体应用（FastAPI + SQLAlchemy + LangGraph + RQ）
 
 ### 方法二：明确声明
 在对话开始时明确说明：
@@ -228,7 +202,7 @@
 打开相关文件后，AI 会自动识别上下文：
 - 打开 `apps/admin-web/src/` 或 `apps/student-web/src/` 下的文件 → 前端开发模式
 - 打开 `apps/student-app/lib/` 下的文件 → 移动端开发模式
-- 打开 `apps/server-api/`、`apps/server-ai/` 或 `apps/server-task/` 下的文件 → 后端开发模式
+- 打开 `apps/server/` 下的文件 → 后端开发模式
 - 打开样式文件 → UI 设计模式
 - 同时打开前后端文件 → 全栈开发模式
 - 打开项目根目录配置文件 → 架构师模式
@@ -358,17 +332,11 @@ flutter test                 # 运行测试
 
 ### 后端开发
 ```bash
-# API 服务
-cd apps/server-api
-uvicorn main:app --reload --port 7890    # 启动开发服务器
-
-# AI 服务
-cd apps/server-ai
-uvicorn main:app --reload --port 7892    # 启动开发服务器
-
-# 任务服务
-cd apps/server-task
-uvicorn main:app --reload --port 7891    # 启动开发服务器
+cd apps/server
+uv run main.py          # 开发启动（热重载）
+uv run worker.py        # 启动 RQ Worker（异步任务）
+# 或仅启动 API
+uvicorn main:app --reload --port 7890
 ```
 
 ## 项目结构
@@ -394,20 +362,12 @@ ai-eduaction/
 │   │       ├── core/        # 核心功能（api, models, theme, utils）
 │   │       ├── shared/      # 共享组件和工具
 │   │       └── app/         # 应用配置（路由等）
-│   ├── server-api/          # 后端 API 服务
-│   │   ├── admin/           # 管理端 API
-│   │   ├── student/         # 学生端 API
-│   │   ├── core/            # 核心模块
-│   │   └── shared/          # 共享模块
-│   ├── server-ai/           # AI 服务
-│   │   ├── api/             # API 层
-│   │   ├── services/        # 服务层
-│   │   ├── question/        # 题目生成工作流
-│   │   └── core/            # 核心模块
-│   └── server-task/         # 后端任务服务
-│       ├── routes/          # 路由
-│       ├── services/        # 业务逻辑
-│       └── workers/         # 任务工作器
+│   ├── server/              # 服务端（单体）
+│   │   ├── admin/           # 管理端模块
+│   │   ├── student/         # 学生端模块
+│   │   ├── ai/              # AI 功能（LangGraph 工作流）
+│   │   ├── task/            # 任务处理（RQ Worker）
+│   │   └── shared/          # 核心与工具
 ├── packages/
 │   └── shared-frontend/     # 前端共享包
 └── .cursor/
@@ -422,9 +382,9 @@ ai-eduaction/
         ├── admin-web.md      # 管理端开发命令
         ├── student-web.md    # 学生端 Web 开发命令
         ├── student-app.md    # 学生端移动应用开发命令
-        ├── server-api.md     # API 服务开发命令
-        ├── server-ai.md      # AI 服务开发命令
-        └── server-task.md    # 任务服务开发命令
+        ├── server.md         # 服务端单体命令
+        ├── server-ai.md      # （历史）AI 服务命令
+        └── server-task.md    # （历史）任务服务命令
 ```
 
 ## 最佳实践
@@ -438,5 +398,5 @@ ai-eduaction/
 7. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
 8. **跨平台一致性**: 移动端应参考 Web 端（student-web）的实现逻辑，保持功能一致性
 9. **代码生成**: Flutter 项目使用 json_serializable 和 freezed，修改模型后必须运行 `./build.sh` 或 `flutter pub run build_runner build --delete-conflicting-outputs`
-9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server-api`, `@server-ai`, `@server-task` 命令可以更精确地专注于特定应用的开发
+9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server` 命令可以更精确地专注于特定应用的开发
 10. **架构决策**: 重大技术决策应由架构师参与，确保系统整体一致性

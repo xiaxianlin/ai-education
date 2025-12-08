@@ -23,8 +23,7 @@ ai-eduaction/
 │   ├── admin-web/          # 管理端前端
 │   ├── student-web/        # 学生端 Web
 │   ├── student-app/        # 学生端移动应用
-│   ├── server-api/         # API 服务
-│   └── server-task/        # 任务服务
+│   └── server/             # 服务端（单体应用）
 ├── packages/                # 共享包层
 │   └── shared-frontend/     # 前端共享类型和工具
 └── infra/                   # 基础设施
@@ -41,20 +40,30 @@ ai-eduaction/
 - **共享**: TypeScript 类型定义 (`packages/shared-frontend`)
 
 #### 后端架构
-- **API 服务**: FastAPI + SQLAlchemy + MySQL + Redis
-- **任务服务**: FastAPI + Redis Queue
+- **服务端**: FastAPI 单体应用 (`apps/server`)
+  - 管理端模块 (`admin/`)
+  - 学生端模块 (`student/`)
+  - AI 功能模块 (`ai/`) - LangChain + LangGraph
+  - 任务处理模块 (`task/`) - RQ (Redis Queue)
+  - 共享模块 (`shared/`)
+- **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
+- **缓存/队列**: Redis (RQ 任务队列)
 - **认证**: JWT Token
 - **存储**: 阿里云 OSS
-- **AI**: 阿里云百炼AI
+- **AI**: 阿里云百炼AI (DashScope SDK)
 
 ### 数据流架构
 
 ```
-前端/移动端 → API Gateway (Nginx) → server-api → MySQL
+前端/移动端 → API Gateway (Nginx) → apps/server (FastAPI)
+                                    ├── admin/ (管理端)
+                                    ├── student/ (学生端)
+                                    ├── ai/ (AI 功能)
+                                    └── task/ (任务处理)
                                     ↓
-                              Redis (缓存)
+                              MySQL (数据库)
                                     ↓
-                              server-task (异步任务)
+                              Redis (任务队列/缓存)
 ```
 
 ## 架构原则
@@ -94,10 +103,11 @@ ai-eduaction/
 - 类型提示支持好
 - 异步支持完善
 
-#### 为什么分离 API 服务和任务服务？
-- 职责分离：API 服务处理同步请求，任务服务处理异步任务
-- 独立扩展：任务服务可以独立扩展 worker
-- 故障隔离：任务服务故障不影响 API 服务
+#### 为什么使用单体架构？
+- 当前阶段：单体架构便于开发和维护
+- 模块化设计：通过模块划分保持代码清晰
+- 任务处理：使用 RQ (Redis Queue) 处理异步任务
+- 未来扩展：可根据需要拆分为微服务架构
 
 ### 数据库设计原则
 

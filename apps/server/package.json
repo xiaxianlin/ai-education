@@ -4,6 +4,7 @@
   "private": true,
   "description": "AI Education Platform Server",
   "scripts": {
+    "install": "uv sync",
     "dev": "uv run main.py & uv run worker.py",
     "build": "uv build",
     "start": "uv run main.py",

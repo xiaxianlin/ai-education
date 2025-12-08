@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Database
 from student.schema import PracticeType, AnswerQuestionSchema, CreatePracticeSchema
-from student.services import practice, answer
+from student.services import practice, answer, practice_generate
 
 
 practice_router = APIRouter(prefix="/practice")
@@ -46,13 +46,13 @@ async def create_practice(
     params["student_id"] = request.state.student.id
 
     if type == "daily_practice":
-        return await practice.create_daily_practice(**params)
+        return await practice_generate.create_daily_practice(**params)
 
     if type == "unit_practice":
-        return await practice.create_unit_practice(**params)
+        return await practice_generate.create_unit_practice(**params)
 
     if type == "assessment":
-        return await practice.create_assessment(**params)
+        return await practice_generate.create_assessment(**params)
 
 
 @practice_router.get("/detail/{session_id}")

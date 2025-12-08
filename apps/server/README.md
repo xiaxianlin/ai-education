@@ -102,6 +102,8 @@ AI Education Platform 是一个基于人工智能的教育辅助平台，为学�
 - **日志**: Loguru
 - **语音处理**: PyTorch + TorchAudio
 - **文档处理**: PyMuPDF
+- **任务队列**: RQ (Redis Queue)
+- **AI 工作流**: LangChain + LangGraph
 - **运行时**: Python 3.12
 
 ### 项目结构
@@ -109,29 +111,83 @@ AI Education Platform 是一个基于人工智能的教育辅助平台，为学�
 ```
 server/
 ├── admin/                  # 管理端模块
-│   ├── routes/            # 路由层
+│   ├── routes/            # 路由层（API 端点）
+│   │   ├── auth.py        # 认证相关
+│   │   ├── manager.py     # 管理员管理
+│   │   ├── textbook.py    # 教材管理
+│   │   ├── teacher_book.py # 教师用书管理
+│   │   ├── unit.py        # 单元管理
+│   │   ├── knowledge.py   # 知识点管理
+│   │   ├── question.py    # 题目管理
+│   │   ├── student.py     # 学生管理
+│   │   ├── practice.py    # 练习管理
+│   │   └── config.py      # 配置管理
 │   ├── services/          # 业务逻辑层
-│   └── schema.py          # 数据模型定义
+│   └── schema.py           # 请求/响应模型定义
+│
 ├── student/               # 学生端模块
 │   ├── routes/            # 路由层
+│   │   ├── auth.py       # 学生认证
+│   │   ├── profile.py    # 学生资料
+│   │   ├── textbook.py   # 教材功能
+│   │   ├── practice.py   # 练习功能（每日/单元/评估）
+│   │   └── wrong_records.py # 错题记录
 │   ├── services/          # 业务逻辑层
+│   │   ├── practice_generate.py # 练习生成服务
+│   │   ├── answer.py     # 答题服务
+│   │   └── report.py     # 报告生成服务
 │   └── schema.py          # 数据模型定义
+│
+├── ai/                    # AI 功能模块
+│   ├── question/         # 题目相关 AI
+│   │   ├── answer.py     # 答题分析
+│   │   └── resource.py   # 资源生成（图片/语音）
+│   ├── question_generate/ # 题目生成（LangGraph 工作流）
+│   │   ├── graph.py      # 工作流定义
+│   │   ├── prompts/      # Prompt 模板
+│   │   └── services/     # 生成服务
+│   ├── practice/         # 练习分析
+│   │   └── analysis.py   # 能力分析
+│   ├── texttbook/        # 教材解析
+│   │   └── parse.py      # PDF 解析
+│   ├── utils/            # AI 工具
+│   │   ├── llm.py        # LLM 工具函数
+│   │   ├── question.py   # 题目处理工具
+│   │   └── rag.py        # RAG 工具
+│   └── schema.py         # AI 相关数据模型
+│
+├── task/                  # 任务处理模块
+│   ├── core/             # 核心功能
+│   │   ├── executor.py   # 任务执行器（RQ Worker 调用）
+│   │   └── redis.py      # Redis 连接
+│   ├── services/         # 任务服务
+│   │   ├── rq.py         # RQ 队列服务
+│   │   └── task.py       # 任务管理服务
+│   ├── workers/          # 任务工作器
+│   │   └── practice.py   # 练习生成 Worker
+│   └── schema.py          # 任务相关数据模型
+│
 ├── shared/                # 共享模块
-│   ├── provider/          # 第三方服务提供者
-│   ├── services/         # 共享服务
-│   └── utils/             # 工具函数
-├── core/                  # 核心模块
-│   ├── database.py        # 数据库配置和模型
-│   ├── settings.py        # 环境配置
-│   ├── logger.py          # 日志配置
-│   ├── middleware.py      # 中间件
-│   ├── exception.py       # 异常处理
-│   └── constants.py       # 常量定义
-├── tmp/                   # 临时文件目录
-│   └── logs/              # 日志文件
-├── main.py                # 应用入口
-├── pyproject.toml         # 项目依赖配置
-└── README.md              # 项目文档
+│   ├── core/             # 核心功能
+│   │   ├── database.py   # 数据库模型和配置
+│   │   ├── settings.py   # 环境配置
+│   │   ├── logger.py     # 日志配置
+│   │   ├── middleware.py # 中间件
+│   │   ├── exception.py  # 异常处理
+│   │   ├── constants.py  # 常量定义
+│   │   └── schema.py     # 共享数据模型
+│   └── utils/            # 工具函数
+│       ├── encrypt.py    # 加密工具
+│       ├── oss.py        # OSS 存储工具
+│       ├── time.py       # 时间工具
+│       └── validation.py # 验证工具
+│
+├── main.py               # 应用入口
+├── worker.py             # RQ Worker 启动脚本
+├── pyproject.toml        # 项目依赖配置
+├── ecosystem.config.js   # PM2 配置
+├── langgraph.json        # LangGraph 配置
+└── README.md             # 项目文档
 ```
 
 ### 数据库模型
@@ -257,6 +313,17 @@ uvicorn main:app --host 0.0.0.0 --port 7890 --workers 4
 ```sh
 pm2 start ecosystem.config.js
 ```
+
+**启动 Worker（处理异步任务）**:
+```sh
+# 开发模式
+uv run worker.py
+
+# 生产模式（使用 PM2）
+pm2 start ecosystem.config.js --name worker
+```
+
+注意：Worker 需要单独启动，用于处理异步任务（如题目生成）。
 
 ## API文档
 

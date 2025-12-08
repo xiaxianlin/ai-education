@@ -27,46 +27,40 @@
 
 ## 工作目录
 
-- `apps/server-api/` - API 服务源代码
-  - `admin/` - 管理端 API
-  - `student/` - 学生端 API
-  - `core/` - 核心模块（数据库、配置、中间件）
-  - `shared/` - 共享模块（工具、服务）
-- `apps/server-task/` - 任务服务源代码
-  - `routes/` - 路由层
-  - `services/` - 业务逻辑层
-  - `workers/` - 任务工作器
+- `apps/server/` - 服务端源代码（单体应用）
+  - `admin/` - 管理端模块（路由 + 服务）
+  - `student/` - 学生端模块（路由 + 服务）
+  - `ai/` - AI 功能模块（题目生成、答题分析等）
+  - `task/` - 任务处理模块（RQ 任务队列）
+  - `shared/` - 共享模块（数据库、配置、工具等）
 
 ## 项目结构
 
-### API 服务 (server-api)
+### Server 服务端（单体应用）
 ```
-apps/server-api/
-├── admin/
+apps/server/
+├── admin/             # 管理端模块
 │   ├── routes/        # 路由层（API 端点）
 │   ├── services/      # 业务逻辑层
 │   └── schema.py      # 请求/响应模型
-├── student/
+├── student/           # 学生端模块
 │   ├── routes/        # 路由层
 │   ├── services/      # 业务逻辑层
 │   └── schema.py      # 数据模型
-├── core/
-│   ├── database.py    # 数据库模型和配置
-│   ├── settings.py    # 环境配置
-│   ├── middleware.py  # 中间件
-│   └── exception.py   # 异常处理
-└── shared/
-    ├── services/      # 共享服务
-    └── utils/         # 工具函数
-```
-
-### 任务服务 (server-task)
-```
-apps/server-task/
-├── routes/            # 路由层
-├── services/          # 业务逻辑层
-├── workers/           # 任务工作器
-└── core/              # 核心模块
+├── ai/                # AI 功能模块
+│   ├── question/      # 题目相关 AI
+│   ├── question_generate/  # 题目生成（LangGraph）
+│   ├── practice/      # 练习分析
+│   └── utils/         # AI 工具
+├── task/              # 任务处理模块
+│   ├── core/          # 任务执行器
+│   ├── services/      # 任务服务
+│   └── workers/       # 任务工作器
+├── shared/            # 共享模块
+│   ├── core/          # 核心功能（数据库、配置、中间件）
+│   └── utils/         # 工具函数
+├── main.py            # 应用入口
+└── worker.py          # RQ Worker 启动脚本
 ```
 
 ## 开发原则
@@ -80,15 +74,15 @@ apps/server-task/
 
 ## 常用模式
 
-### 路由定义 (server-api)
+### 路由定义
 ```python
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.database import Database
+from shared.core.database import Database
 from admin.schema import SomeSchema
 from admin.services import some_service
 
-router = APIRouter(prefix="/api/admin/some", tags=["Some"])
+router = APIRouter(prefix="/some", tags=["Some"])
 
 @router.post("/create")
 async def create_something(
@@ -98,24 +92,25 @@ async def create_something(
     return await some_service.create(db, params)
 ```
 
-### 任务服务路由 (server-task)
+### 任务提交
 ```python
-from fastapi import APIRouter
-from services.task_manager import TaskManager
+from task.services.task import submit_question_task
+from task.schema import QuestionSubmitRequest
 
-router = APIRouter(prefix="/api/task", tags=["Task"])
-
-@router.post("/submit")
-async def submit_task(task_data: dict):
-    task_id = await TaskManager.submit_task(task_data)
-    return {"task_id": task_id, "status": "submitted"}
+request = QuestionSubmitRequest(
+    type="daily_practice",
+    count=15,
+    textbook_id=1,
+    student_id="student_xxx"
+)
+task_response = await submit_question_task(request)
 ```
 
 ### 服务层
 ```python
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from core.database import SomeModel
+from shared.core.database import SomeModel
 from admin.schema import SomeSchema
 
 async def create(db: AsyncSession, params: SomeSchema):
@@ -130,7 +125,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 ### 数据模型
 ```python
 from sqlalchemy.orm import Mapped, mapped_column
-from core.database import BaseModel
+from shared.core.database import BaseModel
 
 class SomeModel(BaseModel):
     __tablename__ = "ah_some"
@@ -157,10 +152,10 @@ class SomeModel(BaseModel):
 
 ### 响应格式
 ```python
-from core.schema import ResponseSchema
+from shared.core.schema import ResponseSchema
 
 return ResponseSchema(data=result)
-# 自动包装为: {"status": 0, "message": "success", "data": result}
+# 自动包装为: {"code": 0, "message": "success", "data": result}
 ```
 
 ### 错误处理

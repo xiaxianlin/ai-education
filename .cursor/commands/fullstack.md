@@ -24,8 +24,9 @@
 - **HTTP**: Axios
 
 ### 后端
-- **API 服务**: FastAPI 0.115+ + SQLAlchemy + MySQL
-- **任务服务**: FastAPI 0.115+ + Redis Queue
+- **服务端（单体）**: FastAPI 0.115+ + SQLAlchemy + MySQL
+- **任务队列**: RQ (Redis Queue)
+- **AI 工作流**: LangChain + LangGraph
 - **语言**: Python 3.12
 - **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
 - **缓存**: Redis
@@ -37,8 +38,7 @@
 - `apps/admin-web/src/` - 管理端前端
 - `apps/student-web/src/` - 学生端 Web 前端
 - `apps/student-app/src/` - 学生端移动应用
-- `apps/server-api/` - API 服务
-- `apps/server-task/` - 任务服务
+- `apps/server/` - 服务端（单体，含 admin/student/ai/task/shared）
 
 ## 开发原则
 
@@ -77,7 +77,7 @@ interface SomeType {
 
 ### 3. 后端 API 实现
 ```python
-# apps/server-api/admin/routes/some.py
+# apps/server/admin/routes/some.py
 @router.post("/create")
 async def create_something(
     params: CreateSchema,
@@ -85,7 +85,7 @@ async def create_something(
 ):
     return await some_service.create(db, params)
 
-# apps/server-api/admin/services/some.py
+# apps/server/admin/services/some.py
 async def create(db: AsyncSession, params: CreateSchema):
     instance = SomeModel(**params.model_dump())
     db.add(instance)
@@ -236,7 +236,7 @@ try {
 
 **后端**:
 ```python
-# apps/server-api/student/routes/some.py
+# apps/server/student/routes/some.py
 @router.get("/list")
 async def list_items(
     page: int = 1,
@@ -245,7 +245,7 @@ async def list_items(
 ):
     return await some_service.list(db, page, size)
 
-# apps/server-api/student/services/some.py
+# apps/server/student/services/some.py
 async def list(db: AsyncSession, page: int, size: int):
     offset = (page - 1) * size
     total = await db.scalar(select(func.count()).select_from(SomeModel))
@@ -270,12 +270,12 @@ const { data, loading, pagination } = useTableRequest({
 
 **后端**:
 ```python
-# apps/server-api/student/schema.py
+# apps/server/student/schema.py
 class CreateSchema(BaseModel):
     name: str
     description: Optional[str] = None
 
-# apps/server-api/student/routes/some.py
+# apps/server/student/routes/some.py
 @router.post("/create")
 async def create(params: CreateSchema, db: AsyncSession = Database):
     return await some_service.create(db, params)
