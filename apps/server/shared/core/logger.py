@@ -24,6 +24,7 @@ class InterceptHandler(logging.Handler):
 # 接管标准库 logging（包括 uvicorn）
 intercept_handler = InterceptHandler()
 logging.basicConfig(handlers=[intercept_handler], level=logging.INFO, force=True)
+
 for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     log = logging.getLogger(name)
     log.handlers = [intercept_handler]

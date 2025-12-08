@@ -14,7 +14,7 @@ import sys
 import signal
 import argparse
 import dotenv
-from rq import Worker, Queue, Connection
+from rq import Worker, Queue
 from loguru import logger
 
 from shared.core.settings import envs
@@ -72,21 +72,20 @@ def start_worker(queue_name: str = None, burst: bool = False):
         signal.signal(signal.SIGTERM, signal_handler)
 
         # 启动 Worker
-        with Connection(redis_conn):
-            worker_instance = Worker(
-                [queue],
-                name=f"worker-{queue_name}",
-                connection=redis_conn,
-            )
-            logger.info(f"Worker 已启动: {worker_instance.name}")
-            logger.info(f"Worker 正在监听队列: {queue_name}")
+        worker_instance = Worker(
+            [queue],
+            name=f"worker-{queue_name}",
+            connection=redis_conn,
+        )
+        logger.info(f"Worker 已启动: {worker_instance.name}")
+        logger.info(f"Worker 正在监听队列: {queue_name}")
 
-            # 开始工作
-            if burst:
-                worker_instance.work(burst=True)
-                logger.info("突发模式：所有任务处理完成，Worker 退出")
-            else:
-                worker_instance.work()
+        # 开始工作
+        if burst:
+            worker_instance.work(burst=True)
+            logger.info("突发模式：所有任务处理完成，Worker 退出")
+        else:
+            worker_instance.work()
 
     except KeyboardInterrupt:
         logger.info("收到中断信号，正在关闭 Worker...")

@@ -1,7 +1,6 @@
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
-from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
@@ -286,14 +285,14 @@ async def generate_question_image(db: AsyncSession, id: int):
     question = await db.scalar(select(Question).where(Question.id == id))
     if not question:
         raise ValueError("问题不存在")
-    
+
     # 调用 AI 服务生成图片
     resource_path = await ai_generate_image(question)
-    
+
     # 更新数据库
     question.resource = resource_path
     await db.commit()
-    
+
     return QuestionSchema.model_validate(question)
 
 
@@ -302,14 +301,12 @@ async def generate_question_audio(db: AsyncSession, id: int):
     question = await db.scalar(select(Question).where(Question.id == id))
     if not question:
         raise ValueError("问题不存在")
-    
+
     # 调用 AI 服务生成语音
     resource_path = await ai_generate_audio(question)
-    
+
     # 更新数据库
     question.resource = resource_path
     await db.commit()
-    
+
     return QuestionSchema.model_validate(question)
-
-
