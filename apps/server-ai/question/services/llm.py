@@ -3,11 +3,10 @@
 from typing import Any, Dict
 from loguru import logger
 
-from langchain_openai import ChatOpenAI
 
-from core.settings import envs
 from question.types import QuestionGenerationState
 from question.types import QuestionGenerationResult
+from utils import llm
 
 
 async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -16,13 +15,8 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     prompt_input = state["prompt_input"]
     parser = state["parser"]
     logger.info(f"✓ LLM 调用开始: prompt={prompt}, input={prompt_input}")
-    llm = ChatOpenAI(
-        model_name="qwen3-max",
-        temperature=0.7,
-        openai_api_key=envs.AI_PLATFORM_KEY,
-        openai_api_base=envs.AI_PLATFORM_URL,
-    )
-    chain = prompt | llm | parser
+    client = llm.get_chat_client()
+    chain = prompt | client | parser
 
     try:
         result = chain.invoke(prompt_input)
@@ -78,4 +72,3 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     return {
         "generated_questions": validated_result.questions,
     }
-

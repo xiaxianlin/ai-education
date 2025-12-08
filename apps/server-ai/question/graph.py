@@ -169,7 +169,7 @@ async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
         logger.info(
             f"开始为 {needs_audio_count} 道题目生成语音",
         )
-        result = await resource_service.generate_audio(state)
+        result = await resource_service.generate_audios(state)
         logger.info("语音生成完成")
         return result
     except Exception as e:

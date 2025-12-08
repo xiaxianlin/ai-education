@@ -5,18 +5,17 @@
 2. 使用AI解析单元内容，提取单元和知识点数据
 """
 
+from pathlib import Path
 from typing import List
 from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_openai import ChatOpenAI
 
-from core.settings import envs
-from utils.rag import AliyunRag
-from schemas.textbook import UnitInfo, UnitExtractionResult
+from utils import rag, llm
+from core.schema import UnitInfo, UnitExtractionResult, TextbookUploadRequest
 
 
-async def parse_by_rag(file_index_id: str) -> List[UnitInfo]:
+async def parse_textbook(file_index_id: str) -> List[UnitInfo]:
     """
     从RAG知识库获取文件索引数据并解析
 
@@ -26,7 +25,6 @@ async def parse_by_rag(file_index_id: str) -> List[UnitInfo]:
     Returns:
         解析后的文件索引信息列表
     """
-    rag = AliyunRag()
 
     # 获取所有切片数据
     logger.info(f"开始从RAG知识库获取文件切片，file_index_id: {file_index_id}")
@@ -63,15 +61,9 @@ async def parse_by_rag(file_index_id: str) -> List[UnitInfo]:
         "format_instructions": format_instructions,
     }
 
-    # 调用LLM
-    llm = ChatOpenAI(
-        model_name="qwen3-max-preview",
-        temperature=0.7,
-        openai_api_key=envs.AI_PLATFORM_KEY,
-        openai_api_base=envs.AI_PLATFORM_URL,
-    )
+    client = llm.get_chat_client()
 
-    chain = prompt | llm | parser
+    chain = prompt | client | parser
 
     try:
         result = chain.invoke(prompt_input)
@@ -87,3 +79,21 @@ async def parse_by_rag(file_index_id: str) -> List[UnitInfo]:
     except Exception as e:
         logger.error(f"AI解析单元信息失败: {e}")
         raise ValueError(f"AI解析失败: {str(e)}")
+
+
+async def upload_textbook(params: TextbookUploadRequest) -> str:
+    """
+    上传文件到RAG知识库
+    """
+    file_path = Path(params.file_path)
+
+    if not file_path.is_file():
+        raise ValueError("上传的文件不能为空")
+
+    file_index_id = rag.upload(
+        file_name=params.file_name,
+        file_path=params.file_path,
+        old_file_id=params.old_file_id,
+    )
+    logger.info(f"文件上传到RAG知识库成功，file_index_id: {file_index_id}")
+    return file_index_id

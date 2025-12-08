@@ -12,7 +12,7 @@ from core.settings import envs
 from core.database import Question
 from core.constants import get_question_types
 from question.types import QuestionGenerationState, GeneratedQuestion, QuestionOption
-from services.oss_service import OSSService
+from utils import oss
 
 
 async def download_file(url: str, file_path: str) -> None:
@@ -32,7 +32,6 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
     audio_questions: List[Question] = state.get("audio_questions", [])
     textbook = state["textbook"]
 
-    oss = OSSService()
     tmp_dir = Path(envs.TMP_DIR)
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
@@ -41,8 +40,10 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
         if hasattr(question, "_temp_image_url") and question._temp_image_url:
             # 确保题目 ID 已生成
             if not question.id:
-                raise ValueError(f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}...")
-            
+                raise ValueError(
+                    f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}..."
+                )
+
             try:
                 # 下载图片
                 image_path = tmp_dir / f"question_{textbook.id}_{question.id}_image.jpg"
@@ -76,8 +77,10 @@ async def upload_files(state: QuestionGenerationState) -> Dict[str, Any]:
         if hasattr(question, "_temp_audio_url") and question._temp_audio_url:
             # 确保题目 ID 已生成
             if not question.id:
-                raise ValueError(f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}...")
-            
+                raise ValueError(
+                    f"题目 ID 未生成，无法上传文件。题目内容: {question.content[:50]}..."
+                )
+
             try:
                 # 下载音频
                 audio_path = tmp_dir / f"question_{textbook.id}_{question.id}_audio.mp3"
@@ -289,4 +292,3 @@ async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
         "audio_questions": audio_questions,
         "text_questions": text_questions,
     }
-

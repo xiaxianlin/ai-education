@@ -1,18 +1,17 @@
-"""答题分析服务"""
-from typing import Dict, Any
-from loguru import logger
-from langchain_openai import ChatOpenAI
+from typing import List
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.settings import envs
-
-
-class AnswerAnalysisResult(BaseModel):
-    """答案分析结果模型"""
-    is_correct: bool = Field(description="答案是否正确")
-    analysis: str = Field(description="分析内容，如果正确则给予鼓励，如果错误则说明原因和知识点")
+from core.database import (
+    Question,
+    PracticeSession,
+    PracticeAnswer,
+    PracticeWrongRecord,
+)
+from core.schema import TextAnswerAnalysisResponse
+from utils import llm
 
 
 ANALYSIS_PROMPT = """
@@ -61,83 +60,44 @@ ANALYSIS_PROMPT = """
 """
 
 
-class AnalysisService:
-    """答题分析服务"""
-    
-    @staticmethod
-    async def analyze_answer(
-        content: str,
-        options: str,
-        knowledge: str,
-        question_answer: str,
-        student_answer: str,
-        model_name: str = "qwen3-max-preview",
-        temperature: float = 0.7,
-    ) -> Dict[str, Any]:
-        """
-        分析学生答题情况
-        
-        Args:
-            content: 题目内容
-            options: 选项
-            knowledge: 知识点
-            question_answer: 参考答案
-            student_answer: 学生答案
-            model_name: 模型名称
-            temperature: 温度参数
-            
-        Returns:
-            Dict: 包含 is_correct 和 analysis 的字典
-        """
-        logger.info(f"开始分析答题情况: content_length={len(content)}, student_answer={student_answer[:50]}...")
-        
-        try:
-            # 创建 JSON 输出解析器
-            parser = JsonOutputParser(pydantic_object=AnswerAnalysisResult)
-            format_instructions = parser.get_format_instructions()
-            
-            # 格式化提示词
-            analysis_prompt = ANALYSIS_PROMPT.format(
-                content=content,
-                options=options if options else "无",
-                knowledge=knowledge if knowledge else "无",
-                question_answer=question_answer,
-                student_answer=student_answer,
-                format_instructions=format_instructions,
-            )
-            
-            # 调用 LLM
-            llm = ChatOpenAI(
-                model_name=model_name,
-                openai_api_base=envs.AI_PLATFORM_URL,
-                openai_api_key=envs.AI_PLATFORM_KEY,
-                temperature=temperature,
-            )
-            
-            # 构建 prompt
-            prompt = ChatPromptTemplate.from_messages([
-                ("user", analysis_prompt),
-            ])
-            
-            # 使用 chain 进行调用和解析
-            chain = prompt | llm | parser
-            result = await chain.ainvoke({})
-            
-            # 验证结果
-            if not isinstance(result, dict):
-                raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
-            
-            # 解析结果
-            analysis_result = AnswerAnalysisResult.model_validate(result)
-            
-            logger.info(f"答题分析完成: is_correct={analysis_result.is_correct}, analysis_length={len(analysis_result.analysis)}")
-            
-            return {
-                "is_correct": analysis_result.is_correct,
-                "analysis": analysis_result.analysis,
-            }
-            
-        except Exception as e:
-            logger.error(f"生成答案分析失败: {e}", exc_info=True)
-            raise ValueError(f"生成答案分析失败: {str(e)}")
+async def text_answer_analysis(question: Question, text_answer: str):
+    logger.info(
+        f"开始分析答题情况: content_length={len(question.content)}, text_answer={text_answer}"
+    )
 
+    # 创建 JSON 输出解析器
+    parser = JsonOutputParser(pydantic_object=TextAnswerAnalysisResponse)
+
+    # 格式化提示词
+    analysis_prompt = ANALYSIS_PROMPT.format(
+        content=question.content,
+        options=question.options if question.options else "无",
+        knowledge=question.knowledge if question.knowledge else "无",
+        question_answer=question.answer,
+        student_answer=text_answer,
+        format_instructions=parser.get_format_instructions(),
+    )
+
+    prompt = ChatPromptTemplate.from_messages([("user", analysis_prompt)])
+    client = llm.get_chat_client()
+    chain = prompt | client | parser
+    result = await chain.ainvoke({})
+
+    # 验证结果
+    if not isinstance(result, dict):
+        raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
+
+    # 解析结果
+    analysis_result = TextAnswerAnalysisResponse.model_validate(result)
+
+    return analysis_result
+
+
+def practice_report_analysis(
+    db: AsyncSession,
+    session: PracticeSession,
+    answers: List[PracticeAnswer],
+    wrong_records: List[PracticeWrongRecord],
+):
+    """分析练习报告"""
+    pass

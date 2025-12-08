@@ -16,7 +16,7 @@ from core.exception import (
     global_exception_handler,
     validation_exception_handler,
 )
-from routes import image, audio, analysis, question
+from routes import practice, question, textbook
 
 dotenv.load_dotenv()
 
@@ -25,7 +25,7 @@ dotenv.load_dotenv()
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     logger.info(">" * 10 + "AI Service 启动" + "<" * 10)
-
+    logger.info(f"运行环境: {envs}")
     # 初始化运行目录
     os.makedirs(envs.LOG_DIR, exist_ok=True)
 
@@ -57,10 +57,9 @@ app.add_middleware(
 )
 
 # 注册路由
-app.include_router(image.router)
-app.include_router(audio.router)
-app.include_router(question.router)
-app.include_router(analysis.router)
+app.include_router(practice.router, prefix="/api/practice")
+app.include_router(question.router, prefix="/api/question")
+app.include_router(textbook.router, prefix="/api/textbook")
 
 
 @app.get("/")
@@ -74,6 +73,7 @@ async def root():
 
 
 if __name__ == "__main__":
+    logger.info("服务启动端口: 7892")
     uvicorn.run(
         "main:app",
         host=envs.AI_SERVER_HOST,

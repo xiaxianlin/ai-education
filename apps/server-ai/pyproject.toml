@@ -10,25 +10,24 @@ dependencies = [
     "pydantic-settings>=2.9.1",
     "python-dotenv>=1.1.0",
     "loguru>=0.7.3",
-    "httpx>=0.27.0",
-    
+
     # AI 相关
     "openai>=1.79.0",
     "langchain>=0.3.0,<0.4.0",
     "langchain-openai>=0.2.0,<0.3.0",
     "langchain-core>=0.3.0,<0.4.0",
     "langgraph>=0.2.0,<0.3.0",
-    
+
     # 数据库相关
     "sqlalchemy>=2.0.41",
     "asyncmy>=0.2.10",
-    
+
     # 阿里云服务
     "dashscope>=1.25.0",
     "alibabacloud-oss-v2>=1.1.1",
+    "alibabacloud-bailian20231229>=2.1.0",
     "requests>=2.31.0",
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
-
+package-dir = { "" = "src" }
