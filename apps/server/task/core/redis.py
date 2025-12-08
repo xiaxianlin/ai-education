@@ -1,4 +1,5 @@
 """Redis 客户端"""
+
 import redis
 from loguru import logger
 
@@ -7,9 +8,9 @@ from shared.core.settings import envs
 
 class RedisClient:
     """Redis 客户端单例"""
-    
+
     _instance: redis.Redis = None
-    
+
     @classmethod
     def get_connection(cls) -> redis.Redis:
         """获取 Redis 连接"""
@@ -31,7 +32,7 @@ class RedisClient:
                 logger.error(f"Redis 连接失败: {e}")
                 raise
         return cls._instance
-    
+
     @classmethod
     def close(cls):
         """关闭连接"""
@@ -45,4 +46,3 @@ class RedisClient:
 def get_redis_connection() -> redis.Redis:
     """获取 Redis 连接的便捷函数"""
     return RedisClient.get_connection()
-

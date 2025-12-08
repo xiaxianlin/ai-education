@@ -4,8 +4,8 @@ from datetime import datetime
 from loguru import logger
 import uuid
 
-from task.models.task import TaskRequest, TaskResponse, TaskStatus, TaskType, QuestionSubmitRequest
-from task.services.rq_service import RQService
+from task.schema import TaskRequest, TaskResponse, TaskStatus, TaskType, QuestionSubmitRequest
+from task.services.rq import RQService
 from shared.core.settings import envs
 
 # 初始化 RQ 服务，使用默认队列
