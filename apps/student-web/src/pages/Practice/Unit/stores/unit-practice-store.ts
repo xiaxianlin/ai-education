@@ -23,6 +23,7 @@ interface ConfirmModalState {
 interface UnitPracticeStoreState {
   // 状态
   loading: boolean;
+  taskStatus: TaskStatus | null;
   practices: PracticeSession[];
   knowledgeModal: KnowledgeModalState;
   confirmModal: ConfirmModalState;
@@ -36,10 +37,83 @@ interface UnitPracticeStoreState {
   createPractice: (textbookId: number, unitId: number) => Promise<void>;
 }
 
-export const useUnitPracticeStore = create<UnitPracticeStoreState>((set) => {
+// 轮询配置
+const POLLING_INTERVAL = 2000; // 2秒
+const MAX_POLLING_COUNT = 150; // 最大轮询次数（5分钟）
+
+export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) => {
+  let pollingTimer: ReturnType<typeof setTimeout> | null = null;
+  let pollingCount = 0;
+
+  // 清理轮询
+  const clearPolling = () => {
+    if (pollingTimer) {
+      clearTimeout(pollingTimer);
+      pollingTimer = null;
+    }
+    pollingCount = 0;
+  };
+
+  // 轮询任务状态
+  const pollTaskStatus = async (taskId: string) => {
+    pollingCount++;
+
+    // 检查是否超过最大轮询次数
+    if (pollingCount > MAX_POLLING_COUNT) {
+      clearPolling();
+      set({ loading: false, taskStatus: "failed" });
+      toast.error("练习生成超时，请稍后重试");
+      return;
+    }
+
+    try {
+      const response = await studentApi.getPracticeTaskStatus(taskId);
+      set({ taskStatus: response.status });
+
+      switch (response.status) {
+        case "completed":
+          clearPolling();
+          set({ loading: false });
+          // 刷新练习列表
+          get().queryPractices();
+          // 关闭确认弹窗
+          get().closeConfirmModal();
+          toast.success("练习生成成功");
+          break;
+
+        case "failed":
+          clearPolling();
+          set({ loading: false });
+          toast.error(response.error || "练习生成失败");
+          break;
+
+        case "cancelled":
+          clearPolling();
+          set({ loading: false });
+          toast.info("任务已取消");
+          break;
+
+        case "pending":
+        case "processing":
+          // 继续轮询
+          pollingTimer = setTimeout(() => {
+            pollTaskStatus(taskId);
+          }, POLLING_INTERVAL);
+          break;
+      }
+    } catch (error) {
+      console.error("轮询任务状态失败:", error);
+      // 网络错误时继续尝试轮询
+      pollingTimer = setTimeout(() => {
+        pollTaskStatus(taskId);
+      }, POLLING_INTERVAL);
+    }
+  };
+
   return {
     // 初始状态
     loading: false,
+    taskStatus: null,
     practices: [],
     knowledgeModal: {
       open: false,
@@ -59,19 +133,33 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set) => {
       const practices = await studentApi.getUnitPractice();
       set({ practices });
     },
+
     createPractice: async (textbookId: number, unitId: number) => {
+      // 如果正在进行中，不重复提交
+      if (get().loading) return;
+
       try {
-        set({ loading: true });
-        await studentApi.createPractice({
+        set({ loading: true, taskStatus: "pending" });
+        clearPolling();
+
+        // 提交创建任务
+        const response = await studentApi.createPractice({
           type: "unit_practice",
           textbook_id: textbookId,
-          unit_id: unitId
+          unit_id: unitId,
         });
+
+        if (response.task_id) {
+          // 开始轮询任务状态
+          pollingCount = 0;
+          pollTaskStatus(response.task_id);
+        } else {
+          throw new Error("未获取到任务ID");
+        }
       } catch (error) {
         console.error("Failed to create practice:", error);
+        set({ loading: false, taskStatus: "failed" });
         toast.error("创建练习失败");
-      } finally {
-        set({ loading: false });
       }
     },
 
@@ -136,6 +224,11 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set) => {
 
     // 关闭练习弹窗
     closeConfirmModal: () => {
+      // 如果正在加载中，清理轮询
+      if (get().loading) {
+        clearPolling();
+        set({ loading: false, taskStatus: null });
+      }
       set({
         confirmModal: {
           open: false,

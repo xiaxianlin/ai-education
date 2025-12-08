@@ -44,5 +44,34 @@ declare global {
   interface CompletePracticeResponse {
     report_id: number;
   }
+
+  /**
+   * 任务状态枚举
+   */
+  type TaskStatus = "pending" | "processing" | "completed" | "failed" | "cancelled";
+
+  /**
+   * 创建练习任务响应
+   */
+  interface CreatePracticeTaskResponse {
+    task_id: string;
+    status: TaskStatus;
+  }
+
+  /**
+   * 练习任务状态响应
+   */
+  interface PracticeTaskStatusResponse {
+    task_id: string;
+    status: TaskStatus;
+    created_at?: string;
+    updated_at?: string;
+    result?: {
+      session_id: number;
+      question_count: number;
+    };
+    error?: string;
+    processing_time?: number;
+  }
 }
 export {};

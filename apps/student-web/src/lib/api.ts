@@ -188,15 +188,24 @@ export class StudentApiClient extends ApiClient {
   }
 
   /**
-   * 创建练习
+   * 创建练习（异步任务）
    * POST /practice/create
+   * @returns 任务ID和状态
    */
   async createPractice(params: {
     type: "daily_practice" | "unit_practice" | "assessment";
     textbook_id: number;
     unit_id?: number;
-  }): Promise<number> {
-    return this.post<number>("/practice/create", params);
+  }): Promise<CreatePracticeTaskResponse> {
+    return this.post<CreatePracticeTaskResponse>("/practice/create", params);
+  }
+
+  /**
+   * 查询练习生成任务状态
+   * GET /practice/task/{task_id}
+   */
+  async getPracticeTaskStatus(taskId: string): Promise<PracticeTaskStatusResponse> {
+    return this.get<PracticeTaskStatusResponse>(`/practice/task/${taskId}`);
   }
 
   /**

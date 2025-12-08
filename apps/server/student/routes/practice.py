@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Database
 from student.schema import PracticeType, AnswerQuestionSchema, CreatePracticeSchema
-from student.services import practice, answer, practice_generate
+from student.services import practice, answer
+from task.services.task import submit_practice_task, get_task_status
+from task.schema import PracticeSubmitRequest
 
 
 practice_router = APIRouter(prefix="/practice")
@@ -37,22 +39,65 @@ async def get_assessment(request: Request, db: AsyncSession = Database):
 async def create_practice(
     request: Request,
     params: CreatePracticeSchema,
-    db: AsyncSession = Database,
 ):
-    """创建练习会话"""
-    type = params.type
-    params = params.model_dump()
-    params["db"] = db
-    params["student_id"] = request.state.student.id
+    """创建练习会话（异步任务）
+    
+    提交练习生成任务到任务队列，返回任务ID。
+    客户端需要通过 /task/{task_id} 接口轮询任务状态。
+    """
+    student_id = request.state.student.id
+    
+    # 构建练习任务请求
+    practice_request = PracticeSubmitRequest(
+        type=params.type.value,
+        textbook_id=params.textbook_id,
+        unit_id=params.unit_id,
+    )
+    
+    # 提交任务
+    task_response = await submit_practice_task(student_id, practice_request)
+    
+    return {
+        "task_id": task_response.task_id,
+        "status": task_response.status.value,
+    }
 
-    if type == "daily_practice":
-        return await practice_generate.create_daily_practice(**params)
 
-    if type == "unit_practice":
-        return await practice_generate.create_unit_practice(**params)
-
-    if type == "assessment":
-        return await practice_generate.create_assessment(**params)
+@practice_router.get("/task/{task_id}")
+async def get_practice_task_status(task_id: str):
+    """查询练习生成任务状态
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        任务状态信息，包含 task_id, status, result, error
+    """
+    task_response = await get_task_status(task_id)
+    
+    if not task_response:
+        return {"error": "任务不存在", "task_id": task_id}
+    
+    response = {
+        "task_id": task_response.task_id,
+        "status": task_response.status.value,
+        "created_at": task_response.created_at.isoformat() if task_response.created_at else None,
+        "updated_at": task_response.updated_at.isoformat() if task_response.updated_at else None,
+    }
+    
+    # 如果任务完成，返回结果（session_id）
+    if task_response.result:
+        response["result"] = task_response.result
+    
+    # 如果任务失败，返回错误信息
+    if task_response.error:
+        response["error"] = task_response.error
+        
+    # 如果有处理耗时，返回
+    if task_response.processing_time:
+        response["processing_time"] = task_response.processing_time
+    
+    return response
 
 
 @practice_router.get("/detail/{session_id}")

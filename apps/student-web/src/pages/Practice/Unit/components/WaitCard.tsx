@@ -7,11 +7,12 @@ import { useUnitPracticeStore } from "../stores/unit-practice-store";
 
 interface WaitCardProps {
   unit: Unit;
+  onShowKnowledge: (unit: Unit) => void;
 }
 
-export const WaitCard = ({ unit }: WaitCardProps) => {
+export const WaitCard = ({ unit, onShowKnowledge }: WaitCardProps) => {
   const theme = getColorTheme(unit.id);
-  const { openConfirmModal, openKnowledgeModal } = useUnitPracticeStore();
+  const { openConfirmModal } = useUnitPracticeStore();
 
   return (
     <>
@@ -43,7 +44,7 @@ export const WaitCard = ({ unit }: WaitCardProps) => {
               variant="outline"
               size="sm"
               className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all bg-muted/70 hover:bg-muted hover:text-foreground border-transparent"
-              onClick={() => openKnowledgeModal(unit)}
+              onClick={() => onShowKnowledge(unit)}
             >
               <Lightbulb className="h-4 w-4 mr-2" />
               查看知识点

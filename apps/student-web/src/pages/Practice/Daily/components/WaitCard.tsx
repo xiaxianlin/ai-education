@@ -2,14 +2,15 @@
  * 等待生成状态的练习卡片
  */
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 
 interface WaitCardProps {
   title: string;
   onCreate: () => void;
+  loading?: boolean;
 }
 
-export const WaitCard = ({ title, onCreate }: WaitCardProps) => {
+export const WaitCard = ({ title, onCreate, loading }: WaitCardProps) => {
   return (
     <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
@@ -28,11 +29,21 @@ export const WaitCard = ({ title, onCreate }: WaitCardProps) => {
         {/* 操作按钮 */}
         <Button
           onClick={onCreate}
+          disabled={loading}
           size="lg"
           className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl font-semibold text-base transition-all text-primary-foreground"
         >
-          <Sparkles className="h-5 w-5 mr-2" />
-          生成今日练习
+          {loading ? (
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              生成中...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-5 w-5 mr-2" />
+              生成今日练习
+            </>
+          )}
         </Button>
       </div>
     </div>

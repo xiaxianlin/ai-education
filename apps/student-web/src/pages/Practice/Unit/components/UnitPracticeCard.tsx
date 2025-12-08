@@ -3,11 +3,10 @@
  * 参考 Daily/views/PracticeCard.tsx 结构
  */
 import { memo } from "react";
-import { useRequest } from "ahooks";
-import { studentApi } from "@/lib/api";
 import { WaitCard } from "./WaitCard";
 import { GeneratingCard } from "./GeneratingCard";
 import { InProgressCard } from "./InProgressCard";
+import { useUnitPracticeStore } from "../stores/unit-practice-store";
 
 interface UnitPracticeCardProps {
   unit: Unit;
@@ -18,26 +17,24 @@ interface UnitPracticeCardProps {
 
 export const UnitPracticeCard = memo(function UnitPracticeCard({
   unit,
-  textbook,
   practice,
   onShowKnowledge,
 }: UnitPracticeCardProps) {
-  const { loading, run: createPractice } = useRequest(
-    () => studentApi.createPractice({ type: "unit_practice", textbook_id: textbook.id, unit_id: unit.id }),
-    { manual: true }
-  );
+  const { loading, confirmModal } = useUnitPracticeStore();
+  
+  // 判断当前单元是否正在生成中
+  const isCurrentUnitGenerating = loading && confirmModal.unitId === unit.id;
 
-  if (!loading && !practice) {
+  if (!practice && !isCurrentUnitGenerating) {
     return (
       <WaitCard
         unit={unit}
         onShowKnowledge={onShowKnowledge}
-        onCreatePractice={createPractice}
       />
     );
   }
 
-  if (loading || practice?.generate_status === 0) {
+  if (isCurrentUnitGenerating || practice?.generate_status === 0) {
     return <GeneratingCard unit={unit} />;
   }
 
