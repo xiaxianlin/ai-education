@@ -3,8 +3,8 @@
 from typing import Optional
 from datetime import datetime
 from loguru import logger
-from rq import Queue, Job
-from rq.job import JobStatus
+from rq import Queue
+from rq.job import Job, JobStatus
 
 from task.core.redis import get_redis_connection
 from task.schema import TaskRequest, TaskResponse, TaskStatus

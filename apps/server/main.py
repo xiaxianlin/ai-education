@@ -57,4 +57,4 @@ app.mount("/api/student", student_app)
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=7890, reload=True, log_level="info", workers=2)
+    uvicorn.run("main:app", port=7890, reload=True, log_level="info")

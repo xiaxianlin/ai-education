@@ -3,10 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from admin.services import question
 from shared.core.database import Database
-from ai.services.question import (
-    generate_question_image,
-    generate_question_audio,
-)
 
 question_router = APIRouter(prefix="/question")
 
@@ -46,10 +42,10 @@ async def get_question(id: str, db: AsyncSession = Database):
 @question_router.post("/{id}/image_generate")
 async def generate_image(id: str, db: AsyncSession = Database):
     """为题目生成图片"""
-    return await generate_question_image(int(id), db)
+    return await question.generate_question_image(db, int(id))
 
 
 @question_router.post("/{id}/audio_generate")
 async def generate_audio(id: str, db: AsyncSession = Database):
     """为题目生成语音"""
-    return await generate_question_audio(int(id), db)
+    return await question.generate_question_audio(db, int(id))

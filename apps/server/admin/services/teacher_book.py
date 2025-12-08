@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy import asc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTeacherBookSchema, SearchTeacherBookSchema
-from shared.provider.aliyun import AliyunRag
+# from shared.provider.aliyun import AliyunRag  # TODO: Implement RAG provider
 from shared.core.database import TeacherBook
 from shared.core.schema import TeacherBookSchema
 from shared.core.settings import envs
@@ -56,9 +56,10 @@ async def delete_teacher_book(db: AsyncSession, id: int):
     if not teacher_book:
         raise ValueError("教师用书不存在")
 
-    if teacher_book.index_file_id:
-        rag = AliyunRag()
-        rag.delete_index_document(teacher_book.index_file_id)
+    # TODO: Implement RAG index deletion
+    # if teacher_book.index_file_id:
+    #     rag = AliyunRag()
+    #     rag.delete_index_document(teacher_book.index_file_id)
 
     await db.delete(teacher_book)
     await db.commit()
@@ -116,14 +117,16 @@ async def upload_teacher_book(db: AsyncSession, id: int, file: UploadFile):
         with open(tmp_file_path, "wb") as buffer:
             buffer.write(data)
 
-        rag = AliyunRag()
-        # 更新索引（同步）
-        teacher_book.index_file_id = rag.exec_upload(
-            file.filename, tmp_file_path, teacher_book.index_file_id
-        )
+        # TODO: Implement RAG index upload
+        # rag = AliyunRag()
+        # # 更新索引（同步）
+        # teacher_book.index_file_id = rag.exec_upload(
+        #     file.filename, tmp_file_path, teacher_book.index_file_id
+        # )
 
         await db.commit()
     except ValueError as e:
         raise e
     finally:
-        os.remove(tmp_file_path)
+        if tmp_file_path.exists():
+            os.remove(tmp_file_path)

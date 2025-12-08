@@ -2,8 +2,6 @@ from fastapi import Query
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List, Generic, TypeVar
 
-from apps.server.ai.question import answer
-
 
 T = TypeVar("T")
 

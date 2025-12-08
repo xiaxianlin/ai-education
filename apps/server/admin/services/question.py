@@ -5,6 +5,8 @@ from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
+from ai.question.resource import generate_question_image as ai_generate_image
+from ai.question.resource import generate_question_audio as ai_generate_audio
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
@@ -277,5 +279,37 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
         total=total,
         data=[QuestionSchema.model_validate(question) for question in result.all()],
     )
+
+
+async def generate_question_image(db: AsyncSession, id: int):
+    """为题目生成图片"""
+    question = await db.scalar(select(Question).where(Question.id == id))
+    if not question:
+        raise ValueError("问题不存在")
+    
+    # 调用 AI 服务生成图片
+    resource_path = await ai_generate_image(question)
+    
+    # 更新数据库
+    question.resource = resource_path
+    await db.commit()
+    
+    return QuestionSchema.model_validate(question)
+
+
+async def generate_question_audio(db: AsyncSession, id: int):
+    """为题目生成语音"""
+    question = await db.scalar(select(Question).where(Question.id == id))
+    if not question:
+        raise ValueError("问题不存在")
+    
+    # 调用 AI 服务生成语音
+    resource_path = await ai_generate_audio(question)
+    
+    # 更新数据库
+    question.resource = resource_path
+    await db.commit()
+    
+    return QuestionSchema.model_validate(question)
 
 

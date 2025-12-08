@@ -6,7 +6,7 @@ from loguru import logger
 
 from shared.core.database import Question
 from ai.schema import QuestionGenerationState
-from ai.question.resource import generate_image, generate_audio
+from ai.question.resource import generate_question_image, generate_question_audio
 
 
 async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -25,7 +25,7 @@ async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
     # 并行生成图片
     async def generate_single_image(question: Question):
         try:
-            image_url = await generate_image(question)
+            image_url = await generate_question_image(question)
             question._temp_image_url = image_url
             logger.info(f"题目 {question.id} 图片生成成功")
         except Exception as e:
@@ -58,7 +58,7 @@ async def generate_audios(state: QuestionGenerationState) -> Dict[str, Any]:
     # 并行生成语音
     async def generate_single_audio(question: Question):
         try:
-            audio_url = await generate_audio(question, language="English")
+            audio_url = await generate_question_audio(question, language="English")
             # 将音频URL保存到临时字段，后续上传时使用
             question._temp_audio_url = audio_url
             logger.info(f"题目 {question.id} 语音生成成功")
