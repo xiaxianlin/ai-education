@@ -18,9 +18,7 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 # 接管标准库 logging（包括 uvicorn）
@@ -31,7 +29,7 @@ for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     log.handlers = [intercept_handler]
     log.propagate = False
 
-if envs.LOG_TO_FILE:
+if envs.RUN_ENV == "production":
     os.makedirs(envs.LOG_DIR, exist_ok=True)
 
     # 添加文件输出 - 普通日志

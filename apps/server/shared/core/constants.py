@@ -124,7 +124,7 @@ def extract_question_subtypes():
 # 所有题目子类型（从 QUESTION_TYPES 中提取）
 QUESTION_SUBTYPES = extract_question_subtypes()
 
-
+# 生成题目数量
 GENERATE_QUESTION_COUNT = {
     1: {
         "daily_practice": 15,
@@ -132,3 +132,6 @@ GENERATE_QUESTION_COUNT = {
         "assessment": 25,
     }
 }
+
+# 题目召回数量
+QUESTION_RECALL_COUNT = 0

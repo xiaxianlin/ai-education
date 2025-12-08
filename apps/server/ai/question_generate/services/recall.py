@@ -15,12 +15,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
+from shared.core.constants import QUESTION_RECALL_COUNT
 from shared.core.database import Question
-from shared.core.settings import envs
-
-# 注意：server-ai 中可能没有 PracticeAnswer 和 PracticeSession 模型
-# 如果需要这些模型，需要从 server-api 迁移或通过 API 调用获取数据
-# 这里先简化实现，只做基本的召回
 
 
 class RecallService:
@@ -28,10 +24,7 @@ class RecallService:
 
     @classmethod
     async def recall_for_daily_practice(
-        cls,
-        db: AsyncSession,
-        student_id: str,
-        textbook_id: int,
+        cls, db: AsyncSession, student_id: str, textbook_id: int
     ) -> List[Question]:
         """为每日练习召回题目
 
@@ -47,8 +40,7 @@ class RecallService:
             策略：从教材中随机选择题目，优先排除学生最近做过的题目
             召回数量从环境变量 QUESTION_RECALL_COUNT 读取
         """
-        count = getattr(envs, "QUESTION_RECALL_COUNT", 0)
-        if count == 0:
+        if QUESTION_RECALL_COUNT == 0:
             return []
 
         # 构建查询：从教材随机选择
@@ -56,7 +48,7 @@ class RecallService:
             select(Question)
             .where(Question.textbook_id == textbook_id)
             .order_by(func.random())
-            .limit(count)
+            .limit(QUESTION_RECALL_COUNT)
         )
 
         result = await db.execute(stmt)
@@ -67,15 +59,10 @@ class RecallService:
             f"召回数量={len(questions)}"
         )
 
-        return list(questions[:count])
+        return list(questions[:QUESTION_RECALL_COUNT])
 
     @classmethod
-    async def recall_for_unit_practice(
-        cls,
-        db: AsyncSession,
-        unit_id: int,
-        student_id: Optional[str] = None,
-    ) -> List[Question]:
+    async def recall_for_unit_practice(cls, db: AsyncSession, unit_id: int) -> List[Question]:
         """为单元练习召回题目
 
         Args:
@@ -90,13 +77,15 @@ class RecallService:
             策略：从指定单元随机选择题目，优先保持题型多样性
             召回数量从环境变量 QUESTION_RECALL_COUNT 读取
         """
-        count = getattr(envs, "QUESTION_RECALL_COUNT", 0)
-        if count == 0:
+        if QUESTION_RECALL_COUNT == 0:
             return []
 
         # 构建查询：从指定单元随机选择
         stmt = (
-            select(Question).where(Question.unit_id == unit_id).order_by(func.random()).limit(count)
+            select(Question)
+            .where(Question.unit_id == unit_id)
+            .order_by(func.random())
+            .limit(QUESTION_RECALL_COUNT)
         )
 
         result = await db.execute(stmt)
@@ -104,14 +93,13 @@ class RecallService:
 
         logger.debug(f"单元练习召回题目: unit_id={unit_id}, " f"召回数量={len(questions)}")
 
-        return list(questions[:count])
+        return list(questions[:QUESTION_RECALL_COUNT])
 
     @classmethod
     async def recall_for_assessment(
         cls,
         db: AsyncSession,
         textbook_id: int,
-        student_id: Optional[str] = None,
     ) -> List[Question]:
         """为能力评估召回题目
 
@@ -127,8 +115,7 @@ class RecallService:
             策略：从指定教材随机选择题目，用于避免生成重复题目
             召回数量从环境变量 QUESTION_RECALL_COUNT 读取
         """
-        count = getattr(envs, "QUESTION_RECALL_COUNT", 0)
-        if count == 0:
+        if QUESTION_RECALL_COUNT == 0:
             return []
 
         # 构建查询：从教材随机选择
@@ -136,7 +123,7 @@ class RecallService:
             select(Question)
             .where(Question.textbook_id == textbook_id)
             .order_by(func.random())
-            .limit(count)
+            .limit(QUESTION_RECALL_COUNT)
         )
 
         result = await db.execute(stmt)
@@ -144,4 +131,4 @@ class RecallService:
 
         logger.debug(f"能力评估召回题目: textbook_id={textbook_id}, " f"召回数量={len(questions)}")
 
-        return list(questions[:count])
+        return list(questions[:QUESTION_RECALL_COUNT])

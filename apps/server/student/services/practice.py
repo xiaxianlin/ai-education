@@ -1,31 +1,21 @@
 """通用练习服务"""
 
-import os
-import asyncio
-from pathlib import Path
-from typing import Dict, Tuple
+import ai
+from typing import Dict
 from loguru import logger
-from sqlalchemy import select, desc, delete
+from sqlalchemy import select, desc
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from shared.core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
+from shared.utils import oss
+from shared.utils.time import now, today
 from shared.core.database import (
     PracticeSession,
     PracticeAnswer,
     PracticeReport,
     Question,
-    Textbook,
-    Unit,
 )
-from shared.core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
-from shared.core.settings import envs
-from shared.utils.time import now, today
-from ai.services.question import generate_questions
-from ai.services.question import analyze_question_audio_answer
-from shared.sdk.oss_client import AliyunOSS
-from ai.core.constants import GENERATE_QUESTION_COUNT
-from task.services.task import submit_question_task, get_task_status
-from task.models.task import QuestionSubmitRequest, TaskStatus
 
 
 async def get_daily_practice(db: AsyncSession, student_id: str):
@@ -82,9 +72,7 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
 
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -120,9 +108,7 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
         报告ID
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -184,9 +170,7 @@ async def get_practice_history(
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
 
 
-async def get_session_detail(
-    db: AsyncSession, student_id: str, session_id: int
-) -> Dict:
+async def get_session_detail(db: AsyncSession, student_id: str, session_id: int) -> Dict:
     """
     根据练习会话ID查询会话详情（学生端）
     包括：会话基本信息、问题列表、已完成练习的报告
@@ -200,9 +184,7 @@ async def get_session_detail(
         会话详情，包含session、questions、answers、report
     """
     # 查询会话基本信息
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -225,9 +207,7 @@ async def get_session_detail(
     # 查询题目详情
     questions = []
     if question_ids:
-        question_objs = await db.scalars(
-            select(Question).where(Question.id.in_(question_ids))
-        )
+        question_objs = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
         questions = [QuestionSchema.model_validate(q) for q in question_objs.all()]
 
     # 构建答题记录列表
@@ -269,7 +249,7 @@ async def get_session_detail(
     return result
 
 
-async def upload_recording(
+async def analyze_audio_answer(
     db: AsyncSession,
     student_id: str,
     session_id: int,
@@ -277,447 +257,39 @@ async def upload_recording(
     audio_data: bytes,
     audio_type: str = "webm",
 ):
-    """
-    上传录音并进行语音识别
+    """上传录音并进行语音识别"""
 
-    Args:
-        student_id: 学生ID
-        session_id: 练习会话ID
-        question_id: 问题ID
-        audio_data: 音频数据 (bytes)
-        audio_type: 音频格式，默认为webm
+    question = await db.scalar(select(Question).where(Question.id == question_id))
+    if not question:
+        raise ValueError("题目不存在")
 
-    Returns:
-        Tuple[oss_path, analysis]: OSS 存储路径和音频理解结果模型
-    """
     # 构建 OSS 存储路径
     oss_path = f"answer/{student_id}_{session_id}_{question_id}.{audio_type}"
 
-    file_path = None
-    try:
-        # 创建临时目录保存音频文件（ASR 需要文件路径）
-        tmp_dir = Path(envs.TMP_DIR) / "recordings"
-        tmp_dir.mkdir(parents=True, exist_ok=True)
-        file_path = tmp_dir / f"{student_id}_{session_id}_{question_id}.{audio_type}"
+    oss.upload(oss_path, audio_data)
+    logger.info(f"录音上传 OSS 成功: {oss_path}")
 
-        # 写入临时文件
-        with open(file_path, "wb") as f:
-            f.write(audio_data)
-        logger.info(f"录音临时文件创建成功: {file_path}")
+    # 获取 OSS 访问地址
+    audio_url = oss.get_access_url(oss_path)
+    logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
-        # 上传到 OSS
-        oss = AliyunOSS()
-        if oss.exist(oss_path):
-            logger.info(f"OSS 文件已存在，先删除: {oss_path}")
-            oss.delete(oss_path)
-        oss.upload(oss_path, audio_data)
-        logger.info(f"录音上传 OSS 成功: {oss_path}")
-
-        # 获取 OSS 访问地址
-        audio_url = oss.get_access_url(oss_path)
-        logger.info(f"获取 OSS 访问地址成功: {audio_url}")
-
-        # 查询题目信息，用于构造问题提示
-        question = await db.scalar(select(Question).where(Question.id == question_id))
-        if not question:
-            raise ValueError("题目不存在")
-
-        # 调用 AI 服务进行音频理解（包含转写 + 匹配分析）
-        analysis_result = await analyze_question_audio_answer(
-            question_id=question_id,
-            audio_url=audio_url,
-            audio_type=audio_type,
-            db=db,
-        )
-        logger.info(
-            "音频理解成功: match=%s, text_length=%s",
-            analysis_result.match,
-            len(analysis_result.text),
-        )
-
-        return oss_path, analysis_result
-
-    except Exception as e:
-        logger.error(f"上传录音失败: {e}")
-        raise ValueError(f"上传录音失败: {str(e)}")
-    finally:
-        # 清理临时文件
-        if file_path and file_path.exists():
-            os.remove(file_path)
-            logger.info(f"临时文件已删除: {file_path}")
-
-
-async def generate_practice_session(
-    *,
-    db: AsyncSession,
-    type: str,
-    student_id: str,
-    textbook_id: int,
-    unit_id: int | None = None,
-):
-
-    textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
-
-    if not textbook:
-        raise ValueError("教材不纯粹")
-    unit = None
-    target_id = today()
-    if type == "unit_practice":
-        unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
-        target_id = unit_id
-    # 生成开始前，先创建会话记录
-    session = PracticeSession(
-        student_id=student_id,
-        session_type=type,
-        target_id=target_id,
-        textbook_id=textbook_id,
-    )
-    db.add(session)
-    await db.flush()
-
-    try:
-        count = GENERATE_QUESTION_COUNT[textbook.grade][type]
-        if not count:
-            raise ValueError("生成数量异常")
-
-        logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
-
-        # 提交任务到任务队列
-        task_request = QuestionSubmitRequest(
-            type=type,
-            count=count,
-            textbook_id=textbook.id,
-            unit_id=unit.id if unit else None,
-            student_id=student_id,
-        )
-        task_response = await submit_question_task(task_request)
-        task_id = task_response.task_id
-
-        # 轮询任务状态直到完成
-        max_wait_time = 600
-        poll_interval = 2
-        elapsed_time = 0
-
-        while elapsed_time < max_wait_time:
-            status = await get_task_status(task_id)
-            if not status:
-                raise ValueError("任务不存在")
-
-            task_status = status.status
-            if task_status == TaskStatus.COMPLETED:
-                # 从数据库查询生成的题目（根据类型和参数）
-                query = select(Question).where(Question.textbook_id == textbook.id)
-                if unit:
-                    query = query.where(Question.unit_id == unit.id)
-                query = query.order_by(Question.id.desc()).limit(count)
-                questions_result = await db.scalars(query)
-                questions = questions_result.all()
-                break
-            elif task_status == TaskStatus.FAILED:
-                error_msg = status.error or "未知错误"
-                raise ValueError(f"题目生成失败: {error_msg}")
-
-            await asyncio.sleep(poll_interval)
-            elapsed_time += poll_interval
-        else:
-            raise ValueError("题目生成超时")
-
-        # 创建答题记录
-        answer_records = []
-        for index, question in enumerate(questions):
-            answer_record = PracticeAnswer(
-                session_id=session.id,
-                question_id=question.id,
-                question_order=index + 1,
-                status=0,
-                time_spent=0,
-            )
-            answer_records.append(answer_record)
-
-        db.add_all(answer_records)
-
-        session.question_count = len(questions)
-        session.generate_status = 1
-        session.update_time = now()
-        await db.commit()
-
-        logger.info(
-            f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}"
-        )
-        return session
-    except Exception as e:
-        logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
-        await db.rollback()
-        await db.delete(session)
-        raise ValueError(f"会话生成失败: {str(e)}")
-
-
-async def regenerate_practice_session(db: AsyncSession, session_id: int):
-    # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
-    if not session:
-        raise ValueError("当前练习不存在")
-
-    if session.generate_status == 0:
-        raise ValueError("当前练习正在生成中，请稍后重试")
-
-    try:
-        # 更新练习会话状态
-        session.generate_status = 0
-        session.question_count = 0
-        session.correct_count = 0
-        session.start_time = 0
-        session.answer_count = 0
-
-        logger.info(
-            f"开始重新生成练习会话: session_id={session_id}, type={session.session_type}"
-        )
-
-        unit_id = session.target_id if session.session_type == "unit_practice" else None
-
-        # 获取教材信息
-        textbook = await db.scalar(select(Textbook).where(Textbook.id == session.textbook_id))
-        if not textbook:
-            raise ValueError("教材不存在")
-
-        # 获取题目数量
-        count = GENERATE_QUESTION_COUNT[textbook.grade][session.session_type]
-        if not count:
-            raise ValueError("生成数量异常")
-
-        # 提交任务到任务队列
-        task_request = QuestionSubmitRequest(
-            type=session.session_type,
-            count=count,
-            textbook_id=session.textbook_id,
-            unit_id=unit_id,
-            student_id=session.student_id,
-        )
-        task_response = await submit_question_task(task_request)
-        task_id = task_response.task_id
-
-        # 轮询任务状态直到完成
-        max_wait_time = 600
-        poll_interval = 2
-        elapsed_time = 0
-
-        while elapsed_time < max_wait_time:
-            status = await get_task_status(task_id)
-            if not status:
-                raise ValueError("任务不存在")
-
-            task_status = status.status
-            if task_status == TaskStatus.COMPLETED:
-                # 从数据库查询生成的题目
-                query = select(Question).where(
-                    Question.textbook_id == session.textbook_id
-                )
-                if unit_id:
-                    query = query.where(Question.unit_id == unit_id)
-                query = query.order_by(Question.id.desc()).limit(count)
-                questions_result = await db.scalars(query)
-                questions = questions_result.all()
-                break
-            elif task_status == TaskStatus.FAILED:
-                error_msg = status.error or "未知错误"
-                raise ValueError(f"题目生成失败: {error_msg}")
-
-            await asyncio.sleep(poll_interval)
-            elapsed_time += poll_interval
-        else:
-            raise ValueError("题目生成超时")
-
-        await db.execute(
-            delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
-        await db.flush()  # 确保删除操作完成
-
-        # 批量创建答题记录
-        answer_records = []
-        for index, question in enumerate(questions):
-            answer_record = PracticeAnswer(
-                session_id=session_id,
-                question_id=question.id,
-                question_order=index + 1,
-                status=0,
-                time_spent=0,
-            )
-            answer_records.append(answer_record)
-
-        db.add_all(answer_records)
-
-        session.question_count = len(questions)
-        session.generate_status = 1
-        await db.commit()
-
-        logger.info(
-            f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}"
-        )
-        return session
-    except Exception as e:
-        logger.error(f"重新生成练习会话失败: session_id={session_id}, error={e}")
-        await db.rollback()
-        raise ValueError(f"会话重新生成失败: {str(e)}")
-
-
-async def create_daily_practice(
-    db: AsyncSession,
-    student_id: str,
-    textbook_id: int,
-):
-    """为学生生成每日练习"""
-    current_date = today()
-
-    session = await db.scalar(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
-            PracticeSession.session_type == "daily_practice",
-            PracticeSession.target_id == current_date,
-        )
-    )
-
-    if session:
-        raise ValueError("当天每日练习已存在")
-
-    uncompleted_session = await db.scalar(
-        select(PracticeSession)
-        .where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
-            PracticeSession.session_type == "daily_practice",
-            PracticeSession.status != 2,
-        )
-        .order_by(desc(PracticeSession.create_time))
-    )
-
-    if uncompleted_session:
-
-        logger.info(
-            f"找到未完成的每日练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}"
-        )
-
-        try:
-            # 重置所有答题记录的信息
-            answer_records = await db.scalars(
-                select(PracticeAnswer).where(
-                    PracticeAnswer.session_id == uncompleted_session.id
-                )
-            )
-            for answer in answer_records.all():
-                answer.text_answer = None
-                answer.status = 0
-                answer.time_spent = 0
-                answer.submit_time = None
-                answer.audio_answer = None
-
-            # 重置进度并更新为当天的每日练习
-            uncompleted_session.target_id = current_date
-            uncompleted_session.status = 0
-            uncompleted_session.answer_count = 0
-            uncompleted_session.correct_count = 0
-            uncompleted_session.start_time = 0
-            uncompleted_session.end_time = None
-
-            await db.commit()
-
-            logger.info(
-                f"未完成每日练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}"
-            )
-
-            return uncompleted_session.id
-
-        except Exception as e:
-            await db.rollback()
-            logger.error(
-                f"重置未完成每日练习失败: student_id={student_id}, session_id={uncompleted_session.id}, error={e}"
-            )
-            raise ValueError(f"重置未完成每日练习失败: {str(e)}")
-
-    logger.info(f"开始创建每日练习: student_id={student_id}")
-    session = await generate_practice_session(
-        db=db,
-        type="daily_practice",
-        student_id=student_id,
-        textbook_id=textbook_id,
-    )
-
-    return session.id
-
-
-async def create_unit_practice(
-    db: AsyncSession,
-    student_id: str,
-    textbook_id: int,
-    unit_id: int,
-):
-    """为学生生成单元练习"""
-
-    # 获取单元信息
-    unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
-
-    if not unit:
-        raise ValueError("单元不存在")
-
-    # 检查是否已存在未完成的单元练习
-    session = await db.scalar(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
-            PracticeSession.session_type == "unit_practice",
-            PracticeSession.target_id == unit_id,
-            PracticeSession.status != 2,
-        )
-    )
-
-    if session:
-        raise ValueError("还存在未完成的单元练习，请先删除")
-
-    logger.info(f"开始创建单元练习: student_id={student_id}, unit_id={unit_id}")
-
-    session = await generate_practice_session(
-        db=db,
-        type="unit_practice",
-        unit_id=unit_id,
-        textbook_id=textbook_id,
-        student_id=student_id,
-    )
-
+    analysis_result = await ai.question.analyze_audio_answer(question, audio_url, audio_type)
     logger.info(
-        f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}"
+        f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
     )
 
-    return session.id
-
-
-async def create_assessment(
-    db: AsyncSession,
-    student_id: str,
-    textbook_id: int,
-):
-    """为学生生成能力评测"""
-
-    session = await db.scalar(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.textbook_id == textbook_id,
-            PracticeSession.session_type == "assessment",
-            PracticeSession.status != 2,
+    # 更新 PracticeAnswer
+    answer = await db.scalar(
+        select(PracticeAnswer).where(
+            PracticeAnswer.session_id == session_id, PracticeAnswer.question_id == question_id
         )
     )
+    if not answer:
+        raise ValueError("答题记录不存在")
 
-    if session:
-        raise ValueError("还存在未完成的能力评测，请先删除")
+    answer.audio_answer = oss_path
+    answer.text_answer = analysis_result.text
+    answer.status = 1 if analysis_result.match else 2
+    await db.commit()
 
-    logger.info(f"开始创建能力评测: student_id={student_id}")
-
-    session = await generate_practice_session(
-        db=db,
-        type="assessment",
-        student_id=student_id,
-        textbook_id=textbook_id,
-    )
-
-    return session.id
+    return analysis_result

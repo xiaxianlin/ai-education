@@ -1,6 +1,8 @@
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List, Generic, TypeVar
+
+from apps.server.ai.question import answer
 
 
 T = TypeVar("T")
@@ -229,3 +231,11 @@ class PracticeDetailSchema(BaseModel):
     wrong_records: list[PracticeWrongRecordSchema]
 
     model_config = {"from_attributes": True}
+
+
+class AnswerAnalysisSchema(BaseModel):
+    """答题分析响应"""
+
+    text: str = Field(description="学生的答题结果，如果是音频题，则是语音识别结果（转写文本）")
+    match: bool = Field(description="是否匹配题目要求")
+    analysis: str = Field(description="综合分析（包含原因和改进建议）")

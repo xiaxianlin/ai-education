@@ -8,7 +8,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from shared.core.settings import envs
 from shared.core.database import Question
 from ai.utils.llm import get_chat_client
-from ai.schema import TextAnswerAnalysisResponse, AudioAnswerAnalysisResponse
+from shared.core.schema import AnswerAnalysisSchema
 
 TEXT_ANALYSIS_PROMPT = """
 请分析以下学生答题情况：
@@ -56,7 +56,7 @@ TEXT_ANALYSIS_PROMPT = """
 """
 
 
-async def analyze_text_answer(question: Question, text_answer: str) -> TextAnswerAnalysisResponse:
+async def analyze_text_answer(question: Question, text_answer: str) -> AnswerAnalysisSchema:
     """分析题目文本答案是否正确"""
 
     logger.info(
@@ -64,7 +64,7 @@ async def analyze_text_answer(question: Question, text_answer: str) -> TextAnswe
     )
 
     # 创建 JSON 输出解析器
-    parser = JsonOutputParser(pydantic_object=TextAnswerAnalysisResponse)
+    parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
 
     # 格式化提示词
     analysis_prompt = TEXT_ANALYSIS_PROMPT.format(
@@ -86,9 +86,7 @@ async def analyze_text_answer(question: Question, text_answer: str) -> TextAnswe
         raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
 
     # 解析结果
-    analysis_result = TextAnswerAnalysisResponse.model_validate(result)
-
-    return analysis_result
+    return AnswerAnalysisSchema.model_validate(result)
 
 
 AUDIO_ANALYSIS_PROMPT = """你是一个英语口语评估助手，需要对学生的录音进行理解和分析。
@@ -115,7 +113,7 @@ AUDIO_ANALYSIS_PROMPT = """你是一个英语口语评估助手，需要对学�
 
 async def analyze_audio_answer(
     question: Question, audio_url: str, audio_type: str
-) -> AudioAnswerAnalysisResponse:
+) -> AnswerAnalysisSchema:
     """分析题目音频答案是否正确"""
     logger.info(f"开始语音答案分析，音频地址: {audio_url}, 问题: {question[:100]}...")
 
@@ -152,35 +150,28 @@ async def analyze_audio_answer(
         logger.info(f"音频理解成功，结果长度: {len(result_text)}")
         logger.debug(f"音频理解结果(JSON): {result_text[:200]}...")
 
-        # 尝试解析 JSON，处理可能的 markdown 代码块包裹
-        try:
-            # 移除可能的 markdown 代码块标记
-            cleaned_text = result_text.strip()
-            if cleaned_text.startswith("```json"):
-                cleaned_text = cleaned_text[7:]
-            if cleaned_text.startswith("```"):
-                cleaned_text = cleaned_text[3:]
-            if cleaned_text.endswith("```"):
-                cleaned_text = cleaned_text[:-3]
-            cleaned_text = cleaned_text.strip()
+        cleaned_text = result_text.strip()
+        if cleaned_text.startswith("```json"):
+            cleaned_text = cleaned_text[7:]
+        if cleaned_text.startswith("```"):
+            cleaned_text = cleaned_text[3:]
+        if cleaned_text.endswith("```"):
+            cleaned_text = cleaned_text[:-3]
+        cleaned_text = cleaned_text.strip()
 
-            # 解析 JSON
-            result_dict = json.loads(cleaned_text)
-            # 转换为 Pydantic 模型
-            result = AudioAnswerAnalysisResponse.model_validate(result_dict)
-            logger.info(
-                f"音频理解结果解析成功: match={result.match}, "
-                f"recognized_text长度={len(result.analysis)}"
-            )
-            return result
+        # 解析 JSON
+        result_dict = json.loads(cleaned_text)
+        # 转换为 Pydantic 模型
+        result = AnswerAnalysisSchema.model_validate(result_dict)
+        logger.info(
+            f"音频理解结果解析成功: match={result.match}, "
+            f"recognized_text长度={len(result.analysis)}"
+        )
+        return result
 
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON 解析失败: {e}, 原始结果: {result_text[:500]}")
-            raise ValueError(f"音频理解返回的 JSON 格式错误: {str(e)}")
-        except Exception as e:
-            logger.error(f"结果模型验证失败: {e}, 原始结果: {result_text[:500]}")
-            raise ValueError(f"音频理解结果验证失败: {str(e)}")
-
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON 解析失败: {e}, 原始结果: {result_text[:500]}")
+        raise ValueError(f"音频理解返回的 JSON 格式错误: {str(e)}")
     except ValueError:
         raise
     except Exception as e:
