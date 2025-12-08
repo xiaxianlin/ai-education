@@ -7,9 +7,9 @@ from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
 
 ##################################
-from core.database import init_database
-from core.settings import envs
-from core.logger import logger
+from shared.core.database import init_database
+from shared.core.settings import envs
+from shared.core.logger import logger
 
 from admin import admin_app
 from admin.services.manager import init_super_manager
@@ -38,7 +38,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # 配置CORS - 从环境变量读取允许的域名
-logger.info(f"服务启动端口: 7890")
+logger.info("服务启动端口: 7890")
 cors_origins = envs.CORS_ORIGINS.split(",") if envs.CORS_ORIGINS != "*" else ["*"]
 logger.info(f"CORS允许的域名: {cors_origins}")
 

@@ -2,8 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, HTTPException
 from loguru import logger
-from core.database import AsyncSessionLocal, Student
-from core.schema import StudentSchema
+from shared.core.database import AsyncSessionLocal, Student
+from shared.core.schema import StudentSchema
 from shared.utils import encrypt
 from shared.utils.time import now
 

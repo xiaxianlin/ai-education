@@ -4,7 +4,7 @@ from typing import Dict
 from fastapi import APIRouter, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Database
+from shared.core.database import Database
 from student.schema import (
     PracticeType,
     AnswerQuestionSchema,

@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
 from admin.services import knowledge
 from admin.services.question import query_question_by_unit
-from core.database import Database
-from core.schema import SearchSchema
+from shared.core.database import Database
+from shared.core.schema import SearchSchema
 
 knowledge_router = APIRouter(prefix="/knowledge")
 

@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from shared.provider.aliyun import AliyunRag
 from shared.services.textbook_parser import TextbookParser
-from core.database import Knowledge, Question, Textbook, Unit
-from core.schema import TextbookSchema
-from core.settings import envs
+from shared.core.database import Knowledge, Question, Textbook, Unit
+from shared.core.schema import TextbookSchema
+from shared.core.settings import envs
 
 
 async def _clean_textbook(db: AsyncSession, id: int):

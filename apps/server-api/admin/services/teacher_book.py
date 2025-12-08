@@ -5,9 +5,9 @@ from sqlalchemy import asc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTeacherBookSchema, SearchTeacherBookSchema
 from shared.provider.aliyun import AliyunRag
-from core.database import TeacherBook
-from core.schema import TeacherBookSchema
-from core.settings import envs
+from shared.core.database import TeacherBook
+from shared.core.schema import TeacherBookSchema
+from shared.core.settings import envs
 
 
 async def create_teacher_book(db: AsyncSession, data: SaveTeacherBookSchema):

@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
-from core.database import StudentTextbook, Unit, Knowledge
-from core.schema import TextbookSchema, UnitSchema, KnowledgeSchema
+from shared.core.database import StudentTextbook, Unit, Knowledge
+from shared.core.schema import TextbookSchema, UnitSchema, KnowledgeSchema
 
 
 async def query_student_textbooks(db: AsyncSession, id: str):

@@ -20,7 +20,7 @@ from alibabacloud_bailian20231229.models import (
     SubmitIndexAddDocumentsJobRequest,
     ListChunksRequest,
 )
-from core.settings import envs
+from shared.core.settings import envs
 
 
 class AliyunRag:

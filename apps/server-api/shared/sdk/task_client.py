@@ -2,7 +2,7 @@
 import httpx
 from typing import Optional, Dict, Any
 from loguru import logger
-from core.settings import envs
+from shared.core.settings import envs
 
 
 class TaskServiceClient:

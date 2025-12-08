@@ -2,8 +2,8 @@ import uuid
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
-from core.database import Student, StudentTextbook, Textbook
-from core.schema import SearchResultSchema, StudentSchema, TextbookSchema
+from shared.core.database import Student, StudentTextbook, Textbook
+from shared.core.schema import SearchResultSchema, StudentSchema, TextbookSchema
 from shared.utils import encrypt
 from shared.utils.time import now
 

@@ -3,9 +3,9 @@ from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
-from core.database import Question, Unit
-from core.schema import QuestionSchema, SearchResultSchema
-from core.ai_client import AIServiceClient
+from shared.core.database import Question, Unit
+from shared.core.schema import QuestionSchema, SearchResultSchema
+from shared.core.ai_client import AIServiceClient
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
@@ -299,14 +299,14 @@ async def generate_question_image(db: AsyncSession, question_id: str) -> Questio
         # 直接调用 AI 服务生成图片
         logger.info(f"开始为问题 {question_id} 生成图片")
         ai_client = AIServiceClient()
-        result = await ai_client.generate_question_image(int(question_id))
+        oss_path = await ai_client.generate_question_image(int(question_id))
         
         # 更新问题的 resource 字段
-        question.resource = result.get("resource")
+        question.resource = oss_path
         await db.commit()
         await db.refresh(question)
 
-        logger.info(f"成功为问题 {question_id} 生成并上传图片: {result.get('resource')}")
+        logger.info(f"成功为问题 {question_id} 生成并上传图片: {oss_path}")
         
         return QuestionSchema.model_validate(question)
 
@@ -335,14 +335,14 @@ async def generate_question_audio(db: AsyncSession, question_id: str) -> Questio
         # 直接调用 AI 服务生成语音
         logger.info(f"开始为问题 {question_id} 生成语音")
         ai_client = AIServiceClient()
-        result = await ai_client.generate_question_audio(int(question_id))
+        oss_path = await ai_client.generate_question_audio(int(question_id))
         
         # 更新问题的 resource 字段
-        question.resource = result.get("resource")
+        question.resource = oss_path
         await db.commit()
         await db.refresh(question)
 
-        logger.info(f"成功为问题 {question_id} 生成并上传语音: {result.get('resource')}")
+        logger.info(f"成功为问题 {question_id} 生成并上传语音: {oss_path}")
         
         return QuestionSchema.model_validate(question)
 

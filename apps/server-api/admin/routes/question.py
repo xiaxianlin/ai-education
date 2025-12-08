@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from admin.services import question
-from core.database import Database
+from shared.core.database import Database
 
 question_router = APIRouter(prefix="/question")
 

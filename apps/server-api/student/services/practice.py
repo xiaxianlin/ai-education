@@ -8,9 +8,9 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
-from core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
-from core.settings import envs
+from shared.core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
+from shared.core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
+from shared.core.settings import envs
 from shared.utils.time import now, today
 
 

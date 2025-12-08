@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
+from shared.core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
 from shared.utils.time import now
 
 

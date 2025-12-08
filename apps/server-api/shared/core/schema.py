@@ -14,14 +14,6 @@ class ResponseSchema(BaseModel, Generic[T]):
     model_config = ConfigDict(extra="ignore", exclude_none=True)
 
 
-class NameSchema(BaseModel):
-    name: str
-
-
-class StatusSchema(BaseModel):
-    status: int
-
-
 class SearchSchema(BaseModel):
     page: Optional[int] = 1
     size: Optional[int] = 10

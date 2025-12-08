@@ -4,13 +4,13 @@ from loguru import logger
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import (
+from shared.core.database import (
     PracticeSession,
     PracticeAnswer,
     PracticeReport,
     PracticeWrongRecord,
 )
-from core.schema import (
+from shared.core.schema import (
     PracticeAnswerSchema,
     PracticeSessionSchema,
     PracticeReportSchema,

@@ -1,8 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel, field_validator
 from shared.utils import validation
-from core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
-from core.schema import SearchSchema
+from shared.core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
+from shared.core.schema import SearchSchema
 
 
 class LoginSchema(BaseModel):

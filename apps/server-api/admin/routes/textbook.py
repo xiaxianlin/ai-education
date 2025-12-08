@@ -4,7 +4,7 @@ from admin.services.auth import check_super_permission
 from admin.services.knowledge import query_knowledge_by_textbook
 from admin.services.question import query_question_by_textbook
 from admin.services.unit import query_unit_by_textbook
-from core.database import Database
+from shared.core.database import Database
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from admin.services import textbook
 

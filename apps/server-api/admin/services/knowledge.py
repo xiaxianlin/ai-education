@@ -2,8 +2,8 @@ from sqlalchemy import or_, select, func
 from sqlalchemy.orm import joinedload, noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
-from core.database import Knowledge, Unit
-from core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
+from shared.core.database import Knowledge, Unit
+from shared.core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
 from shared.utils.time import now
 
 

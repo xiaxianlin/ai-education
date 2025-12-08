@@ -3,8 +3,8 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.utils import encrypt
-from core.database import AsyncSessionLocal, Manager
-from core.schema import ManagerSchema
+from shared.core.database import AsyncSessionLocal, Manager
+from shared.core.schema import ManagerSchema
 from admin.schema import LoginSchema
 from shared.utils.time import now
 

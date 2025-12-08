@@ -4,7 +4,7 @@ from fastapi import Depends
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Database
+from shared.core.database import Database
 from shared.services.practice import PracticeService
 from admin.services import practice
 from admin.schema import GeneratePracticeSchema

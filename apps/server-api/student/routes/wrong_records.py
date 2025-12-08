@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import Database
+from shared.core.database import Database
 from student.services import wrong_records
 
 wrong_records_router = APIRouter(prefix="/wrong-records")

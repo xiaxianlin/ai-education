@@ -4,12 +4,12 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_shared.core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
-from core.database import PracticeSession, PracticeAnswer, PracticeWrongRecord, Question
+from shared.core.database import PracticeSession, PracticeAnswer, PracticeWrongRecord, Question
 from student.schema import AnswerQuestionSchema, AnswerResultSchema
 from shared.utils.time import now
-from core.settings import envs
+from shared.core.settings import envs
 
 
 class AnswerAnalysisResult(BaseModel):
@@ -82,21 +82,18 @@ async def _ai_analysis_answer(
     """
     try:
         # 使用 AI 服务客户端调用 server-ai
-        from core.ai_client import AIServiceClient
+        from shared.core.ai_client import AIServiceClient
         
         ai_client = AIServiceClient()
         
         try:
-            result = await ai_client.analyze_answer(
-                content=question.content,
-                options=question.options if question.options else "无",
-                knowledge=question.knowledge if question.knowledge else "无",
-                question_answer=question.answer,
-                student_answer=text_answer,
+            result = await ai_client.analyze_question_text_answer(
+                question_id=question.id,
+                text_answer=text_answer,
             )
             
-            is_correct = result["is_correct"]
-            analysis = result["analysis"]
+            is_correct = result.is_correct
+            analysis = result.analysis
         finally:
             await ai_client.close()
 

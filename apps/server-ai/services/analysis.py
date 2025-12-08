@@ -98,6 +98,5 @@ def practice_report_analysis(
     session: PracticeSession,
     answers: List[PracticeAnswer],
     wrong_records: List[PracticeWrongRecord],
-):
-    """分析练习报告"""
+) -> int:
     pass

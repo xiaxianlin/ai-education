@@ -2,7 +2,7 @@ import os
 import requests
 from typing import List
 from pathlib import Path
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from loguru import logger
@@ -46,7 +46,7 @@ async def generate_questions(
                 raise ValueError(f"单元不存在: {request.unit_id}")
 
         # 调用题目生成工作流
-        return await invoke_generate_workflow(
+        result = await invoke_generate_workflow(
             db=db,
             type=request.type,
             count=request.count,
@@ -55,6 +55,7 @@ async def generate_questions(
             student_id=request.student_id,
         )
 
+        return [QuestionSchema.model_validate(question) for question in result]
     except Exception as e:
         logger.error(f"题目生成失败: {e}", exc_info=True)
         raise ValueError(f"题目生成失败: {e}")

@@ -4,8 +4,8 @@ from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from admin.services import unit
 from admin.services.knowledge import query_knowledge_by_unit
 from admin.services.question import query_question_by_unit
-from core.database import Database
-from core.schema import SearchSchema
+from shared.core.database import Database
+from shared.core.schema import SearchSchema
 
 unit_router = APIRouter(prefix="/unit")
 

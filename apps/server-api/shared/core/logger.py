@@ -1,7 +1,7 @@
 import logging
 import os
 from loguru import logger
-from core.settings import envs
+from shared.core.settings import envs
 from sqlalchemy.sql import Select
 from sqlalchemy.orm import Query
 

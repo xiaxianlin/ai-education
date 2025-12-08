@@ -3,8 +3,8 @@ from sqlalchemy.orm import noload
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 from loguru import logger
-from core.schema import SearchResultSchema, SearchSchema, UnitSchema
-from core.database import Unit, Knowledge, Textbook
+from shared.core.schema import SearchResultSchema, SearchSchema, UnitSchema
+from shared.core.database import Unit, Knowledge, Textbook
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 
 

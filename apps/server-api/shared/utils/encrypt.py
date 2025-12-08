@@ -1,6 +1,6 @@
 import jwt, json, hashlib, string, secrets
 import bcrypt
-from core.settings import envs
+from shared.core.settings import envs
 
 
 def encode(data: dict) -> str:

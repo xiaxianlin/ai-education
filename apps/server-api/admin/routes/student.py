@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
 from admin.services import student
-from core.database import Database
+from shared.core.database import Database
 
 
 student_router = APIRouter(prefix="/student")

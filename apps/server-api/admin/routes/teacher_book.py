@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.services.auth import check_super_permission
-from core.database import Database
+from shared.core.database import Database
 from admin.schema import SaveTeacherBookSchema, SearchTeacherBookSchema
 from admin.services import teacher_book
 

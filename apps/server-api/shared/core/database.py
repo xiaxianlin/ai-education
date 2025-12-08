@@ -8,7 +8,7 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from core.settings import envs
+from shared.core.settings import envs
 from shared.utils.time import now
 
 async_engine = create_async_engine(

@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import LoginSchema, ModifyPasswordSchema
 from admin.services.auth import admin_login
 from admin.services.manager import update_manager_password
-from core.database import Database
-from core.schema import ManagerSchema
+from shared.core.database import Database
+from shared.core.schema import ManagerSchema
 
 auth_router = APIRouter()
 

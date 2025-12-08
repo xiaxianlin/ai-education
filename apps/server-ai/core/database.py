@@ -49,19 +49,6 @@ class BaseModel(Base):
     __abstract__ = True
 
 
-class Manager(BaseModel):
-    __tablename__ = "ah_manager"
-
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
-    password: Mapped[str] = mapped_column(String(255), nullable=False)
-    token: Mapped[str] = mapped_column(String(255), index=True)
-    type: Mapped[int] = mapped_column(default=0)
-    status: Mapped[int] = mapped_column(default=0)
-    create_time: Mapped[int] = mapped_column(default=now)
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
-
-
 class Textbook(BaseModel):
     __tablename__ = "ah_textbook"
 
@@ -73,18 +60,6 @@ class Textbook(BaseModel):
     file: Mapped[str] = mapped_column(String(255))
     index_file_id: Mapped[str] = mapped_column(String(255))
     is_parsed: Mapped[int] = mapped_column(default=0)
-
-
-class TeacherBook(BaseModel):
-    __tablename__ = "ah_teacher_book"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    subject: Mapped[str] = mapped_column(String(255), nullable=False)
-    version: Mapped[str] = mapped_column(String(255), nullable=False)
-    grade: Mapped[int] = mapped_column(nullable=False)
-    semester: Mapped[str] = mapped_column(String(255), nullable=False)
-    file: Mapped[str] = mapped_column(String(255), nullable=True)
-    index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
 
 
 class Unit(BaseModel):
@@ -164,38 +139,6 @@ class Question(BaseModel):
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
         primaryjoin="foreign(Question.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
-
-class Student(BaseModel):
-    __tablename__ = "ah_student"
-
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
-    password: Mapped[str] = mapped_column(String(255), default="")
-    token: Mapped[str] = mapped_column(String(255), index=True)
-    grade: Mapped[int] = mapped_column(nullable=False)
-    status: Mapped[int] = mapped_column(default=0)
-    create_time: Mapped[int] = mapped_column(default=now)
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
-
-
-class StudentTextbook(BaseModel):
-    __tablename__ = "ah_student_textbook"
-    __table_args__ = (
-        # 添加联合唯一索引，防止重复绑定
-        {"mysql_charset": "utf8mb4"},
-    )
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    textbook_id: Mapped[int] = mapped_column(nullable=False, index=True)
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
         lazy="joined",
     )
 

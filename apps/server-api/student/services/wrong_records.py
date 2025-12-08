@@ -6,8 +6,8 @@ from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from core.database import PracticeWrongRecord, Question
-from core.schema import QuestionSchema
+from shared.core.database import PracticeWrongRecord, Question
+from shared.core.schema import QuestionSchema
 
 
 class WrongQuestionSummary:
