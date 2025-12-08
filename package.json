@@ -26,10 +26,7 @@
     "build:app:android": "cd apps/student-app && flutter build apk",
     "build:all": "turbo run build",
     "install:all": "pnpm install && cd apps/server-api && uv sync && cd ../server-ai && uv sync && cd ../server-task && uv sync && cd ../student-app && flutter pub get",
-    "generate:types": "tsx scripts/generate-types.ts",
-    "docker:build": "./scripts/build.sh",
-    "docker:up": "./scripts/deploy.sh start",
-    "docker:down": "./scripts/deploy.sh down"
+    "generate:types": "tsx scripts/generate-types.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

@@ -5,7 +5,6 @@ from loguru import logger
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
-from shared.core.ai_client import AIServiceClient
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
@@ -280,73 +279,3 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
     )
 
 
-async def generate_question_image(db: AsyncSession, question_id: str) -> QuestionSchema:
-    """为单个问题生成图片并上传到 OSS"""
-    question = await db.scalar(select(Question).where(Question.id == question_id))
-    if not question:
-        raise ValueError("问题不存在")
-
-    if not question.content:
-        raise ValueError("问题内容为空，无法生成图片")
-
-    # 检查是否需要生成图片
-    if question.resource_type != "image":
-        raise ValueError(
-            f"该题目不需要生成图片（resource_type={question.resource_type}）。只有 resource_type 为 'image' 的题目才能生成图片。"
-        )
-
-    try:
-        # 直接调用 AI 服务生成图片
-        logger.info(f"开始为问题 {question_id} 生成图片")
-        ai_client = AIServiceClient()
-        oss_path = await ai_client.generate_question_image(int(question_id))
-        
-        # 更新问题的 resource 字段
-        question.resource = oss_path
-        await db.commit()
-        await db.refresh(question)
-
-        logger.info(f"成功为问题 {question_id} 生成并上传图片: {oss_path}")
-        
-        return QuestionSchema.model_validate(question)
-
-    except Exception as e:
-        logger.error(f"为问题 {question_id} 生成图片失败: {e}")
-        await db.rollback()
-        raise
-
-
-async def generate_question_audio(db: AsyncSession, question_id: str) -> QuestionSchema:
-    """为单个问题生成语音并上传到 OSS"""
-    question = await db.scalar(select(Question).where(Question.id == question_id))
-    if not question:
-        raise ValueError("问题不存在")
-
-    if not question.content:
-        raise ValueError("问题内容为空，无法生成语音")
-
-    # 检查是否需要生成语音
-    if question.resource_type != "audio":
-        raise ValueError(
-            f"该题目不需要生成语音（resource_type={question.resource_type}）。只有 resource_type 为 'audio' 的题目才能生成语音。"
-        )
-
-    try:
-        # 直接调用 AI 服务生成语音
-        logger.info(f"开始为问题 {question_id} 生成语音")
-        ai_client = AIServiceClient()
-        oss_path = await ai_client.generate_question_audio(int(question_id))
-        
-        # 更新问题的 resource 字段
-        question.resource = oss_path
-        await db.commit()
-        await db.refresh(question)
-
-        logger.info(f"成功为问题 {question_id} 生成并上传语音: {oss_path}")
-        
-        return QuestionSchema.model_validate(question)
-
-    except Exception as e:
-        logger.error(f"为问题 {question_id} 生成语音失败: {e}")
-        await db.rollback()
-        raise

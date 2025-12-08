@@ -605,7 +605,6 @@ A: 修改 `REMOTE_PATH` 和 nginx 配置即可。
 
 ## 相关文档
 
-- Docker 部署: `DOCKER_DEPLOYMENT.md`
 - 项目 README: `README.md`
 - 脚本帮助: `./scripts/deploy-frontend.sh --help`
 

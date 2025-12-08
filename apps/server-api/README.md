@@ -97,7 +97,6 @@ AI Education Platform 是一个基于人工智能的教育辅助平台，为学�
 - **Web框架**: FastAPI 0.115+
 - **数据库**: MySQL (通过 SQLAlchemy 2.0 异步ORM)
 - **缓存**: Redis
-- **AI平台**: 阿里云百炼AI (通过 DashScope SDK)
 - **对象存储**: 阿里云OSS
 - **认证**: JWT (PyJWT)
 - **日志**: Loguru
@@ -118,12 +117,8 @@ server/
 │   ├── services/          # 业务逻辑层
 │   └── schema.py          # 数据模型定义
 ├── shared/                # 共享模块
-│   ├── question/          # 题目生成模块
-│   │   ├── prompts/       # AI提示词
-│   │   ├── services/      # 题目生成服务
-│   │   └── graph.py       # LangGraph工作流
 │   ├── provider/          # 第三方服务提供者
-│   ├── services/          # 共享服务
+│   ├── services/         # 共享服务
 │   └── utils/             # 工具函数
 ├── core/                  # 核心模块
 │   ├── database.py        # 数据库配置和模型
@@ -212,11 +207,6 @@ ALIYUN_OSS_REGION=cn-hangzhou
 ALIYUN_WORKSPACE_ID=your-workspace-id
 ALIYUN_RAG_INDEX_ID=your-index-id
 ALIYUN_RAG_CATEGORY_ID=your-category-id
-
-# AI平台配置
-AI_PLATFORM=dashscope
-AI_PLATFORM_KEY=your-dashscope-api-key
-AI_PLATFORM_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 
 # 管理员账号（初始化）
 ADMIN_USERNAME=admin

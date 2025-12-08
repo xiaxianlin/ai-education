@@ -155,35 +155,7 @@ else
     log_warn "pyproject.toml 已存在，跳过"
 fi
 
-# 5. 更新 Docker Compose 路径
-log_info "更新 docker-compose.yml 路径..."
-if [ -f "docker-compose.yml" ]; then
-    # 备份原文件
-    if [ ! -f "docker-compose.yml.bak" ]; then
-        cp docker-compose.yml docker-compose.yml.bak
-        log_info "已备份 docker-compose.yml"
-    fi
-    
-    # 使用 sed 更新路径（macOS 和 Linux 兼容）
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' 's|context: ./apps/server|context: ./apps/server|g' docker-compose.yml
-        sed -i '' 's|context: ./apps/admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i '' 's|context: ./apps/student|context: ./apps/student|g' docker-compose.yml
-        sed -i '' 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
-        sed -i '' 's|./nginx/|./infra/nginx/|g' docker-compose.yml
-    else
-        sed -i 's|context: ./apps/server|context: ./apps/server|g' docker-compose.yml
-        sed -i 's|context: ./apps/admin|context: ./apps/admin|g' docker-compose.yml
-        sed -i 's|context: ./apps/student|context: ./apps/student|g' docker-compose.yml
-        sed -i 's|./mysql/init|./infra/mysql/init|g' docker-compose.yml
-        sed -i 's|./nginx/|./infra/nginx/|g' docker-compose.yml
-    fi
-    log_success "docker-compose.yml 路径已更新"
-else
-    log_warn "docker-compose.yml 不存在，跳过"
-fi
-
-# 6. 更新脚本路径
+# 5. 更新脚本路径
 log_info "更新脚本中的路径引用..."
 if [ -d "scripts" ]; then
     find scripts/ -type f -name "*.sh" | while read -r file; do

@@ -233,3 +233,4 @@ class AIServiceClient:
     async def close(self):
         """关闭客户端"""
         await self.client.aclose()
+

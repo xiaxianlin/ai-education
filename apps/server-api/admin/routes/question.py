@@ -37,15 +37,3 @@ async def search_resource_question(
 async def get_question(id: str, db: AsyncSession = Database):
     """获取单个题目详情"""
     return await question.get_question(db, id)
-
-
-@question_router.post("/{id}/generate_image")
-async def generate_question_image(id: str, db: AsyncSession = Database):
-    """为单个问题生成图片"""
-    await question.generate_question_image(db, id)
-
-
-@question_router.post("/{id}/generate_audio")
-async def generate_question_audio(id: str, db: AsyncSession = Database):
-    """为单个问题生成语音"""
-    await question.generate_question_audio(db, id)
