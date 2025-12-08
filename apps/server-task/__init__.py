@@ -1,2 +1,0 @@
-"""AI Education Task Service"""
-
