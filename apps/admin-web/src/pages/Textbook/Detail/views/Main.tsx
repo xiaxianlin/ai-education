@@ -1,7 +1,7 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { useTextbookDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
-import { Spin, Tabs } from 'antd';
+import { Space, Spin, Tabs } from 'antd';
 import { UnitView } from './Unit';
 import { KnowledgeView } from './Knowledge';
 import { TextbookUnitModel } from '../models/unit';
@@ -10,12 +10,11 @@ import { useMemo } from 'react';
 import { Button } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { UploadButton } from '@/components/util';
+import { UploadButton } from '@/components/ui';
 
 export default function MainView() {
   const navigate = useNavigate();
-  const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete } =
-    useTextbookDetailModel();
+  const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete } = useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
     if (parsing) {
@@ -42,13 +41,7 @@ export default function MainView() {
         ),
         breadcrumb: {},
         extra: [
-          <Button
-            key="parse"
-            type="primary"
-            disabled={!textbook?.file}
-            loading={parsing}
-            onClick={handleParse}
-          >
+          <Button key="parse" type="primary" disabled={!textbook?.file} loading={parsing} onClick={handleParse}>
             解析
           </Button>,
           <UploadButton key="upload" type="primary" disabled={!textbook} action={upload}>
@@ -60,9 +53,10 @@ export default function MainView() {
         ],
       }}
     >
-      <BasicInfo />
-      <div className="mt-3 bg-white px-3 rounded-md">
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <BasicInfo />
         <Tabs
+          type="card"
           defaultActiveKey="unit"
           items={[
             {
@@ -85,7 +79,7 @@ export default function MainView() {
             },
           ]}
         />
-      </div>
+      </Space>
       <Spin fullscreen size="large" spinning={parsing || uploading} tip={spinTip} />
     </PageContainer>
   );

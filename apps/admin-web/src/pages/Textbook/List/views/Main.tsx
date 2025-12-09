@@ -9,10 +9,8 @@ import { useConfigs } from '@/hooks';
 import { CommonTable } from '@/components/business';
 
 export default function MainView() {
-  const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } =
-    useConfigs();
-  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
-    useTextbookListModel();
+  const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
+  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } = useTextbookListModel();
 
   const columns = useMemo<ProColumns<Textbook>[]>(
     () => [
@@ -55,8 +53,7 @@ export default function MainView() {
         title: '文件上传',
         dataIndex: 'name',
         hideInSearch: true,
-        render: (_, record) =>
-          record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>,
+        render: (_, record) => (record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>),
       },
       {
         title: '单元解析',
@@ -112,7 +109,7 @@ export default function MainView() {
           return {
             data: data.data || [],
             success: true,
-            total: data.total,
+            total: data.total || 0,
           };
         }}
       />

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ProTable,
-  ProColumns,
-  ModalForm,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProTable, ProColumns, ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
 import { fmtTime } from '@/utils/time';
 import { adminApi } from '@/lib/api';
@@ -43,17 +37,8 @@ export const UnitView: React.FC = () => {
   ];
 
   return (
-    <div className="custom-table">
-      <Button
-        size="small"
-        type="primary"
-        className="absolute right-0 top-[-48px]"
-        onClick={() => showForm()}
-      >
-        添加单元
-      </Button>
+    <div>
       <ProTable<Unit>
-        size="small"
         actionRef={actionRef}
         rowKey="id"
         search={false}
@@ -66,6 +51,11 @@ export const UnitView: React.FC = () => {
           return { data, success: true, total: data.length };
         }}
         pagination={{ pageSize: 10 }}
+        headerTitle={
+          <Button type="primary" onClick={() => showForm()}>
+            添加单元
+          </Button>
+        }
       />
       <ModalForm<TextbookContentForm>
         width={600}

@@ -379,8 +379,8 @@ export class AdminApiClient extends ApiClient {
       subject?: string;
       grade?: string;
     },
-  ): Promise<ListResponse<Textbook>> {
-    return this.get<ListResponse<Textbook>>('/textbook/search', { params });
+  ): Promise<ListData<Textbook>> {
+    return this.get<ListData<Textbook>>('/textbook/search', { params });
   }
 
   /**
@@ -503,7 +503,6 @@ export class AdminApiClient extends ApiClient {
   async getUnitQuestions(id: number, params?: { page?: number; size?: number }): Promise<ListResponse<Question>> {
     return this.get<ListResponse<Question>>(`/unit/${id}/questions`, { params });
   }
-
 
   // ========== 知识点管理 ==========
 

@@ -23,8 +23,8 @@ export const KnowledgeView: React.FC = () => {
   console.log(units);
 
   const columns: ProColumns<Knowledge>[] = [
-    { title: '知识点名称', hideInSearch: true, dataIndex: 'name' },
-    { title: '知识点内容', hideInSearch: true, dataIndex: 'content', ellipsis: true },
+    { title: '知识点名称', dataIndex: 'name' },
+    { title: '知识点内容', dataIndex: 'content', ellipsis: true },
     {
       key: 'unit',
       title: '单元名称',
@@ -50,22 +50,13 @@ export const KnowledgeView: React.FC = () => {
   ];
 
   return (
-    <div className="custom-table">
-      <Button
-        size="small"
-        type="primary"
-        className="absolute right-0 top-[-48px]"
-        onClick={() => showForm()}
-      >
-        添加知识点
-      </Button>
+    <div>
       <ProTable<Knowledge>
-        size="small"
         form={{ style: { padding: 0, marginBlock: 8 } }}
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
-        search={{ labelWidth: 'auto' }}
+        search={false}
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async (params) => {
@@ -86,6 +77,11 @@ export const KnowledgeView: React.FC = () => {
           return { data: filtered, success: true, total: filtered.length };
         }}
         pagination={{ pageSize: 10 }}
+        headerTitle={
+          <Button type="primary" onClick={() => showForm()}>
+            添加知识点
+          </Button>
+        }
       />
       <ModalForm<TextbookContentForm>
         width={600}
