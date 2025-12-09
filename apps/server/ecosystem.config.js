@@ -9,6 +9,17 @@ module.exports = {
             env: {
                 ENV: 'production'
             }
+        },
+        {
+            name: 'ai-education-worker',
+            script: 'worker.py',
+            args: '--loglevel=info',
+            interpreter: './.venv/bin/python',
+            watch: false,
+            env: {
+                ENV: 'production',
+                CELERY_WORKER_CONCURRENCY: 4  // 可以通过环境变量覆盖
+            }
         }
     ]
 }

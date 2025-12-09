@@ -1,14 +1,19 @@
 """练习路由（每日练习 + 单元练习 + 能力评测）"""
 
+from uuid import uuid4
 from typing import Dict
 from fastapi import APIRouter, Form, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from shared.worker import submit_task, get_task_status, Executor
 from shared.core.database import Database
-from student.schema import PracticeType, AnswerQuestionSchema, CreatePracticeSchema
 from student.services import practice, answer
-from task.services.task import submit_practice_task, get_task_status
-from task.schema import PracticeSubmitRequest
+from student.schema import (
+    PracticeType,
+    AnswerQuestionSchema,
+    CreatePracticeSchema,
+    PracticeSubmitParams,
+)
 
 
 practice_router = APIRouter(prefix="/practice")
@@ -39,64 +44,60 @@ async def get_assessment(request: Request, db: AsyncSession = Database):
 async def create_practice(
     request: Request,
     params: CreatePracticeSchema,
+    db: AsyncSession = Database,
 ):
     """创建练习会话（异步任务）
-    
+
     提交练习生成任务到任务队列，返回任务ID。
     客户端需要通过 /task/{task_id} 接口轮询任务状态。
     """
-    student_id = request.state.student.id
-    
-    # 构建练习任务请求
-    practice_request = PracticeSubmitRequest(
+
+    task_id = f"practice_{uuid4().hex[:16]}"
+    payload = PracticeSubmitParams(
         type=params.type.value,
+        student_id=request.state.student.id,
         textbook_id=params.textbook_id,
         unit_id=params.unit_id,
     )
-    
-    # 提交任务
-    task_response = await submit_practice_task(student_id, practice_request)
-    
-    return {
-        "task_id": task_response.task_id,
-        "status": task_response.status.value,
-    }
+
+    # 提交任务到 Celery 队列（payload 会被序列化为字典）
+    return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
 
 
 @practice_router.get("/task/{task_id}")
 async def get_practice_task_status(task_id: str):
     """查询练习生成任务状态
-    
+
     Args:
         task_id: 任务ID
-        
+
     Returns:
         任务状态信息，包含 task_id, status, result, error
     """
-    task_response = await get_task_status(task_id)
-    
+    task_response = get_task_status(task_id)
+
     if not task_response:
         return {"error": "任务不存在", "task_id": task_id}
-    
+
     response = {
         "task_id": task_response.task_id,
         "status": task_response.status.value,
         "created_at": task_response.created_at.isoformat() if task_response.created_at else None,
         "updated_at": task_response.updated_at.isoformat() if task_response.updated_at else None,
     }
-    
+
     # 如果任务完成，返回结果（session_id）
     if task_response.result:
         response["result"] = task_response.result
-    
+
     # 如果任务失败，返回错误信息
     if task_response.error:
         response["error"] = task_response.error
-        
+
     # 如果有处理耗时，返回
     if task_response.processing_time:
         response["processing_time"] = task_response.processing_time
-    
+
     return response
 
 

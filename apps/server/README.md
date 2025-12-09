@@ -102,7 +102,7 @@ AI Education Platform 是一个基于人工智能的教育辅助平台，为学�
 - **日志**: Loguru
 - **语音处理**: PyTorch + TorchAudio
 - **文档处理**: PyMuPDF
-- **任务队列**: RQ (Redis Queue)
+- **任务队列**: Celery (Redis 作为 Broker 和 Backend)
 - **AI 工作流**: LangChain + LangGraph
 - **运行时**: Python 3.12
 
@@ -156,17 +156,6 @@ server/
 │   │   └── rag.py        # RAG 工具
 │   └── schema.py         # AI 相关数据模型
 │
-├── task/                  # 任务处理模块
-│   ├── core/             # 核心功能
-│   │   ├── executor.py   # 任务执行器（RQ Worker 调用）
-│   │   └── redis.py      # Redis 连接
-│   ├── services/         # 任务服务
-│   │   ├── rq.py         # RQ 队列服务
-│   │   └── task.py       # 任务管理服务
-│   ├── workers/          # 任务工作器
-│   │   └── practice.py   # 练习生成 Worker
-│   └── schema.py          # 任务相关数据模型
-│
 ├── shared/                # 共享模块
 │   ├── core/             # 核心功能
 │   │   ├── database.py   # 数据库模型和配置
@@ -176,6 +165,11 @@ server/
 │   │   ├── exception.py  # 异常处理
 │   │   ├── constants.py  # 常量定义
 │   │   └── schema.py     # 共享数据模型
+│   ├── worker/           # 任务处理模块（Celery Worker）
+│   │   ├── celery.py     # Celery 应用配置和任务管理
+│   │   ├── executor.py   # 任务执行器（Worker 实际执行的函数）
+│   │   ├── README.md     # Worker 模块文档
+│   │   └── CONFIG.md     # Worker 配置文档
 │   └── utils/            # 工具函数
 │       ├── encrypt.py    # 加密工具
 │       ├── oss.py        # OSS 存储工具
@@ -183,7 +177,7 @@ server/
 │       └── validation.py # 验证工具
 │
 ├── main.py               # 应用入口
-├── worker.py             # RQ Worker 启动脚本
+├── worker.py            # Celery Worker 启动脚本
 ├── pyproject.toml        # 项目依赖配置
 ├── ecosystem.config.js   # PM2 配置
 ├── langgraph.json        # LangGraph 配置
@@ -264,6 +258,15 @@ ALIYUN_WORKSPACE_ID=your-workspace-id
 ALIYUN_RAG_INDEX_ID=your-index-id
 ALIYUN_RAG_CATEGORY_ID=your-category-id
 
+# Redis 配置（用于任务队列）
+REDIS_URL=redis://redis:6379/0  # 完整的 Redis 连接 URL
+
+# 任务配置
+TASK_QUEUE_NAME=ai-education-task  # Celery 队列名称
+TASK_TIMEOUT=1800  # 任务默认超时时间（秒）- 30分钟
+TASK_CONCURRENCY=0  # Worker 并发数，0 表示自动检测（CPU 核心数）
+TASK_LOGLEVEL=info  # Worker 日志级别
+
 # 管理员账号（初始化）
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
@@ -316,14 +319,53 @@ pm2 start ecosystem.config.js
 
 **启动 Worker（处理异步任务）**:
 ```sh
-# 开发模式
+# 开发模式（推荐）
+npm run dev:worker
+
+# 或者直接运行
 uv run worker.py
 
+# 或者使用原始 Celery 命令
+npm run dev:worker:raw
+
+# 自定义并发数
+uv run worker.py --concurrency 8
+
 # 生产模式（使用 PM2）
-pm2 start ecosystem.config.js --name worker
+# 需要在 ecosystem.config.js 中配置 Celery worker
 ```
 
-注意：Worker 需要单独启动，用于处理异步任务（如题目生成）。
+**Redis URL 配置**:
+```bash
+# 标准 Redis URL 格式
+REDIS_URL=redis://redis:6379/0
+
+# 带密码的 Redis URL
+REDIS_URL=redis://:password@redis:6379/0
+
+# 使用不同数据库
+REDIS_URL=redis://redis:6379/2
+
+# 使用不同主机
+REDIS_URL=redis://redis-cluster:6379/0
+```
+
+**环境变量配置**:
+```bash
+# 设置 Worker 并发数
+export CELERY_WORKER_CONCURRENCY=8
+npm run dev:worker
+
+# 或者在 .env 文件中设置
+echo "CELERY_WORKER_CONCURRENCY=8" >> .env
+```
+
+**并发数规则**:
+- `0`: 自动检测 CPU 核心数（默认）
+- `1`: 单进程模式（调试用）
+- `>1`: 指定的进程数
+
+注意：Worker 需要单独启动，用于处理异步任务（如练习生成）。Celery Worker 通过 `shared/worker/` 模块实现，提供了完整的任务管理功能（提交、查询状态、取消等），支持通过环境变量灵活配置并发数、超时时间等参数。详细文档请参考 `shared/worker/README.md` 和 `shared/worker/CONFIG.md`。
 
 ## API文档
 

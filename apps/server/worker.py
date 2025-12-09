@@ -1,142 +1,64 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""RQ Worker 启动脚本
+"""Celery Worker 启动脚本
 
-用于独立启动 RQ Worker 进程，处理异步任务。
+用于启动 Celery Worker 进程，处理异步任务。
 
 使用方法:
-    python -m task.worker                    # 使用默认队列
-    python -m task.worker --queue default    # 指定队列名称
-    python -m task.worker --queue high-priority --burst  # 使用突发模式
+    uv run worker.py                              # 使用默认队列和配置
 """
 
 import os
 import sys
-import signal
-import argparse
 import dotenv
-import multiprocessing
-from rq import Worker, Queue
 from loguru import logger
 
 from shared.core.settings import envs
-from task.core.redis import get_redis_connection
-
-# 修复 macOS 上的 fork() 安全问题
-# 当 RQ worker 使用 fork() 创建子进程时，如果某些库在 fork() 之前初始化了
-# Objective-C 运行时，会导致崩溃。设置此环境变量可以禁用该安全检查。
-if sys.platform == "darwin":  # macOS
-    os.environ.setdefault("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", "YES")
-    # 设置多进程启动方法为 'spawn' 避免 fork 问题
-    try:
-        multiprocessing.set_start_method('spawn', force=True)
-    except RuntimeError:
-        # 已经设置过，忽略错误
-        pass
-
-# 全局变量，用于优雅关闭
-worker_instance = None
+from shared.worker import check_redis_connection, celery_app
 
 
-def signal_handler(signum, frame):
-    """信号处理器，用于优雅关闭 Worker"""
-    global worker_instance
-    logger.info(f"收到信号 {signum}，正在关闭 Worker...")
-    if worker_instance:
-        worker_instance.shutdown()
-    sys.exit(0)
-
-
-def start_worker(queue_name: str = None, burst: bool = False):
-    """
-    启动 RQ Worker
-
-    Args:
-        queue_name: 队列名称，如果为 None 则使用配置中的默认值
-        burst: 是否使用突发模式（处理完所有任务后退出）
-    """
-    global worker_instance
-
+def start_worker():
     # 加载环境变量
     dotenv.load_dotenv()
 
-    # 初始化运行目录
     os.makedirs(envs.LOG_DIR, exist_ok=True)
 
-    # 确定队列名称
-    if queue_name is None:
-        queue_name = envs.TASK_QUEUE_NAME
+    queue_name = envs.TASK_QUEUE_NAME
+    concurrency = envs.TASK_CONCURRENCY
+    loglevel = envs.TASK_LOGLEVEL
 
     logger.info("=" * 50)
-    logger.info("启动 RQ Worker")
+    logger.info("启动 Celery Worker")
     logger.info(f"队列名称: {queue_name}")
-    logger.info(f"Redis 地址: {envs.REDIS_HOST}:{envs.REDIS_PORT}")
-    logger.info(f"运行模式: {'突发模式 (处理完任务后退出)' if burst else '持续运行'}")
+    logger.info(f"Redis 地址: {envs.REDIS_URL}")
+    logger.info(f"日志级别: {loglevel}")
+    logger.info(f"并发数: {concurrency}")
     logger.info("=" * 50)
 
     try:
-        # 获取 Redis 连接
-        redis_conn = get_redis_connection()
-
-        # 创建队列
-        queue = Queue(queue_name, connection=redis_conn)
-
-        # 注册信号处理器
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-
-        # 启动 Worker
-        worker_instance = Worker(
-            [queue],
-            name=f"worker-{queue_name}",
-            connection=redis_conn,
+        check_redis_connection()
+        celery_app.worker_main(
+            [
+                "worker",
+                f"--queues={queue_name}",
+                f"--loglevel={loglevel}",
+                "--without-gossip",
+                "--without-mingle",
+                "--without-heartbeat",
+                "--max-tasks-per-child=1000",
+                f"--concurrency={str(concurrency)}",
+            ]
         )
-        logger.info(f"Worker 已启动: {worker_instance.name}")
-        logger.info(f"Worker 正在监听队列: {queue_name}")
-
-        # 开始工作
-        if burst:
-            worker_instance.work(burst=True)
-            logger.info("突发模式：所有任务处理完成，Worker 退出")
-        else:
-            worker_instance.work()
+        logger.info("任务 Worker 已启动")
 
     except KeyboardInterrupt:
-        logger.info("收到中断信号，正在关闭 Worker...")
+        logger.info("收到中断信号，正在关闭任务 Worker...")
     except Exception as e:
-        logger.error(f"Worker 启动失败: {e}", exc_info=True)
+        logger.error(f"任务 Worker 启动失败: {e}", exc_info=True)
         sys.exit(1)
     finally:
-        logger.info("Worker 已关闭")
-
-
-def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(
-        description="启动 RQ Worker 处理异步任务",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-示例:
-  uv run worker                          # 使用默认队列持续运行
-  uv run worker --queue default          # 监听 default 队列
-  uv run worker --queue high-priority    # 监听 high-priority 队列
-  uv run worker --burst                  # 突发模式，处理完任务后退出
-        """,
-    )
-
-    parser.add_argument(
-        "--queue", type=str, default=None, help=f"队列名称（默认: {envs.TASK_QUEUE_NAME}）"
-    )
-
-    parser.add_argument(
-        "--burst",
-        action="store_true",
-        help="突发模式：处理完所有任务后退出（用于测试或一次性处理）",
-    )
-
-    args = parser.parse_args()
-
-    start_worker(queue_name=args.queue, burst=args.burst)
+        logger.info("任务 Worker 已关闭")
 
 
 if __name__ == "__main__":
-    main()
+    start_worker()

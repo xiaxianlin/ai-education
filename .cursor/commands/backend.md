@@ -31,7 +31,7 @@
   - `admin/` - 管理端模块（路由 + 服务）
   - `student/` - 学生端模块（路由 + 服务）
   - `ai/` - AI 功能模块（题目生成、答题分析等）
-  - `task/` - 任务处理模块（RQ 任务队列）
+  - `shared/worker/` - 任务处理模块（Celery Worker）
   - `shared/` - 共享模块（数据库、配置、工具等）
 
 ## 项目结构
@@ -52,15 +52,14 @@ apps/server/
 │   ├── question_generate/  # 题目生成（LangGraph）
 │   ├── practice/      # 练习分析
 │   └── utils/         # AI 工具
-├── task/              # 任务处理模块
-│   ├── core/          # 任务执行器
-│   ├── services/      # 任务服务
-│   └── workers/       # 任务工作器
 ├── shared/            # 共享模块
 │   ├── core/          # 核心功能（数据库、配置、中间件）
+│   ├── worker/         # 任务处理模块（Celery Worker）
+│   │   ├── celery.py   # Celery 应用配置和任务管理
+│   │   └── executor.py # 任务执行器
 │   └── utils/         # 工具函数
 ├── main.py            # 应用入口
-└── worker.py          # RQ Worker 启动脚本
+└── worker.py          # Celery Worker 启动脚本
 ```
 
 ## 开发原则
@@ -94,16 +93,27 @@ async def create_something(
 
 ### 任务提交
 ```python
-from task.services.task import submit_question_task
-from task.schema import QuestionSubmitRequest
+from shared.worker import submit_task, Executor
+from student.schema import PracticeSubmitParams
 
-request = QuestionSubmitRequest(
+# 创建任务参数
+payload = PracticeSubmitParams(
     type="daily_practice",
-    count=15,
+    student_id="student_123",
     textbook_id=1,
-    student_id="student_xxx"
+    unit_id=None,
 )
-task_response = await submit_question_task(request)
+
+# 提交任务
+task_id = submit_task(
+    task_id="practice_abc123",
+    executor=Executor.generate_practice_task,
+    args=[payload.model_dump()]  # 注意：必须序列化为字典
+)
+
+# 查询任务状态
+from shared.worker import get_task_status
+status = get_task_status(task_id)
 ```
 
 ### 服务层

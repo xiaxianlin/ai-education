@@ -26,7 +26,7 @@
   - 使用 FastAPI 0.115+ 框架
   - 使用 SQLAlchemy 2.0 异步 ORM
   - 数据库: MySQL
-  - 缓存/队列: Redis + RQ (任务队列)
+  - 缓存/队列: Redis + Celery (任务队列)
   - AI 工作流: LangChain + LangGraph（题目生成等）
   - 认证: JWT (PyJWT)
   - AI 平台: 阿里云百炼AI (DashScope SDK)

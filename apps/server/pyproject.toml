@@ -42,7 +42,8 @@ dependencies = [
     "dashscope>=1.25.0",
     "requests>=2.31.0",
     # 任务队列相关
-    "rq>=1.15.0",
+    "celery>=5.3.0",
+    "celery[redis]>=5.3.0",
 ]
 
 [tool.setuptools]

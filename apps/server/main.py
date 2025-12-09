@@ -1,6 +1,7 @@
 import os
 import dotenv
 import uvicorn
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -25,13 +26,13 @@ async def lifespan(_: FastAPI):
     # 初始化数据库
     await init_database()
     # 初始化运行目录
-    os.makedirs(envs.TMP_DIR, exist_ok=True)
+    Path(envs.TMP_DIR).mkdir(parents=True, exist_ok=True)
     # 初始化运行目录
-    os.makedirs(envs.LOG_DIR, exist_ok=True)
+    Path(envs.LOG_DIR).mkdir(parents=True, exist_ok=True)
     # 初始化超级管理员
     if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
         await init_super_manager()
-    
+
     yield
 
 

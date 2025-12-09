@@ -25,7 +25,7 @@
 
 ### 后端
 - **服务端（单体）**: FastAPI 0.115+ + SQLAlchemy + MySQL
-- **任务队列**: RQ (Redis Queue)
+- **任务队列**: Celery (Redis 作为 Broker 和 Backend)
 - **AI 工作流**: LangChain + LangGraph
 - **语言**: Python 3.12
 - **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
@@ -38,7 +38,7 @@
 - `apps/admin-web/src/` - 管理端前端
 - `apps/student-web/src/` - 学生端 Web 前端
 - `apps/student-app/src/` - 学生端移动应用
-- `apps/server/` - 服务端（单体，含 admin/student/ai/task/shared）
+- `apps/server/` - 服务端（单体，含 admin/student/ai/shared/worker）
 
 ## 开发原则
 

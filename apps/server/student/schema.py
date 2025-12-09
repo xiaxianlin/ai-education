@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 
 from enum import Enum
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class PracticeType(str, Enum):
     daily = "daily_practice"
@@ -37,3 +39,12 @@ class AnswerResultSchema(BaseModel):
     correct_answer: str
     user_answer: str
     analysis: Optional[str] = None
+
+
+class PracticeSubmitParams(BaseModel):
+    """练习提交请求（用于 Celery 任务序列化）"""
+
+    type: str = Field(..., description="练习类型: daily_practice/unit_practice/assessment")
+    student_id: str = Field(..., description="学生ID")
+    textbook_id: int = Field(..., description="教材ID")
+    unit_id: Optional[int] = Field(None, description="单元ID")

@@ -15,12 +15,9 @@ package-lock.json
 .history
 *.log
 **/functions/*
-**/.temp/**
+**/tmp
+**/logs
 
-# umi
-.umi
-.umi-production
-.umi-test
 
 # screenshot
 screenshot

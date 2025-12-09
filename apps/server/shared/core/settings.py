@@ -1,3 +1,4 @@
+import multiprocessing
 from pydantic_settings import BaseSettings
 
 
@@ -34,14 +35,13 @@ class Settings(BaseSettings):
     AI_TTS_VOICE: str = "Cherry"
 
     # Redis 配置（用于任务队列）
-    REDIS_HOST: str = "redis"
-    REDIS_PORT: int = 6379
-    REDIS_PASSWORD: str = ""
-    REDIS_DB: int = 0
+    REDIS_URL: str = "redis://redis:6379/0"  # 完整的 Redis 连接 URL
 
     # 任务配置
-    TASK_TIMEOUT: int = 300  # 5分钟
-    TASK_QUEUE_NAME: str = "ai-education-task"  # RQ 队列名称
+    TASK_QUEUE_NAME: str = "ai-education-task"  # Celery 队列名称
+    TASK_TIMEOUT: int = 1800  # 任务默认超时时间（秒）- 30分钟
+    TASK_CONCURRENCY: int = multiprocessing.cpu_count()  # 任务并发数，自动检测（CPU核心数）
+    TASK_LOGLEVEL: str = "info"  # 任务日志级别
 
     class Config:
         env_file = ".env"

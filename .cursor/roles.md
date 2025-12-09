@@ -20,7 +20,7 @@
 
 4. **server** - 服务端（单体应用）
    - FastAPI + Python 3.12 + SQLAlchemy + MySQL + Redis
-   - LangChain + LangGraph（AI 工作流） / RQ (Redis Queue) 任务处理
+   - LangChain + LangGraph（AI 工作流） / Celery (Redis 作为 Broker 和 Backend) 任务处理
    - 位置: `apps/server/`
 
 ## 技术栈详情
@@ -66,7 +66,7 @@
 - **框架**: FastAPI 0.115+
 - **语言**: Python 3.12
 - **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
-- **缓存/队列**: Redis + RQ (任务队列)
+- **缓存/队列**: Redis + Celery (任务队列)
 - **AI**: LangChain + LangGraph + 阿里云百炼AI (DashScope SDK)
 - **对象存储**: 阿里云 OSS
 - **认证**: JWT (PyJWT)
@@ -185,7 +185,7 @@
 - `@admin-web` - 管理端开发（React + Rsbuild + Ant Design）
 - `@student-web` - 学生端 Web 开发（React + Rsbuild + shadcn/ui）
 - `@student-app` - 学生端移动应用开发（Flutter + Riverpod + GoRouter）
-- `@server` - 服务端单体应用（FastAPI + SQLAlchemy + LangGraph + RQ）
+- `@server` - 服务端单体应用（FastAPI + SQLAlchemy + LangGraph + Celery）
 
 ### 方法二：明确声明
 在对话开始时明确说明：
@@ -334,7 +334,7 @@ flutter test                 # 运行测试
 ```bash
 cd apps/server
 uv run main.py          # 开发启动（热重载）
-uv run worker.py        # 启动 RQ Worker（异步任务）
+uv run worker.py        # 启动 Celery Worker（异步任务）
 # 或仅启动 API
 uvicorn main:app --reload --port 7890
 ```
@@ -366,8 +366,10 @@ ai-eduaction/
 │   │   ├── admin/           # 管理端模块
 │   │   ├── student/         # 学生端模块
 │   │   ├── ai/              # AI 功能（LangGraph 工作流）
-│   │   ├── task/            # 任务处理（RQ Worker）
-│   │   └── shared/          # 核心与工具
+│   │   ├── shared/          # 共享模块
+│   │   │   ├── core/        # 核心功能
+│   │   │   ├── worker/      # 任务处理（Celery Worker）
+│   │   │   └── utils/       # 工具函数
 ├── packages/
 │   └── shared-frontend/     # 前端共享包
 └── .cursor/

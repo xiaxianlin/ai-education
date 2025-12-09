@@ -6,6 +6,7 @@ from shared.utils.time import now, today
 from shared.core.constants import GENERATE_QUESTION_COUNT
 from shared.core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
 from ai.question_generate import invoke_generate_workflow
+from student.schema import PracticeSubmitParams
 
 
 async def create_answer_records(db: AsyncSession, session_id: int, questions: list[Question]):
@@ -32,18 +33,27 @@ async def create_answer_records(db: AsyncSession, session_id: int, questions: li
 
 
 async def generate_practice_session(
-    *,
-    db: AsyncSession,
+    db,
     type: str,
     student_id: str,
     textbook_id: int,
-    unit_id: int | None = None,
+    unit_id: int = None,
 ):
+    """
+    生成练习会话
+
+    Args:
+        db: 数据库会话
+        type: 练习类型
+        student_id: 学生ID
+        textbook_id: 教材ID
+        unit_id: 单元ID（可选）
+    """
 
     textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
-
     if not textbook:
-        raise ValueError("教材不纯粹")
+        raise ValueError("教材不存在")
+
     unit = None
     target_id = today()
     if type == "unit_practice":

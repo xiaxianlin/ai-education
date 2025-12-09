@@ -9,13 +9,13 @@
 - **Web框架**: FastAPI 0.115+
 - **语言**: Python 3.12
 - **数据库**: MySQL (SQLAlchemy 2.0 异步 ORM)
-- **缓存/队列**: Redis (用于 RQ 任务队列)
+- **缓存/队列**: Redis (用于 Celery 任务队列)
 - **认证**: JWT (PyJWT)
 - **验证**: Pydantic
 - **日志**: Loguru
 - **AI**: 阿里云百炼AI (DashScope SDK) + LangChain + LangGraph
 - **存储**: 阿里云 OSS
-- **任务队列**: RQ (Redis Queue)
+- **任务队列**: Celery (Redis 作为 Broker 和 Backend)
 - **文档处理**: PyMuPDF
 - **语音处理**: PyTorch + TorchAudio
 
@@ -94,17 +94,6 @@ apps/server/
 │   │   └── rag.py        # RAG 工具
 │   └── schema.py         # AI 相关数据模型
 │
-├── task/                  # 任务处理模块
-│   ├── core/             # 核心功能
-│   │   ├── executor.py   # 任务执行器（RQ Worker 调用）
-│   │   └── redis.py      # Redis 连接
-│   ├── services/         # 任务服务
-│   │   ├── rq.py         # RQ 队列服务
-│   │   └── task.py       # 任务管理服务
-│   ├── workers/          # 任务工作器
-│   │   └── practice.py   # 练习生成 Worker
-│   └── schema.py         # 任务相关数据模型
-│
 ├── shared/               # 共享模块
 │   ├── core/             # 核心功能
 │   │   ├── database.py   # 数据库模型和配置
@@ -114,6 +103,11 @@ apps/server/
 │   │   ├── exception.py  # 异常处理
 │   │   ├── constants.py  # 常量定义
 │   │   └── schema.py     # 共享数据模型
+│   ├── worker/           # 任务处理模块（Celery Worker）
+│   │   ├── celery.py     # Celery 应用配置和任务管理
+│   │   ├── executor.py   # 任务执行器（Worker 实际执行的函数）
+│   │   ├── README.md     # Worker 模块文档
+│   │   └── CONFIG.md     # Worker 配置文档
 │   └── utils/            # 工具函数
 │       ├── encrypt.py    # 加密工具
 │       ├── oss.py        # OSS 存储工具
@@ -121,7 +115,7 @@ apps/server/
 │       └── validation.py # 验证工具
 │
 ├── main.py               # 应用入口
-├── worker.py             # RQ Worker 启动脚本
+├── worker.py             # Celery Worker 启动脚本
 ├── pyproject.toml        # 项目依赖配置
 ├── ecosystem.config.js   # PM2 配置
 ├── langgraph.json        # LangGraph 配置
@@ -146,8 +140,8 @@ apps/server/
    - 资源生成（图片/语音）
    - 教材解析
 
-4. **task/** - 任务处理模块
-   - 异步任务管理（基于 RQ）
+4. **shared/worker/** - 任务处理模块
+   - 异步任务管理（基于 Celery）
    - 任务执行器（Worker）
    - 任务队列服务
 
@@ -164,10 +158,10 @@ apps/server/
 
 ### 任务处理流程
 
-1. **任务提交**: API 层调用 `task.services.task.submit_question_task()` 提交任务到 RQ 队列
-2. **任务执行**: RQ Worker (`worker.py`) 从队列获取任务，调用 `task.core.executor.execute_task()`
-3. **工作流执行**: 执行器调用 `ai.question_generate.graph.invoke_generate_workflow()` 执行 LangGraph 工作流
-4. **结果存储**: 工作流完成后，结果存储到数据库
+1. **任务提交**: API 层调用 `shared.worker.celery.submit_task()` 提交任务到 Celery 队列
+2. **任务执行**: Celery Worker (`worker.py`) 从队列获取任务，调用 `shared.worker.executor.execute_generate_practice_task()`
+3. **业务逻辑执行**: 执行器调用 `student.services.practice_generate.generate_practice_session()` 生成练习会话
+4. **结果存储**: 任务完成后，结果存储到数据库
 
 ### AI 题目生成工作流
 
@@ -231,16 +225,27 @@ async def create(db: AsyncSession, params: SomeSchema):
 ### 任务提交
 
 ```python
-from task.services.task import submit_question_task
-from task.schema import QuestionSubmitRequest
+from shared.worker import submit_task, Executor
+from student.schema import PracticeSubmitParams
 
-request = QuestionSubmitRequest(
+# 创建任务参数
+payload = PracticeSubmitParams(
     type="daily_practice",
-    count=15,
+    student_id="student_123",
     textbook_id=1,
-    student_id="student_xxx"
+    unit_id=None,
 )
-task_response = await submit_question_task(request)
+
+# 提交任务
+task_id = submit_task(
+    task_id="practice_abc123",
+    executor=Executor.generate_practice_task,
+    args=[payload.model_dump()]  # 注意：必须序列化为字典
+)
+
+# 查询任务状态
+from shared.worker import get_task_status
+status = get_task_status(task_id)
 ```
 
 ## 数据模型
@@ -265,7 +270,7 @@ task_response = await submit_question_task(request)
 主要配置在 `shared/core/settings.py`：
 
 - 数据库配置 (`DATABASE_URL`, `DATABASE_POOL_SIZE` 等)
-- Redis 配置 (`REDIS_HOST`, `REDIS_PORT` 等)
+- Redis 配置 (`REDIS_URL` 等)
 - 阿里云配置 (`ALIYUN_ACCESS_KEY_ID` 等)
 - AI 配置 (`AI_PLATFORM`, `AI_PLATFORM_KEY` 等)
 - 任务配置 (`TASK_QUEUE_NAME`, `TASK_TIMEOUT` 等)
@@ -280,6 +285,9 @@ uv run main.py
 
 # 启动 Worker（另开终端）
 uv run worker.py
+
+# 或使用 npm 脚本
+npm run dev:worker
 ```
 
 ### 生产模式
@@ -298,7 +306,7 @@ uvicorn main:app --host 0.0.0.0 --port 7890 --workers 4
 2. **类型安全**: 使用 Pydantic 进行数据验证
 3. **错误处理**: 统一的异常处理机制（`shared/core/exception.py`）
 4. **日志记录**: 使用 Loguru 记录日志
-5. **任务队列**: 长时间任务使用 RQ 异步处理
+5. **任务队列**: 长时间任务使用 Celery 异步处理
 6. **工作流**: 复杂业务逻辑使用 LangGraph 工作流
 7. **认证**: 管理端和学生端使用不同的认证中间件
 
