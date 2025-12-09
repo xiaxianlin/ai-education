@@ -14,11 +14,24 @@ import sys
 import signal
 import argparse
 import dotenv
+import multiprocessing
 from rq import Worker, Queue
 from loguru import logger
 
 from shared.core.settings import envs
 from task.core.redis import get_redis_connection
+
+# 修复 macOS 上的 fork() 安全问题
+# 当 RQ worker 使用 fork() 创建子进程时，如果某些库在 fork() 之前初始化了
+# Objective-C 运行时，会导致崩溃。设置此环境变量可以禁用该安全检查。
+if sys.platform == "darwin":  # macOS
+    os.environ.setdefault("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", "YES")
+    # 设置多进程启动方法为 'spawn' 避免 fork 问题
+    try:
+        multiprocessing.set_start_method('spawn', force=True)
+    except RuntimeError:
+        # 已经设置过，忽略错误
+        pass
 
 # 全局变量，用于优雅关闭
 worker_instance = None

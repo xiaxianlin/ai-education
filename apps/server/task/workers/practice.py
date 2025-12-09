@@ -3,7 +3,7 @@
 from typing import Dict, Any
 from loguru import logger
 
-from shared.core.database import get_async_session
+from shared.core.database import AsyncSessionLocal
 from student.services.practice_generate import generate_practice_session
 
 
@@ -31,8 +31,8 @@ class PracticeWorker:
         )
 
         try:
-            db = get_async_session()
-            try:
+            # 使用 async with 确保会话正确关闭和连接清理
+            async with AsyncSessionLocal() as db:
                 session = await generate_practice_session(
                     db=db,
                     type=practice_type,
@@ -43,8 +43,6 @@ class PracticeWorker:
                 
                 logger.info(f"练习生成完成: session_id={session.id}")
                 return {"session_id": session.id, "question_count": session.question_count}
-            finally:
-                await db.close()
                 
         except Exception as e:
             logger.error(f"练习生成异常: {e}", exc_info=True)

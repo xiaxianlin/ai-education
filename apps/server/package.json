@@ -1,11 +1,12 @@
 {
-  "name": "server-api",
+  "name": "server",
   "version": "0.1.0",
   "private": true,
   "description": "AI Education Platform Server",
   "scripts": {
     "install": "uv sync",
-    "dev": "uv run main.py & uv run worker.py",
+    "dev": "uv run main.py",
+    "dev:worker": "uv run worker.py",
     "build": "uv build",
     "start": "uv run main.py",
     "test": "uv run pytest"

@@ -10,7 +10,7 @@ export default function AssessmentPractice() {
     (state) => state.activeTextbooks || []
   );
 
-  const { data: practices = [], refresh } = useRequest(studentApi.getAssessment);
+  const { data: practices = [], refresh } = useRequest(studentApi.getAssessment.bind(studentApi));
 
   return (
     <div>

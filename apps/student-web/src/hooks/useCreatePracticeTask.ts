@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -46,130 +47,120 @@ export function useCreatePracticeTask(
     onError,
   } = options;
 
-  const [loading, setLoading] = useState(false);
   const [taskStatus, setTaskStatus] = useState<TaskStatus | null>(null);
-  
-  const pollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollingCountRef = useRef(0);
-  const isPollingRef = useRef(false);
-
-  /** 清理轮询 */
-  const clearPolling = useCallback(() => {
-    if (pollingTimerRef.current) {
-      clearTimeout(pollingTimerRef.current);
-      pollingTimerRef.current = null;
-    }
-    isPollingRef.current = false;
-    pollingCountRef.current = 0;
-  }, []);
-
-  /** 取消轮询 */
-  const cancelPolling = useCallback(() => {
-    clearPolling();
-    setLoading(false);
-    setTaskStatus(null);
-  }, [clearPolling]);
 
   /** 轮询任务状态 */
-  const pollTaskStatus = useCallback(
+  const {
+    loading: pollingLoading,
+    run: pollTaskStatus,
+    cancel: cancelPollingRequest,
+  } = useRequest(
     async (taskId: string) => {
-      if (!isPollingRef.current) return;
-
       pollingCountRef.current += 1;
 
       // 检查是否超过最大轮询次数
       if (pollingCountRef.current > maxPollingCount) {
-        clearPolling();
-        setLoading(false);
+        cancelPollingRequest();
         setTaskStatus("failed");
         const errorMsg = "练习生成超时，请稍后重试";
         toast.error(errorMsg);
         onError?.(errorMsg);
-        return;
+        throw new Error(errorMsg);
       }
 
-      try {
-        const response = await studentApi.getPracticeTaskStatus(taskId);
+      return await studentApi.getPracticeTaskStatus(taskId);
+    },
+    {
+      manual: true,
+      pollingInterval: pollingInterval,
+      pollingWhenHidden: false,
+      pollingErrorRetryCount: -1, // 无限重试，直到手动取消
+      onSuccess: (response) => {
         setTaskStatus(response.status);
 
         switch (response.status) {
           case "completed":
-            clearPolling();
-            setLoading(false);
+            cancelPollingRequest();
             if (response.result?.session_id) {
               onSuccess?.(response.result.session_id);
             }
             break;
 
           case "failed":
-            clearPolling();
-            setLoading(false);
+            cancelPollingRequest();
             const errorMsg = response.error || "练习生成失败";
             toast.error(errorMsg);
             onError?.(errorMsg);
             break;
 
           case "cancelled":
-            clearPolling();
-            setLoading(false);
+            cancelPollingRequest();
             toast.info("任务已取消");
             break;
 
           case "pending":
           case "processing":
-            // 继续轮询
-            pollingTimerRef.current = setTimeout(() => {
-              pollTaskStatus(taskId);
-            }, pollingInterval);
+            // 继续轮询，useRequest 会自动处理
             break;
         }
-      } catch (error) {
+      },
+      onError: (error) => {
         console.error("轮询任务状态失败:", error);
-        // 网络错误时继续尝试轮询
-        pollingTimerRef.current = setTimeout(() => {
-          pollTaskStatus(taskId);
-        }, pollingInterval);
-      }
-    },
-    [pollingInterval, maxPollingCount, clearPolling, onSuccess, onError]
+        // 网络错误时继续尝试轮询，useRequest 会自动重试
+      },
+    }
   );
 
+  /** 取消轮询 */
+  const cancelPolling = useCallback(() => {
+    cancelPollingRequest();
+    setTaskStatus(null);
+    pollingCountRef.current = 0;
+  }, [cancelPollingRequest]);
+
   /** 创建练习 */
-  const createPractice = useCallback(
-    async (params: CreatePracticeParams) => {
-      // 如果正在进行中，不重复提交
-      if (loading) return;
-
-      setLoading(true);
-      setTaskStatus("pending");
-      clearPolling();
-
-      try {
-        // 提交创建任务
-        const response = await studentApi.createPractice(params);
-        
+  const {
+    loading: createLoading,
+    run: runCreatePractice,
+  } = useRequest(
+    (params: CreatePracticeParams) => studentApi.createPractice(params),
+    {
+      manual: true,
+      onSuccess: (response) => {
         if (response.task_id) {
-          // 开始轮询任务状态
-          isPollingRef.current = true;
+          // 初始化轮询状态
+          setTaskStatus("pending");
           pollingCountRef.current = 0;
+          // 手动触发第一次轮询
           pollTaskStatus(response.task_id);
         } else {
-          throw new Error("未获取到任务ID");
+          setTaskStatus("failed");
+          const errorMsg = "未获取到任务ID";
+          toast.error(errorMsg);
+          onError?.(errorMsg);
         }
-      } catch (error) {
+      },
+      onError: (error) => {
         console.error("创建练习任务失败:", error);
-        setLoading(false);
         setTaskStatus("failed");
         const errorMsg = "创建练习失败，请重试";
         toast.error(errorMsg);
         onError?.(errorMsg);
-      }
+      },
+    }
+  );
+
+  /** 包装 createPractice 以符合接口定义 */
+  const createPractice = useCallback(
+    async (params: CreatePracticeParams): Promise<void> => {
+      await runCreatePractice(params);
     },
-    [loading, clearPolling, pollTaskStatus, onError]
+    [runCreatePractice]
   );
 
   return {
-    loading,
+    loading: createLoading || pollingLoading,
     taskStatus,
     createPractice,
     cancelPolling,

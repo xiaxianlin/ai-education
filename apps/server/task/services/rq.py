@@ -8,7 +8,6 @@ from rq.job import Job, JobStatus
 
 from task.core.redis import get_redis_connection
 from task.schema import TaskRequest, TaskResponse, TaskStatus
-from task.core.executor import execute_task
 
 
 class RQService:
@@ -45,8 +44,9 @@ class RQService:
         }
 
         # 提交任务到队列
+        # 使用字符串路径而不是函数对象，确保 RQ 可以正确序列化和反序列化
         job = self.queue.enqueue(
-            execute_task,
+            'task.core.executor.execute_task',
             **job_kwargs,
             job_id=request.task_id,  # 使用 task_id 作为 job_id
             job_timeout=request.timeout or 300,  # 任务超时时间

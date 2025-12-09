@@ -10,7 +10,7 @@ export default function DailyPractice() {
     (state) => state.activeTextbooks || []
   );
 
-  const { data: practices = [], refresh } = useRequest(studentApi.getDailyPractice);
+  const { data: practices = [], refresh } = useRequest(studentApi.getDailyPractice.bind(studentApi));
 
   return (
     <div>
