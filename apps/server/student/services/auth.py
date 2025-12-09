@@ -1,7 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, HTTPException
-from loguru import logger
 from shared.core.database import AsyncSessionLocal, Student
 from shared.core.schema import StudentSchema
 from shared.utils import encrypt
@@ -28,8 +27,6 @@ async def student_router_filter(request: Request):
     student = None
     async with AsyncSessionLocal() as db:
         student = await db.scalar(select(Student).where(Student.token == token))
-        if student:
-            logger.info(f"当前登录学生：{student.name}")
 
     if not student or student.id != payload.get("id"):
         raise HTTPException(status_code=401, detail="登录失效")

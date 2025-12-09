@@ -88,23 +88,23 @@ async def get_practice_task_status(task_id: str):
         return {"error": "任务不存在", "task_id": task_id}
 
     response = {
-        "task_id": task_response.task_id,
-        "status": task_response.status.value,
-        "created_at": task_response.created_at.isoformat() if task_response.created_at else None,
-        "updated_at": task_response.updated_at.isoformat() if task_response.updated_at else None,
+        "task_id": task_response["task_id"],
+        "status": task_response["status"],
+        "created_at": task_response["created_at"].isoformat() if task_response["created_at"] else None,
+        "updated_at": task_response["updated_at"].isoformat() if task_response["updated_at"] else None,
     }
 
     # 如果任务完成，返回结果（session_id）
-    if task_response.result:
-        response["result"] = task_response.result
+    if task_response.get("result"):
+        response["result"] = task_response["result"]
 
     # 如果任务失败，返回错误信息
-    if task_response.error:
-        response["error"] = task_response.error
+    if task_response.get("error"):
+        response["error"] = task_response["error"]
 
     # 如果有处理耗时，返回
-    if task_response.processing_time:
-        response["processing_time"] = task_response.processing_time
+    if task_response.get("processing_time"):
+        response["processing_time"] = task_response["processing_time"]
 
     return response
 

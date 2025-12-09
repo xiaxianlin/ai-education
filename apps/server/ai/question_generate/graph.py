@@ -161,7 +161,7 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
 async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
-    storage_service.save_questions(state)
+    await storage_service.save_questions(state)
 
     generated_questions: List[Question] = state.get("questions", [])
     recall_questions: List[Question] = state.get("recall_questions", [])

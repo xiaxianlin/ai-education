@@ -112,12 +112,19 @@ def get_task_status(task_id: str) -> Optional[Dict[str, Any]]:
             if result.date_started and result.date_done:
                 processing_time = (result.date_done - result.date_started).total_seconds()
 
+        # AsyncResult 没有 date_created 属性，使用其他方式获取创建时间
+        created_at = None
+        if hasattr(result, "date_started") and result.date_started:
+            created_at = result.date_started
+        else:
+            created_at = datetime.now()
+
         return {
             "task_id": task_id,
             "status": result.state,
             "result": result.result if result.result and result.state == states.SUCCESS else None,
             "error": error,
-            "created_at": result.date_created if result.date_created else datetime.now(),
+            "created_at": created_at,
             "updated_at": result.date_done if result.date_done else datetime.now(),
             "processing_time": processing_time,
         }
