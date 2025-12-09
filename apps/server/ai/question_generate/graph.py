@@ -4,9 +4,8 @@ from typing import Any, Dict, List
 
 from langgraph.graph import END, StateGraph
 from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Question, Textbook, Unit
+from shared.core.database import Question
 from ai.schema import GenerationType, QuestionGenerationState
 from ai.question_generate.services import llm as llm_service
 from ai.question_generate.services import resource as resource_service
@@ -116,19 +115,7 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     logger.info("开始转换问题对象并分流")
     try:
         result = await storage_service.convert_questions(state)
-
-        image_questions = result.get("image_questions", [])
-        audio_questions = result.get("audio_questions", [])
-        text_questions = result.get("text_questions", [])
-
-        logger.info(
-            f"问题转换完成: 辨识题 {len(image_questions)}, 音频题 {len(audio_questions)}, 其他题目 {len(text_questions)}",
-        )
-
-        # 保存题目到数据库
-        save_result = await storage_service.save_questions({**state, **result})
-        result.update(save_result)
-
+        logger.info("问题对象转换和分流完成")
         return result
     except Exception as e:
         logger.error(f"数据转换或保存失败: {e}")
@@ -138,15 +125,6 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
 async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成图片"""
     try:
-        image_questions = state.get("image_questions", [])
-        needs_image_count = sum(1 for q in image_questions if q.resource_type == "image")
-        if needs_image_count == 0:
-            logger.info("跳过图片处理（没有需要生成图片的题目）")
-            return {}
-
-        logger.info(
-            f"开始为 {needs_image_count} 道题目生成图片",
-        )
         result = await resource_service.generate_images(state)
         logger.info("图片生成完成")
         return result
@@ -159,15 +137,6 @@ async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
 async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成语音"""
     try:
-        audio_questions = state.get("audio_questions", [])
-        needs_audio_count = sum(1 for q in audio_questions if q.resource_type == "audio")
-        if needs_audio_count == 0:
-            logger.info("跳过音频处理（没有需要生成语音的题目）")
-            return {}
-
-        logger.info(
-            f"开始为 {needs_audio_count} 道题目生成语音",
-        )
         result = await resource_service.generate_audios(state)
         logger.info("语音生成完成")
         return result
@@ -190,32 +159,10 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
     return {}
 
 
-async def upload_files_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """文件上传节点"""
-    logger.info("开始上传文件到 OSS")
-    try:
-        result = await storage_service.upload_files(state)
-        logger.info("文件上传完成")
-        return result
-    except Exception as e:
-        logger.error(f"文件上传失败: {e}")
-        raise
-
-
-async def update_resource_info_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """更新资源信息节点"""
-    logger.info("开始更新资源信息到数据库")
-    try:
-        result = await storage_service.update_resource_info(state)
-        logger.info("资源信息更新完成")
-        return result
-    except Exception as e:
-        logger.error(f"资源信息更新失败: {e}")
-        raise
-
-
-async def gather_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
+    storage_service.save_questions(state)
+
     generated_questions: List[Question] = state.get("questions", [])
     recall_questions: List[Question] = state.get("recall_questions", [])
 
@@ -260,9 +207,7 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_node("handle_image", handle_image_node)
     workflow.add_node("handle_audio", handle_audio_node)
     workflow.add_node("handle_text", handle_text_node)
-    workflow.add_node("upload_files", upload_files_node)
-    workflow.add_node("update_resource_info", update_resource_info_node)
-    workflow.add_node("gather_questions_node", gather_questions_node)
+    workflow.add_node("save_question", save_questions_node)
 
     # 设置入口点
     workflow.set_entry_point("entry")
@@ -302,17 +247,11 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("convert_data", "handle_text")
 
     # 添加边：资源处理 -> 文件上传
-    workflow.add_edge("handle_image", "upload_files")
-    workflow.add_edge("handle_audio", "upload_files")
-
-    # 添加边：文件上传 -> 更新资源信息
-    workflow.add_edge("upload_files", "update_resource_info")
-
-    # 添加边：更新资源信息/文本处理 -> 更新问题
-    workflow.add_edge("update_resource_info", "gather_questions_node")
-    workflow.add_edge("handle_text", "gather_questions_node")
+    workflow.add_edge("handle_image", "save_question")
+    workflow.add_edge("handle_audio", "save_question")
+    workflow.add_edge("handle_text", "save_question")
 
     # 添加边：更新问题 -> 结束
-    workflow.add_edge("gather_questions_node", END)
+    workflow.add_edge("save_question", END)
 
     return workflow.compile()

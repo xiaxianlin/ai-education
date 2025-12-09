@@ -19,7 +19,7 @@ export function PracticeHistory() {
 
   // 删除功能
   const { runAsync: handleDelete, loading: deleteLoading } = useRequest(
-    adminApi.removePracticeSession,
+    (sessionId: number) => adminApi.removePracticeSession(sessionId),
     { manual: true, onSuccess: () => actionRef.current?.reload() },
   );
 

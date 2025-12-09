@@ -80,10 +80,6 @@ class QuestionGenerationState(TypedDict, total=False):
     # 题目对象列表
     questions: NotRequired[List[Question]]
 
-    image_questions: NotRequired[List[Question]]
-    audio_questions: NotRequired[List[Question]]
-    text_questions: NotRequired[List[Question]]
-
 
 class QuestionGenerateRequest(BaseModel):
     """题目生成请求"""

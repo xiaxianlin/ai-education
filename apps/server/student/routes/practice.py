@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.worker import submit_task, get_task_status, Executor
 from shared.core.database import Database
-from student.services import practice, answer, practice_generate
+from student.services import practice, answer
 from student.schema import (
     PracticeType,
     AnswerQuestionSchema,
@@ -60,16 +60,16 @@ async def create_practice(
         unit_id=params.unit_id,
     )
 
-    questions = await practice_generate.generate_practice_session(
-        db=db,
-        type=params.type.value,
-        student_id=request.state.student.id,
-        textbook_id=params.textbook_id,
-        unit_id=params.unit_id,
-    )
+    # questions = await practice_generate.generate_practice_session(
+    #     db=db,
+    #     type=params.type.value,
+    #     student_id=request.state.student.id,
+    #     textbook_id=params.textbook_id,
+    #     unit_id=params.unit_id,
+    # )
 
     # 提交任务到 Celery 队列（payload 会被序列化为字典）
-    # return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
+    return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
 
 
 @practice_router.get("/task/{task_id}")

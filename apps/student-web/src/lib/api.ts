@@ -13,9 +13,7 @@ class ApiClient {
     this.client = axios.create({
       baseURL: "/api/student",
       timeout: 10 * 60 * 1000, // 10 minutes
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       ...config,
     });
 
@@ -34,9 +32,7 @@ class ApiClient {
 
     // 响应拦截器
     this.client.interceptors.response.use(
-      (response: AxiosResponse<ApiResponse>) => {
-        return response;
-      },
+      (response: AxiosResponse<ApiResponse>) => response,
       (error) => {
         // 统一错误处理
         const response = error.response;
