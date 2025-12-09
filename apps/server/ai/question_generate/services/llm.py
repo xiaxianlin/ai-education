@@ -10,10 +10,10 @@ from ai.utils.llm import get_chat_client
 
 async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     """调用大模型结构化输出内容，内容为数组"""
+    logger.info(f"✓ LLM 调用开始")
     prompt = state["prompt"]
     prompt_input = state["prompt_input"]
     parser = state["parser"]
-    logger.info(f"✓ LLM 调用开始: prompt={prompt}, input={prompt_input}")
     client = get_chat_client()
     chain = prompt | client | parser
 
@@ -64,10 +64,11 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     # 验证并转换结果
     try:
         validated_result = QuestionGenerationResult.model_validate(result)
+        if len(validated_result.questions) == 0:
+            logger.warning("LLM 返回结果中没有题目，尝试创建空列表")
+            raise ValueError("LLM 返回结果中没有题目，请检查 prompt 或重试")
     except Exception as e:
         logger.error(f"结果验证失败: {e}, 原始结果: {result}")
         raise ValueError(f"题目生成结果验证失败: {str(e)}，请检查 prompt 或重试")
 
-    return {
-        "generated_questions": validated_result.questions,
-    }
+    return {"generated_questions": validated_result.questions}

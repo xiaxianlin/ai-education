@@ -1,4 +1,3 @@
-import redis
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from datetime import datetime
@@ -11,32 +10,6 @@ from shared.core.settings import envs
 
 class Executor(Enum):
     generate_practice_task = "shared.worker.executor.execute_generate_practice_task"
-
-
-def check_redis_connection():
-    try:
-        redis_url = envs.REDIS_URL
-        logger.info(f"检查 Redis 连接: {redis_url}")
-        # 只支持redis://[:password@]host:port/db 这种url
-        from urllib.parse import urlparse
-
-        parsed = urlparse(redis_url)
-        if parsed.scheme != "redis":
-            raise ValueError("REDIS_URL 配置格式错误，只支持 redis:// 协议")
-        host = parsed.hostname or "localhost"
-        port = parsed.port or 6379
-        db = int(parsed.path.strip("/")) if parsed.path else 0
-        password = parsed.password
-
-        r = redis.Redis(host=host, port=port, db=db, password=password, socket_connect_timeout=3)
-        pong = r.ping()
-        if pong:
-            logger.info(f"Redis 连接成功：{host}:{port}/{db}")
-        else:
-            raise ConnectionError("Redis 未响应 ping")
-    except Exception as e:
-        logger.error(f"无法连接 Redis，请检查 REDIS_URL 配置。详情: {e}")
-        raise
 
 
 # 创建 Celery 应用
@@ -97,7 +70,9 @@ def submit_task(task_id: str, executor: Executor, args: List[Any]) -> str:
     Returns:
         str: Celery 任务ID
     """
-    logger.info(f"提交任务到 Celery 队列: task_id={task_id}, task_name={executor.value}")
+    logger.info(
+        f"提交任务到 Celery 队列: task_id={task_id}, task_name={executor.value}, args={args}"
+    )
 
     task = celery_app.send_task(
         name=executor.value,
@@ -109,7 +84,7 @@ def submit_task(task_id: str, executor: Executor, args: List[Any]) -> str:
     )
 
     logger.info(f"任务已提交到 Celery: task_id={task.id}, task_name={executor.value}")
-    return task.id
+    return {"task_id": task.id}
 
 
 def get_task_status(task_id: str) -> Optional[Dict[str, Any]]:

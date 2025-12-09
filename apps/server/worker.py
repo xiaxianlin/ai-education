@@ -14,7 +14,7 @@ import dotenv
 from loguru import logger
 
 from shared.core.settings import envs
-from shared.worker import check_redis_connection, celery_app
+from shared.worker import celery_app
 
 
 def start_worker():
@@ -36,7 +36,6 @@ def start_worker():
     logger.info("=" * 50)
 
     try:
-        check_redis_connection()
         celery_app.worker_main(
             [
                 "worker",
