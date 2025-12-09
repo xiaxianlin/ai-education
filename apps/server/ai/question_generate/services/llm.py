@@ -10,7 +10,6 @@ from ai.utils.llm import get_chat_client
 
 async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     """调用大模型结构化输出内容，内容为数组"""
-    logger.info(f"✓ LLM 调用开始")
     prompt = state["prompt"]
     prompt_input = state["prompt_input"]
     parser = state["parser"]
@@ -18,8 +17,9 @@ async def call_llm(state: QuestionGenerationState) -> Dict[str, Any]:
     chain = prompt | client | parser
 
     try:
+        logger.info(f"✓ LLM 调用开始：{prompt}")
         result = chain.invoke(prompt_input)
-        logger.info(f"✓ LLM 调用成功: result={result}")
+        logger.info(f"✓ LLM 调用成功: {result}")
     except Exception as e:
         logger.error(f"LLM 调用失败: {e}")
         raise ValueError(f"大模型调用失败: {str(e)}")

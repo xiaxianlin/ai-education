@@ -6,6 +6,7 @@
 from typing import Dict, Any
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
+from loguru import logger
 
 from ai.schema import QuestionGenerationResult, QuestionGenerationState
 from ai.question_generate.prompts.utils import (
@@ -361,8 +362,9 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
-    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
-    prompt = prompt.partial(format_instructions=format_instructions)
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", SYSTEM_PROMPT), ("human", template)]
+    ).partial(format_instructions=format_instructions)
 
     # 简化学生学习数据获取（server-ai 中可能没有 StudentService）
     # 这里先使用空列表，后续可以通过 API 调用 server-api 获取
