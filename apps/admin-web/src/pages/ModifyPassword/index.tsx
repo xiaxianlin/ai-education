@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Form, Input, message } from 'antd';
 import { validPassword } from '@/utils/validation';
-import { adminApi } from '@/lib/api';
+import { adminApi, apiClient } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { useInitialStateModel } from '@/models/initialState';
 
@@ -16,7 +16,7 @@ export default function MoidfyPasswordPage() {
     ready: !!manager?.id,
     onSuccess: () => {
       message.success('修改成功');
-      localStorage.removeItem('token');
+      apiClient.removeToken();
       clearState();
       navigate('/login', { replace: true });
     },

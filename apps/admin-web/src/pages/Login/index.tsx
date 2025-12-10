@@ -3,20 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
-import { adminApi } from '@/lib/api';
+import { adminApi, apiClient } from '@/lib/api';
 import './index.less';
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const { runAsync: login } = useRequest(data => adminApi.login(data), {
+  const { runAsync: login } = useRequest((data) => adminApi.login(data), {
     manual: true,
     onSuccess: async (res) => {
-      localStorage.setItem('token', res);
+      apiClient.setToken(res);
       navigate('/home', { replace: true });
     },
   });
-
 
   return (
     <div className="layout">

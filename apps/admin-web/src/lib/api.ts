@@ -1,24 +1,23 @@
-import { go } from './router';
-import { ApiClient } from '@ai-education/shared-web';
+import { message as AntdMessage } from 'antd';
+import { go, ApiClient } from '@ai-education/shared-web';
 
-const client = new ApiClient('/api/admin');
+export const apiClient = new ApiClient('/api/admin');
 
-client.addResponseInterceptor(
+apiClient.addResponseInterceptor(
   (response) => response,
   (error) => {
     // 统一错误处理
     const response = error.response;
     if (response) {
-      const data = response.data;
-      const status = data?.status || response.status;
+      const { status, message } = response.data || {};
 
       // 处理认证错误
       if (status === 401 || status === 403) {
-        client.removeToken();
+        apiClient.removeToken();
         go('/login');
-        return;
+      } else {
+        AntdMessage.error(message || '网络错误');
       }
-
       return response;
     }
 
@@ -37,7 +36,7 @@ export const adminApi = {
    * POST /login
    */
   async login(data: LoginRequest): Promise<string> {
-    return client.post<string>('/login', data);
+    return apiClient.post<string>('/login', data);
   },
 
   /**
@@ -45,7 +44,7 @@ export const adminApi = {
    * GET /check
    */
   async check(): Promise<Manager> {
-    return client.get<Manager>('/check');
+    return apiClient.get<Manager>('/check');
   },
 
   /**
@@ -53,7 +52,7 @@ export const adminApi = {
    * POST /modify_password
    */
   async modifyPassword(data: ModifyPasswordRequest) {
-    return client.post('/modify_password', data);
+    return apiClient.post('/modify_password', data);
   },
 
   // ========== 通用配置 ==========
@@ -63,7 +62,7 @@ export const adminApi = {
    * GET /configs
    */
   async getConfigs(params?: { subject?: string; grade?: number }): Promise<Configs> {
-    return client.get<Configs>('/configs', { params });
+    return apiClient.get<Configs>('/configs', { params });
   },
 
   // ========== 管理员管理 ==========
@@ -73,7 +72,7 @@ export const adminApi = {
    * POST /manager
    */
   async createManager(data: CreateManagerRequest): Promise<Manager> {
-    return client.post<Manager>('/manager', data);
+    return apiClient.post<Manager>('/manager', data);
   },
 
   /**
@@ -81,7 +80,7 @@ export const adminApi = {
    * DELETE /manager/{id}
    */
   async deleteManager(id: string) {
-    return client.delete(`/manager/${id}`);
+    return apiClient.delete(`/manager/${id}`);
   },
 
   /**
@@ -89,7 +88,7 @@ export const adminApi = {
    * PATCH /manager/{id}
    */
   async updateManager(id: string, data: UpdateManagerRequest) {
-    return client.patch(`/manager/${id}`, data);
+    return apiClient.patch(`/manager/${id}`, data);
   },
 
   /**
@@ -97,7 +96,7 @@ export const adminApi = {
    * GET /manager/all
    */
   async getAllManagers(): Promise<Manager[]> {
-    return client.get<Manager[]>('/manager/all');
+    return apiClient.get<Manager[]>('/manager/all');
   },
 
   /**
@@ -105,7 +104,7 @@ export const adminApi = {
    * POST /manager/{id}/reset
    */
   async resetManagerPassword(id: string) {
-    return client.post<string>(`/manager/${id}/reset`);
+    return apiClient.post<string>(`/manager/${id}/reset`);
   },
 
   // ========== 学生管理 ==========
@@ -115,7 +114,7 @@ export const adminApi = {
    * GET /student/search
    */
   async searchStudents(params?: SearchStudentRequest) {
-    return client.get<SearchResponse<Student>>('/student/search', { params });
+    return apiClient.get<SearchResponse<Student>>('/student/search', { params });
   },
 
   /**
@@ -124,7 +123,7 @@ export const adminApi = {
    * @returns 密码 string
    */
   async createStudent(data: SaveStudentRequest) {
-    return client.post<string>('/student', data);
+    return apiClient.post<string>('/student', data);
   },
 
   /**
@@ -132,7 +131,7 @@ export const adminApi = {
    * PATCH /student/{id}
    */
   async updateStudent(id: string, data: SaveStudentRequest) {
-    return client.patch(`/student/${id}`, data);
+    return apiClient.patch(`/student/${id}`, data);
   },
 
   /**
@@ -140,7 +139,7 @@ export const adminApi = {
    * GET /student/{id}
    */
   async getStudent(id: string) {
-    return client.get<Student>(`/student/${id}`);
+    return apiClient.get<Student>(`/student/${id}`);
   },
 
   /**
@@ -148,7 +147,7 @@ export const adminApi = {
    * DELETE /student/{id}
    */
   async deleteStudent(id: string) {
-    return client.delete(`/student/${id}`);
+    return apiClient.delete(`/student/${id}`);
   },
 
   /**
@@ -157,7 +156,7 @@ export const adminApi = {
    * @returns 密码 string
    */
   async resetStudentPassword(id: string) {
-    return client.post<string>(`/student/${id}/reset_password`);
+    return apiClient.post<string>(`/student/${id}/reset_password`);
   },
 
   /**
@@ -165,7 +164,7 @@ export const adminApi = {
    * GET /student/{id}/textbooks
    */
   async getStudentTextbooks(id: string) {
-    return client.get<Textbook[]>(`/student/${id}/textbooks`);
+    return apiClient.get<Textbook[]>(`/student/${id}/textbooks`);
   },
 
   /**
@@ -173,7 +172,7 @@ export const adminApi = {
    * GET /student/{id}/unused_textbooks
    */
   async getStudentUnusedTextbooks(id: string) {
-    return client.get<Textbook[]>(`/student/${id}/unused_textbooks`);
+    return apiClient.get<Textbook[]>(`/student/${id}/unused_textbooks`);
   },
 
   /**
@@ -181,7 +180,7 @@ export const adminApi = {
    * POST /student/{id}/textbook/{textbook_id}
    */
   async addStudentTextbook(id: string, textbookId: number) {
-    return client.post(`/student/${id}/textbook/${textbookId}`);
+    return apiClient.post(`/student/${id}/textbook/${textbookId}`);
   },
 
   /**
@@ -189,7 +188,7 @@ export const adminApi = {
    * DELETE /student/{id}/textbook/{textbook_id}
    */
   async removeStudentTextbook(id: string, textbookId: number) {
-    return client.delete(`/student/${id}/textbook/${textbookId}`);
+    return apiClient.delete(`/student/${id}/textbook/${textbookId}`);
   },
 
   // ========== 题目管理 ==========
@@ -199,7 +198,7 @@ export const adminApi = {
    * GET /question/{id}
    */
   async getQuestion(id: string): Promise<Question> {
-    return client.get<Question>(`/question/${id}`);
+    return apiClient.get<Question>(`/question/${id}`);
   },
 
   /**
@@ -207,7 +206,7 @@ export const adminApi = {
    * GET /question/search
    */
   async searchQuestions(params?: SearchQuestionRequest) {
-    return client.get<SearchResponse<Question>>('/question/search', { params });
+    return apiClient.get<SearchResponse<Question>>('/question/search', { params });
   },
 
   /**
@@ -215,7 +214,7 @@ export const adminApi = {
    * GET /question/resource/search
    */
   async searchResourceQuestions(params?: SearchQuestionRequest) {
-    return client.get<SearchResponse<Question>>('/question/resource/search', { params });
+    return apiClient.get<SearchResponse<Question>>('/question/resource/search', { params });
   },
 
   /**
@@ -223,7 +222,7 @@ export const adminApi = {
    * PATCH /question/{id}
    */
   async updateQuestion(id: string, data: UpdateQuestionRequest) {
-    return client.patch(`/question/${id}`, data);
+    return apiClient.patch(`/question/${id}`, data);
   },
 
   /**
@@ -231,7 +230,7 @@ export const adminApi = {
    * DELETE /question/{id}
    */
   async deleteQuestion(id: string) {
-    return client.delete(`/question/${id}`);
+    return apiClient.delete(`/question/${id}`);
   },
 
   /**
@@ -239,7 +238,7 @@ export const adminApi = {
    * POST /question/{id}/generate_image
    */
   async generateQuestionImage(id: string) {
-    return client.post(`/question/${id}/generate_image`);
+    return apiClient.post(`/question/${id}/generate_image`);
   },
 
   /**
@@ -247,7 +246,7 @@ export const adminApi = {
    * POST /question/{id}/generate_audio
    */
   async generateQuestionAudio(id: string) {
-    return client.post(`/question/${id}/generate_audio`);
+    return apiClient.post(`/question/${id}/generate_audio`);
   },
 
   // ========== 教材管理 ==========
@@ -257,7 +256,7 @@ export const adminApi = {
    * GET /textbook/{id}
    */
   async getTextbook(id: number) {
-    return client.get<Textbook>(`/textbook/${id}`);
+    return apiClient.get<Textbook>(`/textbook/${id}`);
   },
 
   /**
@@ -265,7 +264,7 @@ export const adminApi = {
    * GET /textbook/search
    */
   async searchTextbooks(params?: SearchTextbookRequest) {
-    return client.get<SearchResponse<Textbook>>('/textbook/search', { params });
+    return apiClient.get<SearchResponse<Textbook>>('/textbook/search', { params });
   },
 
   /**
@@ -273,7 +272,7 @@ export const adminApi = {
    * POST /textbook
    */
   async createTextbook(data: SaveTextbookRequest) {
-    return client.post<number>('/textbook', data);
+    return apiClient.post<number>('/textbook', data);
   },
 
   /**
@@ -281,7 +280,7 @@ export const adminApi = {
    * PUT /textbook/{id}
    */
   async updateTextbook(id: number, data: SaveTextbookRequest) {
-    return client.patch(`/textbook/${id}`, data);
+    return apiClient.patch(`/textbook/${id}`, data);
   },
 
   /**
@@ -289,7 +288,7 @@ export const adminApi = {
    * DELETE /textbook/{id}
    */
   async deleteTextbook(id: number) {
-    return client.delete(`/textbook/${id}`);
+    return apiClient.delete(`/textbook/${id}`);
   },
 
   /**
@@ -297,7 +296,7 @@ export const adminApi = {
    * POST /textbook/{id}/parse
    */
   async parseTextbook(id: number) {
-    return client.post(`/textbook/${id}/parse`);
+    return apiClient.post(`/textbook/${id}/parse`);
   },
 
   /**
@@ -305,7 +304,7 @@ export const adminApi = {
    * POST /textbook/{id}/upload
    */
   async uploadTextbook(id: number, data: FormData) {
-    return client.form(`/textbook/${id}/upload`, data);
+    return apiClient.form(`/textbook/${id}/upload`, data);
   },
 
   /**
@@ -313,7 +312,7 @@ export const adminApi = {
    * GET /textbook/{id}/units
    */
   async getTextbookUnits(id: number) {
-    return client.get<Unit[]>(`/textbook/${id}/units`);
+    return apiClient.get<Unit[]>(`/textbook/${id}/units`);
   },
 
   // ========== 单元管理 ==========
@@ -323,7 +322,7 @@ export const adminApi = {
    * POST /unit
    */
   async createUnit(data: CreateUnitRequest) {
-    return client.post<number>('/unit', data);
+    return apiClient.post<number>('/unit', data);
   },
 
   /**
@@ -331,7 +330,7 @@ export const adminApi = {
    * PATCH /unit/{id}
    */
   async updateUnit(id: number, data: UpdateUnitRequest) {
-    return client.patch(`/unit/${id}`, data);
+    return apiClient.patch(`/unit/${id}`, data);
   },
 
   /**
@@ -339,7 +338,7 @@ export const adminApi = {
    * DELETE /unit/{id}
    */
   async deleteUnit(id: number) {
-    return client.delete(`/unit/${id}`);
+    return apiClient.delete(`/unit/${id}`);
   },
 
   /**
@@ -347,7 +346,7 @@ export const adminApi = {
    * GET /unit/{id}/knowledges
    */
   async getUnitKnowledges(id: number) {
-    return client.get<Knowledge[]>(`/unit/${id}/knowledges`);
+    return apiClient.get<Knowledge[]>(`/unit/${id}/knowledges`);
   },
 
   // ========== 知识点管理 ==========
@@ -357,7 +356,7 @@ export const adminApi = {
    * POST /knowledge
    */
   async createKnowledge(data: CreateKnowledgeRequest) {
-    return client.post<number>('/knowledge', data);
+    return apiClient.post<number>('/knowledge', data);
   },
 
   /**
@@ -365,7 +364,7 @@ export const adminApi = {
    * PATCH /knowledge/{id}
    */
   async updateKnowledge(id: number, data: UpdateKnowledgeRequest) {
-    return client.patch(`/knowledge/${id}`, data);
+    return apiClient.patch(`/knowledge/${id}`, data);
   },
 
   /**
@@ -373,7 +372,7 @@ export const adminApi = {
    * DELETE /knowledge/{id}
    */
   async deleteKnowledge(id: number) {
-    return client.delete(`/knowledge/${id}`);
+    return apiClient.delete(`/knowledge/${id}`);
   },
 
   // ========== 教师用书管理 ==========
@@ -383,7 +382,7 @@ export const adminApi = {
    * GET /teacher_book/{id}
    */
   async getTeacherBook(id: number) {
-    return client.get<TeacherBook>(`/teacher_book/${id}`);
+    return apiClient.get<TeacherBook>(`/teacher_book/${id}`);
   },
 
   /**
@@ -391,7 +390,7 @@ export const adminApi = {
    * GET /teacher_book/search
    */
   async searchTeacherBooks(params?: SearchTeacherBookRequest) {
-    return client.get<SearchResponse<TeacherBook>>('/teacher_book/search', { params });
+    return apiClient.get<SearchResponse<TeacherBook>>('/teacher_book/search', { params });
   },
 
   /**
@@ -399,7 +398,7 @@ export const adminApi = {
    * POST /teacher_book
    */
   async createTeacherBook(data: SaveTeacherBookRequest) {
-    return client.post<number>('/teacher_book', data);
+    return apiClient.post<number>('/teacher_book', data);
   },
 
   /**
@@ -407,7 +406,7 @@ export const adminApi = {
    * PUT /teacher_book/{id}
    */
   async updateTeacherBook(id: number, data: SaveTeacherBookRequest) {
-    return client.put(`/teacher_book/${id}`, data);
+    return apiClient.put(`/teacher_book/${id}`, data);
   },
 
   /**
@@ -415,7 +414,7 @@ export const adminApi = {
    * DELETE /teacher_book/{id}
    */
   async deleteTeacherBook(id: number) {
-    return client.delete(`/teacher_book/${id}`);
+    return apiClient.delete(`/teacher_book/${id}`);
   },
 
   /**
@@ -423,7 +422,7 @@ export const adminApi = {
    * POST /teacher_book/{id}/upload
    */
   async uploadTeacherBook(id: number, data: FormData) {
-    return client.form(`/teacher_book/${id}/upload`, data);
+    return apiClient.form(`/teacher_book/${id}/upload`, data);
   },
 
   // ========== 练习管理 ==========
@@ -433,7 +432,7 @@ export const adminApi = {
    * GET /practice/{student_id}/history/{practice_type}
    */
   async getPracticeHistory(studentId: string, practiceType: string) {
-    return client.get<PracticeSession[]>(`/practice/${studentId}/history/${practiceType}`);
+    return apiClient.get<PracticeSession[]>(`/practice/${studentId}/history/${practiceType}`);
   },
 
   /**
@@ -441,7 +440,7 @@ export const adminApi = {
    * GET /practice/session/{session_id}
    */
   async getPracticeSession(sessionId: number) {
-    return client.get<PracticeDetail>(`/practice/session/${sessionId}`);
+    return apiClient.get<PracticeDetail>(`/practice/session/${sessionId}`);
   },
 
   /**
@@ -449,6 +448,6 @@ export const adminApi = {
    * DELETE /practice/session/{session_id}
    */
   async removePracticeSession(sessionId: number) {
-    return client.delete(`/practice/session/${sessionId}`);
+    return apiClient.delete(`/practice/session/${sessionId}`);
   },
 };

@@ -1,7 +1,5 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { AdminLayout } from '@/layouts/AdminLayout';
-import { InitialStateModel } from '../models/initialState';
-import { createBrowserHistory } from "history";
 import Login from '@/pages/Login';
 import Home from '@/pages/Home';
 import Manager from '@/pages/Manager';
@@ -18,16 +16,6 @@ import PracticeDetail from '@/pages/Student/PraticeDetail';
 import ModifyPassword from '@/pages/ModifyPassword';
 import NotFound from '@/pages/404';
 
-export const history = createBrowserHistory();
-
-export function go(path: string, replace = false) {
-  if (replace) {
-    history.replace(path);
-  } else {
-    history.push(path);
-  }
-}
-
 export function Router() {
   return useRoutes([
     {
@@ -36,11 +24,7 @@ export function Router() {
     },
     {
       path: '/',
-      element: (
-        <InitialStateModel.Provider>
-          <AdminLayout />
-        </InitialStateModel.Provider>
-      ),
+      element: <AdminLayout />,
       children: [
         { index: true, element: <Navigate to="/home" replace /> },
         { path: 'home', element: <Home /> },
@@ -59,7 +43,5 @@ export function Router() {
         { path: '*', element: <NotFound /> },
       ],
     },
-  ])
+  ]);
 }
-
-

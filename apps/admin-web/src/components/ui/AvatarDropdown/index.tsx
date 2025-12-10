@@ -4,6 +4,7 @@ import React, { PropsWithChildren } from 'react';
 import { createStyles } from 'antd-style';
 import { Dropdown } from 'antd';
 import { useInitialStateModel } from '@/models/initialState';
+import { apiClient } from '@/lib/api';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -27,7 +28,7 @@ export function AvatarDropdown({ children }: PropsWithChildren) {
         onClick: (e) => {
           switch (e.key) {
             case 'logout':
-              localStorage.removeItem('token');
+              apiClient.removeToken();
               clearState();
               navigate('/login', { replace: true });
               break;
