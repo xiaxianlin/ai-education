@@ -36,7 +36,7 @@ ai-eduaction/
 #### 前端架构
 - **管理端**: React + Rsbuild + Ant Design
 - **学生端 Web**: React + Rsbuild + shadcn/ui + Tailwind
-- **学生端移动**: React Native + NativeWind + React Navigation
+- **学生端移动**: Flutter 3.0+ + Riverpod + GoRouter
 - **共享**: TypeScript 类型定义 (`packages/shared-frontend`)
 
 #### 后端架构
@@ -83,7 +83,7 @@ ai-eduaction/
 #### 为什么选择 React？
 - 生态丰富，组件库完善
 - 团队熟悉度高
-- 跨平台支持（Web + React Native）
+- 跨平台支持（Web + Flutter）
 
 #### 为什么选择 Rsbuild？
 - 构建速度快

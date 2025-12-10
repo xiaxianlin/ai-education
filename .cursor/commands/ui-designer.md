@@ -78,15 +78,18 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 </Card>
 ```
 
-### NativeWind 样式 (student-app)
-```tsx
-import { View, Text } from 'react-native';
+### Flutter Material Design 样式 (student-app)
+```dart
+import 'package:flutter/material.dart';
 
-<View className="flex-1 bg-white p-4">
-  <Text className="text-lg font-bold text-gray-900">
-    标题
-  </Text>
-</View>
+Container(
+  padding: const EdgeInsets.all(16),
+  color: Colors.white,
+  child: Text(
+    '标题',
+    style: Theme.of(context).textTheme.headlineMedium,
+  ),
+)
 ```
 
 ### Ant Design 组件
@@ -163,9 +166,9 @@ import { Button, Card, Space } from 'antd';
 - Button, Table, Form, Modal, Select 等
 - 位置: `apps/admin-web/src/components/`
 
-### 学生端移动 (NativeWind + 自定义组件)
-- 使用 NativeWind (Tailwind CSS) 进行样式管理
-- 位置: `apps/student-app/src/components/`
+### 学生端移动 (Flutter Material Design + 自定义组件)
+- 使用 Flutter Material Design 进行 UI 设计
+- 位置: `apps/student-app/lib/shared/widgets/`
 
 ## 注意事项
 

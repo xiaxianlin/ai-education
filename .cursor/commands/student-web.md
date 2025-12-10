@@ -122,3 +122,8 @@ export const someService = {
 - 实现适当的错误处理和加载状态
 - 与移动端 (student-app) 保持功能一致性
 
+## 相关资源
+
+- 后端 API: `apps/server/student/routes/`
+- API 文档: `.cursor/commands/api.md`
+

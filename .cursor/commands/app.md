@@ -262,7 +262,7 @@ SafeArea(
 
 - **代码生成**: 修改模型后必须运行 `./build.sh` 生成 `.g.dart` 文件
 - **参考 Web 端**: 保持与 Web 端（student-web）的实现逻辑一致
-- **API 一致性**: 保持与后端 API (`server-api/student/`) 的一致性
+- **API 一致性**: 保持与后端 API (`apps/server/student/`) 的一致性
 - **错误处理**: 实现适当的错误处理和加载状态
 - **性能优化**: 优化渲染性能，避免不必要的 rebuild
 - **内存管理**: 注意内存管理，及时释放资源
@@ -316,7 +316,8 @@ flutter test
 ## 相关资源
 
 - Web 端参考: `apps/student-web/src/`（保持逻辑一致性）
-- 后端 API: `apps/server-api/student/routes/`
+- 后端 API: `apps/server/student/routes/`
+- API 文档: `.cursor/commands/api.md`
 - Flutter 文档: https://flutter.dev/
 - Riverpod 文档: https://riverpod.dev/
 - GoRouter 文档: https://pub.dev/packages/go_router

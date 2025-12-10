@@ -18,7 +18,7 @@
 ### 前端
 - **管理端**: React 18 + Rsbuild + Ant Design 5
 - **学生端 Web**: React 18 + Rsbuild + shadcn/ui + Tailwind CSS
-- **学生端移动**: React Native 0.73 + NativeWind + React Navigation
+- **学生端移动**: Flutter 3.0+ + Riverpod + GoRouter
 - **状态管理**: Zustand, ahooks
 - **路由**: react-router-dom, React Navigation
 - **HTTP**: Axios

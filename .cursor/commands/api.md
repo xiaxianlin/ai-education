@@ -1,5 +1,7 @@
 # AI Education Platform - API接口文档
 
+> 本文档基于后端实际代码生成，最后更新时间：2024-12-19
+
 ## 目录
 
 - [通用说明](#通用说明)
@@ -7,6 +9,7 @@
   - [认证管理](#认证管理)
   - [管理员管理](#管理员管理)
   - [教材管理](#教材管理)
+  - [教师用书管理](#教师用书管理)
   - [单元管理](#单元管理)
   - [知识点管理](#知识点管理)
   - [题目管理](#题目管理)
@@ -120,8 +123,8 @@ POST /api/admin/modify_password
 **请求参数**:
 ```json
 {
-  "old_password": "old_password",
-  "new_password": "new_password"
+  "origin": "old_password",
+  "password": "new_password"
 }
 ```
 
@@ -161,13 +164,12 @@ POST /api/admin/manager/
 ```json
 {
   "username": "new_admin",
-  "password": "password123",
-  "type": 0
+  "type": 1
 }
 ```
 
 **参数说明**:
-- `type`: 管理员类型，0-普通管理员，1-超级管理员
+- `type`: 管理员类型，1-普通管理员，2-超级管理员
 
 #### 重置管理员密码
 
@@ -185,25 +187,23 @@ POST /api/admin/manager/{id}/reset
 }
 ```
 
-#### 更新管理员类型
+#### 更新管理员
 
 ```
-PATCH /api/admin/manager/{id}/type/{type}
+PATCH /api/admin/manager/{id}
 ```
 
-**路径参数**:
-- `id`: 管理员ID
-- `type`: 管理员类型（0或1）
-
-#### 更新管理员状态
-
-```
-PATCH /api/admin/manager/{id}/status/{status}
+**请求参数**:
+```json
+{
+  "type": 1,
+  "status": 0
+}
 ```
 
-**路径参数**:
-- `id`: 管理员ID
-- `status`: 状态（0-正常，1-禁用）
+**参数说明**:
+- `type`: 管理员类型（可选）
+- `status`: 状态（可选，0-正常，1-禁用）
 
 #### 删除管理员
 
@@ -256,21 +256,10 @@ POST /api/admin/textbook/{id}/parse
 
 **功能说明**: 使用AI解析上传的教材PDF，自动提取单元和知识点。
 
-#### 生成教材题目
-
-```
-POST /api/admin/textbook/{id}/generate?count=30
-```
-
-**查询参数**:
-- `count`: 生成题目数量，默认30
-
-**功能说明**: 基于教材内容使用AI生成题目。
-
 #### 修改教材信息
 
 ```
-PUT /api/admin/textbook/{id}
+PATCH /api/admin/textbook/{id}
 ```
 
 **请求参数**:
@@ -299,6 +288,7 @@ GET /api/admin/textbook/search?keyword=数学&page=1&size=10
 
 **查询参数**:
 - `keyword`: 搜索关键词（可选）
+- `version`: 版本筛选（可选）
 - `subject`: 科目筛选（可选）
 - `grade`: 年级筛选（可选）
 - `page`: 页码，默认1
@@ -355,18 +345,6 @@ GET /api/admin/textbook/{id}/units
     }
   ]
 }
-```
-
-#### 查询教材知识点
-
-```
-GET /api/admin/textbook/{id}/knowledges
-```
-
-#### 查询教材题目
-
-```
-GET /api/admin/textbook/{id}/questions?page=1&size=10
 ```
 
 ---
@@ -432,6 +410,7 @@ GET /api/admin/teacher_book/search?keyword=数学&page=1&size=10
 
 **查询参数**:
 - `keyword`: 搜索关键词（可选）
+- `version`: 版本筛选（可选）
 - `subject`: 科目筛选（可选）
 - `grade`: 年级筛选（可选）
 - `page`: 页码，默认1
@@ -462,15 +441,6 @@ POST /api/admin/unit/
 }
 ```
 
-#### 生成单元题目
-
-```
-POST /api/admin/unit/{id}/generate?count=10
-```
-
-**查询参数**:
-- `count`: 生成题目数量，默认10
-
 #### 更新课程单元
 
 ```
@@ -492,12 +462,6 @@ PATCH /api/admin/unit/{id}
 DELETE /api/admin/unit/{id}
 ```
 
-#### 搜索课程单元
-
-```
-GET /api/admin/unit/search?keyword=数字&page=1&size=10
-```
-
 #### 查询单元知识点
 
 ```
@@ -509,6 +473,10 @@ GET /api/admin/unit/{id}/knowledges
 ```
 GET /api/admin/unit/{id}/questions?page=1&size=10
 ```
+
+**查询参数**:
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
 
 ---
 
@@ -526,17 +494,9 @@ POST /api/admin/knowledge/
   "textbook_id": 1,
   "unit_id": 1,
   "name": "10以内数的认识",
-  "content": "知识点详细内容...",
-  "difficulty": "简单",
-  "importance": 8,
-  "order": 1
+  "content": "知识点详细内容..."
 }
 ```
-
-**参数说明**:
-- `difficulty`: 难度（简单/普通/困难）
-- `importance`: 重要性（1-10）
-- `order`: 排序值
 
 #### 更新知识点
 
@@ -548,9 +508,7 @@ PATCH /api/admin/knowledge/{id}
 ```json
 {
   "name": "10以内数的认识与应用",
-  "content": "更新后的内容...",
-  "difficulty": "普通",
-  "importance": 9
+  "content": "更新后的内容..."
 }
 ```
 
@@ -566,11 +524,10 @@ DELETE /api/admin/knowledge/{id}
 GET /api/admin/knowledge/search?keyword=数字&page=1&size=10
 ```
 
-#### 查询知识点题目
-
-```
-GET /api/admin/knowledge/{id}/questions?page=1&size=10
-```
+**查询参数**:
+- `keyword`: 搜索关键词（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
 
 ---
 
@@ -588,7 +545,16 @@ PATCH /api/admin/question/{id}
   "content": "更新后的题目内容",
   "options": "A. 选项1\nB. 选项2\nC. 选项3",
   "answer": "A",
-  "difficulty": "普通"
+  "difficulty": "普通",
+  "subject": "数学",
+  "grade": 1,
+  "type": "选择题",
+  "subtype": "快速口算",
+  "resource": "https://oss.example.com/image.png",
+  "resource_type": "image",
+  "knowledge": "10以内数的加法",
+  "unit_id": 1,
+  "textbook_id": 1
 }
 ```
 
@@ -605,14 +571,17 @@ GET /api/admin/question/search
 ```
 
 **查询参数**:
-- `keyword`: 搜索关键词
-- `textbook_id`: 教材ID
-- `unit_id`: 单元ID
-- `type`: 题目类型
-- `subtype`: 题目子类型
-- `difficulty`: 难度
-- `page`: 页码
-- `size`: 每页数量
+- `keyword`: 搜索关键词（可选）
+- `question_id`: 题目ID（可选）
+- `textbook_id`: 教材ID（可选）
+- `unit_id`: 单元ID（可选）
+- `subject`: 科目（可选）
+- `grade`: 年级（可选）
+- `type`: 题目类型（可选）
+- `resource_type`: 资源类型（可选）
+- `resource_generated`: 资源是否已生成（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
 
 **响应示例**:
 ```json
@@ -650,7 +619,7 @@ GET /api/admin/question/search
 GET /api/admin/question/resource/search
 ```
 
-**功能说明**: 搜索带有资源（图片/语音）的题目。
+**功能说明**: 搜索带有资源（图片/语音）的题目。查询参数同搜索题目接口。
 
 #### 获取题目详情
 
@@ -661,7 +630,7 @@ GET /api/admin/question/{id}
 #### 生成题目图片
 
 ```
-POST /api/admin/question/{id}/generate_image
+POST /api/admin/question/{id}/image_generate
 ```
 
 **功能说明**: 为题目自动生成配图。
@@ -669,7 +638,7 @@ POST /api/admin/question/{id}/generate_image
 #### 生成题目语音
 
 ```
-POST /api/admin/question/{id}/generate_audio
+POST /api/admin/question/{id}/audio_generate
 ```
 
 **功能说明**: 为题目自动生成语音朗读。
@@ -688,8 +657,7 @@ POST /api/admin/student/
 ```json
 {
   "name": "张三",
-  "phone": "13800138000",
-  "password": "123456"
+  "phone": "13800138000"
 }
 ```
 
@@ -703,6 +671,8 @@ PATCH /api/admin/student/{id}
 ```json
 {
   "name": "张三（修改）",
+  "phone": "13800138001",
+  "grade": 1,
   "status": 0
 }
 ```
@@ -720,10 +690,11 @@ GET /api/admin/student/search?keyword=张三&page=1&size=10
 ```
 
 **查询参数**:
-- `keyword`: 搜索关键词（姓名或手机号）
-- `status`: 状态筛选
-- `page`: 页码
-- `size`: 每页数量
+- `keyword`: 搜索关键词（姓名或手机号，可选）
+- `phone`: 手机号筛选（可选）
+- `status`: 状态筛选（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
 
 #### 重置学生密码
 
@@ -806,54 +777,6 @@ GET /api/admin/student/{id}/unused_textbooks
 
 ### 练习管理
 
-#### 生成学生练习（每日/单元/能力评估）
-
-```
-POST /api/admin/practice/generate?student_id={student_id}&type={type}&count=15&unit_id=1
-```
-
-**查询参数**:
-- `student_id`: 学生ID（必填）
-- `type`: 练习类型（必填，可选值：`daily_practice` / `unit_practice` / `assessment`）
-- `count`: 题目数量（默认15，可选）
-- `unit_id`: 单元ID，仅在 `type=unit_practice` 时必填
-- `textbook_id`: 教材ID（可选）
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "session_id": 456
-  }
-}
-```
-
-**功能说明**:
-- 每日练习：若存在未完成会话会自动重置为当天目标
-- 单元练习：若该学生该单元存在未完成会话会返回错误
-- 能力评估：若存在未完成会话会返回错误
-
-#### 重新生成练习（按会话ID）
-
-```
-POST /api/admin/practice/{session_id}/regenerate
-```
-
-**功能说明**: 根据会话ID重新生成题目，旧题目与答题记录会被清空并重新写入。
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "session_id": 456,
-    "question_count": 15,
-    "generate_status": 1
-  }
-}
-```
-
 #### 获取学生练习历史
 
 ```
@@ -918,10 +841,13 @@ GET /api/admin/practice/session/{session_id}
       "correct_questions": 8,
       "overall_score": 80.0,
       "total_time": 300
-    }
+    },
+    "wrong_records": []
   }
 }
 ```
+
+**功能说明**: 返回会话详情，包含session、answers、report、wrong_records四部分。
 
 #### 删除练习会话
 
@@ -1132,7 +1058,7 @@ GET /api/student/practice/daily
     "answer_count": 5,
     "correct_count": 4,
     "status": 0,
-    "generate_status": 1,
+    "generate_status": null,
     "start_time": 0,
     "end_time": null
   }
@@ -1167,32 +1093,60 @@ POST /api/student/practice/create
 ```json
 {
   "type": "daily_practice",
-  "count": 15,
-  "unit_id": 1,
-  "textbook_id": 1
+  "textbook_id": 1,
+  "unit_id": 1
 }
 ```
 
 **参数说明**:
 - `type`: 练习类型（必填，可选值：`daily_practice` / `unit_practice` / `assessment`）
-- `count`: 题目数量（默认15，可选）
+- `textbook_id`: 教材ID（必填）
 - `unit_id`: 单元ID，仅在创建单元练习时必填
-- `textbook_id`: 教材ID（可选）
 
 **响应示例**:
 ```json
 {
   "code": 0,
   "data": {
-    "session_id": 456
+    "task_id": "practice_abc123def456"
   }
 }
 ```
 
 **功能说明**:
+- 提交练习生成任务到任务队列，返回任务ID
+- 客户端需要通过 `/task/{task_id}/status` 接口轮询任务状态
 - 每日练习：如果存在未完成会话，将自动重置为当天
 - 单元练习：同一学生同一单元只允许一个未完成会话
 - 能力评估：存在未完成会话时不允许重复创建
+
+#### 查询练习生成任务状态
+
+```
+GET /api/student/practice/task/{task_id}/status
+```
+
+**路径参数**:
+- `task_id`: 任务ID（从创建练习会话接口返回）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "status": "completed",
+    "result": {
+      "session_id": 456
+    }
+  }
+}
+```
+
+**功能说明**: 查询练习生成任务的状态。任务状态包括：
+- `pending`: 等待中
+- `running`: 执行中
+- `completed`: 已完成
+- `failed`: 失败
 
 #### 获取练习历史
 
@@ -1227,6 +1181,61 @@ GET /api/student/practice/history/{type}
 
 **功能说明**: 获取最近30条练习记录。
 
+#### 获取练习会话详情
+
+```
+GET /api/student/practice/detail/{session_id}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session": {
+      "id": 123,
+      "session_type": "daily_practice",
+      "question_count": 10,
+      "answer_count": 5,
+      "correct_count": 4,
+      "status": 1
+    },
+    "questions": [
+      {
+        "id": 1,
+        "content": "1 + 1 = ?",
+        "options": "A. 1\nB. 2\nC. 3",
+        "type": "选择题"
+      }
+    ],
+    "answers": [
+      {
+        "question_id": 1,
+        "text_answer": "B",
+        "status": 1,
+        "time_spent": 5
+      }
+    ],
+    "report": {
+      "total_questions": 10,
+      "correct_questions": 4,
+      "overall_score": 40.0,
+      "total_time": 150
+    }
+  }
+}
+```
+
+**功能说明**: 返回指定会话的题目、答题记录及报告，包含 `session`、`questions`、`answers`、`report` 四部分。会验证学生权限。
+
+#### 开始练习
+
+```
+POST /api/student/practice/{session_id}/begin
+```
+
+**功能说明**: 标记练习会话为进行中状态，记录开始时间。
+
 #### 提交答案
 
 ```
@@ -1241,7 +1250,8 @@ POST /api/student/practice/answer
   "answer": "B",
   "time_spent": 5,
   "is_audio_answer": false,
-  "audio_data": null
+  "audio_match": null,
+  "audio_analysis": null
 }
 ```
 
@@ -1251,7 +1261,8 @@ POST /api/student/practice/answer
 - `answer`: 文本答案（口语题为 ASR 识别后的文本）
 - `time_spent`: 答题耗时（秒）
 - `is_audio_answer`: 是否为音频答案
-- `audio_data`: 音频 OSS 存储路径（仅口语题有值）
+- `audio_match`: 音频理解结果：是否匹配题目要求（仅口语题）
+- `audio_analysis`: 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
 
 **响应示例**:
 ```json
@@ -1260,6 +1271,7 @@ POST /api/student/practice/answer
   "data": {
     "is_correct": true,
     "correct_answer": "B",
+    "user_answer": "B",
     "analysis": "答案正确！1 + 1 = 2",
     "session_progress": {
       "answer_count": 1,
@@ -1270,13 +1282,34 @@ POST /api/student/practice/answer
 }
 ```
 
-#### 开始练习
+#### 上传录音并进行语音识别
 
 ```
-POST /api/student/practice/{session_id}/begin
+POST /api/student/practice/answer/audio/analyze
 ```
 
-**功能说明**: 标记练习会话为进行中状态，记录开始时间。
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `session_id`: 练习会话ID（Form字段）
+- `question_id`: 题目ID（Form字段）
+- `audio_type`: 音频类型（Form字段）
+- `audio_file`: 音频文件（File字段）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "text": "识别的文本内容",
+    "audio_url": "https://oss.example.com/audio.mp3",
+    "match": true,
+    "analysis": "综合分析..."
+  }
+}
+```
+
+**功能说明**: 上传录音并进行语音识别，返回识别结果和音频理解结果。
 
 #### 完成练习
 
@@ -1367,53 +1400,6 @@ POST /api/student/wrong-records/{question_id}/unmaster
 
 **功能说明**: 将错题标记为未掌握状态。
 
-#### 获取练习会话详情
-
-```
-GET /api/student/practice/detail/{session_id}
-```
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "session": {
-      "id": 123,
-      "session_type": "daily_practice",
-      "question_count": 10,
-      "answer_count": 5,
-      "correct_count": 4,
-      "status": 1
-    },
-    "questions": [
-      {
-        "id": 1,
-        "content": "1 + 1 = ?",
-        "options": "A. 1\nB. 2\nC. 3",
-        "type": "选择题"
-      }
-    ],
-    "answers": [
-      {
-        "question_id": 1,
-        "text_answer": "B",
-        "status": 1,
-        "time_spent": 5
-      }
-    ],
-    "report": {
-      "total_questions": 10,
-      "correct_questions": 4,
-      "overall_score": 40.0,
-      "total_time": 150
-    }
-  }
-}
-```
-
-**功能说明**: 返回指定会话的题目、答题记录及报告，包含 `session`、`questions`、`answers`、`report` 四部分。会验证学生权限。
-
 ---
 
 ## 数据模型说明
@@ -1442,8 +1428,8 @@ GET /api/student/practice/detail/{session_id}
 
 ### 管理员类型
 
-- `0`: 普通管理员
-- `1`: 超级管理员
+- `1`: 普通管理员
+- `2`: 超级管理员
 
 ### 状态（通用）
 
@@ -1478,7 +1464,7 @@ GET /api/student/practice/detail/{session_id}
 
 ### 3. 音频数据
 
-音频答题时，`audio_data` 字段需要传递base64编码的音频数据。
+音频答题时，需要通过 `/answer/audio/analyze` 接口上传音频文件进行识别和分析。
 
 ### 4. 错误处理
 
@@ -1486,8 +1472,15 @@ GET /api/student/practice/detail/{session_id}
 
 ### 5. 权限说明
 
-- 超级管理员（type=1）拥有所有权限
-- 普通管理员（type=0）无法执行删除教材等敏感操作
+- 超级管理员（type=2）拥有所有权限
+- 普通管理员（type=1）无法执行删除教材等敏感操作
+
+### 6. 异步任务处理
+
+创建练习会话接口返回的是任务ID，客户端需要：
+1. 调用 `/task/{task_id}/status` 接口轮询任务状态
+2. 当任务状态为 `completed` 时，从 `result` 中获取 `session_id`
+3. 使用 `session_id` 进行后续的练习操作
 
 ---
 
@@ -1514,10 +1507,19 @@ GET /api/student/practice/detail/{session_id}
 
 - 建议客户端缓存配置信息（科目、题型等）
 - 题目列表支持分页，避免一次性加载大量数据
+- 练习生成是异步任务，建议使用轮询机制查询状态，避免长时间等待
 
 ---
 
 ## 更新日志
+
+### v0.2.0 (2024-12-19)
+
+- 根据实际后端代码重新生成文档
+- 更新练习创建接口为异步任务模式
+- 添加音频分析接口文档
+- 修正题目生成资源接口路径
+- 移除不存在的接口（如管理端生成练习接口）
 
 ### v0.1.0 (2024-11-23)
 
@@ -1531,5 +1533,4 @@ GET /api/student/practice/detail/{session_id}
 ## 技术支持
 
 如有接口使用问题，请联系技术支持团队。
-
 

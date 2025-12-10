@@ -312,7 +312,7 @@ uvicorn main:app --host 0.0.0.0 --port 7890 --workers 4
 
 ## 相关文档
 
-- [API 文档](../docs/API.md)
-- [README.md](./README.md)
+- [API 文档](./api.md)
+- [README.md](../apps/server/README.md)
 - [后端开发指南](./backend.md)
 

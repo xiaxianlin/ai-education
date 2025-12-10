@@ -108,13 +108,14 @@ import { ProTable, ProForm, ProFormText } from '@ant-design/pro-components';
 - 使用 Ant Design Pro 组件库，保持设计一致性
 - 使用 Axios 进行 API 调用
 - 充分利用 ahooks 提供的 Hooks
-- 保持与后端 API (`apps/server-api/admin/`) 的一致性
+- 保持与后端 API (`apps/server/admin/`) 的一致性
 - 实现适当的权限控制和错误处理
 - 考虑响应式设计和用户体验
 
 ## 相关资源
 
-- 后端 API: `apps/server-api/admin/routes/`
+- 后端 API: `apps/server/admin/routes/`
+- API 文档: `.cursor/commands/api.md`
 - 配置文件: `apps/admin-web/rsbuild.config.ts`
 - Ant Design Pro: https://pro.ant.design/
 - Rsbuild 文档: https://rsbuild.dev/

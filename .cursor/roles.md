@@ -175,7 +175,7 @@
 在对话中使用以下命令切换通用开发角色：
 - `@frontend` - 前端开发者（管理端 + 学生端 Web）
 - `@backend` - 后端开发者（API 服务 + 任务服务）
-- `@app` - 移动端开发者（React Native）
+- `@app` - 移动端开发者（Flutter）
 - `@architect` - 架构师
 - `@fullstack` - 全栈开发者
 - `@ui-designer` - UI 设计师
