@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
 import { history, Router } from "./lib/router";
 import { LoadingPage } from "./components/business/LoadingSpinner";
+import "@ai-education/shared-web/types"; // 导入全局类型
 import "./index.css";
 
 import { ThemeProvider } from "./components/theme-provider";

@@ -1,134 +1,37 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { go } from "./router";
 import { toast } from "sonner";
+import { ApiClient } from "@ai-education/shared-web/api";
 
-const TOKEN_KEY = "_t";
-/**
- * 基础 API 客户端
- */
-class ApiClient {
-  private client: AxiosInstance;
+const client = new ApiClient("/api/student");
 
-  constructor(config?: AxiosRequestConfig) {
-    this.client = axios.create({
-      baseURL: "/api/student",
-      timeout: 10 * 60 * 1000, // 10 minutes
-      headers: { "Content-Type": "application/json" },
-      ...config,
-    });
+client.addResponseInterceptor(
+  (response) => response,
+  (error) => {
+    // 统一错误处理
+    const response = error.response;
+    if (response) {
+      const data = response.data as ApiResponse;
+      const status = data?.status || response.status;
 
-    // 请求拦截器
-    this.client.interceptors.request.use(
-      (config) => {
-        // 添加认证 token
-        const token = this.getToken();
-        if (token) {
-          config.headers["x-access-token"] = token;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error),
-    );
+      // 处理认证错误
+      if (status === 401 || status === 403) {
+        client.removeToken();
+        go("/login");
+        return;
+      }
 
-    // 响应拦截器
-    this.client.interceptors.response.use(
-      (response: AxiosResponse<ApiResponse>) => response,
-      (error) => {
-        // 统一错误处理
-        const response = error.response;
-        if (response) {
-          const data = response.data as ApiResponse;
-          const status = data?.status || response.status;
+      toast.error(data?.message || "网络错误");
+      return response;
+    }
 
-          // 处理认证错误
-          if (status === 401 || status === 403) {
-            this.removeToken();
-            go("/login");
-            return;
-          }
-
-          toast.error(data?.message || "网络错误");
-          return response;
-        }
-
-        return Promise.reject(error);
-      },
-    );
-  }
-
-  /**
-   * 获取 token
-   */
-  private getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-  }
-
-  /**
-   * 移除 token
-   */
-  private removeToken(): void {
-    localStorage.removeItem(TOKEN_KEY);
-  }
-
-  /**
-   * GET 请求
-   */
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<ApiResponse<T>>(url, config);
-    return response.data.data as T;
-  }
-
-  /**
-   * POST 请求
-   */
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<ApiResponse<T>>(url, data, config);
-    return response.data.data as T;
-  }
-
-  /**
-   * PUT 请求
-   */
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put<ApiResponse<T>>(url, data, config);
-    return response.data.data as T;
-  }
-
-  /**
-   * DELETE 请求
-   */
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<ApiResponse<T>>(url, config);
-    return response.data.data as T;
-  }
-
-  /**
-   * PATCH 请求
-   */
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.patch<ApiResponse<T>>(url, data, config);
-    return response.data.data as T;
-  }
-
-  /**
-   * POST FormData 请求（用于文件上传）
-   */
-  async postForm<T = any>(url: string, formData: FormData, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<ApiResponse<T>>(url, formData, {
-      ...config,
-      headers: {
-        "Content-Type": "multipart/form-data",
-        ...config?.headers,
-      },
-    });
-    return response.data.data as T;
-  }
-}
+    return Promise.reject(error);
+  },
+);
 
 /**
  * 学生端 API 客户端类
  */
-export class StudentApiClient extends ApiClient {
+export const studentApi = {
   // ========== 认证相关 ==========
 
   /**
@@ -136,16 +39,16 @@ export class StudentApiClient extends ApiClient {
    * POST /login
    */
   async login(params: { phone: string; password: string }): Promise<string> {
-    return this.post<string>("/login", params);
-  }
+    return client.post<string>("/login", params);
+  },
 
   /**
    * 检查登录状态
    * GET /check
    */
   async check(): Promise<void> {
-    return this.get<void>("/check");
-  }
+    return client.get<void>("/check");
+  },
 
   // ========== 用户信息 ==========
 
@@ -154,8 +57,8 @@ export class StudentApiClient extends ApiClient {
    * GET /profile
    */
   async getProfile(): Promise<Student> {
-    return this.get<Student>("/profile");
-  }
+    return client.get<Student>("/profile");
+  },
 
   // ========== 练习相关 ==========
 
@@ -164,24 +67,24 @@ export class StudentApiClient extends ApiClient {
    * GET /practice/daily
    */
   async getDailyPractice(): Promise<PracticeSession[]> {
-    return this.get<PracticeSession[]>("/practice/daily");
-  }
+    return client.get<PracticeSession[]>("/practice/daily");
+  },
 
   /**
    * 获取单元练习
    * GET /practice/unit
    */
   async getUnitPractice(): Promise<PracticeSession[]> {
-    return this.get<PracticeSession[]>("/practice/unit");
-  }
+    return client.get<PracticeSession[]>("/practice/unit");
+  },
 
   /**
    * 获取能力评测
    * GET /practice/assessment
    */
   async getAssessment(): Promise<PracticeSession[]> {
-    return this.get<PracticeSession[]>("/practice/assessment");
-  }
+    return client.get<PracticeSession[]>("/practice/assessment");
+  },
 
   /**
    * 创建练习（异步任务）
@@ -193,24 +96,24 @@ export class StudentApiClient extends ApiClient {
     textbook_id: number;
     unit_id?: number;
   }): Promise<CreatePracticeTaskResponse> {
-    return this.post<CreatePracticeTaskResponse>("/practice/create", params);
-  }
+    return client.post<CreatePracticeTaskResponse>("/practice/create", params);
+  },
 
   /**
    * 查询练习生成任务状态
    * GET /practice/task/{task_id}
    */
   async getPracticeTaskStatus(taskId: string): Promise<PracticeTaskStatusResponse> {
-    return this.get<PracticeTaskStatusResponse>(`/practice/task/${taskId}`);
-  }
+    return client.get<PracticeTaskStatusResponse>(`/practice/task/${taskId}`);
+  },
 
   /**
    * 开始练习
    * POST /practice/{session_id}/begin
    */
   async beginPractice(sessionId: number): Promise<void> {
-    return this.post<void>(`/practice/${sessionId}/begin`);
-  }
+    return client.post<void>(`/practice/${sessionId}/begin`);
+  },
 
   /**
    * 提交答案
@@ -231,13 +134,13 @@ export class StudentApiClient extends ApiClient {
     user_answer: string;
     analysis?: string;
   }> {
-    return this.post<{
+    return client.post<{
       is_correct: boolean;
       correct_answer: string;
       user_answer: string;
       analysis?: string;
     }>("/practice/answer", params);
-  }
+  },
 
   /**
    * 上传口语题录音并进行语音识别
@@ -255,29 +158,29 @@ export class StudentApiClient extends ApiClient {
   }> {
     const formData = new FormData();
     formData.append("audio_file", audioBlob, "audio.webm");
-    return this.postForm<{
+    return client.form<{
       oss_path: string;
       transcription: string;
       match: boolean;
       analysis: string;
     }>(`/practice/answer/${sessionId}/${questionId}/upload`, formData);
-  }
+  },
 
   /**
    * 完成练习
    * POST /practice/{session_id}/complete
    */
   async completePractice(sessionId: number): Promise<PracticeSession> {
-    return this.post<PracticeSession>(`/practice/${sessionId}/complete`);
-  }
+    return client.post<PracticeSession>(`/practice/${sessionId}/complete`);
+  },
 
   /**
    * 获取练习会话详情
    * GET /practice/detail/{session_id}
    */
   async getSessionDetail(sessionId: number): Promise<PracticeSession> {
-    return this.get<PracticeSession>(`/practice/detail/${sessionId}`);
-  }
+    return client.get<PracticeSession>(`/practice/detail/${sessionId}`);
+  },
 
   /**
    * 获取练习历史记录
@@ -288,8 +191,8 @@ export class StudentApiClient extends ApiClient {
     limit?: number,
   ): Promise<PracticeSession[]> {
     const params = limit ? { limit } : undefined;
-    return this.get<PracticeSession[]>(`/practice/history/${type}`, { params });
-  }
+    return client.get<PracticeSession[]>(`/practice/history/${type}`, { params });
+  },
 
   // ========== 教材相关 ==========
 
@@ -298,20 +201,14 @@ export class StudentApiClient extends ApiClient {
    * GET /textbook/{textbook_id}/units
    */
   async getTextbookUnits(textbookId?: number): Promise<Unit[]> {
-    return this.get<Unit[]>(`/textbook/${textbookId}/units`);
-  }
+    return client.get<Unit[]>(`/textbook/${textbookId}/units`);
+  },
 
   /**
    * 获取单元的知识点列表
    * GET /textbook/{unit_id}/knowledges
    */
   async getUnitKnowledge(unitId: number): Promise<Knowledge[]> {
-    return this.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
-  }
-}
-
-/**
- * 学生端 API 客户端实例
- * 直接使用此实例调用 API 方法
- */
-export const studentApi = new StudentApiClient();
+    return client.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
+  },
+};
