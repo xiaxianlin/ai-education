@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
 from admin.services import question
 from shared.core.database import Database
@@ -8,7 +9,9 @@ question_router = APIRouter(prefix="/question")
 
 
 @question_router.patch("/{id}")
-async def update_question(id: str, update: UpdateQuestionSchema, db: AsyncSession = Database):
+async def update_question(
+    id: str, update: UpdateQuestionSchema, db: AsyncSession = Database
+):
     """更新题目"""
     await question.update_question(db, id, update)
 
@@ -20,7 +23,9 @@ async def delete_question(id: str, db: AsyncSession = Database):
 
 
 @question_router.get("/search")
-async def search_question(params: SearchQuestionSchema = Depends(), db: AsyncSession = Database):
+async def search_question(
+    params: SearchQuestionSchema = Depends(), db: AsyncSession = Database
+):
     """搜索题目"""
     return await question.search_question(db, params)
 
@@ -42,10 +47,10 @@ async def get_question(id: str, db: AsyncSession = Database):
 @question_router.post("/{id}/image_generate")
 async def generate_image(id: str, db: AsyncSession = Database):
     """为题目生成图片"""
-    return await question.generate_question_image(db, int(id))
+    await question.generate_question_image(db, int(id))
 
 
 @question_router.post("/{id}/audio_generate")
 async def generate_audio(id: str, db: AsyncSession = Database):
     """为题目生成语音"""
-    return await question.generate_question_audio(db, int(id))
+    await question.generate_question_audio(db, int(id))

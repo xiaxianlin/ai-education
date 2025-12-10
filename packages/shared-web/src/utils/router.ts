@@ -1,4 +1,4 @@
-import { createBrowserHistory, History } from 'history';
+import { createBrowserHistory, History } from "history";
 
 export const history: History = createBrowserHistory();
 
@@ -14,4 +14,3 @@ export function go(path: string, replace = false): void {
     history.push(path);
   }
 }
-

@@ -26,17 +26,10 @@ async def reset_manager_password(id: str, db: AsyncSession = Database):
     return await manager.reset_manager_password(db, id)
 
 
-@manager_router.patch("/{id}/type/{type}")
-async def update_manager_type(id: str, type: int, db: AsyncSession = Database):
-    """更新管理员类型"""
-    await manager.update_manager(db, id, UpdateManangeSchema(type=type))
-
-
-@manager_router.patch("/{id}/status/{status}")
-async def update_manager_status(id: str, status: int, db: AsyncSession = Database):
-    """更新管理员状态"""
-    await manager.update_manager(db, id, UpdateManangeSchema(status=status))
-
+@manager_router.patch("/{id}")
+async def update_manager_type(id: str, params: UpdateManangeSchema, db: AsyncSession = Database):
+    """更新管理员"""
+    await manager.update_manager(db, id, params)
 
 @manager_router.delete("/{id}")
 async def remove(id: str, db: AsyncSession = Database):

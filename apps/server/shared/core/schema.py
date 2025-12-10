@@ -48,8 +48,6 @@ class TextbookSchema(BaseModel):
     index_file_id: Optional[str] = None
     is_parsed: int = 0
 
-    course_units: Optional[List["UnitSchema"]] = None
-
     model_config = {"from_attributes": True}
 
 

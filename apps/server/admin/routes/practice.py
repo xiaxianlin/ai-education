@@ -1,52 +1,18 @@
 """练习管理路由 - Admin端"""
 
-from fastapi import Depends
 from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Database
-from student.services import practice as practice_service
 from admin.services import practice
-from admin.schema import GeneratePracticeSchema
-
+from shared.core.database import Database
 
 practice_router = APIRouter(prefix="/practice", tags=["学生练习管理"])
 
 
-@practice_router.post("/generate")
-async def generate_practice_session(
-    params: GeneratePracticeSchema = Depends(), db: AsyncSession = Database
-):
-    """根据学生ID和练习类型生成练习"""
-    type = params.type
-    params = params.model_dump()
-    params["db"] = db
-    if type == "daily_practice":
-        return await practice_service.create_daily_practice(**params)
-
-    if type == "unit_practice":
-        return await practice_service.create_unit_practice(**params)
-
-    if type == "assessment":
-        return await practice_service.create_assessment(**params)
-
-
-@practice_router.post("/{session_id}/regenerate")
-async def regenerate_practice_session(session_id: int, db: AsyncSession = Database):
-    """
-    根据练习会话ID重新生成练习
-
-    Args:
-        session_id: 练习会话ID
-
-    Returns:
-        练习统计信息
-    """
-    return await practice_service.regenerate_practice_session(db, session_id)
-
-
 @practice_router.get("/{student_id}/history/{practice_type}")
-async def get_practice_history(student_id: str, practice_type: str, db: AsyncSession = Database):
+async def get_practice_history(
+    student_id: str, practice_type: str, db: AsyncSession = Database
+):
     """
     根据学生ID和练习类型查询最近30条练习记录
 

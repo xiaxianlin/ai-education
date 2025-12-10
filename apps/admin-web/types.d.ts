@@ -6,6 +6,27 @@ import '@ai-education/shared-web/types';
 
 // 确保全局类型可用
 declare global {
-  // 类型已经在 shared-web/types/global.d.ts 中声明
-  // 这里只是确保它们被加载
+  /**
+   * 初始状态
+   */
+  interface InitialState {
+    manager?: Manager;
+    configs?: Configs;
+  }
+  /**
+   * 配置信息
+   */
+  interface Configs {
+    subjects: string[];
+    textbook_versions: string[];
+    semesters: string[];
+    question_types: Record<string, string[]>;
+    question_subtypes?: Record<string, string[]>;
+    difficulty_levels: string[];
+  }
+
+  interface LoginModel {
+    username?: string;
+    password?: string;
+  }
 }

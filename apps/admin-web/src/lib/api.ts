@@ -36,7 +36,7 @@ export const adminApi = {
    * 登录
    * POST /login
    */
-  async login(data: LoginModel): Promise<string> {
+  async login(data: LoginRequest): Promise<string> {
     return client.post<string>('/login', data);
   },
 
@@ -52,8 +52,18 @@ export const adminApi = {
    * 修改密码
    * POST /modify_password
    */
-  async modifyPassword(data: ModifyPasswordModel): Promise<void> {
-    return client.post<void>('/modify_password', data);
+  async modifyPassword(data: ModifyPasswordRequest) {
+    return client.post('/modify_password', data);
+  },
+
+  // ========== 通用配置 ==========
+
+  /**
+   * 获取系统配置
+   * GET /configs
+   */
+  async getConfigs(params?: { subject?: string; grade?: number }): Promise<Configs> {
+    return client.get<Configs>('/configs', { params });
   },
 
   // ========== 管理员管理 ==========
@@ -62,7 +72,7 @@ export const adminApi = {
    * 创建管理员
    * POST /manager
    */
-  async createManager(data: CreateManagerModel): Promise<Manager> {
+  async createManager(data: CreateManagerRequest): Promise<Manager> {
     return client.post<Manager>('/manager', data);
   },
 
@@ -70,24 +80,16 @@ export const adminApi = {
    * 删除管理员
    * DELETE /manager/{id}
    */
-  async deleteManager(id: string): Promise<void> {
-    return client.delete<void>(`/manager/${id}`);
+  async deleteManager(id: string) {
+    return client.delete(`/manager/${id}`);
   },
 
   /**
    * 更新管理员状态
-   * PATCH /manager/{id}/status/{status}
+   * PATCH /manager/{id}
    */
-  async updateManagerStatus(id: string, status: number): Promise<void> {
-    return client.patch<void>(`/manager/${id}/status/${status}`);
-  },
-
-  /**
-   * 更新管理员类型
-   * PATCH /manager/{id}/type/{type}
-   */
-  async updateManagerType(id: string, type: number): Promise<void> {
-    return client.patch<void>(`/manager/${id}/type/${type}`);
+  async updateManager(id: string, data: UpdateManagerRequest) {
+    return client.patch(`/manager/${id}`, data);
   },
 
   /**
@@ -102,8 +104,8 @@ export const adminApi = {
    * 重置管理员密码
    * POST /manager/{id}/reset
    */
-  async resetManagerPassword(id: string): Promise<{ password: string }> {
-    return client.post<{ password: string }>(`/manager/${id}/reset`);
+  async resetManagerPassword(id: string) {
+    return client.post<string>(`/manager/${id}/reset`);
   },
 
   // ========== 学生管理 ==========
@@ -112,34 +114,32 @@ export const adminApi = {
    * 搜索学生
    * GET /student/search
    */
-  async searchStudents(params?: SearchParams & { phone?: string; status?: number }): Promise<ListResponse<Student>> {
-    return client.get<ListResponse<Student>>('/student/search', { params });
+  async searchStudents(params?: SearchStudentRequest) {
+    return client.get<SearchResponse<Student>>('/student/search', { params });
   },
 
   /**
    * 创建学生
    * POST /student
+   * @returns 密码 string
    */
-  async createStudent(data: { name: string; phone: string }): Promise<Student> {
-    return client.post<Student>('/student', data);
+  async createStudent(data: SaveStudentRequest) {
+    return client.post<string>('/student', data);
   },
 
   /**
    * 更新学生
    * PATCH /student/{id}
    */
-  async updateStudent(
-    id: string,
-    data: { name?: string; phone?: string; grade?: number; status?: number },
-  ): Promise<Student> {
-    return client.patch<Student>(`/student/${id}`, data);
+  async updateStudent(id: string, data: SaveStudentRequest) {
+    return client.patch(`/student/${id}`, data);
   },
 
   /**
    * 获取学生详情
    * GET /student/{id}
    */
-  async getStudentDetail(id: string): Promise<Student> {
+  async getStudent(id: string) {
     return client.get<Student>(`/student/${id}`);
   },
 
@@ -147,23 +147,24 @@ export const adminApi = {
    * 删除学生
    * DELETE /student/{id}
    */
-  async deleteStudent(id: string): Promise<void> {
-    return client.delete<void>(`/student/${id}`);
+  async deleteStudent(id: string) {
+    return client.delete(`/student/${id}`);
   },
 
   /**
    * 重置学生密码
    * POST /student/{id}/reset_password
+   * @returns 密码 string
    */
-  async resetStudentPassword(id: string): Promise<{ password: string }> {
-    return client.post<{ password: string }>(`/student/${id}/reset_password`);
+  async resetStudentPassword(id: string) {
+    return client.post<string>(`/student/${id}/reset_password`);
   },
 
   /**
    * 获取学生的教材列表
    * GET /student/{id}/textbooks
    */
-  async getStudentTextbooks(id: string): Promise<Textbook[]> {
+  async getStudentTextbooks(id: string) {
     return client.get<Textbook[]>(`/student/${id}/textbooks`);
   },
 
@@ -171,7 +172,7 @@ export const adminApi = {
    * 获取学生未使用的教材列表
    * GET /student/{id}/unused_textbooks
    */
-  async getStudentUnusedTextbooks(id: string): Promise<Textbook[]> {
+  async getStudentUnusedTextbooks(id: string) {
     return client.get<Textbook[]>(`/student/${id}/unused_textbooks`);
   },
 
@@ -179,16 +180,16 @@ export const adminApi = {
    * 为学生添加教材
    * POST /student/{id}/textbook/{textbook_id}
    */
-  async addStudentTextbook(id: string, textbookId: number): Promise<void> {
-    return client.post<void>(`/student/${id}/textbook/${textbookId}`);
+  async addStudentTextbook(id: string, textbookId: number) {
+    return client.post(`/student/${id}/textbook/${textbookId}`);
   },
 
   /**
    * 移除学生的教材
    * DELETE /student/{id}/textbook/{textbook_id}
    */
-  async removeStudentTextbook(id: string, textbookId: number): Promise<void> {
-    return client.delete<void>(`/student/${id}/textbook/${textbookId}`);
+  async removeStudentTextbook(id: string, textbookId: number) {
+    return client.delete(`/student/${id}/textbook/${textbookId}`);
   },
 
   // ========== 题目管理 ==========
@@ -205,90 +206,48 @@ export const adminApi = {
    * 搜索题目
    * GET /question/search
    */
-  async searchQuestions(
-    params?: SearchParams & {
-      question_id?: number;
-      keyword?: string;
-      textbook_id?: number;
-      unit_id?: number;
-      type?: string;
-      subtype?: string;
-      difficulty?: string;
-      subject?: string;
-      grade?: number;
-    },
-  ): Promise<ListResponse<Question>> {
-    return client.get<ListResponse<Question>>('/question/search', { params });
+  async searchQuestions(params?: SearchQuestionRequest) {
+    return client.get<SearchResponse<Question>>('/question/search', { params });
   },
 
   /**
    * 搜索资源题目
    * GET /question/resource/search
    */
-  async searchResourceQuestions(
-    params?: SearchParams & {
-      question_id?: number;
-      keyword?: string;
-      textbook_id?: number;
-      unit_id?: number;
-      type?: string;
-      subtype?: string;
-      difficulty?: string;
-      subject?: string;
-      grade?: number;
-    },
-  ): Promise<ListResponse<Question>> {
-    return client.get<ListResponse<Question>>('/question/resource/search', { params });
+  async searchResourceQuestions(params?: SearchQuestionRequest) {
+    return client.get<SearchResponse<Question>>('/question/resource/search', { params });
   },
 
   /**
    * 更新题目
    * PATCH /question/{id}
    */
-  async updateQuestion(
-    id: string,
-    data: {
-      subject?: string;
-      grade?: number;
-      type?: string;
-      subtype?: string;
-      content?: string;
-      options?: string | string[];
-      answer?: string;
-      resource?: string;
-      resource_type?: string;
-      resource_content?: string;
-      difficulty?: string;
-      knowledge?: string;
-      unit_id?: number;
-      textbook_id?: number;
-    },
-  ): Promise<Question> {
-    return client.patch<Question>(`/question/${id}`, data);
+  async updateQuestion(id: string, data: UpdateQuestionRequest) {
+    return client.patch(`/question/${id}`, data);
   },
 
   /**
    * 删除题目
    * DELETE /question/{id}
    */
-  async deleteQuestion(id: string): Promise<void> {
-    return client.delete<void>(`/question/${id}`);
+  async deleteQuestion(id: string) {
+    return client.delete(`/question/${id}`);
   },
 
   /**
    * 生成题目图片
    * POST /question/{id}/generate_image
    */
-  async generateQuestionImage(id: string): Promise<Question> {
-    return client.post<Question>(`/question/${id}/generate_image`);
+  async generateQuestionImage(id: string) {
+    return client.post(`/question/${id}/generate_image`);
   },
 
   /**
    * 生成题目音频
    * POST /question/{id}/generate_audio
    */
-  async generateQuestionAudio(id: string): Promise<Question> {
-    return client.post<Question>(`/question/${id}/generate_audio`);
+  async generateQuestionAudio(id: string) {
+    return client.post(`/question/${id}/generate_audio`);
   },
 
   // ========== 教材管理 ==========
@@ -297,7 +256,7 @@ export const adminApi = {
    * 获取教材
    * GET /textbook/{id}
    */
-  async getTextbook(id: number): Promise<Textbook> {
+  async getTextbook(id: number) {
     return client.get<Textbook>(`/textbook/${id}`);
   },
 
@@ -305,94 +264,56 @@ export const adminApi = {
    * 搜索教材
    * GET /textbook/search
    */
-  async searchTextbooks(
-    params?: SearchParams & {
-      version?: string;
-      subject?: string;
-      grade?: string;
-    },
-  ): Promise<ListData<Textbook>> {
-    return client.get<ListData<Textbook>>('/textbook/search', { params });
+  async searchTextbooks(params?: SearchTextbookRequest) {
+    return client.get<SearchResponse<Textbook>>('/textbook/search', { params });
   },
 
   /**
    * 创建教材
    * POST /textbook
    */
-  async createTextbook(data: { subject: string; version: string; grade: number; semester: string }): Promise<Textbook> {
-    return client.post<Textbook>('/textbook', data);
+  async createTextbook(data: SaveTextbookRequest) {
+    return client.post<number>('/textbook', data);
   },
 
   /**
    * 更新教材
    * PUT /textbook/{id}
    */
-  async updateTextbook(
-    id: number,
-    data: {
-      subject: string;
-      version: string;
-      grade: number;
-      semester: string;
-    },
-  ): Promise<Textbook> {
-    return client.put<Textbook>(`/textbook/${id}`, data);
+  async updateTextbook(id: number, data: SaveTextbookRequest) {
+    return client.patch(`/textbook/${id}`, data);
   },
 
   /**
    * 删除教材
    * DELETE /textbook/{id}
    */
-  async deleteTextbook(id: number): Promise<void> {
-    return client.delete<void>(`/textbook/${id}`);
+  async deleteTextbook(id: number) {
+    return client.delete(`/textbook/${id}`);
   },
 
   /**
    * 解析教材
    * POST /textbook/{id}/parse
    */
-  async parseTextbook(id: number): Promise<Textbook> {
-    return client.post<Textbook>(`/textbook/${id}/parse`);
-  },
-
-  /**
-   * 切换教材状态
-   * PATCH /textbook/{id}/status/{status}
-   */
-  async toggleTextbookStatus(id: number, status: number): Promise<Textbook> {
-    return client.patch<Textbook>(`/textbook/${id}/status/${status}`);
-  },
-
-  /**
-   * 获取教材的单元列表
-   * GET /textbook/{id}/units
-   */
-  async getTextbookUnits(id: number): Promise<Unit[]> {
-    return client.get<Unit[]>(`/textbook/${id}/units`);
-  },
-
-  /**
-   * 获取教材的知识点列表
-   * GET /textbook/{id}/knowledges
-   */
-  async getTextbookKnowledges(id: number): Promise<Knowledge[]> {
-    return client.get<Knowledge[]>(`/textbook/${id}/knowledges`);
-  },
-
-  /**
-   * 获取教材的题目列表
-   * GET /textbook/{id}/questions
-   */
-  async getTextbookQuestions(id: number, params?: { page?: number; size?: number }): Promise<ListResponse<Question>> {
-    return client.get<ListResponse<Question>>(`/textbook/${id}/questions`, { params });
+  async parseTextbook(id: number) {
+    return client.post(`/textbook/${id}/parse`);
   },
 
   /**
    * 上传教材文件
    * POST /textbook/{id}/upload
    */
-  async uploadTextbook(id: number, formData: FormData): Promise<any> {
-    return client.form<any>(`/textbook/${id}/upload`, formData);
+  async uploadTextbook(id: number, data: FormData) {
+    return client.form(`/textbook/${id}/upload`, data);
+  },
+
+  /**
+   * 获取教材的单元列表
+   * GET /textbook/{id}/units
+   */
+  async getTextbookUnits(id: number) {
+    return client.get<Unit[]>(`/textbook/${id}/units`);
   },
 
   // ========== 单元管理 ==========
@@ -401,54 +322,32 @@ export const adminApi = {
    * 创建单元
    * POST /unit
    */
-  async createUnit(data: { textbook_id: number; name: string; content: string }): Promise<Unit> {
-    return client.post<Unit>('/unit', data);
+  async createUnit(data: CreateUnitRequest) {
+    return client.post<number>('/unit', data);
   },
 
   /**
    * 更新单元
    * PATCH /unit/{id}
    */
-  async updateUnit(
-    id: number,
-    data: {
-      name?: string;
-      content?: string;
-    },
-  ): Promise<Unit> {
-    return client.patch<Unit>(`/unit/${id}`, data);
+  async updateUnit(id: number, data: UpdateUnitRequest) {
+    return client.patch(`/unit/${id}`, data);
   },
 
   /**
    * 删除单元
    * DELETE /unit/{id}
    */
-  async deleteUnit(id: number): Promise<void> {
-    return client.delete<void>(`/unit/${id}`);
-  },
-
-  /**
-   * 搜索单元
-   * GET /unit/search
-   */
-  async searchUnits(params?: SearchParams): Promise<ListResponse<Unit>> {
-    return client.get<ListResponse<Unit>>('/unit/search', { params });
+  async deleteUnit(id: number) {
+    return client.delete(`/unit/${id}`);
   },
 
   /**
    * 获取单元的知识点列表
    * GET /unit/{id}/knowledges
    */
-  async getUnitKnowledges(id: number): Promise<Knowledge[]> {
+  async getUnitKnowledges(id: number) {
     return client.get<Knowledge[]>(`/unit/${id}/knowledges`);
-  },
-
-  /**
-   * 获取单元的题目列表
-   * GET /unit/{id}/questions
-   */
-  async getUnitQuestions(id: number, params?: { page?: number; size?: number }): Promise<ListResponse<Question>> {
-    return client.get<ListResponse<Question>>(`/unit/${id}/questions`, { params });
   },
 
   // ========== 知识点管理 ==========
@@ -457,51 +356,24 @@ export const adminApi = {
    * 创建知识点
    * POST /knowledge
    */
-  async createKnowledge(data: {
-    textbook_id: number;
-    unit_id: number;
-    name: string;
-    content: string;
-  }): Promise<Knowledge> {
-    return client.post<Knowledge>('/knowledge', data);
+  async createKnowledge(data: CreateKnowledgeRequest) {
+    return client.post<number>('/knowledge', data);
   },
 
   /**
    * 更新知识点
    * PATCH /knowledge/{id}
    */
-  async updateKnowledge(
-    id: number,
-    data: {
-      name?: string;
-      content?: string;
-    },
-  ): Promise<Knowledge> {
-    return client.patch<Knowledge>(`/knowledge/${id}`, data);
+  async updateKnowledge(id: number, data: UpdateKnowledgeRequest) {
+    return client.patch(`/knowledge/${id}`, data);
   },
 
   /**
    * 删除知识点
    * DELETE /knowledge/{id}
    */
-  async deleteKnowledge(id: number): Promise<void> {
-    return client.delete<void>(`/knowledge/${id}`);
-  },
-
-  /**
-   * 搜索知识点
-   * GET /knowledge/search
-   */
-  async searchKnowledges(params?: SearchParams): Promise<ListResponse<Knowledge>> {
-    return client.get<ListResponse<Knowledge>>('/knowledge/search', { params });
-  },
-
-  /**
-   * 获取知识点的题目列表
-   * GET /knowledge/{id}/questions
-   */
-  async getKnowledgeQuestions(id: number, params?: { page?: number; size?: number }): Promise<ListResponse<Question>> {
-    return client.get<ListResponse<Question>>(`/knowledge/${id}/questions`, { params });
+  async deleteKnowledge(id: number) {
+    return client.delete(`/knowledge/${id}`);
   },
 
   // ========== 教师用书管理 ==========
@@ -510,7 +382,7 @@ export const adminApi = {
    * 获取教师用书
    * GET /teacher_book/{id}
    */
-  async getTeacherBook(id: number): Promise<TeacherBook> {
+  async getTeacherBook(id: number) {
     return client.get<TeacherBook>(`/teacher_book/${id}`);
   },
 
@@ -518,59 +390,40 @@ export const adminApi = {
    * 搜索教师用书
    * GET /teacher_book/search
    */
-  async searchTeacherBooks(
-    params?: SearchParams & {
-      version?: string;
-      subject?: string;
-      grade?: string;
-    },
-  ): Promise<ListResponse<TeacherBook>> {
-    return client.get<ListResponse<TeacherBook>>('/teacher_book/search', { params });
+  async searchTeacherBooks(params?: SearchTeacherBookRequest) {
+    return client.get<SearchResponse<TeacherBook>>('/teacher_book/search', { params });
   },
 
   /**
    * 创建教师用书
    * POST /teacher_book
    */
-  async createTeacherBook(data: {
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-  }): Promise<TeacherBook> {
-    return client.post<TeacherBook>('/teacher_book', data);
+  async createTeacherBook(data: SaveTeacherBookRequest) {
+    return client.post<number>('/teacher_book', data);
   },
 
   /**
    * 更新教师用书
    * PUT /teacher_book/{id}
    */
-  async updateTeacherBook(
-    id: number,
-    data: {
-      subject: string;
-      version: string;
-      grade: number;
-      semester: string;
-    },
-  ): Promise<TeacherBook> {
-    return client.put<TeacherBook>(`/teacher_book/${id}`, data);
+  async updateTeacherBook(id: number, data: SaveTeacherBookRequest) {
+    return client.put(`/teacher_book/${id}`, data);
   },
 
   /**
    * 删除教师用书
    * DELETE /teacher_book/{id}
    */
-  async deleteTeacherBook(id: number): Promise<void> {
-    return client.delete<void>(`/teacher_book/${id}`);
+  async deleteTeacherBook(id: number) {
+    return client.delete(`/teacher_book/${id}`);
   },
 
   /**
    * 上传教师用书文件
    * POST /teacher_book/{id}/upload
    */
-  async uploadTeacherBook(id: number, formData: FormData): Promise<any> {
-    return client.form<any>(`/teacher_book/${id}/upload`, formData);
+  async uploadTeacherBook(id: number, data: FormData) {
+    return client.form(`/teacher_book/${id}/upload`, data);
   },
 
   // ========== 练习管理 ==========
@@ -579,7 +432,7 @@ export const adminApi = {
    * 获取学生练习历史
    * GET /practice/{student_id}/history/{practice_type}
    */
-  async getPracticeHistory(studentId: string, practiceType: string): Promise<PracticeSession[]> {
+  async getPracticeHistory(studentId: string, practiceType: string) {
     return client.get<PracticeSession[]>(`/practice/${studentId}/history/${practiceType}`);
   },
 
@@ -587,7 +440,7 @@ export const adminApi = {
    * 获取练习会话详情
    * GET /practice/session/{session_id}
    */
-  async getPracticeSession(sessionId: number): Promise<PracticeDetail> {
+  async getPracticeSession(sessionId: number) {
     return client.get<PracticeDetail>(`/practice/session/${sessionId}`);
   },
 
@@ -595,17 +448,7 @@ export const adminApi = {
    * 删除练习会话
    * DELETE /practice/session/{session_id}
    */
-  async removePracticeSession(sessionId: number): Promise<void> {
-    return client.delete<void>(`/practice/session/${sessionId}`);
-  },
-
-  // ========== 通用配置 ==========
-
-  /**
-   * 获取系统配置
-   * GET /configs
-   */
-  async getConfigs(params?: { subject?: string; grade?: number }): Promise<Configs> {
-    return client.get<Configs>('/configs', { params });
+  async removePracticeSession(sessionId: number) {
+    return client.delete(`/practice/session/${sessionId}`);
   },
 };

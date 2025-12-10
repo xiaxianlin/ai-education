@@ -1,21 +1,26 @@
 """通用练习服务"""
 
-import ai
 from typing import Dict
-from loguru import logger
-from sqlalchemy import select, desc
-from sqlalchemy.orm import noload
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.schema import PracticeSessionSchema, QuestionSchema, PracticeReportSchema
-from shared.utils import oss
-from shared.utils.time import now, today
+from loguru import logger
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import noload
+
+import ai
 from shared.core.database import (
-    PracticeSession,
     PracticeAnswer,
     PracticeReport,
+    PracticeSession,
     Question,
 )
+from shared.core.schema import (
+    PracticeReportSchema,
+    PracticeSessionSchema,
+    QuestionSchema,
+)
+from shared.utils import oss
+from shared.utils.time import now, today
 
 
 async def get_daily_practice(db: AsyncSession, student_id: str):
@@ -72,7 +77,9 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
 
     """
     # 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -108,7 +115,9 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
         报告ID
     """
     # 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -170,7 +179,9 @@ async def get_practice_history(
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
 
 
-async def get_session_detail(db: AsyncSession, student_id: str, session_id: int) -> Dict:
+async def get_session_detail(
+    db: AsyncSession, student_id: str, session_id: int
+) -> Dict:
     """
     根据练习会话ID查询会话详情（学生端）
     包括：会话基本信息、问题列表、已完成练习的报告
@@ -184,7 +195,9 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
         会话详情，包含session、questions、answers、report
     """
     # 查询会话基本信息
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -207,7 +220,9 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
     # 查询题目详情
     questions = []
     if question_ids:
-        question_objs = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
+        question_objs = await db.scalars(
+            select(Question).where(Question.id.in_(question_ids))
+        )
         questions = [QuestionSchema.model_validate(q) for q in question_objs.all()]
 
     # 构建答题记录列表
@@ -273,7 +288,9 @@ async def analyze_audio_answer(
     audio_url = oss.get_access_url(oss_path)
     logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
-    analysis_result = await ai.question.analyze_audio_answer(question, audio_url, audio_type)
+    analysis_result = await ai.question.analyze_audio_answer(
+        question, audio_url, audio_type
+    )
     logger.info(
         f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
     )
@@ -281,7 +298,8 @@ async def analyze_audio_answer(
     # 更新 PracticeAnswer
     answer = await db.scalar(
         select(PracticeAnswer).where(
-            PracticeAnswer.session_id == session_id, PracticeAnswer.question_id == question_id
+            PracticeAnswer.session_id == session_id,
+            PracticeAnswer.question_id == question_id,
         )
     )
     if not answer:
@@ -289,7 +307,6 @@ async def analyze_audio_answer(
 
     answer.audio_answer = oss_path
     answer.text_answer = analysis_result.text
-    answer.status = 1 if analysis_result.match else 2
     await db.commit()
 
     return analysis_result

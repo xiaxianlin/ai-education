@@ -1,6 +1,7 @@
-from sqlalchemy import or_, select, func
-from sqlalchemy.orm import joinedload, noload
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, noload
+
 from admin.schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
 from shared.core.database import Knowledge, Unit
 from shared.core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
@@ -43,17 +44,6 @@ async def get_knowledge(db: AsyncSession, id: int):
     return KnowledgeSchema.model_validate(knowledge)
 
 
-async def query_knowledge_by_textbook(db: AsyncSession, textbook_id: int):
-    """根据教材ID获取知识点列表"""
-    knowledges = await db.scalars(
-        select(Knowledge)
-        .options(noload(Knowledge.textbook), noload(Knowledge.unit))
-        .where(Knowledge.textbook_id == textbook_id)
-    )
-
-    return [KnowledgeSchema.model_validate(knowledge) for knowledge in knowledges.all()]
-
-
 async def query_knowledge_by_unit(db: AsyncSession, unit_id: int):
     """根据课程单元ID获取知识点列表"""
     knowledges = await db.scalars(
@@ -80,7 +70,7 @@ async def update_knowledge(db: AsyncSession, id: int, update: UpdateKnowledgeSch
     await db.commit()
 
 
-async def delete_knowledge(db: AsyncSession, id: str) -> bool:
+async def delete_knowledge(db: AsyncSession, id: int):
     """删除知识点"""
     knowledge = await db.scalar(select(Knowledge).where(Knowledge.id == id))
     if not knowledge:
@@ -88,30 +78,3 @@ async def delete_knowledge(db: AsyncSession, id: str) -> bool:
 
     await db.delete(knowledge)
     await db.commit()
-
-
-async def search_knowledge(db: AsyncSession, params: SearchSchema):
-    """搜索课程单元"""
-    query = select(Knowledge).options(noload(Knowledge.textbook), noload(Knowledge.unit))
-
-    if params.keywords:
-        query = query.where(
-            or_(
-                Knowledge.name.contains(params.keywords),
-                Knowledge.content.contains(params.keywords),
-            )
-        )
-
-    # 获取总数
-    count_query = select(func.count()).select_from(query.subquery())
-    total = await db.scalar(count_query) or 0
-
-    # 分页查询
-    offset = (params.page - 1) * params.size
-    query = query.order_by(Knowledge.id).offset(offset).limit(params.size)
-    units = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[KnowledgeSchema.model_validate(unit) for unit in units.all()],
-    )

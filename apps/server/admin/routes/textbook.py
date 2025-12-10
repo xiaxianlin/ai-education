@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from admin.services.auth import check_super_permission
-from admin.services.knowledge import query_knowledge_by_textbook
-from admin.services.question import query_question_by_textbook
-from admin.services.unit import query_unit_by_textbook
-from shared.core.database import Database
+
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from admin.services import textbook
+from admin.services.auth import check_super_permission
+from admin.services.unit import query_unit_by_textbook
+from shared.core.database import Database
 
 textbook_router = APIRouter(prefix="/textbook")
 
@@ -29,8 +28,10 @@ async def parse_textbook(id: int, db: AsyncSession = Database):
     return await textbook.parse_textbook(db, id)
 
 
-@textbook_router.put("/{id}")
-async def modify_textbook(id: str, params: SaveTextbookSchema, db: AsyncSession = Database):
+@textbook_router.patch("/{id}")
+async def modify_textbook(
+    id: int, params: SaveTextbookSchema, db: AsyncSession = Database
+):
     """修改教材信息"""
     await textbook.modify_textbook(db, id, params)
 
@@ -51,18 +52,6 @@ async def search(params: SearchTextbookSchema = Depends(), db: AsyncSession = Da
 async def query_unit(id: int, db: AsyncSession = Database):
     """根据教材ID查询课程单元"""
     return await query_unit_by_textbook(db, id)
-
-
-@textbook_router.get("/{id}/knowledges")
-async def query_knowledge(id: int, db: AsyncSession = Database):
-    """根据教材ID查询知识点"""
-    return await query_knowledge_by_textbook(db, id)
-
-
-@textbook_router.get("/{id}/questions")
-async def query_question(id: int, page: int = 1, size: int = 10, db: AsyncSession = Database):
-    """根据教材ID查询题目"""
-    return await query_question_by_textbook(db, id, page, size)
 
 
 @textbook_router.get("/{id}")

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
 from admin.services import unit
 from admin.services.knowledge import query_knowledge_by_unit
@@ -17,7 +18,9 @@ async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
 
 
 @unit_router.patch("/{id}")
-async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession = Database):
+async def update_unit(
+    id: int, unit_update: UpdateUnitSchema, db: AsyncSession = Database
+):
     """更新课程单元"""
     await unit.update_unit(db, id, unit_update)
 
@@ -28,12 +31,6 @@ async def delete_unit(id: int, db: AsyncSession = Database):
     await unit.delete_unit(db=db, id=id)
 
 
-@unit_router.get("/search")
-async def search_unit(params: SearchSchema = Depends(), db: AsyncSession = Database):
-    """搜索课程单元"""
-    return await unit.search_unit(db, params)
-
-
 @unit_router.get("/{id}/knowledges")
 async def query_knowledges(id: int, db: AsyncSession = Database):
     """查询课程单元下的知识点"""
@@ -41,6 +38,8 @@ async def query_knowledges(id: int, db: AsyncSession = Database):
 
 
 @unit_router.get("/{id}/questions")
-async def query_question(id: int, page: int = 1, size: int = 10, db: AsyncSession = Database):
+async def query_question(
+    id: int, page: int = 1, size: int = 10, db: AsyncSession = Database
+):
     """查询课程单元下的题目"""
     return await query_question_by_unit(db, id, page, size)

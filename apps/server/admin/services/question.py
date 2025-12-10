@@ -1,11 +1,12 @@
-from sqlalchemy import select, and_, or_, func
-from sqlalchemy.orm import joinedload, noload
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, noload
+
 from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
+from ai.question.resource import generate_question_audio as ai_generate_audio
+from ai.question.resource import generate_question_image as ai_generate_image
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
-from ai.question.resource import generate_question_image as ai_generate_image
-from ai.question.resource import generate_question_audio as ai_generate_audio
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
@@ -70,7 +71,9 @@ async def get_question(db: AsyncSession, id: str):
     return QuestionSchema.model_validate(question)
 
 
-async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: int, size: int):
+async def query_question_by_knowledge(
+    db: AsyncSession, knowledge: str, page: int, size: int
+):
     """根据知识点获取问题列表"""
     query = (
         select(Question)
@@ -83,66 +86,6 @@ async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: in
 
     # 获取总数
     count_query = select(func.count(Question.id)).where(Question.knowledge == knowledge)
-
-    total = await db.scalar(count_query) or 0
-
-    # 分页查询
-    offset = (page - 1) * size
-    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
-
-    result = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionSchema.model_validate(question) for question in result.all()],
-    )
-
-
-async def query_question_by_unit(db: AsyncSession, unit_id: int, page: int, size: int):
-    """根据课程单元ID获取问题列表"""
-    query = (
-        select(Question)
-        .options(
-            noload(Question.textbook),
-            noload(Question.unit),
-        )
-        .where(Question.unit_id == unit_id)
-    )
-
-    # 获取总数
-    count_query = select(func.count(Question.id)).where(Question.unit_id == unit_id)
-
-    total = await db.scalar(count_query) or 0
-
-    # 分页查询
-    offset = (page - 1) * size
-    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
-
-    result = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionSchema.model_validate(question) for question in result.all()],
-    )
-
-
-async def query_question_by_textbook(
-    db: AsyncSession, textbook_id: int, page: int = 1, size: int = 10
-):
-    """根据教材获取问题列表"""
-    query = (
-        select(Question)
-        .options(
-            noload(Question.textbook),
-            noload(Question.unit),
-        )
-        .where(Question.textbook_id == textbook_id)
-    )
-
-    # 获取总数
-    count_query = select(func.count(Question.id)).where(
-        Question.textbook_id == textbook_id,
-    )
 
     total = await db.scalar(count_query) or 0
 
@@ -179,13 +122,17 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     if params.resource_type is not None:
         if params.resource_type == "":
             # 筛选无资源类型的题目（resource_type 为 None 或空字符串）
-            conditions.append(or_(Question.resource_type.is_(None), Question.resource_type == ""))
+            conditions.append(
+                or_(Question.resource_type.is_(None), Question.resource_type == "")
+            )
         else:
             conditions.append(Question.resource_type == params.resource_type)
     if params.resource_generated is not None:
         if params.resource_generated:
             # 资源已生成：resource 不为空且不为空字符串
-            conditions.append(and_(Question.resource.isnot(None), Question.resource != ""))
+            conditions.append(
+                and_(Question.resource.isnot(None), Question.resource != "")
+            )
         else:
             # 资源未生成：resource 为空或空字符串
             conditions.append(or_(Question.resource.is_(None), Question.resource == ""))
@@ -269,7 +216,9 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
 
     offset = (params.page - 1) * params.size
     order_field = getattr(Question, params.sort, Question.id)
-    query = query.order_by(order_field.desc() if params.order == "desc" else order_field.asc())
+    query = query.order_by(
+        order_field.desc() if params.order == "desc" else order_field.asc()
+    )
     query = query.offset(offset).limit(params.size)
 
     result = await db.scalars(query)
@@ -293,8 +242,6 @@ async def generate_question_image(db: AsyncSession, id: int):
     question.resource = resource_path
     await db.commit()
 
-    return QuestionSchema.model_validate(question)
-
 
 async def generate_question_audio(db: AsyncSession, id: int):
     """为题目生成语音"""
@@ -308,5 +255,3 @@ async def generate_question_audio(db: AsyncSession, id: int):
     # 更新数据库
     question.resource = resource_path
     await db.commit()
-
-    return QuestionSchema.model_validate(question)

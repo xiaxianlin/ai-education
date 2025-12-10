@@ -38,7 +38,7 @@ export const studentApi = {
    * 用户登录
    * POST /login
    */
-  async login(params: { phone: string; password: string }): Promise<string> {
+  async login(params: LoginRequest) {
     return client.post<string>("/login", params);
   },
 
@@ -46,8 +46,8 @@ export const studentApi = {
    * 检查登录状态
    * GET /check
    */
-  async check(): Promise<void> {
-    return client.get<void>("/check");
+  async check() {
+    return client.get<string>("/check");
   },
 
   // ========== 用户信息 ==========
@@ -56,8 +56,8 @@ export const studentApi = {
    * 获取用户资料
    * GET /profile
    */
-  async getProfile(): Promise<Student> {
-    return client.get<Student>("/profile");
+  async getProfile() {
+    return client.get<Profile>("/profile");
   },
 
   // ========== 练习相关 ==========
@@ -66,7 +66,7 @@ export const studentApi = {
    * 获取每日练习
    * GET /practice/daily
    */
-  async getDailyPractice(): Promise<PracticeSession[]> {
+  async getDailyPractice() {
     return client.get<PracticeSession[]>("/practice/daily");
   },
 
@@ -89,109 +89,72 @@ export const studentApi = {
   /**
    * 创建练习（异步任务）
    * POST /practice/create
-   * @returns 任务ID和状态
+   * @returns 任务ID
    */
-  async createPractice(params: {
-    type: "daily_practice" | "unit_practice" | "assessment";
-    textbook_id: number;
-    unit_id?: number;
-  }): Promise<CreatePracticeTaskResponse> {
-    return client.post<CreatePracticeTaskResponse>("/practice/create", params);
+  async createPractice(params: CreatePracticeRequest) {
+    return client.post<string>("/practice/create", params);
   },
 
   /**
    * 查询练习生成任务状态
    * GET /practice/task/{task_id}
    */
-  async getPracticeTaskStatus(taskId: string): Promise<PracticeTaskStatusResponse> {
-    return client.get<PracticeTaskStatusResponse>(`/practice/task/${taskId}`);
+  async getPracticeTaskStatus(taskId: string) {
+    return client.get<TaskStatus>(`/practice/task/${taskId}/status`);
   },
 
   /**
    * 开始练习
    * POST /practice/{session_id}/begin
    */
-  async beginPractice(sessionId: number): Promise<void> {
-    return client.post<void>(`/practice/${sessionId}/begin`);
+  async beginPractice(sessionId: number) {
+    return client.post(`/practice/${sessionId}/begin`);
   },
 
   /**
    * 提交答案
    * POST /practice/answer
    */
-  async submitAnswer(params: {
-    session_id: number;
-    question_id: number;
-    answer: string;
-    time_spent: number;
-    is_audio_answer?: boolean;
-    audio_data?: string;
-    audio_match?: boolean;
-    audio_analysis?: string;
-  }): Promise<{
-    is_correct: boolean;
-    correct_answer: string;
-    user_answer: string;
-    analysis?: string;
-  }> {
-    return client.post<{
-      is_correct: boolean;
-      correct_answer: string;
-      user_answer: string;
-      analysis?: string;
-    }>("/practice/answer", params);
+  async submitAnswer(params: AnswerRequest) {
+    return client.post<AnswerResponse>("/practice/answer", params);
   },
 
   /**
    * 上传口语题录音并进行语音识别
-   * POST /practice/answer/{session_id}/{question_id}/upload
+   * POST /practice/answer/audio/analyze
    */
-  async uploadRecording(
-    sessionId: number,
-    questionId: number,
-    audioBlob: Blob,
-  ): Promise<{
-    oss_path: string;
-    transcription: string;
-    match: boolean;
-    analysis: string;
-  }> {
+  async audioAnswerAnalyze(sessionId: number, questionId: number, audioBlob: Blob) {
     const formData = new FormData();
+    formData.append("session_id", sessionId.toString());
+    formData.append("question_id", questionId.toString());
+    formData.append("audio_type", "webm");
     formData.append("audio_file", audioBlob, "audio.webm");
-    return client.form<{
-      oss_path: string;
-      transcription: string;
-      match: boolean;
-      analysis: string;
-    }>(`/practice/answer/${sessionId}/${questionId}/upload`, formData);
+    return client.form<AudioAnswerAnalysisResponse>("/practice/answer/analyze", formData);
   },
 
   /**
    * 完成练习
    * POST /practice/{session_id}/complete
+   * @returns 报告 ID
    */
-  async completePractice(sessionId: number): Promise<PracticeSession> {
-    return client.post<PracticeSession>(`/practice/${sessionId}/complete`);
+  async completePractice(sessionId: number) {
+    return client.post<number>(`/practice/${sessionId}/complete`);
   },
 
   /**
    * 获取练习会话详情
    * GET /practice/detail/{session_id}
    */
-  async getSessionDetail(sessionId: number): Promise<PracticeSession> {
-    return client.get<PracticeSession>(`/practice/detail/${sessionId}`);
+  async getSessionDetail(sessionId: number) {
+    return client.get<PracticeDetail>(`/practice/detail/${sessionId}`);
   },
 
   /**
    * 获取练习历史记录
    * GET /practice/history/{type}
    */
-  async getPracticeHistory(
-    type: "daily_practice" | "unit_practice" | "assessment",
-    limit?: number,
-  ): Promise<PracticeSession[]> {
-    const params = limit ? { limit } : undefined;
-    return client.get<PracticeSession[]>(`/practice/history/${type}`, { params });
+  async getPracticeHistory(type: PracticeType): Promise<PracticeSession[]> {
+    return client.get<PracticeSession[]>(`/practice/history/${type}`);
   },
 
   // ========== 教材相关 ==========
@@ -200,7 +163,7 @@ export const studentApi = {
    * 获取教材的单元列表
    * GET /textbook/{textbook_id}/units
    */
-  async getTextbookUnits(textbookId?: number): Promise<Unit[]> {
+  async getTextbookUnits(textbookId?: number) {
     return client.get<Unit[]>(`/textbook/${textbookId}/units`);
   },
 
@@ -208,7 +171,7 @@ export const studentApi = {
    * 获取单元的知识点列表
    * GET /textbook/{unit_id}/knowledges
    */
-  async getUnitKnowledge(unitId: number): Promise<Knowledge[]> {
+  async getUnitKnowledge(unitId: number) {
     return client.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
   },
 };

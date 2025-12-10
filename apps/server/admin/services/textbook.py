@@ -1,16 +1,18 @@
 import os
 from pathlib import Path
 from typing import List
+
 from fastapi import UploadFile
 from loguru import logger
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
+from ai.texttbook import parse_textbook_units
+from ai.utils import rag
 from shared.core.database import Knowledge, Question, Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
-from ai.utils import rag
-from ai.texttbook import parse_textbook_units
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -131,7 +133,9 @@ async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
 
     return {
         "total": total,
-        "data": [TextbookSchema.model_validate(item) for item in results.unique().all()],
+        "data": [
+            TextbookSchema.model_validate(item) for item in results.unique().all()
+        ],
     }
 
 
@@ -188,11 +192,8 @@ async def parse_textbook(db: AsyncSession, id: int):
     textbook.is_parsed = 1
     await db.commit()
 
-    return [unit.model_dump() for unit in parsed_units]
-
 
 async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
-
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
         raise ValueError("教材不存在")

@@ -1,16 +1,20 @@
-from sqlalchemy import delete, or_, select, func
-from sqlalchemy.orm import noload
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
+
 from loguru import logger
-from shared.core.schema import SearchResultSchema, SearchSchema, UnitSchema
-from shared.core.database import Unit, Knowledge, Textbook
+from sqlalchemy import delete, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import noload
+
 from admin.schema import CreateUnitSchema, UpdateUnitSchema
+from shared.core.database import Knowledge, Textbook, Unit
+from shared.core.schema import SearchResultSchema, SearchSchema, UnitSchema
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
     """创建课程单元"""
-    textbook = await db.scalar(select(Textbook).where(Textbook.id == create.textbook_id))
+    textbook = await db.scalar(
+        select(Textbook).where(Textbook.id == create.textbook_id)
+    )
     if not textbook:
         raise ValueError("教材不存在")
 
@@ -47,7 +51,9 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     if not unit:
         raise ValueError("课程单元不存在")
 
-    knowledge_ids_result = await db.scalars(select(Knowledge.id).where(Knowledge.unit_id == id))
+    knowledge_ids_result = await db.scalars(
+        select(Knowledge.id).where(Knowledge.unit_id == id)
+    )
     knowledge_ids = knowledge_ids_result.all()
 
     if knowledge_ids:
@@ -55,33 +61,6 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
 
     await db.delete(unit)
     await db.commit()
-
-
-async def search_unit(db: AsyncSession, params: SearchSchema) -> Tuple[List[Unit], int]:
-    """搜索课程单元"""
-    query = select(Unit).options(noload(Unit.textbook))
-
-    if params.keywords:
-        query = query.where(
-            or_(
-                Unit.name.contains(params.keywords),
-                Unit.content.contains(params.keywords),
-            )
-        )
-
-    # 获取总数
-    count_query = select(func.count()).select_from(query.subquery())
-    total = await db.scalar(count_query) or 0
-
-    # 分页查询
-    offset = (params.page - 1) * params.size
-    query = query.order_by(Unit.id).offset(offset).limit(params.size)
-    units = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[UnitSchema.model_validate(unit) for unit in units.all()],
-    )
 
 
 async def query_unit_by_textbook(db: AsyncSession, textbook_id: int) -> List[Unit]:

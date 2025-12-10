@@ -5,7 +5,6 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import type { ApiResponse } from "../types";
 
 /**
  * 基础 API 客户端

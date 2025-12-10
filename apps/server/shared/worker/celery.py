@@ -1,9 +1,10 @@
-from enum import Enum
-from typing import Any, Dict, List, Optional
 from datetime import datetime
-from loguru import logger
+from enum import Enum
+from typing import Any, List
+
 from celery import Celery, states
 from celery.result import AsyncResult
+from loguru import logger
 
 from shared.core.settings import envs
 
@@ -84,54 +85,27 @@ def submit_task(task_id: str, executor: Executor, args: List[Any]) -> str:
     )
 
     logger.info(f"任务已提交到 Celery: task_id={task.id}, task_name={executor.value}")
-    return {"task_id": task.id}
+    return task.id
 
 
-def get_task_status(task_id: str) -> Optional[Dict[str, Any]]:
-    """获取任务状态"""
+def get_task_status(task_id: str) -> str:
+    """
+    获取任务状态
+    Args:
+        task_id: 任务ID
+        executor: 任务执行器枚举
+        args: 任务参数列表（会被序列化为 JSON）
+
+    Returns:
+        TaskResultSchema: 任务状态
+    """
     try:
         result = AsyncResult(task_id, app=celery_app)
-
-        # 获取错误信息
-        error = None
-        if result.state == states.FAILURE:
-            if result.info:
-                # result.info 在失败时可能是异常信息
-                if isinstance(result.info, Exception):
-                    error = str(result.info)
-                elif isinstance(result.info, dict):
-                    error = str(result.info.get("error", result.info))
-                else:
-                    error = str(result.info)
-            elif result.traceback:
-                error = result.traceback
-
-        # 计算处理时间
-        processing_time = None
-        if hasattr(result, "date_started") and hasattr(result, "date_done"):
-            if result.date_started and result.date_done:
-                processing_time = (result.date_done - result.date_started).total_seconds()
-
-        # AsyncResult 没有 date_created 属性，使用其他方式获取创建时间
-        created_at = None
-        if hasattr(result, "date_started") and result.date_started:
-            created_at = result.date_started
-        else:
-            created_at = datetime.now()
-
-        return {
-            "task_id": task_id,
-            "status": result.state,
-            "result": result.result if result.result and result.state == states.SUCCESS else None,
-            "error": error,
-            "created_at": created_at,
-            "updated_at": result.date_done if result.date_done else datetime.now(),
-            "processing_time": processing_time,
-        }
+        return result.state
 
     except Exception as e:
         logger.debug(f"获取任务状态失败: task_id={task_id}, error={e}")
-        return None
+        return "FAILURE"
 
 
 def cancel_task(task_id: str) -> bool:
