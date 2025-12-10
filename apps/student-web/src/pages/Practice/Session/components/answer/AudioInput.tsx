@@ -6,6 +6,15 @@ import { AudioRecorder } from "@/components/business/AudioRecorder";
 import { toast } from "sonner";
 import { useAudioUpload } from "../../hooks/useAudioUpload";
 
+/** 录音上传结果 */
+interface UploadRecordingResult {
+  text: string;
+  match: boolean;
+  analysis: string;
+  transcription?: string;
+  oss_path?: string;
+}
+
 interface AudioInputProps {
   value?: string; // OSS 存储路径
   disabled?: boolean;

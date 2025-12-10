@@ -3,6 +3,15 @@ import { studentApi } from "@/lib/api";
 import { useSessionStore } from "../stores/session-store";
 import { useCurrentQuestion } from "../stores/session-store";
 
+/** 录音上传结果 */
+interface UploadRecordingResult {
+  text: string;
+  match: boolean;
+  analysis: string;
+  transcription?: string;
+  oss_path?: string;
+}
+
 interface UseAudioUploadResult {
   upload: (audioBlob: Blob) => Promise<UploadRecordingResult>;
   uploading: boolean;
@@ -26,11 +35,7 @@ export const useAudioUpload = (): UseAudioUploadResult => {
 
       setUploading(true);
       try {
-        const result = await studentApi.uploadRecording(
-          session.id,
-          currentQuestion.id,
-          audioBlob
-        );
+        const result = await studentApi.audioAnswerAnalyze(session.id, Number(currentQuestion.id), audioBlob);
         if (!result) {
           throw new Error("上传录音失败：服务器未返回结果");
         }
@@ -42,10 +47,8 @@ export const useAudioUpload = (): UseAudioUploadResult => {
         setUploading(false);
       }
     },
-    [session, currentQuestion]
+    [session, currentQuestion],
   );
 
   return { upload, uploading };
 };
-
-

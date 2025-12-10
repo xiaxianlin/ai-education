@@ -11,7 +11,7 @@ import { HistoryCard } from "./components/HistoryCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const PRACTICE_TYPES: Array<{
-  value: PracticeSessionType;
+  value: PracticeType;
   label: string;
 }> = [
   { value: "daily_practice", label: "每日练习" },
@@ -21,7 +21,7 @@ const PRACTICE_TYPES: Array<{
 
 export default function PracticeHistory() {
   const [activeTab, setActiveTab] =
-    useState<PracticeSessionType>("daily_practice");
+    useState<PracticeType>("daily_practice");
 
   // 获取各类型的历史记录
   const { data: dailyHistory = [], loading: dailyLoading } = useRequest(() =>
@@ -35,7 +35,7 @@ export default function PracticeHistory() {
   const { data: assessmentHistory = [], loading: assessmentLoading } =
     useRequest(() => studentApi.getPracticeHistory("assessment"));
 
-  const getHistoryByType = (type: PracticeSessionType) => {
+  const getHistoryByType = (type: PracticeType) => {
     switch (type) {
       case "daily_practice":
         return dailyHistory;
@@ -46,7 +46,7 @@ export default function PracticeHistory() {
     }
   };
 
-  const getLoadingByType = (type: PracticeSessionType) => {
+  const getLoadingByType = (type: PracticeType) => {
     switch (type) {
       case "daily_practice":
         return dailyLoading;
@@ -57,7 +57,7 @@ export default function PracticeHistory() {
     }
   };
 
-  const renderHistoryList = (type: PracticeSessionType) => {
+  const renderHistoryList = (type: PracticeType) => {
     const history = getHistoryByType(type);
     const loading = getLoadingByType(type);
 
@@ -75,7 +75,7 @@ export default function PracticeHistory() {
       );
     }
 
-    if (history.length === 0) {
+    if (!history || history.length === 0) {
       return (
         <Card className="border-2 border-accent/50 bg-accent/10">
           <CardContent className="py-10 px-6 text-center space-y-3">
@@ -117,7 +117,7 @@ export default function PracticeHistory() {
       {/* 按类型分类的标签页 */}
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as PracticeSessionType)}
+        onValueChange={(value) => setActiveTab(value as PracticeType)}
         className="w-full"
       >
         <TabsList className="grid w-full grid-cols-3 h-auto rounded-full bg-muted/80 px-3.5 py-2 gap-2 border border-border my-3">

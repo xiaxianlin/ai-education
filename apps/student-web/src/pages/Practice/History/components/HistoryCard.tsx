@@ -16,7 +16,7 @@ interface HistoryCardProps {
 /**
  * 获取练习类型名称
  */
-function getPracticeTypeName(type: PracticeSessionType): string {
+function getPracticeTypeName(type: PracticeType): string {
   switch (type) {
     case "daily_practice":
       return "每日练习";
@@ -66,7 +66,6 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
     answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0;
 
   const statusInfo = getStatusInfo(status);
-  const displayTime = end_time || start_time || create_time;
   const timeText = end_time
     ? formatDateTime(end_time)
     : start_time
@@ -98,7 +97,7 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
               </div>
               {session.textbook && (
                 <p className="text-xs text-muted-foreground truncate">
-                  {session.textbook.name}
+                  {session.textbook.subject} {session.textbook.grade}年级{session.textbook.semester}
                 </p>
               )}
             </div>

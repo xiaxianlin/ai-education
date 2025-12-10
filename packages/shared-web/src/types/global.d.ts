@@ -242,8 +242,9 @@ declare global {
   interface PracticeDetail {
     session: PracticeSession;
     answers: PracticeAnswer[];
-    report?: PracticeReport;
+    questions: Question[];
     wrong_records: PracticeWrongRecord[];
+    report?: PracticeReport;
   }
 }
 export {};

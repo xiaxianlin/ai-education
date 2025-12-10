@@ -21,7 +21,7 @@ import {
   useHasAnsweredCurrent,
 } from "../stores/session-store";
 
-const getPracticeTypeName = (sessionType?: PracticeSessionType): string => {
+const getPracticeTypeName = (sessionType?: PracticeType): string => {
   if (!sessionType) return "练习";
   switch (sessionType) {
     case "daily_practice":

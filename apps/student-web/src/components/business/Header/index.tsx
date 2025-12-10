@@ -1,16 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Home } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { ModeToggle } from "@/components/business/ModeToggle";
 import { useProfileStore } from "@/stores/profile-store";
 import { GRADES } from "@/constants/profile";
 
 export function Header() {
-  const location = useLocation();
   const { logout } = useAuthStore();
   const { student } = useProfileStore();
-  const isHomePage = location.pathname === "/home";
 
   const handleLogout = () => {
     logout();

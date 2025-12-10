@@ -61,17 +61,17 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
     // 检查是否超过最大轮询次数
     if (pollingCount > MAX_POLLING_COUNT) {
       clearPolling();
-      set({ loading: false, taskStatus: "failed" });
+      set({ loading: false, taskStatus: "FAILURE" });
       toast.error("练习生成超时，请稍后重试");
       return;
     }
 
     try {
-      const response = await studentApi.getPracticeTaskStatus(taskId);
-      set({ taskStatus: response.status });
+      const status = await studentApi.getPracticeTaskStatus(taskId);
+      set({ taskStatus: status });
 
-      switch (response.status) {
-        case "completed":
+      switch (status) {
+        case "SUCCESS":
           clearPolling();
           set({ loading: false });
           // 刷新练习列表
@@ -81,20 +81,21 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
           toast.success("练习生成成功");
           break;
 
-        case "failed":
+        case "FAILURE":
           clearPolling();
           set({ loading: false });
-          toast.error(response.error || "练习生成失败");
+          toast.error("练习生成失败");
           break;
 
-        case "cancelled":
+        case "REVOKED":
           clearPolling();
           set({ loading: false });
           toast.info("任务已取消");
           break;
 
-        case "pending":
-        case "processing":
+        case "PENDING":
+        case "STARTED":
+        case "RETRY":
           // 继续轮询
           pollingTimer = setTimeout(() => {
             pollTaskStatus(taskId);
@@ -139,26 +140,26 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
       if (get().loading) return;
 
       try {
-        set({ loading: true, taskStatus: "pending" });
+        set({ loading: true, taskStatus: "PENDING" });
         clearPolling();
 
         // 提交创建任务
-        const response = await studentApi.createPractice({
+        const taskId = await studentApi.createPractice({
           type: "unit_practice",
           textbook_id: textbookId,
           unit_id: unitId,
         });
 
-        if (response.task_id) {
+        if (taskId) {
           // 开始轮询任务状态
           pollingCount = 0;
-          pollTaskStatus(response.task_id);
+          pollTaskStatus(taskId);
         } else {
           throw new Error("未获取到任务ID");
         }
       } catch (error) {
         console.error("Failed to create practice:", error);
-        set({ loading: false, taskStatus: "failed" });
+        set({ loading: false, taskStatus: "FAILURE" });
         toast.error("创建练习失败");
       }
     },

@@ -12,11 +12,14 @@ from shared.core.database import (
     PracticeAnswer,
     PracticeReport,
     PracticeSession,
+    PracticeWrongRecord,
     Question,
 )
 from shared.core.schema import (
+    PracticeAnswerSchema,
     PracticeReportSchema,
     PracticeSessionSchema,
+    PracticeWrongRecordSchema,
     QuestionSchema,
 )
 from shared.utils import oss
@@ -207,54 +210,40 @@ async def get_session_detail(
         raise ValueError("无权访问此练习会话")
 
     # 查询答题记录和题目信息
-    answer_records = await db.scalars(
+    results = await db.scalars(
         select(PracticeAnswer)
         .where(PracticeAnswer.session_id == session_id)
         .order_by(PracticeAnswer.question_order)
     )
 
-    # 获取所有题目ID
-    answers = answer_records.all()
-    question_ids = [answer.question_id for answer in answers]
+    # 获取所有答题记录
+    answers = [PracticeAnswerSchema.model_validate(answer) for answer in results.all()]
 
-    # 查询题目详情
-    questions = []
-    if question_ids:
-        question_objs = await db.scalars(
-            select(Question).where(Question.id.in_(question_ids))
-        )
-        questions = [QuestionSchema.model_validate(q) for q in question_objs.all()]
+    results = await db.scalars(
+        select(PracticeWrongRecord).where(PracticeWrongRecord.session_id == session_id)
+    )
 
-    # 构建答题记录列表
-    answer_list = []
-    for answer in answers:
-        answer_data = {
-            "question_id": answer.question_id,
-            "question_order": answer.question_order,
-            "text_answer": answer.text_answer,
-            "status": answer.status,
-            "time_spent": answer.time_spent,
-            "submit_time": answer.submit_time,
-        }
-        answer_list.append(answer_data)
+    wrong_records = [
+        PracticeWrongRecordSchema.model_validate(record) for record in results.all()
+    ]
+
+    questions = [answer.question for answer in answers]
 
     # 查询报告（如果练习已完成）
     report = None
     if session.status == 2:
-        report_obj = await db.scalar(
+        report = await db.scalar(
             select(PracticeReport).where(PracticeReport.session_id == session_id)
         )
-        if report_obj:
-            report = PracticeReportSchema.model_validate(report_obj)
 
     # 构建返回结果
-    session_dict = PracticeSessionSchema.model_validate(session)
 
     result = {
-        "session": session_dict,
+        "session": PracticeSessionSchema.model_validate(session),
         "questions": questions,
-        "answers": answer_list,
-        "report": report,
+        "answers": answers,
+        "wrong_records": wrong_records,
+        "report": PracticeReportSchema.model_validate(report) if report else None,
     }
 
     logger.info(

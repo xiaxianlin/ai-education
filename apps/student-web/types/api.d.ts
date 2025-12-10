@@ -1,5 +1,9 @@
 declare global {
-  type TaskStatus = "PENDING" | "STARTED" | "RETRY" | "FAILURE" | "SUCCESS";
+  /**
+   * Celery 任务状态
+   */
+  type TaskStatus = "PENDING" | "STARTED" | "RETRY" | "FAILURE" | "SUCCESS" | "REVOKED";
+
   interface LoginRequest {
     phone: string;
     password: string;

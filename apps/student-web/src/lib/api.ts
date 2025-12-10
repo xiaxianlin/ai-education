@@ -97,7 +97,8 @@ export const studentApi = {
 
   /**
    * 查询练习生成任务状态
-   * GET /practice/task/{task_id}
+   * GET /practice/task/{task_id}/status
+   * @returns Celery 任务状态字符串
    */
   async getPracticeTaskStatus(taskId: string) {
     return client.get<TaskStatus>(`/practice/task/${taskId}/status`);

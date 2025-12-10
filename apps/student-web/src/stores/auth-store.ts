@@ -5,7 +5,7 @@ interface AuthStoreState {
   isAuthenticated: boolean;
   setToken: (token: string) => void;
   logout: () => void;
-  check: () => Promise<void>;
+  check: () => Promise<string>;
 }
 
 export const useAuthStore = create<AuthStoreState>((set) => {

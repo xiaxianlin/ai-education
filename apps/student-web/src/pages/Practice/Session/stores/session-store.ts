@@ -10,16 +10,23 @@ import { studentApi } from "@/lib/api";
  */
 type AnswerStatus = 0 | 1 | 2;
 
+/** 录音上传结果 */
+interface UploadRecordingResult {
+  text: string;
+  match: boolean;
+  analysis: string;
+}
+
 interface SessionStoreState {
   // ===== 状态 =====
   loading: boolean;
   session: PracticeSession | null;
   questions: Question[];
   currentQuestionIndex: number;
-  userAnswers: Record<number, string>; // questionId -> answer text
-  audioAnswers: Record<number, string>; // questionId -> audio OSS path
-  audioAnalysis: Record<number, UploadRecordingResult>; // questionId -> audio analysis result
-  answerStatus: Record<number, AnswerStatus>; // questionId -> status
+  userAnswers: Record<string | number, string>; // questionId -> answer text
+  audioAnswers: Record<string | number, string>; // questionId -> audio OSS path
+  audioAnalysis: Record<string | number, UploadRecordingResult>; // questionId -> audio analysis result
+  answerStatus: Record<string | number, AnswerStatus>; // questionId -> status
   startTime: number; // 当前题目开始时间（毫秒时间戳）
   submitting: boolean;
   report: PracticeReport | null;
@@ -30,7 +37,7 @@ interface SessionStoreState {
   setAnswer: (questionId: number, answer: string) => void;
   setAudioAnswer: (questionId: number, audioBase64: string) => void;
   setAudioAnalysis: (questionId: number, analysis: UploadRecordingResult) => void;
-  submitCurrentAnswer: () => Promise<SubmitAnswerResponse>;
+  submitCurrentAnswer: () => Promise<AnswerResponse>;
   goPrev: () => void;
   goNext: () => void;
   completePractice: () => Promise<void>;
@@ -86,10 +93,10 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       // 找到第一个未回答的题目
       let firstUnansweredIndex = 0;
       if (questions && questions.length > 0) {
-        const index = questions.findIndex(
-          (q: Question) =>
-            restoredStatus[q.id] === undefined || restoredStatus[q.id] === 0
-        );
+        const index = questions.findIndex((q: Question) => {
+          const questionId = typeof q.id === "string" ? parseInt(q.id, 10) : q.id;
+          return restoredStatus[questionId] === undefined || restoredStatus[questionId] === 0;
+        });
         if (index !== -1) {
           firstUnansweredIndex = index;
         }
@@ -167,15 +174,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
    * 提交当前题目答案
    */
   submitCurrentAnswer: async () => {
-    const {
-      session,
-      questions,
-      currentQuestionIndex,
-      userAnswers,
-      audioAnswers,
-      audioAnalysis,
-      startTime,
-    } = get();
+    const { session, questions, currentQuestionIndex, userAnswers, audioAnswers, startTime } = get();
 
     if (!session || !questions || questions.length === 0) {
       throw new Error("会话或题目不存在");
@@ -186,9 +185,9 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
       throw new Error("当前题目不存在");
     }
 
-    const answer = userAnswers[currentQuestion.id];
-    const audioOssPath = audioAnswers[currentQuestion.id];
-    const audioAnalysisResult = audioAnalysis[currentQuestion.id];
+    const questionId = typeof currentQuestion.id === "string" ? parseInt(currentQuestion.id, 10) : currentQuestion.id;
+    const answer = userAnswers[questionId];
+    const audioOssPath = audioAnswers[questionId];
 
     // 验证答案
     if (currentQuestion.type === "口语题" && !audioOssPath) {
@@ -205,7 +204,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
 
       const submitParams = {
         session_id: session.id,
-        question_id: currentQuestion.id,
+        question_id: Number(currentQuestion.id),
         answer: answer || "",
         time_spent: timeSpent,
         is_audio_answer: !!audioOssPath,
@@ -224,7 +223,7 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         return {
           answerStatus: {
             ...state.answerStatus,
-            [currentQuestion.id]: result.is_correct ? 1 : 2,
+            [questionId]: result.is_correct ? 1 : (2 as AnswerStatus),
           },
           // 如果后端返回了会话进度，则同步更新会话统计；否则保持原有会话数据
           session:
@@ -313,9 +312,7 @@ export const useTotalQuestions = () => {
 
 export const useAnsweredCount = () => {
   return useSessionStore((state) => {
-    return Object.values(state.answerStatus).filter(
-      (status) => status !== undefined && status !== 0
-    ).length;
+    return Object.values(state.answerStatus).filter((status) => status !== undefined && status !== 0).length;
   });
 };
 
@@ -323,7 +320,8 @@ export const useCurrentAnswerStatus = () => {
   return useSessionStore((state) => {
     const currentQuestion = state.questions[state.currentQuestionIndex];
     if (!currentQuestion) return undefined;
-    return state.answerStatus[currentQuestion.id];
+    const questionId = typeof currentQuestion.id === "string" ? parseInt(currentQuestion.id, 10) : currentQuestion.id;
+    return state.answerStatus[questionId];
   });
 };
 
@@ -331,7 +329,8 @@ export const useCurrentAnswer = () => {
   return useSessionStore((state) => {
     const currentQuestion = state.questions[state.currentQuestionIndex];
     if (!currentQuestion) return undefined;
-    return state.userAnswers[currentQuestion.id];
+    const questionId = typeof currentQuestion.id === "string" ? parseInt(currentQuestion.id, 10) : currentQuestion.id;
+    return state.userAnswers[questionId];
   });
 };
 
@@ -339,16 +338,14 @@ export const useCurrentAudioAnswer = () => {
   return useSessionStore((state) => {
     const currentQuestion = state.questions[state.currentQuestionIndex];
     if (!currentQuestion) return undefined;
-    return state.audioAnswers[currentQuestion.id];
+    const questionId = typeof currentQuestion.id === "string" ? parseInt(currentQuestion.id, 10) : currentQuestion.id;
+    return state.audioAnswers[questionId];
   });
 };
 
 export const useIsLastQuestion = () => {
   return useSessionStore((state) => {
-    return (
-      state.currentQuestionIndex === state.questions.length - 1 &&
-      state.questions.length > 0
-    );
+    return state.currentQuestionIndex === state.questions.length - 1 && state.questions.length > 0;
   });
 };
 
@@ -356,8 +353,8 @@ export const useHasAnsweredCurrent = () => {
   return useSessionStore((state) => {
     const currentQuestion = state.questions[state.currentQuestionIndex];
     if (!currentQuestion) return false;
-    const status = state.answerStatus[currentQuestion.id];
+    const questionId = typeof currentQuestion.id === "string" ? parseInt(currentQuestion.id, 10) : currentQuestion.id;
+    const status = state.answerStatus[questionId];
     return status !== undefined && status !== 0;
   });
 };
-

@@ -21,7 +21,7 @@ export const ResultView = memo(() => {
   const report = useSessionStore((state) => state.report);
   const sessionType = useSessionStore(
     (state) => state.session?.session_type
-  ) as PracticeSessionType | undefined;
+  ) as PracticeType | undefined;
 
   if (!report) return null;
 

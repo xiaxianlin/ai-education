@@ -16,6 +16,13 @@ import {
   useHasAnsweredCurrent,
 } from "../stores/session-store";
 
+/** 录音上传结果 */
+interface UploadRecordingResult {
+  text: string;
+  match: boolean;
+  analysis: string;
+}
+
 export const AnswerPanel = memo(() => {
   const question = useCurrentQuestion();
   const answer = useCurrentAnswer();
@@ -32,12 +39,12 @@ export const AnswerPanel = memo(() => {
   const setAudioAnalysis = useSessionStore((state) => state.setAudioAnalysis);
 
   const handleChange = (value: string, audioBase64?: string, audioAnalysis?: UploadRecordingResult) => {
-    setAnswer(question.id, value);
+    setAnswer(Number(question.id), value);
     if (audioBase64) {
-      setAudioAnswer(question.id, audioBase64);
+      setAudioAnswer(Number(question.id), audioBase64);
     }
     if (audioAnalysis) {
-      setAudioAnalysis(question.id, audioAnalysis);
+      setAudioAnalysis(Number(question.id), audioAnalysis);
     }
   };
 

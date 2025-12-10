@@ -11,7 +11,7 @@ import { useSessionStore, useTotalQuestions } from "../stores/session-store";
 import { useProfileStore } from "@/stores/profile-store";
 import { PracticeSteps } from "../components/common/PracticeSteps";
 
-const getPracticeTypeName = (sessionType?: PracticeSessionType): string => {
+const getPracticeTypeName = (sessionType?: PracticeType): string => {
   if (!sessionType) return "练习";
   switch (sessionType) {
     case "daily_practice":

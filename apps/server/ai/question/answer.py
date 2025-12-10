@@ -115,7 +115,7 @@ async def analyze_audio_answer(
     question: Question, audio_url: str, audio_type: str
 ) -> AnswerAnalysisSchema:
     """分析题目音频答案是否正确"""
-    logger.info(f"开始语音答案分析，音频地址: {audio_url}, 问题: {question[:100]}...")
+    logger.info(f"开始语音答案分析，音频地址: {audio_url}, 问题: {question.content[:100]}...")
 
     client = OpenAI(
         api_key=envs.AI_PLATFORM_KEY,
@@ -125,9 +125,7 @@ async def analyze_audio_answer(
         [
             {
                 "role": "system",
-                "content": TEXT_ANALYSIS_PROMPT.format(
-                    content=question.content,
-                ),
+                "content": AUDIO_ANALYSIS_PROMPT.format(content=question.content),  # 使用正确的模板
             },
             {
                 "role": "user",

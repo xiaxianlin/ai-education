@@ -14,10 +14,11 @@ import { formatDateTime } from "@/utils/time";
 import { ArrowLeft, Play } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+
 /**
  * 获取练习类型名称
  */
-function getPracticeTypeName(type: PracticeSessionType): string {
+function getPracticeTypeName(type: PracticeType): string {
   switch (type) {
     case "daily_practice":
       return "每日练习";
@@ -115,8 +116,8 @@ export default function PracticeDetail() {
 
   // 按题目顺序排序
   const sortedQuestions = [...(questions || [])].sort((a, b) => {
-    const answerA = answerMap.get(a.id);
-    const answerB = answerMap.get(b.id);
+    const answerA = answerMap.get(typeof a.id === 'string' ? parseInt(a.id, 10) : a.id);
+    const answerB = answerMap.get(typeof b.id === 'string' ? parseInt(b.id, 10) : b.id);
     const orderA = answerA?.question_order ?? 999;
     const orderB = answerB?.question_order ?? 999;
     return orderA - orderB;
@@ -185,8 +186,8 @@ export default function PracticeDetail() {
                 <div className="text-sm font-medium text-foreground">
                   {formatDateTime(
                     session.end_time ||
-                      session.start_time ||
-                      session.create_time
+                    session.start_time ||
+                    session.create_time
                   )}
                 </div>
               </div>
@@ -216,7 +217,7 @@ export default function PracticeDetail() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedQuestions.map((question, index) => {
-              const answer = answerMap.get(question.id);
+              const answer = answerMap.get(typeof question.id === 'string' ? parseInt(question.id, 10) : question.id);
               return (
                 <QuestionAnswerCard
                   key={question.id}

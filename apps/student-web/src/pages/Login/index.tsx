@@ -29,7 +29,7 @@ export default function Login() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
-  const { errors, validate, clearError } = useFormValidation<LoginParams>();
+  const { errors, validate, clearError } = useFormValidation<LoginRequest>();
 
   const { loading, run: login } = useRequest(
     async (params: { phone: string; password: string }) => {

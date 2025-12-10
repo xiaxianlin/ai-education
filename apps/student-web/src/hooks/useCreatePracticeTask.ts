@@ -17,7 +17,7 @@ interface UseCreatePracticeTaskOptions {
   /** 最大轮询次数，默认 150（5分钟） */
   maxPollingCount?: number;
   /** 创建成功回调 */
-  onSuccess?: (sessionId: number) => void;
+  onSuccess?: () => void;
   /** 创建失败回调 */
   onError?: (error: string) => void;
 }
@@ -28,7 +28,7 @@ interface UseCreatePracticeTaskReturn {
   /** 当前任务状态 */
   taskStatus: TaskStatus | null;
   /** 创建练习 */
-  createPractice: (params: CreatePracticeParams) => Promise<void>;
+  createPractice: (params: CreatePracticeParams) => void;
   /** 取消轮询 */
   cancelPolling: () => void;
 }
@@ -62,7 +62,7 @@ export function useCreatePracticeTask(
       // 检查是否超过最大轮询次数
       if (pollingCountRef.current > maxPollingCount) {
         cancelPollingRequest();
-        setTaskStatus("failed");
+        setTaskStatus("FAILURE");
         const errorMsg = "练习生成超时，请稍后重试";
         toast.error(errorMsg);
         onError?.(errorMsg);
@@ -73,34 +73,33 @@ export function useCreatePracticeTask(
     },
     {
       manual: true,
-      pollingInterval: pollingInterval,
+      pollingInterval,
       pollingWhenHidden: false,
       pollingErrorRetryCount: -1, // 无限重试，直到手动取消
-      onSuccess: (response) => {
-        setTaskStatus(response.status);
+      onSuccess: (status: TaskStatus) => {
+        setTaskStatus(status);
 
-        switch (response.status) {
-          case "completed":
+        switch (status) {
+          case "SUCCESS":
             cancelPollingRequest();
-            if (response.result?.session_id) {
-              onSuccess?.(response.result.session_id);
-            }
+            onSuccess?.();
             break;
 
-          case "failed":
+          case "FAILURE":
             cancelPollingRequest();
-            const errorMsg = response.error || "练习生成失败";
+            const errorMsg = "练习生成失败，请重试";
             toast.error(errorMsg);
             onError?.(errorMsg);
             break;
 
-          case "cancelled":
+          case "REVOKED":
             cancelPollingRequest();
             toast.info("任务已取消");
             break;
 
-          case "pending":
-          case "processing":
+          case "PENDING":
+          case "STARTED":
+          case "RETRY":
             // 继续轮询，useRequest 会自动处理
             break;
         }
@@ -120,22 +119,19 @@ export function useCreatePracticeTask(
   }, [cancelPollingRequest]);
 
   /** 创建练习 */
-  const {
-    loading: createLoading,
-    run: runCreatePractice,
-  } = useRequest(
+  const { loading: createLoading, run: runCreatePractice } = useRequest(
     (params: CreatePracticeParams) => studentApi.createPractice(params),
     {
       manual: true,
-      onSuccess: (response) => {
-        if (response.task_id) {
+      onSuccess: (taskId: string) => {
+        if (taskId) {
           // 初始化轮询状态
-          setTaskStatus("pending");
+          setTaskStatus("PENDING");
           pollingCountRef.current = 0;
           // 手动触发第一次轮询
-          pollTaskStatus(response.task_id);
+          pollTaskStatus(taskId);
         } else {
-          setTaskStatus("failed");
+          setTaskStatus("FAILURE");
           const errorMsg = "未获取到任务ID";
           toast.error(errorMsg);
           onError?.(errorMsg);
@@ -143,7 +139,7 @@ export function useCreatePracticeTask(
       },
       onError: (error) => {
         console.error("创建练习任务失败:", error);
-        setTaskStatus("failed");
+        setTaskStatus("FAILURE");
         const errorMsg = "创建练习失败，请重试";
         toast.error(errorMsg);
         onError?.(errorMsg);
@@ -151,10 +147,10 @@ export function useCreatePracticeTask(
     }
   );
 
-  /** 包装 createPractice 以符合接口定义 */
+  /** 包装 createPractice */
   const createPractice = useCallback(
-    async (params: CreatePracticeParams): Promise<void> => {
-      await runCreatePractice(params);
+    (params: CreatePracticeParams) => {
+      runCreatePractice(params);
     },
     [runCreatePractice]
   );
@@ -166,4 +162,3 @@ export function useCreatePracticeTask(
     cancelPolling,
   };
 }
-

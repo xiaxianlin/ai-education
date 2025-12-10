@@ -8,7 +8,7 @@ import { formatDuration } from "@/utils/time";
 
 interface ReportSummaryProps {
   report: PracticeReport;
-  sessionType?: PracticeSessionType;
+  sessionType?: PracticeType;
 }
 
 export const ReportSummary: FC<ReportSummaryProps> = ({

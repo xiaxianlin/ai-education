@@ -1,15 +1,21 @@
 import jwt, json, hashlib, string, secrets
 import bcrypt
 from shared.core.settings import envs
+from datetime import datetime, timedelta, timezone
 
 
-def encode(data: dict) -> str:
-    return jwt.encode(data, envs.APP_SECRET_KEY, algorithm="HS256")
+def encode(data: dict, expires_hours: int = 168) -> str:  # 默认7天
+    expire = datetime.now(timezone.utc) + timedelta(hours=expires_hours)
+    to_encode = data.copy()
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, envs.APP_SECRET_KEY, algorithm="HS256")
 
 
 def decode(token: str) -> dict | None:
     try:
         payload = jwt.decode(token, envs.APP_SECRET_KEY, algorithms=["HS256"])
+    except jwt.exceptions.ExpiredSignatureError:
+        return None  # Token 已过期
     except jwt.exceptions.InvalidTokenError:
         return None
     return payload
