@@ -10,7 +10,7 @@ import { useTextbookDetailModel } from './page';
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<TextbookContentForm, Unit>();
+  const formProps = useSimpleForm<CreateUnitRequest | UpdateUnitRequest, Unit>();
 
   const { runAsync: deleteUnit } = useRequest(adminApi.deleteUnit, {
     manual: true,
@@ -21,11 +21,11 @@ const useContainer = () => {
   });
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: TextbookContentForm) => {
+    async (values: CreateUnitRequest | UpdateUnitRequest) => {
       if (formProps.edited) {
-        await adminApi.updateUnit(formProps.edited.id, values);
+        await adminApi.updateUnit(formProps.edited.id, values as UpdateUnitRequest);
       } else {
-        await adminApi.createUnit({ ...values, textbook_id: id });
+        await adminApi.createUnit({ ...values, textbook_id: Number(id) } as CreateUnitRequest);
       }
     },
     {

@@ -36,16 +36,16 @@ export default function MoidfyPasswordPage() {
             return true;
           }}
         >
-          <Form.Item<ModifyPasswordForm>
+          <Form.Item
             label="旧密码"
-            name="old_password"
+            name="origin"
             rules={[() => ({ validator: (_, value) => validPassword(value) })]}
           >
             <Input.Password placeholder="请输入旧密码" />
           </Form.Item>
-          <Form.Item<ModifyPasswordForm>
+          <Form.Item
             label="新密码"
-            name="new_password"
+            name="password"
             rules={[() => ({ validator: (_, value) => validPassword(value) })]}
           >
             <Input.Password placeholder="请输入新密码" />

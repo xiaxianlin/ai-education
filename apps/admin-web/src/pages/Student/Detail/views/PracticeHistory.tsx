@@ -13,9 +13,7 @@ import { GRADES } from '@/constants/course';
 export function PracticeHistory() {
   const actionRef = useRef<ActionType>();
   const { student } = useStudentDetailModel();
-  const [practiceType, setPracticeType] = useState<PracticeSessionType | undefined>(
-    'daily_practice',
-  );
+  const [practiceType, setPracticeType] = useState<PracticeType>('daily_practice');
 
   // 删除功能
   const { runAsync: handleDelete, loading: deleteLoading } = useRequest(
@@ -42,8 +40,7 @@ export function PracticeHistory() {
         dataIndex: 'textbook',
         width: 200,
         renderText: (textbook: Textbook) =>
-          `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${
-            textbook.semester
+          `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${textbook.semester
           }`,
       },
       {
@@ -109,9 +106,8 @@ export function PracticeHistory() {
             <DeleteButton
               onConfirm={() => handleDelete(record.id)}
               title="确定要删除这条练习记录吗？"
-              description={`删除后无法恢复，请谨慎操作。练习类型：${
-                PRACTICE_TYPE_LABELS[record.session_type]
-              }`}
+              description={`删除后无法恢复，请谨慎操作。练习类型：${PRACTICE_TYPE_LABELS[record.session_type]
+                }`}
               buttonText="删除"
               buttonProps={{ loading: deleteLoading }}
             />
@@ -127,7 +123,7 @@ export function PracticeHistory() {
       className="table-card"
       activeTabKey={practiceType}
       onTabChange={(key) => {
-        setPracticeType(key as PracticeSessionType);
+        setPracticeType(key as PracticeType);
         actionRef.current?.reload();
       }}
       tabList={[
@@ -142,10 +138,10 @@ export function PracticeHistory() {
         columns={columns}
         search={false}
         toolbar={{ settings: [] }}
-        request={async (params) => {
+        request={async () => {
           const res = await adminApi.getPracticeHistory(
-            student?.id!,
-            practiceType as PracticeSessionType,
+            student?.id || '',
+            practiceType,
           );
           return { data: res || [], success: true, total: res.length || 0 };
         }}

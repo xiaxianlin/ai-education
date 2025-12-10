@@ -27,7 +27,7 @@ declare global {
     total?: number;
   }
 
-  type ManagerType = 1 | 2; // 1-超级管理员, 2-普通管理员
+  type ManagerType = 0 | 1 | 2; // 0-系统管理员, 1-超级管理员, 2-普通管理员
 
   /**
    * 管理员信息（对应 ManagerSchema）

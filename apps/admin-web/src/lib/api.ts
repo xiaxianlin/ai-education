@@ -61,7 +61,7 @@ export const adminApi = {
    * 获取系统配置
    * GET /configs
    */
-  async getConfigs(params?: { subject?: string; grade?: number }): Promise<Configs> {
+  async getConfigs(params?: { subject?: string; grade?: number }) {
     return apiClient.get<Configs>('/configs', { params });
   },
 
@@ -71,7 +71,7 @@ export const adminApi = {
    * 创建管理员
    * POST /manager
    */
-  async createManager(data: CreateManagerRequest): Promise<Manager> {
+  async createManager(data: CreateManagerRequest) {
     return apiClient.post<Manager>('/manager', data);
   },
 

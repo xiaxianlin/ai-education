@@ -49,7 +49,7 @@ export default function MainView() {
         valueType: 'select',
         valueEnum: gradeEnum,
         hideInTable: false,
-        render: (_, record) => `${GRADES[record.grade]}${record.semester}`,
+        render: (_, record) => `${GRADES[record.grade] || record.grade}${record.semester}`,
       },
       {
         title: '文件上传',
@@ -110,7 +110,7 @@ export default function MainView() {
           };
         }}
       />
-      <ModalForm<TeacherBookForm>
+      <ModalForm<SaveTeacherBookRequest>
         width={600}
         form={instance}
         open={visible}

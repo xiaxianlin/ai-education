@@ -4,17 +4,17 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { adminApi } from '@/lib/api';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<TextbookForm, Textbook>({
+  const form = useSimpleForm<SaveTextbookRequest, Textbook>({
     onSubmit: () => actionRef.current?.reload(),
   });
 
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: TextbookForm) => {
+    async (values: SaveTextbookRequest) => {
       if (form.edited) {
         await adminApi.updateTextbook(form.edited.id, values);
       } else {

@@ -77,7 +77,7 @@ export default function MainView() {
           };
         }}
       />
-      <FormModal<StudentForm>
+      <FormModal<SaveStudentRequest>
         form={instance}
         visible={visible}
         onCancel={onCancel}

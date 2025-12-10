@@ -6,14 +6,13 @@ import { GRADES } from '@/constants/course';
 
 export const BasicInfo = () => {
   const { textbook } = useTextbookDetailModel();
-  const info = textbook?.grade ? GRADES[textbook.grade] : undefined;
+  const info = textbook?.grade !== undefined ? GRADES[textbook.grade] : undefined;
   return (
     <ProCard>
       <ProDescriptions column={3} title="基本信息">
         <ProDescriptions.Item label="科目">{textbook?.subject}</ProDescriptions.Item>
         <ProDescriptions.Item label="版本">{textbook?.version}</ProDescriptions.Item>
-        <ProDescriptions.Item label="阶段">{info?.stage}</ProDescriptions.Item>
-        <ProDescriptions.Item label="年级">{info?.grade}</ProDescriptions.Item>
+        <ProDescriptions.Item label="年级">{info}</ProDescriptions.Item>
         <ProDescriptions.Item label="学期">{textbook?.semester}</ProDescriptions.Item>
         <ProDescriptions.Item label="文件">{textbook?.file}</ProDescriptions.Item>
         <ProDescriptions.Item label="索引ID">{textbook?.index_file_id}</ProDescriptions.Item>

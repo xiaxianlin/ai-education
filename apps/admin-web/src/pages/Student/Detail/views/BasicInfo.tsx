@@ -26,18 +26,18 @@ export function BasicInfo() {
     >
       {student ? (
         <ProDescriptions column={3}>
-          <ProDescriptions.Item label="姓名">{student.name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="手机号">{student.phone}</ProDescriptions.Item>
-          <ProDescriptions.Item label="年级">{GRADES[student.grade]}</ProDescriptions.Item>
+          <ProDescriptions.Item label="姓名">{(student as any)?.name || ''}</ProDescriptions.Item>
+          <ProDescriptions.Item label="手机号">{(student as any)?.phone || ''}</ProDescriptions.Item>
+          <ProDescriptions.Item label="年级">{(student as any)?.grade !== undefined ? GRADES[(student as any).grade] : ''}</ProDescriptions.Item>
           <ProDescriptions.Item label="状态">
-            <StatusTag status={student.status === 1} />
+            <StatusTag status={(student as any)?.status === 1} />
           </ProDescriptions.Item>
           <ProDescriptions.Item label="创建时间" valueType="dateTime">
-            {student.create_time * 1000}
+            {(student as any)?.create_time ? (student as any).create_time * 1000 : ''}
           </ProDescriptions.Item>
-          {student.update_time && (
+          {(student as any)?.update_time && (
             <ProDescriptions.Item label="更新时间" valueType="dateTime">
-              {student.update_time * 1000}
+              {(student as any).update_time * 1000}
             </ProDescriptions.Item>
           )}
         </ProDescriptions>

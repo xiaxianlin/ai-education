@@ -179,12 +179,12 @@ export default function PracticeDetailPage() {
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">
               <Tag color="blue">
-                {PRACTICE_TYPE_LABELS[session.session_type as PracticeSessionType]}
+                {PRACTICE_TYPE_LABELS[session.session_type]}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
               <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
-                {PRACTICE_STATUS_LABELS[session.status as PracticeSessionStatus]}
+                {PRACTICE_STATUS_LABELS[session.status]}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="开始时间" valueType="dateTime">

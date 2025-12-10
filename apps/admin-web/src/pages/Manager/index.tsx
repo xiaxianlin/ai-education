@@ -1,14 +1,8 @@
 import React, { useRef } from 'react';
-import {
-  PageContainer,
-  ProColumns,
-  ModalForm,
-  ProFormText,
-  ProFormSelect,
-} from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ModalForm, ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import { Button, message, Modal, Space } from 'antd';
 import { adminApi } from '@/lib/api';
-import { ManagerType, ManagerTypeText } from '@/constants/manager';
+import { ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
 import { CommonTable } from '@/components/business';
 import { createTimeColumn } from '@/hooks';
@@ -28,7 +22,7 @@ export default function ManagerPage() {
 
   const { runAsync: add } = useRequest((values) => adminApi.createManager(values), {
     manual: true,
-    onSuccess: (passwd) => {
+    onSuccess: (passwd: any) => {
       setFormVisible(false);
       actionRef.current?.reload();
       Modal.success({
@@ -39,7 +33,7 @@ export default function ManagerPage() {
   });
 
   const { runAsync: updateStatus } = useRequest(
-    (id: string, status: number) => adminApi.updateManagerStatus(id, status),
+    (id: string, status: number) => adminApi.updateManager(id, { status }),
     {
       manual: true,
       onSuccess: () => {
@@ -51,13 +45,13 @@ export default function ManagerPage() {
 
   const { runAsync: resetPassword } = useRequest((id: string) => adminApi.resetManagerPassword(id), {
     manual: true,
-      onSuccess: (passwd) => {
-        message.success('密码重置成功');
-        Modal.success({
-          title: '密码重置成功',
-          content: `新密码：${passwd.password}，请保存好密码`,
-        });
-      },
+    onSuccess: (passwd: any) => {
+      message.success('密码重置成功');
+      Modal.success({
+        title: '密码重置成功',
+        content: `新密码：${passwd.password}，请保存好密码`,
+      });
+    },
   });
 
   const handleDelete = (manager: Manager) => {
@@ -103,10 +97,8 @@ export default function ManagerPage() {
       width: 150,
       valueType: 'select',
       valueEnum: {
-        [ManagerType.Init]: { text: ManagerTypeText[ManagerType.Init] },
-        [ManagerType.System]: { text: ManagerTypeText[ManagerType.System] },
-        [ManagerType.Audit]: { text: ManagerTypeText[ManagerType.Audit] },
-        [ManagerType.Data]: { text: ManagerTypeText[ManagerType.Data] },
+        1: { text: ManagerTypeText[1] },
+        2: { text: ManagerTypeText[2] },
       },
       render: (_, record) => ManagerTypeText[record.type],
     },
@@ -128,8 +120,8 @@ export default function ManagerPage() {
       valueType: 'option',
       fixed: 'right',
       width: 200,
-      render: (_, record) =>
-        record.type !== ManagerType.Init ? (
+      render: (_, record) => {
+        return record.type !== 0 ? (
           <Space size={0}>
             <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
               删除
@@ -141,7 +133,8 @@ export default function ManagerPage() {
               重置密码
             </Button>
           </Space>
-        ) : null,
+        ) : null;
+      },
     },
   ];
 
@@ -166,7 +159,7 @@ export default function ManagerPage() {
           </Button>
         }
       />
-      <ModalForm<CreateManagerModel>
+      <ModalForm<any>
         width={500}
         open={formVisible}
         title="添加账号"
@@ -184,7 +177,7 @@ export default function ManagerPage() {
         size="large"
         labelAlign="left"
         labelCol={{ span: 4 }}
-        initialValues={{ type: ManagerType.System }}
+        initialValues={{ type: 1 }}
       >
         <div className="pt-3" />
         <ProFormText
@@ -199,12 +192,10 @@ export default function ManagerPage() {
           label="类型"
           placeholder="请选择类型"
           rules={[{ required: true, message: '请选择类型' }]}
-          options={Object.keys(ManagerTypeText)
-            .filter((key) => Number(key) > 0)
-            .map((key) => ({
-              label: ManagerTypeText[Number(key) as ManagerType],
-              value: Number(key),
-            }))}
+          options={Object.entries(ManagerTypeText).map(([key, text]) => ({
+            label: text,
+            value: Number(key),
+          }))}
         />
       </ModalForm>
     </PageContainer>

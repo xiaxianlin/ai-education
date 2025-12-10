@@ -1,4 +1,4 @@
-export const PRACTICE_TYPE_LABELS: Record<PracticeSessionType, string> = {
+export const PRACTICE_TYPE_LABELS: Record<PracticeType, string> = {
   daily_practice: '每日练习',
   unit_practice: '单元练习',
   assessment: '能力评估',

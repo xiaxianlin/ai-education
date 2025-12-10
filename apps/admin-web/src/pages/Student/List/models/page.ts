@@ -8,16 +8,16 @@ import { message, Modal } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<StudentForm | StudentUpdateForm, Student>({
+  const form = useSimpleForm<SaveStudentRequest, Student>({
     onSubmit: () => actionRef.current?.reload(),
   });
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: StudentForm | StudentUpdateForm) => {
+    async (values: SaveStudentRequest) => {
       if (form.edited) {
-        await adminApi.updateStudent(form.edited.id, values as StudentUpdateForm);
+        await adminApi.updateStudent(form.edited.id, values);
       } else {
-        await adminApi.createStudent(values as StudentForm);
+        await adminApi.createStudent(values);
         Modal.success({
           title: '创建成功',
           content: `学生已创建，默认密码为手机号后6位`,
@@ -39,7 +39,7 @@ const useContainer = () => {
     Modal.confirm({
       centered: true,
       title: '删除确认',
-      content: `确定要删除学生「${student.name}」吗？`,
+      content: `确定要删除学生「${student?.name || ''}」吗？`,
       okType: 'danger',
       onOk: async () => {
         await adminApi.deleteStudent(student.id);

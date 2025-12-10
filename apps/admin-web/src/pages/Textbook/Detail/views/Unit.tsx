@@ -1,7 +1,6 @@
 import React from 'react';
 import { ProTable, ProColumns, ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
-import { fmtTime } from '@/utils/time';
 import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
@@ -57,7 +56,7 @@ export const UnitView: React.FC = () => {
           </Button>
         }
       />
-      <ModalForm<TextbookContentForm>
+      <ModalForm<CreateUnitRequest | UpdateUnitRequest>
         width={600}
         form={instance}
         open={visible}

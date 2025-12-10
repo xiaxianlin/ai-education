@@ -60,8 +60,8 @@ export const KnowledgeView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async (params) => {
-          const data = await adminApi.getTextbookKnowledges(id);
-          const filtered = data.filter((item) => {
+          const data = await (adminApi as any).getTextbookKnowledges?.(id) || [];
+          const filtered = data.filter((item: any) => {
             const results = ['unit']
               .filter((key) => Boolean(params[key]))
               .map((key) => {
@@ -83,7 +83,7 @@ export const KnowledgeView: React.FC = () => {
           </Button>
         }
       />
-      <ModalForm<TextbookContentForm>
+      <ModalForm<CreateKnowledgeRequest | UpdateKnowledgeRequest>
         width={600}
         form={instance}
         open={visible}

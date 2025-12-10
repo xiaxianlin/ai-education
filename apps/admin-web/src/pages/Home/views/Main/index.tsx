@@ -1,5 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Row, Progress, Button, Space, Typography, Statistic } from 'antd';
+import { Card, Col, Row, Space, Typography, Statistic } from 'antd';
 import {
   UserOutlined,
   BookOutlined,

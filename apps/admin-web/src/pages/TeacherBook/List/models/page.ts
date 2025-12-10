@@ -8,12 +8,12 @@ import { message } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<TeacherBookForm, TeacherBook>({
+  const form = useSimpleForm<SaveTeacherBookRequest, TeacherBook>({
     onSubmit: () => actionRef.current?.reload(),
   });
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: TeacherBookForm) => {
+    async (values: SaveTeacherBookRequest) => {
       if (form.edited) {
         await adminApi.updateTeacherBook(form.edited.id, values);
       } else {

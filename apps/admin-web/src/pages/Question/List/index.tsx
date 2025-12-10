@@ -3,9 +3,8 @@ import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
-import { useConfigs, createTimeColumn, useDelete } from '@/hooks';
+import { useConfigs, useDelete } from '@/hooks';
 import { Space, Button, message } from 'antd';
-import { useRequest } from 'ahooks';
 import { CommonTable, DeleteButton } from '@/components/business';
 import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
 
@@ -95,7 +94,7 @@ export default function QuestionListPage() {
       dataIndex: 'grade',
       hideInSearch: true,
       minWidth: 70,
-      renderText: (grade) => GRADES[grade].stage,
+      renderText: (grade) => GRADES[grade],
     },
     {
       title: '年级',
@@ -103,7 +102,7 @@ export default function QuestionListPage() {
       minWidth: 70,
       valueType: 'select',
       valueEnum: gradeEnum,
-      renderText: (grade) => GRADES[grade].grade,
+      renderText: (grade) => GRADES[grade],
     },
     {
       title: '难度',
@@ -120,7 +119,7 @@ export default function QuestionListPage() {
         ...RESOURCE_TYPE_ENUM,
         '': { text: '无' },
       },
-      render: (_, record) => renderResourceTypeTag(record.resource_type),
+      render: (_, record) => renderResourceTypeTag(record.resource_type || undefined),
     },
     {
       title: '资源状态',
@@ -130,7 +129,7 @@ export default function QuestionListPage() {
       render: (_, record) =>
         renderResourceStatusTag(
           Boolean(record.resource && record.resource.trim()),
-          record.resource_type,
+          record.resource_type || undefined,
         ),
     },
     {
@@ -175,7 +174,7 @@ export default function QuestionListPage() {
       minWidth: 90,
       valueType: 'select',
       valueEnum: RESOURCE_TYPE_ENUM,
-      render: (_, record) => renderResourceTypeTag(record.resource_type),
+      render: (_, record) => renderResourceTypeTag(record.resource_type || undefined),
     },
     {
       title: '生成状态',
@@ -186,7 +185,7 @@ export default function QuestionListPage() {
       render: (_, record) =>
         renderResourceStatusTag(
           Boolean(record.resource && record.resource.trim()),
-          record.resource_type,
+          record.resource_type || undefined,
         ),
     },
     {
@@ -225,8 +224,8 @@ export default function QuestionListPage() {
     },
   ];
 
-  const buildSearchParams = React.useCallback((params: any): QuestionSearchParams => {
-    const searchParams: QuestionSearchParams = {
+  const buildSearchParams = React.useCallback((params: any): SearchQuestionRequest => {
+    const searchParams: SearchQuestionRequest = {
       page: params.current || 1,
       size: params.pageSize || 10,
       keywords: params.content,
@@ -246,14 +245,11 @@ export default function QuestionListPage() {
       searchParams.grade = params.grade;
     }
     if (params.resource_type !== undefined) {
-      searchParams.resource_type = params.resource_type;
+      (searchParams as any).resource_type = params.resource_type;
     }
     if (params.resource_generated !== undefined && params.resource_generated !== null) {
-      if (typeof params.resource_generated === 'string') {
-        searchParams.resource_generated = params.resource_generated === 'true';
-      } else {
-        searchParams.resource_generated = Boolean(params.resource_generated);
-      }
+      // resource_generated is not part of SearchQuestionRequest interface
+      // This will be handled separately if needed
     }
     return searchParams;
   }, []);

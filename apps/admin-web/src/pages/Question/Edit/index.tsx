@@ -26,7 +26,7 @@ export default function QuestionEditPage() {
   const navigate = useNavigate();
   const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } =
     useConfigs();
-  const [form] = ProForm.useForm<QuestionUpdateForm>();
+  const [form] = ProForm.useForm<UpdateQuestionRequest>();
 
   // 获取当前选择的题型，用于动态显示子类型选项
   const selectedType = ProForm.useWatch('type', form);
@@ -48,8 +48,9 @@ export default function QuestionEditPage() {
   const { data: textbookOptions } = useRequest(async () => {
     const res = await adminApi.searchTextbooks({ page: 1, size: 1000 });
     return (res.data || []).reduce((prev: Record<number, string>, curr) => {
-      const gradeInfo = GRADES[curr.grade];
-      const label = `${curr.subject} - ${curr.version} - ${gradeInfo?.grade || curr.grade}年级 - ${
+      const gradeNum = typeof curr.grade === 'string' ? parseInt(curr.grade, 10) : curr.grade;
+      const gradeInfo = GRADES[gradeNum];
+      const label = `${curr.subject} - ${curr.version} - ${gradeInfo || gradeNum}年级 - ${
         curr.semester
       }`;
       prev[curr.id] = label;
@@ -82,8 +83,8 @@ export default function QuestionEditPage() {
   });
 
   const { runAsync: handleSubmit, loading: submitting } = useRequest(
-    async (values: QuestionUpdateForm) => {
-      const submitData: QuestionUpdateForm = { ...values };
+    async (values: UpdateQuestionRequest) => {
+      const submitData: UpdateQuestionRequest = { ...values };
       await adminApi.updateQuestion(id!, submitData);
     },
     {
@@ -136,7 +137,7 @@ export default function QuestionEditPage() {
       }}
     >
       <Card>
-        <ProForm<QuestionUpdateForm>
+        <ProForm<UpdateQuestionRequest>
           grid
           form={form}
           submitter={{

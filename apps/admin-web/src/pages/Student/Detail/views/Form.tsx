@@ -9,7 +9,7 @@ export function EditForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =
     useStudentDetailModel();
   const { runAsync: handleEditSubmit, loading: editing } = useRequest(
-    async (values: StudentForm) => adminApi.updateStudent(student?.id || '', values),
+    async (values: SaveStudentRequest) => adminApi.updateStudent((student as any)?.id || '', values),
     {
       manual: true,
       onSuccess: () => {
@@ -22,7 +22,7 @@ export function EditForm() {
   );
 
   return (
-    <ModalForm<StudentForm>
+    <ModalForm<SaveStudentRequest>
       width={500}
       form={editForm}
       open={editFormVisible}

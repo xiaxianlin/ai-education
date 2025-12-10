@@ -1,7 +1,6 @@
 import { MoreOutlined } from '@ant-design/icons';
 import { Button, Dropdown, MenuProps, Modal } from 'antd';
 import { useStudentDetailModel } from '../models/page';
-import { useMemo } from 'react';
 
 export function Actions() {
   const {
@@ -23,7 +22,7 @@ export function Actions() {
         Modal.confirm({
           centered: true,
           title: '删除确认',
-          content: `确定要删除学生「${student?.name}」吗？此操作不可恢复。`,
+          content: `确定要删除学生「${(student as any)?.name || ''}」吗？此操作不可恢复。`,
           okType: 'danger',
           onOk: () => handleDelete(),
         });
@@ -31,10 +30,10 @@ export function Actions() {
     },
     {
       key: 'status',
-      label: student?.status === 1 ? '停用' : '启用',
+      label: (student as any)?.status === 1 ? '停用' : '启用',
       disabled: toggling,
       onClick: () => {
-        const newStatus = student?.status === 1 ? 0 : 1;
+        const newStatus = (student as any)?.status === 1 ? 0 : 1;
         Modal.confirm({
           centered: true,
           title: '状态变更',

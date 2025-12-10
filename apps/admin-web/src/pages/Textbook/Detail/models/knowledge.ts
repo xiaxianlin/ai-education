@@ -10,7 +10,7 @@ import { useTextbookDetailModel } from './page';
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<TextbookContentForm, Knowledge>();
+  const formProps = useSimpleForm<CreateKnowledgeRequest | UpdateKnowledgeRequest, Knowledge>();
 
   const { runAsync: deleteUnit } = useRequest(adminApi.deleteKnowledge, {
     manual: true,
@@ -21,11 +21,11 @@ const useContainer = () => {
   });
 
   const { runAsync: handleSubmit } = useRequest(
-    async (values: TextbookContentForm) => {
+    async (values: CreateKnowledgeRequest | UpdateKnowledgeRequest) => {
       if (formProps.edited) {
-        await adminApi.updateKnowledge(formProps.edited.id, values);
+        await adminApi.updateKnowledge(formProps.edited.id, values as UpdateKnowledgeRequest);
       } else {
-        await adminApi.createKnowledge({ ...values, textbook_id: id });
+        await adminApi.createKnowledge({ ...values, textbook_id: Number(id) } as CreateKnowledgeRequest);
       }
     },
     {
