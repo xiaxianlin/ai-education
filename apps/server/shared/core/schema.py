@@ -187,10 +187,7 @@ class PracticeWrongRecordSchema(BaseModel):
     correct_answer: Optional[str] = None
     analysis: Optional[str] = None
     time_spent: int = 0
-    is_corrected: int = 0
-    corrected_time: int = 0
     create_time: int
-    update_time: int
 
     model_config = {"from_attributes": True}
 

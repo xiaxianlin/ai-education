@@ -29,7 +29,6 @@ class AnswerQuestionSchema(BaseModel):
     answer: str
     time_spent: int  # 答题耗时，单位秒
     is_audio_answer: bool = False  # 是否为音频回答（口语题）
-    audio_data: Optional[str] = None  # 音频 OSS 存储路径
     audio_match: Optional[bool] = None  # 音频理解结果：是否匹配题目要求（仅口语题）
     audio_analysis: Optional[str] = None  # 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
 

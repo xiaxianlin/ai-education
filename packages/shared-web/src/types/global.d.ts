@@ -207,10 +207,7 @@ declare global {
     correct_answer?: string;
     analysis?: string; // 错题分析
     time_spent?: number;
-    is_corrected: number; // 是否已订正：0-未订正, 1-已订正
-    corrected_time: number;
     create_time: number;
-    update_time: number;
   }
 
   /**

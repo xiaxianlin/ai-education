@@ -41,11 +41,7 @@ async def get_assessment(request: Request, db: AsyncSession = Database):
 
 
 @practice_router.post("/create")
-async def create_practice(
-    request: Request,
-    params: CreatePracticeSchema,
-    db: AsyncSession = Database,
-):
+async def create_practice(request: Request, params: CreatePracticeSchema):
     """创建练习会话（异步任务）
 
     提交练习生成任务到任务队列，返回任务ID。
@@ -65,14 +61,7 @@ async def create_practice(
 
 @practice_router.get("/task/{task_id}/status")
 async def get_practice_task_status(task_id: str):
-    """查询练习生成任务状态
-
-    Args:
-        task_id: 任务ID
-
-    Returns:
-        任务状态
-    """
+    """查询练习生成任务状态"""
     return get_task_status(task_id)
 
 
@@ -103,18 +92,14 @@ async def get_session_detail(
 
 
 @practice_router.get("/history/{type}")
-async def get_practice_history(
-    type: PracticeType, request: Request, db: AsyncSession = Database
-):
+async def get_practice_history(type: PracticeType, request: Request, db: AsyncSession = Database):
     """根据类型获取最近 30 条练习记录，type 可选值：daily_practice/unit_practice/assessment"""
     student = request.state.student
     return await practice.get_practice_history(db, student.id, type.value, limit=30)
 
 
 @practice_router.post("/{session_id}/begin")
-async def begin_practice_session(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
+async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """开始练习"""
     # 获取当前学生信息
     student = request.state.student
@@ -135,9 +120,7 @@ async def answer_question(
 
 
 @practice_router.post("/{session_id}/complete")
-async def complete_practice_session(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
+async def complete_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """完成练习，生成练习报告"""
     # 获取当前学生信息
     student = request.state.student
