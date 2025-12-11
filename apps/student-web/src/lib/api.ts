@@ -2,9 +2,9 @@ import { go } from "./router";
 import { toast } from "sonner";
 import { ApiClient } from "@ai-education/shared-web/api";
 
-const client = new ApiClient("/api/student");
+export const apiClient = new ApiClient("/api/student");
 
-client.addResponseInterceptor(
+apiClient.addResponseInterceptor(
   (response) => response,
   (error) => {
     // 统一错误处理
@@ -15,12 +15,11 @@ client.addResponseInterceptor(
 
       // 处理认证错误
       if (status === 401 || status === 403) {
-        client.removeToken();
+        apiClient.removeToken();
         go("/login");
-        return;
+      } else {
+        toast.error(data?.message || "网络错误");
       }
-
-      toast.error(data?.message || "网络错误");
       return response;
     }
 
@@ -39,7 +38,7 @@ export const studentApi = {
    * POST /login
    */
   async login(params: LoginRequest) {
-    return client.post<string>("/login", params);
+    return apiClient.post<string>("/login", params);
   },
 
   /**
@@ -47,7 +46,7 @@ export const studentApi = {
    * GET /check
    */
   async check() {
-    return client.get<string>("/check");
+    return apiClient.get<string>("/check");
   },
 
   // ========== 用户信息 ==========
@@ -57,7 +56,7 @@ export const studentApi = {
    * GET /profile
    */
   async getProfile() {
-    return client.get<Profile>("/profile");
+    return apiClient.get<Profile>("/profile");
   },
 
   // ========== 练习相关 ==========
@@ -67,7 +66,7 @@ export const studentApi = {
    * GET /practice/daily
    */
   async getDailyPractice() {
-    return client.get<PracticeSession[]>("/practice/daily");
+    return apiClient.get<PracticeSession[]>("/practice/daily");
   },
 
   /**
@@ -75,7 +74,7 @@ export const studentApi = {
    * GET /practice/unit
    */
   async getUnitPractice(): Promise<PracticeSession[]> {
-    return client.get<PracticeSession[]>("/practice/unit");
+    return apiClient.get<PracticeSession[]>("/practice/unit");
   },
 
   /**
@@ -83,7 +82,7 @@ export const studentApi = {
    * GET /practice/assessment
    */
   async getAssessment(): Promise<PracticeSession[]> {
-    return client.get<PracticeSession[]>("/practice/assessment");
+    return apiClient.get<PracticeSession[]>("/practice/assessment");
   },
 
   /**
@@ -92,7 +91,7 @@ export const studentApi = {
    * @returns 任务ID
    */
   async createPractice(params: CreatePracticeRequest) {
-    return client.post<string>("/practice/create", params);
+    return apiClient.post<string>("/practice/create", params);
   },
 
   /**
@@ -101,7 +100,7 @@ export const studentApi = {
    * @returns Celery 任务状态字符串
    */
   async getPracticeTaskStatus(taskId: string) {
-    return client.get<TaskStatus>(`/practice/task/${taskId}/status`);
+    return apiClient.get<TaskStatus>(`/practice/task/${taskId}/status`);
   },
 
   /**
@@ -109,7 +108,7 @@ export const studentApi = {
    * POST /practice/{session_id}/begin
    */
   async beginPractice(sessionId: number) {
-    return client.post(`/practice/${sessionId}/begin`);
+    return apiClient.post(`/practice/${sessionId}/begin`);
   },
 
   /**
@@ -117,7 +116,7 @@ export const studentApi = {
    * POST /practice/answer
    */
   async submitAnswer(params: AnswerRequest) {
-    return client.post<AnswerResponse>("/practice/answer", params);
+    return apiClient.post<AnswerResponse>("/practice/answer", params);
   },
 
   /**
@@ -130,7 +129,7 @@ export const studentApi = {
     formData.append("question_id", questionId.toString());
     formData.append("audio_type", "webm");
     formData.append("audio_file", audioBlob, "audio.webm");
-    return client.form<AudioAnswerAnalysisResponse>("/practice/answer/analyze", formData);
+    return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/analyze", formData);
   },
 
   /**
@@ -139,7 +138,7 @@ export const studentApi = {
    * @returns 报告 ID
    */
   async completePractice(sessionId: number) {
-    return client.post<number>(`/practice/${sessionId}/complete`);
+    return apiClient.post<number>(`/practice/${sessionId}/complete`);
   },
 
   /**
@@ -147,7 +146,7 @@ export const studentApi = {
    * GET /practice/detail/{session_id}
    */
   async getSessionDetail(sessionId: number) {
-    return client.get<PracticeDetail>(`/practice/detail/${sessionId}`);
+    return apiClient.get<PracticeDetail>(`/practice/detail/${sessionId}`);
   },
 
   /**
@@ -155,7 +154,7 @@ export const studentApi = {
    * GET /practice/history/{type}
    */
   async getPracticeHistory(type: PracticeType): Promise<PracticeSession[]> {
-    return client.get<PracticeSession[]>(`/practice/history/${type}`);
+    return apiClient.get<PracticeSession[]>(`/practice/history/${type}`);
   },
 
   // ========== 教材相关 ==========
@@ -165,7 +164,7 @@ export const studentApi = {
    * GET /textbook/{textbook_id}/units
    */
   async getTextbookUnits(textbookId?: number) {
-    return client.get<Unit[]>(`/textbook/${textbookId}/units`);
+    return apiClient.get<Unit[]>(`/textbook/${textbookId}/units`);
   },
 
   /**
@@ -173,6 +172,6 @@ export const studentApi = {
    * GET /textbook/{unit_id}/knowledges
    */
   async getUnitKnowledge(unitId: number) {
-    return client.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
+    return apiClient.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
   },
 };

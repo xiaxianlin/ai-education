@@ -1,4 +1,4 @@
-import { useProfileStore } from "@/stores/profile-store";
+import { useProfileModel } from "@/models/ProfileModel";
 import { SubjectTabs } from "@/components/business/SubjectTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRequest } from "ahooks";
@@ -6,9 +6,7 @@ import { studentApi } from "@/lib/api";
 import { PracticeCard } from "./views/PracticeCard";
 
 export default function DailyPractice() {
-  const activeTextbooks = useProfileStore(
-    (state) => state.activeTextbooks || []
-  );
+  const { activeTextbooks } = useProfileModel();
 
   const { data: practices = [], refresh } = useRequest(studentApi.getDailyPractice.bind(studentApi));
 
@@ -34,9 +32,7 @@ export default function DailyPractice() {
           <CardContent className="py-10 px-6 text-center space-y-3">
             <div className="text-5xl">📖</div>
             <p className="text-xl font-bold text-foreground">还没有选教材呢</p>
-            <p className="text-sm text-muted-foreground">
-              去设置里选择你的学习教材，系统就能为你生成每日练习啦～
-            </p>
+            <p className="text-sm text-muted-foreground">去设置里选择你的学习教材，系统就能为你生成每日练习啦～</p>
           </CardContent>
         </Card>
       )}
@@ -44,25 +40,14 @@ export default function DailyPractice() {
       {/* 主体：按学科分组的练习卡片 */}
       <SubjectTabs className="my-2">
         {(subject) => {
-          const textbooks = activeTextbooks.filter(
-            (t) => t.subject === subject
-          );
+          const textbooks = activeTextbooks.filter((t) => t.subject === subject);
 
           return (
             <div key={subject} className="space-y-4">
               <div className="grid grid-cols-2 gap-5">
                 {textbooks.map((t) => {
-                  const practice = practices.find(
-                    (p) => p.textbook_id === t.id
-                  );
-                  return (
-                    <PracticeCard 
-                      key={t.id} 
-                      textbook={t} 
-                      practice={practice} 
-                      onRefresh={refresh}
-                    />
-                  );
+                  const practice = practices.find((p) => p.textbook_id === t.id);
+                  return <PracticeCard key={t.id} textbook={t} practice={practice} onRefresh={refresh} />;
                 })}
               </div>
             </div>

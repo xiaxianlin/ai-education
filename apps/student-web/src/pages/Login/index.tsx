@@ -17,14 +17,14 @@ import { validators } from "@/lib/validators";
 import { useState } from "react";
 import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
+import { useAuthModel } from "@/models/AuthModel";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/toast";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setToken } = useAuthStore();
+  const { setToken } = useAuthModel();
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");

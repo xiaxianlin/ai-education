@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSessionStore, useTotalQuestions } from "../stores/session-store";
-import { useProfileStore } from "@/stores/profile-store";
+import { useProfileModel } from "@/models/ProfileModel";
 import { PracticeSteps } from "../components/common/PracticeSteps";
 
 const getPracticeTypeName = (sessionType?: PracticeType): string => {
@@ -30,7 +30,7 @@ export const StartPanel = memo(() => {
   const session = useSessionStore((state) => state.session);
   const beginPractice = useSessionStore((state) => state.beginPractice);
   const totalQuestions = useTotalQuestions();
-  const student = useProfileStore((state) => state.student);
+  const { student } = useProfileModel();
 
   const practiceType = getPracticeTypeName(session?.session_type);
 

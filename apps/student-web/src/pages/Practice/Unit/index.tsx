@@ -1,4 +1,4 @@
-import { useProfileStore } from "@/stores/profile-store";
+import { useProfileModel } from "@/models/ProfileModel";
 import { KnowledgeModal } from "./views/KnowledgeModal";
 import { Header } from "./views/Header";
 import { Empty } from "./views/Empty";
@@ -16,7 +16,7 @@ export default function UnitPractice() {
 }
 
 function UnitPracticeContent() {
-  const activeTextbooks = useProfileStore((state) => state.activeTextbooks || []);
+  const { activeTextbooks } = useProfileModel();
   const { queryPractices } = useUnitPracticeStore();
 
   useEffect(() => {

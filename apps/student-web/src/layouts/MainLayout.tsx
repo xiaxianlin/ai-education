@@ -1,19 +1,11 @@
 import { Header } from "@/components/business/Header";
-import { useRequest } from "ahooks";
 import { Outlet } from "react-router-dom";
-import { studentApi } from "@/lib/api";
-import { useProfileStore } from "@/stores/profile-store";
 import { LoadingPage } from "@/components/business/LoadingSpinner";
 import { useGradeTheme } from "@/hooks/useGradeTheme";
+import { ProfileModel, useProfileModel } from "@/models/ProfileModel";
 
-export const MainLayout = () => {
-  const { setProfile, student } = useProfileStore();
-
-  const { loading } = useRequest(studentApi.getProfile.bind(studentApi), {
-    onSuccess: setProfile,
-  });
-
-  // Apply grade-based theme
+const MainContainer = () => {
+  const { student, loading } = useProfileModel();
   useGradeTheme(student?.grade);
 
   if (loading) {
@@ -27,5 +19,13 @@ export const MainLayout = () => {
         <Outlet />
       </div>
     </div>
+  );
+};
+
+export const MainLayout = () => {
+  return (
+    <ProfileModel.Provider>
+      <MainContainer />
+    </ProfileModel.Provider>
   );
 };

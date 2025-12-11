@@ -1,13 +1,13 @@
-import { useProfileStore } from "@/stores/profile-store";
-import { useAuthStore } from "@/stores/auth-store";
+import { useProfileModel } from "@/models/ProfileModel";
+import { useAuthModel } from "@/models/AuthModel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, BookOpen, LogOut, Phone } from "lucide-react";
 import { GRADES } from "@/constants/profile";
 
 export default function Profile() {
-  const { student, textbooks } = useProfileStore();
-  const { logout } = useAuthStore();
+  const { student, textbooks } = useProfileModel();
+  const { logout } = useAuthModel();
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-2xl pb-24">

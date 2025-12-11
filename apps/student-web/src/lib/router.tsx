@@ -1,10 +1,18 @@
-import { lazy } from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 import { RootLayout } from "@/layouts/RootLayout";
 import { MainLayout } from "@/layouts/MainLayout";
-import { GuestRouteGuard } from "@/components/guards/GuestRouteGuard";
-import { ProtectedRouteGuard } from "@/components/guards/ProtectedRouteGuard";
 import { createBrowserHistory } from "history";
+import Login from "@/pages/Login";
+import Home from "@/pages/Home";
+import Profile from "@/pages/Profile";
+import DailyPractice from "@/pages/Practice/Daily";
+import UnitPractice from "@/pages/Practice/Unit";
+import AssessmentPractice from "@/pages/Practice/Assessment";
+import PracticeSession from "@/pages/Practice/Session";
+import PracticeHistory from "@/pages/Practice/History";
+import PracticeDetail from "@/pages/Practice/Detail";
+import PracticeReport from "@/pages/Practice/Report";
+import WrongRecords from "@/pages/WrongRecords";
 
 export const history = createBrowserHistory();
 
@@ -16,20 +24,6 @@ export function go(path: string, replace = false) {
   }
 }
 
-// 懒加载页面组件
-const Login = lazy(() => import("@/pages/Login"));
-const Home = lazy(() => import("@/pages/Home"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const DailyPractice = lazy(() => import("@/pages/Practice/Daily"));
-const UnitPractice = lazy(() => import("@/pages/Practice/Unit"));
-const AssessmentPractice = lazy(() => import("@/pages/Practice/Assessment"));
-const PracticeSession = lazy(() => import("@/pages/Practice/Session"));
-const PracticeHistory = lazy(() => import("@/pages/Practice/History"));
-const PracticeDetail = lazy(() => import("@/pages/Practice/Detail"));
-const PracticeReport = lazy(() => import("@/pages/Practice/Report"));
-
-const WrongRecords = lazy(() => import("@/pages/WrongRecords"));
-
 export function Router() {
   return useRoutes([
     {
@@ -38,19 +32,11 @@ export function Router() {
       children: [
         {
           path: "login",
-          element: (
-            <GuestRouteGuard>
-              <Login />
-            </GuestRouteGuard>
-          ),
+          element: <Login />,
         },
         {
           path: "/",
-          element: (
-            <ProtectedRouteGuard>
-              <MainLayout />
-            </ProtectedRouteGuard>
-          ),
+          element: <MainLayout />,
           children: [
             { index: true, element: <Navigate to="/home" replace /> },
             { path: "home", element: <Home /> },
@@ -63,11 +49,9 @@ export function Router() {
             { path: "practice/detail/:sessionId", element: <PracticeDetail /> },
             { path: "practice/report/:sessionId", element: <PracticeReport /> },
             { path: "wrong-records", element: <WrongRecords /> },
-
           ],
         },
       ],
     },
   ]);
 }
-

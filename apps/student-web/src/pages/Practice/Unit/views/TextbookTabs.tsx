@@ -4,13 +4,11 @@
  */
 import { GRADES } from "@/constants/profile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useProfileStore } from "@/stores/profile-store";
+import { useProfileModel } from "@/models/ProfileModel";
 import { TextbookUnits } from "../components/TextbookUnits";
 
 export function TextbookTabs() {
-  const activeTextbooks = useProfileStore(
-    (state) => state.activeTextbooks || []
-  );
+  const { activeTextbooks } = useProfileModel();
 
   return (
     <Tabs defaultValue={activeTextbooks[0].id.toString()}>

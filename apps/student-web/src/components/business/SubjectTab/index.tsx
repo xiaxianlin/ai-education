@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useProfileStore } from "@/stores/profile-store";
+import { useProfileModel } from "@/models/ProfileModel";
 
 interface SubjectTabsProps {
   className?: string;
@@ -7,7 +7,7 @@ interface SubjectTabsProps {
 }
 
 export function SubjectTabs({ className, children }: SubjectTabsProps) {
-  const subjects = useProfileStore((state) => state.subjects || []);
+  const { subjects } = useProfileModel();
   return (
     <Tabs defaultValue={subjects[0]} className={className}>
       <TabsList className="h-auto rounded-full bg-muted/80 p-1.5 gap-2 border border-border my-3">
