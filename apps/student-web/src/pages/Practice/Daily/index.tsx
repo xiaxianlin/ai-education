@@ -1,14 +1,10 @@
-import { useProfileModel } from "@/models/ProfileModel";
 import { SubjectTabs } from "@/components/business/SubjectTab";
 import { Card, CardContent } from "@/components/ui/card";
-import { useRequest } from "ahooks";
-import { studentApi } from "@/lib/api";
+import { PageModel, usePageModel } from "@/models/PageModel";
 import { PracticeCard } from "./views/PracticeCard";
 
-export default function DailyPractice() {
-  const { activeTextbooks } = useProfileModel();
-
-  const { data: practices = [], refresh } = useRequest(studentApi.getDailyPractice.bind(studentApi));
+function DailyPracticeContent() {
+  const { activeTextbooks, getPracticesBySubject, refresh } = usePageModel();
 
   return (
     <div>
@@ -40,20 +36,27 @@ export default function DailyPractice() {
       {/* 主体：按学科分组的练习卡片 */}
       <SubjectTabs className="my-2">
         {(subject) => {
-          const textbooks = activeTextbooks.filter((t) => t.subject === subject);
+          const practices = getPracticesBySubject(subject);
 
           return (
             <div key={subject} className="space-y-4">
               <div className="grid grid-cols-2 gap-5">
-                {textbooks.map((t) => {
-                  const practice = practices.find((p) => p.textbook_id === t.id);
-                  return <PracticeCard key={t.id} textbook={t} practice={practice} onRefresh={refresh} />;
-                })}
+                {practices.map(({ textbook, practice }) => (
+                  <PracticeCard key={textbook.id} textbook={textbook} practice={practice} onRefresh={refresh} />
+                ))}
               </div>
             </div>
           );
         }}
       </SubjectTabs>
     </div>
+  );
+}
+
+export default function DailyPractice() {
+  return (
+    <PageModel.Provider>
+      <DailyPracticeContent />
+    </PageModel.Provider>
   );
 }

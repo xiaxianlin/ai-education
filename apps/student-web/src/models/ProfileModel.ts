@@ -13,7 +13,7 @@ const useContaienr = () => {
     subjects: uniq(data?.textbooks?.map((t) => t.subject) ?? []),
     activeTextbooks:
       data?.textbooks
-        .filter((t) => t.grade === data?.student.grade)
+        ?.filter((t) => t.grade === data?.student.grade)
         .sort((a, b) => {
           // 先按 subject 排序
           if (a.subject > b.subject) return -1;
