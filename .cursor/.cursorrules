@@ -57,6 +57,69 @@
 - 组件使用函数式组件和 Hooks
 - 优先使用函数式编程风格
 
+### 页面编码规范（通用）
+
+#### 目录结构
+```
+pages/[Feature]/[PageName]/
+├── index.tsx                    # 页面入口
+├── models/
+│   └── PageModel.ts            # 页面级状态管理（使用 unstated-next）
+├── views/
+│   └── Main.tsx                # 主视图组件
+├── hooks/
+│   └── use[PageName]Hook.ts    # 业务逻辑 Hook
+└── components/
+    └── [ComponentName]/
+        ├── index.tsx           # 组件入口
+        ├── types.ts            # 类型定义
+        └── [SubComponent].tsx  # 子组件
+```
+
+#### 状态管理模式
+- 页面级状态使用 `unstated-next` 的 `createContainer`
+- 从全局 Model 获取数据，计算派生状态
+- 导出 `PageModel` 和 `usePageModel` Hook
+
+#### 页面入口规范
+- 默认导出页面组件
+- 使用 `PageModel.Provider` 包裹视图
+- 入口文件保持简洁
+
+#### Hook 设计规范
+- Hook 命名以 `use` 开头
+- 按顺序组织：状态 → 请求 → 副作用 → 操作 → 返回值
+- 使用 `useRequest` 管理异步操作
+- 返回对象包含数据和操作方法
+
+#### 组件组织规范
+- 组件目录使用 `index.tsx` 作为入口
+- 主组件负责状态管理和分发
+- 子组件负责具体 UI 渲染
+- 类型定义统一放在 `types.ts`
+
+#### 导入顺序规范
+1. React 相关
+2. 第三方库
+3. 业务组件
+4. UI 组件
+5. 类型定义
+6. 工具函数/常量
+
+#### 命名规范
+- 组件：PascalCase（如 `WaitCard.tsx`）
+- Hook：camelCase，以 `use` 开头（如 `useDailyPractice.ts`）
+- 函数：camelCase（如 `handleClick`）
+- 常量：UPPER_SNAKE_CASE（如 `PRACTICE_STATUS`）
+- 类型/接口：PascalCase（如 `PracticeCardProps`）
+
+#### 代码组织原则
+1. 单一职责：每个文件/函数只做一件事
+2. 关注点分离：状态、视图、逻辑分离
+3. 可复用性：通用逻辑提取为 Hook
+4. 可维护性：清晰的目录结构和命名
+5. 一致性：遵循统一的代码风格
+
 ### Python
 - 遵循 PEP 8 代码风格
 - 使用类型提示 (Type Hints)

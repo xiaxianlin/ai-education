@@ -100,6 +100,122 @@ const fetchData = async () => {
 };
 ```
 
+## 页面编码规范
+
+### 目录结构
+```
+pages/[Feature]/[PageName]/
+├── index.tsx                    # 页面入口
+├── models/
+│   └── PageModel.ts            # 页面级状态管理（使用 unstated-next）
+├── views/
+│   └── Main.tsx                # 主视图组件
+├── hooks/
+│   └── use[PageName]Hook.ts    # 业务逻辑 Hook
+└── components/
+    └── [ComponentName]/
+        ├── index.tsx           # 组件入口
+        ├── types.ts            # 类型定义
+        └── [SubComponent].tsx  # 子组件
+```
+
+### 状态管理模式
+```typescript
+// models/PageModel.ts
+import { createContainer } from "unstated-next";
+
+const useContainer = () => {
+  const { someData } = useGlobalModel();
+  const derivedData = useMemo(() => {
+    // 计算逻辑
+  }, [someData]);
+  return { someData, derivedData };
+};
+
+export const PageModel = createContainer(useContainer);
+export const usePageModel = PageModel.useContainer;
+```
+
+### 页面入口规范
+```typescript
+// index.tsx
+import { PageModel } from "./models/PageModel";
+import { MainView } from "./views/Main";
+
+export default function PageName() {
+  return (
+    <PageModel.Provider>
+      <MainView />
+    </PageModel.Provider>
+  );
+}
+```
+
+### Hook 设计规范
+```typescript
+// hooks/use[PageName]Hook.ts
+export const use[PageName]Hook = (params) => {
+  // 1. 状态定义
+  const [localState, setLocalState] = useState(initialValue);
+  
+  // 2. 数据请求
+  const { data, refresh } = useRequest(() => api.getData(params));
+  
+  // 3. 副作用处理
+  useEffect(() => {
+    // 同步状态逻辑
+  }, [data]);
+  
+  // 4. 操作方法
+  const { loading, run: handleAction } = useRequest(
+    () => api.doAction(params),
+    { manual: true }
+  );
+  
+  // 5. 返回值
+  return { data, loading, status: localState, refresh, handleAction };
+};
+```
+
+### 组件组织规范
+```typescript
+// components/[Component]/index.tsx
+export function Component({ prop }: ComponentProps) {
+  const { data, status } = useSomeHook(prop.id);
+  
+  switch (status) {
+    case Status1:
+      return <SubComponent1 {...props} />;
+    case Status2:
+      return <SubComponent2 {...props} />;
+    default:
+      return null;
+  }
+}
+```
+
+### 导入顺序规范
+1. React 相关
+2. 第三方库
+3. 业务组件
+4. UI 组件
+5. 类型定义
+6. 工具函数/常量
+
+### 命名规范
+- 组件：PascalCase（如 `WaitCard.tsx`）
+- Hook：camelCase，以 `use` 开头（如 `useDailyPractice.ts`）
+- 函数：camelCase（如 `handleClick`）
+- 常量：UPPER_SNAKE_CASE（如 `PRACTICE_STATUS`）
+- 类型/接口：PascalCase（如 `PracticeCardProps`）
+
+### 代码组织原则
+1. 单一职责：每个文件/函数只做一件事
+2. 关注点分离：状态、视图、逻辑分离
+3. 可复用性：通用逻辑提取为 Hook
+4. 可维护性：清晰的目录结构和命名
+5. 一致性：遵循统一的代码风格
+
 ## 注意事项
 
 - 使用项目现有的组件库（shadcn/ui 或 Ant Design）
@@ -108,4 +224,5 @@ const fetchData = async () => {
 - 保持与现有代码风格一致
 - 考虑响应式设计和移动端适配
 - 实现适当的错误处理和加载状态
+- 遵循页面编码规范，保持代码结构一致性
 
