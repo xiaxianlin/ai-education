@@ -1,6 +1,6 @@
 # AI Education Platform - API接口文档
 
-> 本文档基于后端实际代码生成，最后更新时间：2024-12-19
+> 本文档基于后端实际代码生成，最后更新时间：2024-12-20
 
 ## 目录
 
@@ -1042,8 +1042,11 @@ GET /api/student/textbook/{unit_id}/knowledges
 #### 获取每日练习
 
 ```
-GET /api/student/practice/daily
+GET /api/student/practice/daily/{textbook_id}
 ```
+
+**路径参数**:
+- `textbook_id`: 教材ID
 
 **响应示例**:
 ```json
@@ -1065,23 +1068,69 @@ GET /api/student/practice/daily
 }
 ```
 
-**功能说明**: 返回当天的每日练习（存在则返回 `PracticeSession`，否则返回 `null`）。若存在未完成会话且未开始，`status` 为 0。
+**功能说明**: 返回指定教材当天的每日练习信息（存在则返回 `PracticeSession`，否则返回 `null`）。若存在未完成会话且未开始，`status` 为 0。
 
 #### 获取单元练习
 
 ```
-GET /api/student/practice/unit
+GET /api/student/practice/unit/{unit_id}
 ```
 
-**功能说明**: 返回当前激活教材下的未完成单元练习（最多一个）。`target_id` 表示单元ID，可用于定位单元。
+**路径参数**:
+- `unit_id`: 单元ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session_id": 123,
+    "session_type": "unit_practice",
+    "target_id": 1,
+    "textbook_id": 1,
+    "question_count": 10,
+    "answer_count": 5,
+    "correct_count": 4,
+    "status": 0,
+    "generate_status": null,
+    "start_time": 0,
+    "end_time": null
+  }
+}
+```
+
+**功能说明**: 返回指定单元的未完成单元练习信息（若存在）。`target_id` 表示单元ID。
 
 #### 获取能力评估
 
 ```
-GET /api/student/practice/assessment
+GET /api/student/practice/assessment/{textbook_id}
 ```
 
-**功能说明**: 返回当前学生的未完成能力评估（若存在）。字段同 `PracticeSession`。
+**路径参数**:
+- `textbook_id`: 教材ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session_id": 123,
+    "session_type": "assessment",
+    "target_id": 1,
+    "textbook_id": 1,
+    "question_count": 10,
+    "answer_count": 5,
+    "correct_count": 4,
+    "status": 0,
+    "generate_status": null,
+    "start_time": 0,
+    "end_time": null
+  }
+}
+```
+
+**功能说明**: 返回指定教材的未完成能力评估信息（若存在）。字段同 `PracticeSession`。
 
 #### 创建练习会话
 
@@ -1512,6 +1561,13 @@ POST /api/student/wrong-records/{question_id}/unmaster
 ---
 
 ## 更新日志
+
+### v0.2.1 (2024-12-20)
+
+- 修正练习接口路径参数：每日练习、单元练习、能力评估接口需要路径参数
+- 更新每日练习接口：`GET /practice/daily/{textbook_id}`
+- 更新单元练习接口：`GET /practice/unit/{unit_id}`
+- 更新能力评估接口：`GET /practice/assessment/{textbook_id}`
 
 ### v0.2.0 (2024-12-19)
 

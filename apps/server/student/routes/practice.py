@@ -19,25 +19,31 @@ from student.services import answer, practice
 practice_router = APIRouter(prefix="/practice")
 
 
-@practice_router.get("/daily")
-async def get_daily_practice(request: Request, db: AsyncSession = Database):
+@practice_router.get("/daily/{textbook_id}")
+async def get_daily_practice(
+    textbook_id: int, request: Request, db: AsyncSession = Database
+):
     """获取每日练习信息"""
     student = request.state.student
-    return await practice.get_daily_practice(db, student.id)
+    return await practice.get_daily_practice(db, student.id, textbook_id)
 
 
-@practice_router.get("/unit")
-async def get_unit_practice(request: Request, db: AsyncSession = Database):
+@practice_router.get("/unit/{unit_id}")
+async def get_unit_practice(
+    unit_id: int, request: Request, db: AsyncSession = Database
+):
     """获取单元练习信息"""
     student = request.state.student
-    return await practice.get_unit_practice(db, student.id)
+    return await practice.get_unit_practice(db, student.id, unit_id)
 
 
-@practice_router.get("/assessment")
-async def get_assessment(request: Request, db: AsyncSession = Database):
+@practice_router.get("/assessment/{textbook_id}")
+async def get_assessment(
+    textbook_id: int, request: Request, db: AsyncSession = Database
+):
     """获取能力评估信息"""
     student = request.state.student
-    return await practice.get_assessment(db, student.id)
+    return await practice.get_assessment(db, student.id, textbook_id)
 
 
 @practice_router.post("/create")
@@ -92,14 +98,18 @@ async def get_session_detail(
 
 
 @practice_router.get("/history/{type}")
-async def get_practice_history(type: PracticeType, request: Request, db: AsyncSession = Database):
+async def get_practice_history(
+    type: PracticeType, request: Request, db: AsyncSession = Database
+):
     """根据类型获取最近 30 条练习记录，type 可选值：daily_practice/unit_practice/assessment"""
     student = request.state.student
     return await practice.get_practice_history(db, student.id, type.value, limit=30)
 
 
 @practice_router.post("/{session_id}/begin")
-async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
+async def begin_practice_session(
+    session_id: int, request: Request, db: AsyncSession = Database
+):
     """开始练习"""
     # 获取当前学生信息
     student = request.state.student
@@ -120,7 +130,9 @@ async def answer_question(
 
 
 @practice_router.post("/{session_id}/complete")
-async def complete_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
+async def complete_practice_session(
+    session_id: int, request: Request, db: AsyncSession = Database
+):
     """完成练习，生成练习报告"""
     # 获取当前学生信息
     student = request.state.student

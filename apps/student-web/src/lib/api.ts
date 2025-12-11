@@ -65,24 +65,24 @@ export const studentApi = {
    * 获取每日练习
    * GET /practice/daily
    */
-  async getDailyPractice() {
-    return apiClient.get<PracticeSession[]>("/practice/daily");
+  async getDailyPractice(textbookId: number) {
+    return apiClient.get<PracticeSession>(`/practice/daily/${textbookId}`);
   },
 
   /**
    * 获取单元练习
    * GET /practice/unit
    */
-  async getUnitPractice(): Promise<PracticeSession[]> {
-    return apiClient.get<PracticeSession[]>("/practice/unit");
+  async getUnitPractice(unitId: number) {
+    return apiClient.get<PracticeSession>(`/practice/unit/${unitId}`);
   },
 
   /**
    * 获取能力评测
    * GET /practice/assessment
    */
-  async getAssessment(): Promise<PracticeSession[]> {
-    return apiClient.get<PracticeSession[]>("/practice/assessment");
+  async getAssessment(textbookId: number) {
+    return apiClient.get<PracticeSession>(`/practice/assessment/${textbookId}`);
   },
 
   /**
@@ -129,7 +129,7 @@ export const studentApi = {
     formData.append("question_id", questionId.toString());
     formData.append("audio_type", "webm");
     formData.append("audio_file", audioBlob, "audio.webm");
-    return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/analyze", formData);
+    return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/audio/analyze", formData);
   },
 
   /**

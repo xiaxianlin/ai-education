@@ -5,7 +5,7 @@ from typing import Dict
 from loguru import logger
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import noload
+from sqlalchemy.orm import noload, joinedload
 
 import ai
 from shared.core.database import (
@@ -26,47 +26,50 @@ from shared.utils import oss
 from shared.utils.time import now, today
 
 
-async def get_daily_practice(db: AsyncSession, student_id: str):
+async def get_daily_practice(db: AsyncSession, student_id: str, textbook_id: int):
     """获取每日所有的日常练习记录"""
-    result = await db.scalars(
+    result = await db.scalar(
         select(PracticeSession).where(
             PracticeSession.student_id == student_id,
             PracticeSession.session_type == "daily_practice",
             PracticeSession.target_id == today(),
+            PracticeSession.textbook_id == textbook_id,
         )
     )
 
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return PracticeSessionSchema.model_validate(result)
 
 
-async def get_unit_practice(db: AsyncSession, student_id: str):
+async def get_unit_practice(db: AsyncSession, student_id: str, unit_id: int):
     """获取所有未完成单元练习记录"""
-    result = await db.scalars(
+    result = await db.scalar(
         select(PracticeSession)
         .options(noload(PracticeSession.textbook))
         .where(
             PracticeSession.student_id == student_id,
             PracticeSession.session_type == "unit_practice",
+            PracticeSession.target_id == unit_id,
             PracticeSession.status != 2,
         )
     )
 
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return PracticeSessionSchema.model_validate(result)
 
 
-async def get_assessment(db: AsyncSession, student_id: str):
+async def get_assessment(db: AsyncSession, student_id: str, textbook_id: int):
     """获取所有未完成综合评估记录"""
-    result = await db.scalars(
+    result = await db.scalar(
         select(PracticeSession)
         .options(noload(PracticeSession.textbook))
         .where(
             PracticeSession.student_id == student_id,
             PracticeSession.session_type == "assessment",
+            PracticeSession.textbook_id == textbook_id,
             PracticeSession.status != 2,
         )
     )
 
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return PracticeSessionSchema.model_validate(result)
 
 
 async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> dict:
@@ -90,19 +93,15 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
     if session.student_id != student_id:
         raise ValueError("无权操作此练习")
 
-    # 如果已经开始或已完成，不能重复开始
-    if session.status == 1:
-        logger.warning(f"练习已经开始: session_id={session_id}")
-        # 返回当前状态
-    elif session.status == 2:
-        raise ValueError("练习已完成，无法重新开始")
-    else:
+    if session.status == 0:
         # 更新状态为进行中
         session.status = 1
         session.start_time = now()
         session.update_time = now()
         await db.commit()
         logger.info(f"练习开始: session_id={session_id}, student_id={student_id}")
+    else:
+        raise ValueError("练习一开始或者已完成")
 
 
 async def complete_practice(db: AsyncSession, student_id: str, session_id: int) -> int:
@@ -212,6 +211,7 @@ async def get_session_detail(
     # 查询答题记录和题目信息
     results = await db.scalars(
         select(PracticeAnswer)
+        .options(joinedload(PracticeAnswer.question))
         .where(PracticeAnswer.session_id == session_id)
         .order_by(PracticeAnswer.question_order)
     )

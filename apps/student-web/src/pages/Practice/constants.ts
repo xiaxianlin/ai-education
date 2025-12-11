@@ -1,0 +1,7 @@
+export enum PracticeStatus {
+  WAIT = "WAIT",
+  GENERATING = "GENERATING",
+  READY = "READY",
+  PRACTICING = "PRACTICING",
+  COMPLETED = "COMPLETED",
+}

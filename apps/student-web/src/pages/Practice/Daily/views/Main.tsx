@@ -1,10 +1,10 @@
 import { SubjectTabs } from "@/components/business/SubjectTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageModel } from "@/pages/Practice/Daily/models/PageModel";
-import { PracticeCard } from "./PracticeCard";
+import { PracticeCard } from "../components/PracticeCard";
 
 export function MainView() {
-  const { activeTextbooks, getPracticesBySubject, refresh } = usePageModel();
+  const { textbooks } = usePageModel();
 
   return (
     <div>
@@ -22,28 +22,14 @@ export function MainView() {
         </CardContent>
       </Card>
 
-      {/* 未选择教材的空状态提示 */}
-      {!activeTextbooks.length && (
-        <Card className="border-2 border-accent/50 bg-accent/10 shadow-lg rounded-3xl">
-          <CardContent className="py-10 px-6 text-center space-y-3">
-            <div className="text-5xl">📖</div>
-            <p className="text-xl font-bold text-foreground">还没有选教材呢</p>
-            <p className="text-sm text-muted-foreground">去设置里选择你的学习教材，系统就能为你生成每日练习啦～</p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* 主体：按学科分组的练习卡片 */}
       <SubjectTabs className="my-2">
         {(subject) => {
-          const practices = getPracticesBySubject(subject);
-
+          const textbook = textbooks[subject];
           return (
             <div key={subject} className="space-y-4">
               <div className="grid grid-cols-2 gap-5">
-                {practices.map(({ textbook, practice }) => (
-                  <PracticeCard key={textbook.id} textbook={textbook} practice={practice} onRefresh={refresh} />
-                ))}
+                <PracticeCard key={textbook.id} textbook={textbook} />
               </div>
             </div>
           );
