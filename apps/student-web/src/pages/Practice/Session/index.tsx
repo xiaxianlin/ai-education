@@ -10,9 +10,17 @@ import { EmptySession } from "./views/EmptySession";
 import { ResultView } from "./views/ResultView";
 import { QuestionStep } from "./views/QuestionStep";
 import { useSessionLoader } from "./hooks/useSessionLoader";
-import { useSessionStore, useCurrentQuestion } from "./stores/session-store";
+import { SessionProvider, useSessionStore, useCurrentQuestion } from "./stores/session-store";
 
 export default function PracticeSession() {
+  return (
+    <SessionProvider>
+      <PracticeSessionContent />
+    </SessionProvider>
+  );
+}
+
+function PracticeSessionContent() {
   // 加载会话
   useSessionLoader();
 

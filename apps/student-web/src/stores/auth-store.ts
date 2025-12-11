@@ -1,26 +1,45 @@
+import { useCallback, useMemo, useState } from "react";
+import { createContainer } from "unstated-next";
 import { studentApi } from "@/lib/api";
-import { create } from "zustand";
 
-interface AuthStoreState {
+interface AuthStoreValue {
   isAuthenticated: boolean;
   setToken: (token: string) => void;
   logout: () => void;
   check: () => Promise<string>;
 }
 
-export const useAuthStore = create<AuthStoreState>((set) => {
-  const token = localStorage.getItem("_t");
+function useAuthStoreInternal(): AuthStoreValue {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => localStorage.getItem("_t") !== null);
 
-  return {
-    isAuthenticated: token !== null,
-    setToken: (token) => {
-      localStorage.setItem("_t", token);
-      set({ isAuthenticated: true });
-    },
-    logout: () => {
-      localStorage.removeItem("_t");
-      set({ isAuthenticated: false });
-    },
-    check: () => studentApi.check(),
-  };
-});
+  const setToken = useCallback((token: string) => {
+    localStorage.setItem("_t", token);
+    setIsAuthenticated(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("_t");
+    setIsAuthenticated(false);
+  }, []);
+
+  const value = useMemo<AuthStoreValue>(
+    () => ({
+      isAuthenticated,
+      setToken,
+      logout,
+      check: () => studentApi.check(),
+    }),
+    [isAuthenticated, logout, setToken]
+  );
+
+  return value;
+}
+
+const AuthStore = createContainer(useAuthStoreInternal);
+
+type UseAuthStore = {
+  (): AuthStoreValue;
+};
+
+export const AuthProvider = AuthStore.Provider;
+export const useAuthStore: UseAuthStore = () => AuthStore.useContainer();

@@ -5,8 +5,11 @@
 import { memo } from "react";
 import { WaitCard } from "./WaitCard";
 import { GeneratingCard } from "./GeneratingCard";
-import { InProgressCard } from "./InProgressCard";
+import { PracticingCard } from "./PracticingCard";
+import { CompleteCard } from "./CompleteCard";
 import { useUnitPracticeStore } from "../stores/unit-practice-store";
+import { PracticeCardStateModel } from "../../shared/models/practice-card-state";
+import { PracticeCardStatus } from "../../shared/types/practice-card";
 
 interface UnitPracticeCardProps {
   unit: Unit;
@@ -22,27 +25,58 @@ export const UnitPracticeCard = memo(function UnitPracticeCard({
 }: UnitPracticeCardProps) {
   const { loading, confirmModal } = useUnitPracticeStore();
   
-  // 判断当前单元是否正在生成中
   const isCurrentUnitGenerating = loading && confirmModal.unitId === unit.id;
 
-  if (!practice && !isCurrentUnitGenerating) {
-    return (
-      <WaitCard
+  return (
+    <PracticeCardStateModel.Provider
+      initialState={{
+        practice,
+        practiceType: "unit_practice",
+        isCreating: isCurrentUnitGenerating,
+      }}
+    >
+      <UnitPracticeCardBody
         unit={unit}
         onShowKnowledge={onShowKnowledge}
       />
-    );
-  }
-
-  if (isCurrentUnitGenerating || practice?.generate_status === 0) {
-    return <GeneratingCard unit={unit} />;
-  }
-
-  return (
-    <InProgressCard
-      unit={unit}
-      practice={practice!}
-      onShowKnowledge={onShowKnowledge}
-    />
+    </PracticeCardStateModel.Provider>
   );
 });
+
+function UnitPracticeCardBody({
+  unit,
+  onShowKnowledge,
+}: {
+  unit: Unit;
+  onShowKnowledge: (unit: Unit) => void;
+}) {
+  const { openConfirmModal } = useUnitPracticeStore();
+  const state = PracticeCardStateModel.useContainer();
+  const practice = state.practice;
+
+  switch (state.status) {
+    case PracticeCardStatus.WAIT_TO_GENERATE:
+      return <WaitCard unit={unit} onShowKnowledge={onShowKnowledge} />;
+    case PracticeCardStatus.GENERATING:
+      return <GeneratingCard unit={unit} />;
+    case PracticeCardStatus.READY_TO_PRACTICE:
+    case PracticeCardStatus.IN_PROGRESS:
+      return (
+        <PracticingCard
+          unit={unit}
+          practice={practice!}
+          onShowKnowledge={onShowKnowledge}
+        />
+      );
+    case PracticeCardStatus.COMPLETED:
+    default:
+      return (
+        <CompleteCard
+          unit={unit}
+          practice={practice!}
+          onRegenerate={() => openConfirmModal(unit)}
+          onShowKnowledge={onShowKnowledge}
+        />
+      );
+  }
+}

@@ -1,8 +1,9 @@
 /**
  * 单元练习页面状态管理 Store
- * 使用 zustand 管理单元练习页面的业务逻辑
+ * 使用 unstated-next 管理单元练习页面的业务逻辑
  */
-import { create } from "zustand";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContainer } from "unstated-next";
 import { studentApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -20,15 +21,15 @@ interface ConfirmModalState {
   textbookId: number;
 }
 
-interface UnitPracticeStoreState {
-  // 状态
+interface UnitPracticeState {
   loading: boolean;
   taskStatus: TaskStatus | null;
   practices: PracticeSession[];
   knowledgeModal: KnowledgeModalState;
   confirmModal: ConfirmModalState;
+}
 
-  // 方法
+interface UnitPracticeStoreValue extends UnitPracticeState {
   openKnowledgeModal: (unit: Unit) => Promise<void>;
   closeKnowledgeModal: () => void;
   openConfirmModal: (unit: Unit) => void;
@@ -41,109 +42,111 @@ interface UnitPracticeStoreState {
 const POLLING_INTERVAL = 2000; // 2秒
 const MAX_POLLING_COUNT = 150; // 最大轮询次数（5分钟）
 
-export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) => {
-  let pollingTimer: ReturnType<typeof setTimeout> | null = null;
-  let pollingCount = 0;
-
-  // 清理轮询
-  const clearPolling = () => {
-    if (pollingTimer) {
-      clearTimeout(pollingTimer);
-      pollingTimer = null;
-    }
-    pollingCount = 0;
-  };
-
-  // 轮询任务状态
-  const pollTaskStatus = async (taskId: string) => {
-    pollingCount++;
-
-    // 检查是否超过最大轮询次数
-    if (pollingCount > MAX_POLLING_COUNT) {
-      clearPolling();
-      set({ loading: false, taskStatus: "FAILURE" });
-      toast.error("练习生成超时，请稍后重试");
-      return;
-    }
-
-    try {
-      const status = await studentApi.getPracticeTaskStatus(taskId);
-      set({ taskStatus: status });
-
-      switch (status) {
-        case "SUCCESS":
-          clearPolling();
-          set({ loading: false });
-          // 刷新练习列表
-          get().queryPractices();
-          // 关闭确认弹窗
-          get().closeConfirmModal();
-          toast.success("练习生成成功");
-          break;
-
-        case "FAILURE":
-          clearPolling();
-          set({ loading: false });
-          toast.error("练习生成失败");
-          break;
-
-        case "REVOKED":
-          clearPolling();
-          set({ loading: false });
-          toast.info("任务已取消");
-          break;
-
-        case "PENDING":
-        case "STARTED":
-        case "RETRY":
-          // 继续轮询
-          pollingTimer = setTimeout(() => {
-            pollTaskStatus(taskId);
-          }, POLLING_INTERVAL);
-          break;
-      }
-    } catch (error) {
-      console.error("轮询任务状态失败:", error);
-      // 网络错误时继续尝试轮询
-      pollingTimer = setTimeout(() => {
-        pollTaskStatus(taskId);
-      }, POLLING_INTERVAL);
-    }
-  };
-
-  return {
-    // 初始状态
+const initialState: UnitPracticeState = {
+  loading: false,
+  taskStatus: null,
+  practices: [],
+  knowledgeModal: {
+    open: false,
+    unitName: "",
+    knowledges: [],
     loading: false,
-    taskStatus: null,
-    practices: [],
-    knowledgeModal: {
-      open: false,
-      unitName: "",
-      knowledges: [],
-      loading: false,
-    },
+  },
+  confirmModal: {
+    open: false,
+    unitId: 0,
+    unitName: "",
+    textbookId: 0,
+  },
+};
 
-    confirmModal: {
-      open: false,
-      unitId: 0,
-      unitName: "",
-      textbookId: 0,
-    },
+function useUnitPracticeStoreInternal(): UnitPracticeStoreValue {
+  const [state, setState] = useState<UnitPracticeState>(initialState);
+  const pollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollingCountRef = useRef(0);
 
-    queryPractices: async () => {
-      const practices = await studentApi.getUnitPractice();
-      set({ practices });
+  const set = useCallback(
+    (updater: Partial<UnitPracticeState> | ((prev: UnitPracticeState) => Partial<UnitPracticeState>)) => {
+      setState((prev) => {
+        const partial = typeof updater === "function" ? updater(prev) : updater;
+        return { ...prev, ...partial };
+      });
     },
+    []
+  );
 
-    createPractice: async (textbookId: number, unitId: number) => {
-      // 如果正在进行中，不重复提交
-      if (get().loading) return;
+  const clearPolling = useCallback(() => {
+    if (pollingTimerRef.current) {
+      clearTimeout(pollingTimerRef.current);
+      pollingTimerRef.current = null;
+    }
+    pollingCountRef.current = 0;
+  }, []);
+
+  const pollTaskStatus = useCallback(
+    async (taskId: string) => {
+      pollingCountRef.current++;
+
+      if (pollingCountRef.current > MAX_POLLING_COUNT) {
+        clearPolling();
+        set({ loading: false, taskStatus: "FAILURE" });
+        toast.error("练习生成超时，请稍后重试");
+        return;
+      }
+
+      try {
+        const status = await studentApi.getPracticeTaskStatus(taskId);
+        set({ taskStatus: status });
+
+        switch (status) {
+          case "SUCCESS":
+            clearPolling();
+            set({ loading: false });
+            await queryPractices();
+            closeConfirmModal();
+            toast.success("练习生成成功");
+            break;
+          case "FAILURE":
+            clearPolling();
+            set({ loading: false });
+            toast.error("练习生成失败");
+            break;
+          case "REVOKED":
+            clearPolling();
+            set({ loading: false });
+            toast.info("任务已取消");
+            break;
+          case "PENDING":
+          case "STARTED":
+          case "RETRY":
+            pollingTimerRef.current = setTimeout(() => {
+              pollTaskStatus(taskId);
+            }, POLLING_INTERVAL);
+            break;
+        }
+      } catch (error) {
+        console.error("轮询任务状态失败:", error);
+        pollingTimerRef.current = setTimeout(() => {
+          pollTaskStatus(taskId);
+        }, POLLING_INTERVAL);
+      }
+    },
+    [clearPolling, set]
+  );
+
+  const queryPractices = useCallback(async () => {
+    const practices = await studentApi.getUnitPractice();
+    set({ practices });
+  }, [set]);
+
+  const createPractice = useCallback(
+    async (textbookId: number, unitId: number) => {
+      if (state.loading) return;
 
       try {
         set({ loading: true, taskStatus: "PENDING" });
         clearPolling();
 
-        // 提交创建任务
         const taskId = await studentApi.createPractice({
           type: "unit_practice",
           textbook_id: textbookId,
@@ -151,8 +154,7 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
         });
 
         if (taskId) {
-          // 开始轮询任务状态
-          pollingCount = 0;
+          pollingCountRef.current = 0;
           pollTaskStatus(taskId);
         } else {
           throw new Error("未获取到任务ID");
@@ -163,10 +165,11 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
         toast.error("创建练习失败");
       }
     },
+    [clearPolling, pollTaskStatus, set, state.loading]
+  );
 
-    // 打开知识点弹窗
-    openKnowledgeModal: async (unit: Unit) => {
-      // 先显示弹窗，设置加载状态
+  const openKnowledgeModal = useCallback(
+    async (unit: Unit) => {
       set({
         knowledgeModal: {
           open: true,
@@ -177,7 +180,6 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
       });
 
       try {
-        // 调用接口获取单元知识点
         const knowledges = await studentApi.getUnitKnowledge(unit.id);
         set({
           knowledgeModal: {
@@ -189,7 +191,6 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
         });
       } catch (error) {
         console.error("Failed to load knowledges:", error);
-        // 加载失败，显示空列表
         set({
           knowledgeModal: {
             open: true,
@@ -200,19 +201,20 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
         });
       }
     },
+    [set]
+  );
 
-    // 关闭知识点弹窗
-    closeKnowledgeModal: () => {
-      set((state) => ({
-        knowledgeModal: {
-          ...state.knowledgeModal,
-          open: false,
-        },
-      }));
-    },
+  const closeKnowledgeModal = useCallback(() => {
+    set((prev) => ({
+      knowledgeModal: {
+        ...prev.knowledgeModal,
+        open: false,
+      },
+    }));
+  }, [set]);
 
-    // 打开练习弹窗
-    openConfirmModal: (unit: Unit) => {
+  const openConfirmModal = useCallback(
+    (unit: Unit) => {
       set({
         confirmModal: {
           open: true,
@@ -222,22 +224,61 @@ export const useUnitPracticeStore = create<UnitPracticeStoreState>((set, get) =>
         },
       });
     },
+    [set]
+  );
 
-    // 关闭练习弹窗
-    closeConfirmModal: () => {
-      // 如果正在加载中，清理轮询
-      if (get().loading) {
-        clearPolling();
-        set({ loading: false, taskStatus: null });
-      }
-      set({
-        confirmModal: {
-          open: false,
-          unitId: 0,
-          unitName: "",
-          textbookId: 0,
-        },
-      });
-    },
-  };
-});
+  const closeConfirmModal = useCallback(() => {
+    if (state.loading) {
+      clearPolling();
+      set({ loading: false, taskStatus: null });
+    }
+    set({
+      confirmModal: {
+        open: false,
+        unitId: 0,
+        unitName: "",
+        textbookId: 0,
+      },
+    });
+  }, [clearPolling, set, state.loading]);
+
+  useEffect(() => {
+    return () => {
+      clearPolling();
+    };
+  }, [clearPolling]);
+
+  return useMemo(
+    () => ({
+      ...state,
+      openKnowledgeModal,
+      closeKnowledgeModal,
+      openConfirmModal,
+      closeConfirmModal,
+      queryPractices,
+      createPractice,
+    }),
+    [
+      closeConfirmModal,
+      closeKnowledgeModal,
+      createPractice,
+      openConfirmModal,
+      openKnowledgeModal,
+      queryPractices,
+      state,
+    ]
+  );
+}
+
+const UnitPracticeStore = createContainer(useUnitPracticeStoreInternal);
+
+type UseUnitPracticeStore = {
+  (): UnitPracticeStoreValue;
+  <T>(selector: (state: UnitPracticeStoreValue) => T): T;
+};
+
+export const UnitPracticeProvider = UnitPracticeStore.Provider;
+export const useUnitPracticeStore: UseUnitPracticeStore = ((selector?: (state: UnitPracticeStoreValue) => unknown) => {
+  const store = UnitPracticeStore.useContainer();
+  return selector ? selector(store) : store;
+}) as UseUnitPracticeStore;

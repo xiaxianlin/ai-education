@@ -4,4 +4,4 @@
  */
 
 // 导入全局类型声明（使类型全局可用）
-import "./global";
+import "./global.d.ts";

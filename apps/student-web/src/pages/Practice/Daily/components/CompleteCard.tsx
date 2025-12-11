@@ -49,7 +49,7 @@ export const CompleteCard: FC<CompleteCardProps> = ({
           className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
         >
           <Play className="h-5 w-5 mr-2" fill="currentColor" />
-          {isCompleted ? "查看结果" : "继续练习"}
+          {isCompleted ? "查看报告" : "继续练习"}
         </Button>
       </div>
     </div>

@@ -1,8 +1,9 @@
 /**
  * 练习会话状态管理 Store
- * 使用 zustand 管理练习会话的所有状态和业务逻辑
+ * 使用 unstated-next 管理练习会话的所有状态和业务逻辑
  */
-import { create } from "zustand";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContainer } from "unstated-next";
 import { studentApi } from "@/lib/api";
 
 /**
@@ -17,7 +18,7 @@ interface UploadRecordingResult {
   analysis: string;
 }
 
-interface SessionStoreState {
+interface SessionState {
   // ===== 状态 =====
   loading: boolean;
   session: PracticeSession | null;
@@ -30,8 +31,9 @@ interface SessionStoreState {
   startTime: number; // 当前题目开始时间（毫秒时间戳）
   submitting: boolean;
   report: PracticeReport | null;
+}
 
-  // ===== Actions =====
+interface SessionStoreValue extends SessionState {
   loadSession: (sessionId: number) => Promise<void>;
   beginPractice: () => Promise<void>;
   setAnswer: (questionId: number, answer: string) => void;
@@ -44,7 +46,7 @@ interface SessionStoreState {
   reset: () => void;
 }
 
-const initialState = {
+const initialState: SessionState = {
   loading: true,
   session: null,
   questions: [],
@@ -58,122 +60,132 @@ const initialState = {
   report: null,
 };
 
-export const useSessionStore = create<SessionStoreState>((set, get) => ({
-  ...initialState,
+function useSessionStoreInternal(): SessionStoreValue {
+  const [state, setState] = useState<SessionState>(initialState);
+  const stateRef = useRef<SessionState>(state);
 
-  /**
-   * 加载会话详情
-   */
-  loadSession: async (sessionId: number) => {
-    try {
-      set({ loading: true });
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
-      const detail = await studentApi.getSessionDetail(sessionId);
-      const { session, questions, answers, report } = detail;
-
-      // 恢复已提交的答案
-      const restoredAnswers: Record<number, string> = {};
-      const restoredAudioAnswers: Record<number, string> = {};
-      const restoredStatus: Record<number, AnswerStatus> = {};
-
-      if (answers && answers.length > 0) {
-        answers.forEach((answer: PracticeAnswer) => {
-          if (answer.text_answer) {
-            restoredAnswers[answer.question_id] = answer.text_answer;
-          }
-          if (answer.audio_answer) {
-            restoredAudioAnswers[answer.question_id] = answer.audio_answer;
-          }
-          if (answer.status !== undefined) {
-            restoredStatus[answer.question_id] = answer.status as AnswerStatus;
-          }
-        });
-      }
-
-      // 找到第一个未回答的题目
-      let firstUnansweredIndex = 0;
-      if (questions && questions.length > 0) {
-        const index = questions.findIndex((q: Question) => {
-          const questionId = typeof q.id === "string" ? parseInt(q.id, 10) : q.id;
-          return restoredStatus[questionId] === undefined || restoredStatus[questionId] === 0;
-        });
-        if (index !== -1) {
-          firstUnansweredIndex = index;
-        }
-      }
-
-      set({
-        session,
-        questions: questions || [],
-        userAnswers: restoredAnswers,
-        audioAnswers: restoredAudioAnswers,
-        answerStatus: restoredStatus,
-        currentQuestionIndex: firstUnansweredIndex,
-        report: report || null,
-        startTime: Date.now(),
-        loading: false,
+  const set = useCallback(
+    (updater: Partial<SessionState> | ((prev: SessionState) => Partial<SessionState>)) => {
+      setState((prev) => {
+        const partial = typeof updater === "function" ? updater(prev) : updater;
+        const next = { ...prev, ...partial };
+        stateRef.current = next;
+        return next;
       });
-    } catch (error) {
-      console.error("Failed to load session:", error);
-      set({ loading: false });
-      throw error;
-    }
-  },
+    },
+    []
+  );
 
-  /**
-   * 开始练习
-   */
-  beginPractice: async () => {
-    const { session } = get();
-    if (!session) {
+  const get = useCallback(() => stateRef.current, []);
+
+  const loadSession = useCallback(
+    async (sessionId: number) => {
+      try {
+        set({ loading: true });
+
+        const detail = await studentApi.getSessionDetail(sessionId);
+        const { session, questions, answers, report } = detail;
+
+        const restoredAnswers: Record<number, string> = {};
+        const restoredAudioAnswers: Record<number, string> = {};
+        const restoredStatus: Record<number, AnswerStatus> = {};
+
+        if (answers && answers.length > 0) {
+          answers.forEach((answer: PracticeAnswer) => {
+            if (answer.text_answer) {
+              restoredAnswers[answer.question_id] = answer.text_answer;
+            }
+            if (answer.audio_answer) {
+              restoredAudioAnswers[answer.question_id] = answer.audio_answer;
+            }
+            if (answer.status !== undefined) {
+              restoredStatus[answer.question_id] = answer.status as AnswerStatus;
+            }
+          });
+        }
+
+        let firstUnansweredIndex = 0;
+        if (questions && questions.length > 0) {
+          const index = questions.findIndex((q: Question) => {
+            const questionId = typeof q.id === "string" ? parseInt(q.id, 10) : q.id;
+            return restoredStatus[questionId] === undefined || restoredStatus[questionId] === 0;
+          });
+          if (index !== -1) {
+            firstUnansweredIndex = index;
+          }
+        }
+
+        set({
+          session,
+          questions: questions || [],
+          userAnswers: restoredAnswers,
+          audioAnswers: restoredAudioAnswers,
+          answerStatus: restoredStatus,
+          currentQuestionIndex: firstUnansweredIndex,
+          report: report || null,
+          startTime: Date.now(),
+          loading: false,
+        });
+      } catch (error) {
+        console.error("Failed to load session:", error);
+        set({ loading: false });
+        throw error;
+      }
+    },
+    [set]
+  );
+
+  const beginPractice = useCallback(async () => {
+    const currentSession = get().session;
+    if (!currentSession) {
       throw new Error("会话不存在");
     }
 
-    await studentApi.beginPractice(session.id);
-    // 重新加载会话以获取最新状态
-    await get().loadSession(session.id);
-  },
+    await studentApi.beginPractice(currentSession.id);
+    await loadSession(currentSession.id);
+  }, [get, loadSession]);
 
-  /**
-   * 设置文本答案
-   */
-  setAnswer: (questionId: number, answer: string) => {
-    set((state) => ({
-      userAnswers: {
-        ...state.userAnswers,
-        [questionId]: answer,
-      },
-    }));
-  },
+  const setAnswer = useCallback(
+    (questionId: number, answer: string) => {
+      set((prev) => ({
+        userAnswers: {
+          ...prev.userAnswers,
+          [questionId]: answer,
+        },
+      }));
+    },
+    [set]
+  );
 
-  /**
-   * 设置音频答案（OSS 路径）
-   */
-  setAudioAnswer: (questionId: number, audioOssPath: string) => {
-    set((state) => ({
-      audioAnswers: {
-        ...state.audioAnswers,
-        [questionId]: audioOssPath,
-      },
-    }));
-  },
+  const setAudioAnswer = useCallback(
+    (questionId: number, audioOssPath: string) => {
+      set((prev) => ({
+        audioAnswers: {
+          ...prev.audioAnswers,
+          [questionId]: audioOssPath,
+        },
+      }));
+    },
+    [set]
+  );
 
-  /**
-   * 设置音频理解分析结果
-   */
-  setAudioAnalysis: (questionId: number, analysis: UploadRecordingResult) => {
-    set((state) => ({
-      audioAnalysis: {
-        ...state.audioAnalysis,
-        [questionId]: analysis,
-      },
-    }));
-  },
+  const setAudioAnalysis = useCallback(
+    (questionId: number, analysis: UploadRecordingResult) => {
+      set((prev) => ({
+        audioAnalysis: {
+          ...prev.audioAnalysis,
+          [questionId]: analysis,
+        },
+      }));
+    },
+    [set]
+  );
 
-  /**
-   * 提交当前题目答案
-   */
-  submitCurrentAnswer: async () => {
+  const submitCurrentAnswer = useCallback(async () => {
     const { session, questions, currentQuestionIndex, userAnswers, audioAnswers, startTime } = get();
 
     if (!session || !questions || questions.length === 0) {
@@ -189,7 +201,6 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
     const answer = userAnswers[questionId];
     const audioOssPath = audioAnswers[questionId];
 
-    // 验证答案
     if (currentQuestion.type === "口语题" && !audioOssPath) {
       throw new Error("请先录音");
     }
@@ -216,26 +227,24 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         throw new Error("提交答案失败：服务器未返回结果");
       }
 
-      // 更新答案状态
-      set((state) => {
+      set((prev) => {
         const progress = (result as any)?.session_progress;
 
         return {
           answerStatus: {
-            ...state.answerStatus,
+            ...prev.answerStatus,
             [questionId]: result.is_correct ? 1 : (2 as AnswerStatus),
           },
-          // 如果后端返回了会话进度，则同步更新会话统计；否则保持原有会话数据
           session:
-            state.session && progress
+            prev.session && progress
               ? {
-                  ...state.session,
+                  ...prev.session,
                   answer_count: progress.answer_count,
                   correct_count: progress.correct_count,
                   status: progress.status,
                 }
-              : state.session,
-          startTime: Date.now(), // 重置开始时间
+              : prev.session,
+          startTime: Date.now(),
         };
       });
 
@@ -246,12 +255,9 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
     } finally {
       set({ submitting: false });
     }
-  },
+  }, [get, set]);
 
-  /**
-   * 上一题
-   */
-  goPrev: () => {
+  const goPrev = useCallback(() => {
     const { currentQuestionIndex } = get();
     if (currentQuestionIndex > 0) {
       set({
@@ -259,12 +265,9 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         startTime: Date.now(),
       });
     }
-  },
+  }, [get, set]);
 
-  /**
-   * 下一题
-   */
-  goNext: () => {
+  const goNext = useCallback(() => {
     const { currentQuestionIndex, questions } = get();
     if (currentQuestionIndex < questions.length - 1) {
       set({
@@ -272,29 +275,64 @@ export const useSessionStore = create<SessionStoreState>((set, get) => ({
         startTime: Date.now(),
       });
     }
-  },
+  }, [get, set]);
 
-  /**
-   * 完成练习
-   */
-  completePractice: async () => {
-    const { session } = get();
-    if (!session) {
+  const completePractice = useCallback(async () => {
+    const currentSession = get().session;
+    if (!currentSession) {
       throw new Error("会话不存在");
     }
 
-    await studentApi.completePractice(session.id);
-    // 重新加载会话以获取报告
-    await get().loadSession(session.id);
-  },
+    await studentApi.completePractice(currentSession.id);
+    await loadSession(currentSession.id);
+  }, [get, loadSession]);
 
-  /**
-   * 重置状态
-   */
-  reset: () => {
+  const reset = useCallback(() => {
     set(initialState);
-  },
-}));
+  }, [set]);
+
+  return useMemo(
+    () => ({
+      ...state,
+      loadSession,
+      beginPractice,
+      setAnswer,
+      setAudioAnswer,
+      setAudioAnalysis,
+      submitCurrentAnswer,
+      goPrev,
+      goNext,
+      completePractice,
+      reset,
+    }),
+    [
+      beginPractice,
+      completePractice,
+      goNext,
+      goPrev,
+      loadSession,
+      setAnswer,
+      setAudioAnalysis,
+      setAudioAnswer,
+      state,
+      submitCurrentAnswer,
+      reset,
+    ]
+  );
+}
+
+const SessionStore = createContainer(useSessionStoreInternal);
+
+type UseSessionStore = {
+  (): SessionStoreValue;
+  <T>(selector: (state: SessionStoreValue) => T): T;
+};
+
+export const SessionProvider = SessionStore.Provider;
+export const useSessionStore: UseSessionStore = ((selector?: (state: SessionStoreValue) => unknown) => {
+  const store = SessionStore.useContainer();
+  return selector ? selector(store) : store;
+}) as UseSessionStore;
 
 /**
  * Selectors - 派生状态
