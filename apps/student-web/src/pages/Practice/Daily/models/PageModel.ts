@@ -1,16 +1,12 @@
-import { useProfileModel } from "./ProfileModel";
 import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
 import { createContainer } from "unstated-next";
+import { useProfileModel } from "@/models/ProfileModel";
 
-const usePageModel = () => {
+const useContainer = () => {
   const { activeTextbooks, subjects } = useProfileModel();
 
-  const {
-    data: practices = [],
-    loading,
-    refresh,
-  } = useRequest(studentApi.getDailyPractice.bind(studentApi));
+  const { data: practices = [], loading, refresh } = useRequest(studentApi.getDailyPractice.bind(studentApi));
 
   const getPracticesBySubject = (subject: string) => {
     const textbooks = activeTextbooks.filter((t) => t.subject === subject);
@@ -30,5 +26,5 @@ const usePageModel = () => {
   };
 };
 
-export const PageModel = createContainer(usePageModel);
+export const PageModel = createContainer(useContainer);
 export const usePageModel = PageModel.useContainer;
