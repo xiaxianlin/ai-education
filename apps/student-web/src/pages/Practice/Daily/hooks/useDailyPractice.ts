@@ -8,9 +8,7 @@ export const useDailyPractice = (textbookId: number) => {
   const [taskId, setTaskId] = useState<string>("");
   const [status, setStatus] = useState<PracticeStatus>(PracticeStatus.WAIT);
   /** 获取每日练习 */
-  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId), {
-    manual: true,
-  });
+  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId));
 
   /** 轮询任务状态 */
   const { cancel } = useRequest(() => studentApi.getPracticeTaskStatus(taskId), {

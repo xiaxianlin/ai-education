@@ -1,21 +1,13 @@
+import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { PracticeCardProps } from "./types";
+import { PracticeStatus } from "@/pages/Practice/constants";
 import { useNavigate } from "react-router-dom";
 
-interface PracticingCardProps {
-  session: PracticeSession;
-  textbookTitle: string;
-}
-
-export const PracticingCard = ({
-  session,
-  textbookTitle,
-}: PracticingCardProps) => {
+export function PracticingCard({ practice, textbook, status }: PracticeCardProps) {
   const navigate = useNavigate();
-  const { question_count, answer_count, correct_count, status } = session;
-  const isInProgress = status === 1;
-
-  const goPractice = () => navigate(`/practice/session/${session.id}`);
+  const isInProgress = status === PracticeStatus.PRACTICING;
+  const { question_count, answer_count, correct_count } = practice || {};
 
   return (
     <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
@@ -24,13 +16,13 @@ export const PracticingCard = ({
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <div className="text-4xl">{isInProgress ? "📝" : "✨"}</div>
-            <h3 className="text-2xl font-bold text-foreground">{textbookTitle}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{textbook.subject}</h3>
           </div>
           <div className="text-center space-y-2">
             <p className="text-base text-muted-foreground">
               {isInProgress
-                ? "正在练习中，随时可以继续完成剩余题目。"
-                : "练习已准备完成，随时可以开始答题。"}
+                ? "正在评估中，随时可以继续完成剩余题目。"
+                : "评估已准备完成，随时可以开始答题。"}
             </p>
             <p className="text-base text-muted-foreground font-medium">
               ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
@@ -40,25 +32,14 @@ export const PracticingCard = ({
 
         <div className="flex gap-3">
           <Button
-            variant="outline"
-            size="lg"
-            onClick={goPractice}
-            className="flex-1 h-14 rounded-2xl font-semibold"
-          >
-            <Play className="h-5 w-5 mr-2" fill="currentColor" />
-            {isInProgress ? "继续练习" : "开始练习"}
-          </Button>
-          <Button
-            size="lg"
-            onClick={goPractice}
+            onClick={() => navigate(`/practice/session/${practice?.id}`)}
             className="flex-1 h-14 rounded-2xl font-semibold bg-primary hover:bg-primary/90"
           >
-            去练习
-            <ArrowRight className="h-5 w-5 ml-2" />
+            <Play className="h-5 w-5 mr-2" fill="currentColor" />
+            {isInProgress ? "继续评估" : "开始评估"}
           </Button>
         </div>
       </div>
     </div>
   );
-};
-
+}
