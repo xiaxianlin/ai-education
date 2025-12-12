@@ -58,7 +58,7 @@ class UnitPracticeGenerateService:
 
             # 召回历史题目（用于避免重复）
             recalled_questions = await RecallService.recall_for_unit_practice(
-                db, unit.id, student_id
+                db, unit.id
             )
 
             logger.info(

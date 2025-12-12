@@ -164,24 +164,14 @@ export function PracticeCard({ unit, textbook }: PracticeCardProps) {
   const cardClassName = useMemo(() => {
     const baseClass = "relative overflow-hidden rounded-3xl shadow-xl border-2 transition-all";
     if (status === PracticeStatus.PRACTICING || status === PracticeStatus.READY) {
-      return `${baseClass} bg-primary/10 border-primary/40 hover:border-primary/60`;
+      return `${baseClass} bg-accent/10 border-accent/40 hover:border-accent/60`;
     }
     return `${baseClass} bg-card border-primary/20 hover:border-primary/40`;
-  }, [status]);
-
-  // 计算背景装饰样式
-  const decorationClassName = useMemo(() => {
-    if (status === PracticeStatus.PRACTICING || status === PracticeStatus.READY) {
-      return "absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2";
-    }
-    return "absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2";
   }, [status]);
 
   return (
     <>
       <div className={cardClassName}>
-        {/* 背景装饰 */}
-        <div className={decorationClassName} />
         <div className="relative p-8 flex flex-col h-full mb-8">
           {/* 内容区域 */}
           <div className="flex-1 flex flex-col gap-6">
