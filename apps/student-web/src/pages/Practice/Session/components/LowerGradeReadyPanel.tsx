@@ -7,7 +7,7 @@ interface LowerGradePanelProps {
   onBegin: () => void;
 }
 
-export function LowerGradePanel({ title, total, onBegin }: LowerGradePanelProps) {
+export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelProps) {
   const navigate = useNavigate();
   const estimateMinutes = Math.max(5, Math.ceil(total * 0.5));
 

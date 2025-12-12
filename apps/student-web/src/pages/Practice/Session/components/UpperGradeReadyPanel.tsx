@@ -7,7 +7,7 @@ interface UpperGradePanelProps {
   onBegin: () => void;
 }
 
-export function UpperGradePanel({ title, total, onBegin }: UpperGradePanelProps) {
+export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelProps) {
   const navigate = useNavigate();
   const estimateMinutes = Math.max(5, Math.ceil(total * 0.5));
 

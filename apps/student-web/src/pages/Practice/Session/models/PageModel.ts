@@ -16,9 +16,8 @@ function useContainer() {
 
   const [panel, setPanel] = useState<PanelType>(PanelType.LOADING);
   const [step, { inc: next, dec: prev, set: setStep }] = useCounter(0);
-  const [answer, setAnswer] = useState<AnswerRequest>();
 
-  const { data, error, refresh } = useRequest(() => studentApi.getSessionDetail(sessionId), {
+  const { data, refresh } = useRequest(() => studentApi.getSessionDetail(sessionId), {
     ready: !!sessionId,
   });
 
@@ -39,14 +38,17 @@ function useContainer() {
       refresh();
     },
   });
-  const { run: submitAnswer } = useRequest(() => studentApi.submitAnswer(answer!), {
-    ready: !!answer,
+  const { run: submitAnswer } = useRequest((answer: AnswerRequest) => studentApi.submitAnswer(answer!), {
     manual: true,
   });
 
   const title = useMemo(() => {
     return getPracticeTypeName(session?.session_type);
   }, [session?.session_type]);
+
+  const handleSubmit = () => {
+    // submitAnswer();
+  };
 
   // 初始化面板类型
   useEffect(() => {
@@ -62,12 +64,14 @@ function useContainer() {
     answers,
     questions,
     step,
+    question: questions[step],
+    answer: answers[step],
     next,
     prev,
     setStep,
     begin,
     complete,
-    submitAnswer,
+    handleSubmit,
   };
 }
 
