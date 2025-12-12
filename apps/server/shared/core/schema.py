@@ -220,7 +220,7 @@ class PracticeReportSchema(BaseModel):
 class PracticeDetailSchema(BaseModel):
     session: PracticeSessionSchema
     answers: list[PracticeAnswerSchema]
-    report: PracticeReportSchema
+    report: Optional[PracticeReportSchema] = None
     wrong_records: list[PracticeWrongRecordSchema]
 
     model_config = {"from_attributes": True}

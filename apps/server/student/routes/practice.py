@@ -14,33 +14,27 @@ from student.schema import (
     PracticeSubmitParams,
     PracticeType,
 )
-from student.services import answer, practice
+from student.services import answer, practice, practice_generate
 
 practice_router = APIRouter(prefix="/practice")
 
 
 @practice_router.get("/daily/{textbook_id}")
-async def get_daily_practice(
-    textbook_id: int, request: Request, db: AsyncSession = Database
-):
+async def get_daily_practice(textbook_id: int, request: Request, db: AsyncSession = Database):
     """获取每日练习信息"""
     student = request.state.student
     return await practice.get_daily_practice(db, student.id, textbook_id)
 
 
 @practice_router.get("/unit/{unit_id}")
-async def get_unit_practice(
-    unit_id: int, request: Request, db: AsyncSession = Database
-):
+async def get_unit_practice(unit_id: int, request: Request, db: AsyncSession = Database):
     """获取单元练习信息"""
     student = request.state.student
     return await practice.get_unit_practice(db, student.id, unit_id)
 
 
 @practice_router.get("/assessment/{textbook_id}")
-async def get_assessment(
-    textbook_id: int, request: Request, db: AsyncSession = Database
-):
+async def get_assessment(textbook_id: int, request: Request, db: AsyncSession = Database):
     """获取能力评估信息"""
     student = request.state.student
     return await practice.get_assessment(db, student.id, textbook_id)
@@ -63,6 +57,21 @@ async def create_practice(request: Request, params: CreatePracticeSchema):
     )
 
     return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
+
+
+@practice_router.post("/immediately_create")
+async def create_practice_immediately(
+    request: Request, params: CreatePracticeSchema, db: AsyncSession = Database
+):
+    """立即创建练习会话"""
+    student = request.state.student
+    return await practice_generate.generate_practice_session(
+        db=db,
+        type=params.type.value,
+        student_id=student.id,
+        textbook_id=params.textbook_id,
+        unit_id=params.unit_id,
+    )
 
 
 @practice_router.get("/task/{task_id}/status")
@@ -98,18 +107,14 @@ async def get_session_detail(
 
 
 @practice_router.get("/history/{type}")
-async def get_practice_history(
-    type: PracticeType, request: Request, db: AsyncSession = Database
-):
+async def get_practice_history(type: PracticeType, request: Request, db: AsyncSession = Database):
     """根据类型获取最近 30 条练习记录，type 可选值：daily_practice/unit_practice/assessment"""
     student = request.state.student
     return await practice.get_practice_history(db, student.id, type.value, limit=30)
 
 
 @practice_router.post("/{session_id}/begin")
-async def begin_practice_session(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
+async def begin_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """开始练习"""
     # 获取当前学生信息
     student = request.state.student
@@ -130,9 +135,7 @@ async def answer_question(
 
 
 @practice_router.post("/{session_id}/complete")
-async def complete_practice_session(
-    session_id: int, request: Request, db: AsyncSession = Database
-):
+async def complete_practice_session(session_id: int, request: Request, db: AsyncSession = Database):
     """完成练习，生成练习报告"""
     # 获取当前学生信息
     student = request.state.student

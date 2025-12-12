@@ -6,7 +6,6 @@ from shared.utils.time import now, today
 from shared.core.constants import GENERATE_QUESTION_COUNT
 from shared.core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
 from ai.question_generate import invoke_generate_workflow
-from student.schema import PracticeSubmitParams
 
 
 async def create_answer_records(db: AsyncSession, session_id: int, questions: list[Question]):

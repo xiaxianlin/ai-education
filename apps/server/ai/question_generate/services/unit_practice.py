@@ -38,7 +38,7 @@ class UnitPracticeGenerateService:
         """验证单元练习的状态参数"""
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
-        
+
         if state.get("unit") is None:
             raise ValueError("单元 (unit) 不能为空")
 
@@ -49,7 +49,6 @@ class UnitPracticeGenerateService:
             db: AsyncSession = state["db"]
             unit: Unit = state["unit"]
             textbook: Textbook = state["textbook"]
-            student_id: str = state["student_id"]
 
             knowledge_rows = await db.scalars(
                 select(Knowledge).where(Knowledge.unit_id == unit.id).order_by(Knowledge.id)
@@ -57,9 +56,7 @@ class UnitPracticeGenerateService:
             knowledges = [k.name for k in knowledge_rows.all()]
 
             # 召回历史题目（用于避免重复）
-            recalled_questions = await RecallService.recall_for_unit_practice(
-                db, unit.id
-            )
+            recalled_questions = await RecallService.recall_for_unit_practice(db, unit.id)
 
             logger.info(
                 f"✓ 单元练习数据加载完成: unit_id={unit.id}, unit_name={unit.name}, "
@@ -81,4 +78,3 @@ class UnitPracticeGenerateService:
     def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建单元练习的 Prompt"""
         return build_unit_practice_prompt(state)
-
