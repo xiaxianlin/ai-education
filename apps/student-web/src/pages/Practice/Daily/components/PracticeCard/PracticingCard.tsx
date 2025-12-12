@@ -16,7 +16,7 @@ export function PracticingCard({ practice, textbook, status }: PracticeCardProps
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <div className="text-4xl">{isInProgress ? "📝" : "✨"}</div>
-            <h3 className="text-2xl font-bold text-foreground">{textbook.subject}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{textbook.semester}</h3>
           </div>
           <div className="text-center space-y-2">
             <p className="text-base text-muted-foreground">

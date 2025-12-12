@@ -25,11 +25,14 @@ export function MainView() {
       {/* 主体：按学科分组的练习卡片 */}
       <SubjectTabs className="my-2">
         {(subject) => {
-          const textbook = textbooks[subject];
           return (
             <div key={subject} className="space-y-4">
               <div className="grid grid-cols-2 gap-5">
-                <PracticeCard key={textbook.id} textbook={textbook} />
+                {textbooks
+                  .filter((t) => t.subject === subject)
+                  .map((t) => (
+                    <PracticeCard key={t.id} textbook={t} />
+                  ))}
               </div>
             </div>
           );

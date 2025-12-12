@@ -17,23 +17,12 @@ const useContainer = () => {
       });
   }, [data]);
 
-  const activeTextbooksMap = useMemo<Record<string, Textbook>>(() => {
-    return activeTextbooks.reduce(
-      (acc, textbook) => {
-        acc[textbook.subject] = textbook;
-        return acc;
-      },
-      {} as Record<string, Textbook>,
-    );
-  }, [activeTextbooks]);
-
   return {
     loading,
     student: data?.student,
     textbooks: data?.textbooks || [],
     subjects: uniq(data?.textbooks?.map((t) => t.subject) ?? []),
     activeTextbooks,
-    activeTextbooksMap,
   };
 };
 

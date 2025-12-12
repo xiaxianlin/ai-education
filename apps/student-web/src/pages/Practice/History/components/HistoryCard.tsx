@@ -48,29 +48,19 @@ function getStatusInfo(status: PracticeSessionStatus) {
 export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
   const navigate = useNavigate();
 
-  const {
-    id,
-    session_type,
-    question_count,
-    answer_count,
-    correct_count,
-    status,
-    create_time,
-    start_time,
-    end_time,
-  } = session;
+  const { id, session_type, question_count, answer_count, correct_count, status, create_time, start_time, end_time } =
+    session;
 
   const isCompleted = status === 2;
   const isInProgress = status === 1;
-  const accuracy =
-    answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0;
+  const accuracy = answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0;
 
   const statusInfo = getStatusInfo(status);
   const timeText = end_time
     ? formatDateTime(end_time)
     : start_time
-    ? formatDateTime(start_time)
-    : formatRelativeTime(create_time);
+      ? formatDateTime(start_time)
+      : formatRelativeTime(create_time);
 
   const handleViewDetail = () => {
     navigate(`/practice/detail/${id}`);
@@ -106,21 +96,15 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
           {/* 统计信息 */}
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
-              <div className="text-xl font-bold text-foreground">
-                {question_count}
-              </div>
+              <div className="text-xl font-bold text-foreground">{question_count}</div>
               <div className="text-xs text-muted-foreground mt-0.5">总题数</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-primary">
-                {answer_count}
-              </div>
+              <div className="text-xl font-bold text-primary">{answer_count}</div>
               <div className="text-xs text-muted-foreground mt-0.5">已答题</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {correct_count}
-              </div>
+              <div className="text-xl font-bold text-green-600 dark:text-green-400">{correct_count}</div>
               <div className="text-xs text-muted-foreground mt-0.5">正确数</div>
             </div>
           </div>
@@ -128,9 +112,7 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
           {/* 正确率 */}
           {answer_count > 0 && (
             <div className="bg-primary/10 rounded-lg p-2 text-center">
-              <div className="text-sm font-semibold text-primary">
-                正确率: {accuracy}%
-              </div>
+              <div className="text-sm font-semibold text-primary">正确率: {accuracy}%</div>
             </div>
           )}
 
@@ -139,19 +121,14 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
             {isCompleted && end_time
               ? `完成: ${timeText}`
               : isInProgress && start_time
-              ? `开始: ${timeText}`
-              : `创建: ${timeText}`}
+                ? `开始: ${timeText}`
+                : `创建: ${timeText}`}
           </div>
         </div>
 
         {/* 操作按钮 */}
         <div className="flex gap-2 pt-2 mt-auto">
-          <Button
-            variant="outline"
-            onClick={handleViewDetail}
-            className="flex-1 text-xs h-8"
-            size="sm"
-          >
+          <Button variant="outline" onClick={handleViewDetail} className="flex-1 text-xs h-8" size="sm">
             <Eye className="h-3 w-3 mr-1" />
             详情
           </Button>
@@ -166,4 +143,3 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
     </Card>
   );
 };
-

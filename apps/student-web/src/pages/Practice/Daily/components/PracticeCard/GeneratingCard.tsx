@@ -14,7 +14,7 @@ export function GeneratingCard({ textbook }: PracticeCardProps) {
             <div className="text-4xl animate-bounce" style={{ animationDuration: "1.5s" }}>
               ⚡
             </div>
-            <h3 className="text-2xl font-bold text-foreground">{textbook.subject}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{textbook.semester}</h3>
           </div>
           <p className="text-base text-muted-foreground text-center">AI 正在为你精心准备今日练习题目，请稍候片刻～</p>
         </div>

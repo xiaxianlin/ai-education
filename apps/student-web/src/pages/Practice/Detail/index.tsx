@@ -14,7 +14,6 @@ import { formatDateTime } from "@/utils/time";
 import { ArrowLeft, Play } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 /**
  * 获取练习类型名称
  */
@@ -57,13 +56,10 @@ export default function PracticeDetail() {
     data: detail,
     loading,
     error,
-  } = useRequest(
-    () => studentApi.getSessionDetail(sessionIdNum),
-    {
-      ready: !!sessionIdNum,
-      refreshDeps: [sessionIdNum],
-    }
-  );
+  } = useRequest(() => studentApi.getSessionDetail(sessionIdNum), {
+    ready: !!sessionIdNum,
+    refreshDeps: [sessionIdNum],
+  });
 
   if (loading) {
     return (
@@ -92,9 +88,7 @@ export default function PracticeDetail() {
         <CardContent className="py-10 px-6 text-center space-y-3">
           <div className="text-5xl">❌</div>
           <p className="text-xl font-bold text-foreground">加载失败</p>
-          <p className="text-sm text-muted-foreground">
-            {error?.message || "无法加载练习详情"}
-          </p>
+          <p className="text-sm text-muted-foreground">{error?.message || "无法加载练习详情"}</p>
           <Button onClick={() => navigate(-1)} variant="outline">
             返回
           </Button>
@@ -116,8 +110,8 @@ export default function PracticeDetail() {
 
   // 按题目顺序排序
   const sortedQuestions = [...(questions || [])].sort((a, b) => {
-    const answerA = answerMap.get(typeof a.id === 'string' ? parseInt(a.id, 10) : a.id);
-    const answerB = answerMap.get(typeof b.id === 'string' ? parseInt(b.id, 10) : b.id);
+    const answerA = answerMap.get(typeof a.id === "string" ? parseInt(a.id, 10) : a.id);
+    const answerB = answerMap.get(typeof b.id === "string" ? parseInt(b.id, 10) : b.id);
     const orderA = answerA?.question_order ?? 999;
     const orderB = answerB?.question_order ?? 999;
     return orderA - orderB;
@@ -147,9 +141,7 @@ export default function PracticeDetail() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">
-                  {getPracticeTypeName(session.session_type)}
-                </h1>
+                <h1 className="text-2xl font-bold text-foreground">{getPracticeTypeName(session.session_type)}</h1>
                 <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
               </div>
               {!isCompleted && (
@@ -163,32 +155,22 @@ export default function PracticeDetail() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <div className="text-muted-foreground">总题数</div>
-                <div className="text-lg font-semibold text-foreground">
-                  {session.question_count}
-                </div>
+                <div className="text-lg font-semibold text-foreground">{session.question_count}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">已答题</div>
-                <div className="text-lg font-semibold text-primary">
-                  {session.answer_count}
-                </div>
+                <div className="text-lg font-semibold text-primary">{session.answer_count}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">正确数</div>
-                <div className="text-lg font-semibold text-green-600 dark:text-green-400">
-                  {session.correct_count}
-                </div>
+                <div className="text-lg font-semibold text-green-600 dark:text-green-400">{session.correct_count}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">
                   {isCompleted ? "完成时间" : isInProgress ? "开始时间" : "创建时间"}
                 </div>
                 <div className="text-sm font-medium text-foreground">
-                  {formatDateTime(
-                    session.end_time ||
-                    session.start_time ||
-                    session.create_time
-                  )}
+                  {formatDateTime(session.end_time || session.start_time || session.create_time)}
                 </div>
               </div>
             </div>
@@ -197,9 +179,7 @@ export default function PracticeDetail() {
       </Card>
 
       {/* 报告摘要（如果已完成） */}
-      {isCompleted && report && (
-        <ReportSummary report={report} sessionType={session.session_type} />
-      )}
+      {isCompleted && report && <ReportSummary report={report} sessionType={session.session_type} />}
 
       {/* 题目列表 */}
       <div className="space-y-4">
@@ -209,23 +189,14 @@ export default function PracticeDetail() {
             <CardContent className="py-10 px-6 text-center space-y-3">
               <div className="text-5xl">📝</div>
               <p className="text-xl font-bold text-foreground">暂无题目</p>
-              <p className="text-sm text-muted-foreground">
-                该练习还没有题目
-              </p>
+              <p className="text-sm text-muted-foreground">该练习还没有题目</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedQuestions.map((question, index) => {
-              const answer = answerMap.get(typeof question.id === 'string' ? parseInt(question.id, 10) : question.id);
-              return (
-                <QuestionAnswerCard
-                  key={question.id}
-                  question={question}
-                  answer={answer}
-                  index={index}
-                />
-              );
+              const answer = answerMap.get(typeof question.id === "string" ? parseInt(question.id, 10) : question.id);
+              return <QuestionAnswerCard key={question.id} question={question} answer={answer} index={index} />;
             })}
           </div>
         )}

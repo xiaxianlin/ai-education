@@ -14,7 +14,7 @@ export function WaitCard({ textbook, onCreate, loading }: PracticeCardProps) {
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <div className="text-4xl">✨</div>
-            <h3 className="text-2xl font-bold text-foreground">{textbook.subject}</h3>
+            <h3 className="text-2xl font-bold text-foreground">{textbook.semester}</h3>
           </div>
           <p className="text-base text-muted-foreground text-center">
             还没有为这本教材创建综合评估，点击下方按钮，一键创建专属评测题目。

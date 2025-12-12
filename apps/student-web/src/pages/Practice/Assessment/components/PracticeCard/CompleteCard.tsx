@@ -18,13 +18,11 @@ export function CompleteCard({ practice, textbook, shouldCreate, onCreate, loadi
         <div className="flex-1 flex flex-col gap-6">
           <div className="flex items-center justify-center gap-2">
             <div className="text-4xl">🎉</div>
-            <h3 className="text-2xl font-bold text-foreground text-center">{textbook.subject}</h3>
+            <h3 className="text-2xl font-bold text-foreground text-center">{textbook.semester}</h3>
           </div>
 
           <div className="text-center space-y-2">
-            <p className="text-base text-muted-foreground">
-              综合评估已完成，可以查看详细报告了解你的学习情况。
-            </p>
+            <p className="text-base text-muted-foreground">综合评估已完成，可以查看详细报告了解你的学习情况。</p>
             <p className="text-base text-muted-foreground font-medium">
               ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
             </p>
@@ -61,7 +59,6 @@ export function CompleteCard({ practice, textbook, shouldCreate, onCreate, loadi
             查看报告
           </Button>
         </div>
-
       </div>
     </div>
   );

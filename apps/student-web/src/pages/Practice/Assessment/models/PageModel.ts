@@ -2,9 +2,9 @@ import { createContainer } from "unstated-next";
 import { useProfileModel } from "@/models/ProfileModel";
 
 const useContainer = () => {
-  const { activeTextbooksMap } = useProfileModel();
+  const { activeTextbooks } = useProfileModel();
 
-  return { textbooks: activeTextbooksMap };
+  return { textbooks: activeTextbooks };
 };
 
 export const PageModel = createContainer(useContainer);

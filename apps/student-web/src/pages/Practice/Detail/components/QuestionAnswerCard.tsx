@@ -52,11 +52,7 @@ function getAnswerStatusInfo(status?: number) {
   }
 }
 
-export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
-  question,
-  answer,
-  index,
-}) => {
+export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answer, index }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const status = answer?.status;
@@ -77,7 +73,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
           ? isCorrect
             ? "border-green-500/50 dark:border-green-400/50 hover:border-green-500/70 dark:hover:border-green-400/70 bg-green-50/30 dark:bg-green-950/10"
             : "border-red-500/50 dark:border-red-400/50 hover:border-red-500/70 dark:hover:border-red-400/70 bg-red-50/30 dark:bg-red-950/10"
-          : "border-border hover:border-primary/40 hover:bg-primary/5"
+          : "border-border hover:border-primary/40 hover:bg-primary/5",
       )}
     >
       <CardContent className="relative z-10 p-5 flex flex-col h-full">
@@ -88,16 +84,10 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
             <div
               className={cn(
                 "p-2.5 rounded-xl shadow-sm flex-shrink-0",
-                hasAnswer
-                  ? isCorrect
-                    ? "bg-green-500"
-                    : "bg-red-500"
-                  : "bg-primary"
+                hasAnswer ? (isCorrect ? "bg-green-500" : "bg-red-500") : "bg-primary",
               )}
             >
-              <span className="text-xl font-bold text-white">
-                {index + 1}
-              </span>
+              <span className="text-xl font-bold text-white">{index + 1}</span>
             </div>
 
             <div className="flex-1 min-w-0 space-y-2">
@@ -109,7 +99,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
                       "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm",
                       isCorrect
                         ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-                        : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                        : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
                     )}
                   >
                     <StatusIcon className="h-4 w-4" />
@@ -123,10 +113,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
                   </div>
                 )}
                 {question.type && (
-                  <Badge
-                    variant="outline"
-                    className="text-xs px-2.5 py-1 border"
-                  >
+                  <Badge variant="outline" className="text-xs px-2.5 py-1 border">
                     {question.type}
                   </Badge>
                 )}
@@ -171,16 +158,14 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
                       "rounded-xl p-4 border-2 shadow-sm",
                       isCorrect
                         ? "bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700"
-                        : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700"
+                        : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700",
                     )}
                   >
                     <div className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                       <span>📝</span>
                       <span>你的答案</span>
                     </div>
-                    <div className="text-base text-foreground leading-relaxed">
-                      {userAnswer}
-                    </div>
+                    <div className="text-base text-foreground leading-relaxed">{userAnswer}</div>
                   </div>
 
                   {/* 正确答案 */}
@@ -227,9 +212,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
                     <span>📚</span>
                     <span>知识点</span>
                   </div>
-                  <div className="text-sm text-foreground leading-relaxed">
-                    {question.knowledge}
-                  </div>
+                  <div className="text-sm text-foreground leading-relaxed">{question.knowledge}</div>
                 </div>
               )}
             </div>
@@ -239,4 +222,3 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({
     </Card>
   );
 };
-
