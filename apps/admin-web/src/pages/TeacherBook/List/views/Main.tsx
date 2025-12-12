@@ -116,7 +116,7 @@ export default function MainView() {
         open={visible}
         title={edited ? '更新教师用书' : '新增教师用书'}
         onFinish={handleSubmit}
-        modalProps={{ destroyOnHidden: true, onCancel }}
+        modalProps={{ destroyOnClose: true, onCancel }}
         layout="horizontal"
         size="large"
         labelAlign="left"

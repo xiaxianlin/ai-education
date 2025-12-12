@@ -67,7 +67,7 @@ export function QuestionDetailDrawer({
       width={750}
       open={open}
       onClose={onClose}
-      destroyOnHidden
+      destroyOnClose
     >
       <ProDescriptions bordered column={1}>
         <ProDescriptions.Item label="题目ID" valueType="text">

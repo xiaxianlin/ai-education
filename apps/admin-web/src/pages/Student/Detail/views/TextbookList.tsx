@@ -91,7 +91,7 @@ export function TextbookList() {
         layout="horizontal"
         onFinish={(values) => handleAddTextbook(values.textbookId)}
         modalProps={{
-          destroyOnHidden: true,
+          destroyOnClose: true,
           onCancel: () => {
             form.resetFields();
             setVisible(false);

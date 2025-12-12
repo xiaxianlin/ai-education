@@ -79,7 +79,7 @@ export default function MainView() {
       />
       <FormModal<SaveStudentRequest>
         form={instance}
-        visible={visible}
+        open={visible}
         onCancel={onCancel}
         isEdit={!!edited}
         addTitle="新增学生"

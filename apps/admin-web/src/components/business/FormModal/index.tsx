@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 interface FormModalProps<T> extends Omit<ModalFormProps<T>, 'modalProps' | 'children'> {
   form: FormInstance<T>;
-  visible: boolean;
+  open: boolean;
   onCancel: () => void;
   isEdit?: boolean;
   addTitle?: string;
@@ -18,7 +18,7 @@ interface FormModalProps<T> extends Omit<ModalFormProps<T>, 'modalProps' | 'chil
  */
 export function FormModal<T = Record<string, any>>({
   form,
-  visible,
+  open,
   onCancel,
   isEdit = false,
   addTitle = '新增',
@@ -33,14 +33,14 @@ export function FormModal<T = Record<string, any>>({
   return (
     <ModalForm<T>
       form={form}
-      open={visible}
+      open={open}
       title={isEdit ? editTitle : addTitle}
       width={width}
       layout={layout}
       labelAlign={labelAlign}
       labelCol={labelCol}
       modalProps={{
-        destroyOnHidden: true,
+        destroyOnClose: true,
         onCancel,
       }}
       {...props}

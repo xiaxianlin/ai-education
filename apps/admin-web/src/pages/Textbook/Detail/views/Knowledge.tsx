@@ -89,7 +89,7 @@ export const KnowledgeView: React.FC = () => {
         open={visible}
         title={edited ? '更新知识点' : '新增知识点'}
         onFinish={handleSubmit}
-        modalProps={{ destroyOnHidden: true, onCancel }}
+        modalProps={{ destroyOnClose: true, onCancel }}
         size="large"
       >
         <div className="pt-3" />

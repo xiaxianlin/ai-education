@@ -32,7 +32,7 @@ export function EditForm() {
       }}
       loading={editing}
       modalProps={{
-        destroyOnHidden: true,
+        destroyOnClose: true,
         onCancel: () => {
           setEditFormVisible(false);
           editForm.resetFields();
