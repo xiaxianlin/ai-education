@@ -5,21 +5,19 @@
 import { memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ProgressIndicator } from "./ProgressIndicator";
-import { QuestionCard } from "./QuestionCard";
-import { AnswerPanel } from "./AnswerPanel";
-import { NavigationButtons } from "./NavigationButtons";
+import { ProgressIndicator } from "../components/ProgressIndicator";
+import { QuestionCard } from "../components/QuestionCard";
+import { AnswerPanel } from "../components/AnswerPanel";
+import { NavigationButtons } from "../components/NavigationButtons";
 import {
-  useSessionStore,
+  usePageModel,
   useCurrentQuestion,
-  useTotalQuestions,
-  useAnsweredCount,
-  useCurrentAnswerStatus,
   useCurrentAnswer,
   useCurrentAudioAnswer,
+  useCurrentAnswerStatus,
   useIsLastQuestion,
   useHasAnsweredCurrent,
-} from "../stores/session-store";
+} from "../models/PageModel";
 
 const getPracticeTypeName = (sessionType?: PracticeType): string => {
   if (!sessionType) return "练习";
@@ -35,24 +33,19 @@ const getPracticeTypeName = (sessionType?: PracticeType): string => {
   }
 };
 
-export const QuestionStep = memo(() => {
+export const ProcessingView = memo(() => {
   const navigate = useNavigate();
 
-  const session = useSessionStore((state) => state.session);
-  const currentQuestionIndex = useSessionStore(
-    (state) => state.currentQuestionIndex
-  );
-  const submitting = useSessionStore((state) => state.submitting);
-  const submitCurrentAnswer = useSessionStore(
-    (state) => state.submitCurrentAnswer
-  );
-  const completePractice = useSessionStore((state) => state.completePractice);
-  const goPrev = useSessionStore((state) => state.goPrev);
-  const goNext = useSessionStore((state) => state.goNext);
+  const pageModel = usePageModel();
+  const session = pageModel.session;
+  const currentQuestionIndex = pageModel.currentQuestionIndex;
+  const submitting = pageModel.submitting;
+  const submitCurrentAnswer = pageModel.submitCurrentAnswer;
+  const completePractice = pageModel.completePractice;
+  const goPrev = pageModel.goPrev;
+  const goNext = pageModel.goNext;
 
   const currentQuestion = useCurrentQuestion();
-  const totalQuestions = useTotalQuestions();
-  const answeredCount = useAnsweredCount();
   const answerStatus = useCurrentAnswerStatus();
   const currentAnswer = useCurrentAnswer();
   const currentAudioAnswer = useCurrentAudioAnswer();
@@ -85,7 +78,7 @@ export const QuestionStep = memo(() => {
     try {
       await completePractice();
       toast.success("练习已完成！");
-      navigate(`/practice-result/${session.id}`);
+      // 完成练习后，Main.tsx 会自动切换到结算视图
     } catch (error) {
       console.error("Failed to complete practice:", error);
       const errorMessage =
@@ -96,13 +89,8 @@ export const QuestionStep = memo(() => {
 
   return (
     <div className="space-y-6">
-      {/* 进度指示器 */}
-      <ProgressIndicator
-        currentIndex={currentQuestionIndex}
-        totalQuestions={totalQuestions}
-        answeredCount={answeredCount}
-        practiceType={practiceType}
-      />
+      {/* 步骤图组件 */}
+      <ProgressIndicator practiceType={practiceType} />
 
       {/* 题目卡片 */}
       <QuestionCard

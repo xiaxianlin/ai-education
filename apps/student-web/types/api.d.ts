@@ -4,6 +4,8 @@ declare global {
    */
   type TaskStatus = "PENDING" | "STARTED" | "RETRY" | "FAILURE" | "SUCCESS" | "REVOKED";
 
+  type AnswerStatus = 0 | 1 | 2;
+
   interface LoginRequest {
     phone: string;
     password: string;

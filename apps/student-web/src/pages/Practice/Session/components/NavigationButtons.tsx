@@ -66,3 +66,4 @@ export const NavigationButtons = memo(function NavigationButtons({
     </div>
   );
 });
+

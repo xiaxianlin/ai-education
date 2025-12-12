@@ -20,7 +20,6 @@ from shared.core.schema import (
     PracticeReportSchema,
     PracticeSessionSchema,
     PracticeWrongRecordSchema,
-    QuestionSchema,
 )
 from shared.utils import oss
 from shared.utils.time import now, today
@@ -83,9 +82,7 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
 
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -117,9 +114,7 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
         报告ID
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -181,9 +176,7 @@ async def get_practice_history(
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
 
 
-async def get_session_detail(
-    db: AsyncSession, student_id: str, session_id: int
-) -> Dict:
+async def get_session_detail(db: AsyncSession, student_id: str, session_id: int) -> Dict:
     """
     根据练习会话ID查询会话详情（学生端）
     包括：会话基本信息、问题列表、已完成练习的报告
@@ -197,9 +190,7 @@ async def get_session_detail(
         会话详情，包含session、questions、answers、report
     """
     # 查询会话基本信息
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -223,11 +214,14 @@ async def get_session_detail(
         select(PracticeWrongRecord).where(PracticeWrongRecord.session_id == session_id)
     )
 
-    wrong_records = [
-        PracticeWrongRecordSchema.model_validate(record) for record in results.all()
-    ]
+    wrong_records = [PracticeWrongRecordSchema.model_validate(record) for record in results.all()]
 
+    # 对 answers 根据 question_order 进行排序
+    answers.sort(key=lambda x: x.question_order)
     questions = [answer.question for answer in answers]
+
+    for answer in answers:
+        answer.question = None
 
     # 查询报告（如果练习已完成）
     report = None
@@ -277,9 +271,7 @@ async def analyze_audio_answer(
     audio_url = oss.get_access_url(oss_path)
     logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
-    analysis_result = await ai.question.analyze_audio_answer(
-        question, audio_url, audio_type
-    )
+    analysis_result = await ai.question.analyze_audio_answer(question, audio_url, audio_type)
     logger.info(
         f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
     )

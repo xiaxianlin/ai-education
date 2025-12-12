@@ -2,67 +2,30 @@
  * 结果面板 - 展示练习结果
  * 参考单元练习卡片风格设计
  */
-import { memo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Trophy,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Home,
-  History,
-} from "lucide-react";
-import { useSessionStore } from "../stores/session-store";
+import { Trophy, CheckCircle, XCircle, Clock, Home, FileText } from "lucide-react";
+import { usePageModel } from "../models/PageModel";
 
-export const ResultView = memo(() => {
+export function ResultView() {
   const navigate = useNavigate();
-  const report = useSessionStore((state) => state.report);
-  const sessionType = useSessionStore(
-    (state) => state.session?.session_type
-  ) as PracticeType | undefined;
+  const { session, report } = usePageModel();
 
-  if (!report) return null;
-
-  const getBackPath = () => {
-    switch (sessionType) {
-      case "daily_practice":
-        return "/home";
-      case "unit_practice":
-        return "/unit-practice";
-      case "assessment":
-        return "/home";
-      default:
-        return "/home";
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}秒`;
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return secs > 0 ? `${minutes}分${secs}秒` : `${minutes}分钟`;
-  };
-
-  const totalQuestions = report.total_questions || 0;
-  const correctQuestions = report.correct_questions || 0;
-  const score = report.overall_score || 0;
-  const totalTime = report.total_time || 0;
-  const accuracy =
-    totalQuestions > 0
-      ? Math.round((correctQuestions / totalQuestions) * 100)
-      : 0;
+  const score = report?.overall_score || 0;
+  const totalTime = report?.total_time || 0;
+  const totalQuestions = report?.total_questions || 0;
+  const correctQuestions = report?.correct_questions || 0;
+  const accuracy = totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0;
 
   // 根据正确率获取评价
-  const getGrade = () => {
+  const grade = useMemo(() => {
     if (accuracy >= 90) return { emoji: "🌟", text: "太棒了！", color: "text-yellow-500" };
     if (accuracy >= 70) return { emoji: "👍", text: "做得不错！", color: "text-primary" };
     if (accuracy >= 50) return { emoji: "💪", text: "继续加油！", color: "text-accent" };
     return { emoji: "🙌", text: "再接再厉！", color: "text-muted-foreground" };
-  };
-
-  const grade = getGrade();
+  }, [accuracy]);
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
@@ -86,9 +49,7 @@ export const ResultView = memo(() => {
           {/* 核心数据 - 正确率 */}
           <div className="bg-card rounded-xl p-4 mb-4 border border-border">
             <div className="text-center">
-              <div className="text-5xl font-bold text-primary mb-1">
-                {accuracy}%
-              </div>
+              <div className="text-5xl font-bold text-primary mb-1">{accuracy}%</div>
               <div className="text-sm text-muted-foreground">正确率</div>
             </div>
           </div>
@@ -98,64 +59,54 @@ export const ResultView = memo(() => {
             <div className="bg-card rounded-xl p-3 border border-border flex items-center gap-3">
               <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
               <div>
-                <div className="text-lg font-bold text-foreground">
-                  {correctQuestions}
-                </div>
+                <div className="text-lg font-bold text-foreground">{correctQuestions}</div>
                 <div className="text-xs text-muted-foreground">正确</div>
               </div>
             </div>
             <div className="bg-card rounded-xl p-3 border border-border flex items-center gap-3">
               <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
               <div>
-                <div className="text-lg font-bold text-foreground">
-                  {totalQuestions - correctQuestions}
-                </div>
+                <div className="text-lg font-bold text-foreground">{totalQuestions - correctQuestions}</div>
                 <div className="text-xs text-muted-foreground">错误</div>
               </div>
             </div>
             <div className="bg-card rounded-xl p-3 border border-border flex items-center gap-3">
               <Trophy className="h-5 w-5 text-accent flex-shrink-0" />
               <div>
-                <div className="text-lg font-bold text-foreground">
-                  {score.toFixed(0)}
-                </div>
+                <div className="text-lg font-bold text-foreground">{score.toFixed(0)}</div>
                 <div className="text-xs text-muted-foreground">得分</div>
               </div>
             </div>
             <div className="bg-card rounded-xl p-3 border border-border flex items-center gap-3">
               <Clock className="h-5 w-5 text-secondary-foreground flex-shrink-0" />
               <div>
-                <div className="text-lg font-bold text-foreground">
-                  {formatTime(totalTime)}
-                </div>
+                <div className="text-lg font-bold text-foreground">{totalTime}秒</div>
                 <div className="text-xs text-muted-foreground">用时</div>
               </div>
             </div>
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3">
             <Button
               variant="outline"
               size="sm"
               className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all bg-muted/60 hover:bg-muted hover:text-foreground border-transparent"
-              onClick={() => navigate(getBackPath())}
+              onClick={() => navigate(-1)}
             >
               <Home className="h-4 w-4 mr-2" />
               返回
             </Button>
             <Button
-              onClick={() => navigate("/history")}
-              className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all text-white shadow-sm bg-primary hover:bg-primary/90"
+              onClick={() => navigate(`/practice/detail/${session?.id || 0}`)}
+              className="w-full h-11 rounded-xl text-sm font-semibold transition-all text-white shadow-sm bg-primary hover:bg-primary/90"
             >
-              <History className="h-4 w-4 mr-2" />
-              历史记录
+              <FileText className="h-4 w-4 mr-2" />
+              查看详情
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-});
-
-ResultView.displayName = "ResultView";
+}

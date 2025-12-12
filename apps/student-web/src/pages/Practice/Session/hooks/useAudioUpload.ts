@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { studentApi } from "@/lib/api";
-import { useSessionStore } from "../stores/session-store";
-import { useCurrentQuestion } from "../stores/session-store";
+import { usePageModel, useCurrentQuestion } from "../models/PageModel";
 
 /** 录音上传结果 */
 interface UploadRecordingResult {
@@ -24,7 +23,8 @@ interface UseAudioUploadResult {
  */
 export const useAudioUpload = (): UseAudioUploadResult => {
   const [uploading, setUploading] = useState(false);
-  const session = useSessionStore((state) => state.session);
+  const pageModel = usePageModel();
+  const session = pageModel.session;
   const currentQuestion = useCurrentQuestion();
 
   const upload = useCallback(

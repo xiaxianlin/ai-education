@@ -3,9 +3,9 @@
  */
 import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { QuestionHeader } from "../components/question/QuestionHeader";
-import { QuestionContent } from "../components/question/QuestionContent";
-import { QuestionResource } from "../components/question/QuestionResource";
+import { QuestionHeader } from "./question/QuestionHeader";
+import { QuestionContent } from "./question/QuestionContent";
+import { QuestionResource } from "./question/QuestionResource";
 import { StampAnimation } from "./StampAnimation";
 
 interface QuestionCardProps {
@@ -52,3 +52,4 @@ function QuestionCardComponent({
 }
 
 export const QuestionCard = memo(QuestionCardComponent);
+

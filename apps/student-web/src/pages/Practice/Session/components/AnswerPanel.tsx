@@ -3,18 +3,18 @@
  * 直接从 store 读取当前题目与答案，并派发变更
  */
 import { memo } from "react";
-import { ChoiceInput } from "../components/answer/ChoiceInput";
-import { JudgeInput } from "../components/answer/JudgeInput";
-import { TextInput } from "../components/answer/TextInput";
-import { AudioInput } from "../components/answer/AudioInput";
+import { ChoiceInput } from "./answer/ChoiceInput";
+import { JudgeInput } from "./answer/JudgeInput";
+import { TextInput } from "./answer/TextInput";
+import { AudioInput } from "./answer/AudioInput";
 import {
-  useSessionStore,
+  usePageModel,
   useCurrentQuestion,
   useCurrentAnswer,
   useCurrentAudioAnswer,
   useCurrentAnswerStatus,
   useHasAnsweredCurrent,
-} from "../stores/session-store";
+} from "../models/PageModel";
 
 /** 录音上传结果 */
 interface UploadRecordingResult {
@@ -29,14 +29,14 @@ export const AnswerPanel = memo(() => {
   const audioAnswer = useCurrentAudioAnswer();
   const answerStatus = useCurrentAnswerStatus();
   const hasAnswered = useHasAnsweredCurrent();
-  const setAnswer = useSessionStore((state) => state.setAnswer);
-  const setAudioAnswer = useSessionStore((state) => state.setAudioAnswer);
+  const pageModel = usePageModel();
+  const setAnswer = pageModel.setAnswer;
+  const setAudioAnswer = pageModel.setAudioAnswer;
+  const setAudioAnalysis = pageModel.setAudioAnalysis;
 
   if (!question) return null;
 
   const isCorrect = answerStatus === 1;
-
-  const setAudioAnalysis = useSessionStore((state) => state.setAudioAnalysis);
 
   const handleChange = (value: string, audioBase64?: string, audioAnalysis?: UploadRecordingResult) => {
     setAnswer(Number(question.id), value);
