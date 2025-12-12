@@ -3,8 +3,6 @@ from pydantic import BaseModel, Field
 
 from enum import Enum
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 
 class PracticeType(str, Enum):
     daily = "daily_practice"

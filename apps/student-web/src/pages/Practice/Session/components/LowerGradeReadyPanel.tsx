@@ -13,30 +13,54 @@ export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelP
 
   return (
     <>
-      <div className="bg-card rounded-3xl p-6 md:p-8 shadow-xl border-2 border-primary/20 flex flex-col items-center gap-4 text-center mt-1">
-        <div className="text-6xl mb-2">🐻</div>
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground">{title} 要开始啦！</h2>
-        <p className="text-base text-muted-foreground">
-          一共有 <span className="font-semibold text-primary">{total}</span> 道小题，大约{" "}
-          <span className="font-semibold text-primary">{estimateMinutes}</span> 分钟就能做完。
-        </p>
-        <p className="text-sm text-muted-foreground">坐好身体，准备好小脑瓜，我们一起慢慢做，不着急～</p>
+      <div className="bg-card rounded-3xl p-8 md:p-10 lg:p-12 shadow-2xl border-2 border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 flex flex-col items-center gap-6 text-center relative overflow-hidden">
+        {/* 装饰性背景元素 */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="relative z-10">
+          {/* 小熊图标 - 添加浮动动画 */}
+          <div 
+            className="text-6xl md:text-7xl mb-4 inline-block"
+            style={{ animation: 'float 3s ease-in-out infinite' }}
+          >
+            🐻
+          </div>
+          
+          {/* 标题 */}
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
+            {title} 要开始啦！
+          </h2>
+          
+          {/* 题目信息 */}
+          <p className="text-base md:text-lg text-muted-foreground mb-2 leading-relaxed">
+            一共有 <span className="font-bold text-primary text-lg md:text-xl">{total}</span> 道小题，大约{" "}
+            <span className="font-bold text-primary text-lg md:text-xl">{estimateMinutes}</span> 分钟就能做完。
+          </p>
+          
+          {/* 鼓励文字 */}
+          <p className="text-sm md:text-base text-muted-foreground mb-6 leading-relaxed">
+            坐好身体，准备好小脑瓜，我们一起慢慢做，不着急～
+          </p>
 
-        <div className="flex flex-wrap justify-center gap-2 mt-1">
-          <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
-            ✅ 做完会有小表扬
-          </span>
-          <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-700">
-            🐻 小熊老师陪你
-          </span>
+          {/* 标签区域 */}
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm transition-all hover:scale-105">
+              ✅ 做完会有小表扬
+            </span>
+            <span className="inline-flex items-center rounded-full bg-sky-100 dark:bg-sky-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-sky-700 dark:text-sky-300 shadow-sm transition-all hover:scale-105">
+              🐻 小熊老师陪你
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-1 flex flex-col gap-3">
+      {/* 按钮区域 */}
+      <div className="flex flex-col gap-4 w-full">
         <Button
           onClick={onBegin}
           size="lg"
-          className="w-full h-14 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold text-lg"
+          className="w-full h-14 md:h-16 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-lg hover:shadow-xl font-semibold text-base md:text-lg transition-all duration-200 transform"
         >
           开始练习 🚀
         </Button>
@@ -44,7 +68,7 @@ export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelP
           type="button"
           variant="outline"
           onClick={() => navigate(-1)}
-          className="w-full h-14 rounded-2xl bg-white/80 text-sm md:text-base"
+          className="w-full h-12 md:h-14 rounded-2xl bg-white/90 dark:bg-card/80 border-2 hover:bg-white dark:hover:bg-card text-sm md:text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95"
         >
           我想再看看
         </Button>

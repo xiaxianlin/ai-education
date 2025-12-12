@@ -1,14 +1,12 @@
 import { useCallback, useState } from "react";
 import { studentApi } from "@/lib/api";
-import { usePageModel, useCurrentQuestion } from "../models/PageModel";
+import { usePageModel } from "../models/PageModel";
 
 /** 录音上传结果 */
 interface UploadRecordingResult {
   text: string;
   match: boolean;
   analysis: string;
-  transcription?: string;
-  oss_path?: string;
 }
 
 interface UseAudioUploadResult {
@@ -25,7 +23,7 @@ export const useAudioUpload = (): UseAudioUploadResult => {
   const [uploading, setUploading] = useState(false);
   const pageModel = usePageModel();
   const session = pageModel.session;
-  const currentQuestion = useCurrentQuestion();
+  const currentQuestion = pageModel.question;
 
   const upload = useCallback(
     async (audioBlob: Blob): Promise<UploadRecordingResult> => {

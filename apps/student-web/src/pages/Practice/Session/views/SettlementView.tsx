@@ -8,7 +8,7 @@ import { Loader2, Sparkles } from "lucide-react";
 
 export const SettlementView = memo(() => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50 flex items-center justify-center p-4">
+    <div className="from-sky-50 via-white to-amber-50 flex items-center justify-center p-4">
       <Card className="relative overflow-hidden border-2 border-primary/20 shadow-xl bg-card rounded-3xl max-w-md w-full">
         <CardContent className="p-8 text-center space-y-6">
           {/* 结算图标 */}

@@ -16,13 +16,21 @@ export const ReadyView = memo(() => {
   const isLowerGrade = (student?.grade || 3) < 2;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50">
-      {/* 根据年级切换不同风格面板 */}
-      {isLowerGrade ? (
-        <LowerGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
-      ) : (
-        <UpperGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
-      )}
+    <div className="bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div 
+        className="w-full max-w-2xl mx-auto space-y-6"
+        style={{
+          animation: 'fadeIn 0.5s ease-out 0.1s forwards, slideUp 0.5s ease-out 0.1s forwards',
+          opacity: 0,
+        }}
+      >
+        {/* 根据年级切换不同风格面板 */}
+        {isLowerGrade ? (
+          <LowerGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
+        ) : (
+          <UpperGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
+        )}
+      </div>
     </div>
   );
 });

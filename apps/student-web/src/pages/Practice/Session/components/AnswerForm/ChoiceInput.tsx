@@ -23,8 +23,19 @@ export const ChoiceInput: FC<ChoiceInputProps> = memo(
       options = question.options ? question.options.split("\n") : [];
     }
 
+    // 判断选项是否较长：如果任何选项文本长度超过 15 个字符，使用 2 列布局，否则使用 4 列布局
+    const hasLongOptions = options.some((option) => {
+      const optionText =
+        typeof option === "object" && option !== null && "text" in option
+          ? option.text
+          : String(option);
+      return optionText.length > 15;
+    });
+
+    const gridCols = hasLongOptions ? "grid-cols-2" : "grid-cols-4";
+
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className={cn("grid gap-4", gridCols)}>
         {options.map((option, index) => {
           const optionLabel = String.fromCharCode(65 + index);
           const isSelected = value === optionLabel;
@@ -39,7 +50,7 @@ export const ChoiceInput: FC<ChoiceInputProps> = memo(
               onClick={() => !hasAnswered && !disabled && onChange(optionLabel)}
               disabled={hasAnswered || disabled}
               className={cn(
-                "flex-1 min-w-[160px] flex items-center justify-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",
+                "flex items-center justify-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",
                 isSelected
                   ? hasAnswered
                     ? isCorrect

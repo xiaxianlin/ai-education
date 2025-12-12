@@ -1,10 +1,48 @@
 /**
- * 步骤图组件 - 显示所有题目的步骤点
- * 每个题目一个圆，有4种状态：未开始、进行中、正确、错误
- * 点击已答题的步骤点可切换到对应题目，未作答的题目不可点击
+ * 进度指示器组件 - 显示上一题 x/x 下一题
  */
+import { Button } from "@/components/ui/button";
+import { usePageModel } from "../models/PageModel";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function ProgressIndicator() {
-  // TODO: 实现
-  return <div></div>;
+  const { questions, step, canPrev, prev, next, isLast } = usePageModel();
+
+  if (!questions?.length) return null;
+
+  const total = questions.length;
+  const current = step + 1;
+  const canNext = !isLast;
+
+  return (
+    <div className="flex items-center justify-center gap-4">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={prev}
+        disabled={!canPrev}
+        className="rounded-xl border-2 hover:bg-muted/50 transition-all"
+      >
+        <ChevronLeft className="h-4 w-4 mr-1" />
+        上一题
+      </Button>
+      
+      <div className="text-base font-semibold text-foreground">
+        <span className="text-primary">{current}</span> / {total}
+      </div>
+      
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={next}
+        disabled={!canNext}
+        className="rounded-xl border-2 hover:bg-muted/50 transition-all"
+      >
+        下一题
+        <ChevronRight className="h-4 w-4 ml-1" />
+      </Button>
+    </div>
+  );
 }

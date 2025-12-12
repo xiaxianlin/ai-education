@@ -26,8 +26,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { setToken } = useAuthModel();
 
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("15068114669");
+  const [password, setPassword] = useState("bJLlwh4Wka#ha$8s");
 
   const { errors, validate, clearError } = useFormValidation<LoginRequest>();
 

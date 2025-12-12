@@ -10,29 +10,6 @@ from shared.core.database import AsyncSessionLocal
 from student.services.practice_generate import generate_practice_session
 
 
-@celery_app.signals.worker_process_init.connect
-def init_worker_process(**kwargs):
-    """Worker 进程初始化钩子
-
-    在 Celery worker 进程启动时调用，确保数据库连接池正确初始化。
-    这解决了 fork 进程后连接池绑定到不同事件循环的问题。
-
-    注意：SQLAlchemy 的异步引擎会在第一次使用时自动创建连接池，
-    所以这里主要是确保事件循环正确设置。
-    """
-    # 确保当前进程有事件循环（虽然任务执行时会创建新的）
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-    except RuntimeError:
-        # 如果没有事件循环，创建新的（虽然任务执行时会创建新的）
-        pass
-
-    logger.debug("Worker 进程已初始化")
-
-
 @celery_app.task(
     bind=True,
     name=Executor.generate_practice_task.value,
