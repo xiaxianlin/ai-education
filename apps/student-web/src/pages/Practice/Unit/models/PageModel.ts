@@ -10,13 +10,6 @@ interface KnowledgeModalState {
   loading?: boolean;
 }
 
-interface ConfirmModalState {
-  open: boolean;
-  unitId: number;
-  unitName: string;
-  textbookId: number;
-}
-
 const useContainer = () => {
   const { activeTextbooksMap } = useProfileModel();
   const [knowledgeModal, setKnowledgeModal] = useState<KnowledgeModalState>({
@@ -24,13 +17,6 @@ const useContainer = () => {
     unitName: "",
     knowledges: [],
     loading: false,
-  });
-
-  const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
-    open: false,
-    unitId: 0,
-    unitName: "",
-    textbookId: 0,
   });
 
   const openKnowledgeModal = useCallback(async (unit: Unit) => {
@@ -67,32 +53,11 @@ const useContainer = () => {
     }));
   }, []);
 
-  const openConfirmModal = useCallback((unit: Unit) => {
-    setConfirmModal({
-      open: true,
-      textbookId: unit.textbook_id,
-      unitId: unit.id,
-      unitName: unit.name,
-    });
-  }, []);
-
-  const closeConfirmModal = useCallback(() => {
-    setConfirmModal({
-      open: false,
-      unitId: 0,
-      unitName: "",
-      textbookId: 0,
-    });
-  }, []);
-
   return {
     textbooks: activeTextbooksMap,
     knowledgeModal,
-    confirmModal,
     openKnowledgeModal,
     closeKnowledgeModal,
-    openConfirmModal,
-    closeConfirmModal,
   };
 };
 

@@ -52,6 +52,7 @@ export const useUnitPractice = (unit: Unit, textbook: Textbook) => {
       manual: true,
       onSuccess: (taskId) => {
         setTaskId(taskId);
+        hideConfirmModal();
         setStatus(PracticeStatus.GENERATING);
       },
     },

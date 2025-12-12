@@ -1,7 +1,5 @@
 import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { getColorTheme } from "../../utils/colorThemes";
 
 interface ConfirmModalProps {
   unit: Unit;
@@ -11,8 +9,6 @@ interface ConfirmModalProps {
   onCancel?: () => void;
 }
 export const ConfirmModal = ({ unit, loading, visible, onConfirm, onCancel }: ConfirmModalProps) => {
-  const theme = getColorTheme(unit.id);
-
   if (!visible) return null;
 
   return (
@@ -48,7 +44,7 @@ export const ConfirmModal = ({ unit, loading, visible, onConfirm, onCancel }: Co
           <Button
             onClick={onConfirm}
             disabled={loading}
-            className={cn("flex-1 h-12 text-base font-semibold rounded-xl text-white", theme.button)}
+            className="flex-1 h-12 text-base font-semibold rounded-xl text-white bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
           >
             {loading && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
             {loading ? "生成中" : "开始 🚀"}
