@@ -270,37 +270,16 @@
 
 ## 代码规范
 
-### 前端规范
-- 使用 TypeScript 严格模式
-- 组件使用函数式组件 + Hooks
-- 遵循 React Hooks 规则
-- 使用 ESLint 和 Prettier
-- 组件文件使用 PascalCase
-- 工具函数使用 camelCase
+详细的编码规范请参考 `.cursor/rules/` 目录下的规则文件：
 
-### 移动端规范
-- 使用 Dart 3.8+ 语言特性
-- Widget 使用函数式组件和 StatefulWidget/StatelessWidget
-- 遵循 Flutter 最佳实践
-- 使用 Material Design 进行 UI 设计
-- 使用 Riverpod 进行状态管理
-- 使用 json_serializable 和 freezed 进行代码生成
-- 优化性能和内存使用
+- **React 前端规范**: `.cursor/rules/react-frontend/` - 适用于 `apps/admin-web/**` 和 `apps/student-web/**`
+- **Python 后端规范**: `.cursor/rules/python-backend/` - 适用于 `apps/server/**`
+- **Flutter 移动端规范**: `.cursor/rules/flutter-mobile/` - 适用于 `apps/student-app/**`
+- **命名规范**: `.cursor/rules/naming-conventions/` - 适用于所有文件
+- **API 设计规范**: `.cursor/rules/api-design/` - API 设计时自动应用
+- **代码审查要点**: `.cursor/rules/code-review/` - 代码审查时自动应用
 
-### 后端规范
-- 遵循 PEP 8 Python 代码规范
-- 使用类型提示 (Type Hints)
-- 异步函数使用 `async/await`
-- 路由使用 RESTful 规范
-- 使用 Pydantic 进行数据验证
-- 错误处理使用 HTTPException
-
-### UI 设计规范
-- 使用 Tailwind CSS 工具类
-- 遵循设计系统规范
-- 确保响应式设计
-- 考虑可访问性 (a11y)
-- 保持设计一致性
+这些规则会根据文件类型自动应用，也可以在对话中使用 `@rule-name` 手动触发。
 
 ## 常用命令
 
@@ -389,16 +368,33 @@ ai-eduaction/
         └── server-task.md    # （历史）任务服务命令
 ```
 
+## 规则系统
+
+项目使用 Cursor 的新规则系统（`.cursor/rules`），规则会根据文件类型自动应用：
+
+- **Always Apply**: 每个聊天会话都会应用（如 `project-overview`, `naming-conventions`）
+- **Apply to Specific Files**: 编辑匹配的文件时自动应用（如 `react-frontend`, `python-backend`, `flutter-mobile`）
+- **Apply Intelligently**: Agent 根据上下文判断是否需要应用（如 `api-design`, `code-review`）
+
+查看所有规则：**Cursor Settings → Rules, Commands**
+
 ## 最佳实践
 
 1. **一次对话一个角色**: 避免在同一对话中频繁切换角色（全栈开发者除外）
 2. **明确上下文**: 切换角色时提供足够的上下文信息
-3. **参考现有代码**: 利用项目中的现有代码作为参考
-4. **保持一致性**: 遵循项目的代码风格和架构模式
-5. **分阶段完成**: 先设计再实现，先后端再前端/移动端
-6. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端/移动端
-7. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
-8. **跨平台一致性**: 移动端应参考 Web 端（student-web）的实现逻辑，保持功能一致性
-9. **代码生成**: Flutter 项目使用 json_serializable 和 freezed，修改模型后必须运行 `./build.sh` 或 `flutter pub run build_runner build --delete-conflicting-outputs`
-9. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server` 命令可以更精确地专注于特定应用的开发
-10. **架构决策**: 重大技术决策应由架构师参与，确保系统整体一致性
+3. **参考规则系统**: 详细的编码规范在 `.cursor/rules/` 目录下，会根据文件类型自动应用
+4. **参考现有代码**: 利用项目中的现有代码作为参考
+5. **保持一致性**: 遵循项目的代码风格和架构模式
+6. **分阶段完成**: 先设计再实现，先后端再前端/移动端
+7. **全栈开发**: 全栈开发者可以一次性完成前后端，但建议先完成后端再实现前端/移动端
+8. **数据一致性**: 确保前后端/移动端数据模型和类型定义保持一致
+9. **跨平台一致性**: 移动端应参考 Web 端（student-web）的实现逻辑，保持功能一致性
+10. **代码生成**: Flutter 项目使用 json_serializable 和 freezed，修改模型后必须运行 `./build.sh`
+11. **应用专用命令**: 使用 `@admin-web`, `@student-web`, `@student-app`, `@server` 命令可以更精确地专注于特定应用的开发
+12. **架构决策**: 重大技术决策应由架构师参与，确保系统整体一致性
+
+## 相关文档
+
+- **规则系统**: `.cursor/rules/README.md` - 规则系统说明
+- **快速参考**: `AGENTS.md` - 项目根目录的快速参考指南
+- **项目规则**: `.cursor/rules/` - 详细的编码规范

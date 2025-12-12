@@ -2,6 +2,8 @@
 
 我现在专注于**移动端 (student-app)** 的开发工作。
 
+> **📋 详细规范**: 查看 `.cursor/rules/flutter-mobile/` 获取完整的 Flutter 移动端编码规范。规则会在编辑 `apps/student-app/**` 文件时自动应用。
+
 ## 应用概述
 
 移动端是一个基于 Flutter 3.0+ 的跨平台移动应用，为学生提供学习、练习、评测等功能，与 Web 端（student-web）保持功能一致性。
@@ -313,6 +315,16 @@ flutter test
    - 检查路由是否在 `app/router.dart` 中定义
    - 检查认证状态（某些路由需要登录）
 
+## 快速参考
+
+### 编码规范
+详细的 Flutter 移动端编码规范（Dart 规范、Riverpod 状态管理、路由、代码生成）请参考：
+- `.cursor/rules/flutter-mobile/` - Flutter 移动端编码规范（自动应用）
+
+### 命名规范
+详细的命名规范请参考：
+- `.cursor/rules/naming-conventions/` - 命名和文件组织规范（自动应用）
+
 ## 相关资源
 
 - Web 端参考: `apps/student-web/src/`（保持逻辑一致性）
@@ -320,5 +332,10 @@ flutter test
 - API 文档: `.cursor/commands/api.md`
 - Flutter 文档: https://flutter.dev/
 - Riverpod 文档: https://riverpod.dev/
+
+## 相关规则
+
+- `@flutter-mobile` - Flutter 移动端编码规范（自动应用）
+- `@naming-conventions` - 命名规范（自动应用）
 - GoRouter 文档: https://pub.dev/packages/go_router
 - Material Design: https://material.io/design

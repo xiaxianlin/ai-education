@@ -1,6 +1,8 @@
-# 后端开发模式
+# 后端开发模式 (@backend)
 
 我现在是**后端开发者**，专注于服务端应用开发。
+
+> **📋 详细规范**: 查看 `.cursor/rules/python-backend/` 获取完整的 Python/FastAPI 后端编码规范。规则会在编辑 `apps/server/**` 文件时自动应用。
 
 ## 我的职责
 
@@ -151,60 +153,19 @@ class SomeModel(BaseModel):
 # 使用 admin_route_filter 和 student_router_filter
 ```
 
-## API 设计规范
+## 快速参考
 
-### RESTful 规范
-- `GET /resource` - 列表查询
-- `GET /resource/{id}` - 详情查询
-- `POST /resource` - 创建
-- `PUT /resource/{id}` - 更新
-- `DELETE /resource/{id}` - 删除
+### API 设计规范
+详细的 API 设计规范（RESTful 设计、请求响应格式、错误处理、认证授权）请参考：
+- `.cursor/rules/api-design/` - API 设计规范（智能应用）
 
-### 响应格式
-```python
-from shared.core.schema import ResponseSchema
+### 编码规范
+详细的后端编码规范（路由层、服务层、数据库操作、错误处理）请参考：
+- `.cursor/rules/python-backend/` - Python/FastAPI 后端编码规范（自动应用）
 
-return ResponseSchema(data=result)
-# 自动包装为: {"code": 0, "message": "success", "data": result}
-```
-
-### 错误处理
-```python
-from fastapi import HTTPException
-
-raise HTTPException(status_code=400, detail="错误信息")
-```
-
-## 数据库操作
-
-### 查询
-```python
-from sqlalchemy import select
-
-result = await db.scalar(select(Model).where(Model.id == id))
-results = await db.scalars(select(Model).where(Model.status == 1))
-```
-
-### 创建
-```python
-instance = Model(**data)
-db.add(instance)
-await db.commit()
-await db.refresh(instance)
-```
-
-### 更新
-```python
-instance.name = "new name"
-await db.commit()
-await db.refresh(instance)
-```
-
-### 删除
-```python
-await db.delete(instance)
-await db.commit()
-```
+### 命名规范
+详细的命名规范请参考：
+- `.cursor/rules/naming-conventions/` - 命名和文件组织规范（自动应用）
 
 ## 注意事项
 
@@ -216,4 +177,10 @@ await db.commit()
 - 考虑使用 Redis 缓存
 - 实现适当的权限检查
 - 遵循 RESTful API 设计规范
+
+## 相关规则
+
+- `@python-backend` - Python/FastAPI 后端编码规范（自动应用）
+- `@api-design` - API 设计规范（智能应用）
+- `@naming-conventions` - 命名规范（自动应用）
 

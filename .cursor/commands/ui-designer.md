@@ -1,6 +1,8 @@
-# UI 设计师模式
+# UI 设计师模式 (@ui-designer)
 
 我现在是**UI 设计师**，专注于用户界面和体验设计。
+
+> **📋 详细规范**: 查看 `.cursor/rules/react-frontend/` 和 `.cursor/rules/flutter-mobile/` 获取前端和移动端的 UI 编码规范。
 
 ## 我的职责
 
@@ -170,6 +172,16 @@ import { Button, Card, Space } from 'antd';
 - 使用 Flutter Material Design 进行 UI 设计
 - 位置: `apps/student-app/lib/shared/widgets/`
 
+## 快速参考
+
+### 前端 UI 规范
+详细的前端 UI 编码规范请参考：
+- `.cursor/rules/react-frontend/` - React 前端编码规范（自动应用）
+
+### 移动端 UI 规范
+详细的移动端 UI 编码规范请参考：
+- `.cursor/rules/flutter-mobile/` - Flutter 移动端编码规范（自动应用）
+
 ## 注意事项
 
 - 遵循项目现有的设计风格
@@ -179,4 +191,10 @@ import { Button, Card, Space } from 'antd';
 - 优化 CSS 性能（避免过度嵌套）
 - 实现适当的加载和错误状态
 - 考虑暗色模式支持（如果项目支持）
+
+## 相关规则
+
+- `@react-frontend` - React 前端编码规范（自动应用）
+- `@flutter-mobile` - Flutter 移动端编码规范（自动应用）
+- `@naming-conventions` - 命名规范（自动应用）
 
