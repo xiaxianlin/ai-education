@@ -1,34 +1,10 @@
-import { useProfileModel } from "@/models/ProfileModel";
-import { KnowledgeModal } from "./views/KnowledgeModal";
-import { Header } from "./views/Header";
-import { Empty } from "./views/Empty";
-import { ConfirmModal } from "./views/ConfirmModal";
-import { UnitPracticeProvider, useUnitPracticeStore } from "./stores/unit-practice-store";
-import { useEffect } from "react";
-import { TextbookTabs } from "./views/TextbookTabs";
+import { PageModel } from "@/pages/Practice/Unit/models/PageModel";
+import { MainView } from "./views/Main";
 
 export default function UnitPractice() {
   return (
-    <UnitPracticeProvider>
-      <UnitPracticeContent />
-    </UnitPracticeProvider>
-  );
-}
-
-function UnitPracticeContent() {
-  const { activeTextbooks } = useProfileModel();
-  const { queryPractices } = useUnitPracticeStore();
-
-  useEffect(() => {
-    queryPractices();
-  }, [queryPractices]);
-
-  return (
-    <div>
-      <Header />
-      {activeTextbooks.length ? <TextbookTabs /> : <Empty />}
-      <KnowledgeModal />
-      <ConfirmModal />
-    </div>
+    <PageModel.Provider>
+      <MainView />
+    </PageModel.Provider>
   );
 }

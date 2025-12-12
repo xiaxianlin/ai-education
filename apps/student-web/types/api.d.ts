@@ -15,7 +15,7 @@ declare global {
   }
 
   interface CreatePracticeRequest {
-    type: "daily_practice" | "unit_practice" | "assessment";
+    type: PracticeType;
     textbook_id: number;
     unit_id?: number;
   }

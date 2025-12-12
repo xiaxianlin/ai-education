@@ -1,6 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { getColorTheme } from "../utils/colorThemes";
 import { BookOpen, Loader2 } from "lucide-react";
 
 interface GeneratingCardProps {
@@ -8,26 +6,16 @@ interface GeneratingCardProps {
 }
 
 export const GeneratingCard = ({ unit }: GeneratingCardProps) => {
-  const theme = getColorTheme(unit.id);
   return (
     <Card className="relative overflow-hidden border-2 border-border transition-all hover:border-primary/40 hover:shadow-lg hover:bg-primary/5 rounded-2xl bg-card">
       <CardContent className="relative z-10 p-5 flex flex-col h-full">
         <div className="flex items-start gap-3 flex-1">
-          <div
-            className={cn(
-              "p-2.5 rounded-xl shadow-sm flex-shrink-0",
-              theme.button
-            )}
-          >
+          <div className="p-2.5 rounded-xl shadow-sm flex-shrink-0 bg-secondary text-secondary-foreground">
             <BookOpen className="h-8 w-8" />
           </div>
           <div className="flex-1 min-w-0 space-y-2">
-            <h3 className="text-xl font-bold text-foreground leading-tight">
-              {unit.name}
-            </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              AI 正在为你精心准备练习题目，请稍候片刻～
-            </p>
+            <h3 className="text-xl font-bold text-foreground leading-tight">{unit.name}</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">AI 正在为你精心准备练习题目，请稍候片刻～</p>
           </div>
         </div>
 

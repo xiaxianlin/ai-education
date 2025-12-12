@@ -4,15 +4,13 @@
  */
 import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
-import { UnitPracticeCard } from "./UnitPracticeCard";
-import { useUnitPracticeStore } from "../stores/unit-practice-store";
+import { PracticeCard } from "./PracticeCard";
 
 interface TextbookUnitsSectionProps {
   textbook: Textbook;
 }
 
 export function TextbookUnits({ textbook }: TextbookUnitsSectionProps) {
-  const { practices, openKnowledgeModal } = useUnitPracticeStore();
   const { data: units = [], loading } = useRequest(
     () => studentApi.getTextbookUnits(textbook.id),
     { refreshDeps: [textbook.id] }
@@ -35,22 +33,10 @@ export function TextbookUnits({ textbook }: TextbookUnitsSectionProps) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-6">
-      {units.map((unit) => {
-        // 查找该单元的练习会话
-        const practice = practices.find(
-          (p) => p.target_id === unit.id && p.textbook_id === textbook.id
-        );
-        return (
-          <UnitPracticeCard
-            key={unit.id}
-            unit={unit}
-            textbook={textbook}
-            practice={practice}
-            onShowKnowledge={openKnowledgeModal}
-          />
-        );
-      })}
+    <div className="grid grid-cols-2 gap-6">
+      {units.map((unit) => (
+        <PracticeCard key={unit.id} unit={unit} textbook={textbook} />
+      ))}
     </div>
   );
 }

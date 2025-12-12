@@ -3,10 +3,10 @@
  */
 import { Button } from "@/components/ui/button";
 import { X, Lightbulb } from "lucide-react";
-import { useUnitPracticeStore } from "../stores/unit-practice-store";
+import { usePageModel } from "../models/PageModel";
 
 export function KnowledgeModal() {
-  const { knowledgeModal, closeKnowledgeModal } = useUnitPracticeStore();
+  const { knowledgeModal, closeKnowledgeModal } = usePageModel();
   const { open, unitName, knowledges, loading } = knowledgeModal;
 
   if (!open) return null;
