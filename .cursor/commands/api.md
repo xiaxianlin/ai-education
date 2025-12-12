@@ -468,16 +468,6 @@ DELETE /api/admin/unit/{id}
 GET /api/admin/unit/{id}/knowledges
 ```
 
-#### 查询单元题目
-
-```
-GET /api/admin/unit/{id}/questions?page=1&size=10
-```
-
-**查询参数**:
-- `page`: 页码，默认1
-- `size`: 每页数量，默认10
-
 ---
 
 ### 知识点管理
