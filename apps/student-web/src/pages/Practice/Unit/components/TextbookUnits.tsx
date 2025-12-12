@@ -11,25 +11,16 @@ interface TextbookUnitsSectionProps {
 }
 
 export function TextbookUnits({ textbook }: TextbookUnitsSectionProps) {
-  const { data: units = [], loading } = useRequest(
-    () => studentApi.getTextbookUnits(textbook.id),
-    { refreshDeps: [textbook.id] }
-  );
+  const { data: units = [], loading } = useRequest(() => studentApi.getTextbookUnits(textbook.id), {
+    refreshDeps: [textbook.id],
+  });
 
   if (loading) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        加载单元中...
-      </div>
-    );
+    return <div className="text-center py-8 text-muted-foreground">加载单元中...</div>;
   }
 
   if (units.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        该教材暂无单元
-      </div>
-    );
+    return <div className="text-center py-8 text-muted-foreground">该教材暂无单元</div>;
   }
 
   return (
