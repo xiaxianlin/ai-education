@@ -171,8 +171,11 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
               onSubmit: () async {
                 try {
                   final result = await sessionNotifier.submitAnswer();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                  if (!mounted) return;
+                  // ignore: use_build_context_synchronously
+                  final messenger = ScaffoldMessenger.maybeOf(context);
+                  if (messenger != null) {
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text(result.isCorrect ? '回答正确！' : '回答错误'),
                         backgroundColor: result.isCorrect ? Colors.green : Colors.red,
@@ -180,8 +183,11 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
                     );
                   }
                 } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                  if (!mounted) return;
+                  // ignore: use_build_context_synchronously
+                  final messenger = ScaffoldMessenger.maybeOf(context);
+                  if (messenger != null) {
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('提交答案失败: ${ErrorHandler.getErrorMessage(e)}'),
                         backgroundColor: Colors.red,
@@ -213,8 +219,11 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
                 if (confirmed == true && mounted) {
                   try {
                     await sessionNotifier.completePractice();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                    if (!mounted) return;
+                    // ignore: use_build_context_synchronously
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    if (messenger != null) {
+                      messenger.showSnackBar(
                         const SnackBar(
                           content: Text('练习已完成！'),
                           backgroundColor: Colors.green,
@@ -222,8 +231,11 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
                       );
                     }
                   } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                    if (!mounted) return;
+                    // ignore: use_build_context_synchronously
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    if (messenger != null) {
+                      messenger.showSnackBar(
                         SnackBar(
                           content: Text('完成练习失败: ${ErrorHandler.getErrorMessage(e)}'),
                           backgroundColor: Colors.red,

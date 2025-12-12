@@ -6,7 +6,7 @@ echo "Installing dependencies..."
 flutter pub get
 
 echo "Generating JSON serialization code..."
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 
 echo "Done! Generated files are in lib/core/models/*.g.dart"
 

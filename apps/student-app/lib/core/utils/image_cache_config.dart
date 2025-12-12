@@ -85,6 +85,8 @@ class ImageCacheConfig {
         imageUrl,
         cacheManager: defaultCacheManager,
       );
+      // 检查 context 是否仍然有效（通过尝试访问它）
+      if (!context.mounted) return;
       await precacheImage(imageProvider, context);
     } catch (e) {
       // 预加载失败，忽略错误
@@ -97,6 +99,8 @@ class ImageCacheConfig {
     BuildContext context,
   ) async {
     try {
+      // 检查 context 是否仍然有效
+      if (!context.mounted) return;
       await precacheImage(provider, context);
     } catch (e) {
       // 预加载失败，忽略错误

@@ -43,7 +43,7 @@ class PaginatedListState<T> {
 class PaginatedList<T> extends ConsumerStatefulWidget {
   /// 数据加载函数
   /// 参数：page (从0开始), pageSize
-  /// 返回：List<T>
+  /// 返回：List&lt;T&gt;
   final Future<List<T>> Function(int page, int pageSize) loadData;
 
   /// 列表项构建器

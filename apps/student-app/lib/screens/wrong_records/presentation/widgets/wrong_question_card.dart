@@ -312,13 +312,12 @@ class _WrongQuestionCardState extends ConsumerState<WrongQuestionCard> {
 
     if (!mounted) return;
     
-    final state = ref.read(markAsMasteredStateProvider);
-    
-    // 在异步操作后使用 context 前再次检查 mounted
-    if (!mounted) return;
-    
+    // 在异步操作后立即获取 messenger，避免在其他操作后使用 context
+    // ignore: use_build_context_synchronously
     final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
+    if (messenger == null || !mounted) return;
+    
+    final state = ref.read(markAsMasteredStateProvider);
     
     if (state.hasError) {
       messenger.showSnackBar(
