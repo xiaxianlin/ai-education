@@ -8,16 +8,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface AudioRecorderProps {
-  onRecordingComplete: (audioBlob: Blob) => void;
   disabled?: boolean;
-  maxDuration?: number; // 最大录音时长（秒），默认 60 秒
+  /**
+   * 最大录音时长（秒），默认 60 秒
+   */
+  maxDuration?: number;
+  onComplete: (audioBlob: Blob) => void;
 }
 
-export function AudioRecorder({
-  onRecordingComplete,
-  disabled = false,
-  maxDuration = 60,
-}: AudioRecorderProps) {
+export function AudioRecorder({ onComplete, disabled = false, maxDuration = 60 }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -56,7 +55,7 @@ export function AudioRecorder({
           type: "audio/webm",
         });
         setIsProcessing(true);
-        onRecordingComplete(audioBlob);
+        onComplete(audioBlob);
         setIsProcessing(false);
 
         // 停止所有音频轨道
@@ -140,18 +139,12 @@ export function AudioRecorder({
 
       {isRecording && (
         <div className="text-center">
-          <div className="text-2xl font-bold text-red-600 mb-1">
-            {formatTime(recordingTime)}
-          </div>
+          <div className="text-2xl font-bold text-red-600 mb-1">{formatTime(recordingTime)}</div>
           <div className="text-sm text-gray-600">正在录音...</div>
         </div>
       )}
 
-      {!isRecording && recordingTime === 0 && (
-        <div className="text-sm text-gray-500 text-center">
-          点击按钮开始录音
-        </div>
-      )}
+      {!isRecording && recordingTime === 0 && <div className="text-sm text-gray-500 text-center">点击按钮开始录音</div>}
     </div>
   );
 }

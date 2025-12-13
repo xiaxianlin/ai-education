@@ -11,7 +11,7 @@ interface KnowledgeModalState {
 }
 
 const useContainer = () => {
-  const { activeTextbooksMap } = useProfileModel();
+  const { activeTextbooks } = useProfileModel();
   const [knowledgeModal, setKnowledgeModal] = useState<KnowledgeModalState>({
     open: false,
     unitName: "",
@@ -54,7 +54,7 @@ const useContainer = () => {
   }, []);
 
   return {
-    textbooks: activeTextbooksMap,
+    textbooks: activeTextbooks,
     knowledgeModal,
     openKnowledgeModal,
     closeKnowledgeModal,

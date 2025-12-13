@@ -10,10 +10,13 @@ import { AnswerCard } from "../components/AnswerCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageModel } from "../models/PageModel";
 import { ArrowLeft } from "lucide-react";
+import { useRef } from "react";
 
 export function ProcessingView() {
   const navigate = useNavigate();
-  const { handleSubmit, canSubmit } = usePageModel();
+  const { question, answerRecord, isComplete, complete, handleSubmit } = usePageModel();
+
+  const startTime = useRef(Date.now());
 
   return (
     <div className="p-4">
@@ -40,18 +43,28 @@ export function ProcessingView() {
         </Card>
 
         {/* 答题区 */}
-        <AnswerCard />
+        <AnswerCard key={question.id} />
 
         {/* 提交按钮 */}
         <div className="pb-4">
-          <Button
-            type="button"
-            className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all"
-            disabled={!canSubmit}
-            onClick={() => handleSubmit()}
-          >
-            提交
-          </Button>
+          {isComplete ? (
+            <Button
+              type="button"
+              className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all"
+              onClick={complete}
+            >
+              完成练习
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all"
+              disabled={!!answerRecord}
+              onClick={() => handleSubmit((Date.now() - startTime.current) / 1000)}
+            >
+              提交答案
+            </Button>
+          )}
         </div>
       </div>
     </div>

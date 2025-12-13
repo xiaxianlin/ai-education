@@ -112,8 +112,8 @@ declare global {
    * 题目信息（对应 QuestionSchema）
    */
   interface Question {
-    id: string | number;
-    type: string; // 题目类型（主类型）
+    id: number;
+    type: QuestionType; // 题目类型（主类型）
     subtype?: string; // 题目子类型
     subject: string; // 科目
     grade: number; // 年级
