@@ -34,6 +34,8 @@ async def get_daily_practice(db: AsyncSession, student_id: str, textbook_id: int
         )
     )
 
+    if result is None:
+        return None
     return PracticeSessionSchema.model_validate(result)
 
 
@@ -50,6 +52,8 @@ async def get_unit_practice(db: AsyncSession, student_id: str, unit_id: int):
         )
     )
 
+    if result is None:
+        return None
     return PracticeSessionSchema.model_validate(result)
 
 
@@ -66,6 +70,8 @@ async def get_assessment(db: AsyncSession, student_id: str, textbook_id: int):
         )
     )
 
+    if result is None:
+        return None
     return PracticeSessionSchema.model_validate(result)
 
 

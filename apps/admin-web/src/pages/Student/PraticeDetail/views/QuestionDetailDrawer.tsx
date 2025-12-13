@@ -9,7 +9,6 @@ interface QuestionDetailDrawerProps {
   open: boolean;
   question?: Question;
   answer?: PracticeAnswer;
-  wrongRecord?: PracticeWrongRecord;
   onClose: () => void;
 }
 
@@ -37,9 +36,7 @@ function parseOptions(options?: string): string[] {
   try {
     const parsed = JSON.parse(options);
     if (Array.isArray(parsed)) {
-      return parsed.map((opt: any) =>
-        typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt),
-      );
+      return parsed.map((opt: any) => (typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt)));
     }
   } catch {
     // 解析失败，尝试按换行符分割
@@ -49,26 +46,15 @@ function parseOptions(options?: string): string[] {
   return options.split('\n').filter((line) => line.trim());
 }
 
-export function QuestionDetailDrawer({
-  open,
-  question,
-  answer,
-  wrongRecord,
-  onClose,
-}: QuestionDetailDrawerProps) {
+export function QuestionDetailDrawer({ open, question, answer, onClose }: QuestionDetailDrawerProps) {
   if (!question) return null;
 
   const resourceUrl = buildResourceUrl(question.resource);
   const optionsList = parseOptions(question.options);
+  const isWrongAnswer = answer?.status === 2; // 答错的题目
+
   return (
-    <Drawer
-      title="题目详情"
-      placement="right"
-      width={750}
-      open={open}
-      onClose={onClose}
-      destroyOnClose
-    >
+    <Drawer title="题目详情" placement="right" width={750} open={open} onClose={onClose} destroyOnClose>
       <ProDescriptions bordered column={1}>
         <ProDescriptions.Item label="题目ID" valueType="text">
           {question.id}
@@ -107,14 +93,14 @@ export function QuestionDetailDrawer({
           )}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="正确答案" valueType="text">
-          {question.answer}
+          {answer?.correct_answer || question.answer}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="学生答案" valueType="text">
           {answer?.text_answer || '未作答'}
         </ProDescriptions.Item>
-        {wrongRecord && (
+        {isWrongAnswer && answer?.analysis && (
           <ProDescriptions.Item label="错题分析" valueType="text">
-            {wrongRecord?.analysis || '-'}
+            {answer.analysis}
           </ProDescriptions.Item>
         )}
       </ProDescriptions>

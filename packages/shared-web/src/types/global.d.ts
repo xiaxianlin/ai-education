@@ -183,31 +183,32 @@ declare global {
     id: number;
     session_id: number;
     question_id: number;
-    question_order: number; // 题目顺序
-    text_answer?: string; // 文本答案
-    status: number; // 答题状态: 0-未答, 1-正确, 2-错误
-    time_spent: number; // 耗时（秒）
-    submit_time?: number; // 提交时间
-    audio_answer?: string; // 音频答案（OSS 存储路径）
-    question?: Question;
-  }
-
-  /**
-   * 错题记录
-   */
-  interface PracticeWrongRecord {
-    id: number;
     student_id: string;
-    question_id: number;
-    session_id: number;
+    question_order: number; // 题目顺序
+
+    // 题目相关信息（冗余存储）
     unit_id?: number;
     knowledge?: string;
     textbook_id?: number;
-    user_answer?: string;
-    correct_answer?: string;
+
+    // 答题信息
+    text_answer?: string; // 文本答案/用户答案
+    audio_answer?: string; // 音频答案（OSS 存储路径）
+    status: number; // 答题状态: 0-未答, 1-正确, 2-错误
+    time_spent: number; // 耗时（秒）
+    submit_time?: number; // 提交时间
+
+    // 错题相关字段（仅当 status=2 时有值）
+    correct_answer?: string; // 正确答案
     analysis?: string; // 错题分析
-    time_spent?: number;
+    is_corrected?: number; // 是否已订正 0-未订正 1-已订正
+    corrected_time?: number; // 订正时间
+
+    // 时间字段
     create_time: number;
+    update_time?: number;
+
+    question?: Question;
   }
 
   /**
@@ -243,7 +244,6 @@ declare global {
     session: PracticeSession;
     answers: PracticeAnswer[];
     questions: Question[];
-    wrong_records: PracticeWrongRecord[];
     report?: PracticeReport;
   }
 }

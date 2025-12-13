@@ -130,8 +130,7 @@ server/
 │   │   ├── auth.py       # 学生认证
 │   │   ├── profile.py    # 学生资料
 │   │   ├── textbook.py   # 教材功能
-│   │   ├── practice.py   # 练习功能（每日/单元/评估）
-│   │   └── wrong_records.py # 错题记录
+│   │   └── practice.py   # 练习功能（每日/单元/评估）
 │   ├── services/          # 业务逻辑层
 │   │   ├── practice_generate.py # 练习生成服务
 │   │   ├── answer.py     # 答题服务

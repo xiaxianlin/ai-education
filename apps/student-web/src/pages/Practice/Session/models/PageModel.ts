@@ -143,7 +143,7 @@ function useContainer() {
             [answer.question_id]: {
               text: answer.text_answer || "",
               match: answer.status === 1,
-              analysis: "",
+              analysis: answer.analysis || "",
             },
           };
         },

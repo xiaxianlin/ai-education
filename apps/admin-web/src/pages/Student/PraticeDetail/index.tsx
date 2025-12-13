@@ -1,22 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  PageContainer,
-  ProDescriptions,
-  ProTable,
-  ProColumns,
-  ProSkeleton,
-} from '@ant-design/pro-components';
+import { PageContainer, ProDescriptions, ProTable, ProColumns, ProSkeleton } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { SetStateAction, useMemo, useState } from 'react';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
-import {
-  PRACTICE_STATUS_COLORS,
-  PRACTICE_STATUS_LABELS,
-  PRACTICE_TYPE_LABELS,
-} from '@/constants/practice';
+import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { fmtTime } from '@/utils/time';
 import { PageHeader } from '@/components/business';
 
@@ -25,12 +15,11 @@ export default function PracticeDetailPage() {
   const navigate = useNavigate();
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
   // 使用统一的会话详情接口
-  const { data, loading, error } = useRequest(
-    () => adminApi.getPracticeSession(Number(session_id)),
-    { ready: !!session_id },
-  );
+  const { data, loading, error } = useRequest(() => adminApi.getPracticeSession(Number(session_id)), {
+    ready: !!session_id,
+  });
 
-  const { session, answers = [], wrong_records = [] } = data || {};
+  const { session, answers = [] } = data || {};
 
   const answersMap = useMemo(() => {
     return answers.reduce((acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
@@ -38,16 +27,6 @@ export default function PracticeDetailPage() {
       return acc;
     }, {} as Record<number, PracticeAnswer>);
   }, [answers]);
-
-  const wrongRecordsMap = useMemo(() => {
-    return wrong_records.reduce(
-      (acc: { [x: string]: PracticeWrongRecord }, record: PracticeWrongRecord) => {
-        acc[record.question_id] = record;
-        return acc;
-      },
-      {} as Record<number, PracticeWrongRecord>,
-    );
-  }, [wrong_records]);
 
   const columns = useMemo<ProColumns<Question>[]>(
     () => [
@@ -85,9 +64,7 @@ export default function PracticeDetailPage() {
         renderText: (questionId: number) => {
           const answer = answersMap[questionId];
           return (
-            <Tag color={answer?.status !== 0 ? 'success' : 'default'}>
-              {answer?.status !== 0 ? '已作答' : '未作答'}
-            </Tag>
+            <Tag color={answer?.status !== 0 ? 'success' : 'default'}>{answer?.status !== 0 ? '已作答' : '未作答'}</Tag>
           );
         },
       },
@@ -146,9 +123,7 @@ export default function PracticeDetailPage() {
           description={
             <div>
               <div style={{ marginBottom: 8 }}>加载失败</div>
-              <div style={{ fontSize: '12px', color: '#999' }}>
-                {error?.message || '请检查网络连接或稍后重试'}
-              </div>
+              <div style={{ fontSize: '12px', color: '#999' }}>{error?.message || '请检查网络连接或稍后重试'}</div>
             </div>
           }
         >
@@ -178,9 +153,7 @@ export default function PracticeDetailPage() {
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">
-              <Tag color="blue">
-                {PRACTICE_TYPE_LABELS[session.session_type]}
-              </Tag>
+              <Tag color="blue">{PRACTICE_TYPE_LABELS[session.session_type]}</Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
               <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
@@ -213,11 +186,7 @@ export default function PracticeDetailPage() {
               <Statistic title="正确" value={session.correct_count} suffix="题" />
             </Col>
             <Col span={6}>
-              <Statistic
-                title="错误"
-                value={session.answer_count - session.correct_count}
-                suffix="题"
-              />
+              <Statistic title="错误" value={session.answer_count - session.correct_count} suffix="题" />
             </Col>
           </Row>
         </Card>
@@ -241,7 +210,6 @@ export default function PracticeDetailPage() {
           onClose={() => setSelectedQuestion(undefined)}
           question={selectedQuestion}
           answer={selectedQuestion ? answersMap[Number(selectedQuestion.id)] : undefined}
-          wrongRecord={selectedQuestion ? wrongRecordsMap[Number(selectedQuestion.id)] : undefined}
         />
       </Space>
     </PageContainer>

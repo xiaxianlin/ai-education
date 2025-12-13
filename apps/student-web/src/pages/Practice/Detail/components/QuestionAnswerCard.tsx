@@ -73,7 +73,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
           ? isCorrect
             ? "border-green-500/50 dark:border-green-400/50 hover:border-green-500/70 dark:hover:border-green-400/70 bg-green-50/30 dark:bg-green-950/10"
             : "border-red-500/50 dark:border-red-400/50 hover:border-red-500/70 dark:hover:border-red-400/70 bg-red-50/30 dark:bg-red-950/10"
-          : "border-border hover:border-primary/40 hover:bg-primary/5",
+          : "border-border hover:border-primary/40 hover:bg-primary/5"
       )}
     >
       <CardContent className="relative z-10 p-5 flex flex-col h-full">
@@ -84,7 +84,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
             <div
               className={cn(
                 "p-2.5 rounded-xl shadow-sm flex-shrink-0",
-                hasAnswer ? (isCorrect ? "bg-green-500" : "bg-red-500") : "bg-primary",
+                hasAnswer ? (isCorrect ? "bg-green-500" : "bg-red-500") : "bg-primary"
               )}
             >
               <span className="text-xl font-bold text-white">{index + 1}</span>
@@ -99,7 +99,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                       "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm",
                       isCorrect
                         ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-                        : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300",
+                        : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
                     )}
                   >
                     <StatusIcon className="h-4 w-4" />
@@ -158,7 +158,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                       "rounded-xl p-4 border-2 shadow-sm",
                       isCorrect
                         ? "bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700"
-                        : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700",
+                        : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700"
                     )}
                   >
                     <div className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
@@ -181,8 +181,8 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                     </div>
                   )}
 
-                  {/* 错题分析 - 如果后端返回了 analysis 数据 */}
-                  {status === 2 && (question as any).analysis && (
+                  {/* 错题分析 */}
+                  {status === 2 && answer?.analysis && (
                     <div className="rounded-xl p-4 bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-400 dark:border-orange-600 shadow-sm">
                       <div className="text-sm font-semibold text-orange-700 dark:text-orange-300 mb-2 flex items-center gap-2">
                         <span>💡</span>
@@ -190,7 +190,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                       </div>
                       <div
                         className="text-sm text-foreground leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: (question as any).analysis }}
+                        dangerouslySetInnerHTML={{ __html: answer.analysis }}
                       />
                     </div>
                   )}

@@ -1,6 +1,6 @@
 # AI Education Platform - API接口文档
 
-> 本文档基于后端实际代码生成，最后更新时间：2024-12-20
+> 本文档基于后端实际代码生成，最后更新时间：2024-12-21
 
 ## 目录
 
@@ -21,7 +21,6 @@
   - [学生资料](#学生资料)
   - [教材功能](#教材功能)
   - [练习功能](#练习功能)
-  - [错题记录](#错题记录)
 
 ---
 
@@ -1159,6 +1158,48 @@ POST /api/student/practice/create
 - 单元练习：同一学生同一单元只允许一个未完成会话
 - 能力评估：存在未完成会话时不允许重复创建
 
+#### 立即创建练习会话
+
+```
+POST /api/student/practice/immediately_create
+```
+
+**请求参数**:
+```json
+{
+  "type": "daily_practice",
+  "textbook_id": 1,
+  "unit_id": 1
+}
+```
+
+**参数说明**:
+- `type`: 练习类型（必填，可选值：`daily_practice` / `unit_practice` / `assessment`）
+- `textbook_id`: 教材ID（必填）
+- `unit_id`: 单元ID，仅在创建单元练习时必填
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "session_id": 123,
+    "session_type": "daily_practice",
+    "target_id": 20241123,
+    "textbook_id": 1,
+    "question_count": 10,
+    "answer_count": 0,
+    "correct_count": 0,
+    "status": 0
+  }
+}
+```
+
+**功能说明**:
+- 同步创建练习会话，立即返回会话信息（不通过任务队列）
+- 适用于需要立即获取结果的场景
+- 业务规则与异步创建接口相同
+
 #### 查询练习生成任务状态
 
 ```
@@ -1370,77 +1411,6 @@ POST /api/student/practice/{session_id}/complete
 
 ---
 
-### 错题记录
-
-#### 获取错题列表
-
-```
-GET /api/student/wrong-records?mastered=0
-```
-
-**查询参数**:
-- `mastered`: 是否已掌握（可选，0-未掌握，1-已掌握）
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": [
-    {
-      "question_id": 1,
-      "content": "1 + 1 = ?",
-      "answer": "B",
-      "wrong_count": 3,
-      "mastered": 0,
-      "last_wrong_time": 1234567890
-    }
-  ]
-}
-```
-
-**功能说明**: 
-- 不传 `mastered` 参数：返回所有错题
-- `mastered=0`：返回未掌握的错题
-- `mastered=1`：返回已掌握的错题
-
-#### 标记题目为已掌握
-
-```
-POST /api/student/wrong-records/{question_id}/master
-```
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "message": "已标记为已掌握"
-  }
-}
-```
-
-**功能说明**: 将错题标记为已掌握状态。
-
-#### 标记题目为未掌握
-
-```
-POST /api/student/wrong-records/{question_id}/unmaster
-```
-
-**响应示例**:
-```json
-{
-  "code": 0,
-  "data": {
-    "message": "已标记为未掌握"
-  }
-}
-```
-
-**功能说明**: 将错题标记为未掌握状态。
-
----
-
 ## 数据模型说明
 
 ### 练习会话状态
@@ -1551,6 +1521,11 @@ POST /api/student/wrong-records/{question_id}/unmaster
 ---
 
 ## 更新日志
+
+### v0.2.2 (2024-12-21)
+
+- 新增立即创建练习会话接口：`POST /api/student/practice/immediately_create`
+- 更新文档说明
 
 ### v0.2.1 (2024-12-20)
 
