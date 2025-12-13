@@ -12,14 +12,12 @@ from shared.core.database import (
     PracticeAnswer,
     PracticeReport,
     PracticeSession,
-    PracticeWrongRecord,
     Question,
 )
 from shared.core.schema import (
     PracticeAnswerSchema,
     PracticeReportSchema,
     PracticeSessionSchema,
-    PracticeWrongRecordSchema,
 )
 from shared.utils import oss
 from shared.utils.time import now, today
@@ -210,12 +208,6 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
     # 获取所有答题记录
     answers = [PracticeAnswerSchema.model_validate(answer) for answer in results.all()]
 
-    results = await db.scalars(
-        select(PracticeWrongRecord).where(PracticeWrongRecord.session_id == session_id)
-    )
-
-    wrong_records = [PracticeWrongRecordSchema.model_validate(record) for record in results.all()]
-
     # 对 answers 根据 question_order 进行排序
     answers.sort(key=lambda x: x.question_order)
     questions = [answer.question for answer in answers]
@@ -231,12 +223,10 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
         )
 
     # 构建返回结果
-
     result = {
         "session": PracticeSessionSchema.model_validate(session),
         "questions": questions,
         "answers": answers,
-        "wrong_records": wrong_records,
         "report": PracticeReportSchema.model_validate(report) if report else None,
     }
 

@@ -11,6 +11,11 @@ from ai.question_generate import invoke_generate_workflow
 async def create_answer_records(db: AsyncSession, session_id: int, questions: list[Question]):
     """为练习会话创建答题记录"""
 
+    # 获取会话信息以获取 student_id
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    if not session:
+        raise ValueError(f"练习会话不存在: session_id={session_id}")
+
     await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
     await db.flush()  # 确保删除操作完成
 
@@ -20,7 +25,12 @@ async def create_answer_records(db: AsyncSession, session_id: int, questions: li
         answer_record = PracticeAnswer(
             session_id=session_id,
             question_id=question.id,
+            student_id=session.student_id,
             question_order=index + 1,
+            # 题目相关信息（冗余存储）
+            unit_id=question.unit_id,
+            knowledge=question.knowledge,
+            textbook_id=question.textbook_id,
             status=0,
             time_spent=0,
         )
@@ -191,6 +201,11 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
                 answer.time_spent = 0
                 answer.submit_time = None
                 answer.audio_answer = None
+                # 重置错题相关字段
+                answer.correct_answer = None
+                answer.analysis = None
+                answer.is_corrected = 0
+                answer.corrected_time = None
 
             # 重置进度并更新为当天的每日练习
             uncompleted_session.target_id = current_date

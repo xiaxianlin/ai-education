@@ -3,13 +3,18 @@
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from shared.core.database import PracticeSession, PracticeAnswer, PracticeWrongRecord, Question
+from shared.core.database import PracticeSession, PracticeAnswer, Question
 from student.schema import AnswerQuestionSchema, AnswerResultSchema
 from shared.utils.time import now
 from ai.question.answer import analyze_text_answer
 
 
-async def _check_answer(student_id: str, question: Question, params: AnswerQuestionSchema):
+async def _check_answer(question: Question, params: AnswerQuestionSchema):
+    """检查答案是否正确并生成分析
+    
+    Returns:
+        tuple: (is_correct, analysis) - 是否正确和错题分析（如果错误）
+    """
     is_correct = False
     analysis = ""
     if params.is_audio_answer:
@@ -23,22 +28,7 @@ async def _check_answer(student_id: str, question: Question, params: AnswerQuest
             is_correct = result.match
             analysis = result.analysis
 
-    wrong_record = None
-    if not is_correct:
-        wrong_record = PracticeWrongRecord(
-            student_id=student_id,
-            session_id=params.session_id,
-            question_id=params.question_id,
-            unit_id=question.unit_id,
-            textbook_id=question.textbook_id,
-            knowledge=question.knowledge,
-            user_answer=params.answer,
-            correct_answer=question.answer,
-            time_spent=params.time_spent,
-            analysis=analysis,
-        )
-
-    return is_correct, wrong_record
+    return is_correct, analysis
 
 
 async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestionSchema) -> dict:
@@ -69,25 +59,25 @@ async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestio
         if not answer_record:
             raise ValueError("答题记录不存在")
 
-        # 4. 使用传入的文本答案（口语题已在单独接口中完成 ASR 解析）
+        # 4. 检查答案并生成分析
+        is_correct, analysis = await _check_answer(question, params)
 
-        is_correct, wrong_record = await _check_answer(student_id, question, params)
-
-        # 5. 判断答案是否正确并生成分析
-        if wrong_record:
-            db.add(wrong_record)
-            logger.info(
-                f"添加错题记录: student_id={student_id}, question_id={params.question_id}, "
-                f"session_id={params.session_id}"
-            )
-
-        # 6. 更新答题记录
+        # 5. 更新答题记录
         answer_record.text_answer = params.answer
         answer_record.status = 1 if is_correct else 2
         answer_record.time_spent = params.time_spent
         answer_record.submit_time = now()
+        
+        # 如果答错，保存错题分析信息
+        if not is_correct:
+            answer_record.correct_answer = question.answer
+            answer_record.analysis = analysis
+            logger.info(
+                f"记录错题信息: student_id={student_id}, question_id={params.question_id}, "
+                f"session_id={params.session_id}"
+            )
 
-        # 7. 更新练习会话统计
+        # 6. 更新练习会话统计
         session.answer_count += 1
         if is_correct:
             session.correct_count += 1
@@ -105,7 +95,7 @@ async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestio
             is_correct=is_correct,
             correct_answer=question.answer,
             user_answer=params.answer,
-            analysis=wrong_record.analysis if wrong_record else None,
+            analysis=analysis if not is_correct else None,
         )
 
     except ValueError:

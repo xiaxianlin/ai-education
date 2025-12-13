@@ -245,54 +245,50 @@ class PracticeSession(BaseModel):
     )
 
 
-# 答题记录表
+# 答题记录表（合并了原 PracticeWrongRecord 的功能）
 class PracticeAnswer(BaseModel):
     __tablename__ = "ah_practice_answer"
 
+    # 主键
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    
+    # 基础关联字段
     session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="会话ID")
     question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
-    question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
-
-    # 答题信息
-    text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="文本答案")
-    status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
-    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
-    submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
-    audio_answer: Mapped[str] = mapped_column(
-        String(255), nullable=True, comment="语音回答（OSS 存储路径）"
-    )
-
-    question: Mapped["Question"] = relationship(
-        "Question",
-        primaryjoin="foreign(PracticeAnswer.question_id) == Question.id",
-        lazy="joined",
-    )
-
-
-# 学生错题记录表（每次答错都记录）
-class PracticeWrongRecord(BaseModel):
-    __tablename__ = "ah_practice_wrong_record"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(
         String(255), nullable=False, index=True, comment="学生ID"
     )
-    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
-    session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="练习会话ID")
-
+    question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
+    
     # 题目相关信息（冗余存储，避免关联查询）
     unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
     knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")
     textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
 
     # 答题信息
-    user_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="用户答案")
+    text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="文本答案/用户答案")
+    audio_answer: Mapped[str] = mapped_column(
+        String(255), nullable=True, comment="语音回答（OSS 存储路径）"
+    )
+    status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
+    time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
+    submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
+    
+    # 错题相关字段（仅当 status=2 时有值）
     correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
     analysis: Mapped[str] = mapped_column(Text, nullable=True, comment="错题分析")
-    time_spent: Mapped[int] = mapped_column(default=0, comment="答题耗时(秒)")
-
+    is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正 0-未订正 1-已订正")
+    corrected_time: Mapped[int] = mapped_column(nullable=True, comment="订正时间")
+    
+    # 时间字段
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    question: Mapped["Question"] = relationship(
+        "Question",
+        primaryjoin="foreign(PracticeAnswer.question_id) == Question.id",
+        lazy="joined",
+    )
 
 
 # 练习报告表

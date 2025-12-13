@@ -163,33 +163,37 @@ class PracticeAnswerSchema(BaseModel):
     id: int
     session_id: int
     question_id: int
+    student_id: str
     question_order: int
+    
+    # 题目相关信息（冗余存储）
+    unit_id: Optional[int] = None
+    knowledge: Optional[str] = None
+    textbook_id: Optional[int] = None
+    
+    # 答题信息
     text_answer: Optional[str] = None
+    audio_answer: Optional[str] = None
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
-    audio_answer: Optional[str] = None
+    
+    # 错题相关字段
+    correct_answer: Optional[str] = None
+    analysis: Optional[str] = None
+    is_corrected: int = 0
+    corrected_time: Optional[int] = None
+    
+    # 时间字段
+    create_time: int
+    update_time: Optional[int] = None
 
     question: Optional["QuestionSchema"] = None
 
     model_config = {"from_attributes": True}
 
 
-class PracticeWrongRecordSchema(BaseModel):
-    id: int
-    student_id: str
-    question_id: int
-    session_id: int
-    unit_id: Optional[int] = None
-    knowledge: Optional[str] = None
-    textbook_id: Optional[int] = None
-    user_answer: Optional[str] = None
-    correct_answer: Optional[str] = None
-    analysis: Optional[str] = None
-    time_spent: int = 0
-    create_time: int
 
-    model_config = {"from_attributes": True}
 
 
 class PracticeReportSchema(BaseModel):
@@ -221,7 +225,6 @@ class PracticeDetailSchema(BaseModel):
     session: PracticeSessionSchema
     answers: list[PracticeAnswerSchema]
     report: Optional[PracticeReportSchema] = None
-    wrong_records: list[PracticeWrongRecordSchema]
 
     model_config = {"from_attributes": True}
 
