@@ -30,7 +30,7 @@ export const useCreatePractice = ({ practice, params, refresh, onSuccess }: UseC
   const { data: taskStatus, cancel: cancelPolling } = useRequest(() => studentApi.getPracticeTaskStatus(data || ""), {
     ready: !!data,
     refreshDeps: [data],
-    pollingInterval: 2000,
+    pollingInterval: 1000,
     onSuccess: (status: TaskStatus) => {
       // 任务完成（成功或失败）时停止轮询
       if (status === "SUCCESS" || status === "FAILURE" || status === "REVOKED") {

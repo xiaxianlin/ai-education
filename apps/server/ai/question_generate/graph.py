@@ -19,7 +19,9 @@ from ai.question_generate.services.assessment import AssessmentGenerateService
 
 def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """入口节点，负责基础校验"""
-    logger.info(f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}")
+    logger.info(
+        f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}"
+    )
 
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
@@ -62,13 +64,17 @@ async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any
     return {}
 
 
-async def load_daily_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def load_daily_practice_data_node(
+    state: QuestionGenerationState,
+) -> Dict[str, Any]:
     """加载每日练习数据"""
     logger.info("开始加载每日练习数据")
     return await DailyPracticeGenerateService.load_data(state)
 
 
-async def load_unit_practice_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def load_unit_practice_data_node(
+    state: QuestionGenerationState,
+) -> Dict[str, Any]:
     """加载单元练习数据"""
     logger.info("开始加载单元练习数据")
     return await UnitPracticeGenerateService.load_data(state)
@@ -80,19 +86,25 @@ async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str,
     return await AssessmentGenerateService.load_data(state)
 
 
-async def build_daily_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def build_daily_practice_prompt_node(
+    state: QuestionGenerationState,
+) -> Dict[str, Any]:
     """构建每日练习prompt"""
     logger.info("开始构建每日练习prompt")
     return await DailyPracticeGenerateService.build_prompt(state)
 
 
-async def build_unit_practice_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def build_unit_practice_prompt_node(
+    state: QuestionGenerationState,
+) -> Dict[str, Any]:
     """构建单元练习prompt"""
     logger.info("开始构建单元练习prompt")
     return UnitPracticeGenerateService.build_prompt(state)
 
 
-async def build_assessment_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def build_assessment_prompt_node(
+    state: QuestionGenerationState,
+) -> Dict[str, Any]:
     """构建能力评估prompt"""
     logger.info("开始构建能力评估prompt")
     return AssessmentGenerateService.build_prompt(state)
@@ -103,7 +115,9 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     logger.info("开始调用大模型生成题目")
     try:
         result = await llm_service.call_llm(state)
-        logger.info(f"大模型生成完成，共生成 {len(result.get('generated_questions', []))} 道题目")
+        logger.info(
+            f"大模型生成完成，共生成 {len(result.get('generated_questions', []))} 道题目"
+        )
         return result
     except Exception as e:
         logger.error(f"大模型调用失败: {e}")
@@ -116,7 +130,6 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     try:
         result = await storage_service.convert_questions(state)
         logger.info("问题对象转换和分流完成")
-        await storage_service.save_questions(state)
         return result
     except Exception as e:
         logger.error(f"数据转换或保存失败: {e}")
@@ -163,7 +176,7 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
 async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
 
-    db = state['db']
+    db = state["db"]
     await db.commit()
 
     generated_questions: List[Question] = state.get("questions", [])

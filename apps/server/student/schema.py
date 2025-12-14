@@ -23,7 +23,7 @@ class CreatePracticeSchema(BaseModel):
 
 class AnswerQuestionSchema(BaseModel):
     session_id: int
-    question_id: int
+    question_id: str
     answer: str
     time_spent: int  # 答题耗时，单位秒
     is_audio_answer: bool = False  # 是否为音频回答（口语题）

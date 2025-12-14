@@ -24,7 +24,7 @@ declare global {
 
   interface AnswerRequest {
     session_id: number;
-    question_id: number;
+    question_id: string;
     answer: string;
     time_spent: number;
     is_audio_answer: boolean;

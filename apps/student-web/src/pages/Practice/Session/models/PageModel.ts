@@ -115,7 +115,7 @@ function useContainer() {
 
     submitAnswer({
       session_id: session?.id || 0,
-      question_id: question?.id || 0,
+      question_id: question?.id || "",
       answer: answer.text_answer || "",
       time_spent: timeSpent,
       is_audio_answer: isAudioAnswer,

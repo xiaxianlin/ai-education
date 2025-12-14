@@ -1,5 +1,5 @@
 """存储服务 - 负责文件上传和题目保存"""
-
+import secrets
 from typing import Any, Dict, List
 from loguru import logger
 from pydantic import TypeAdapter
@@ -12,13 +12,12 @@ from ai.schema import QuestionGenerationState, GeneratedQuestion, QuestionOption
 
 async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     """将内容转换成 Question 数组，并根据问题类型分流"""
-    generated_questions: List[GeneratedQuestion] = state["generated_questions"]
 
+    db: AsyncSession = state["db"]
     # 处理单元：教材生成可能有多个单元，单元生成只有一个单元
     unit = state.get("unit")
-
-    # 获取 textbook：优先从 state 中获取，如果没有则从 unit 或 textbook_id 加载
     textbook = state.get("textbook")
+    generated_questions: List[GeneratedQuestion] = state["generated_questions"]
 
     questions: List[Question] = []
 
@@ -89,6 +88,7 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
 
         # 设置资源类型字段并分类
         question = Question(
+            id=secrets.token_hex(16),
             subject=textbook.subject,
             grade=textbook.grade,
             type=question_type,
@@ -111,24 +111,5 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     if len(questions) == 0:
         raise ValueError("题目生成失败")
 
-    return {"questions": questions}
-
-
-async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
-    """保存题目到数据库"""
-    db: AsyncSession = state["db"]
-    questions: List[Question] = state.get("questions", [])
-
-    if questions:
-        db.add_all(questions)
-        await db.commit()
-        # 刷新 questions，保证每个 question 的 id 存在
-        questions = []
-        for question in questions:
-            await db.refresh(question)
-            questions.append(question)
-        logger.info("成功保存 %s 道题目到数据库", len(questions))
-    else:
-        logger.warning("没有需要保存的题目")
-
+    db.add_all(questions)
     return {"questions": questions}

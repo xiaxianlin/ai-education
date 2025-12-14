@@ -53,7 +53,7 @@ declare global {
    * 搜索学生请求
    */
   interface SearchQuestionRequest extends SearchRequest {
-    question_id?: number;
+    question_id?: string;
     keyword?: string;
     textbook_id?: number;
     unit_id?: number;

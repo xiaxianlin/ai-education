@@ -140,7 +140,7 @@ class Knowledge(BaseModel):
 
 class Question(BaseModel):
     __tablename__ = "ah_question"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
     subject: Mapped[str] = mapped_column(Text, comment="科目")
     grade: Mapped[int] = mapped_column(comment="年级")
     type: Mapped[str] = mapped_column(String(255), comment="题目类型（主类型）")
@@ -254,7 +254,7 @@ class PracticeAnswer(BaseModel):
     
     # 基础关联字段
     session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="会话ID")
-    question_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题目ID")
+    question_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True, comment="题目ID")
     student_id: Mapped[str] = mapped_column(
         String(255), nullable=False, index=True, comment="学生ID"
     )

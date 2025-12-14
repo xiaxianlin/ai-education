@@ -103,18 +103,9 @@ export default function PracticeDetail() {
   const isInProgress = session.status === 1;
 
   // 创建答案映射，方便查找
-  const answerMap = new Map<number, PracticeAnswer>();
+  const answerMap = new Map<string, PracticeAnswer>();
   answers?.forEach((answer) => {
     answerMap.set(answer.question_id, answer);
-  });
-
-  // 按题目顺序排序
-  const sortedQuestions = [...(questions || [])].sort((a, b) => {
-    const answerA = answerMap.get(typeof a.id === "string" ? parseInt(a.id, 10) : a.id);
-    const answerB = answerMap.get(typeof b.id === "string" ? parseInt(b.id, 10) : b.id);
-    const orderA = answerA?.question_order ?? 999;
-    const orderB = answerB?.question_order ?? 999;
-    return orderA - orderB;
   });
 
   const handleBack = () => {
@@ -184,7 +175,7 @@ export default function PracticeDetail() {
       {/* 题目列表 */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-foreground">题目详情</h2>
-        {sortedQuestions.length === 0 ? (
+        {questions.length === 0 ? (
           <Card className="border-2 border-accent/50 bg-accent/10">
             <CardContent className="py-10 px-6 text-center space-y-3">
               <div className="text-5xl">📝</div>
@@ -194,8 +185,8 @@ export default function PracticeDetail() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedQuestions.map((question, index) => {
-              const answer = answerMap.get(typeof question.id === "string" ? parseInt(question.id, 10) : question.id);
+            {questions.map((question, index) => {
+              const answer = answerMap.get(question.id);
               return <QuestionAnswerCard key={question.id} question={question} answer={answer} index={index} />;
             })}
           </div>

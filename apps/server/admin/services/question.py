@@ -229,7 +229,7 @@ async def search_resource_questions(db: AsyncSession, params: SearchQuestionSche
     )
 
 
-async def generate_question_image(db: AsyncSession, id: int):
+async def generate_question_image(db: AsyncSession, id: str):
     """为题目生成图片"""
     question = await db.scalar(select(Question).where(Question.id == id))
     if not question:
@@ -243,7 +243,7 @@ async def generate_question_image(db: AsyncSession, id: int):
     await db.commit()
 
 
-async def generate_question_audio(db: AsyncSession, id: int):
+async def generate_question_audio(db: AsyncSession, id: str):
     """为题目生成语音"""
     question = await db.scalar(select(Question).where(Question.id == id))
     if not question:

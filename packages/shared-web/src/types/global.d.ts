@@ -112,7 +112,7 @@ declare global {
    * 题目信息（对应 QuestionSchema）
    */
   interface Question {
-    id: number;
+    id: string;
     type: QuestionType; // 题目类型（主类型）
     subtype?: string; // 题目子类型
     subject: string; // 科目
@@ -182,7 +182,7 @@ declare global {
   interface PracticeAnswer {
     id: number;
     session_id: number;
-    question_id: number;
+    question_id: string;
     student_id: string;
     question_order: number; // 题目顺序
 

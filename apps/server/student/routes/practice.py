@@ -149,7 +149,7 @@ async def complete_practice_session(session_id: int, request: Request, db: Async
 async def analyze_audio_answer(
     request: Request,
     session_id: int = Form(...),
-    question_id: int = Form(...),
+    question_id: str = Form(...),
     audio_type: str = Form(...),
     audio_file: UploadFile = File(...),
     db: AsyncSession = Database,

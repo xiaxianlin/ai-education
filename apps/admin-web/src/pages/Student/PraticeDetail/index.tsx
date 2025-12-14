@@ -24,7 +24,7 @@ export default function PracticeDetailPage() {
     return answers.reduce((acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
       acc[answer.question_id] = answer;
       return acc;
-    }, {} as Record<number, PracticeAnswer>);
+    }, {} as Record<string, PracticeAnswer>);
   }, [answers]);
 
   const columns = useMemo<ProColumns<Question>[]>(
@@ -67,7 +67,7 @@ export default function PracticeDetailPage() {
         title: '是否作答',
         dataIndex: 'id',
         width: 100,
-        renderText: (questionId: number) => {
+        renderText: (questionId: string) => {
           const answer = answersMap[questionId];
           return (
             <Tag color={answer?.status !== 0 ? 'success' : 'default'}>{answer?.status !== 0 ? '已作答' : '未作答'}</Tag>
@@ -78,7 +78,7 @@ export default function PracticeDetailPage() {
         title: '答题结果',
         dataIndex: 'id',
         width: 100,
-        renderText: (questionId: number) => {
+        renderText: (questionId: string) => {
           const answer = answersMap[questionId];
           if (answer.status === 0) {
             return <span style={{ color: '#999' }}>-</span>;
@@ -91,7 +91,7 @@ export default function PracticeDetailPage() {
         title: '答题耗时',
         dataIndex: 'id',
         width: 120,
-        renderText: (questionId: number) => {
+        renderText: (questionId: string) => {
           const answer = answersMap[questionId];
           if (!answer || !answer.time_spent) {
             return <span style={{ color: '#999' }}>-</span>;

@@ -177,7 +177,7 @@ class UpdateQuestionSchema(BaseModel):
 
 
 class SearchQuestionSchema(SearchSchema):
-    question_id: Optional[int] = None
+    question_id: Optional[str] = None
     subject: Optional[str] = None
     grade: Optional[int] = None
     type: Optional[str] = None

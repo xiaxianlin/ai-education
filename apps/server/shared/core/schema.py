@@ -90,7 +90,7 @@ class KnowledgeSchema(BaseModel):
 
 
 class QuestionSchema(BaseModel):
-    id: int
+    id: str
     type: str
     subtype: Optional[str] = None
     subject: str
@@ -162,7 +162,7 @@ class PracticeSessionSchema(BaseModel):
 class PracticeAnswerSchema(BaseModel):
     id: int
     session_id: int
-    question_id: int
+    question_id: str
     student_id: str
     question_order: int
 

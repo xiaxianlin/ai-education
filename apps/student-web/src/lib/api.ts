@@ -123,10 +123,10 @@ export const studentApi = {
    * 上传口语题录音并进行语音识别
    * POST /practice/answer/audio/analyze
    */
-  async audioAnswerAnalyze(sessionId: number, questionId: number, audioBlob: Blob) {
+  async audioAnswerAnalyze(sessionId: number, questionId: string, audioBlob: Blob) {
     const formData = new FormData();
     formData.append("session_id", sessionId.toString());
-    formData.append("question_id", questionId.toString());
+    formData.append("question_id", questionId);
     formData.append("audio_type", "webm");
     formData.append("audio_file", audioBlob, "audio.webm");
     return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/audio/analyze", formData);

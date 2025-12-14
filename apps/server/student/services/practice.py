@@ -257,7 +257,7 @@ async def analyze_audio_answer(
     db: AsyncSession,
     student_id: str,
     session_id: int,
-    question_id: int,
+    question_id: str,
     audio_data: bytes,
     audio_type: str = "webm",
 ):
