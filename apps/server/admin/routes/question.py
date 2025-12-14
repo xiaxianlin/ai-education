@@ -47,10 +47,10 @@ async def get_question(id: str, db: AsyncSession = Database):
 @question_router.post("/{id}/image_generate")
 async def generate_image(id: str, db: AsyncSession = Database):
     """为题目生成图片"""
-    await question.generate_question_image(db, int(id))
+    await question.generate_question_image(db, id)
 
 
 @question_router.post("/{id}/audio_generate")
 async def generate_audio(id: str, db: AsyncSession = Database):
     """为题目生成语音"""
-    await question.generate_question_audio(db, int(id))
+    await question.generate_question_audio(db, id)

@@ -4,7 +4,7 @@ export const getPracticeStatus = (practice?: PracticeSession, taskStatus?: TaskS
   if (taskStatus) {
     switch (taskStatus) {
       case "SUCCESS":
-        return PracticeStatus.COMPLETED;
+        return PracticeStatus.READY;
       case "FAILURE":
       case "REVOKED":
         return PracticeStatus.WAIT;

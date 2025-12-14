@@ -85,7 +85,6 @@ function useContainer() {
         if (res.status === 1) {
           next();
         }
-        setAnswer(res);
         refresh();
       },
     }
