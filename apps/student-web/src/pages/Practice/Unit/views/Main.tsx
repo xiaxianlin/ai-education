@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GRADES } from "@/constants/profile";
 import { useProfileModel } from "@/models/ProfileModel";
 import { TextbookUnits } from "../components/TextbookUnits";
 import { KnowledgeModal } from "./KnowledgeModal";
@@ -33,8 +32,7 @@ export function MainView() {
               value={textbook.id.toString()}
               className="rounded-full px-6 py-2.5 text-base font-medium text-muted-foreground transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:scale-105 hover:text-primary"
             >
-              {textbook.subject} · {GRADES[textbook.grade]}
-              {textbook.semester}
+              {textbook.subject} · {textbook.semester}
             </TabsTrigger>
           ))}
         </TabsList>

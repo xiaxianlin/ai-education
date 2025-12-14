@@ -24,7 +24,7 @@ interface ButtonConfig {
 export function PracticeCard({ unit, textbook }: PracticeCardProps) {
   const { practice, status, loading, visible, showConfirmModal, hideConfirmModal, createPractice } = useUnitPractice(
     unit,
-    textbook,
+    textbook
   );
   const navigate = useNavigate();
   const { openKnowledgeModal } = usePageModel();

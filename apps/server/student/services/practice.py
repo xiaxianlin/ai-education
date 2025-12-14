@@ -26,7 +26,9 @@ from shared.utils.time import now, today
 async def get_daily_practice(db: AsyncSession, student_id: str, textbook_id: int):
     """获取每日所有的日常练习记录"""
     result = await db.scalar(
-        select(PracticeSession).where(
+        select(PracticeSession)
+        .options(noload(PracticeSession.textbook))
+        .where(
             PracticeSession.student_id == student_id,
             PracticeSession.session_type == "daily_practice",
             PracticeSession.target_id == today(),
@@ -86,7 +88,9 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
 
     """
     # 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -118,7 +122,9 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
         报告ID
     """
     # 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -180,7 +186,9 @@ async def get_practice_history(
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
 
 
-async def get_session_detail(db: AsyncSession, student_id: str, session_id: int) -> Dict:
+async def get_session_detail(
+    db: AsyncSession, student_id: str, session_id: int
+) -> Dict:
     """
     根据练习会话ID查询会话详情（学生端）
     包括：会话基本信息、问题列表、已完成练习的报告
@@ -194,7 +202,9 @@ async def get_session_detail(db: AsyncSession, student_id: str, session_id: int)
         会话详情，包含session、questions、answers、report
     """
     # 查询会话基本信息
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -267,7 +277,9 @@ async def analyze_audio_answer(
     audio_url = oss.get_access_url(oss_path)
     logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
-    analysis_result = await ai.question.analyze_audio_answer(question, audio_url, audio_type)
+    analysis_result = await ai.question.analyze_audio_answer(
+        question, audio_url, audio_type
+    )
     logger.info(
         f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
     )

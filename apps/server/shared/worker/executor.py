@@ -49,9 +49,9 @@ def execute_generate_practice_task(self, payload: Dict[str, Any]) -> Dict[str, A
         # 这确保每个任务都在独立的事件循环中运行，避免连接池绑定到不同事件循环的问题
         # 注意：asyncio.run() 会自动创建新的事件循环并运行，完成后关闭
         asyncio.run(_execute())
-        logger.info(f"练习生成任务执行成功: payload={payload_str}")
+        logger.info(f"练习生成任务执行成功")
         return {"success": True}
     except Exception as e:
         # 使用 JSON 序列化避免日志格式化问题（payload 中的 'type' 会被误解析为格式化占位符）
-        logger.error(f"练习生成任务执行失败: payload={payload_str}, error={str(e)}", exc_info=True)
+        logger.error(f"练习生成任务执行失败: error={str(e)}")
         raise ValueError(f"练习生成任务执行失败: {str(e)}")

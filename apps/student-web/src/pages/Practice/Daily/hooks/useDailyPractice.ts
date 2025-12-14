@@ -1,38 +1,20 @@
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { PracticeStatus } from "../../constants";
+import { useMemo } from "react";
+import { getPracticeStatus } from "../../util";
 
 export const useDailyPractice = (textbookId: number) => {
-  const [taskId, setTaskId] = useState<string>("");
-  const [status, setStatus] = useState<PracticeStatus>(PracticeStatus.WAIT);
   /** 获取每日练习 */
-  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId));
-
-  /** 轮询任务状态 */
-  const { cancel } = useRequest(() => studentApi.getPracticeTaskStatus(taskId), {
-    ready: !!taskId,
-    refreshDeps: [taskId],
+  const {
+    data: practice,
+    refresh,
+    cancel,
+  } = useRequest(() => studentApi.getDailyPractice(textbookId), {
     pollingInterval: 2000,
-    onSuccess: (status) => {
-      switch (status) {
-        case "SUCCESS":
-          refresh();
-          cancel();
-          setStatus(PracticeStatus.READY);
-          break;
-        case "FAILURE":
-        case "REVOKED":
-          toast.error("练习生成失败");
-          cancel();
-          setStatus(PracticeStatus.WAIT);
-          break;
+    onSuccess: (practice) => {
+      if (!practice || practice.generate_status === 1) {
+        cancel();
       }
-    },
-    onError: (error) => {
-      console.error("生成练习任务失败:", error);
-      cancel();
     },
   });
 
@@ -41,21 +23,11 @@ export const useDailyPractice = (textbookId: number) => {
     () => studentApi.createPractice({ type: "daily_practice", textbook_id: textbookId }),
     {
       manual: true,
-      onSuccess: (taskId) => {
-        setTaskId(taskId);
-        setStatus(PracticeStatus.GENERATING);
-      },
-    },
+      onSuccess: () => refresh(),
+    }
   );
 
-  useEffect(() => {
-    if (practice?.status === 1) {
-      setStatus(PracticeStatus.PRACTICING);
-    }
-    if (practice?.status === 2) {
-      setStatus(PracticeStatus.COMPLETED);
-    }
-  }, [practice]);
+  const status = useMemo(() => getPracticeStatus(practice), [practice]);
 
   return {
     practice,

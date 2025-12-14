@@ -4,26 +4,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.utils.time import now, today
 from shared.core.constants import GENERATE_QUESTION_COUNT
-from shared.core.database import PracticeSession, Question, Textbook, PracticeAnswer, Unit
+from shared.core.database import (
+    PracticeSession,
+    Question,
+    Textbook,
+    PracticeAnswer,
+    Unit,
+)
 from ai.question_generate import invoke_generate_workflow
 
 
-async def create_answer_records(db: AsyncSession, session_id: int, questions: list[Question]):
+async def create_answer_records(
+    db: AsyncSession, session: PracticeSession, questions: list[Question]
+):
     """为练习会话创建答题记录"""
 
-    # 获取会话信息以获取 student_id
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
-    if not session:
-        raise ValueError(f"练习会话不存在: session_id={session_id}")
-
-    await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
+    await db.execute(
+        delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id)
+    )
     await db.flush()  # 确保删除操作完成
 
     # 批量创建答题记录
     answer_records = []
     for index, question in enumerate(questions):
         answer_record = PracticeAnswer(
-            session_id=session_id,
+            session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
             question_order=index + 1,
@@ -38,7 +43,9 @@ async def create_answer_records(db: AsyncSession, session_id: int, questions: li
 
     db.add_all(answer_records)
 
-    logger.info(f"预生成答题记录完成: session_id={session_id}, count={len(answer_records)}")
+    logger.info(
+        f"预生成答题记录完成: session_id={session.id}, count={len(answer_records)}"
+    )
 
 
 async def generate_practice_session(
@@ -76,7 +83,7 @@ async def generate_practice_session(
         textbook_id=textbook_id,
     )
     db.add(session)
-    await db.flush()
+    await db.commit()
 
     try:
         count = GENERATE_QUESTION_COUNT[textbook.grade][type]
@@ -93,7 +100,7 @@ async def generate_practice_session(
             student_id=student_id,
         )
 
-        await create_answer_records(db, session.id, questions)
+        await create_answer_records(db, session, questions)
 
         session.question_count = len(questions)
         session.generate_status = 1
@@ -114,7 +121,9 @@ async def generate_practice_session(
 @staticmethod
 async def regenerate_practice_session(db: AsyncSession, session_id: int):
     # 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == session_id)
+    )
     if not session:
         raise ValueError("当前练习不存在")
 
@@ -157,7 +166,9 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         raise ValueError(f"会话重新生成失败: {str(e)}")
 
 
-async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
+async def create_daily_practice(
+    *, db: AsyncSession, student_id: str, textbook_id: int, **kwargs
+):
     """为学生生成每日练习"""
     current_date = today()
 
@@ -193,7 +204,9 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
         try:
             # 重置所有答题记录的信息
             answer_records = await db.scalars(
-                select(PracticeAnswer).where(PracticeAnswer.session_id == uncompleted_session.id)
+                select(PracticeAnswer).where(
+                    PracticeAnswer.session_id == uncompleted_session.id
+                )
             )
             for answer in answer_records.all():
                 answer.text_answer = None
@@ -283,7 +296,9 @@ async def create_unit_practice(
     return session.id
 
 
-async def create_assessment(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
+async def create_assessment(
+    *, db: AsyncSession, student_id: str, textbook_id: int, **kwargs
+):
     """为学生生成能力评测"""
 
     session = await db.scalar(
