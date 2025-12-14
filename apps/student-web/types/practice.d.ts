@@ -1,12 +1,8 @@
 declare global {
-  interface AnswerRecord extends AudioAnswerAnalysisResponse {
-    correct_answer?: string;
-  }
-
   interface AnswerFormProps {
-    value?: AnswerRecord;
+    value?: PracticeAnswer;
     disabled?: boolean;
-    onChange: (value: AnswerRecord) => void;
+    onChange: (value: PracticeAnswer) => void;
   }
 }
 export {};

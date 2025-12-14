@@ -1,5 +1,5 @@
 import { ProColumns } from '@ant-design/pro-components';
-import { fmtTime } from '@/utils/time';
+import { formatDateTime } from '@ai-education/shared-web';
 import { StatusTag } from '@/components/ui';
 
 /**
@@ -15,7 +15,7 @@ export function createTimeColumn<T>(
     dataIndex,
     hideInSearch: true,
     width: 170,
-    renderText: (time) => (time ? fmtTime(time) : '-'),
+    renderText: (time) => (time ? formatDateTime(time) : '-'),
     ...options,
   };
 }

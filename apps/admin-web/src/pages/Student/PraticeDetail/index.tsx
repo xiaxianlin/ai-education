@@ -1,13 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageContainer, ProDescriptions, ProTable, ProColumns, ProSkeleton } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import { SetStateAction, useMemo, useState } from 'react';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
-import { fmtTime } from '@/utils/time';
+import { formatDateTime } from '@ai-education/shared-web';
 import { PageHeader } from '@/components/business';
 
 export default function PracticeDetailPage() {
@@ -34,6 +33,13 @@ export default function PracticeDetailPage() {
         title: '题目ID',
         dataIndex: 'id',
         width: 100,
+        renderText: (id: number) => {
+          return (
+            <Link className="umi-link" to={`/question/detail/${id}`}>
+              {id}
+            </Link>
+          );
+        },
       },
       {
         title: '题型',
@@ -161,16 +167,16 @@ export default function PracticeDetailPage() {
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="开始时间" valueType="dateTime">
-              {fmtTime(session.start_time)}
+              {formatDateTime(session.start_time)}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="结束时间" valueType="dateTime">
-              {fmtTime(session.end_time)}
+              {formatDateTime(session.end_time)}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="创建时间" valueType="dateTime">
-              {fmtTime(session.create_time)}
+              {formatDateTime(session.create_time)}
             </ProDescriptions.Item>
             <ProDescriptions.Item label="更新时间" valueType="dateTime">
-              {fmtTime(session.update_time)}
+              {formatDateTime(session.update_time)}
             </ProDescriptions.Item>
           </ProDescriptions>
         </Card>

@@ -2,6 +2,7 @@ import json
 
 from loguru import logger
 from openai import OpenAI
+from dashscope import MultiModalConversation
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
@@ -56,7 +57,9 @@ TEXT_ANALYSIS_PROMPT = """
 """
 
 
-async def analyze_text_answer(question: Question, text_answer: str) -> AnswerAnalysisSchema:
+async def analyze_text_answer(
+    question: Question, text_answer: str
+) -> AnswerAnalysisSchema:
     """分析题目文本答案是否正确"""
 
     logger.info(
@@ -66,24 +69,27 @@ async def analyze_text_answer(question: Question, text_answer: str) -> AnswerAna
     # 创建 JSON 输出解析器
     parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
 
-    # 格式化提示词
-    analysis_prompt = TEXT_ANALYSIS_PROMPT.format(
-        content=question.content,
-        options=question.options if question.options else "无",
-        knowledge=question.knowledge if question.knowledge else "无",
-        question_answer=question.answer,
-        student_answer=text_answer,
-        format_instructions=parser.get_format_instructions(),
-    )
+    # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
+    prompt = ChatPromptTemplate.from_messages([("user", TEXT_ANALYSIS_PROMPT)])
+    prompt = prompt.partial(format_instructions=parser.get_format_instructions())
 
-    prompt = ChatPromptTemplate.from_messages([("user", analysis_prompt)])
     client = get_chat_client()
     chain = prompt | client | parser
-    result = await chain.ainvoke({})
+    result = await chain.ainvoke(
+        {
+            "content": question.content,
+            "options": question.options if question.options else "无",
+            "knowledge": question.knowledge if question.knowledge else "无",
+            "question_answer": question.answer,
+            "student_answer": text_answer,
+        }
+    )
 
     # 验证结果
     if not isinstance(result, dict):
-        raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
+        raise ValueError(
+            f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}"
+        )
 
     # 解析结果
     return AnswerAnalysisSchema.model_validate(result)
@@ -112,39 +118,55 @@ AUDIO_ANALYSIS_PROMPT = """你是一个英语口语评估助手，需要对学�
 
 
 async def analyze_audio_answer(
-    question: Question, audio_url: str, audio_type: str
+    question: Question, audio_url: str
 ) -> AnswerAnalysisSchema:
     """分析题目音频答案是否正确"""
-    logger.info(f"开始语音答案分析，音频地址: {audio_url}, 问题: {question.content[:100]}...")
+    logger.info(
+        f"开始语音答案分析，音频地址: {audio_url}, 问题: {question.content[:100]}..."
+    )
 
-    client = OpenAI(
-        api_key=envs.AI_PLATFORM_KEY,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-    )
-    messages = (
-        [
-            {
-                "role": "system",
-                "content": AUDIO_ANALYSIS_PROMPT.format(content=question.content),  # 使用正确的模板
-            },
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_audio",
-                        "input_audio": {"data": audio_url, "format": audio_type},
-                    },
-                    {"type": "text", "text": "请按照要求返回 JSON 结果。"},
-                ],
-            },
-        ],
-    )
+    messages = [
+        {
+            "role": "system",
+            "content": [
+                {"text": AUDIO_ANALYSIS_PROMPT.format(content=question.content)}
+            ],
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "audio": audio_url,
+                },
+                {"text": "请按照要求返回 JSON 结果。"},
+            ],
+        },
+    ]
     try:
-        completion = client.chat.completions.create(
-            model="qwen3-omni-flash", messages=messages, modalities=["text"]
+        response = MultiModalConversation.call(
+            api_key=envs.AI_PLATFORM_KEY,
+            model="qwen3-omni-flash",
+            messages=messages,
+            result_format="message",
         )
 
-        result_text = completion.choices[0].message.content
+        if response.status_code != 200:
+            logger.error(
+                f"音频理解失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
+            )
+            raise ValueError(
+                f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+            )
+
+        # 提取响应文本
+        content = response.output.choices[0].message.content
+        if isinstance(content, list) and len(content) > 0:
+            result_text = content[0].get("text", "")
+        elif isinstance(content, str):
+            result_text = content
+        else:
+            result_text = str(content)
+
         logger.info(f"音频理解成功，结果长度: {len(result_text)}")
         logger.debug(f"音频理解结果(JSON): {result_text[:200]}...")
 
@@ -159,6 +181,8 @@ async def analyze_audio_answer(
 
         # 解析 JSON
         result_dict = json.loads(cleaned_text)
+        result_dict["audio_url"] = audio_url  # 添加音频 URL 以便追踪
+
         # 转换为 Pydantic 模型
         result = AnswerAnalysisSchema.model_validate(result_dict)
         logger.info(
@@ -168,7 +192,8 @@ async def analyze_audio_answer(
         return result
 
     except json.JSONDecodeError as e:
-        logger.error(f"JSON 解析失败: {e}, 原始结果: {result_text[:500]}")
+        result_text_str = result_text[:500] if "result_text" in locals() else "N/A"
+        logger.error(f"JSON 解析失败: {e}, 原始结果: {result_text_str}")
         raise ValueError(f"音频理解返回的 JSON 格式错误: {str(e)}")
     except ValueError:
         raise

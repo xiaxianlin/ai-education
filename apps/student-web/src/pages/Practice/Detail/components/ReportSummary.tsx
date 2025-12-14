@@ -4,7 +4,7 @@
 import { FC } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, CheckCircle, XCircle, Clock, TrendingUp } from "lucide-react";
-import { formatDuration } from "@/utils/time";
+import { formatDuration } from "@ai-education/shared-web";
 
 interface ReportSummaryProps {
   report: PracticeReport;

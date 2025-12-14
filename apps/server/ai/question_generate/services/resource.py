@@ -13,32 +13,23 @@ async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
     """图片生成节点 - 根据 resource_type 标识为题目生成图片（并行生成）"""
     questions: List[Question] = state.get("questions", [])
 
-    # 过滤出需要生成图片的题目
-    image_questions = [q for q in questions if q.resource_type == "image"]
-
-    if not image_questions:
-        logger.info("没有需要生成图片的题目")
-        return {}
-
-    logger.info(f"开始为 {len(image_questions)} 道题目并行生成图片")
-
-    # 并行生成图片
-    async def generate_single_image(question: Question):
+    count = 0
+    for question in questions:
+        if question.resource_type != "image":
+            continue
         try:
             image_url = await generate_question_image(question)
             question.resource = image_url
             logger.info(f"题目 {question.id} 图片生成成功")
+            count += 1
         except Exception as e:
             logger.error(
                 f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}"
             )
             question.resource = None
 
-    # 并行执行所有图片生成任务
-    await asyncio.gather(*[generate_single_image(q) for q in image_questions])
-
-    logger.info(f"图片生成完成，共处理 {len(image_questions)} 道题目")
-
+    if count:
+        logger.info(f"图片生成完成，共处理 {count} 道题目")
     return {}
 
 
@@ -46,29 +37,21 @@ async def generate_audios(state: QuestionGenerationState) -> Dict[str, Any]:
     """语音生成节点 - 根据 resource_type 标识为题目生成语音（并行生成）"""
     questions: List[Question] = state.get("questions", [])
 
-    # 过滤出需要生成语音的题目
-    audio_questions = [q for q in questions if q.resource_type == "audio"]
+    count = 0
 
-    if not audio_questions:
-        logger.info("没有需要生成语音的题目")
-        return {}
-
-    logger.info(f"开始为 {len(audio_questions)} 道题目并行生成语音")
-
-    # 并行生成语音
-    async def generate_single_audio(question: Question):
+    for question in questions:
+        if question.resource_type != "audio":
+            continue
         try:
             audio_url = await generate_question_audio(question, language="English")
-            # 将音频URL保存到临时字段，后续上传时使用
             question.resource = audio_url
             logger.info(f"题目 {question.id} 语音生成成功")
+            count += 1
         except Exception as e:
             logger.error(f"为问题 {question.content[:50]} 生成语音失败: {e}")
             question.resource = None
 
-    # 并行执行所有语音生成任务
-    await asyncio.gather(*[generate_single_audio(q) for q in audio_questions])
-
-    logger.info(f"语音生成完成，共处理 {len(audio_questions)} 道题目")
+    if count:
+        logger.info(f"语音生成完成，共处理 {count} 道题目")
 
     return {}

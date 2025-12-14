@@ -1,44 +1,43 @@
 /**
- * 进度指示器组件 - 显示上一题 x/x 下一题
+ * 进度指示器组件 - 显示所有题目状态的圆圈网格
  */
-import { Button } from "@/components/ui/button";
 import { usePageModel } from "../models/PageModel";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function ProgressIndicator() {
-  const { questions, order, next, prev } = usePageModel();
-
-  const total = questions.length;
+  const { questions, answers, order, jumpTo } = usePageModel();
 
   return (
-    <div className="flex items-center justify-center gap-4">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={prev}
-        disabled={order === 0}
-        className="rounded-xl border-2 hover:bg-muted/50 transition-all"
-      >
-        <ChevronLeft className="h-4 w-4 mr-1" />
-        上一题
-      </Button>
+    <div className="w-full">
+      <div className="grid grid-cols-[repeat(15,minmax(0,1fr))] gap-4">
+        {questions.map((question, index) => {
+          const answer = answers[index];
+          const isUnanswered = !answer || answer.status === 0;
+          const isCorrect = answer?.status === 1;
+          const isIncorrect = answer?.status === 2;
+          const isCurrent = index === order;
 
-      <div className="text-base font-semibold text-foreground">
-        <span className="text-primary">{order + 1}</span> / {total}
+          return (
+            <button
+              key={question.id}
+              onClick={() => jumpTo(index)}
+              className={cn(
+                "relative aspect-square rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-200",
+                "hover:scale-110 active:scale-95",
+                // 背景颜色 - 根据状态
+                isUnanswered && "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
+                isCorrect && "bg-gradient-to-br from-green-300 to-green-500 text-white",
+                isIncorrect && "bg-gradient-to-br from-red-300 to-red-500 text-white",
+                // 当前题目高亮
+                isCurrent && "ring-4 ring-primary ring-offset-2"
+              )}
+              title={`第 ${index + 1} 题${isUnanswered ? " - 未作答" : isCorrect ? " - 正确" : " - 错误"}`}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
       </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={next}
-        disabled={order === total - 2}
-        className="rounded-xl border-2 hover:bg-muted/50 transition-all"
-      >
-        下一题
-        <ChevronRight className="h-4 w-4 ml-1" />
-      </Button>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Card } from 'antd';
 import { Link } from 'react-router-dom';
 import { useRef, useMemo, useState } from 'react';
-import { fmtTime } from '@/utils/time';
+import { formatDateTime } from '@ai-education/shared-web';
 import { DeleteButton } from '@/components/business/DeleteButton';
 import { useStudentDetailModel } from '../models/page';
 import { adminApi } from '@/lib/api';
@@ -89,7 +89,7 @@ export function PracticeHistory() {
         title: '创建时间',
         dataIndex: 'create_time',
         width: 180,
-        renderText: (time: number | undefined) => (time ? fmtTime(time) : '-'),
+        renderText: (time: number | undefined) => (time ? formatDateTime(time) : '-'),
       },
       {
         title: '操作',

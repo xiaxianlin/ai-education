@@ -1,39 +1,29 @@
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
-import { useMemo } from "react";
-import { getPracticeStatus } from "../../util";
+import { useCreatePractice } from "@/hooks/useCreatePractice";
 
 export const useDailyPractice = (textbookId: number) => {
   /** 获取每日练习 */
-  const {
-    data: practice,
-    refresh,
-    cancel,
-  } = useRequest(() => studentApi.getDailyPractice(textbookId), {
-    pollingInterval: 2000,
-    onSuccess: (practice) => {
-      if (!practice || practice.generate_status === 1) {
-        cancel();
+  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId), {
+    onSuccess: (res) => {
+      if (res.generate_status === 0) {
+        setTimeout(() => {
+          refresh();
+        }, 1000);
       }
     },
   });
 
-  /** 创建练习 */
-  const { loading, run: createPractice } = useRequest(
-    () => studentApi.createPractice({ type: "daily_practice", textbook_id: textbookId }),
-    {
-      manual: true,
-      onSuccess: () => refresh(),
-    }
-  );
-
-  const status = useMemo(() => getPracticeStatus(practice), [practice]);
+  const { loading, status, createPractice } = useCreatePractice({
+    practice,
+    params: { type: "daily_practice", textbook_id: textbookId },
+    refresh,
+  });
 
   return {
     practice,
     loading,
     status,
-    refresh,
     createPractice,
   };
 };

@@ -54,7 +54,7 @@ class AssessmentGenerateService:
             knowledges = [k.name for k in knowledge_rows.all()]
 
             recalled_questions = await RecallService.recall_for_assessment(
-                db, textbook.id, student_id
+                db, textbook.id
             )
 
             logger.info(
@@ -76,4 +76,3 @@ class AssessmentGenerateService:
     def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建能力评估的 Prompt"""
         return build_assessment_prompt(state)
-

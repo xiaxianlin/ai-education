@@ -6,7 +6,7 @@ import { FC, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock } from "lucide-react";
-import { formatDuration } from "@/utils/time";
+import { formatDuration } from "@ai-education/shared-web";
 import { cn } from "@/lib/utils";
 
 interface QuestionAnswerCardProps {

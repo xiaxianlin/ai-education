@@ -2,10 +2,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Tag, Image, Popconfirm } from 'antd';
+import { message, Button, Card, Space, Tag, Image, Popconfirm, Flex } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
 import { AudioPlayer } from '@/components/ui';
+import { getResourceUrl } from '@ai-education/shared-web';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -91,15 +92,7 @@ export default function QuestionDetailPage() {
   const isImageQuestion = question.resource_type === 'image';
   const isAudioQuestion = question.resource_type === 'audio';
 
-  // 构建资源 URL
-  // OSS 基础 URL
-  const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
-
-  const resourceUrl = question.resource
-    ? question.resource.startsWith('http://') || question.resource.startsWith('https://')
-      ? question.resource
-      : `${OSS_BASE_URL}/${question.resource}`
-    : null;
+  const resourceUrl = getResourceUrl(question.resource);
 
   // 解析选项
   let optionsList: string[] = [];
@@ -136,11 +129,7 @@ export default function QuestionDetailPage() {
       header={{
         breadcrumb: {},
         extra: [
-          <Button
-            key="edit"
-            type="primary"
-            onClick={() => navigate(`/question/edit/${question.id}`)}
-          >
+          <Button key="edit" type="primary" onClick={() => navigate(`/question/edit/${question.id}`)}>
             编辑
           </Button>,
           <Popconfirm
@@ -182,9 +171,7 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo || '-'}</ProDescriptions.Item>
             <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
-            {question.subtype && (
-              <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>
-            )}
+            {question.subtype && <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>}
             <ProDescriptions.Item label="难度">
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}
             </ProDescriptions.Item>
@@ -199,11 +186,7 @@ export default function QuestionDetailPage() {
             </ProDescriptions.Item>
             <ProDescriptions.Item label="资源状态">
               {question.resource_type ? (
-                <Tag
-                  color={
-                    question.resource && question.resource.trim() !== '' ? 'success' : 'warning'
-                  }
-                >
+                <Tag color={question.resource && question.resource.trim() !== '' ? 'success' : 'warning'}>
                   {question.resource && question.resource.trim() !== '' ? '已生成' : '未生成'}
                 </Tag>
               ) : (
@@ -318,16 +301,13 @@ export default function QuestionDetailPage() {
 
         {optionsList.length > 0 && (
           <Card title="选项">
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Flex gap={10}>
               {optionsList.map((option, index) => (
-                <div
-                  key={index}
-                  style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}
-                >
+                <Tag key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
                   <strong>{String.fromCharCode(65 + index)}.</strong> {option}
-                </div>
+                </Tag>
               ))}
-            </Space>
+            </Flex>
           </Card>
         )}
 

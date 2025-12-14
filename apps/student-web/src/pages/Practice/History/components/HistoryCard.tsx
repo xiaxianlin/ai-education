@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { formatDateTime, formatRelativeTime } from "@/utils/time";
+import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 
 interface HistoryCardProps {

@@ -1,19 +1,31 @@
 import { PracticeStatus } from "./constants";
 
-export const getPracticeStatus = (practice?: PracticeSession) => {
-  if (!practice) {
+export const getPracticeStatus = (practice?: PracticeSession, taskStatus?: TaskStatus) => {
+  if (taskStatus) {
+    switch (taskStatus) {
+      case "SUCCESS":
+        return PracticeStatus.COMPLETED;
+      case "FAILURE":
+      case "REVOKED":
+        return PracticeStatus.WAIT;
+      default:
+        return PracticeStatus.GENERATING;
+    }
+  }
+  if (practice) {
+    if (practice.generate_status === 0) {
+      return PracticeStatus.GENERATING;
+    }
+    switch (practice.status) {
+      case 0:
+        return PracticeStatus.READY;
+      case 1:
+        return PracticeStatus.COMPLETED;
+      case 2:
+        return PracticeStatus.WAIT;
+    }
     return PracticeStatus.WAIT;
   }
-  if (practice.generate_status === 0) {
-    return PracticeStatus.GENERATING;
-  }
-  if (practice.status === 0) {
-    return PracticeStatus.READY;
-  }
-  if (practice.status === 1) {
-    return PracticeStatus.PRACTICING;
-  }
-  if (practice.status === 2) {
-    return PracticeStatus.COMPLETED;
-  }
+
+  return PracticeStatus.WAIT;
 };

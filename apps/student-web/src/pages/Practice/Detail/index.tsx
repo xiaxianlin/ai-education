@@ -10,7 +10,7 @@ import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
 import { QuestionAnswerCard } from "./components/QuestionAnswerCard";
 import { ReportSummary } from "./components/ReportSummary";
-import { formatDateTime } from "@/utils/time";
+import { formatDateTime } from "@ai-education/shared-web";
 import { ArrowLeft, Play } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 

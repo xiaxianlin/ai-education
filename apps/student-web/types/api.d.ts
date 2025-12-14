@@ -33,17 +33,11 @@ declare global {
     audio_analysis?: string;
   }
 
-  interface AnswerResponse {
-    is_correct: boolean;
-    correct_answer: string;
-    user_answer: string;
-    analysis?: string;
-  }
-
   interface AudioAnswerAnalysisResponse {
     text: string;
     match: boolean;
     analysis: string;
+    audio_url: string;
   }
 }
 

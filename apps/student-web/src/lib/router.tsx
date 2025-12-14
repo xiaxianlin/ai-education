@@ -1,7 +1,6 @@
 import { Navigate, useRoutes } from "react-router-dom";
 import { RootLayout } from "@/layouts/RootLayout";
 import { MainLayout } from "@/layouts/MainLayout";
-import { createBrowserHistory } from "history";
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
 import Profile from "@/pages/Profile";
@@ -13,16 +12,6 @@ import PracticeHistory from "@/pages/Practice/History";
 import PracticeDetail from "@/pages/Practice/Detail";
 import PracticeReport from "@/pages/Practice/Report";
 import WrongRecords from "@/pages/WrongRecords";
-
-export const history = createBrowserHistory();
-
-export function go(path: string, replace = false) {
-  if (replace) {
-    history.replace(path);
-  } else {
-    history.push(path);
-  }
-}
 
 export function Router() {
   return useRoutes([

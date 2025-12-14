@@ -2,33 +2,25 @@ import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { useMemo } from "react";
 import dayjs from "dayjs";
-import { getPracticeStatus } from "../../util";
+import { useCreatePractice } from "@/hooks/useCreatePractice";
 
 export const useAssessmentPractice = (textbookId: number) => {
   /** 获取综合评估 */
-  const {
-    data: practice,
-    refresh,
-    cancel,
-  } = useRequest(() => studentApi.getAssessment(textbookId), {
-    pollingInterval: 2000,
-    onSuccess: (practice) => {
-      if (!practice || practice.generate_status === 1) {
-        cancel();
+  const { data: practice, refresh } = useRequest(() => studentApi.getAssessment(textbookId), {
+    onSuccess: (res) => {
+      if (res.generate_status === 0) {
+        setTimeout(() => {
+          refresh();
+        }, 1000);
       }
     },
   });
 
-  /** 创建评估 */
-  const { loading, run: createPractice } = useRequest(
-    () => studentApi.createPractice({ type: "assessment", textbook_id: textbookId }),
-    {
-      manual: true,
-      onSuccess: () => refresh(),
-    }
-  );
-
-  const status = useMemo(() => getPracticeStatus(practice), [practice]);
+  const { loading, status, createPractice } = useCreatePractice({
+    practice,
+    params: { type: "assessment", textbook_id: textbookId },
+    refresh,
+  });
 
   const shouldCreate = useMemo(() => {
     if (!practice) {

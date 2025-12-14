@@ -4,14 +4,15 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.core.database import PracticeSession, PracticeAnswer, Question
-from student.schema import AnswerQuestionSchema, AnswerResultSchema
+from student.schema import AnswerQuestionSchema
 from shared.utils.time import now
 from ai.question.answer import analyze_text_answer
+from shared.core.schema import PracticeAnswerSchema
 
 
 async def _check_answer(question: Question, params: AnswerQuestionSchema):
     """检查答案是否正确并生成分析
-    
+
     Returns:
         tuple: (is_correct, analysis) - 是否正确和错题分析（如果错误）
     """
@@ -31,82 +32,68 @@ async def _check_answer(question: Question, params: AnswerQuestionSchema):
     return is_correct, analysis
 
 
-async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestionSchema) -> dict:
+async def submit_answer(
+    db: AsyncSession, student_id: str, params: AnswerQuestionSchema
+):
     """提交答题答案"""
-    try:
-        # 1. 查询练习会话
-        session = await db.scalar(
-            select(PracticeSession).where(PracticeSession.id == params.session_id)
+    # 1. 查询练习会话
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == params.session_id)
+    )
+    if not session:
+        raise ValueError("练习会话不存在")
+
+    if session.student_id != student_id:
+        raise ValueError("无权操作此练习")
+
+    # 2. 查询题目信息
+    question = await db.scalar(
+        select(Question).where(Question.id == params.question_id)
+    )
+    if not question:
+        raise ValueError("题目不存在")
+
+    # 3. 查询答题记录
+    answer_record = await db.scalar(
+        select(PracticeAnswer).where(
+            PracticeAnswer.session_id == params.session_id,
+            PracticeAnswer.question_id == params.question_id,
         )
-        if not session:
-            raise ValueError("练习会话不存在")
+    )
+    if not answer_record:
+        raise ValueError("答题记录不存在")
 
-        if session.student_id != student_id:
-            raise ValueError("无权操作此练习")
+    # 4. 检查答案并生成分析
+    is_correct, analysis = await _check_answer(question, params)
 
-        # 2. 查询题目信息
-        question = await db.scalar(select(Question).where(Question.id == params.question_id))
-        if not question:
-            raise ValueError("题目不存在")
+    # 5. 更新答题记录
+    answer_record.text_answer = params.answer
+    answer_record.status = 1 if is_correct else 2
+    answer_record.time_spent = params.time_spent
+    answer_record.submit_time = now()
 
-        # 3. 查询答题记录
-        answer_record = await db.scalar(
-            select(PracticeAnswer).where(
-                PracticeAnswer.session_id == params.session_id,
-                PracticeAnswer.question_id == params.question_id,
-            )
-        )
-        if not answer_record:
-            raise ValueError("答题记录不存在")
-
-        # 4. 检查答案并生成分析
-        is_correct, analysis = await _check_answer(question, params)
-
-        # 5. 更新答题记录
-        answer_record.text_answer = params.answer
-        answer_record.status = 1 if is_correct else 2
-        answer_record.time_spent = params.time_spent
-        answer_record.submit_time = now()
-        
-        # 如果答错，保存错题分析信息
-        if not is_correct:
-            answer_record.correct_answer = question.answer
-            answer_record.analysis = analysis
-            logger.info(
-                f"记录错题信息: student_id={student_id}, question_id={params.question_id}, "
-                f"session_id={params.session_id}"
-            )
-
-        # 6. 更新练习会话统计
-        session.answer_count += 1
-        if is_correct:
-            session.correct_count += 1
-
-        session.update_time = now()
-
-        await db.commit()
-
+    # 如果答错，保存错题分析信息
+    if not is_correct:
+        answer_record.correct_answer = question.answer
+        answer_record.analysis = analysis
         logger.info(
-            f"答题提交成功: student_id={student_id}, session_id={params.session_id}, "
-            f"question_id={params.question_id}, is_correct={is_correct}"
+            f"记录错题信息: student_id={student_id}, question_id={params.question_id}, "
+            f"session_id={params.session_id}"
         )
 
-        return AnswerResultSchema(
-            is_correct=is_correct,
-            correct_answer=question.answer,
-            user_answer=params.answer,
-            analysis=analysis if not is_correct else None,
-        )
+    # 6. 更新练习会话统计
+    session.answer_count += 1
+    if is_correct:
+        session.correct_count += 1
 
-    except ValueError:
-        raise
+    session.update_time = now()
 
-    except Exception as e:
-        # 发生异常时回滚事务
-        await db.rollback()
-        logger.error(
-            f"答题提交失败: student_id={student_id}, session_id={params.session_id}, "
-            f"question_id={params.question_id}, error={str(e)}",
-            exc_info=e,
-        )
-        raise ValueError(f"答题提交失败: {str(e)}")
+    await db.commit()
+    await db.refresh(answer_record)
+
+    logger.info(
+        f"答题提交成功: student_id={student_id}, session_id={params.session_id}, "
+        f"question_id={params.question_id}, is_correct={is_correct}"
+    )
+
+    return PracticeAnswerSchema.model_validate(answer_record)

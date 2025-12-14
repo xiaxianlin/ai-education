@@ -82,11 +82,15 @@ def _optimize_image_prompt(text: str) -> str:
         logger.error(f"优化图片提示词失败: {e}")
         # 如果 LLM 调用失败，返回一个基础的提示词作为降级方案
         logger.warning("LLM 调用失败，使用降级方案")
-        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生，{question_content[:50]}"
+        fallback_prompt = (
+            f"卡通风格，简单背景，明亮色彩，适合小学生，{question_content[:50]}"
+        )
         return fallback_prompt
 
 
-async def generate_question_image(question: Question, width: int = 1328, height: int = 1328) -> str:
+async def generate_question_image(
+    question: Question, width: int = 1328, height: int = 1328
+) -> str:
     """为指定题目生成图片"""
 
     # 生成图片
@@ -112,8 +116,12 @@ async def generate_question_image(question: Question, width: int = 1328, height:
     logger.debug(f"图片生成响应: {response}")
 
     if response.status_code != 200:
-        logger.error(f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}")
-        raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
+        logger.error(
+            f"图片生成失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
+        )
+        raise ValueError(
+            f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+        )
 
     image_url = response.output.choices[0].message.content[0].get("image")
     logger.info(f"图片生成成功，任务 ID: {response.request_id}, 图片URL: {image_url}")
@@ -135,7 +143,9 @@ async def generate_question_audio(question: Question, language: str = "English")
 
     voice = envs.AI_TTS_VOICE
     text = question.resource_content
-    logger.info(f"开始文本转语音，文本长度: {len(text)}, 语音: {voice}, 语言: {language}")
+    logger.info(
+        f"开始文本转语音，文本长度: {len(text)}, 语音: {voice}, 语言: {language}"
+    )
     logger.debug(f"文本内容: {text[:200]}...")
 
     response = MultiModalConversation.call(
@@ -153,7 +163,9 @@ async def generate_question_audio(question: Question, language: str = "English")
         logger.error(
             f"文本转语音失败，任务 ID: {response.request_id}, 错误信息: {response.message}"
         )
-        raise ValueError(f"任务 ID：{response.request_id} \n 错误信息：{response.message}")
+        raise ValueError(
+            f"任务 ID：{response.request_id} \n 错误信息：{response.message}"
+        )
 
     audio_url = response.output.audio.url
     logger.info(f"文本转语音成功，任务 ID: {response.request_id}, 音频URL: {audio_url}")

@@ -44,8 +44,8 @@ async def get_assessment(textbook_id: int, request: Request, db: AsyncSession = 
 async def create_practice(request: Request, params: CreatePracticeSchema):
     """创建练习会话（异步任务）
 
-    提交练习生成任务到任务队列，返回任务ID。
-    客户端需要通过 /task/{task_id} 接口轮询任务状态。
+    提交练习生成任务到任务队列，等待任务进入进行中状态后返回任务ID。
+    客户端也可以继续通过 /task/{task_id} 接口轮询任务状态。
     """
 
     task_id = f"practice_{uuid4().hex[:16]}"
@@ -56,6 +56,7 @@ async def create_practice(request: Request, params: CreatePracticeSchema):
         unit_id=params.unit_id,
     )
 
+    # 提交任务到队列
     return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
 
 

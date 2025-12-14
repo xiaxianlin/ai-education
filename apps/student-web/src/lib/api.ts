@@ -1,4 +1,4 @@
-import { go } from "./router";
+import { go } from "@ai-education/shared-web";
 import { toast } from "sonner";
 import { ApiClient } from "@ai-education/shared-web/api";
 
@@ -24,7 +24,7 @@ apiClient.addResponseInterceptor(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 /**
@@ -116,7 +116,7 @@ export const studentApi = {
    * POST /practice/answer
    */
   async submitAnswer(params: AnswerRequest) {
-    return apiClient.post<AnswerResponse>("/practice/answer", params);
+    return apiClient.post<PracticeAnswer>("/practice/answer", params);
   },
 
   /**

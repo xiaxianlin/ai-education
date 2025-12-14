@@ -116,6 +116,7 @@ async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     try:
         result = await storage_service.convert_questions(state)
         logger.info("问题对象转换和分流完成")
+        await storage_service.save_questions(state)
         return result
     except Exception as e:
         logger.error(f"数据转换或保存失败: {e}")
@@ -161,7 +162,9 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
 async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
-    await storage_service.save_questions(state)
+
+    db = state['db']
+    await db.commit()
 
     generated_questions: List[Question] = state.get("questions", [])
     recall_questions: List[Question] = state.get("recall_questions", [])

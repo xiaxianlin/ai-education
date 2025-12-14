@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 interface LowerGradePanelProps {
   title: string;
@@ -8,7 +7,6 @@ interface LowerGradePanelProps {
 }
 
 export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelProps) {
-  const navigate = useNavigate();
   const estimateMinutes = Math.max(5, Math.ceil(total * 0.5));
 
   return (
@@ -17,27 +15,27 @@ export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelP
         {/* 装饰性背景元素 */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-        
+
         <div className="relative z-10">
           {/* 小熊图标 - 添加浮动动画 */}
-          <div 
+          <div
             className="text-6xl md:text-7xl mb-4 inline-block"
-            style={{ animation: 'float 3s ease-in-out infinite' }}
+            style={{ animation: "float 3s ease-in-out infinite" }}
           >
             🐻
           </div>
-          
+
           {/* 标题 */}
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 leading-tight">
             {title} 要开始啦！
           </h2>
-          
+
           {/* 题目信息 */}
           <p className="text-base md:text-lg text-muted-foreground mb-2 leading-relaxed">
             一共有 <span className="font-bold text-primary text-lg md:text-xl">{total}</span> 道小题，大约{" "}
             <span className="font-bold text-primary text-lg md:text-xl">{estimateMinutes}</span> 分钟就能做完。
           </p>
-          
+
           {/* 鼓励文字 */}
           <p className="text-sm md:text-base text-muted-foreground mb-6 leading-relaxed">
             坐好身体，准备好小脑瓜，我们一起慢慢做，不着急～
@@ -63,14 +61,6 @@ export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelP
           className="w-full h-14 md:h-16 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-lg hover:shadow-xl font-semibold text-base md:text-lg transition-all duration-200 transform"
         >
           开始练习 🚀
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate(-1)}
-          className="w-full h-12 md:h-14 rounded-2xl bg-white/90 dark:bg-card/80 border-2 hover:bg-white dark:hover:bg-card text-sm md:text-base font-medium transition-all duration-200 hover:scale-[1.02] active:scale-95"
-        >
-          我想再看看
         </Button>
       </div>
     </>

@@ -8,34 +8,32 @@ import { usePageModel } from "../../models/PageModel";
 
 export function ChoiceInput({ value, disabled, onChange }: AnswerFormProps) {
   const { question } = usePageModel();
+
   let options: Array<{ label: string; text: string }> = [];
   try {
-    console.log("[LOG_INFO]", question);
     options = JSON.parse(question?.options || "[]");
   } catch (error) {
     toast.error("选项解析失败，请刷新重试");
     console.error("Failed to parse question options:", error);
   }
 
-  // 判断选项是否较长：如果任何选项文本长度超过 15 个字符，使用 2 列布局
-  const hasLongOptions = options.some((option) => option.text.length > 15);
-  const gridCols = hasLongOptions ? "grid-cols-2" : "grid-cols-4";
+  console.log("answer", value);
 
   return (
-    <div className={cn("grid gap-4", gridCols)}>
+    <div className="grid gap-4 grid-cols-2">
       {options.map(({ label, text }) => {
-        const isSelected = value?.text === label;
+        const isSelected = value?.text_answer === label;
 
         return (
           <button
             key={label}
-            onClick={() => !disabled && onChange({ text: label, match: false, analysis: "" })}
+            onClick={() => !disabled && onChange({ ...value, text_answer: label } as PracticeAnswer)}
             disabled={disabled}
             className={cn(
-              "flex items-center justify-center gap-4 p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",
+              "flex items-center justify-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 shadow-sm",
               isSelected
                 ? "border-primary bg-primary/10 text-primary shadow-primary/20"
-                : "border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-accent hover:text-accent-foreground",
+                : "border-border bg-card text-card-foreground hover:border-primary hover:bg-primary/5 hover:text-primary hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]",
               disabled && "opacity-50 cursor-not-allowed"
             )}
           >

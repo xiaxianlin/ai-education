@@ -2,19 +2,16 @@
  * 时间格式化工具函数
  */
 
+import dayjs from "dayjs";
+
 /**
  * 格式化时间戳为日期时间字符串
  * @param timestamp Unix时间戳（秒）
  * @returns 格式化的日期时间字符串，如 "2024-01-15 14:30"
  */
-export function formatDateTime(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+export function formatDateTime(timezone?: number, fmt = "YYYY-MM-DD HH:mm"): string {
+  if (!timezone) return "-";
+  return dayjs(timezone * 1000).format(fmt);
 }
 
 /**
@@ -22,12 +19,9 @@ export function formatDateTime(timestamp: number): string {
  * @param timestamp Unix时间戳（秒）
  * @returns 格式化的日期字符串，如 "2024-01-15"
  */
-export function formatDate(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+export function formatDate(timezone?: number, fmt = "YYYY-MM-DD"): string {
+  if (!timezone) return "-";
+  return dayjs(timezone * 1000).format(fmt);
 }
 
 /**
@@ -71,13 +65,10 @@ export function formatDuration(seconds: number): string {
 
   if (hours > 0) {
     if (minutes > 0) {
-      return secs > 0
-        ? `${hours}小时${minutes}分${secs}秒`
-        : `${hours}小时${minutes}分钟`;
+      return secs > 0 ? `${hours}小时${minutes}分${secs}秒` : `${hours}小时${minutes}分钟`;
     }
     return secs > 0 ? `${hours}小时${secs}秒` : `${hours}小时`;
   }
 
   return secs > 0 ? `${minutes}分${secs}秒` : `${minutes}分钟`;
 }
-

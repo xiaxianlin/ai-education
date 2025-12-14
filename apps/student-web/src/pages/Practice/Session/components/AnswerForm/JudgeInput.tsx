@@ -11,11 +11,11 @@ export function JudgeInput({ value, disabled, onChange }: AnswerFormProps) {
         { value: "正确", emoji: "✅" },
         { value: "错误", emoji: "❌" },
       ].map(({ value: option, emoji }) => {
-        const isSelected = value?.text === option;
+        const isSelected = value?.text_answer === option;
         return (
           <button
             key={option}
-            onClick={() => !disabled && onChange({ text: option, match: false, analysis: "" })}
+            onClick={() => !disabled && onChange({ ...value, text_answer: option } as PracticeAnswer)}
             disabled={disabled}
             className={cn(
               "w-full p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",

@@ -8,10 +8,12 @@
     ".": "./src/index.ts",
     "./api": "./src/api/client.ts",
     "./types": "./src/types/index.ts",
-    "./utils": "./src/utils/router.ts"
+    "./utils": "./src/utils/index.ts",
+    "./router": "./src/utils/router.ts"
   },
   "dependencies": {
     "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
     "history": "^5.3.0"
   },
   "devDependencies": {
@@ -22,4 +24,3 @@
     "react": "^18.2.0"
   }
 }
-

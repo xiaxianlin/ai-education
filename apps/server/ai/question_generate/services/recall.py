@@ -62,13 +62,14 @@ class RecallService:
         return list(questions[:QUESTION_RECALL_COUNT])
 
     @classmethod
-    async def recall_for_unit_practice(cls, db: AsyncSession, unit_id: int) -> List[Question]:
+    async def recall_for_unit_practice(
+        cls, db: AsyncSession, unit_id: int
+    ) -> List[Question]:
         """为单元练习召回题目
 
         Args:
             db: 数据库会话
             unit_id: 单元ID
-            student_id: 学生ID（可选，如果提供则排除该学生最近做过的题目）
 
         Returns:
             题目列表
@@ -91,15 +92,15 @@ class RecallService:
         result = await db.execute(stmt)
         questions = result.scalars().all()
 
-        logger.debug(f"单元练习召回题目: unit_id={unit_id}, " f"召回数量={len(questions)}")
+        logger.debug(
+            f"单元练习召回题目: unit_id={unit_id}, " f"召回数量={len(questions)}"
+        )
 
         return list(questions[:QUESTION_RECALL_COUNT])
 
     @classmethod
     async def recall_for_assessment(
-        cls,
-        db: AsyncSession,
-        textbook_id: int,
+        cls, db: AsyncSession, textbook_id: int
     ) -> List[Question]:
         """为能力评估召回题目
 
@@ -129,6 +130,9 @@ class RecallService:
         result = await db.execute(stmt)
         questions = result.scalars().all()
 
-        logger.debug(f"能力评估召回题目: textbook_id={textbook_id}, " f"召回数量={len(questions)}")
+        logger.debug(
+            f"能力评估召回题目: textbook_id={textbook_id}, "
+            f"召回数量={len(questions)}"
+        )
 
         return list(questions[:QUESTION_RECALL_COUNT])

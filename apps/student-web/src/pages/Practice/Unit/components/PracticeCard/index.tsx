@@ -110,8 +110,8 @@ export function PracticeCard({ unit, textbook }: PracticeCardProps) {
     if (status === PracticeStatus.WAIT) {
       buttonList.push({
         key: "start",
-        label: "开始练习",
-        icon: <Play className="h-5 w-5 mr-2" fill="currentColor" />,
+        label: "创建练习",
+        icon: <Sparkles className="h-5 w-5 mr-2" fill="currentColor" />,
         variant: "default",
         onClick: () => showConfirmModal(),
         className:
@@ -132,11 +132,11 @@ export function PracticeCard({ unit, textbook }: PracticeCardProps) {
       }
     }
 
-    // 生成练习按钮（COMPLETED 显示）
+    // 创建练习按钮（COMPLETED 显示）
     if (status === PracticeStatus.COMPLETED) {
       buttonList.push({
         key: "create",
-        label: "生成练习",
+        label: "创建练习",
         icon: <Sparkles className="h-5 w-5 mr-2" />,
         variant: "outline",
         onClick: () => showConfirmModal(),
@@ -188,7 +188,7 @@ export function PracticeCard({ unit, textbook }: PracticeCardProps) {
           {status === PracticeStatus.GENERATING ? (
             <div className="flex items-center justify-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <span className="text-base font-medium text-primary">正在生成练习</span>
+              <span className="text-base font-medium text-primary">正在创建练习</span>
             </div>
           ) : (
             <div className="flex gap-3">

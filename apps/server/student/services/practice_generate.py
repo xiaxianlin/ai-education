@@ -19,9 +19,7 @@ async def create_answer_records(
 ):
     """为练习会话创建答题记录"""
 
-    await db.execute(
-        delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id)
-    )
+    await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id))
     await db.flush()  # 确保删除操作完成
 
     # 批量创建答题记录
@@ -43,13 +41,11 @@ async def create_answer_records(
 
     db.add_all(answer_records)
 
-    logger.info(
-        f"预生成答题记录完成: session_id={session.id}, count={len(answer_records)}"
-    )
+    logger.info(f"预生成答题记录完成: session_id={session.id}, count={len(answer_records)}")
 
 
 async def generate_practice_session(
-    db,
+    db: AsyncSession,
     type: str,
     student_id: str,
     textbook_id: int,
@@ -84,6 +80,7 @@ async def generate_practice_session(
     )
     db.add(session)
     await db.commit()
+    await db.refresh(session)
 
     try:
         count = GENERATE_QUESTION_COUNT[textbook.grade][type]
@@ -121,9 +118,7 @@ async def generate_practice_session(
 @staticmethod
 async def regenerate_practice_session(db: AsyncSession, session_id: int):
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
     if not session:
         raise ValueError("当前练习不存在")
 
@@ -166,9 +161,7 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         raise ValueError(f"会话重新生成失败: {str(e)}")
 
 
-async def create_daily_practice(
-    *, db: AsyncSession, student_id: str, textbook_id: int, **kwargs
-):
+async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
     """为学生生成每日练习"""
     current_date = today()
 
@@ -204,9 +197,7 @@ async def create_daily_practice(
         try:
             # 重置所有答题记录的信息
             answer_records = await db.scalars(
-                select(PracticeAnswer).where(
-                    PracticeAnswer.session_id == uncompleted_session.id
-                )
+                select(PracticeAnswer).where(PracticeAnswer.session_id == uncompleted_session.id)
             )
             for answer in answer_records.all():
                 answer.text_answer = None
@@ -296,9 +287,7 @@ async def create_unit_practice(
     return session.id
 
 
-async def create_assessment(
-    *, db: AsyncSession, student_id: str, textbook_id: int, **kwargs
-):
+async def create_assessment(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
     """为学生生成能力评测"""
 
     session = await db.scalar(

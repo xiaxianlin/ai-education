@@ -183,7 +183,7 @@ export default function DetailPage() {
         <DescriptionList
           items={[
             { label: '名称', value: data?.name },
-            { label: '创建时间', value: fmtTime(data?.create_time) },
+            { label: '创建时间', value: formatDateTime(data?.create_time) },
           ]}
         />
       </DetailCard>

@@ -68,14 +68,20 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
             elif question_type == "选择题" and question_subtype == "数位看图":
                 resource_type = "image"
             # 3. 选择题中的"看图选词"、"看图选句"需要图片
-            elif question_type == "选择题" and question_subtype in ["看图选词", "看图选句"]:
+            elif question_type == "选择题" and question_subtype in [
+                "看图选词",
+                "看图选句",
+            ]:
                 resource_type = "image"
             # 4. 拼写题中的"看图写单词"需要图片
             elif question_type == "拼写题" and question_subtype == "看图写单词":
                 resource_type = "image"
             # 判断是否需要音频（听力相关）
             # 1. 选择题中的"听音选词"、"听音选句"需要音频
-            elif question_type == "选择题" and question_subtype in ["听音选词", "听音选句"]:
+            elif question_type == "选择题" and question_subtype in [
+                "听音选词",
+                "听音选句",
+            ]:
                 resource_type = "audio"
             # 2. 拼写题中的"听音写单词"需要音频
             elif question_type == "拼写题" and question_subtype == "听音写单词":
@@ -116,6 +122,11 @@ async def save_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     if questions:
         db.add_all(questions)
         await db.commit()
+        # 刷新 questions，保证每个 question 的 id 存在
+        questions = []
+        for question in questions:
+            await db.refresh(question)
+            questions.append(question)
         logger.info("成功保存 %s 道题目到数据库", len(questions))
     else:
         logger.warning("没有需要保存的题目")

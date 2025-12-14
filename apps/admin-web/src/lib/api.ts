@@ -238,7 +238,7 @@ export const adminApi = {
    * POST /question/{id}/generate_image
    */
   async generateQuestionImage(id: string) {
-    return apiClient.post(`/question/${id}/generate_image`);
+    return apiClient.post(`/question/${id}/image_generate`);
   },
 
   /**
@@ -246,7 +246,7 @@ export const adminApi = {
    * POST /question/{id}/generate_audio
    */
   async generateQuestionAudio(id: string) {
-    return apiClient.post(`/question/${id}/generate_audio`);
+    return apiClient.post(`/question/${id}/audio_generate`);
   },
 
   // ========== 教材管理 ==========
