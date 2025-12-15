@@ -337,7 +337,7 @@ class QuestionType(BaseModel):
     title: Mapped[str] = mapped_column(
         String(100), nullable=False, comment="题型标题（如：看图选词、根据首字母填空）"
     )
-    scene: Mapped[str] = mapped_column(String(50), nullable=False, comment="题型展现形式")
+    scene: Mapped[str] = mapped_column(String(50), nullable=False, comment="题型类型")
     subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
     grade: Mapped[int] = mapped_column(nullable=False, comment="年级（1-6）")
     description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")

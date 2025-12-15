@@ -1,6 +1,14 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ProLayout } from '@ant-design/pro-components';
-import { DashboardOutlined, UserOutlined, BookOutlined, ReadOutlined, QuestionCircleOutlined, GithubOutlined } from '@ant-design/icons';
+import {
+  DashboardOutlined,
+  UserOutlined,
+  BookOutlined,
+  ReadOutlined,
+  QuestionCircleOutlined,
+  GithubOutlined,
+  FunnelPlotOutlined,
+} from '@ant-design/icons';
 import { AvatarDropdown } from '@/components/ui';
 import logo from '@/assets/logo.png';
 import type { MenuDataItem } from '@ant-design/pro-components';
@@ -12,30 +20,35 @@ const menuDataRender = (): MenuDataItem[] => [
     name: '首页',
     icon: <DashboardOutlined />,
   },
+
   {
-    path: '/manager',
-    name: '账号管理',
+    name: '人员',
+    key: 'people',
     icon: <UserOutlined />,
+    children: [
+      { path: '/manager', name: '账号管理' },
+      { path: '/student', name: '学生管理' },
+    ],
   },
+
   {
-    path: '/textbook',
-    name: '教材管理',
-    icon: <BookOutlined />,
-  },
-  {
-    path: '/teacher_book',
-    name: '教师用书管理',
-    icon: <ReadOutlined />,
-  },
-  {
-    path: '/question',
-    name: '题目管理',
+    name: '题目',
+    key: 'question',
     icon: <QuestionCircleOutlined />,
+    children: [
+      { path: '/question', name: '题目管理' },
+      { path: '/question_type', name: '类型管理' },
+    ],
   },
+
   {
-    path: '/student',
-    name: '学生管理',
-    icon: <GithubOutlined />,
+    key: 'textbook',
+    name: '教材',
+    icon: <BookOutlined />,
+    children: [
+      { path: '/textbook', name: '学生教材管理' },
+      { path: '/teacher_book', name: '教师用书管理' },
+    ],
   },
 ];
 
@@ -52,12 +65,11 @@ export function AdminLayout() {
       contentWidth="Fixed"
       fixedHeader
       fixSiderbar
+      menu={{ defaultOpenAll: true, type: 'sub', autoClose: false }}
       menuDataRender={menuDataRender}
       location={location}
       onMenuHeaderClick={() => navigate('/home')}
-      menuItemRender={(item, dom) => (
-        <div onClick={() => navigate(item.path || '/')}>{dom}</div>
-      )}
+      menuItemRender={(item, dom) => <div onClick={() => navigate(item.path || '/')}>{dom}</div>}
       avatarProps={{
         title: manager?.username,
         render: (_, avatarChildren) => {
@@ -69,4 +81,3 @@ export function AdminLayout() {
     </ProLayout>
   );
 }
-

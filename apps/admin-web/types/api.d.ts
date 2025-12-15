@@ -156,6 +156,39 @@ declare global {
     grade: number;
     semester: string;
   }
+
+  /**
+   * 搜索题型请求
+   */
+  interface SearchQuestionTypeRequest extends SearchRequest {
+    scene?: string;
+    subject?: string;
+    grade?: number;
+  }
+
+  /**
+   * 创建题型请求
+   */
+  interface CreateQuestionTypeRequest {
+    title: string;
+    scene: string;
+    subject: string;
+    grade: number;
+    description?: string;
+    resource_type?: string;
+    prompt?: string;
+  }
+
+  /**
+   * 更新题型请求
+   */
+  interface UpdateQuestionTypeRequest {
+    title?: string;
+    scene?: string;
+    description?: string;
+    resource_type?: string;
+    prompt?: string;
+  }
 }
 
 export {};

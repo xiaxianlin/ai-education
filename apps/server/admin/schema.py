@@ -208,7 +208,7 @@ class SearchStudentSchema(SearchSchema):
 
 class CreateQuestionTypeSchema(BaseModel):
     title: str  # 题型标题，如：看图选词、根据首字母填空
-    scene: str  # 展现形式，如：选择题、填空题、判断题、口语题、应用题
+    scene: str  # 类型，如：选择题、填空题、判断题、口语题、应用题
     subject: str
     grade: int
     description: Optional[str] = None
@@ -253,6 +253,6 @@ class UpdateQuestionTypeSchema(BaseModel):
 
 
 class SearchQuestionTypeSchema(SearchSchema):
-    scene: Optional[str] = None  # 按展现形式筛选
+    scene: Optional[str] = None  # 按类型筛选
     subject: Optional[str] = None
     grade: Optional[int] = None

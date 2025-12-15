@@ -10,6 +10,7 @@ import TeacherBookDetail from '@/pages/TeacherBook/Detail';
 import QuestionList from '@/pages/Question/List';
 import QuestionEdit from '@/pages/Question/Edit';
 import QuestionDetail from '@/pages/Question/Detail';
+import QuestionTypeList from '@/pages/QuestionType/List';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
 import PracticeDetail from '@/pages/Student/PraticeDetail';
@@ -36,6 +37,7 @@ export function Router() {
         { path: 'question', element: <QuestionList /> },
         { path: 'question/edit/:id', element: <QuestionEdit /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
+        { path: 'question_type', element: <QuestionTypeList /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'practice/detail/:session_id', element: <PracticeDetail /> },

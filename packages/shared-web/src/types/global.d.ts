@@ -246,5 +246,21 @@ declare global {
     questions: Question[];
     report?: PracticeReport;
   }
+
+  /**
+   * 题型实体
+   */
+  interface QuestionType {
+    id: number;
+    title: string;
+    scene: string;
+    subject: string;
+    grade: number;
+    description?: string;
+    resource_type?: string;
+    prompt?: string;
+    create_time: number;
+    update_time: number;
+  }
 }
 export {};

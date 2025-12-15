@@ -117,7 +117,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 ### 数据模型
 - 数据库模型定义在 `shared/core/database.py`
 - 主要模型:
-  - `QuestionType`: 题型表，包含题型标题、展现形式、科目、年级、描述、资源类型、AI 生成指令等
+  - `QuestionType`: 题型表，包含题型标题、类型、科目、年级、描述、资源类型、AI 生成指令等
   - `Question`: 题目表，关联题型信息
   - `Textbook`: 教材表
   - `Unit`: 单元表
@@ -147,7 +147,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 ### 题型管理
 题型管理模块用于管理题型的配置信息，包括：
 - **题型标题** (title): 如"看图选词"、"根据首字母填空"等
-- **展现形式** (scene): 如"选择题"、"填空题"、"判断题"、"口语题"、"应用题"等
+- **类型** (scene): 如"选择题"、"填空题"、"判断题"、"口语题"、"应用题"等
 - **科目和年级**: 题型与特定科目、年级关联
 - **资源类型** (resource_type): 标识题型是否需要图片或语音资源
 - **AI 生成指令** (prompt): 用于指导 AI 生成该类型题目的指令
