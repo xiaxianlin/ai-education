@@ -233,3 +233,18 @@ class AnswerAnalysisSchema(BaseModel):
     match: bool = Field(description="是否匹配题目要求")
     analysis: str = Field(description="综合分析（包含原因和改进建议）")
     audio_url: Optional[str] = Field(description="相关学习资源链接")
+
+
+class QuestionTypeSchema(BaseModel):
+    id: int
+    title: str
+    scene: str
+    subject: str
+    grade: int
+    description: Optional[str] = None
+    resource_type: Optional[str] = None
+    prompt: Optional[str] = None
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}

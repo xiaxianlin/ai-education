@@ -58,13 +58,6 @@ export default function QuestionListPage() {
 
   const questionColumns: ProColumns<Question>[] = [
     {
-      title: '题目ID',
-      dataIndex: 'id',
-      minWidth: 100,
-      valueType: 'digit',
-      renderText: (id) => id,
-    },
-    {
       title: '题目',
       dataIndex: 'content',
       minWidth: 300,
@@ -127,10 +120,7 @@ export default function QuestionListPage() {
       minWidth: 90,
       hideInSearch: true,
       render: (_, record) =>
-        renderResourceStatusTag(
-          Boolean(record.resource && record.resource.trim()),
-          record.resource_type || undefined,
-        ),
+        renderResourceStatusTag(Boolean(record.resource && record.resource.trim()), record.resource_type || undefined),
     },
     {
       title: '操作',
@@ -146,10 +136,7 @@ export default function QuestionListPage() {
           <Link className="umi-link" key="edit" to={`/question/edit/${record.id}`}>
             编辑
           </Link>
-          <DeleteButton
-            title="确定要删除这道题目吗？"
-            onConfirm={() => handleDelete(String(record.id))}
-          />
+          <DeleteButton title="确定要删除这道题目吗？" onConfirm={() => handleDelete(String(record.id))} />
         </Space>
       ),
     },
@@ -183,10 +170,7 @@ export default function QuestionListPage() {
       valueType: 'select',
       valueEnum: RESOURCE_STATUS_ENUM,
       render: (_, record) =>
-        renderResourceStatusTag(
-          Boolean(record.resource && record.resource.trim()),
-          record.resource_type || undefined,
-        ),
+        renderResourceStatusTag(Boolean(record.resource && record.resource.trim()), record.resource_type || undefined),
     },
     {
       title: '资源路径',

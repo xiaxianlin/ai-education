@@ -20,13 +20,7 @@ export default function TableView() {
   const columns = useMemo<ProColumns<QuestionType>[]>(
     () => [
       {
-        title: 'ID',
-        dataIndex: 'id',
-        valueType: 'digit',
-        hideInSearch: true,
-      },
-      {
-        title: '题型标题',
+        title: '标题',
         dataIndex: 'title',
         valueType: 'text',
       },
@@ -73,6 +67,12 @@ export default function TableView() {
         },
       },
       {
+        title: '描述',
+        dataIndex: 'description',
+        valueType: 'textarea',
+        hideInSearch: true,
+      },
+      {
         title: '操作',
         valueType: 'option',
         fixed: 'right',
@@ -98,15 +98,14 @@ export default function TableView() {
         columns={columns}
         search={{
           labelWidth: 'auto',
-          layout: 'inline',
-          defaultColsNumber: 3,
+          defaultColsNumber: 4,
           defaultCollapsed: false,
         }}
-        headerTitle={
-          <Button type="primary" onClick={() => showForm()}>
+        toolBarRender={() => [
+          <Button key="add" type="primary" onClick={() => showForm()}>
             新增题型
-          </Button>
-        }
+          </Button>,
+        ]}
         request={async ({ pageSize, current, ...filter }) => {
           const data = await adminApi.searchQuestionTypes({
             page: current || 1,

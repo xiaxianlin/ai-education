@@ -21,9 +21,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 async def value_error_handler(request: Request, exc: ValueError):
     # 记录业务异常
     logger.warning(
-        f"Value error: {str(exc)}\n"
-        f"Path: {request.url.path}\n"
-        f"Method: {request.method}"
+        f"Value error: {str(exc)}\n" f"Path: {request.url.path}\n" f"Method: {request.method}"
     )
 
     return JSONResponse(
@@ -49,12 +47,10 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(exc.errors())
+    logger.error(exc)
     data = []
     for err in exc.errors():
-        data.append(
-            {"field": err["loc"][1], "error": err["msg"].replace("Value error, ", "")}
-        )
+        data.append({"field": err["loc"][1], "error": err["msg"].replace("Value error, ", "")})
 
     return JSONResponse(
         status_code=200,

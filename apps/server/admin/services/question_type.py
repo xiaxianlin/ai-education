@@ -6,7 +6,7 @@ from admin.schema import (
     SearchQuestionTypeSchema,
 )
 from shared.core.database import QuestionType
-from shared.core.schema import SearchResultSchema
+from shared.core.schema import QuestionTypeSchema, SearchResultSchema
 
 
 async def create_question_type(db: AsyncSession, params: CreateQuestionTypeSchema):
@@ -40,9 +40,7 @@ async def create_question_type(db: AsyncSession, params: CreateQuestionTypeSchem
     return question_type
 
 
-async def update_question_type(
-    db: AsyncSession, id: int, params: UpdateQuestionTypeSchema
-):
+async def update_question_type(db: AsyncSession, id: int, params: UpdateQuestionTypeSchema):
     """更新题型"""
     question_type = await db.scalar(select(QuestionType).where(QuestionType.id == id))
     if not question_type:
@@ -105,9 +103,7 @@ async def update_question_type(
 
 async def delete_question_type(db: AsyncSession, id: int):
     """删除题型"""
-    question_type = await db.scalar(
-        select(QuestionType).where(QuestionType.id == id)
-    )
+    question_type = await db.scalar(select(QuestionType).where(QuestionType.id == id))
     if not question_type:
         raise ValueError("题型不存在")
 
@@ -117,12 +113,10 @@ async def delete_question_type(db: AsyncSession, id: int):
 
 async def get_question_type(db: AsyncSession, id: int):
     """获取题型详情"""
-    question_type = await db.scalar(
-        select(QuestionType).where(QuestionType.id == id)
-    )
+    question_type = await db.scalar(select(QuestionType).where(QuestionType.id == id))
     if not question_type:
         raise ValueError("题型不存在")
-    return question_type
+    return QuestionTypeSchema.model_validate(question_type)
 
 
 async def search_question_types(db: AsyncSession, params: SearchQuestionTypeSchema):
@@ -156,6 +150,5 @@ async def search_question_types(db: AsyncSession, params: SearchQuestionTypeSche
 
     return SearchResultSchema(
         total=total,
-        data=list(result.all()),
+        data=[QuestionTypeSchema.model_validate(item) for item in result.all()],
     )
-
