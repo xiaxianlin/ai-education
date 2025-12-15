@@ -14,6 +14,7 @@ from ai.question_generate.prompts.utils import (
     build_knowledges_prompt,
     build_question_distribution,
     build_units_prompt,
+    load_prompt_by_slug,
 )
 
 SYSTEM_PROMPT = """你是一名资深教研员，专注于个性化学习设计。
@@ -354,8 +355,14 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
         subject, grade, recall_questions
     )
 
-    # 根据学科选择 prompt 模板
-    template = DAILY_PRACTICE_PROMPT_ENGLISH if subject == "英语" else DAILY_PRACTICE_PROMPT_MATH
+    # 根据学科选择 slug 和 默认 template
+    slug = "daily_practice_english" if subject == "英语" else "daily_practice_math"
+    default_template = DAILY_PRACTICE_PROMPT_ENGLISH if subject == "英语" else DAILY_PRACTICE_PROMPT_MATH
+
+    # 加载 prompt
+    current_system_prompt, template = await load_prompt_by_slug(
+        state.get("db"), slug, default_template, SYSTEM_PROMPT
+    )
 
     # 追加避免重复提示（如有召回的题目）
     if avoid_duplicate_hint:
@@ -363,7 +370,7 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
 
     # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
     prompt = ChatPromptTemplate.from_messages(
-        [("system", SYSTEM_PROMPT), ("human", template)]
+        [("system", current_system_prompt), ("human", template)]
     ).partial(format_instructions=format_instructions)
 
     # 简化学生学习数据获取（server-ai 中可能没有 StudentService）

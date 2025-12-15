@@ -99,7 +99,7 @@ async def build_unit_practice_prompt_node(
 ) -> Dict[str, Any]:
     """构建单元练习prompt"""
     logger.info("开始构建单元练习prompt")
-    return UnitPracticeGenerateService.build_prompt(state)
+    return await UnitPracticeGenerateService.build_prompt(state)
 
 
 async def build_assessment_prompt_node(
@@ -107,7 +107,7 @@ async def build_assessment_prompt_node(
 ) -> Dict[str, Any]:
     """构建能力评估prompt"""
     logger.info("开始构建能力评估prompt")
-    return AssessmentGenerateService.build_prompt(state)
+    return await AssessmentGenerateService.build_prompt(state)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:

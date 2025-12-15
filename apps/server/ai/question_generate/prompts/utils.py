@@ -3,7 +3,9 @@
 本模块提供可复用的prompt构建辅助函数,用于消除代码重复并提高一致性。
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+from sqlalchemy.ext.asyncio import AsyncSession
+from shared.services.prompt import SharedPromptService
 from shared.core.database import Question, Unit
 from shared.core.constants import get_question_types
 
@@ -144,3 +146,19 @@ def build_units_prompt(units: List[Unit]) -> str:
 
     return "\n".join(prompt_lines) or "（无）"
 
+
+async def load_prompt_by_slug(
+    db: Optional[AsyncSession],
+    slug: str,
+    default_template: str,
+    default_system_prompt: str,
+) -> Tuple[str, str]:
+    """根据 Slug 获取 Prompt，如果未获取到则使用默认值"""
+    if not db:
+        return default_system_prompt, default_template
+
+    version = await SharedPromptService.get_active_prompt_version(db, slug)
+    if version:
+        return version.system_prompt or default_system_prompt, version.template
+
+    return default_system_prompt, default_template

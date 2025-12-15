@@ -11,6 +11,7 @@ from ai.schema import QuestionGenerationResult, QuestionGenerationState
 from ai.question_generate.prompts.utils import (
     build_common_prompt,
     build_knowledges_prompt,
+    load_prompt_by_slug,
 )
 
 SYSTEM_PROMPT = """你是一名资深教研员，专注于单元级别的题目设计。
@@ -277,7 +278,7 @@ UNIT_PRACTICE_PROMPT_MATH = """# 数学单元练习生成
 """
 
 
-def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
+async def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     """构建单元练习题目生成的 Prompt
 
     Args:
@@ -311,15 +312,21 @@ def build_unit_practice_prompt(state: QuestionGenerationState) -> Dict[str, Any]
         subject, grade, recall_questions
     )
 
-    # 根据学科选择 prompt 模板
-    template = UNIT_PRACTICE_PROMPT_ENGLISH if subject == "英语" else UNIT_PRACTICE_PROMPT_MATH
+    # 根据学科选择 slug 和 默认 template
+    slug = "unit_practice_english" if subject == "英语" else "unit_practice_math"
+    default_template = UNIT_PRACTICE_PROMPT_ENGLISH if subject == "英语" else UNIT_PRACTICE_PROMPT_MATH
+
+    # 加载 prompt
+    current_system_prompt, template = await load_prompt_by_slug(
+        state.get("db"), slug, default_template, SYSTEM_PROMPT
+    )
 
     # 追加避免重复提示（如有召回的题目）
     if avoid_duplicate_hint:
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
-    prompt = ChatPromptTemplate.from_messages([("system", SYSTEM_PROMPT), ("human", template)])
+    prompt = ChatPromptTemplate.from_messages([("system", current_system_prompt), ("human", template)])
     prompt = prompt.partial(format_instructions=format_instructions)
 
     # 构建 prompt 输入参数（format_instructions 已通过 partial 填充，无需在此传入）

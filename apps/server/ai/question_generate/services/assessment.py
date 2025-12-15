@@ -73,6 +73,6 @@ class AssessmentGenerateService:
             raise
 
     @classmethod
-    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+    async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建能力评估的 Prompt"""
-        return build_assessment_prompt(state)
+        return await build_assessment_prompt(state)

@@ -7,15 +7,7 @@ import { adminApi } from '@/lib/api';
 import { PromptForm } from '../Detail/components/PromptForm';
 import { PromptVersionForm } from '../Detail/components/PromptVersionForm';
 
-type VersionFormValues = {
-  template: string;
-  system_prompt?: string;
-  negative_prompt?: string;
-  input_schema?: string;
-  sampling_params?: string;
-  timeout_ms?: number;
-  changelog?: string;
-};
+import { VersionFormValues } from '../types';
 
 export default function PromptFormPage() {
   const { id } = useParams();
@@ -51,8 +43,8 @@ export default function PromptFormPage() {
       slug: values.slug!,
       category: values.category!,
       description: values.description,
-      tags: values.tags
-        ? values.tags
+      tags: (values as any).tags
+        ? (values as any).tags
             .split(',')
             .map((t: string) => t.trim())
             .filter(Boolean)
@@ -77,8 +69,8 @@ export default function PromptFormPage() {
       name: values.name,
       category: values.category,
       description: values.description,
-      tags: values.tags
-        ? values.tags
+      tags: (values as any).tags
+        ? (values as any).tags
             .split(',')
             .map((t: string) => t.trim())
             .filter(Boolean)
@@ -106,4 +98,3 @@ export default function PromptFormPage() {
     </PageContainer>
   );
 }
-

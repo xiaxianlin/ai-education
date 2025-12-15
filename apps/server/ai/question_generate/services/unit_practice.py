@@ -75,6 +75,6 @@ class UnitPracticeGenerateService:
             raise
 
     @classmethod
-    def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
+    async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建单元练习的 Prompt"""
-        return build_unit_practice_prompt(state)
+        return await build_unit_practice_prompt(state)

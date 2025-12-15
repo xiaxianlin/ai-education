@@ -13,18 +13,7 @@ from shared.core.database import Prompt, PromptVersion, PromptTestRecord
 from shared.core.schema import PromptSchema, PromptVersionSchema
 
 
-def _validate_required(input_schema: dict, variables: Dict[str, Any]):
-    required = input_schema.get("required", []) if isinstance(input_schema, dict) else []
-    for field in required:
-        if field not in variables or variables[field] in (None, ""):
-            raise ValueError(f"缺少必填变量: {field}")
-
-
-def _render_prompt(template: str, variables: Dict[str, Any]) -> str:
-    try:
-        return template.format(**variables)
-    except KeyError as e:
-        raise ValueError(f"缺少变量: {e.args[0]}") from e
+from shared.services.prompt import SharedPromptService
 
 
 async def list_prompts(
@@ -207,8 +196,8 @@ async def test_version(db: AsyncSession, pid: int, vid: int, params: TestPromptS
         raise ValueError("版本不存在")
 
     variables = params.variables or {}
-    _validate_required(version.input_schema or {}, variables)
-    rendered_prompt = _render_prompt(version.template, variables)
+    SharedPromptService.validate_required(version.input_schema or {}, variables)
+    rendered_prompt = SharedPromptService.render_template(version.template, variables)
 
     # TODO: 调用真实模型服务，这里先回显
     response_snapshot = {

@@ -1,25 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PageContainer } from '@ant-design/pro-components';
-import { Form, message } from 'antd';
+import { PageContainer, ProCard } from '@ant-design/pro-components';
+import { Form, message, Space } from 'antd';
 import { adminApi } from '@/lib/api';
-import { PromptDetailSections } from './components/PromptDetailSections';
-
-type VersionFormValues = {
-  template: string;
-  system_prompt?: string;
-  negative_prompt?: string;
-  input_schema?: string;
-  sampling_params?: string;
-  timeout_ms?: number;
-  changelog?: string;
-};
-
-type TestFormValues = {
-  variables?: string;
-  model_provider?: string;
-  model_name?: string;
-};
+import { VersionList } from './components/VersionList';
+import { VersionCreator } from './components/VersionCreator';
+import { TestSandbox } from './components/TestSandbox';
+import { MetricsOverview } from './components/MetricsOverview';
+import { VersionFormValues, TestFormValues } from '../types';
 
 export default function PromptDetailPage() {
   const { id } = useParams();
@@ -27,6 +15,7 @@ export default function PromptDetailPage() {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<TestPromptResponse | null>(null);
+  const [metrics, setMetrics] = useState<PromptMetrics | null>(null);
 
   const [versionForm] = Form.useForm<VersionFormValues>();
   const [testForm] = Form.useForm<TestFormValues>();
@@ -37,9 +26,16 @@ export default function PromptDetailPage() {
     setVersions(vers);
   };
 
+  const fetchMetrics = async (promptId: number) => {
+    const m = await adminApi.getPromptMetrics(promptId);
+    setMetrics(m);
+  };
+
   useEffect(() => {
     if (id) {
-      fetchData(Number(id));
+      const pid = Number(id);
+      fetchData(pid);
+      fetchMetrics(pid);
     }
   }, [id]);
 
@@ -96,25 +92,47 @@ export default function PromptDetailPage() {
     }
   };
 
+  const handleViewVersion = (version: PromptVersion) => {
+    versionForm.setFieldsValue({
+      template: version.template,
+      system_prompt: version.system_prompt,
+      negative_prompt: version.negative_prompt,
+      input_schema: JSON.stringify(version.input_schema ?? {}, null, 2),
+      sampling_params: JSON.stringify(version.sampling_params ?? {}, null, 2),
+      timeout_ms: version.timeout_ms,
+      changelog: version.changelog,
+    });
+    // Scroll to version form
+    document.getElementById('version-form-card')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   if (!prompt) {
     return <PageContainer title="加载中..." />;
   }
 
   return (
     <PageContainer title={`提示词详情：${prompt.name}`}>
-      <PromptDetailSections
-        isNew={false}
-        versions={versions}
-        versionForm={versionForm}
-        testForm={testForm}
-        loading={loading}
-        testResult={testResult}
-        onCreateVersion={handleCreateVersion}
-        onPublish={handlePublish}
-        onArchive={handleArchive}
-        onTest={handleTest}
-        promptId={prompt.id}
-      />
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
+        <MetricsOverview metrics={metrics} />
+
+        <ProCard split="horizontal" title="版本管理">
+          <ProCard title="版本列表">
+            <VersionList
+              versions={versions}
+              onView={handleViewVersion}
+              onPublish={handlePublish}
+              onArchive={handleArchive}
+            />
+          </ProCard>
+          <ProCard title="创建新版本">
+            <div id="version-form-card">
+              <VersionCreator form={versionForm} onCreate={handleCreateVersion} />
+            </div>
+          </ProCard>
+        </ProCard>
+
+        <TestSandbox form={testForm} loading={loading} result={testResult} onTest={handleTest} />
+      </Space>
     </PageContainer>
   );
 }
