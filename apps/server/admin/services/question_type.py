@@ -1,4 +1,4 @@
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import (
     CreateQuestionTypeSchema,
@@ -6,7 +6,7 @@ from admin.schema import (
     SearchQuestionTypeSchema,
 )
 from shared.core.database import QuestionType
-from shared.core.schema import QuestionTypeSchema, SearchResultSchema
+from shared.core.schema import QuestionTypeSchema
 
 
 async def create_question_type(db: AsyncSession, params: CreateQuestionTypeSchema):
@@ -130,25 +130,11 @@ async def search_question_types(db: AsyncSession, params: SearchQuestionTypeSche
         conditions.append(QuestionType.subject == params.subject)
     if params.grade is not None:
         conditions.append(QuestionType.grade == params.grade)
-    if params.keywords:
-        conditions.append(QuestionType.title.contains(params.keywords))
 
     if conditions:
         query = query.where(and_(*conditions))
 
-    # 获取总数
-    count_query = select(func.count(QuestionType.id))
-    if conditions:
-        count_query = count_query.where(and_(*conditions))
-    total = await db.scalar(count_query) or 0
-
     # 分页查询
-    offset = (params.page - 1) * params.size
-    query = query.order_by(QuestionType.id.desc()).offset(offset).limit(params.size)
-
     result = await db.scalars(query)
 
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionTypeSchema.model_validate(item) for item in result.all()],
-    )
+    return [QuestionTypeSchema.model_validate(item) for item in result.all()]

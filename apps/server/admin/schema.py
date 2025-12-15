@@ -252,7 +252,7 @@ class UpdateQuestionTypeSchema(BaseModel):
         return v
 
 
-class SearchQuestionTypeSchema(SearchSchema):
+class SearchQuestionTypeSchema(BaseModel):
     scene: Optional[str] = None  # 按类型筛选
     subject: Optional[str] = None
     grade: Optional[int] = None

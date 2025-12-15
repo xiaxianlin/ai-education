@@ -1,42 +1,45 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { ActionType } from '@ant-design/pro-components';
-import { useSimpleForm } from '@/hooks';
+import { useDelete, useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { adminApi } from '@/lib/api';
-import { message } from 'antd';
 
 const useContainer = () => {
-  const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<CreateQuestionTypeRequest, QuestionType>({
-    onSubmit: () => actionRef.current?.reload(),
+  const [subject, setSubject] = useState('英语');
+  const [grade, setGrade] = useState(1);
+  const [scene, setScene] = useState<string>();
+
+  const { data, refresh } = useRequest(() => adminApi.searchQuestionTypes({ subject, grade, scene }), {
+    refreshDeps: [subject, grade, scene],
   });
 
-  const { runAsync: handleSubmit } = useRequest(
-    async (values: CreateQuestionTypeRequest) => {
-      if (form.edited) {
-        await adminApi.updateQuestionType(form.edited.id, values);
+  const form = useSimpleForm<CreateQuestionTypeRequest, QuestionType>({
+    service: async (values, item) => {
+      if (item) {
+        await adminApi.updateQuestionType(item.id, values);
       } else {
-        await adminApi.createQuestionType(values);
+        await adminApi.createQuestionType({ ...values, subject, grade });
       }
     },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success(form.edited ? '更新成功' : '新增成功');
-        form.onCancel();
-        form.onSubmit();
-      },
-    },
-  );
+    onSubmit: refresh,
+  });
+
+  const { handleDelete } = useDelete(adminApi.deleteQuestionType, {
+    onSuccess: () => refresh(),
+  });
 
   return {
     ...form,
-    actionRef,
-    handleSubmit,
+    data,
+    grade,
+    subject,
+    scene,
+    setGrade,
+    setSubject,
+    setScene,
+    handleDelete,
   };
 };
 
 export const QuestionTypeListModel = createContainer(useContainer);
 export const useQuestionTypeListModel = QuestionTypeListModel.useContainer;
-

@@ -160,7 +160,7 @@ declare global {
   /**
    * 搜索题型请求
    */
-  interface SearchQuestionTypeRequest extends SearchRequest {
+  interface SearchQuestionTypeRequest {
     scene?: string;
     subject?: string;
     grade?: number;

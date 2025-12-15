@@ -1,64 +1,31 @@
-import { PageContainer, ProColumns } from '@ant-design/pro-components';
+import { PageContainer, ProCard, ProColumns } from '@ant-design/pro-components';
 import { useQuestionTypeListModel } from '../models/page';
-import { Button, Space, Tag } from 'antd';
-import { adminApi } from '@/lib/api';
+import { Button, Radio, Space, Tag, Tabs, Table, TableProps, Flex } from 'antd';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
-import { useConfigs, useDelete } from '@/hooks';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { useConfigs } from '@/hooks';
+import { DeleteButton } from '@/components/business';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
+import { PlusOutlined } from '@ant-design/icons';
 
 export default function TableView() {
-  const { subjectEnum, gradeEnum, questionSceneEmun } = useConfigs();
-  const { actionRef, showForm } = useQuestionTypeListModel();
+  const { subjects, question_scenes } = useConfigs();
+  const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
+    useQuestionTypeListModel();
 
-  // 删除题型
-  const { handleDelete } = useDelete(adminApi.deleteQuestionType, {
-    onSuccess: () => actionRef.current?.reload(),
-  });
-
-  const columns = useMemo<ProColumns<QuestionType>[]>(
+  const columns = useMemo<TableProps<QuestionType>['columns']>(
     () => [
       {
         title: '标题',
         dataIndex: 'title',
-        valueType: 'text',
       },
       {
         title: '类型',
         dataIndex: 'scene',
-        valueType: 'select',
-        valueEnum: questionSceneEmun,
-        render: (_, record) => <Tag>{record.scene}</Tag>,
-      },
-      {
-        title: '科目',
-        dataIndex: 'subject',
-        valueType: 'select',
-        valueEnum: subjectEnum,
-        render: (_, record) => {
-          const subject = record.subject;
-          const subjectColorMap: Record<string, string> = {
-            数学: 'blue',
-            英语: 'orange',
-          };
-          const color = subjectColorMap[subject] || 'default';
-          return <Tag color={color}>{subject}</Tag>;
-        },
-      },
-      {
-        title: '年级',
-        dataIndex: 'grade',
-        valueType: 'select',
-        valueEnum: gradeEnum,
-        render: (_, record) => GRADES[record.grade] || record.grade,
       },
       {
         title: '资源类型',
         dataIndex: 'resource_type',
-        valueType: 'select',
-        valueEnum: RESOURCE_TYPE_OPTIONS,
-        hideInSearch: true,
         render: (_, record) => {
           if (!record.resource_type) {
             return <Tag>无</Tag>;
@@ -69,8 +36,7 @@ export default function TableView() {
       {
         title: '描述',
         dataIndex: 'description',
-        valueType: 'textarea',
-        hideInSearch: true,
+        render: (description) => description || '-',
       },
       {
         title: '操作',
@@ -82,43 +48,63 @@ export default function TableView() {
             <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
+            <Button size="small" key="copy" type="link" onClick={() => showCopyForm(record)}>
+              复制
+            </Button>
             <DeleteButton buttonProps={{ size: 'small', type: 'link' }} onConfirm={() => handleDelete(record.id)} />
           </Space>
         ),
       },
     ],
-    [showForm, subjectEnum, gradeEnum, handleDelete],
+    [showForm, handleDelete],
   );
 
   return (
     <PageContainer title="题型管理" header={{ breadcrumb: {} }}>
-      <CommonTable<QuestionType>
-        actionRef={actionRef}
-        rowKey="id"
-        columns={columns}
-        search={{
-          labelWidth: 'auto',
-          defaultColsNumber: 4,
-          defaultCollapsed: false,
-        }}
-        toolBarRender={() => [
-          <Button key="add" type="primary" onClick={() => showForm()}>
-            新增题型
-          </Button>,
-        ]}
-        request={async ({ pageSize, current, ...filter }) => {
-          const data = await adminApi.searchQuestionTypes({
-            page: current || 1,
-            size: pageSize || 10,
-            ...filter,
-          });
-          return {
-            data: data.data || [],
-            success: true,
-            total: data.total || 0,
-          };
-        }}
+      <Tabs
+        style={{ marginTop: 16 }}
+        type="card"
+        onChange={setSubject}
+        activeKey={subject}
+        items={subjects.map((subject) => ({ label: subject, key: subject }))}
+        classNames={{ item: 'large-tab-item' }}
       />
+      <Radio.Group
+        block
+        size="large"
+        buttonStyle="solid"
+        optionType="button"
+        style={{ marginBottom: 16 }}
+        value={grade}
+        onChange={(e) => setGrade(e.target.value)}
+        options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
+      />
+      <ProCard>
+        <Flex vertical gap={16}>
+          <Flex justify="space-between" align="center">
+            <Flex gap={8}>
+              {question_scenes.map((item) => {
+                const isActive = scene === item;
+                return (
+                  <Tag
+                    key={item}
+                    variant="filled"
+                    style={{ padding: '8px 16px', cursor: 'pointer' }}
+                    color={isActive ? 'volcano' : 'blue'}
+                    onClick={() => setScene(isActive ? undefined : item)}
+                  >
+                    {item}
+                  </Tag>
+                );
+              })}
+            </Flex>
+            <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
+              新增题型
+            </Button>
+          </Flex>
+          <Table<QuestionType> bordered rowKey="id" columns={columns} dataSource={data} pagination={false} />
+        </Flex>
+      </ProCard>
     </PageContainer>
   );
 }

@@ -5,14 +5,14 @@ import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 
 export default function FormView() {
   const { subjectEnum, gradeEnum, questionSceneEmun } = useConfigs();
-  const { instance, edited, visible, onCancel, handleSubmit } = useQuestionTypeListModel();
+  const { form, item, visible, onCancel, handleSubmit } = useQuestionTypeListModel();
 
   return (
     <ModalForm<CreateQuestionTypeRequest>
       width={700}
-      form={instance}
+      form={form}
       open={visible}
-      title={edited ? '更新题型' : '新增题型'}
+      title={item ? '更新题型' : '新增题型'}
       onFinish={handleSubmit}
       modalProps={{ destroyOnClose: true, onCancel }}
       layout="horizontal"
@@ -33,22 +33,6 @@ export default function FormView() {
         placeholder="请选择类型"
         rules={[{ required: true, message: '请选择类型' }]}
         valueEnum={questionSceneEmun}
-      />
-      <ProFormSelect
-        name="subject"
-        label="科目"
-        placeholder="请选择科目"
-        rules={[{ required: true, message: '请选择科目' }]}
-        valueEnum={subjectEnum}
-        disabled={!!edited}
-      />
-      <ProFormSelect
-        name="grade"
-        label="年级"
-        placeholder="请选择年级"
-        rules={[{ required: true, message: '请选择年级' }]}
-        valueEnum={gradeEnum}
-        disabled={!!edited}
       />
       <ProFormTextArea
         name="description"

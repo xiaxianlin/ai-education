@@ -1,8 +1,8 @@
-SUBJECTS = ["数学", "英语"]
+SUBJECTS = ["英语", "数学"]
 TEXTBOOK_VERSIONS = ["人教版"]
 SEMESTERS = ["上学期", "下学期", "整学期"]
 DIFFICULTY_LEVELS = ["简单", "普通", "困难"]
-QUESTION_SCENES = ["选择题", "填空题", "判断题", "拼写题", "匹配题", "口语题", "应用题"]
+QUESTION_SCENES = ["选择题", "输入题", "口语题", "判断题", "匹配题", "应用题"]
 
 
 QUESTION_TYPES = {

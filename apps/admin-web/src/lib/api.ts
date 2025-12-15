@@ -458,7 +458,7 @@ export const adminApi = {
    * GET /question_type/search
    */
   async searchQuestionTypes(params?: SearchQuestionTypeRequest) {
-    return apiClient.get<SearchResponse<QuestionType>>('/question_type/search', { params });
+    return apiClient.get<QuestionType[]>('/question_type/search', { params });
   },
 
   /**
