@@ -30,6 +30,17 @@
    - 路由: `admin/routes/`
    - 服务: `admin/services/`
    - 模型: `admin/schema.py`
+   - 功能模块:
+     - 认证管理: `admin/routes/auth.py`
+     - 管理员管理: `admin/routes/manager.py`
+     - 教材管理: `admin/routes/textbook.py`
+     - 单元管理: `admin/routes/unit.py`
+     - 知识点管理: `admin/routes/knowledge.py`
+     - 题目管理: `admin/routes/question.py`
+     - 题型管理: `admin/routes/question_type.py`
+     - 学生管理: `admin/routes/student.py`
+     - 练习管理: `admin/routes/practice.py`
+     - 配置管理: `admin/routes/config.py`
 
 2. **student/** - 学生端模块
    - 路由: `student/routes/`
@@ -101,6 +112,18 @@ async def create(db: AsyncSession, params: SomeSchema):
 - 使用 LangGraph 构建题目生成工作流
 - 工作流定义: `ai/question_generate/graph.py`
 - Prompt 模板: `ai/question_generate/prompts/`
+- 题型管理: 题型包含 AI 生成指令（prompt），用于指导 AI 生成特定类型的题目
+
+### 数据模型
+- 数据库模型定义在 `shared/core/database.py`
+- 主要模型:
+  - `QuestionType`: 题型表，包含题型标题、展现形式、科目、年级、描述、资源类型、AI 生成指令等
+  - `Question`: 题目表，关联题型信息
+  - `Textbook`: 教材表
+  - `Unit`: 单元表
+  - `Knowledge`: 知识点表
+  - `PracticeSession`: 练习会话表
+  - `PracticeAnswer`: 答题记录表
 
 ## 注意事项
 
@@ -116,4 +139,28 @@ async def create(db: AsyncSession, params: SomeSchema):
 - 数据库模型: `shared/core/database.py`
 - 环境配置: `shared/core/settings.py`
 - 任务配置: `shared/worker/CONFIG.md`
+- API 文档: `docs/API.md`
 - FastAPI 文档: https://fastapi.tiangolo.com/
+
+## 核心功能模块
+
+### 题型管理
+题型管理模块用于管理题型的配置信息，包括：
+- **题型标题** (title): 如"看图选词"、"根据首字母填空"等
+- **展现形式** (scene): 如"选择题"、"填空题"、"判断题"、"口语题"、"应用题"等
+- **科目和年级**: 题型与特定科目、年级关联
+- **资源类型** (resource_type): 标识题型是否需要图片或语音资源
+- **AI 生成指令** (prompt): 用于指导 AI 生成该类型题目的指令
+
+题型管理接口:
+- `POST /api/admin/question_type/` - 创建题型
+- `PATCH /api/admin/question_type/{id}` - 更新题型
+- `DELETE /api/admin/question_type/{id}` - 删除题型
+- `GET /api/admin/question_type/{id}` - 获取题型详情
+- `GET /api/admin/question_type/search` - 搜索题型
+
+相关文件:
+- 数据模型: `shared/core/database.py` (QuestionType)
+- Schema: `admin/schema.py` (CreateQuestionTypeSchema, UpdateQuestionTypeSchema, SearchQuestionTypeSchema)
+- 服务层: `admin/services/question_type.py`
+- 路由层: `admin/routes/question_type.py`

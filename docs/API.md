@@ -13,6 +13,7 @@
   - [单元管理](#单元管理)
   - [知识点管理](#知识点管理)
   - [题目管理](#题目管理)
+  - [题型管理](#题型管理)
   - [学生管理](#学生管理)
   - [练习管理](#练习管理)
   - [配置管理](#配置管理)
@@ -631,6 +632,163 @@ POST /api/admin/question/{id}/audio_generate
 ```
 
 **功能说明**: 为题目自动生成语音朗读。
+
+---
+
+### 题型管理
+
+#### 创建题型
+
+```
+POST /api/admin/question_type/
+```
+
+**请求参数**:
+```json
+{
+  "title": "看图选词",
+  "scene": "选择题",
+  "subject": "英语",
+  "grade": 1,
+  "description": "根据图片选择正确的单词",
+  "resource_type": "image",
+  "prompt": "请生成一道看图选词题，要求：1. 图片清晰易懂；2. 选项包含正确答案和2-3个干扰项；3. 适合小学一年级学生；4. 单词难度适中"
+}
+```
+
+**参数说明**:
+- `title`: 题型标题（必填，如：看图选词、根据首字母填空）
+- `scene`: 展现形式（必填，如：选择题、填空题、判断题、口语题、应用题）
+- `subject`: 科目（必填，数学/英语）
+- `grade`: 年级（必填，1-6）
+- `description`: 题型描述（可选）
+- `resource_type`: 资源类型（可选，image/audio）
+- `prompt`: 生成该题型的 AI 指令（可选）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 1,
+    "title": "看图选词",
+    "scene": "选择题",
+    "subject": "英语",
+    "grade": 1,
+    "description": "根据图片选择正确的单词",
+    "resource_type": "image",
+    "prompt": "请生成一道看图选词题...",
+    "create_time": 1234567890,
+    "update_time": 1234567890
+  }
+}
+```
+
+#### 更新题型
+
+```
+PATCH /api/admin/question_type/{id}
+```
+
+**请求参数**:
+```json
+{
+  "title": "看图选词（修改）",
+  "scene": "选择题",
+  "description": "更新后的描述",
+  "resource_type": "image",
+  "prompt": "更新后的 AI 指令"
+}
+```
+
+**参数说明**:
+- 所有字段均为可选
+- 更新时会检查同一 scene、subject、grade 下 title 是否重复
+
+#### 删除题型
+
+```
+DELETE /api/admin/question_type/{id}
+```
+
+**功能说明**: 删除指定题型（硬删除）。
+
+#### 获取题型详情
+
+```
+GET /api/admin/question_type/{id}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 1,
+    "title": "看图选词",
+    "scene": "选择题",
+    "subject": "英语",
+    "grade": 1,
+    "description": "根据图片选择正确的单词",
+    "resource_type": "image",
+    "prompt": "请生成一道看图选词题...",
+    "create_time": 1234567890,
+    "update_time": 1234567890
+  }
+}
+```
+
+#### 搜索题型
+
+```
+GET /api/admin/question_type/search
+```
+
+**查询参数**:
+- `keyword`: 搜索关键词（可选，匹配题型标题）
+- `scene`: 展现形式筛选（可选，如：选择题、填空题）
+- `subject`: 科目筛选（可选）
+- `grade`: 年级筛选（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+- `sort`: 排序字段，默认id
+- `order`: 排序方式，默认desc（asc/desc）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "total": 50,
+    "data": [
+      {
+        "id": 1,
+        "title": "看图选词",
+        "scene": "选择题",
+        "subject": "英语",
+        "grade": 1,
+        "description": "根据图片选择正确的单词",
+        "resource_type": "image",
+        "prompt": "请生成一道看图选词题...",
+        "create_time": 1234567890,
+        "update_time": 1234567890
+      },
+      {
+        "id": 2,
+        "title": "根据首字母填空",
+        "scene": "填空题",
+        "subject": "英语",
+        "grade": 2,
+        "description": "根据首字母提示填写单词",
+        "resource_type": null,
+        "prompt": "请生成一道根据首字母填空题...",
+        "create_time": 1234567891,
+        "update_time": 1234567891
+      }
+    ]
+  }
+}
+```
 
 ---
 

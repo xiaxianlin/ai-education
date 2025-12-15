@@ -204,3 +204,55 @@ class UpdateStudentSchema(BaseModel):
 class SearchStudentSchema(SearchSchema):
     phone: Optional[str] = None
     status: Optional[int] = None
+
+
+class CreateQuestionTypeSchema(BaseModel):
+    title: str  # 题型标题，如：看图选词、根据首字母填空
+    scene: str  # 展现形式，如：选择题、填空题、判断题、口语题、应用题
+    subject: str
+    grade: int
+    description: Optional[str] = None
+    resource_type: Optional[str] = None
+    prompt: Optional[str] = None  # 生成该题型的 AI 指令
+
+    @field_validator("subject")
+    @classmethod
+    def valid_subject(cls, v):
+        if v and v not in SUBJECTS:
+            raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
+        return v
+
+    @field_validator("grade")
+    @classmethod
+    def valid_grade(cls, v):
+        if v and v not in range(1, 7):
+            raise ValueError("年级只能选择1-6")
+        return v
+
+    @field_validator("resource_type")
+    @classmethod
+    def valid_resource_type(cls, v):
+        if v and v not in ["image", "audio"]:
+            raise ValueError("资源类型只能选择 image 或 audio")
+        return v
+
+
+class UpdateQuestionTypeSchema(BaseModel):
+    title: Optional[str] = None
+    scene: Optional[str] = None
+    description: Optional[str] = None
+    resource_type: Optional[str] = None
+    prompt: Optional[str] = None  # 生成该题型的 AI 指令
+
+    @field_validator("resource_type")
+    @classmethod
+    def valid_resource_type(cls, v):
+        if v is not None and v not in ["image", "audio", ""]:
+            raise ValueError("资源类型只能选择 image、audio 或空字符串")
+        return v
+
+
+class SearchQuestionTypeSchema(SearchSchema):
+    scene: Optional[str] = None  # 按展现形式筛选
+    subject: Optional[str] = None
+    grade: Optional[int] = None

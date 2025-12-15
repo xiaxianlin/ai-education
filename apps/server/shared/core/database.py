@@ -251,15 +251,17 @@ class PracticeAnswer(BaseModel):
 
     # 主键
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    
+
     # 基础关联字段
     session_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="会话ID")
-    question_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True, comment="题目ID")
+    question_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, index=True, comment="题目ID"
+    )
     student_id: Mapped[str] = mapped_column(
         String(255), nullable=False, index=True, comment="学生ID"
     )
     question_order: Mapped[int] = mapped_column(nullable=False, comment="题目顺序")
-    
+
     # 题目相关信息（冗余存储，避免关联查询）
     unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
     knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")
@@ -273,13 +275,13 @@ class PracticeAnswer(BaseModel):
     status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
-    
+
     # 错题相关字段（仅当 status=2 时有值）
     correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
     analysis: Mapped[str] = mapped_column(Text, nullable=True, comment="错题分析")
     is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正 0-未订正 1-已订正")
     corrected_time: Mapped[int] = mapped_column(nullable=True, comment="订正时间")
-    
+
     # 时间字段
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
@@ -324,3 +326,26 @@ class PracticeReport(BaseModel):
     recommendations: Mapped[str] = mapped_column(Text, default="[]", comment="学习建议")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+
+
+class QuestionType(BaseModel):
+    """题型表"""
+
+    __tablename__ = "ah_question_type"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(
+        String(100), nullable=False, comment="题型标题（如：看图选词、根据首字母填空）"
+    )
+    scene: Mapped[str] = mapped_column(String(50), nullable=False, comment="题型展现形式")
+    subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
+    grade: Mapped[int] = mapped_column(nullable=False, comment="年级（1-6）")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")
+    resource_type: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="资源类型：image-图片，audio-语音，空-无资源"
+    )
+    prompt: Mapped[str] = mapped_column(
+        Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）"
+    )
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
