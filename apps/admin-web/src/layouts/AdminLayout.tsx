@@ -8,6 +8,7 @@ import {
   QuestionCircleOutlined,
   GithubOutlined,
   FunnelPlotOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { AvatarDropdown } from '@/components/ui';
 import logo from '@/assets/logo.png';
@@ -49,6 +50,11 @@ const menuDataRender = (): MenuDataItem[] => [
       { path: '/textbook', name: '学生教材管理' },
       { path: '/teacher_book', name: '教师用书管理' },
     ],
+  },
+  {
+    path: '/prompt',
+    name: '提示词管理',
+    icon: <FileTextOutlined />,
   },
 ];
 

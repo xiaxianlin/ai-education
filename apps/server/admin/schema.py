@@ -256,3 +256,45 @@ class SearchQuestionTypeSchema(BaseModel):
     scene: Optional[str] = None  # 按类型筛选
     subject: Optional[str] = None
     grade: Optional[int] = None
+
+
+# ======================== Prompt 管理 ======================== #
+class PromptBaseSchema(BaseModel):
+    name: str
+    slug: str
+    category: str
+    description: Optional[str] = None
+    tags: list[str] = []
+
+
+class CreatePromptSchema(PromptBaseSchema):
+    template: str
+    system_prompt: Optional[str] = None
+    negative_prompt: Optional[str] = None
+    input_schema: dict = {}
+    sampling_params: dict = {}
+    timeout_ms: Optional[int] = None
+    changelog: Optional[str] = None
+
+
+class UpdatePromptSchema(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[list[str]] = None
+
+
+class CreatePromptVersionSchema(BaseModel):
+    template: str
+    system_prompt: Optional[str] = None
+    negative_prompt: Optional[str] = None
+    input_schema: dict = {}
+    sampling_params: dict = {}
+    timeout_ms: Optional[int] = None
+    changelog: Optional[str] = None
+
+
+class TestPromptSchema(BaseModel):
+    variables: dict = {}
+    model_provider: Optional[str] = None
+    model_name: Optional[str] = None

@@ -215,6 +215,58 @@ class PracticeReportSchema(BaseModel):
     recommendations: str = "[]"
     create_time: int
 
+
+# ======================== Prompt 管理 ======================== #
+class PromptVersionSchema(BaseModel):
+    id: int
+    prompt_id: int
+    version_no: int
+    template: str
+    system_prompt: Optional[str] = None
+    negative_prompt: Optional[str] = None
+    input_schema: dict = {}
+    sampling_params: dict = {}
+    timeout_ms: Optional[int] = None
+    changelog: Optional[str] = None
+    is_published: int = 0
+    create_time: int
+    update_time: Optional[int] = None
+
+    model_config = {"from_attributes": True}
+
+
+class PromptSchema(BaseModel):
+    id: int
+    name: str
+    slug: str
+    category: str
+    description: Optional[str] = None
+    tags: list[str] = []
+    status: str
+    current_version_id: Optional[int] = None
+    create_time: int
+    update_time: Optional[int] = None
+    current_version: Optional[PromptVersionSchema] = None
+
+    model_config = {"from_attributes": True}
+
+
+class PromptTestRecordSchema(BaseModel):
+    id: int
+    prompt_id: int
+    version_id: int
+    model_provider: Optional[str] = None
+    model_name: Optional[str] = None
+    input_payload: dict
+    rendered_prompt: str
+    response_snapshot: Optional[dict] = None
+    latency_ms: Optional[int] = None
+    status: str
+    error: Optional[str] = None
+    create_time: int
+
+    model_config = {"from_attributes": True}
+
     model_config = {"from_attributes": True}
 
 

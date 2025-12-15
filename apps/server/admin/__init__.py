@@ -20,6 +20,7 @@ from .routes.teacher_book import teacher_book_router
 from .routes.unit import unit_router
 from .routes.config import config_router
 from .routes.practice import practice_router
+from .routes.prompt import prompt_router
 
 
 admin_app = FastAPI(
@@ -45,5 +46,6 @@ admin_app.include_router(teacher_book_router)
 admin_app.include_router(unit_router)
 admin_app.include_router(config_router)
 admin_app.include_router(practice_router)
+admin_app.include_router(prompt_router)
 
 __all__ = ["admin_app"]

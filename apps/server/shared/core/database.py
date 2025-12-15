@@ -1,5 +1,5 @@
 from fastapi import Depends
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, JSON
 from sqlalchemy.orm import (
     relationship,
     Mapped,
@@ -349,3 +349,56 @@ class QuestionType(BaseModel):
     )
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
+
+
+# Prompt 主表
+class Prompt(BaseModel):
+    __tablename__ = "ah_prompt"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False, comment="Prompt 名称")
+    slug: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True, comment="唯一短名")
+    category: Mapped[str] = mapped_column(String(64), nullable=False, comment="分类：image_gen/audio_gen/audio_asr/question_gen/prompt_optimize/other")
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(32), default="draft", comment="draft/published/archived")
+    current_version_id: Mapped[int | None] = mapped_column(nullable=True, index=True)
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
+
+
+class PromptVersion(BaseModel):
+    __tablename__ = "ah_prompt_version"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    prompt_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    version_no: Mapped[int] = mapped_column(nullable=False, comment="版本号，从1自增")
+    template: Mapped[str] = mapped_column(Text, nullable=False)
+    system_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    negative_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    input_schema: Mapped[dict] = mapped_column(JSON, default=dict)
+    sampling_params: Mapped[dict] = mapped_column(JSON, default=dict)
+    timeout_ms: Mapped[int | None] = mapped_column(nullable=True)
+    changelog: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_published: Mapped[int] = mapped_column(default=0, comment="是否当前已发布")
+
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
+
+
+class PromptTestRecord(BaseModel):
+    __tablename__ = "ah_prompt_test_record"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    prompt_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    version_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    model_provider: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    model_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    input_payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    rendered_prompt: Mapped[str] = mapped_column(Text)
+    response_snapshot: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="success")
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    create_time: Mapped[int] = mapped_column(default=now)

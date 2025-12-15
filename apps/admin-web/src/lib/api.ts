@@ -492,4 +492,45 @@ export const adminApi = {
   async getQuestionType(id: number) {
     return apiClient.get<QuestionType>(`/question_type/${id}`);
   },
+
+  // ========== Prompt 管理 ==========
+  async listPrompts(params?: { keyword?: string; category?: string; status?: string; tag?: string }) {
+    return apiClient.get<Prompt[]>('/prompt', { params });
+  },
+
+  async createPrompt(data: CreatePromptRequest) {
+    return apiClient.post<Prompt>('/prompt', data);
+  },
+
+  async getPrompt(id: number) {
+    return apiClient.get<Prompt>(`/prompt/${id}`);
+  },
+
+  async updatePrompt(id: number, data: UpdatePromptRequest) {
+    return apiClient.patch<Prompt>(`/prompt/${id}`, data);
+  },
+
+  async createPromptVersion(id: number, data: CreatePromptVersionRequest) {
+    return apiClient.post<PromptVersion>(`/prompt/${id}/versions`, data);
+  },
+
+  async listPromptVersions(id: number) {
+    return apiClient.get<PromptVersion[]>(`/prompt/${id}/versions`);
+  },
+
+  async publishPromptVersion(pid: number, vid: number) {
+    return apiClient.post<Prompt>(`/prompt/${pid}/versions/${vid}/publish`);
+  },
+
+  async archivePromptVersion(pid: number, vid: number) {
+    return apiClient.post<PromptVersion>(`/prompt/${pid}/versions/${vid}/archive`);
+  },
+
+  async testPromptVersion(pid: number, vid: number, data: TestPromptRequest) {
+    return apiClient.post<TestPromptResponse>(`/prompt/${pid}/versions/${vid}/test`, data);
+  },
+
+  async getPromptMetrics(pid: number, version_id?: number) {
+    return apiClient.get<PromptMetrics>(`/prompt/${pid}/metrics`, { params: { version_id } });
+  },
 };

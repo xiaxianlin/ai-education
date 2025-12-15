@@ -189,6 +189,89 @@ declare global {
     resource_type?: string;
     prompt?: string;
   }
+
+  // ========== Prompt 管理 ==========
+  interface Prompt {
+    id: number;
+    name: string;
+    slug: string;
+    category: string;
+    description?: string;
+    tags?: string[];
+    status: string;
+    current_version_id?: number | null;
+    current_version?: PromptVersion;
+    create_time: number;
+    update_time?: number;
+  }
+
+  interface PromptVersion {
+    id: number;
+    prompt_id: number;
+    version_no: number;
+    template: string;
+    system_prompt?: string;
+    negative_prompt?: string;
+    input_schema?: Record<string, any>;
+    sampling_params?: Record<string, any>;
+    timeout_ms?: number;
+    changelog?: string;
+    is_published: number;
+    create_time: number;
+    update_time?: number;
+  }
+
+  interface CreatePromptRequest {
+    name: string;
+    slug: string;
+    category: string;
+    description?: string;
+    tags?: string[];
+    template: string;
+    system_prompt?: string;
+    negative_prompt?: string;
+    input_schema?: Record<string, any>;
+    sampling_params?: Record<string, any>;
+    timeout_ms?: number;
+    changelog?: string;
+  }
+
+  interface UpdatePromptRequest {
+    name?: string;
+    category?: string;
+    description?: string;
+    tags?: string[];
+  }
+
+  interface CreatePromptVersionRequest {
+    template: string;
+    system_prompt?: string;
+    negative_prompt?: string;
+    input_schema?: Record<string, any>;
+    sampling_params?: Record<string, any>;
+    timeout_ms?: number;
+    changelog?: string;
+  }
+
+  interface TestPromptRequest {
+    variables?: Record<string, any>;
+    model_provider?: string;
+    model_name?: string;
+  }
+
+  interface TestPromptResponse {
+    rendered_prompt: string;
+    response: any;
+    latency_ms: number;
+    status: string;
+    error?: string | null;
+  }
+
+  interface PromptMetrics {
+    calls: number;
+    success_rate: number;
+    p95_latency_ms?: number | null;
+  }
 }
 
 export {};
