@@ -16,9 +16,8 @@ export const KnowledgeView: React.FC = () => {
   const { id, units } = useTextbookDetailModel();
   const {
     actionRef,
-    formProps: { instance, visible, edited, showForm, onCancel },
+    formProps: { form, visible, item, showForm, onCancel, handleSubmit },
     handleDelete,
-    handleSubmit,
   } = useTextbookKnowledgeModel();
   console.log(units);
 
@@ -60,7 +59,7 @@ export const KnowledgeView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async (params) => {
-          const data = await (adminApi as any).getTextbookKnowledges?.(id) || [];
+          const data = (await (adminApi as any).getTextbookKnowledges?.(id)) || [];
           const filtered = data.filter((item: any) => {
             const results = ['unit']
               .filter((key) => Boolean(params[key]))
@@ -85,9 +84,9 @@ export const KnowledgeView: React.FC = () => {
       />
       <ModalForm<CreateKnowledgeRequest | UpdateKnowledgeRequest>
         width={600}
-        form={instance}
+        form={form}
         open={visible}
-        title={edited ? '更新知识点' : '新增知识点'}
+        title={item ? '更新知识点' : '新增知识点'}
         onFinish={handleSubmit}
         modalProps={{ destroyOnClose: true, onCancel }}
         size="large"

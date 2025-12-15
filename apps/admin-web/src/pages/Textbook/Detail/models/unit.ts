@@ -10,7 +10,16 @@ import { useTextbookDetailModel } from './page';
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<CreateUnitRequest | UpdateUnitRequest, Unit>();
+  const formProps = useSimpleForm<CreateUnitRequest | UpdateUnitRequest, Unit>({
+    service: async (values, item) => {
+      if (item) {
+        await adminApi.updateUnit(item.id, values as UpdateUnitRequest);
+      } else {
+        await adminApi.createUnit({ ...values, textbook_id: Number(id) } as CreateUnitRequest);
+      }
+    },
+    onSubmit: () => actionRef.current?.reload(),
+  });
 
   const { runAsync: deleteUnit } = useRequest(adminApi.deleteUnit, {
     manual: true,
@@ -19,24 +28,6 @@ const useContainer = () => {
       actionRef.current?.reload();
     },
   });
-
-  const { runAsync: handleSubmit } = useRequest(
-    async (values: CreateUnitRequest | UpdateUnitRequest) => {
-      if (formProps.edited) {
-        await adminApi.updateUnit(formProps.edited.id, values as UpdateUnitRequest);
-      } else {
-        await adminApi.createUnit({ ...values, textbook_id: Number(id) } as CreateUnitRequest);
-      }
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success(formProps.edited?.id ? '更新成功' : '新增成功');
-        formProps.onCancel?.();
-        actionRef.current?.reload();
-      },
-    },
-  );
 
   const handleDelete = (unit: Unit) => {
     Modal.confirm({
@@ -54,7 +45,6 @@ const useContainer = () => {
     formProps,
     actionRef,
     handleDelete,
-    handleSubmit,
   };
 };
 

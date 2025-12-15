@@ -10,7 +10,16 @@ import { useTextbookDetailModel } from './page';
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
-  const formProps = useSimpleForm<CreateKnowledgeRequest | UpdateKnowledgeRequest, Knowledge>();
+  const formProps = useSimpleForm<CreateKnowledgeRequest | UpdateKnowledgeRequest, Knowledge>({
+    service: async (values, item) => {
+      if (item) {
+        await adminApi.updateKnowledge(item.id, values as UpdateKnowledgeRequest);
+      } else {
+        await adminApi.createKnowledge({ ...values, textbook_id: Number(id) } as CreateKnowledgeRequest);
+      }
+    },
+    onSubmit: () => actionRef.current?.reload(),
+  });
 
   const { runAsync: deleteUnit } = useRequest(adminApi.deleteKnowledge, {
     manual: true,
@@ -19,24 +28,6 @@ const useContainer = () => {
       actionRef.current?.reload();
     },
   });
-
-  const { runAsync: handleSubmit } = useRequest(
-    async (values: CreateKnowledgeRequest | UpdateKnowledgeRequest) => {
-      if (formProps.edited) {
-        await adminApi.updateKnowledge(formProps.edited.id, values as UpdateKnowledgeRequest);
-      } else {
-        await adminApi.createKnowledge({ ...values, textbook_id: Number(id) } as CreateKnowledgeRequest);
-      }
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success(formProps.edited?.id ? '更新成功' : '新增成功');
-        formProps.onCancel?.();
-        actionRef.current?.reload();
-      },
-    },
-  );
 
   const handleDelete = (knowledge: Knowledge) => {
     Modal.confirm({
@@ -54,7 +45,6 @@ const useContainer = () => {
     formProps,
     actionRef,
     handleDelete,
-    handleSubmit,
   };
 };
 

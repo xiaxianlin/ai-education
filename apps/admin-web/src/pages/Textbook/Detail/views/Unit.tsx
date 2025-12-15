@@ -8,9 +8,8 @@ export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
   const {
     actionRef,
-    formProps: { instance, visible, edited, showForm, onCancel },
+    formProps: { form, visible, item, showForm, onCancel, handleSubmit },
     handleDelete,
-    handleSubmit,
   } = useTextbookUnitModel();
 
   const columns: ProColumns<Unit>[] = [
@@ -58,9 +57,9 @@ export const UnitView: React.FC = () => {
       />
       <ModalForm<CreateUnitRequest | UpdateUnitRequest>
         width={600}
-        form={instance}
+        form={form}
         open={visible}
-        title={edited ? '更新单元' : '新增单元'}
+        title={item ? '更新单元' : '新增单元'}
         onFinish={handleSubmit}
         modalProps={{ destroyOnClose: true, onCancel }}
         size="large"

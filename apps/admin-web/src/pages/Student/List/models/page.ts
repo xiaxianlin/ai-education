@@ -2,20 +2,15 @@ import { useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
-import { useRequest } from 'ahooks';
 import { adminApi } from '@/lib/api';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<SaveStudentRequest, Student>({
-    onSubmit: () => actionRef.current?.reload(),
-  });
-
-  const { runAsync: handleSubmit } = useRequest(
-    async (values: SaveStudentRequest) => {
-      if (form.edited) {
-        await adminApi.updateStudent(form.edited.id, values);
+  const formProps = useSimpleForm<SaveStudentRequest, Student>({
+    service: async (values, item) => {
+      if (item) {
+        await adminApi.updateStudent(item.id, values);
       } else {
         await adminApi.createStudent(values);
         Modal.success({
@@ -25,15 +20,8 @@ const useContainer = () => {
         });
       }
     },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success(form.edited ? '更新成功' : '创建成功');
-        form.onCancel();
-        form.onSubmit();
-      },
-    },
-  );
+    onSubmit: () => actionRef.current?.reload(),
+  });
 
   const handleDelete = (student: Student) => {
     Modal.confirm({
@@ -50,13 +38,11 @@ const useContainer = () => {
   };
 
   return {
-    ...form,
     actionRef,
-    handleSubmit,
+    formProps,
     handleDelete,
   };
 };
 
 export const StudentListModel = createContainer(useContainer);
 export const useStudentListModel = StudentListModel.useContainer;
-

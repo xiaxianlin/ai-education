@@ -5,16 +5,13 @@ import { adminApi } from '@/lib/api';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CommonTable, FormModal } from '@/components/business';
-import {
-  createTimeColumn,
-  createStatusColumn,
-  createStatusSearchColumn,
-  createActionColumn,
-} from '@/hooks';
+import { createTimeColumn, createStatusColumn, createStatusSearchColumn, createActionColumn } from '@/hooks';
 
 export default function MainView() {
-  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
-    useStudentListModel();
+  const {
+    actionRef,
+    formProps: { form, visible, item, showForm, onCancel, handleSubmit },
+  } = useStudentListModel();
 
   const columns = useMemo<ProColumns<Student>[]>(
     () => [
@@ -78,10 +75,10 @@ export default function MainView() {
         }}
       />
       <FormModal<SaveStudentRequest>
-        form={instance}
+        form={form}
         open={visible}
         onCancel={onCancel}
-        isEdit={!!edited}
+        isEdit={!!item}
         addTitle="新增学生"
         editTitle="更新学生"
         onFinish={handleSubmit}

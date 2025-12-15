@@ -9,10 +9,11 @@ import { useConfigs } from '@/hooks';
 import { CommonTable } from '@/components/business';
 
 export default function MainView() {
-  const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } =
-    useConfigs();
-  const { actionRef, instance, edited, visible, showForm, onCancel, handleSubmit } =
-    useTeacherBookListModel();
+  const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
+  const {
+    actionRef,
+    formProps: { form, visible, item, showForm, onCancel, handleSubmit },
+  } = useTeacherBookListModel();
 
   const columns = useMemo<ProColumns<TeacherBook>[]>(
     () => [
@@ -55,8 +56,7 @@ export default function MainView() {
         title: '文件上传',
         dataIndex: 'name',
         hideInSearch: true,
-        render: (_, record) =>
-          record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>,
+        render: (_, record) => (record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>),
       },
       {
         title: '操作',
@@ -112,9 +112,9 @@ export default function MainView() {
       />
       <ModalForm<SaveTeacherBookRequest>
         width={600}
-        form={instance}
+        form={form}
         open={visible}
-        title={edited ? '更新教师用书' : '新增教师用书'}
+        title={item ? '更新教师用书' : '新增教师用书'}
         onFinish={handleSubmit}
         modalProps={{ destroyOnClose: true, onCancel }}
         layout="horizontal"
