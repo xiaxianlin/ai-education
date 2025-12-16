@@ -17,6 +17,7 @@
   - [学生管理](#学生管理)
   - [练习管理](#练习管理)
   - [配置管理](#配置管理)
+  - [Prompt 管理](#prompt-管理)
 - [学生端接口](#学生端接口)
   - [学生认证](#学生认证)
   - [学生资料](#学生资料)
@@ -1041,6 +1042,190 @@ GET /api/admin/configs
 
 ---
 
+### Prompt 管理
+
+#### 创建 Prompt
+
+```
+POST /api/admin/prompt/
+```
+
+**请求参数**:
+```json
+{
+  "name": "题目生成提示词",
+  "slug": "question_generate",
+  "scene": "question_generate",
+  "description": "用于生成题目的提示词模板",
+  "tags": ["题目", "生成"],
+  "template_content": "请根据以下要求生成一道题目：\n{requirements}",
+  "negative_content": "不要包含以下内容：\n{negative}",
+  "model_params": {
+    "temperature": 0.7,
+    "max_tokens": 2000
+  },
+  "timeout": 30,
+  "changelog": "初始版本"
+}
+```
+
+**参数说明**:
+- `name`: Prompt 名称（必填）
+- `slug`: Prompt 唯一标识（必填，用于程序调用）
+- `scene`: 使用场景（必填）
+- `description`: 描述（可选）
+- `tags`: 标签列表（可选）
+- `template_content`: 模板内容（必填）
+- `negative_content`: 负面提示内容（可选）
+- `model_params`: 模型参数（可选，JSON 对象）
+- `timeout`: 超时时间（可选，秒）
+- `changelog`: 更新日志（可选）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": 1
+}
+```
+
+**功能说明**: 创建新的 Prompt，同时创建第一个版本（未发布状态）。
+
+#### 更新 Prompt
+
+```
+PUT /api/admin/prompt/{version_id}
+```
+
+**请求参数**: 同创建 Prompt，所有字段可选。
+
+**功能说明**: 更新指定版本的 Prompt 内容。会创建新版本或更新现有版本。
+
+#### 发布 Prompt 版本
+
+```
+POST /api/admin/prompt/{version_id}/publish
+```
+
+**功能说明**: 发布指定 Prompt 版本，使其成为当前使用的版本。
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 1,
+    "is_published": 1
+  }
+}
+```
+
+#### 获取 Prompt 列表
+
+```
+GET /api/admin/prompt/list?name=题目&scene=question_generate&page=1&size=10
+```
+
+**查询参数**:
+- `name`: 名称搜索（可选，模糊匹配）
+- `scene`: 场景筛选（可选）
+- `slug`: slug 筛选（可选）
+- `tag`: 标签筛选（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "total": 50,
+    "data": [
+      {
+        "id": 1,
+        "name": "题目生成提示词",
+        "slug": "question_generate",
+        "scene": "question_generate",
+        "description": "用于生成题目的提示词模板",
+        "tags": ["题目", "生成"],
+        "version": {
+          "id": 1,
+          "is_published": 1,
+          "create_time": 1234567890
+        }
+      }
+    ]
+  }
+}
+```
+
+#### 获取 Prompt 版本列表
+
+```
+GET /api/admin/prompt/versions?prompt_id=1&page=1&size=10
+```
+
+**查询参数**:
+- `prompt_id`: Prompt ID（可选）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "total": 10,
+    "data": [
+      {
+        "id": 1,
+        "prompt_id": 1,
+        "template_content": "请根据以下要求生成一道题目：\n{requirements}",
+        "is_published": 1,
+        "create_time": 1234567890,
+        "update_time": 1234567890
+      }
+    ]
+  }
+}
+```
+
+#### 获取 Prompt 详情
+
+```
+GET /api/admin/prompt/{version_id}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 1,
+    "name": "题目生成提示词",
+    "slug": "question_generate",
+    "scene": "question_generate",
+    "description": "用于生成题目的提示词模板",
+    "tags": ["题目", "生成"],
+    "version_id": 1,
+    "template_content": "请根据以下要求生成一道题目：\n{requirements}",
+    "negative_content": "不要包含以下内容：\n{negative}",
+    "model_params": {
+      "temperature": 0.7,
+      "max_tokens": 2000
+    },
+    "changelog": "初始版本",
+    "is_published": 1,
+    "create_time": 1234567890,
+    "update_time": 1234567890
+  }
+}
+```
+
+**功能说明**: 获取指定版本的 Prompt 详细信息。
+
+---
+
 ## 学生端接口
 
 ### 学生认证
@@ -1679,6 +1864,11 @@ POST /api/student/practice/{session_id}/complete
 ---
 
 ## 更新日志
+
+### v0.2.3 (2024-12-21)
+
+- 新增 Prompt 管理接口：`GET /api/admin/prompt/list`、`POST /api/admin/prompt/`、`PUT /api/admin/prompt/{version_id}`、`POST /api/admin/prompt/{version_id}/publish` 等
+- 更新文档说明
 
 ### v0.2.2 (2024-12-21)
 

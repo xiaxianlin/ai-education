@@ -14,6 +14,8 @@ import QuestionTypeList from '@/pages/QuestionType/List';
 import PromptList from '@/pages/Prompt/List';
 import PromptDetail from '@/pages/Prompt/Detail';
 import PromptForm from '@/pages/Prompt/Form';
+import PromptVersionList from '@/pages/Prompt/VersionList';
+import PromptTest from '@/pages/Prompt/Test';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
 import PracticeDetail from '@/pages/Student/PraticeDetail';
@@ -42,8 +44,10 @@ export function Router() {
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
         { path: 'prompt', element: <PromptList /> },
-        { path: 'prompt/form/:id', element: <PromptForm /> },
-        { path: 'prompt/detail/:id', element: <PromptDetail /> },
+        { path: 'prompt/form', element: <PromptForm /> },
+        { path: 'prompt/detail', element: <PromptDetail /> },
+        { path: 'prompt/versions', element: <PromptVersionList /> },
+        { path: 'prompt/test/:version_id', element: <PromptTest /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'practice/detail/:session_id', element: <PracticeDetail /> },

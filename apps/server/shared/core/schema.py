@@ -245,7 +245,6 @@ class PromptVersionSchema(BaseModel):
     template_content: str
     negative_content: Optional[str] = None
     model_params: dict = {}
-    timeout: int = 0
     changelog: Optional[str] = None
     is_published: int = 0
 
@@ -261,9 +260,7 @@ class PromptSchema(BaseModel):
     id: int
     name: str
     slug: str
-    scene: str
     description: Optional[str] = None
-    tags: list[str] = []
     current_version_id: Optional[int] = None
 
     version: Optional["PromptVersionSchema"] = None

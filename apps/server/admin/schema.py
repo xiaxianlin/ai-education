@@ -267,13 +267,13 @@ class PromptDetailSchema(BaseModel):
     id: int
     name: str
     slug: str
-    scene: str
+    type: str
     description: Optional[str] = None
-    tags: list[str] = []
 
     version_id: int
     template_content: str
     negative_content: Optional[str] = None
+    input_params: dict = {}
     model_params: dict = {}
     changelog: Optional[str] = None
     is_published: int = 0
@@ -287,14 +287,19 @@ class SavePromptSchema(BaseModel):
 
     name: str
     slug: str
-    scene: str
+    type: str
     description: Optional[str] = None
     tags: list[str] = []
     template_content: str
     negative_content: Optional[str] = None
     model_params: dict = {}
     timeout: Optional[int] = None
-    changelog: Optional[str] = None
+
+
+class PublishPromptSchema(BaseModel):
+    """提示词发布表单"""
+    
+    changelog: str
 
 
 class TestPromptSchema(BaseModel):
@@ -310,8 +315,7 @@ class TestPromptSchema(BaseModel):
 class SearchPromptSchema(SearchSchema):
     name: Optional[str] = None
     slug: Optional[str] = None
-    scene: Optional[str] = None
-    tag: Optional[str] = None
+    type: Optional[str] = None
 
 
 class SearchPromptVersionSchema(SearchSchema):

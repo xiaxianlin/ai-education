@@ -4,23 +4,20 @@ import { go, ApiClient } from '@ai-education/shared-web';
 export const apiClient = new ApiClient('/api/admin');
 
 apiClient.addResponseInterceptor(
-  (response) => response,
-  (error) => {
-    // 统一错误处理
-    const response = error.response;
-    if (response) {
-      const { status, message } = response.data || {};
-
-      // 处理认证错误
-      if (status === 401 || status === 403) {
-        apiClient.removeToken();
-        go('/login');
-      } else {
-        AntdMessage.error(message || '网络错误');
-      }
-      return response;
+  (response) => {
+    const { status, message } = response.data || {};
+    // 处理认证错误
+    if (status === 401 || status === 403) {
+      apiClient.removeToken();
+      go('/login');
     }
-
+    if (status !== 0) {
+      AntdMessage.error(message || '网络错误');
+    }
+    return response;
+  },
+  (error) => {
+    AntdMessage.error(error.message || '网络错误');
     return Promise.reject(error);
   },
 );
@@ -494,43 +491,52 @@ export const adminApi = {
   },
 
   // ========== Prompt 管理 ==========
-  async listPrompts(params?: { keyword?: string; category?: string; status?: string; tag?: string }) {
-    return apiClient.get<Prompt[]>('/prompt', { params });
+
+  /**
+   * 获取 Prompt 列表
+   * GET /api/admin/prompt/list
+   */
+  async listPrompts(params?: SearchPromptRequest) {
+    return apiClient.get<SearchResponse<Prompt>>('/prompt/list', { params });
   },
 
-  async createPrompt(data: CreatePromptRequest) {
-    return apiClient.post<Prompt>('/prompt', data);
+  /**
+   * 创建 Prompt
+   * POST /api/admin/prompt/
+   */
+  async createPrompt(data: SavePromptRequest) {
+    return apiClient.post<number>('/prompt/', data);
   },
 
-  async getPrompt(id: number) {
-    return apiClient.get<Prompt>(`/prompt/${id}`);
+  /**
+   * 更新 Prompt
+   * PUT /api/admin/prompt/{version_id}
+   */
+  async updatePrompt(versionId: number, data: SavePromptRequest) {
+    return apiClient.put(`/prompt/${versionId}`, data);
   },
 
-  async updatePrompt(id: number, data: UpdatePromptRequest) {
-    return apiClient.patch<Prompt>(`/prompt/${id}`, data);
+  /**
+   * 发布 Prompt 版本
+   * POST /api/admin/prompt/{version_id}/publish
+   */
+  async publishPromptVersion(versionId: number, changelog: string) {
+    return apiClient.post(`/prompt/${versionId}/publish`, { changelog });
   },
 
-  async createPromptVersion(id: number, data: CreatePromptVersionRequest) {
-    return apiClient.post<PromptVersion>(`/prompt/${id}/versions`, data);
+  /**
+   * 获取 Prompt 版本列表
+   * GET /api/admin/prompt/versions
+   */
+  async listPromptVersions(params?: SearchPromptVersionRequest) {
+    return apiClient.get<SearchResponse<PromptVersion>>('/prompt/versions', { params });
   },
 
-  async listPromptVersions(id: number) {
-    return apiClient.get<PromptVersion[]>(`/prompt/${id}/versions`);
-  },
-
-  async publishPromptVersion(pid: number, vid: number) {
-    return apiClient.post<Prompt>(`/prompt/${pid}/versions/${vid}/publish`);
-  },
-
-  async archivePromptVersion(pid: number, vid: number) {
-    return apiClient.post<PromptVersion>(`/prompt/${pid}/versions/${vid}/archive`);
-  },
-
-  async testPromptVersion(pid: number, vid: number, data: TestPromptRequest) {
-    return apiClient.post<TestPromptResponse>(`/prompt/${pid}/versions/${vid}/test`, data);
-  },
-
-  async getPromptMetrics(pid: number, version_id?: number) {
-    return apiClient.get<PromptMetrics>(`/prompt/${pid}/metrics`, { params: { version_id } });
+  /**
+   * 获取 Prompt 详情
+   * GET /api/admin/prompt/{version_id}
+   */
+  async getPromptDetail(versionId: number): Promise<PromptDetail> {
+    return apiClient.get<PromptDetail>(`/prompt/${versionId}`);
   },
 };

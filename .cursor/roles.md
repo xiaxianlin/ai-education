@@ -343,7 +343,11 @@ ai-eduaction/
 │   │       └── app/         # 应用配置（路由等）
 │   ├── server/              # 服务端（单体）
 │   │   ├── admin/           # 管理端模块
+│   │   │   ├── routes/      # 路由层（auth, manager, textbook, unit, knowledge, question, question_type, student, practice, config, prompt, teacher_book）
+│   │   │   └── services/    # 服务层
 │   │   ├── student/         # 学生端模块
+│   │   │   ├── routes/      # 路由层（auth, profile, textbook, practice）
+│   │   │   └── services/    # 服务层
 │   │   ├── ai/              # AI 功能（LangGraph 工作流）
 │   │   ├── shared/          # 共享模块
 │   │   │   ├── core/        # 核心功能

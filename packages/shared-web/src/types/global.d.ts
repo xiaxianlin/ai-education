@@ -262,5 +262,42 @@ declare global {
     create_time: number;
     update_time: number;
   }
+
+  interface Prompt {
+    id: number;
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    version?: PromptVersion;
+  }
+
+  interface PromptVersion {
+    id: number;
+    prompt_id: number;
+    template_content: string;
+    negative_content?: string;
+    model_params?: Record<string, any>;
+    changelog?: string;
+    is_published: number;
+    create_time: number;
+    update_time?: number;
+  }
+
+  interface PromptDetail {
+    id: number;
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    version_id: number;
+    template_content: string;
+    negative_content?: string;
+    model_params: Record<string, any>;
+    changelog?: string;
+    is_published: number;
+    create_time: number;
+    update_time?: number;
+  }
 }
 export {};

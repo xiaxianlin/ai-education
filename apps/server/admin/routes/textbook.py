@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema

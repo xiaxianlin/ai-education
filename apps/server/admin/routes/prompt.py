@@ -1,16 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.schema import SavePromptSchema
 from shared.core.database import Database
 from admin.services import prompt
-from admin.schema import SearchPromptSchema, SearchPromptVersionSchema
+from admin.schema import SearchPromptSchema, SearchPromptVersionSchema, PublishPromptSchema
 
 prompt_router = APIRouter(prefix="/prompt", tags=["Prompt 管理"])
 
 
 @prompt_router.get("/list")
-async def list_prompts(params: SearchPromptSchema, db: AsyncSession = Database):
+async def list_prompts(params: SearchPromptSchema = Depends(), db: AsyncSession = Database):
     """列表查询 Prompt"""
     return await prompt.list_prompts(db, params)
 
@@ -33,13 +33,19 @@ async def update_prompt(version_id: int, params: SavePromptSchema, db: AsyncSess
     return await prompt.update_prompt(db, version_id, params)
 
 
-@prompt_router.post("/")
+@prompt_router.post("")
 async def create_prompt(params: SavePromptSchema, db: AsyncSession = Database):
     """创建 Prompt"""
     return await prompt.create_prompt(db, params)
 
 
+@prompt_router.delete("/{id}")
+async def delete_prompt(id: int, db: AsyncSession = Database):
+    """删除 Prompt"""
+    return await prompt.delete_prompt(db, id)
+
+
 @prompt_router.post("/{version_id}/publish")
-async def publish_prompt(version_id: int, db: AsyncSession = Database):
+async def publish_prompt(version_id: int, params: PublishPromptSchema, db: AsyncSession = Database):
     """发布 Prompt 版本"""
-    return await prompt.publish_prompt(db, version_id)
+    return await prompt.publish_prompt(db, version_id, params.changelog)

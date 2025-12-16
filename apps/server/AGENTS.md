@@ -41,6 +41,7 @@
      - 学生管理: `admin/routes/student.py`
      - 练习管理: `admin/routes/practice.py`
      - 配置管理: `admin/routes/config.py`
+     - Prompt 管理: `admin/routes/prompt.py`
 
 2. **student/** - 学生端模块
    - 路由: `student/routes/`
@@ -113,6 +114,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 - 工作流定义: `ai/question_generate/graph.py`
 - Prompt 模板: `ai/question_generate/prompts/`
 - 题型管理: 题型包含 AI 生成指令（prompt），用于指导 AI 生成特定类型的题目
+- Prompt 管理: 系统化的 Prompt 版本管理，支持创建、更新、发布 Prompt 版本
 
 ### 数据模型
 - 数据库模型定义在 `shared/core/database.py`
@@ -124,6 +126,8 @@ async def create(db: AsyncSession, params: SomeSchema):
   - `Knowledge`: 知识点表
   - `PracticeSession`: 练习会话表
   - `PracticeAnswer`: 答题记录表
+  - `Prompt`: Prompt 表，包含 Prompt 基本信息（名称、slug、场景、描述、标签等）
+  - `PromptVersion`: Prompt 版本表，包含版本内容（模板内容、负面提示、模型参数等）
 
 ## 注意事项
 
@@ -164,3 +168,24 @@ async def create(db: AsyncSession, params: SomeSchema):
 - Schema: `admin/schema.py` (CreateQuestionTypeSchema, UpdateQuestionTypeSchema, SearchQuestionTypeSchema)
 - 服务层: `admin/services/question_type.py`
 - 路由层: `admin/routes/question_type.py`
+
+### Prompt 管理
+Prompt 管理模块用于系统化管理 AI 提示词模板，支持版本控制和发布管理：
+- **Prompt 基本信息**: 名称、slug（唯一标识）、场景、描述、标签等
+- **版本管理**: 每个 Prompt 可以有多个版本，支持版本历史记录
+- **模板内容**: 包含模板内容（template_content）、负面提示（negative_content）、模型参数（model_params）等
+- **发布机制**: 支持发布特定版本，发布后的版本成为当前使用的版本
+
+Prompt 管理接口:
+- `POST /api/admin/prompt/` - 创建 Prompt
+- `PUT /api/admin/prompt/{version_id}` - 更新 Prompt 版本
+- `POST /api/admin/prompt/{version_id}/publish` - 发布 Prompt 版本
+- `GET /api/admin/prompt/list` - 获取 Prompt 列表
+- `GET /api/admin/prompt/versions` - 获取 Prompt 版本列表
+- `GET /api/admin/prompt/{version_id}` - 获取 Prompt 详情
+
+相关文件:
+- 数据模型: `shared/core/database.py` (Prompt, PromptVersion)
+- Schema: `admin/schema.py` (SavePromptSchema, PromptDetailSchema, SearchPromptSchema, SearchPromptVersionSchema)
+- 服务层: `admin/services/prompt.py`
+- 路由层: `admin/routes/prompt.py`

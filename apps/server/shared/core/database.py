@@ -337,10 +337,8 @@ class Prompt(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(128), comment="Prompt 名称")
     slug: Mapped[str] = mapped_column(String(128), unique=True, index=True, comment="唯一短名")
-    scene: Mapped[str] = mapped_column(String(64), comment="场景")
     type: Mapped[str] = mapped_column(String(64), comment="类型：system/user")
     description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
-    tags: Mapped[list] = mapped_column(JSON, default=list, comment="标签")
     current_version_id: Mapped[int] = mapped_column(index=True, comment="当前版本ID")
 
     version: Mapped["PromptVersion"] = relationship(
@@ -358,7 +356,6 @@ class PromptVersion(BaseModel):
     template_content: Mapped[str] = mapped_column(Text, comment="模版内容")
     negative_content: Mapped[str] = mapped_column(Text, nullable=True, comment="用于图像生成类")
     model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
-    timeout: Mapped[int] = mapped_column(default=0, comment="超时时间(秒)")
     changelog: Mapped[str] = mapped_column(Text, nullable=True, comment="变更说明")
     is_published: Mapped[int] = mapped_column(default=0, comment="是否当前已发布")
 

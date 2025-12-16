@@ -191,66 +191,25 @@ declare global {
   }
 
   // ========== Prompt 管理 ==========
-  interface Prompt {
-    id: number;
-    name: string;
-    slug: string;
-    category: string;
-    description?: string;
-    tags?: string[];
-    status: string;
-    current_version_id?: number | null;
-    current_version?: PromptVersion;
-    create_time: number;
-    update_time?: number;
-  }
 
-  interface PromptVersion {
-    id: number;
-    prompt_id: number;
-    version_no: number;
-    template: string;
-    system_prompt?: string;
-    negative_prompt?: string;
-    input_schema?: Record<string, any>;
-    sampling_params?: Record<string, any>;
-    timeout_ms?: number;
-    changelog?: string;
-    is_published: number;
-    create_time: number;
-    update_time?: number;
-  }
-
-  interface CreatePromptRequest {
-    name: string;
-    slug: string;
-    category: string;
-    description?: string;
-    tags?: string[];
-    template: string;
-    system_prompt?: string;
-    negative_prompt?: string;
-    input_schema?: Record<string, any>;
-    sampling_params?: Record<string, any>;
-    timeout_ms?: number;
-    changelog?: string;
-  }
-
-  interface UpdatePromptRequest {
+  interface SearchPromptRequest extends SearchRequest {
     name?: string;
-    category?: string;
-    description?: string;
-    tags?: string[];
+    type?: string;
+    slug?: string;
   }
 
-  interface CreatePromptVersionRequest {
-    template: string;
-    system_prompt?: string;
-    negative_prompt?: string;
-    input_schema?: Record<string, any>;
-    sampling_params?: Record<string, any>;
-    timeout_ms?: number;
-    changelog?: string;
+  interface SearchPromptVersionRequest extends SearchRequest {
+    prompt_id?: number;
+  }
+
+  interface SavePromptRequest {
+    name?: string;
+    slug?: string;
+    type?: string;
+    description?: string;
+    template_content?: string;
+    negative_content?: string;
+    model_params?: Record<string, any>;
   }
 
   interface TestPromptRequest {

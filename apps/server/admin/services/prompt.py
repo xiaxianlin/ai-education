@@ -1,6 +1,5 @@
 from typing import Optional
-
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
@@ -27,12 +26,10 @@ async def list_prompts(db: AsyncSession, params: SearchPromptSchema) -> SearchRe
     if params.name:
         like = f"%{params.name}%"
         query = query.where(Prompt.name.like(like))
-    if params.scene:
-        query = query.where(Prompt.scene == params.scene)
+    if params.type:
+        query = query.where(Prompt.type == params.type)
     if params.slug:
         query = query.where(Prompt.slug == params.slug)
-    if params.tag:
-        query = query.where(func.json_contains(Prompt.tag, f'["{params.tag}"]'))
 
     # 总数查询
     count_query = select(func.count()).select_from(query.subquery())
@@ -83,9 +80,8 @@ async def get_prompt(db: AsyncSession, version_id: int) -> PromptDetailSchema:
         id=prompt.id,
         name=prompt.name,
         slug=prompt.slug,
-        scene=prompt.scene,
+        type=prompt.type,
         description=prompt.description,
-        tags=prompt.tags or [],
         version_id=version.id,
         template_content=version.template_content,
         negative_content=version.negative_content,
@@ -106,9 +102,9 @@ async def create_prompt(db: AsyncSession, params: SavePromptSchema) -> int:
     prompt = Prompt(
         name=params.name,
         slug=params.slug,
-        scene=params.scene,
+        type=params.type,
         description=params.description,
-        tags=params.tags or [],
+        current_version_id=0,
     )
     db.add(prompt)
     await db.flush()
@@ -119,8 +115,6 @@ async def create_prompt(db: AsyncSession, params: SavePromptSchema) -> int:
         template_content=params.template_content,
         negative_content=params.negative_content,
         model_params=params.model_params or {},
-        timeout=params.timeout or 0,
-        changelog=params.changelog,
         is_published=0,
     )
     db.add(version)
@@ -147,12 +141,10 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
     # 更新 Prompt 基本信息
     if params.name is not None:
         prompt.name = params.name
-    if params.scene is not None:
-        prompt.scene = params.scene
+    if params.type is not None:
+        prompt.type = params.type
     if params.description is not None:
         prompt.description = params.description
-    if params.tags is not None:
-        prompt.tags = params.tags
 
     # 更新指定版本的信息
     if params.template_content is not None:
@@ -161,21 +153,30 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
         version.negative_content = params.negative_content
     if params.model_params is not None:
         version.model_params = params.model_params
-    if params.timeout is not None:
-        version.timeout = params.timeout
-    if params.changelog is not None:
-        version.changelog = params.changelog
 
     await db.commit()
 
 
-async def publish_prompt(db: AsyncSession, version_id: int) -> PromptSchema:
+async def delete_prompt(db: AsyncSession, id: int) -> PromptSchema:
+    """删除 Prompt"""
+    try:
+        await db.execute(delete(PromptTestRecord).where(PromptTestRecord.prompt_id == id))
+        await db.execute(delete(PromptVersion).where(PromptVersion.prompt_id == id))
+        await db.execute(delete(Prompt).where(Prompt.id == id))
+        await db.commit()
+    except Exception:
+        db.rollback()
+        raise ValueError("删除失败")
+
+
+async def publish_prompt(db: AsyncSession, version_id: int, changelog: str) -> PromptSchema:
     """根据版本 ID 发布 Prompt"""
     version = await db.scalar(select(PromptVersion).where(PromptVersion.id == version_id))
     if not version:
         raise ValueError("版本不存在")
 
     version.is_published = 1
+    version.changelog = changelog
 
     await db.commit()
 

@@ -5,11 +5,7 @@ import { StatusTag } from '@/components/ui';
 /**
  * 通用的时间列配置
  */
-export function createTimeColumn<T>(
-  title: string,
-  dataIndex: string,
-  options?: Partial<ProColumns<T>>,
-): ProColumns<T> {
+export function createTimeColumn<T>(title: string, dataIndex: string, options?: Partial<ProColumns<T>>): ProColumns<T> {
   return {
     title,
     dataIndex,
