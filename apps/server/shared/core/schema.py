@@ -1,5 +1,5 @@
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Generic, TypeVar
 
 
@@ -138,6 +138,9 @@ class StudentTextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ======================== 练习管理 ======================== #
+
+
 class PracticeSessionSchema(BaseModel):
     id: int
     student_id: str
@@ -216,21 +219,40 @@ class PracticeReportSchema(BaseModel):
     create_time: int
 
 
+class PracticeDetailSchema(BaseModel):
+    session: PracticeSessionSchema
+    answers: list[PracticeAnswerSchema]
+    report: Optional[PracticeReportSchema] = None
+
+    model_config = {"from_attributes": True}
+
+
+class AnswerAnalysisSchema(BaseModel):
+    """答题分析响应"""
+
+    text: str
+    match: bool
+    analysis: str
+    audio_url: Optional[str] = None
+
+
 # ======================== Prompt 管理 ======================== #
+
+
 class PromptVersionSchema(BaseModel):
     id: int
     prompt_id: int
-    version_no: int
-    template: str
-    system_prompt: Optional[str] = None
-    negative_prompt: Optional[str] = None
-    input_schema: dict = {}
-    sampling_params: dict = {}
-    timeout_ms: Optional[int] = None
+    template_content: str
+    negative_content: Optional[str] = None
+    model_params: dict = {}
+    timeout: int = 0
     changelog: Optional[str] = None
     is_published: int = 0
+
     create_time: int
     update_time: Optional[int] = None
+
+    prompt: Optional["PromptSchema"] = None
 
     model_config = {"from_attributes": True}
 
@@ -239,14 +261,12 @@ class PromptSchema(BaseModel):
     id: int
     name: str
     slug: str
-    category: str
+    scene: str
     description: Optional[str] = None
     tags: list[str] = []
-    status: str
     current_version_id: Optional[int] = None
-    create_time: int
-    update_time: Optional[int] = None
-    current_version: Optional[PromptVersionSchema] = None
+
+    version: Optional["PromptVersionSchema"] = None
 
     model_config = {"from_attributes": True}
 
@@ -267,24 +287,8 @@ class PromptTestRecordSchema(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    model_config = {"from_attributes": True}
 
-
-class PracticeDetailSchema(BaseModel):
-    session: PracticeSessionSchema
-    answers: list[PracticeAnswerSchema]
-    report: Optional[PracticeReportSchema] = None
-
-    model_config = {"from_attributes": True}
-
-
-class AnswerAnalysisSchema(BaseModel):
-    """答题分析响应"""
-
-    text: str = Field(description="学生的答题结果，如果是音频题，则是语音识别结果（转写文本）")
-    match: bool = Field(description="是否匹配题目要求")
-    analysis: str = Field(description="综合分析（包含原因和改进建议）")
-    audio_url: Optional[str] = Field(description="相关学习资源链接")
+# ======================== 题型管理 ======================== #
 
 
 class QuestionTypeSchema(BaseModel):

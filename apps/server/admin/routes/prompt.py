@@ -1,80 +1,45 @@
-from typing import Optional
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.schema import (
-    CreatePromptSchema,
-    UpdatePromptSchema,
-    CreatePromptVersionSchema,
-    TestPromptSchema,
-)
-from admin.services import prompt as prompt_service
+from admin.schema import SavePromptSchema
 from shared.core.database import Database
+from admin.services import prompt
+from admin.schema import SearchPromptSchema, SearchPromptVersionSchema
 
 prompt_router = APIRouter(prefix="/prompt", tags=["Prompt 管理"])
 
 
-@prompt_router.get("/")
-async def list_prompts(
-    keyword: Optional[str] = None,
-    category: Optional[str] = None,
-    status: Optional[str] = None,
-    tag: Optional[str] = None,
-    db: AsyncSession = Database,
-):
-    return await prompt_service.list_prompts(db, keyword, category, status, tag)
+@prompt_router.get("/list")
+async def list_prompts(params: SearchPromptSchema, db: AsyncSession = Database):
+    """列表查询 Prompt"""
+    return await prompt.list_prompts(db, params)
+
+
+@prompt_router.get("/versions")
+async def list_versions(params: SearchPromptVersionSchema, db: AsyncSession = Database):
+    """列表查询 Prompt 版本"""
+    return await prompt.list_versions(db, params)
+
+
+@prompt_router.get("/{version_id}")
+async def get_prompt(version_id: int, db: AsyncSession = Database):
+    """获取 Prompt 详情"""
+    return await prompt.get_prompt(db, version_id)
+
+
+@prompt_router.put("/{version_id}")
+async def update_prompt(version_id: int, params: SavePromptSchema, db: AsyncSession = Database):
+    """根据 id 和 version_id 更新 Prompt"""
+    return await prompt.update_prompt(db, version_id, params)
 
 
 @prompt_router.post("/")
-async def create_prompt(
-    params: CreatePromptSchema, db: AsyncSession = Database
-):
-    return await prompt_service.create_prompt(db, params)
+async def create_prompt(params: SavePromptSchema, db: AsyncSession = Database):
+    """创建 Prompt"""
+    return await prompt.create_prompt(db, params)
 
 
-@prompt_router.get("/{pid}")
-async def get_prompt(pid: int, db: AsyncSession = Database):
-    return await prompt_service.get_prompt(db, pid)
-
-
-@prompt_router.patch("/{pid}")
-async def update_prompt(pid: int, params: UpdatePromptSchema, db: AsyncSession = Database):
-    return await prompt_service.update_prompt(db, pid, params)
-
-
-@prompt_router.post("/{pid}/versions")
-async def create_prompt_version(
-    pid: int, params: CreatePromptVersionSchema, db: AsyncSession = Database
-):
-    return await prompt_service.create_version(db, pid, params)
-
-
-@prompt_router.get("/{pid}/versions")
-async def list_prompt_versions(pid: int, db: AsyncSession = Database):
-    return await prompt_service.list_versions(db, pid)
-
-
-@prompt_router.post("/{pid}/versions/{vid}/publish")
-async def publish_prompt_version(pid: int, vid: int, db: AsyncSession = Database):
-    return await prompt_service.publish_version(db, pid, vid)
-
-
-@prompt_router.post("/{pid}/versions/{vid}/archive")
-async def archive_prompt_version(pid: int, vid: int, db: AsyncSession = Database):
-    return await prompt_service.archive_version(db, pid, vid)
-
-
-@prompt_router.post("/{pid}/versions/{vid}/test")
-async def test_prompt_version(
-    pid: int, vid: int, params: TestPromptSchema, db: AsyncSession = Database
-):
-    return await prompt_service.test_version(db, pid, vid, params)
-
-
-@prompt_router.get("/{pid}/metrics")
-async def prompt_metrics(
-    pid: int, version_id: Optional[int] = None, db: AsyncSession = Database
-):
-    return await prompt_service.metrics(db, pid, version_id)
-
+@prompt_router.post("/{version_id}/publish")
+async def publish_prompt(version_id: int, db: AsyncSession = Database):
+    """发布 Prompt 版本"""
+    return await prompt.publish_prompt(db, version_id)

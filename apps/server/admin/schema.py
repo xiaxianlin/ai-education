@@ -259,42 +259,60 @@ class SearchQuestionTypeSchema(BaseModel):
 
 
 # ======================== Prompt 管理 ======================== #
-class PromptBaseSchema(BaseModel):
+
+
+class PromptDetailSchema(BaseModel):
+    """提示词详情"""
+
+    id: int
     name: str
     slug: str
-    category: str
+    scene: str
     description: Optional[str] = None
     tags: list[str] = []
 
-
-class CreatePromptSchema(PromptBaseSchema):
-    template: str
-    system_prompt: Optional[str] = None
-    negative_prompt: Optional[str] = None
-    input_schema: dict = {}
-    sampling_params: dict = {}
-    timeout_ms: Optional[int] = None
+    version_id: int
+    template_content: str
+    negative_content: Optional[str] = None
+    model_params: dict = {}
     changelog: Optional[str] = None
+    is_published: int = 0
+
+    create_time: int
+    update_time: Optional[int] = None
 
 
-class UpdatePromptSchema(BaseModel):
-    name: Optional[str] = None
-    category: Optional[str] = None
+class SavePromptSchema(BaseModel):
+    """提示词表单"""
+
+    name: str
+    slug: str
+    scene: str
     description: Optional[str] = None
-    tags: Optional[list[str]] = None
-
-
-class CreatePromptVersionSchema(BaseModel):
-    template: str
-    system_prompt: Optional[str] = None
-    negative_prompt: Optional[str] = None
-    input_schema: dict = {}
-    sampling_params: dict = {}
-    timeout_ms: Optional[int] = None
+    tags: list[str] = []
+    template_content: str
+    negative_content: Optional[str] = None
+    model_params: dict = {}
+    timeout: Optional[int] = None
     changelog: Optional[str] = None
 
 
 class TestPromptSchema(BaseModel):
-    variables: dict = {}
+    """提示词测试表单"""
+
+    version_id: int
+    input_payload: dict = {}
     model_provider: Optional[str] = None
     model_name: Optional[str] = None
+    model_params: dict = {}
+
+
+class SearchPromptSchema(SearchSchema):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    scene: Optional[str] = None
+    tag: Optional[str] = None
+
+
+class SearchPromptVersionSchema(SearchSchema):
+    prompt_id: int

@@ -1,57 +1,104 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional
 
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, noload
 
 from admin.schema import (
-    CreatePromptSchema,
-    UpdatePromptSchema,
-    CreatePromptVersionSchema,
+    SavePromptSchema,
     TestPromptSchema,
+    PromptDetailSchema,
 )
 from shared.core.database import Prompt, PromptVersion, PromptTestRecord
-from shared.core.schema import PromptSchema, PromptVersionSchema
-
-
+from shared.core.schema import (
+    PromptSchema,
+    PromptVersionSchema,
+    SearchResultSchema,
+)
 from shared.services.prompt import SharedPromptService
+from admin.schema import SearchPromptSchema, SearchPromptVersionSchema
 
 
-async def list_prompts(
-    db: AsyncSession,
-    keyword: Optional[str] = None,
-    category: Optional[str] = None,
-    status: Optional[str] = None,
-    tag: Optional[str] = None,
-) -> List[PromptSchema]:
-    query = select(Prompt)
-    if keyword:
-        like = f"%{keyword}%"
+async def list_prompts(db: AsyncSession, params: SearchPromptSchema) -> SearchResultSchema[PromptSchema]:
+    """列表查询 Prompt"""
+
+    query = select(Prompt).options(joinedload(Prompt.version))
+
+    if params.name:
+        like = f"%{params.name}%"
         query = query.where(Prompt.name.like(like))
-    if category:
-        query = query.where(Prompt.category == category)
-    if status:
-        query = query.where(Prompt.status == status)
-    if tag:
-        # 简单包含判断（JSON 数组包含字符串）
-        query = query.where(func.json_contains(Prompt.tags, f'["{tag}"]'))
+    if params.scene:
+        query = query.where(Prompt.scene == params.scene)
+    if params.slug:
+        query = query.where(Prompt.slug == params.slug)
+    if params.tag:
+        query = query.where(func.json_contains(Prompt.tag, f'["{params.tag}"]'))
 
-    prompts = (await db.scalars(query.order_by(Prompt.id.desc()))).all()
-    return [PromptSchema.model_validate(p) for p in prompts]
+    # 总数查询
+    count_query = select(func.count()).select_from(query.subquery())
+    total = await db.scalar(count_query)
+
+    # 分页查询
+    result = await db.scalars(
+        query.order_by(Prompt.id.desc()).offset((params.page - 1) * params.size).limit(params.size)
+    )
+
+    return SearchResultSchema(
+        total=total or 0,
+        data=[PromptSchema.model_validate(p) for p in result.all()],
+    )
 
 
-async def get_prompt(db: AsyncSession, pid: int) -> PromptSchema:
-    prompt = await db.scalar(select(Prompt).where(Prompt.id == pid))
-    if not prompt:
+async def list_versions(db: AsyncSession, params: SearchPromptVersionSchema) -> SearchResultSchema[PromptVersionSchema]:
+    """列表查询 Prompt 版本"""
+
+    query = select(PromptVersion).options(noload(PromptVersion.prompt))
+    if params.prompt_id:
+        query = query.where(PromptVersion.prompt_id == params.prompt_id)
+
+    # 总数查询
+    count_query = select(func.count()).select_from(query.subquery())
+    total = await db.scalar(count_query)
+    result = await db.scalars(
+        query.order_by(PromptVersion.id.desc()).offset((params.page - 1) * params.size).limit(params.size)
+    )
+
+    return SearchResultSchema(
+        total=total or 0,
+        data=[PromptVersionSchema.model_validate(v) for v in result.all()],
+    )
+
+
+async def get_prompt(db: AsyncSession, version_id: int) -> PromptDetailSchema:
+    """获取 Prompt 详情"""
+
+    version = await db.scalar(
+        select(PromptVersion).options(joinedload(PromptVersion.prompt)).where(PromptVersion.id == version_id)
+    )
+    prompt = version.prompt
+    if not version or not prompt:
         raise ValueError("Prompt 不存在")
-    if prompt.current_version_id:
-        current = await db.scalar(
-            select(PromptVersion).where(PromptVersion.id == prompt.current_version_id)
-        )
-        prompt.current_version = current  # type: ignore[attr-defined]
-    return PromptSchema.model_validate(prompt)
+
+    return PromptDetailSchema(
+        id=prompt.id,
+        name=prompt.name,
+        slug=prompt.slug,
+        scene=prompt.scene,
+        description=prompt.description,
+        tags=prompt.tags or [],
+        version_id=version.id,
+        template_content=version.template_content,
+        negative_content=version.negative_content,
+        model_params=version.model_params or {},
+        changelog=version.changelog,
+        is_published=version.is_published,
+        create_time=version.create_time,
+        update_time=version.update_time,
+    )
 
 
-async def create_prompt(db: AsyncSession, params: CreatePromptSchema) -> PromptSchema:
+async def create_prompt(db: AsyncSession, params: SavePromptSchema) -> int:
+    """创建 Prompt"""
     existed = await db.scalar(select(Prompt).where(Prompt.slug == params.slug))
     if existed:
         raise ValueError("slug 已存在")
@@ -59,177 +106,143 @@ async def create_prompt(db: AsyncSession, params: CreatePromptSchema) -> PromptS
     prompt = Prompt(
         name=params.name,
         slug=params.slug,
-        category=params.category,
+        scene=params.scene,
         description=params.description,
-        tags=params.tags,
-        status="draft",
+        tags=params.tags or [],
     )
     db.add(prompt)
     await db.flush()
 
+    # 创建第一个版本
     version = PromptVersion(
         prompt_id=prompt.id,
-        version_no=1,
-        template=params.template,
-        system_prompt=params.system_prompt,
-        negative_prompt=params.negative_prompt,
-        input_schema=params.input_schema,
-        sampling_params=params.sampling_params,
-        timeout_ms=params.timeout_ms,
+        template_content=params.template_content,
+        negative_content=params.negative_content,
+        model_params=params.model_params or {},
+        timeout=params.timeout or 0,
         changelog=params.changelog,
         is_published=0,
     )
     db.add(version)
+    await db.flush()
+
+    # 设置为当前版本（但不发布）
+    prompt.current_version_id = version.id
+
     await db.commit()
     await db.refresh(prompt)
-    prompt.current_version = version  # type: ignore[attr-defined]
-    return PromptSchema.model_validate(prompt)
+    return prompt.id
 
 
-async def update_prompt(db: AsyncSession, pid: int, params: UpdatePromptSchema) -> PromptSchema:
-    prompt = await db.scalar(select(Prompt).where(Prompt.id == pid))
-    if not prompt:
-        raise ValueError("Prompt 不存在")
+async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSchema):
+    """根据 id 和 version_id 更新 Prompt"""
+
+    version = await db.scalar(
+        select(PromptVersion).options(joinedload(PromptVersion.prompt)).where(PromptVersion.id == version_id)
+    )
+    prompt = version.prompt
+    if not version or not prompt:
+        raise ValueError("提示词或版本不存在")
+
+    # 更新 Prompt 基本信息
     if params.name is not None:
         prompt.name = params.name
-    if params.category is not None:
-        prompt.category = params.category
+    if params.scene is not None:
+        prompt.scene = params.scene
     if params.description is not None:
         prompt.description = params.description
     if params.tags is not None:
         prompt.tags = params.tags
 
+    # 更新指定版本的信息
+    if params.template_content is not None:
+        version.template_content = params.template_content
+    if params.negative_content is not None:
+        version.negative_content = params.negative_content
+    if params.model_params is not None:
+        version.model_params = params.model_params
+    if params.timeout is not None:
+        version.timeout = params.timeout
+    if params.changelog is not None:
+        version.changelog = params.changelog
+
     await db.commit()
-    await db.refresh(prompt)
-    return PromptSchema.model_validate(prompt)
 
 
-async def create_version(
-    db: AsyncSession, pid: int, params: CreatePromptVersionSchema
-) -> PromptVersionSchema:
-    prompt = await db.scalar(select(Prompt).where(Prompt.id == pid))
-    if not prompt:
-        raise ValueError("Prompt 不存在")
-
-    max_version = await db.scalar(
-        select(func.max(PromptVersion.version_no)).where(PromptVersion.prompt_id == pid)
-    )
-    next_no = (max_version or 0) + 1
-
-    version = PromptVersion(
-        prompt_id=pid,
-        version_no=next_no,
-        template=params.template,
-        system_prompt=params.system_prompt,
-        negative_prompt=params.negative_prompt,
-        input_schema=params.input_schema,
-        sampling_params=params.sampling_params,
-        timeout_ms=params.timeout_ms,
-        changelog=params.changelog,
-        is_published=0,
-    )
-    db.add(version)
-    await db.commit()
-    await db.refresh(version)
-    return PromptVersionSchema.model_validate(version)
-
-
-async def list_versions(db: AsyncSession, pid: int) -> List[PromptVersionSchema]:
-    versions = (
-        await db.scalars(
-            select(PromptVersion)
-            .where(PromptVersion.prompt_id == pid)
-            .order_by(PromptVersion.version_no.desc())
-        )
-    ).all()
-    return [PromptVersionSchema.model_validate(v) for v in versions]
-
-
-async def publish_version(db: AsyncSession, pid: int, vid: int) -> PromptSchema:
-    prompt = await db.scalar(select(Prompt).where(Prompt.id == pid))
-    if not prompt:
-        raise ValueError("Prompt 不存在")
-    version = await db.scalar(
-        select(PromptVersion).where(PromptVersion.id == vid, PromptVersion.prompt_id == pid)
-    )
+async def publish_prompt(db: AsyncSession, version_id: int) -> PromptSchema:
+    """根据版本 ID 发布 Prompt"""
+    version = await db.scalar(select(PromptVersion).where(PromptVersion.id == version_id))
     if not version:
         raise ValueError("版本不存在")
-
-    # 将其他版本置为未发布
-    await db.execute(
-        update(PromptVersion).where(PromptVersion.prompt_id == pid).values(is_published=0)
-    )
 
     version.is_published = 1
-    prompt.status = "published"
-    prompt.current_version_id = vid
 
     await db.commit()
-    await db.refresh(prompt)
-    prompt.current_version = version  # type: ignore[attr-defined]
-    return PromptSchema.model_validate(prompt)
 
 
-async def archive_version(db: AsyncSession, pid: int, vid: int) -> PromptVersionSchema:
-    version = await db.scalar(
-        select(PromptVersion).where(PromptVersion.id == vid, PromptVersion.prompt_id == pid)
-    )
-    if not version:
-        raise ValueError("版本不存在")
-    version.is_published = 0
-
-    prompt = await db.scalar(select(Prompt).where(Prompt.id == pid))
-    if prompt and prompt.current_version_id == vid:
-        prompt.current_version_id = None
-        prompt.status = "archived"
-
-    await db.commit()
-    await db.refresh(version)
-    return PromptVersionSchema.model_validate(version)
-
-
-async def test_version(db: AsyncSession, pid: int, vid: int, params: TestPromptSchema) -> dict:
-    version = await db.scalar(
-        select(PromptVersion).where(PromptVersion.id == vid, PromptVersion.prompt_id == pid)
-    )
+async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchema) -> dict:
+    """根据版本 ID 测试 Prompt"""
+    version = await db.scalar(select(PromptVersion).where(PromptVersion.id == version_id))
     if not version:
         raise ValueError("版本不存在")
 
-    variables = params.variables or {}
-    SharedPromptService.validate_required(version.input_schema or {}, variables)
-    rendered_prompt = SharedPromptService.render_template(version.template, variables)
+    # 校验必填变量
+    SharedPromptService.validate_required(version.input_params or {}, params.input_payload or {})
 
-    # TODO: 调用真实模型服务，这里先回显
-    response_snapshot = {
-        "echo": rendered_prompt,
-        "model_provider": params.model_provider,
-        "model_name": params.model_name,
-    }
+    # 渲染模板
+    rendered_prompt = SharedPromptService.render_template(version.template_content, params.input_payload or {})
 
+    # TODO: 调用真实模型服务，这里先模拟
+    latency_ms = 100  # 模拟延迟
+    status_int = 2  # 2-测试成功
+    status_str = "success"
+    error = None
+
+    try:
+        # 这里应该调用实际的 AI 模型服务
+        # response_snapshot = await call_ai_model(...)
+        response_snapshot = {
+            "echo": rendered_prompt,
+            "model_provider": params.model_provider,
+            "model_name": params.model_name,
+            "latency_ms": latency_ms,  # 将延迟时间也存储在 response 中
+        }
+    except Exception as e:
+        status_int = 3  # 3-测试失败
+        status_str = "failed"
+        error = str(e)
+        response_snapshot = None
+
+    # 保存测试记录
     record = PromptTestRecord(
-        prompt_id=pid,
-        version_id=vid,
-        model_provider=params.model_provider,
-        model_name=params.model_name,
-        input_payload=variables,
+        prompt_id=version.prompt_id,
+        version_id=version.id,
+        model_provider=params.model_provider or "",
+        model_name=params.model_name or "",
+        model_params=params.model_params or {},
+        input_payload=params.input_payload or {},
         rendered_prompt=rendered_prompt,
-        response_snapshot=response_snapshot,
-        latency_ms=0,
-        status="success",
-        error=None,
+        response=response_snapshot,
+        status=status_int,
+        error=error,
     )
     db.add(record)
     await db.commit()
+    await db.refresh(record)
+
+    # 返回测试结果（使用 Schema 格式）
     return {
         "rendered_prompt": rendered_prompt,
-        "response": response_snapshot,
-        "latency_ms": record.latency_ms,
-        "status": record.status,
-        "error": record.error,
+        "response_snapshot": response_snapshot,
+        "latency_ms": latency_ms,
+        "status": status_str,
+        "error": error,
+        "record_id": record.id,
     }
 
 
 async def metrics(db: AsyncSession, pid: int, version_id: Optional[int] = None) -> dict:
+    """获取 Prompt 指标"""
     query = select(PromptTestRecord).where(PromptTestRecord.prompt_id == pid)
     if version_id:
         query = query.where(PromptTestRecord.version_id == version_id)
@@ -239,13 +252,25 @@ async def metrics(db: AsyncSession, pid: int, version_id: Optional[int] = None) 
     if total == 0:
         return {"calls": 0, "success_rate": 0.0, "p95_latency_ms": None}
 
-    success = len([r for r in records if r.status == "success"])
-    latencies = sorted([r.latency_ms or 0 for r in records])
-    p95_index = max(int(0.95 * len(latencies)) - 1, 0)
-    p95 = latencies[p95_index] if latencies else None
+    # status: 0-待测试 1-测试中 2-测试成功 3-测试失败
+    success = len([r for r in records if r.status == 2])
+
+    # 计算延迟（这里需要从 response 中提取，暂时返回 None）
+    latencies = []
+    for r in records:
+        if r.response and isinstance(r.response, dict):
+            # 如果 response 中有 latency_ms 字段
+            if "latency_ms" in r.response:
+                latencies.append(r.response["latency_ms"])
+
+    p95 = None
+    if latencies:
+        latencies.sort()
+        p95_index = max(int(0.95 * len(latencies)) - 1, 0)
+        p95 = latencies[p95_index] if latencies else None
 
     return {
         "calls": total,
-        "success_rate": round(success / total, 3),
+        "success_rate": round(success / total, 3) if total > 0 else 0.0,
         "p95_latency_ms": p95,
     }

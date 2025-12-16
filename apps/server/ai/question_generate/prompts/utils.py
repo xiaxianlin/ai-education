@@ -159,6 +159,8 @@ async def load_prompt_by_slug(
 
     version = await SharedPromptService.get_active_prompt_version(db, slug)
     if version:
-        return version.system_prompt or default_system_prompt, version.template
+        # 新模型只有 template_content，没有 system_prompt
+        # template_content 作为 user prompt，system prompt 使用默认值
+        return default_system_prompt, version.template_content
 
     return default_system_prompt, default_template
