@@ -32,7 +32,26 @@ class Settings(BaseSettings):
     AI_PLATFORM: str
     AI_PLATFORM_KEY: str
     AI_PLATFORM_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    
+    # AI 模型配置
+    AI_MODEL_NAME: str = "qwen3-max"
+    AI_TEMPERATURE: float = 0.7
+    AI_MAX_TOKENS: int = 2000
+    AI_TOP_P: float = 1.0
+    
+    # AI TTS 配置
     AI_TTS_VOICE: str = "Cherry"
+    AI_TTS_LANGUAGE: str = "Chinese"
+    
+    # AI 图像生成配置
+    AI_IMAGE_MODEL: str = "qwen-image-plus"
+    AI_IMAGE_WIDTH: int = 1024
+    AI_IMAGE_HEIGHT: int = 1024
+    
+    # AI 语音识别配置
+    AI_ASR_MODEL: str = "qwen-audio-turbo"
+    AI_ASR_LANGUAGE: str = "zh"
+    AI_ASR_FORMAT: str = "wav"
 
     # Redis 配置（用于任务队列）
     REDIS_URL: str = "redis://redis:6379/0"  # 完整的 Redis 连接 URL
