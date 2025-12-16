@@ -354,22 +354,19 @@ ai-eduaction/
 │   │   │   ├── worker/      # 任务处理（Celery Worker）
 │   │   │   └── utils/       # 工具函数
 ├── packages/
-│   └── shared-frontend/     # 前端共享包
+│   └── shared-web/          # Web 端共享包（类型、API 客户端、工具函数）
 └── .cursor/
     ├── roles.md             # 角色切换指南
-    └── commands/             # 命令文件
-        ├── frontend.md       # 前端开发命令
-        ├── backend.md        # 后端开发命令
-        ├── app.md            # 移动端开发命令
-        ├── architect.md      # 架构师命令
-        ├── fullstack.md      # 全栈开发命令
-        ├── ui-designer.md    # UI 设计命令
-        ├── admin-web.md      # 管理端开发命令
-        ├── student-web.md    # 学生端 Web 开发命令
-        ├── student-app.md    # 学生端移动应用开发命令
-        ├── server.md         # 服务端单体命令
-        ├── server-ai.md      # （历史）AI 服务命令
-        └── server-task.md    # （历史）任务服务命令
+    └── commands/            # 命令文件
+        ├── frontend.md      # 前端开发模式 (@frontend)
+        ├── backend.md       # 后端开发模式 (@backend)
+        ├── app.md           # 移动端开发模式 (@app)
+        ├── ui-designer.md   # UI 设计师模式 (@ui-designer)
+        ├── auth.md          # 安全审计与认证相关检查 (@auth)
+        ├── cr.md            # 代码评审流程与检查清单 (@cr)
+        ├── new-feature.md   # 新功能规划与拆分 (@new-feature)
+        ├── pr.md            # 创建和编写 Pull Request (@pr)
+        └── test-fix.md      # 运行测试并修复失败用例 (@test-fix)
 ```
 
 ## 规则系统

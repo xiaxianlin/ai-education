@@ -7,18 +7,17 @@
 本项目采用 Monorepo 架构，使用 pnpm workspace 和 Turborepo 进行管理。
 
 ```
-├── apps/              # 应用目录
-│   ├── admin-web/     # 管理后台前端 (React + UmiJS)
-│   ├── student-web/   # 学生端前端 (React + Rsbuild)
-│   ├── server-api/    # 后端API服务 (Python FastAPI)
-│   ├── server-task/   # 任务服务 (Python FastAPI)
-│   └── student-app/   # 移动应用 (Flutter)
-├── packages/          # 共享包目录
-│   └── shared-frontend/ # 共享包（类型、API客户端、工具函数）
-├── infra/     # 基础设施配置
-│   ├── mysql/         # 数据库初始化脚本
-│   └── nginx/         # Nginx 配置
-└── docs/              # 文档目录
+├── apps/                 # 应用目录
+│   ├── admin-web/        # 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
+│   ├── student-web/      # 学生端前端 (React 18 + Rsbuild + shadcn/ui)
+│   ├── server/           # 服务端单体 (Python FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
+│   └── student-app/      # 移动应用 (Flutter 3 + Riverpod + GoRouter)
+├── packages/             # 共享包目录
+│   └── shared-web/       # Web 共享包（类型、API 客户端、工具函数）
+├── infra/                # 基础设施配置
+│   ├── mysql/            # 数据库初始化脚本
+│   └── nginx/            # Nginx 配置
+└── docs/                 # 文档目录
 ```
 
 ## 快速开始
@@ -29,8 +28,8 @@
 # 安装所有 Node.js 依赖
 pnpm install
 
-# 安装 Python 依赖
-cd apps/server-api && uv sync
+# 安装 Python 依赖（服务端）
+cd apps/server && uv sync
 ```
 
 ### 开发
@@ -58,11 +57,11 @@ pnpm build:student
 
 ## 目录说明
 
--   apps/server-api: 后端API服务
--   apps/server-task: 任务服务
--   apps/student-web: 学生端前端
--   apps/admin-web: 管理后台前端
--   apps/student-app: 移动应用
--   docs: 文档目录
+-   apps/admin-web: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
+-   apps/student-web: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
+-   apps/server: 服务端单体 (FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
+-   apps/student-app: 移动应用 (Flutter + Riverpod + GoRouter)
+-   packages/shared-web: Web 端共享包
+-   infra: 基础设施配置（MySQL 初始化、Nginx 配置）
+-   docs: 文档目录（API 与设计文档等）
 
-详细迁移说明请查看 [docs/MONOREPO_MIGRATION.md](docs/MONOREPO_MIGRATION.md)
