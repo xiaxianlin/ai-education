@@ -4,25 +4,22 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 
+def print_exception(request: Request, exc: any):
+    logger.error(f"Path: {request.url.path} Method: {request.method} ")
+    logger.error(f"Unhandled exception: {type(exc).__name__}: {str(exc)}\n", exc_info=exc)
+
+
 async def http_exception_handler(request: Request, exc: HTTPException):
-    # 记录HTTP异常
-    logger.warning(
-        f"HTTP exception: {exc.status_code} - {exc.detail}\n"
-        f"Path: {request.url.path}\n"
-        f"Method: {request.method}"
-    )
+    print_exception(request, exc)
 
     return JSONResponse(
-        status_code=exc.status_code,
+        status_code=200,
         content={"status": exc.status_code, "message": exc.detail},
     )
 
 
 async def value_error_handler(request: Request, exc: ValueError):
-    # 记录业务异常
-    logger.warning(
-        f"Value error: {str(exc)}\n" f"Path: {request.url.path}\n" f"Method: {request.method}"
-    )
+    print_exception(request, exc)
 
     return JSONResponse(
         status_code=200,
@@ -31,28 +28,12 @@ async def value_error_handler(request: Request, exc: ValueError):
 
 
 async def global_exception_handler(request: Request, exc: Exception):
-    # 记录详细的异常信息
-    logger.error(
-        f"Unhandled exception: {type(exc).__name__}: {str(exc)}\n"
-        f"Path: {request.url.path}\n"
-        f"Method: {request.method}\n"
-        f"Client: {request.client.host if request.client else 'unknown'}",
-        exc_info=exc,
-    )
+    print_exception(request, exc)
 
-    return JSONResponse(
-        status_code=200,  # 使用正确的HTTP状态码
-        content={"status": 500, "message": "服务器内部错误，请稍后重试"},
-    )
+    return JSONResponse(status_code=200, content={"status": 500, "message": "服务器内部错误"})
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(exc)
-    data = []
-    for err in exc.errors():
-        data.append({"field": err["loc"][1], "error": err["msg"].replace("Value error, ", "")})
+    print_exception(request, exc)
 
-    return JSONResponse(
-        status_code=200,
-        content={"message": "参数校验失败", "data": data, "status": 422},
-    )
+    return JSONResponse(status_code=200, content={"message": "参数校验失败", "status": 422})

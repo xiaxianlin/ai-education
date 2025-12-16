@@ -22,7 +22,7 @@ export function AvatarDropdown({ children }: PropsWithChildren) {
   const { clearState } = useInitialStateModel();
   return (
     <Dropdown
-      overlayClassName={styles.dropdown}
+      classNames={{ root: styles.dropdown }}
       menu={{
         selectedKeys: [],
         onClick: (e) => {

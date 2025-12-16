@@ -251,8 +251,6 @@ class PromptVersionSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
 
-    prompt: Optional["PromptSchema"] = None
-
     model_config = {"from_attributes": True}
 
 
@@ -260,6 +258,7 @@ class PromptSchema(BaseModel):
     id: int
     name: str
     slug: str
+    type: str
     description: Optional[str] = None
     current_version_id: Optional[int] = None
 

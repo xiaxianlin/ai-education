@@ -5,18 +5,24 @@ export const apiClient = new ApiClient('/api/admin');
 
 apiClient.addResponseInterceptor(
   (response) => {
-    const { status, message } = response.data || {};
+    const { status, message } = response?.data || {};
     // 处理认证错误
-    if (status === 401 || status === 403) {
+    if (status === 0) {
+      return response;
+    }
+    if (status === 401) {
       apiClient.removeToken();
       go('/login');
     }
-    if (status !== 0) {
-      AntdMessage.error(message || '网络错误');
-    }
-    return response;
+    throw Error(message);
   },
+  (error) => error,
+);
+
+apiClient.addResponseInterceptor(
+  (response) => response,
   (error) => {
+    console.log(error.message);
     AntdMessage.error(error.message || '网络错误');
     return Promise.reject(error);
   },
@@ -538,5 +544,13 @@ export const adminApi = {
    */
   async getPromptDetail(versionId: number): Promise<PromptDetail> {
     return apiClient.get<PromptDetail>(`/prompt/${versionId}`);
+  },
+
+  /**
+   * 删除 Prompt
+   * DELETE /api/admin/prompt/{id}
+   */
+  async deletePrompt(id: number) {
+    return apiClient.delete(`/prompt/${id}`);
   },
 };

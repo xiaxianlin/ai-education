@@ -290,6 +290,7 @@ declare global {
     slug: string;
     type: string;
     description?: string;
+    last_version_id: number;
     version_id: number;
     template_content: string;
     negative_content?: string;

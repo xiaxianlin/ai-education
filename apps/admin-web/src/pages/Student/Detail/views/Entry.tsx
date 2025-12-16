@@ -23,7 +23,7 @@ export function Entry() {
         extra: [],
       }}
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <BasicInfo />
 
         <TextbookList />

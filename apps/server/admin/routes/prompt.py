@@ -16,7 +16,7 @@ async def list_prompts(params: SearchPromptSchema = Depends(), db: AsyncSession 
 
 
 @prompt_router.get("/versions")
-async def list_versions(params: SearchPromptVersionSchema, db: AsyncSession = Database):
+async def list_versions(params: SearchPromptVersionSchema = Depends(), db: AsyncSession = Database):
     """列表查询 Prompt 版本"""
     return await prompt.list_versions(db, params)
 

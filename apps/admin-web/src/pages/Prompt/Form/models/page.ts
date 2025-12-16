@@ -9,8 +9,11 @@ const useContainer = () => {
   const [searchParams] = useSearchParams();
   const versionId = Number(searchParams.get('version_id') || 0);
   const { runAsync: handleSubmit, loading } = useRequest(
-    async (params: SavePromptRequest) => {
-      return versionId ? adminApi.updatePrompt(versionId, params) : adminApi.createPrompt(params);
+    async ({ model_params, ...params }: SavePromptRequest) => {
+      model_params = model_params ? JSON.parse(model_params) : undefined;
+      return versionId
+        ? adminApi.updatePrompt(versionId, { ...params, model_params })
+        : adminApi.createPrompt({ ...params, model_params });
     },
     {
       manual: true,

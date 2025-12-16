@@ -270,11 +270,11 @@ class PromptDetailSchema(BaseModel):
     type: str
     description: Optional[str] = None
 
+    last_version_id: int
     version_id: int
     template_content: str
     negative_content: Optional[str] = None
-    input_params: dict = {}
-    model_params: dict = {}
+    model_params: Optional[dict] = None
     changelog: Optional[str] = None
     is_published: int = 0
 
@@ -298,7 +298,7 @@ class SavePromptSchema(BaseModel):
 
 class PublishPromptSchema(BaseModel):
     """提示词发布表单"""
-    
+
     changelog: str
 
 

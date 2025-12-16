@@ -19,12 +19,21 @@ export default function MainView() {
         <ProForm<SavePromptRequest>
           size="large"
           labelCol={{ span: 4 }}
-          request={async () => (versionId ? await adminApi.getPromptDetail(versionId) : {})}
           onFinish={handleSubmit}
+          request={async () => {
+            if (!versionId) {
+              return {};
+            }
+            const { model_params, ...data } = await adminApi.getPromptDetail(versionId);
+            return {
+              ...data,
+              model_params: model_params ? JSON.stringify(model_params) : undefined,
+            };
+          }}
         >
           <ProForm.Group>
             <ProFormText name="name" label="名称" rules={[{ required: true }]} width="lg" />
-            <ProFormText name="slug" label="Slug" rules={[{ required: true }]} width="lg" />
+            <ProFormText name="slug" label="Slug" rules={[{ required: true }]} width="lg" disabled={!!versionId} />
             <ProFormSelect
               name="type"
               label="类型"

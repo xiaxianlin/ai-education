@@ -32,7 +32,7 @@ async def student_router_filter(request: Request):
         raise HTTPException(status_code=401, detail="登录失效")
 
     if student.status == 0:
-        raise HTTPException(status_code=403, detail="账号被禁用")
+        raise HTTPException(status_code=401, detail="账号被禁用")
 
     request.state.student = StudentSchema.model_validate(student)
 

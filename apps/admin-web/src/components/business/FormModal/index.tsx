@@ -2,7 +2,7 @@ import { ModalForm, ModalFormProps } from '@ant-design/pro-components';
 import { FormInstance } from 'antd';
 import { ReactNode } from 'react';
 
-interface FormModalProps<T> extends Omit<ModalFormProps<T>, 'modalProps' | 'children'> {
+export interface FormModalProps<T> extends Omit<ModalFormProps<T>, 'modalProps' | 'children'> {
   form: FormInstance<T>;
   open: boolean;
   onCancel: () => void;

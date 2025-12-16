@@ -86,7 +86,7 @@ export default function MainView() {
 
   return (
     <PageContainer header={{ title: '' }} ghost>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space orientation="vertical" style={{ width: '100%' }} size="large">
         {/* 欢迎区域 */}
         <Card
           style={{

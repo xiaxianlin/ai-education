@@ -1,54 +1,55 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space } from 'antd';
+import { Button, Tag, Flex } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
-import { CommonTable } from '@/components/business';
+import { CommonTable, DeleteButton } from '@/components/business';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 
 export default function MainView() {
   const navigate = useNavigate();
-  const { actionRef } = usePromptListModel();
+  const { actionRef, handleDelete } = usePromptListModel();
 
   const columns = useMemo<ProColumns<Prompt>[]>(
     () => [
-      { title: '名称', dataIndex: 'name', width: 200 },
-      { title: 'Slug', dataIndex: 'slug', width: 150 },
-      { title: '类型', dataIndex: 'type', width: 150 },
+      {
+        title: '当前版本ID',
+        dataIndex: 'current_version_id',
+        hideInSearch: true,
+        width: 120,
+        renderText: (currentVersionId: number) => (
+          <Button size="small" type="link" onClick={() => navigate(`/prompt/detail?version_id=${currentVersionId}`)}>
+            {currentVersionId}
+          </Button>
+        ),
+      },
+      { title: '名称', dataIndex: 'name', width: 120 },
+      { title: '标识', dataIndex: 'slug', width: 120 },
+      { title: '类型', dataIndex: 'type', width: 120, valueEnum: { system: '系统提示词', user: '用户提示词' } },
       {
         title: '状态',
         dataIndex: ['version', 'is_published'],
         width: 100,
+        hideInSearch: true,
         renderText: (isPublished: number) => (
           <Tag color={isPublished === 1 ? 'green' : 'default'}>{isPublished === 1 ? '已发布' : '未发布'}</Tag>
         ),
       },
-      createTimeColumn<Prompt>('创建时间', 'version.create_time', { width: 180 }),
+      { title: '描述', dataIndex: 'description', width: 200 },
+      createTimeColumn<Prompt>('创建时间', ['version', 'create_time'], { width: 180 }),
       createActionColumn<Prompt>(
         (_, record) => (
-          <Space>
-            <Button
-              size="small"
-              type="link"
-              onClick={() => {
-                // 如果有版本信息，跳转到详情页（使用 version_id）
-                const versionId = record.version?.id;
-                if (versionId) {
-                  navigate(`/prompt/detail/${versionId}`);
-                } else {
-                  // 如果没有版本，跳转到版本列表
-                  navigate(`/prompt/versions?prompt_id=${record.id}`);
-                }
-              }}
-            >
-              详情
+          <Flex gap={8}>
+            <Button size="small" type="link" onClick={() => navigate(`/prompt/form?version_id=${record.version?.id}`)}>
+              编辑
             </Button>
+            <DeleteButton onConfirm={() => handleDelete(record.id)} />
             <Button size="small" type="link" onClick={() => navigate(`/prompt/versions?prompt_id=${record.id}`)}>
               版本列表
             </Button>
-          </Space>
+          </Flex>
         ),
         { width: 150 },
       ),
@@ -67,11 +68,11 @@ export default function MainView() {
           layout: 'inline',
           defaultColsNumber: 6,
         }}
-        headerTitle={
-          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/prompt/form')}>
+        toolBarRender={() => [
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/prompt/form')}>
             新建提示词
-          </Button>
-        }
+          </Button>,
+        ]}
         request={async ({ pageSize, current, ...filter }) => {
           const data = await adminApi.listPrompts({
             page: current || 1,

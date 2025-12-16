@@ -32,11 +32,7 @@ async def admin_route_filter(request: Request):
         raise HTTPException(status_code=401, detail="登录失效")
 
     if manager.status == 0:
-        raise HTTPException(status_code=403, detail="账号被禁用")
-
-    # 超级管理员权限
-    if path.startswith("/admin_api/manager") and manager.type != 0:
-        raise HTTPException(status_code=403, detail="权限不足")
+        raise HTTPException(status_code=401, detail="账号被禁用")
 
     request.state.manager = ManagerSchema.model_validate(manager)
 

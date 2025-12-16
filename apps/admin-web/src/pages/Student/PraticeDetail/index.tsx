@@ -155,7 +155,7 @@ export default function PracticeDetailPage() {
 
   return (
     <PageContainer title={<PageHeader title="练习详情" />}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">

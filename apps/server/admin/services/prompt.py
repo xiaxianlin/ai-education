@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,9 +50,9 @@ async def list_prompts(db: AsyncSession, params: SearchPromptSchema) -> SearchRe
 async def list_versions(db: AsyncSession, params: SearchPromptVersionSchema) -> SearchResultSchema[PromptVersionSchema]:
     """列表查询 Prompt 版本"""
 
-    query = select(PromptVersion).options(noload(PromptVersion.prompt))
-    if params.prompt_id:
-        query = query.where(PromptVersion.prompt_id == params.prompt_id)
+    query = (
+        select(PromptVersion).options(noload(PromptVersion.prompt)).where(PromptVersion.prompt_id == params.prompt_id)
+    )
 
     # 总数查询
     count_query = select(func.count()).select_from(query.subquery())
@@ -72,9 +73,10 @@ async def get_prompt(db: AsyncSession, version_id: int) -> PromptDetailSchema:
     version = await db.scalar(
         select(PromptVersion).options(joinedload(PromptVersion.prompt)).where(PromptVersion.id == version_id)
     )
-    prompt = version.prompt
-    if not version or not prompt:
+    if not version or not version.prompt:
         raise ValueError("Prompt 不存在")
+
+    prompt = version.prompt
 
     return PromptDetailSchema(
         id=prompt.id,
@@ -82,10 +84,11 @@ async def get_prompt(db: AsyncSession, version_id: int) -> PromptDetailSchema:
         slug=prompt.slug,
         type=prompt.type,
         description=prompt.description,
+        last_version_id=prompt.current_version_id,
         version_id=version.id,
         template_content=version.template_content,
         negative_content=version.negative_content,
-        model_params=version.model_params or {},
+        model_params=version.model_params,
         changelog=version.changelog,
         is_published=version.is_published,
         create_time=version.create_time,
@@ -128,17 +131,26 @@ async def create_prompt(db: AsyncSession, params: SavePromptSchema) -> int:
     return prompt.id
 
 
-async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSchema):
-    """根据 id 和 version_id 更新 Prompt"""
+async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSchema) -> dict:
+    """
+    根据 id 和 version_id 更新 Prompt
+    - 未发布的版本能直接编辑
+    - 最后一个已发布的版本可以编辑，编辑后生成新的版本
+    """
 
+    # 获取版本和关联的Prompt
     version = await db.scalar(
         select(PromptVersion).options(joinedload(PromptVersion.prompt)).where(PromptVersion.id == version_id)
     )
-    prompt = version.prompt
-    if not version or not prompt:
+    if not version or not version.prompt:
         raise ValueError("提示词或版本不存在")
 
-    # 更新 Prompt 基本信息
+    if version.is_published == 1 and version.prompt.current_version_id != version.id:
+        raise ValueError("只能编辑最后一个已发布的版本，请选择最新的已发布版本进行编辑")
+
+    prompt = version.prompt
+
+    # 更新 Prompt 基本信息（这些字段对所有版本都是共享的）
     if params.name is not None:
         prompt.name = params.name
     if params.type is not None:
@@ -146,15 +158,33 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
     if params.description is not None:
         prompt.description = params.description
 
-    # 更新指定版本的信息
-    if params.template_content is not None:
-        version.template_content = params.template_content
-    if params.negative_content is not None:
-        version.negative_content = params.negative_content
-    if params.model_params is not None:
-        version.model_params = params.model_params
+    # 根据版本的发布状态选择不同的编辑策略
+    if version.is_published == 0:
+        # 未发布版本：直接编辑
+        if params.template_content is not None:
+            version.template_content = params.template_content
+        if params.negative_content is not None:
+            version.negative_content = params.negative_content
+        if params.model_params is not None:
+            version.model_params = params.model_params
 
-    await db.commit()
+        await db.commit()
+
+    else:
+        new_version = PromptVersion(
+            prompt_id=prompt.id,
+            template_content=params.template_content,
+            negative_content=params.negative_content,
+            model_params=params.model_params or {},
+            is_published=0,
+        )
+        db.add(new_version)
+        await db.flush()
+
+        # 更新Prompt的当前版本ID
+        prompt.current_version_id = new_version.id
+
+        await db.commit()
 
 
 async def delete_prompt(db: AsyncSession, id: int) -> PromptSchema:
@@ -186,9 +216,6 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
     version = await db.scalar(select(PromptVersion).where(PromptVersion.id == version_id))
     if not version:
         raise ValueError("版本不存在")
-
-    # 校验必填变量
-    SharedPromptService.validate_required(version.input_params or {}, params.input_payload or {})
 
     # 渲染模板
     rendered_prompt = SharedPromptService.render_template(version.template_content, params.input_payload or {})

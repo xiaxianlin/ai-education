@@ -209,7 +209,7 @@ declare global {
     description?: string;
     template_content?: string;
     negative_content?: string;
-    model_params?: Record<string, any>;
+    model_params?: any;
   }
 
   interface TestPromptRequest {

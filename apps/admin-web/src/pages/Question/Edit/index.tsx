@@ -1,15 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  PageContainer,
-  ProForm,
-  ProFormSelect,
-  ProFormTextArea,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { PageContainer, ProForm, ProFormSelect, ProFormTextArea, ProFormText } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { message, Button, Space, Card } from 'antd';
+import { message, Button, Space, Card, Flex } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useEffect, useMemo } from 'react';
 import { GRADES } from '@/constants/course';
@@ -24,8 +18,7 @@ const resourceTypeOptions = {
 export default function QuestionEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } =
-    useConfigs();
+  const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } = useConfigs();
   const [form] = ProForm.useForm<UpdateQuestionRequest>();
 
   // 获取当前选择的题型，用于动态显示子类型选项
@@ -38,10 +31,7 @@ export default function QuestionEditPage() {
   const subtypeOptions = useMemo(() => {
     if (!selectedType || !question_subtypes) return {};
     const subtypes = question_subtypes[selectedType] || [];
-    return subtypes.reduce(
-      (prev: Record<string, string>, curr: string) => ({ ...prev, [curr]: curr }),
-      {},
-    );
+    return subtypes.reduce((prev: Record<string, string>, curr: string) => ({ ...prev, [curr]: curr }), {});
   }, [selectedType, question_subtypes]);
 
   // 获取所有教材列表
@@ -50,9 +40,7 @@ export default function QuestionEditPage() {
     return (res.data || []).reduce((prev: Record<number, string>, curr) => {
       const gradeNum = typeof curr.grade === 'string' ? parseInt(curr.grade, 10) : curr.grade;
       const gradeInfo = GRADES[gradeNum];
-      const label = `${curr.subject} - ${curr.version} - ${gradeInfo || gradeNum}年级 - ${
-        curr.semester
-      }`;
+      const label = `${curr.subject} - ${curr.version} - ${gradeInfo || gradeNum}年级 - ${curr.semester}`;
       prev[curr.id] = label;
       return prev;
     }, {});
@@ -143,16 +131,12 @@ export default function QuestionEditPage() {
           submitter={{
             render: (props) => {
               return (
-                <Space style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                <Flex justify="end" style={{ width: '100%' }}>
                   <Button onClick={() => navigate(-1)}>取消</Button>
-                  <Button
-                    type="primary"
-                    loading={submitting}
-                    onClick={() => props.form?.submit?.()}
-                  >
+                  <Button type="primary" loading={submitting} onClick={() => props.form?.submit?.()}>
                     保存
                   </Button>
-                </Space>
+                </Flex>
               );
             },
           }}
@@ -261,12 +245,7 @@ export default function QuestionEditPage() {
             colProps={{ span: 12 }}
             allowClear
           />
-          <ProFormText
-            name="knowledge"
-            label="知识点"
-            placeholder="请输入知识点"
-            fieldProps={{ maxLength: 255 }}
-          />
+          <ProFormText name="knowledge" label="知识点" placeholder="请输入知识点" fieldProps={{ maxLength: 255 }} />
         </ProForm>
       </Card>
     </PageContainer>
