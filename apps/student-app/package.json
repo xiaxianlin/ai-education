@@ -5,7 +5,6 @@
   "description": "AI Education Platform - Flutter Mobile App",
   "scripts": {
     "install": "flutter pub get",
-    "postinstall": "flutter pub get",
     "build": "flutter build",
     "build:ios": "flutter build ios",
     "build:android": "flutter build apk",
