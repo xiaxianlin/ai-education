@@ -9,6 +9,7 @@ export const useConfigs = () => {
     textbook_versions = [],
     question_scenes = [],
     difficulty_levels = [],
+    providers = [],
   } = (initialState?.configs || {}) as Configs;
   const subjectEnum = subjects.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
@@ -26,6 +27,7 @@ export const useConfigs = () => {
     textbook_versions,
     question_scenes,
     difficulty_levels,
+    providers,
     subjectEnum,
     gradeEnum,
     questionSceneEmun,

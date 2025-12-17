@@ -1,5 +1,6 @@
-import { Drawer, Form, Input, InputNumber, Button, Space, message } from 'antd';
+import { Drawer, Form, Input, InputNumber, Button, Space, message, Select } from 'antd';
 import { useEffect } from 'react';
+import { useConfigs } from '@/hooks/useConfigs';
 
 export interface ModelConfig {
   model_provider: string;
@@ -22,6 +23,7 @@ interface Props {
 
 export default function ModelDrawer({ visible, onClose, config, onSave }: Props) {
   const [form] = Form.useForm();
+  const { providers } = useConfigs();
 
   useEffect(() => {
     if (visible) {
@@ -85,10 +87,16 @@ export default function ModelDrawer({ visible, onClose, config, onSave }: Props)
         <Form.Item
           name="model_provider"
           label="模型提供方"
-          rules={[{ required: true, message: '请输入模型提供方' }]}
-          tooltip="如：aliyun、openai、baidu 等"
+          rules={[{ required: true, message: '请选择模型提供方' }]}
+          tooltip="选择模型提供方"
         >
-          <Input placeholder="aliyun" />
+          <Select placeholder="请选择模型提供方">
+            {providers.map((provider) => (
+              <Select.Option key={provider} value={provider}>
+                {provider}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item

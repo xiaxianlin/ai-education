@@ -22,6 +22,7 @@ declare global {
     semesters: string[];
     question_scenes: string[];
     difficulty_levels: string[];
+    providers: string[];
   }
 
   interface LoginModel {

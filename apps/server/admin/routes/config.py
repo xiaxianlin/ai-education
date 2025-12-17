@@ -21,4 +21,5 @@ async def configs():
         "semesters": SEMESTERS,
         "question_scenes": QUESTION_SCENES,
         "difficulty_levels": DIFFICULTY_LEVELS,
+        "providers": ["aliyun"],
     }
