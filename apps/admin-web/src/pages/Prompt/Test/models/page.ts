@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { Form, message } from 'antd';
 import { adminApi } from '@/lib/api';
+import { extractTemplateParameters, TemplateParameter } from '../utils/templateParser';
+import { ModelConfig } from '../views/ModelDrawer';
 
 const useContainer = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +13,17 @@ const useContainer = () => {
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<TestPromptResponse | null>(null);
   const [testForm] = Form.useForm();
+
+  // 新增状态
+  const [parameters, setParameters] = useState<TemplateParameter[]>([]);
+  const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
+  const [modelConfig, setModelConfig] = useState<ModelConfig>({
+    model_provider: 'aliyun',
+    model_name: 'qwen-plus',
+    model_params: {
+      temperature: 0.7,
+    },
+  });
 
   useEffect(() => {
     if (version_id) {
@@ -23,16 +36,36 @@ const useContainer = () => {
     try {
       const data = await adminApi.getPromptDetail(versionId);
       setPrompt(data);
-      
-      // 如果有默认的模型参数，设置到表单
+
+      // 解析模板参数
+      if (data.template_content) {
+        const extractedParams = extractTemplateParameters(data.template_content);
+        setParameters(extractedParams);
+
+        // 初始化参数值
+        const initialValues: Record<string, any> = {};
+        extractedParams.forEach(param => {
+          initialValues[param.name] = '';
+        });
+        setParameterValues(initialValues);
+      }
+
+      // 设置默认模型配置
       if (data.model_params) {
-        testForm.setFieldsValue({
+        const newModelConfig: ModelConfig = {
           model_provider: 'aliyun',
           model_name: data.model_params.model_name || 'qwen-plus',
           model_params: {
             temperature: data.model_params.temperature || 0.7,
             max_tokens: data.model_params.max_tokens,
           },
+        };
+        setModelConfig(newModelConfig);
+
+        testForm.setFieldsValue({
+          model_provider: newModelConfig.model_provider,
+          model_name: newModelConfig.model_name,
+          model_params: newModelConfig.model_params,
         });
       }
     } catch (error) {
@@ -42,34 +75,40 @@ const useContainer = () => {
     }
   };
 
-  const handleTest = async (values: any) => {
+  // 参数值变化处理
+  const handleParameterValuesChange = (newValues: Record<string, any>) => {
+    setParameterValues(newValues);
+  };
+
+  // 模型配置变化处理
+  const handleModelConfigChange = (newConfig: ModelConfig) => {
+    setModelConfig(newConfig);
+
+    // 同步到测试表单
+    testForm.setFieldsValue({
+      model_provider: newConfig.model_provider,
+      model_name: newConfig.model_name,
+      model_params: newConfig.model_params,
+    });
+  };
+
+  const handleTest = async (_values: TestPromptRequest) => {
     if (!prompt || !version_id) return;
-    
+
     setLoading(true);
     setTestResult(null);
-    
+
     try {
-      // 解析 JSON 变量
-      let variables = {};
-      if (values.variables) {
-        try {
-          variables = JSON.parse(values.variables);
-        } catch (e) {
-          message.error('变量格式错误，请输入合法的 JSON');
-          setLoading(false);
-          return;
-        }
-      }
-      
+      // 使用参数值和模型配置进行测试
       const result = await adminApi.testPrompt(Number(version_id), {
-        variables,
-        model_provider: values.model_provider,
-        model_name: values.model_name,
-        model_params: values.model_params || {},
+        variables: parameterValues,
+        model_provider: modelConfig.model_provider,
+        model_name: modelConfig.model_name,
+        model_params: modelConfig.model_params || {},
       });
-      
+
       setTestResult(result);
-      
+
       if (result.status === 'success') {
         message.success('测试完成');
       } else {
@@ -87,10 +126,14 @@ const useContainer = () => {
     loading,
     testForm,
     testResult,
+    parameters,
+    parameterValues,
+    modelConfig,
     handleTest,
+    handleParameterValuesChange,
+    handleModelConfigChange,
   };
 };
 
 export const PromptTestModel = createContainer(useContainer);
 export const usePromptTestModel = PromptTestModel.useContainer;
-

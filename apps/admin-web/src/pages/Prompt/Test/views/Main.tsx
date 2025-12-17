@@ -1,10 +1,39 @@
-import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
-import { Spin, Tag, Space } from 'antd';
+import { useMemo } from 'react';
+import { PageContainer } from '@ant-design/pro-components';
+import { Spin } from 'antd';
 import { usePromptTestModel } from '../models/page';
+import TemplateContent from './TemplateContent';
+import ParameterInfo from './ParameterInfo';
+import ModelInfo from './ModelInfo';
 import { TestForm } from './TestForm';
 
 export default function MainView() {
-  const { prompt, loading, testForm, testResult, handleTest } = usePromptTestModel();
+  const {
+    prompt,
+    loading,
+    testForm,
+    testResult,
+    handleTest,
+    parameters,
+    parameterValues,
+    modelConfig,
+    handleParameterValuesChange,
+    handleModelConfigChange,
+  } = usePromptTestModel();
+
+  const requiredParamsSet = useMemo(() => {
+    if (!parameters || parameters.length === 0) {
+      return true;
+    }
+
+    const values = parameterValues || {};
+
+    return parameters.every((param) => {
+      if (!param.required) return true;
+      const value = values[param.name];
+      return value !== undefined && value !== null && value !== '';
+    });
+  }, [parameters, parameterValues]);
 
   if (loading && !prompt) {
     return (
@@ -20,33 +49,30 @@ export default function MainView() {
 
   return (
     <PageContainer title={`提示词测试：${prompt.name}`}>
-      <ProCard>
-        <ProDescriptions title="提示词信息" column={2}>
-          <ProDescriptions.Item label="名称">{prompt.name}</ProDescriptions.Item>
-          <ProDescriptions.Item label="Slug">{prompt.slug}</ProDescriptions.Item>
-          <ProDescriptions.Item label="类型">{prompt.type}</ProDescriptions.Item>
-          <ProDescriptions.Item label="状态">
-            <Tag color={prompt.is_published === 1 ? 'green' : 'default'}>
-              {prompt.is_published === 1 ? '已发布' : '未发布'}
-            </Tag>
-          </ProDescriptions.Item>
-          <ProDescriptions.Item label="版本 ID">{prompt.version_id}</ProDescriptions.Item>
-          <ProDescriptions.Item label="标签" span={2}>
-            <Space>
-              {prompt.tags?.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
-              ))}
-            </Space>
-          </ProDescriptions.Item>
-        </ProDescriptions>
-      </ProCard>
-      <ProCard title="模板内容" style={{ marginTop: 16 }}>
-        <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-          {prompt.template_content}
-        </pre>
-      </ProCard>
-      <TestForm form={testForm} loading={loading} result={testResult} onTest={handleTest} />
+      {/* 模板内容模块 */}
+      <TemplateContent content={prompt.template_content || ''} />
+
+      {/* 参数信息模块（组件内部会在无参数时自动隐藏） */}
+      <ParameterInfo
+        parameters={parameters}
+        values={parameterValues}
+        onParametersChange={handleParameterValuesChange}
+      />
+
+      {/* 模型信息模块 */}
+      <ModelInfo
+        config={modelConfig}
+        onConfigChange={handleModelConfigChange}
+      />
+
+      {/* 测试表单和结果 */}
+      <TestForm
+        form={testForm}
+        loading={loading}
+        result={testResult}
+        onTest={handleTest}
+        requiredParamsSet={requiredParamsSet}
+      />
     </PageContainer>
   );
 }
-

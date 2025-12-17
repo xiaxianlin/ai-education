@@ -53,9 +53,42 @@ export default function MainView() {
             fieldProps={{ rows: 16 }}
           />
           <ProForm.Group>
-            <ProFormTextArea name="negative_content" label="负面提示" fieldProps={{ rows: 4 }} width="lg" />
-            <ProFormTextArea name="model_params" label="模型参数" fieldProps={{ rows: 4 }} width="lg" />
-            <ProFormTextArea name="description" label="描述" fieldProps={{ rows: 4 }} width="lg" />
+            <ProFormTextArea
+              name="negative_content"
+              label="负面提示"
+              fieldProps={{ rows: 4, placeholder: '可选，用于指定模型需要避免的内容说明' }}
+              width="lg"
+            />
+            <ProFormTextArea
+              name="model_params"
+              label="模型参数"
+              width="lg"
+              fieldProps={{
+                rows: 4,
+                placeholder: '可选，JSON 格式，例如：{\"temperature\": 0.7, \"max_tokens\": 1024}',
+              }}
+              rules={[
+                {
+                  validator: async (_: any, value?: string) => {
+                    if (!value) {
+                      return Promise.resolve();
+                    }
+                    try {
+                      JSON.parse(value);
+                      return Promise.resolve();
+                    } catch {
+                      return Promise.reject(new Error('请输入合法的 JSON 格式'));
+                    }
+                  },
+                },
+              ]}
+            />
+            <ProFormTextArea
+              name="description"
+              label="描述"
+              fieldProps={{ rows: 4, placeholder: '可选，对提示词的用途和使用场景进行说明' }}
+              width="lg"
+            />
           </ProForm.Group>
         </ProForm>
       </ProCard>

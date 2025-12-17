@@ -10,10 +10,21 @@ const useContainer = () => {
   const versionId = Number(searchParams.get('version_id') || 0);
   const { runAsync: handleSubmit, loading } = useRequest(
     async ({ model_params, ...params }: SavePromptRequest) => {
-      model_params = model_params ? JSON.parse(model_params) : undefined;
+      let parsedModelParams: any | undefined;
+
+      if (model_params) {
+        try {
+          parsedModelParams =
+            typeof model_params === 'string' ? JSON.parse(model_params) : model_params;
+        } catch (error) {
+          message.error('模型参数必须是合法的 JSON 格式');
+          throw error;
+        }
+      }
+
       return versionId
-        ? adminApi.updatePrompt(versionId, { ...params, model_params })
-        : adminApi.createPrompt({ ...params, model_params });
+        ? adminApi.updatePrompt(versionId, { ...params, model_params: parsedModelParams })
+        : adminApi.createPrompt({ ...params, model_params: parsedModelParams });
     },
     {
       manual: true,
