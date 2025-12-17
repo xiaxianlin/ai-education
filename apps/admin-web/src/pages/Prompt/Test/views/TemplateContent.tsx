@@ -7,7 +7,7 @@ interface Props {
 
 export default function TemplateContent({ content }: Props) {
   return (
-    <ProCard title="模板规则" subTitle="用于驱动 AI 生成结果的提示词模板" bordered headerBordered>
+    <ProCard title="提示词" bordered headerBordered>
       <Typography.Paragraph>
         <pre
           style={{

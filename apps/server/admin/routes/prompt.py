@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.schema import SavePromptSchema, SearchPromptTestRecordSchema
 from shared.core.database import Database
-from admin.services import prompt
+from admin.services import prompt, prompt_test
 from admin.schema import SearchPromptSchema, SearchPromptVersionSchema, PublishPromptSchema, TestPromptSchema
 
 prompt_router = APIRouter(prefix="/prompt", tags=["Prompt 管理"])
@@ -54,16 +54,16 @@ async def publish_prompt(version_id: int, params: PublishPromptSchema, db: Async
 @prompt_router.post("/{version_id}/test")
 async def test_prompt(version_id: int, params: TestPromptSchema, db: AsyncSession = Database):
     """测试 Prompt 版本"""
-    return await prompt.test_prompt(db, version_id, params)
+    return await prompt_test.test_prompt(db, version_id, params)
 
 
 @prompt_router.get("/test/records")
 async def list_test_records(params: SearchPromptTestRecordSchema = Depends(), db: AsyncSession = Database):
     """列表查询 Prompt 测试记录"""
-    return await prompt.list_test_records(db, params)
+    return await prompt_test.list_test_records(db, params)
 
 
 @prompt_router.delete("/test/records/{record_id}")
 async def delete_test_record(record_id: int, db: AsyncSession = Database):
     """删除 Prompt 测试记录"""
-    return await prompt.delete_test_record(db, record_id)
+    return await prompt_test.delete_test_record(db, record_id)
