@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { PageContainer } from '@ant-design/pro-components';
-import { Spin } from 'antd';
+import { PageContainer, ProCard } from '@ant-design/pro-components';
+import { Descriptions, Divider, Spin } from 'antd';
 import { usePromptTestModel } from '../models/page';
 import TemplateContent from './TemplateContent';
 import ParameterInfo from './ParameterInfo';
@@ -49,30 +49,56 @@ export default function MainView() {
 
   return (
     <PageContainer title={`提示词测试：${prompt.name}`}>
-      {/* 模板内容模块 */}
-      <TemplateContent content={prompt.template_content || ''} />
+      <ProCard
+        split="vertical"
+        bordered
+        gutter={16}
+        style={{ marginTop: 16, minHeight: 'calc(100vh - 220px)' }}
+      >
+        {/* 左侧：规则 / 模板内容 + 输入配置 */}
+        <ProCard
+          colSpan="60%"
+          ghost
+          direction="column"
+          bodyStyle={{ paddingRight: 24, display: 'flex', flexDirection: 'column', gap: 16 }}
+        >
+          {/* 模板内容（规则） */}
+          <TemplateContent content={prompt.template_content || ''} />
 
-      {/* 参数信息模块（组件内部会在无参数时自动隐藏） */}
-      <ParameterInfo
-        parameters={parameters}
-        values={parameterValues}
-        onParametersChange={handleParameterValuesChange}
-      />
+          {/* 输入配置：参数 + 模型 */}
+          <ProCard title="输入配置" bordered headerBordered>
+            <ParameterInfo
+              parameters={parameters}
+              values={parameterValues}
+              onParametersChange={handleParameterValuesChange}
+            />
 
-      {/* 模型信息模块 */}
-      <ModelInfo
-        config={modelConfig}
-        onConfigChange={handleModelConfigChange}
-      />
+            <Divider style={{ margin: '12px 0' }} />
 
-      {/* 测试表单和结果 */}
-      <TestForm
-        form={testForm}
-        loading={loading}
-        result={testResult}
-        onTest={handleTest}
-        requiredParamsSet={requiredParamsSet}
-      />
+            <ModelInfo
+              config={modelConfig}
+              onConfigChange={handleModelConfigChange}
+            />
+          </ProCard>
+
+        </ProCard>
+
+        {/* 右侧：仅运行与结果 */}
+        <ProCard
+          colSpan="40%"
+          ghost
+          direction="column"
+          bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+        >
+          <TestForm
+            form={testForm}
+            loading={loading}
+            result={testResult}
+            onTest={handleTest}
+            requiredParamsSet={requiredParamsSet}
+          />
+        </ProCard>
+      </ProCard>
     </PageContainer>
   );
 }

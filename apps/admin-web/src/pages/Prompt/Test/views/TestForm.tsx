@@ -1,4 +1,4 @@
-import { type FormInstance, message } from 'antd';
+import { type FormInstance, Empty, message } from 'antd';
 import { ProCard, ProForm } from '@ant-design/pro-components';
 
 type Props = {
@@ -22,17 +22,20 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
 
   return (
     <>
-      <ProCard title="测试操作" style={{ marginTop: 16 }}>
+      <ProCard title="运行测试" bordered headerBordered style={{ marginTop: 16 }}>
         <ProForm
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           submitter={{
             searchConfig: {
-              submitText: '立即测试',
+              submitText: '开始运行',
             },
             submitButtonProps: {
+              type: 'primary',
               loading,
+              block: true,
+              size: 'large',
               disabled: !requiredParamsSet, // 如果必填参数未设置，禁用测试按钮
             },
             resetButtonProps: {
@@ -40,37 +43,44 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
             },
           }}
         >
-          {/* 移除了变量和模型配置字段，这些现在由参数信息和模型信息模块处理 */}
+          {/* 保持空表单，仅展示底部按钮 */}
         </ProForm>
       </ProCard>
 
-      {result && (
-        <ProCard style={{ marginTop: 16 }} title="测试结果" bordered headerBordered>
-          <p>
-            <strong>渲染后：</strong>
-          </p>
-          <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
-            {result.rendered_prompt}
-          </pre>
-          <p>
-            <strong>响应：</strong>
-          </p>
-          <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
-            {JSON.stringify(result.response_snapshot, null, 2)}
-          </pre>
-          <p>
-            <strong>耗时：</strong> {result.latency_ms} ms
-          </p>
-          <p>
-            <strong>状态：</strong> {result.status}
-          </p>
-          {result.error && (
+      <ProCard style={{ marginTop: 16 }} title="输出结果" bordered headerBordered>
+        {!result ? (
+          <Empty
+            description="运行后将在此展示渲染后的提示词与模型响应"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+        ) : (
+          <>
             <p>
-              <strong>错误：</strong> {result.error}
+              <strong>渲染后：</strong>
             </p>
-          )}
-        </ProCard>
-      )}
+            <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
+              {result.rendered_prompt}
+            </pre>
+            <p>
+              <strong>响应：</strong>
+            </p>
+            <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
+              {JSON.stringify(result.response_snapshot, null, 2)}
+            </pre>
+            <p>
+              <strong>耗时：</strong> {result.latency_ms} ms
+            </p>
+            <p>
+              <strong>状态：</strong> {result.status}
+            </p>
+            {result.error && (
+              <p>
+                <strong>错误：</strong> {result.error}
+              </p>
+            )}
+          </>
+        )}
+      </ProCard>
     </>
   );
 }

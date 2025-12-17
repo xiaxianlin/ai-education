@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ProCard } from '@ant-design/pro-components';
-import { Button, Tag, Space, Empty } from 'antd';
+import { Button, Tag, Space, Empty, Progress } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import { TemplateParameter } from '../utils/templateParser';
 import ParameterDrawer from './ParameterDrawer';
@@ -14,10 +14,14 @@ interface Props {
 export default function ParameterInfo({ parameters, values, onParametersChange }: Props) {
   const [drawerVisible, setDrawerVisible] = useState(false);
 
-  // 如果没有参数，不显示该模块
-  if (parameters.length === 0) {
-    return null;
-  }
+  const total = parameters.length;
+  const requiredCount = parameters.filter((p) => p.required).length;
+  const filledRequired = parameters.filter((p) => {
+    if (!p.required) return false;
+    const v = values[p.name];
+    return v !== undefined && v !== null && v !== '';
+  }).length;
+  const percent = requiredCount === 0 ? 100 : Math.round((filledRequired / requiredCount) * 100);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -63,50 +67,66 @@ export default function ParameterInfo({ parameters, values, onParametersChange }
 
   return (
     <>
-      <ProCard
-        title="参数信息"
-        extra={
-          <Button
-            type="link"
-            icon={<SettingOutlined />}
-            onClick={handleOpenDrawer}
-          >
-            设置参数
-          </Button>
-        }
-      >
-        <div>
-          {parameters.length > 0 ? (
-            <Space wrap>
-              {parameters.map((param) => {
-                const value = values[param.name];
-                const isUnset = value === undefined || value === null || value === '';
+      <ProCard title="参数信息" bordered={false} headStyle={{ padding: 0 }} bodyStyle={{ padding: 0 }}>
+        {total === 0 ? (
+          <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', paddingTop: 4 }}>
+            当前模板未包含可配置参数
+          </div>
+        ) : (
+          <>
+            {/* 顶部统计概览 */}
+            <div style={{ marginBottom: 12 }}>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Space size="large">
+                  <span>参数总数：{total}</span>
+                  <span>必填：{requiredCount}</span>
+                  <span>已填写：{filledRequired}</span>
+                </Space>
+                <Progress
+                  percent={percent}
+                  size="small"
+                  status={percent === 100 ? 'success' : 'active'}
+                  showInfo={false}
+                />
+              </Space>
+            </div>
 
-                return (
-                  <div key={param.name} style={{ marginBottom: 8 }}>
-                    <Space align="start">
-                      <Space>
-                        <span>{param.name}</span>
-                        <Tag color={getTypeColor(param.type)}>
-                          {getTypeText(param.type)}
-                        </Tag>
-                        {param.required && <Tag color="red">必填</Tag>}
-                        {!isUnset && <Tag color="green">已设置</Tag>}
-                      </Space>
-                      {!isUnset && (
-                        <span style={{ color: 'rgba(0, 0, 0, 0.65)', wordBreak: 'break-all' }}>
-                          {typeof value === 'string' ? value : JSON.stringify(value)}
-                        </span>
-                      )}
-                    </Space>
-                  </div>
-                );
-              })}
-            </Space>
-          ) : (
-            <Empty description="暂无参数" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-          )}
-        </div>
+            {/* 参数标签展示 */}
+            <div>
+              {parameters.length > 0 ? (
+                <Space wrap>
+                  {parameters.map((param) => {
+                    const value = values[param.name];
+                    const isUnset = value === undefined || value === null || value === '';
+
+                    return (
+                      <div key={param.name} style={{ marginBottom: 8 }}>
+                        <Space align="start">
+                          <Space>
+                            <span>{param.name}</span>
+                            <Tag color={getTypeColor(param.type)}>
+                              {getTypeText(param.type)}
+                            </Tag>
+                            {param.required && <Tag color="red">必填</Tag>}
+                            {!isUnset && <Tag color="green">已设置</Tag>}
+                            {isUnset && <Tag>未设置</Tag>}
+                          </Space>
+                          {!isUnset && (
+                            <span style={{ color: 'rgba(0, 0, 0, 0.65)', wordBreak: 'break-all' }}>
+                              {typeof value === 'string' ? value : JSON.stringify(value)}
+                            </span>
+                          )}
+                        </Space>
+                      </div>
+                    );
+                  })}
+                </Space>
+              ) : (
+                <Empty description="暂无参数" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
+            </div>
+          </>
+        )}
       </ProCard>
 
       <ParameterDrawer
@@ -116,6 +136,15 @@ export default function ParameterInfo({ parameters, values, onParametersChange }
         values={values}
         onSave={handleSaveParameters}
       />
+
+      <Button
+        type="link"
+        icon={<SettingOutlined />}
+        onClick={handleOpenDrawer}
+        style={{ paddingLeft: 0, marginTop: 8 }}
+      >
+        设置参数
+      </Button>
     </>
   );
 }
