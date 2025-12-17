@@ -9,11 +9,13 @@ from admin.schema import (
     SavePromptSchema,
     TestPromptSchema,
     PromptDetailSchema,
+    SearchPromptTestRecordSchema,
 )
 from shared.core.database import Prompt, PromptVersion, PromptTestRecord
 from shared.core.schema import (
     PromptSchema,
     PromptVersionSchema,
+    PromptTestRecordSchema,
     SearchResultSchema,
 )
 from shared.services.prompt import SharedPromptService
@@ -328,6 +330,74 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
         "error": error,
         "record_id": record.id,
     }
+
+
+async def list_test_records(
+    db: AsyncSession, params: SearchPromptTestRecordSchema
+) -> SearchResultSchema[PromptTestRecordSchema]:
+    """列表查询 Prompt 测试记录"""
+
+    query = select(PromptTestRecord)
+
+    if params.prompt_id:
+        query = query.where(PromptTestRecord.prompt_id == params.prompt_id)
+    if params.version_id:
+        query = query.where(PromptTestRecord.version_id == params.version_id)
+    if params.model_name:
+        query = query.where(PromptTestRecord.model_name.like(f"%{params.model_name}%"))
+    if params.status is not None:
+        query = query.where(PromptTestRecord.status == params.status)
+
+    # 总数查询
+    count_query = select(func.count()).select_from(query.subquery())
+    total = await db.scalar(count_query)
+
+    # 分页查询
+    result = await db.scalars(
+        query.order_by(PromptTestRecord.id.desc())
+        .offset((params.page - 1) * params.size)
+        .limit(params.size)
+    )
+
+    # 转换为 Schema
+    records = []
+    for r in result.all():
+        # 从 response 中提取 latency_ms
+        latency_ms = None
+        if r.response and isinstance(r.response, dict):
+            latency_ms = r.response.get("latency_ms")
+
+        # 状态映射
+        status_map = {0: "pending", 1: "testing", 2: "success", 3: "failed"}
+        status_str = status_map.get(r.status, "unknown")
+
+        records.append(
+            PromptTestRecordSchema(
+                id=r.id,
+                prompt_id=r.prompt_id,
+                version_id=r.version_id,
+                model_provider=r.model_provider,
+                model_name=r.model_name,
+                input_payload=r.input_payload or {},
+                rendered_prompt=r.rendered_prompt or "",
+                response_snapshot=r.response,
+                latency_ms=latency_ms,
+                status=status_str,
+                error=r.error,
+                create_time=r.create_time,
+            )
+        )
+
+    return SearchResultSchema(
+        total=total or 0,
+        data=records,
+    )
+
+
+async def delete_test_record(db: AsyncSession, record_id: int) -> None:
+    """删除 Prompt 测试记录"""
+    await db.execute(delete(PromptTestRecord).where(PromptTestRecord.id == record_id))
+    await db.commit()
 
 
 async def metrics(db: AsyncSession, pid: int, version_id: Optional[int] = None) -> dict:

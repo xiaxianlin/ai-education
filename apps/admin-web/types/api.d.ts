@@ -254,6 +254,38 @@ declare global {
     p95_latency_ms?: number | null;
   }
 
+  interface SearchPromptTestRecordRequest extends SearchRequest {
+    prompt_id?: number;
+    version_id?: number;
+    model_name?: string;
+    status?: number;
+  }
+
+  interface PromptTestRecord {
+    id: number;
+    prompt_id: number;
+    version_id: number;
+    model_provider?: string;
+    model_name?: string;
+    input_payload: Record<string, any>;
+    rendered_prompt: string;
+    response_snapshot?: {
+      content?: string;
+      model?: string;
+      usage?: {
+        prompt_tokens?: number | null;
+        completion_tokens?: number | null;
+        total_tokens?: number | null;
+      };
+      latency_ms?: number;
+      error?: string;
+    };
+    latency_ms?: number;
+    status: 'pending' | 'testing' | 'success' | 'failed';
+    error?: string;
+    create_time: number;
+  }
+
   interface PromptDetail {
     id?: number;
     name: string;

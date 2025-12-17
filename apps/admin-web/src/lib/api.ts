@@ -566,4 +566,20 @@ export const adminApi = {
       model_params: data.model_params || {},
     });
   },
+
+  /**
+   * 获取 Prompt 测试记录列表
+   * GET /api/admin/prompt/test/records
+   */
+  async listPromptTestRecords(params?: SearchPromptTestRecordRequest) {
+    return apiClient.get<SearchResponse<PromptTestRecord>>('/prompt/test/records', { params });
+  },
+
+  /**
+   * 删除 Prompt 测试记录
+   * DELETE /api/admin/prompt/test/records/{record_id}
+   */
+  async deletePromptTestRecord(recordId: number) {
+    return apiClient.delete(`/prompt/test/records/${recordId}`);
+  },
 };
