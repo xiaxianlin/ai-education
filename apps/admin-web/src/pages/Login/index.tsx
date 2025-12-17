@@ -24,6 +24,10 @@ export default function LoginPage() {
           size="large"
           title="管理员登录"
           subTitle="请输入您的凭据以访问管理后台"
+          initialValues={{
+            username: 'xiaxianlin',
+            password: 'Xiaxl.901208',
+          }}
           onFinish={async (values) => {
             await login(values);
             return true;

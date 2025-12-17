@@ -42,9 +42,13 @@ export default function MainView() {
       createActionColumn<Prompt>(
         (_, record) => (
           <Flex gap={8}>
+            <Button size="small" type="link" onClick={() => navigate(`/prompt/test?version_id=${record.version?.id}`)}>
+              测试
+            </Button>
             <Button size="small" type="link" onClick={() => navigate(`/prompt/form?version_id=${record.version?.id}`)}>
               编辑
             </Button>
+
             <DeleteButton onConfirm={() => handleDelete(record.id)} />
             <Button size="small" type="link" onClick={() => navigate(`/prompt/versions?prompt_id=${record.id}`)}>
               版本列表
