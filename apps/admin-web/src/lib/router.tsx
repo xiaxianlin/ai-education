@@ -47,7 +47,7 @@ export function Router() {
         { path: 'prompt/form', element: <PromptForm /> },
         { path: 'prompt/detail', element: <PromptDetail /> },
         { path: 'prompt/versions', element: <PromptVersionList /> },
-        { path: 'prompt/test/:version_id', element: <PromptTest /> },
+        { path: 'prompt/test', element: <PromptTest /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'practice/detail/:session_id', element: <PracticeDetail /> },

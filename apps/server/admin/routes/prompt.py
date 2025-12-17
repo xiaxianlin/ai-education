@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SavePromptSchema
 from shared.core.database import Database
 from admin.services import prompt
-from admin.schema import SearchPromptSchema, SearchPromptVersionSchema, PublishPromptSchema
+from admin.schema import SearchPromptSchema, SearchPromptVersionSchema, PublishPromptSchema, TestPromptSchema
 
 prompt_router = APIRouter(prefix="/prompt", tags=["Prompt 管理"])
 
@@ -49,3 +49,9 @@ async def delete_prompt(id: int, db: AsyncSession = Database):
 async def publish_prompt(version_id: int, params: PublishPromptSchema, db: AsyncSession = Database):
     """发布 Prompt 版本"""
     return await prompt.publish_prompt(db, version_id, params.changelog)
+
+
+@prompt_router.post("/{version_id}/test")
+async def test_prompt(version_id: int, params: TestPromptSchema, db: AsyncSession = Database):
+    """测试 Prompt 版本"""
+    return await prompt.test_prompt(db, version_id, params)

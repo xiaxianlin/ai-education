@@ -553,4 +553,17 @@ export const adminApi = {
   async deletePrompt(id: number) {
     return apiClient.delete(`/prompt/${id}`);
   },
+
+  /**
+   * 测试 Prompt 版本
+   * POST /api/admin/prompt/{version_id}/test
+   */
+  async testPrompt(versionId: number, data: TestPromptRequest) {
+    return apiClient.post<TestPromptResponse>(`/prompt/${versionId}/test`, {
+      input_payload: data.variables || {},
+      model_provider: data.model_provider,
+      model_name: data.model_name,
+      model_params: data.model_params || {},
+    });
+  },
 };

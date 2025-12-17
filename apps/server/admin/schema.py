@@ -305,7 +305,6 @@ class PublishPromptSchema(BaseModel):
 class TestPromptSchema(BaseModel):
     """提示词测试表单"""
 
-    version_id: int
     input_payload: dict = {}
     model_provider: Optional[str] = None
     model_name: Optional[str] = None

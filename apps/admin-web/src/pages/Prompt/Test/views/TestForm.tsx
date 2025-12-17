@@ -1,13 +1,11 @@
-import { Button, Form, FormInstance, Input } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
-import { ProCard } from '@ant-design/pro-components';
-import { TestPromptResponse } from '@/types/api';
+import type { FormInstance } from 'antd';
+import { ProCard, ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 
 type Props = {
   form: FormInstance;
   loading: boolean;
   result: TestPromptResponse | null;
-  onTest: () => Promise<void>;
+  onTest: (values: any) => Promise<void>;
 };
 
 const jsonValidator = async (_: any, value: string) => {
@@ -23,25 +21,48 @@ const jsonValidator = async (_: any, value: string) => {
 export function TestForm({ form, loading, result, onTest }: Props) {
   return (
     <ProCard title="测试表单">
-      <Form layout="vertical" form={form}>
-        <Form.Item
-          label="变量 (JSON)"
+      <ProForm
+        form={form}
+        layout="vertical"
+        onFinish={onTest}
+        submitter={{
+          searchConfig: {
+            submitText: '立即测试',
+          },
+          submitButtonProps: {
+            loading,
+          },
+        }}
+        initialValues={{
+          model_provider: 'aliyun',
+          model_name: 'qwen-plus',
+        }}
+      >
+        <ProFormTextArea
           name="variables"
+          label="变量 (JSON)"
           rules={[{ validator: jsonValidator }]}
           tooltip="模板变量，例如：{&quot;subject&quot;:&quot;math&quot;,&quot;grade&quot;:6}"
-        >
-          <TextArea rows={4} placeholder='例如 {"subject":"math","grade":6}' />
-        </Form.Item>
-        <Form.Item label="模型提供方" name="model_provider">
-          <Input placeholder="openai / wenxin / sdxl 等" />
-        </Form.Item>
-        <Form.Item label="模型名称" name="model_name">
-          <Input placeholder="gpt-4o-mini / sdxl 等" />
-        </Form.Item>
-        <Button type="primary" loading={loading} onClick={onTest}>
-          立即测试
-        </Button>
-      </Form>
+          fieldProps={{
+            rows: 4,
+            placeholder: '例如 {"subject":"math","grade":6}',
+          }}
+        />
+        <ProFormText
+          name="model_provider"
+          label="模型提供方"
+          fieldProps={{
+            placeholder: 'aliyun / openai 等',
+          }}
+        />
+        <ProFormText
+          name="model_name"
+          label="模型名称"
+          fieldProps={{
+            placeholder: 'qwen-plus / gpt-4o-mini 等',
+          }}
+        />
+      </ProForm>
       {result && (
         <ProCard style={{ marginTop: 16 }} title="测试结果" bordered headerBordered>
           <p>
@@ -54,7 +75,7 @@ export function TestForm({ form, loading, result, onTest }: Props) {
             <strong>响应：</strong>
           </p>
           <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
-            {JSON.stringify(result.response, null, 2)}
+            {JSON.stringify(result.response_snapshot, null, 2)}
           </pre>
           <p>
             <strong>耗时：</strong> {result.latency_ms} ms

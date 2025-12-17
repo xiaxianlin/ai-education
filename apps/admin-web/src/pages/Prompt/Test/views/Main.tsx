@@ -24,7 +24,7 @@ export default function MainView() {
         <ProDescriptions title="提示词信息" column={2}>
           <ProDescriptions.Item label="名称">{prompt.name}</ProDescriptions.Item>
           <ProDescriptions.Item label="Slug">{prompt.slug}</ProDescriptions.Item>
-          <ProDescriptions.Item label="场景">{prompt.scene}</ProDescriptions.Item>
+          <ProDescriptions.Item label="类型">{prompt.type}</ProDescriptions.Item>
           <ProDescriptions.Item label="状态">
             <Tag color={prompt.is_published === 1 ? 'green' : 'default'}>
               {prompt.is_published === 1 ? '已发布' : '未发布'}

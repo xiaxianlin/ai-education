@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { Form, message } from 'antd';
 import { adminApi } from '@/lib/api';
 
 const useContainer = () => {
-  const { version_id } = useParams();
+  const [searchParams] = useSearchParams();
+  const version_id = searchParams.get('version_id');
   const [prompt, setPrompt] = useState<PromptDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<TestPromptResponse | null>(null);
@@ -22,6 +23,18 @@ const useContainer = () => {
     try {
       const data = await adminApi.getPromptDetail(versionId);
       setPrompt(data);
+      
+      // 如果有默认的模型参数，设置到表单
+      if (data.model_params) {
+        testForm.setFieldsValue({
+          model_provider: 'aliyun',
+          model_name: data.model_params.model_name || 'qwen-plus',
+          model_params: {
+            temperature: data.model_params.temperature || 0.7,
+            max_tokens: data.model_params.max_tokens,
+          },
+        });
+      }
     } catch (error) {
       message.error('加载失败');
     } finally {
@@ -29,22 +42,39 @@ const useContainer = () => {
     }
   };
 
-  const handleTest = async () => {
+  const handleTest = async (values: any) => {
     if (!prompt || !version_id) return;
-    const values = await testForm.validateFields();
+    
     setLoading(true);
+    setTestResult(null);
+    
     try {
-      // 注意：测试接口可能需要调整，这里暂时注释
-      // 根据 API 文档，测试接口可能需要 prompt_id 和 version_id
-      // 但新 API 可能没有测试接口，需要确认
-      message.warning('测试功能暂未实现，请查看 API 文档确认测试接口');
-      // const result = await adminApi.testPromptVersion(prompt.id, Number(version_id), {
-      //   variables: values.variables ? JSON.parse(values.variables) : {},
-      //   model_provider: values.model_provider,
-      //   model_name: values.model_name,
-      // });
-      // setTestResult(result);
-      // message.success('测试完成');
+      // 解析 JSON 变量
+      let variables = {};
+      if (values.variables) {
+        try {
+          variables = JSON.parse(values.variables);
+        } catch (e) {
+          message.error('变量格式错误，请输入合法的 JSON');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      const result = await adminApi.testPrompt(Number(version_id), {
+        variables,
+        model_provider: values.model_provider,
+        model_name: values.model_name,
+        model_params: values.model_params || {},
+      });
+      
+      setTestResult(result);
+      
+      if (result.status === 'success') {
+        message.success('测试完成');
+      } else {
+        message.error(result.error || '测试失败');
+      }
     } catch (error: any) {
       message.error(error?.message || '测试失败');
     } finally {

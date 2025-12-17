@@ -1,8 +1,9 @@
-import json
+import time
 from typing import Optional
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
+from loguru import logger
 
 from admin.schema import (
     SavePromptSchema,
@@ -16,6 +17,7 @@ from shared.core.schema import (
     SearchResultSchema,
 )
 from shared.services.prompt import SharedPromptService
+from shared.provider import get_provider
 from admin.schema import SearchPromptSchema, SearchPromptVersionSchema
 
 
@@ -220,34 +222,92 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
     # 渲染模板
     rendered_prompt = SharedPromptService.render_template(version.template_content, params.input_payload or {})
 
-    # TODO: 调用真实模型服务，这里先模拟
-    latency_ms = 100  # 模拟延迟
-    status_int = 2  # 2-测试成功
-    status_str = "success"
+    # 合并模型参数：优先使用传入的参数，其次使用版本默认参数
+    model_params = {**(version.model_params or {}), **(params.model_params or {})}
+    model_provider = params.model_provider or "aliyun"
+    model_name = params.model_name or model_params.get("model_name") or "qwen-plus"
+
+    latency_ms = 0
+    status_int = 1  # 1-测试中
+    status_str = "testing"
     error = None
+    response_snapshot = None
+    ai_response = None
 
     try:
-        # 这里应该调用实际的 AI 模型服务
-        # response_snapshot = await call_ai_model(...)
-        response_snapshot = {
-            "echo": rendered_prompt,
-            "model_provider": params.model_provider,
-            "model_name": params.model_name,
-            "latency_ms": latency_ms,  # 将延迟时间也存储在 response 中
+        # 直接使用 OpenAI 客户端获取完整响应信息
+        start_time = time.time()
+
+        provider = get_provider(model_provider)
+        client = provider.get_openai_client()
+
+        # 准备调用参数
+        temperature = model_params.get("temperature", 0.7)
+        max_tokens = model_params.get("max_tokens")
+
+        # 调用 OpenAI 客户端，获取完整响应
+        call_kwargs = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": rendered_prompt}],
+            "temperature": temperature,
         }
+        if max_tokens:
+            call_kwargs["max_tokens"] = max_tokens
+
+        response = client.chat.completions.create(**call_kwargs)
+
+        latency_ms = int((time.time() - start_time) * 1000)
+
+        # 提取文本内容
+        ai_response = response.choices[0].message.content
+
+        # 构建完整的响应快照
+        response_snapshot = {
+            "content": ai_response,
+            "model": response.model,
+            "usage": {
+                "prompt_tokens": response.usage.prompt_tokens if response.usage else None,
+                "completion_tokens": response.usage.completion_tokens if response.usage else None,
+                "total_tokens": response.usage.total_tokens if response.usage else None,
+            },
+            "finish_reason": response.choices[0].finish_reason,
+            "model_provider": model_provider,
+            "model_name": model_name,
+            "model_params": model_params,
+            "latency_ms": latency_ms,
+            "response_id": response.id if hasattr(response, "id") else None,
+        }
+
+        status_int = 2  # 2-测试成功
+        status_str = "success"
+
+        logger.info(
+            f"Prompt 测试成功: version_id={version_id}, "
+            f"model={model_name}, latency={latency_ms}ms, "
+            f"tokens={response_snapshot['usage'].get('total_tokens')}"
+        )
+
     except Exception as e:
+        latency_ms = int((time.time() - start_time) * 1000) if "start_time" in locals() else 0
         status_int = 3  # 3-测试失败
         status_str = "failed"
         error = str(e)
-        response_snapshot = None
+        response_snapshot = {
+            "error": error,
+            "model_provider": model_provider,
+            "model_name": model_name,
+            "model_params": model_params,
+            "latency_ms": latency_ms,
+        }
+        logger.error(f"Prompt 测试失败: version_id={version_id}, error={error}")
 
     # 保存测试记录
     record = PromptTestRecord(
         prompt_id=version.prompt_id,
         version_id=version.id,
-        model_provider=params.model_provider or "",
-        model_name=params.model_name or "",
-        model_params=params.model_params or {},
+        model_provider=model_provider,
+        model_name=model_name,
+        model_params=model_params,
         input_payload=params.input_payload or {},
         rendered_prompt=rendered_prompt,
         response=response_snapshot,
@@ -258,10 +318,11 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
     await db.commit()
     await db.refresh(record)
 
-    # 返回测试结果（使用 Schema 格式）
+    # 返回测试结果
     return {
         "rendered_prompt": rendered_prompt,
         "response_snapshot": response_snapshot,
+        "ai_response": ai_response,  # AI 响应内容，方便前端直接显示
         "latency_ms": latency_ms,
         "status": status_str,
         "error": error,

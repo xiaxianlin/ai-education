@@ -216,20 +216,59 @@ declare global {
     variables?: Record<string, any>;
     model_provider?: string;
     model_name?: string;
+    model_params?: {
+      temperature?: number;
+      max_tokens?: number;
+      [key: string]: any;
+    };
   }
 
   interface TestPromptResponse {
     rendered_prompt: string;
-    response: any;
+    response_snapshot: {
+      content?: string;
+      model?: string;
+      usage?: {
+        prompt_tokens?: number | null;
+        completion_tokens?: number | null;
+        total_tokens?: number | null;
+      };
+      finish_reason?: string;
+      model_provider: string;
+      model_name: string;
+      model_params: any;
+      latency_ms: number;
+      response_id?: string | null;
+      error?: string;
+    };
+    ai_response?: string;
     latency_ms: number;
-    status: string;
+    status: 'testing' | 'success' | 'failed';
     error?: string | null;
+    record_id: number;
   }
 
   interface PromptMetrics {
     calls: number;
     success_rate: number;
     p95_latency_ms?: number | null;
+  }
+
+  interface PromptDetail {
+    id?: number;
+    name: string;
+    slug: string;
+    type?: string;
+    description?: string;
+    template_content: string;
+    negative_content?: string;
+    model_params?: any;
+    version_id: number;
+    is_published: number;
+    create_time?: number;
+    changelog?: string;
+    scene?: string;
+    tags?: string[];
   }
 }
 
