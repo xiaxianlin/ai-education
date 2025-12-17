@@ -1,13 +1,40 @@
 import { ProCard } from '@ant-design/pro-components';
-import { Typography } from 'antd';
+import { Typography, Dropdown, Button } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 
 interface Props {
   content: string;
+  generationType?: string;
+  onGenerationTypeChange?: (type: string) => void;
 }
 
-export default function TemplateContent({ content }: Props) {
+export default function TemplateContent({ content, generationType = 'text', onGenerationTypeChange }: Props) {
+  const items = [
+    { key: 'text', label: '文本生成' },
+    { key: 'image', label: '图片生成' },
+    { key: 'video', label: '视频生成' },
+    { key: 'audio', label: '语音生成' },
+  ];
+
   return (
-    <ProCard title="提示词" bordered headerBordered>
+    <ProCard
+      title="提示词"
+      bordered
+      headerBordered
+      extra={
+        <Dropdown
+          menu={{
+            items,
+            onClick: ({ key }) => onGenerationTypeChange?.(key),
+            selectedKeys: [generationType],
+          }}
+        >
+          <Button>
+            {items.find((item) => item.key === generationType)?.label} <DownOutlined />
+          </Button>
+        </Dropdown>
+      }
+    >
       <Typography.Paragraph>
         <pre
           style={{

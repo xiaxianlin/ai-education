@@ -309,6 +309,15 @@ class TestPromptSchema(BaseModel):
     model_provider: Optional[str] = None
     model_name: Optional[str] = None
     model_params: dict = {}
+    generation_type: Optional[str] = "text"
+
+    @field_validator("generation_type")
+    @classmethod
+    def validate_generation_type(cls, v):
+        allowed_types = ["text", "image", "video", "audio"]
+        if v and v not in allowed_types:
+            raise ValueError(f"生成类型只能选择 {', '.join(allowed_types)}")
+        return v or "text"
 
 
 class SearchPromptSchema(SearchSchema):

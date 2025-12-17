@@ -221,6 +221,7 @@ declare global {
       max_tokens?: number;
       [key: string]: any;
     };
+    generation_type?: 'text' | 'image' | 'video' | 'audio';
   }
 
   interface TestPromptResponse {

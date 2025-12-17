@@ -16,8 +16,10 @@ export default function MainView() {
     handleTest,
     parameters,
     parameterValues,
+    generationType,
     modelConfig,
     handleParameterValuesChange,
+    setGenerationType,
     handleModelConfigChange,
   } = usePromptTestModel();
 
@@ -52,7 +54,11 @@ export default function MainView() {
       <Flex gap={24} align="flex-start" style={{ marginTop: 16 }}>
         {/* 左侧：模板内容 + 参数配置 */}
         <Flex vertical gap={24} style={{ flex: 1, minWidth: 0 }}>
-          <TemplateContent content={prompt.template_content || ''} />
+          <TemplateContent
+            content={prompt.template_content || ''}
+            generationType={generationType}
+            onGenerationTypeChange={setGenerationType}
+          />
           <ParameterInfo
             parameters={parameters}
             values={parameterValues}
