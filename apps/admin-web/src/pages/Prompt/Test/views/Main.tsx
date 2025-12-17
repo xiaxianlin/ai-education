@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Descriptions, Divider, Spin } from 'antd';
+import { Spin } from 'antd';
 import { usePromptTestModel } from '../models/page';
 import TemplateContent from './TemplateContent';
 import ParameterInfo from './ParameterInfo';
@@ -65,31 +65,33 @@ export default function MainView() {
           {/* 模板内容（规则） */}
           <TemplateContent content={prompt.template_content || ''} />
 
-          {/* 输入配置：参数 + 模型 */}
+          {/* 输入配置：仅参数 */}
           <ProCard title="输入配置" bordered headerBordered>
             <ParameterInfo
               parameters={parameters}
               values={parameterValues}
               onParametersChange={handleParameterValuesChange}
             />
-
-            <Divider style={{ margin: '12px 0' }} />
-
-            <ModelInfo
-              config={modelConfig}
-              onConfigChange={handleModelConfigChange}
-            />
           </ProCard>
 
         </ProCard>
 
-        {/* 右侧：仅运行与结果 */}
+        {/* 右侧：模型配置 + 运行与结果 */}
         <ProCard
           colSpan="40%"
           ghost
           direction="column"
           bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}
         >
+          {/* 模型配置 */}
+          <ProCard title="模型配置" bordered headerBordered>
+            <ModelInfo
+              config={modelConfig}
+              onConfigChange={handleModelConfigChange}
+            />
+          </ProCard>
+
+          {/* 运行测试 + 输出结果 */}
           <TestForm
             form={testForm}
             loading={loading}
