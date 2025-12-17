@@ -32,7 +32,6 @@ class Settings(BaseSettings):
     AI_PLATFORM: str
     AI_PLATFORM_KEY: str
     AI_PLATFORM_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    AI_TTS_VOICE: str = "Cherry"
 
     # Redis 配置（用于任务队列）
     REDIS_URL: str = "redis://redis:6379/0"  # 完整的 Redis 连接 URL

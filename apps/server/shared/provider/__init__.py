@@ -36,11 +36,7 @@ def get_provider(platform: Optional[str] = None) -> BaseProvider:
     if platform in ("aliyun", "dashscope"):
         return AliyunProvider()
     else:
-        raise ValueError(
-            f"Unsupported AI platform: {platform}. "
-            f"Supported platforms: aliyun, dashscope"
-        )
+        raise ValueError(f"Unsupported AI platform: {platform}. " f"Supported platforms: aliyun, dashscope")
 
 
 __all__ = ["BaseProvider", "AliyunProvider", "get_provider"]
-
