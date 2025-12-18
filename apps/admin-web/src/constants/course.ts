@@ -8,4 +8,7 @@ export const GRADES: Record<number, string> = {
   7: '七年级',
   8: '八年级',
   9: '九年级',
+  10: '高一',
+  11: '高二',
+  12: '高三',
 };

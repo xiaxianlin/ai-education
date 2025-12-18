@@ -1015,30 +1015,29 @@ DELETE /api/admin/practice/session/{session_id}
 GET /api/admin/configs
 ```
 
-**查询参数**:
-- `subject`: 科目（可选）
-- `grade`: 年级（可选）
+**查询参数**（当前后端实现会忽略这些参数，预留扩展用）:
+- `subject`: 科目（可选，预留）
+- `grade`: 年级（可选，预留）
 
 **响应示例**:
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
-    "subjects": ["数学", "英语"],
+    "subjects": ["英语", "数学"],
     "textbook_versions": ["人教版"],
     "semesters": ["上学期", "下学期", "整学期"],
-    "question_types": {
-      "选择题": ["数位判断", "图形归类", "快速口算"],
-      "填空题": ["键盘输入计算", "规律填数"],
-      "口语题": ["单词拼读", "句子拼读"]
-    },
-    "question_subtypes": [...],
-    "difficulty_levels": ["简单", "普通", "困难"]
+    "question_scenes": ["选择题", "输入题", "口语题", "判断题", "匹配题", "应用题"],
+    "difficulty_levels": ["简单", "普通", "困难"],
+    "providers": ["aliyun"]
   }
 }
 ```
 
-**功能说明**: 获取科目、版本、学期、题型等配置信息。如果指定了科目和年级，返回该科目年级对应的题型列表。
+**功能说明**:
+- 获取系统基础枚举配置：科目、教材版本、学期、题目场景、难度等级、模型供应商等。
+- 配置的权威来源位于 `apps/server/shared/core/constants.py`，接口实现位于 `apps/server/admin/routes/config.py`。
 
 ---
 
