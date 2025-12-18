@@ -87,7 +87,7 @@ declare global {
   /**
    * 搜索教材请求
    */
-  interface SearchTextbookRequest extends SearchRequest {
+  interface SearchTextbookRequest {
     version?: string;
     grade?: number;
     subject?: string;
@@ -136,15 +136,6 @@ declare global {
   interface UpdateKnowledgeRequest {
     name?: string;
     content?: string;
-  }
-
-  /**
-   * 搜索教师用书请求
-   */
-  interface SearchTeacherBookRequest extends SearchRequest {
-    version?: string;
-    grade?: number;
-    subject?: string;
   }
 
   /**

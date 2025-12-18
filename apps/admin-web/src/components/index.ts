@@ -7,3 +7,4 @@ export * from './DescriptionList';
 export * from './StatusTag';
 export * from './AudioPlayer';
 export * from './UploadButton';
+export * from './SubjectGradeTabs';

@@ -12,51 +12,19 @@ export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
   const {
     actionRef,
-    tableRequest,
+    subject,
+    grade,
     formProps: { showForm },
   } = useTeacherBookListModel();
 
   const columns = useMemo<ProColumns<TeacherBook>[]>(
     () => [
-      {
-        title: 'ID',
-        dataIndex: 'id',
-        valueType: 'digit',
-        hideInSearch: true,
-      },
-      {
-        title: '版本',
-        dataIndex: 'version',
-        valueType: 'select',
-        valueEnum: textbookVersionEmun,
-      },
-      {
-        title: '科目',
-        dataIndex: 'subject',
-        valueType: 'select',
-        valueEnum: subjectEnum,
-        render: (_, record) => {
-          const subject = record.subject;
-          const subjectColorMap: Record<string, string> = {
-            数学: 'blue',
-            英语: 'orange',
-          };
-          const color = subjectColorMap[subject] || 'default';
-          return <Tag color={color}>{subject}</Tag>;
-        },
-      },
-      {
-        title: '年级',
-        dataIndex: 'grade',
-        valueType: 'select',
-        valueEnum: gradeEnum,
-        hideInTable: false,
-        render: (_, record) => `${GRADES[record.grade] || record.grade}${record.semester}`,
-      },
+      { title: 'ID', dataIndex: 'id' },
+      { title: '版本', dataIndex: 'version' },
+      { title: '学期', dataIndex: 'semester' },
       {
         title: '文件上传',
         dataIndex: 'name',
-        hideInSearch: true,
         render: (_, record) => (record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>),
       },
       {
@@ -88,30 +56,17 @@ export default function TableView() {
       actionRef={actionRef}
       rowKey="id"
       columns={columns}
-      search={{
-        labelWidth: 'auto',
-        layout: 'inline',
-        defaultColsNumber: 3,
-        defaultCollapsed: false,
-      }}
+      search={false}
       headerTitle={
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showForm()}>
+        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => showForm()}>
           新增教师用书
         </Button>
       }
-      request={async (params) => {
-        const data = await adminApi.searchTeacherBooks({
-          page: params.current || 1,
-          size: params.pageSize || 10,
-          ...params,
-        });
-        return {
-          data: data.data || [],
-          success: true,
-          total: data.total || 0,
-        };
+      request={async () => {
+        const data = await adminApi.searchTeacherBooks(subject, grade);
+        return { data, success: true, total: data.length };
       }}
-      pagination={{ pageSize: 10 }}
+      pagination={false}
     />
   );
 }

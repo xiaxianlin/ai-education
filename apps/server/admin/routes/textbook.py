@@ -44,7 +44,7 @@ async def delete_textbook(id: int, db: AsyncSession = Database):
 
 @textbook_router.get("/search")
 async def search(params: SearchTextbookSchema = Depends(), db: AsyncSession = Database):
-    """搜索教材"""
+    """搜索教材（无分页）"""
     return await textbook.search_textbook(db, params)
 
 

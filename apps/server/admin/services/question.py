@@ -71,9 +71,7 @@ async def get_question(db: AsyncSession, id: str):
     return QuestionSchema.model_validate(question)
 
 
-async def query_question_by_knowledge(
-    db: AsyncSession, knowledge: str, page: int, size: int
-):
+async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: int, size: int):
     """根据知识点获取问题列表"""
     query = (
         select(Question)
@@ -122,17 +120,13 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
     if params.resource_type is not None:
         if params.resource_type == "":
             # 筛选无资源类型的题目（resource_type 为 None 或空字符串）
-            conditions.append(
-                or_(Question.resource_type.is_(None), Question.resource_type == "")
-            )
+            conditions.append(or_(Question.resource_type.is_(None), Question.resource_type == ""))
         else:
             conditions.append(Question.resource_type == params.resource_type)
     if params.resource_generated is not None:
         if params.resource_generated:
             # 资源已生成：resource 不为空且不为空字符串
-            conditions.append(
-                and_(Question.resource.isnot(None), Question.resource != "")
-            )
+            conditions.append(and_(Question.resource.isnot(None), Question.resource != ""))
         else:
             # 资源未生成：resource 为空或空字符串
             conditions.append(or_(Question.resource.is_(None), Question.resource == ""))
@@ -153,71 +147,6 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
         getattr(Question, params.sort, Question.id).desc()
         if params.order == "desc"
         else getattr(Question, params.sort, Question.id).asc()
-    )
-    query = query.offset(offset).limit(params.size)
-
-    result = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionSchema.model_validate(question) for question in result.all()],
-    )
-
-
-async def search_resource_questions(db: AsyncSession, params: SearchQuestionSchema):
-    """搜索需要处理资源的问题 - 只查询 resource_type 不为空的数据"""
-    query = select(Question).options(
-        joinedload(Question.textbook),
-        joinedload(Question.unit).noload(Unit.textbook),
-    )
-
-    # 确保只查询 resource_type 不为空的数据（不为 None 且不为空字符串）
-    base_conditions = [
-        and_(
-            Question.resource_type.isnot(None),
-            Question.resource_type != "",
-            func.trim(Question.resource_type) != "",
-        )
-    ]
-    conditions = base_conditions.copy()
-
-    if params.question_id is not None:
-        conditions.append(Question.id == params.question_id)
-    if params.keywords:
-        conditions.append(Question.content.contains(params.keywords))
-    if params.type:
-        conditions.append(Question.type == params.type)
-    if params.grade is not None:
-        conditions.append(Question.grade == params.grade)
-    if params.subject:
-        conditions.append(Question.subject == params.subject)
-    if params.resource_type:
-        conditions.append(Question.resource_type == params.resource_type)
-    if params.resource_generated is not None:
-        if params.resource_generated:
-            conditions.append(
-                and_(
-                    Question.resource.isnot(None),
-                    Question.resource != "",
-                )
-            )
-        else:
-            conditions.append(
-                or_(
-                    Question.resource.is_(None),
-                    Question.resource == "",
-                )
-            )
-
-    query = query.where(and_(*conditions))
-
-    count_query = select(func.count(Question.id)).where(and_(*conditions))
-    total = await db.scalar(count_query) or 0
-
-    offset = (params.page - 1) * params.size
-    order_field = getattr(Question, params.sort, Question.id)
-    query = query.order_by(
-        order_field.desc() if params.order == "desc" else order_field.asc()
     )
     query = query.offset(offset).limit(params.size)
 

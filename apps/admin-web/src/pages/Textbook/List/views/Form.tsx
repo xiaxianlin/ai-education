@@ -5,14 +5,16 @@ import { useConfigs } from '@/hooks';
 
 export default function FormView() {
   const { semesters, textbook_versions, subjectEnum, gradeEnum } = useConfigs();
-  const { instance, edited, visible, onCancel, handleSubmit } = useTextbookListModel();
+  const {
+    formProps: { form, visible, item, onCancel, handleSubmit },
+  } = useTextbookListModel();
 
   return (
     <ModalForm<SaveTextbookRequest>
       width={600}
-      form={instance}
+      form={form}
       open={visible}
-      title={edited ? '更新教材' : '新增教材'}
+      title={item ? '更新教材' : '新增教材'}
       onFinish={handleSubmit}
       modalProps={{ destroyOnClose: true, onCancel }}
       layout="horizontal"

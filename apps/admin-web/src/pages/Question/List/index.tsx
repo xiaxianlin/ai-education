@@ -1,23 +1,22 @@
 import React from 'react';
-import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
-import { GRADES } from '@/constants/course';
 import { useConfigs, useDelete } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
-import { Space, Button, message, Flex } from 'antd';
-import { DeleteButton } from '@/components';
+import { Button, Flex, Form, Input, Select, Space } from 'antd';
+import { DeleteButton, SubjectGradeTabs } from '@/components';
 import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
-import { PlusOutlined } from '@ant-design/icons';
-
-const RESOURCE_TYPE_ENUM = {
-  image: { text: '图片' },
-  audio: { text: '音频' },
-};
+import { useEffect, useState } from 'react';
 
 export default function QuestionListPage() {
   const navigate = useNavigate();
-  const { subjectEnum, gradeEnum } = useConfigs();
-  const actionRef = React.useRef<any>();
+  const { question_scenes } = useConfigs();
+  const [subject, setSubject] = useState('英语');
+  const [grade, setGrade] = useState(1);
+  const [params, setParams] = useState<SearchQuestionRequest>({});
+
+  const [form] = Form.useForm();
+  const actionRef = React.useRef<ActionType>();
 
   // 删除题目
   const { handleDelete } = useDelete(adminApi.deleteQuestion, {
@@ -25,61 +24,24 @@ export default function QuestionListPage() {
   });
 
   const questionColumns: ProColumns<Question>[] = [
-    {
-      title: '题目',
-      dataIndex: 'content',
-      minWidth: 300,
-    },
+    { title: 'ID', dataIndex: 'id' },
+    { title: '题目', dataIndex: 'content', minWidth: 300 },
     {
       title: '题型',
-      dataIndex: 'type',
       minWidth: 70,
-      renderText: (type, record) => `${type}（${record.subtype}）`,
+      renderText: (_, record) => `${record.type}（${record.subtype}）`,
     },
-    {
-      title: '学科',
-      dataIndex: 'subject',
-      minWidth: 70,
-      valueType: 'select',
-      valueEnum: subjectEnum,
-    },
-    {
-      title: '阶段',
-      dataIndex: 'grade',
-      hideInSearch: true,
-      minWidth: 70,
-      renderText: (grade) => GRADES[grade],
-    },
-    {
-      title: '年级',
-      dataIndex: 'grade',
-      minWidth: 70,
-      valueType: 'select',
-      valueEnum: gradeEnum,
-      renderText: (grade) => GRADES[grade],
-    },
-    {
-      title: '难度',
-      minWidth: 60,
-      dataIndex: 'difficulty',
-      hideInSearch: true,
-    },
+    { title: '难度', minWidth: 60, dataIndex: 'difficulty' },
     {
       title: '资源类型',
       dataIndex: 'resource_type',
       minWidth: 90,
-      valueType: 'select',
-      valueEnum: {
-        ...RESOURCE_TYPE_ENUM,
-        '': { text: '无' },
-      },
-      render: (_, record) => renderResourceTypeTag(record.resource_type || undefined),
+      renderText: renderResourceTypeTag,
     },
     {
       title: '资源状态',
       dataIndex: 'resource_generated',
       minWidth: 90,
-      hideInSearch: true,
       render: (_, record) =>
         renderResourceStatusTag(Boolean(record.resource && record.resource.trim()), record.resource_type || undefined),
     },
@@ -87,7 +49,6 @@ export default function QuestionListPage() {
       title: '操作',
       key: 'option',
       fixed: 'right',
-      hideInSearch: true,
       width: 140,
       render: (_, record) => (
         <Flex align="center">
@@ -107,39 +68,24 @@ export default function QuestionListPage() {
     },
   ];
 
-  const buildSearchParams = React.useCallback((params: any): SearchQuestionRequest => {
-    const searchParams: SearchQuestionRequest = {
-      page: params.current || 1,
-      size: params.pageSize || 10,
-      keywords: params.content,
-    };
-
-    if (params.type !== undefined) {
-      searchParams.type = params.type;
-    }
-    if (params.subject !== undefined) {
-      searchParams.subject = params.subject;
-    }
-    if (params.grade !== undefined) {
-      searchParams.grade = params.grade;
-    }
-    if (params.resource_type !== undefined) {
-      (searchParams as any).resource_type = params.resource_type;
-    }
-    return searchParams;
-  }, []);
+  useEffect(() => {
+    actionRef.current?.reload?.(true);
+  }, [subject, grade, params]);
 
   return (
     <PageContainer title="题目管理" header={{ breadcrumb: {} }}>
+      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
       <ProTable<Question>
         actionRef={actionRef}
         bordered
         cardBordered
         rowKey="id"
+        search={false}
         columns={questionColumns}
-        request={async (params) => {
-          const searchParams = buildSearchParams(params);
-          const res = await adminApi.searchQuestions(searchParams);
+        pagination={{ pageSize: 10 }}
+        toolbar={{ settings: [] }}
+        request={async ({ current, pageSize }) => {
+          const res = await adminApi.searchQuestions({ page: current, size: pageSize, subject, grade, ...params });
           return {
             data: res?.data || [],
             total: res?.total || 0,
@@ -147,11 +93,47 @@ export default function QuestionListPage() {
           };
         }}
         headerTitle={[
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/question/create')}>
-            新建题目
-          </Button>,
+          <Form layout="inline" form={form} onFinish={(values) => setParams({ ...values })}>
+            <Form.Item name="question_id">
+              <Space.Compact>
+                <Space.Addon>ID:</Space.Addon>
+                <Input placeholder="题目ID" allowClear style={{ width: 300 }} />
+              </Space.Compact>
+            </Form.Item>
+            <Form.Item name="content">
+              <Space.Compact>
+                <Space.Addon>题目：</Space.Addon>
+                <Input placeholder="请输入题目内容" allowClear style={{ width: 200 }} />
+              </Space.Compact>
+            </Form.Item>
+            <Form.Item name="type" style={{ width: 230 }}>
+              <Space.Compact>
+                <Space.Addon>题型：</Space.Addon>
+                <Select
+                  allowClear
+                  placeholder="请选择题型"
+                  options={question_scenes.map((scene) => ({ label: scene, value: scene }))}
+                  style={{ width: 160 }}
+                />
+              </Space.Compact>
+            </Form.Item>
+            <Form.Item>
+              <Flex gap={8}>
+                <Button type="primary" onClick={() => form.submit()}>
+                  搜索
+                </Button>
+                <Button
+                  onClick={() => {
+                    setParams({});
+                    form.resetFields();
+                  }}
+                >
+                  重置
+                </Button>
+              </Flex>
+            </Form.Item>
+          </Form>,
         ]}
-        search={{ labelWidth: 'auto', defaultFormItemsNumber: 6 }}
       />
     </PageContainer>
   );

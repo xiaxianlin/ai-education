@@ -65,7 +65,7 @@ export const adminApi = {
    * GET /configs
    */
   async getConfigs(params?: { subject?: string; grade?: number }) {
-    return apiClient.get<Configs>('/configs', { params });
+    return apiClient.get<Configs>('/configs', params);
   },
 
   // ========== 管理员管理 ==========
@@ -117,7 +117,7 @@ export const adminApi = {
    * GET /student/search
    */
   async searchStudents(params?: SearchStudentRequest) {
-    return apiClient.get<SearchResponse<Student>>('/student/search', { params });
+    return apiClient.get<SearchResponse<Student>>('/student/search', params);
   },
 
   /**
@@ -209,7 +209,7 @@ export const adminApi = {
    * GET /question/search
    */
   async searchQuestions(params?: SearchQuestionRequest) {
-    return apiClient.get<SearchResponse<Question>>('/question/search', { params });
+    return apiClient.get<SearchResponse<Question>>('/question/search', params);
   },
 
   /**
@@ -259,7 +259,7 @@ export const adminApi = {
    * GET /textbook/search
    */
   async searchTextbooks(params?: SearchTextbookRequest) {
-    return apiClient.get<SearchResponse<Textbook>>('/textbook/search', { params });
+    return apiClient.get<Textbook[]>('/textbook/search', params);
   },
 
   /**
@@ -384,8 +384,8 @@ export const adminApi = {
    * 搜索教师用书
    * GET /teacher_book/search
    */
-  async searchTeacherBooks(params?: SearchTeacherBookRequest) {
-    return apiClient.get<SearchResponse<TeacherBook>>('/teacher_book/search', { params });
+  async searchTeacherBooks(subject: string, grade: number) {
+    return apiClient.get<TeacherBook[]>('/teacher_book/search', { subject, grade });
   },
 
   /**
@@ -453,7 +453,7 @@ export const adminApi = {
    * GET /question_type/search
    */
   async searchQuestionTypes(params?: SearchQuestionTypeRequest) {
-    return apiClient.get<QuestionType[]>('/question_type/search', { params });
+    return apiClient.get<QuestionType[]>('/question_type/search', params);
   },
 
   /**
@@ -495,7 +495,7 @@ export const adminApi = {
    * GET /api/admin/prompt/list
    */
   async listPrompts(params?: SearchPromptRequest) {
-    return apiClient.get<SearchResponse<Prompt>>('/prompt/list', { params });
+    return apiClient.get<SearchResponse<Prompt>>('/prompt/list', params);
   },
 
   /**
@@ -527,7 +527,7 @@ export const adminApi = {
    * GET /api/admin/prompt/versions
    */
   async listPromptVersions(params?: SearchPromptVersionRequest) {
-    return apiClient.get<SearchResponse<PromptVersion>>('/prompt/versions', { params });
+    return apiClient.get<SearchResponse<PromptVersion>>('/prompt/versions', params);
   },
 
   /**
@@ -564,7 +564,7 @@ export const adminApi = {
    * GET /api/admin/prompt/test/records
    */
   async listPromptTestRecords(params?: SearchPromptTestRecordRequest) {
-    return apiClient.get<SearchResponse<PromptTestRecord>>('/prompt/test/records', { params });
+    return apiClient.get<SearchResponse<PromptTestRecord>>('/prompt/test/records', params);
   },
 
   /**

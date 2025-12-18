@@ -2,14 +2,13 @@ import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
 import { useQuestionTypeListModel } from '../models/page';
 import { Button, Radio, Tag, Tabs, Flex } from 'antd';
 import { useMemo } from 'react';
-import { GRADES } from '@/constants/course';
 import { useConfigs } from '@/hooks';
-import { DeleteButton } from '@/components';
+import { DeleteButton, SubjectGradeTabs } from '@/components';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 import { PlusOutlined } from '@ant-design/icons';
 
 export default function TableView() {
-  const { subjects, question_scenes } = useConfigs();
+  const { question_scenes } = useConfigs();
   const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
     useQuestionTypeListModel();
 
@@ -55,24 +54,7 @@ export default function TableView() {
 
   return (
     <PageContainer title="题型管理" header={{ breadcrumb: {} }}>
-      <Tabs
-        style={{ marginTop: 16 }}
-        type="card"
-        onChange={setSubject}
-        activeKey={subject}
-        items={subjects.map((subject) => ({ label: subject, key: subject }))}
-        classNames={{ item: 'large-tab-item' }}
-      />
-      <Radio.Group
-        block
-        size="large"
-        buttonStyle="solid"
-        optionType="button"
-        style={{ marginBottom: 16 }}
-        value={grade}
-        onChange={(e) => setGrade(e.target.value)}
-        options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
-      />
+      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
       <ProTable<QuestionType>
         bordered
         rowKey="id"

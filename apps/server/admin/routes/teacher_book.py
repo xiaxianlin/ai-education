@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.schema import SaveTeacherBookSchema, SearchTeacherBookSchema
+from admin.schema import SaveTeacherBookSchema
 from admin.services import teacher_book
 from admin.services.auth import check_super_permission
 from shared.core.database import Database
@@ -10,9 +10,7 @@ teacher_book_router = APIRouter(prefix="/teacher_book")
 
 
 @teacher_book_router.post("/")
-async def create_teacher_book(
-    params: SaveTeacherBookSchema, db: AsyncSession = Database
-):
+async def create_teacher_book(params: SaveTeacherBookSchema, db: AsyncSession = Database):
     """创建教师用书"""
     return await teacher_book.create_teacher_book(db, params)
 
@@ -24,9 +22,7 @@ async def upload_teacher_book(id: int, file: UploadFile, db: AsyncSession = Data
 
 
 @teacher_book_router.put("/{id}")
-async def modify_teacher_book(
-    id: int, params: SaveTeacherBookSchema, db: AsyncSession = Database
-):
+async def modify_teacher_book(id: int, params: SaveTeacherBookSchema, db: AsyncSession = Database):
     """修改教师用书信息"""
     await teacher_book.modify_teacher_book(db, id, params)
 
@@ -38,11 +34,9 @@ async def delete_teacher_book(id: int, db: AsyncSession = Database):
 
 
 @teacher_book_router.get("/search")
-async def search(
-    params: SearchTeacherBookSchema = Depends(), db: AsyncSession = Database
-):
+async def search(subject: str, grade: int, db: AsyncSession = Database):
     """搜索教师用书"""
-    return await teacher_book.search_teacher_book(db, params)
+    return await teacher_book.search_teacher_book(db, subject, grade)
 
 
 @teacher_book_router.get("/{id}")

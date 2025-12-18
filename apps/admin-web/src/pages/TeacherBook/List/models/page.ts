@@ -1,10 +1,12 @@
-import { useCallback, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { adminApi } from '@/lib/api';
 
 const useContainer = () => {
+  const [subject, setSubject] = useState('英语');
+  const [grade, setGrade] = useState(1);
   const actionRef = useRef<ActionType>();
   const formProps = useSimpleForm<SaveTeacherBookRequest, TeacherBook>({
     service: async (values, item) => {
@@ -17,23 +19,17 @@ const useContainer = () => {
     onSubmit: () => actionRef.current?.reload(),
   });
 
-  const tableRequest = useCallback(async ({ pageSize, current, ...filter }: any) => {
-    const data = await adminApi.searchTeacherBooks({
-      page: current || 1,
-      size: pageSize || 10,
-      ...filter,
-    });
-    return {
-      data: data.data || [],
-      success: true,
-      total: data.total || 0,
-    };
-  }, []);
+  useEffect(() => {
+    actionRef.current?.reload();
+  }, [subject, grade]);
 
   return {
+    subject,
+    grade,
+    setSubject,
+    setGrade,
     formProps,
     actionRef,
-    tableRequest,
   };
 };
 
