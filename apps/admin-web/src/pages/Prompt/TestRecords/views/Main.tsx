@@ -157,27 +157,9 @@ export default function MainView() {
           defaultCollapsed: true,
           defaultColsNumber: 6,
         }}
-<<<<<<< HEAD
-        request={async ({ pageSize, current, ...filter }) => {
-          const data = await adminApi.listPromptTestRecords({
-            page: current || 1,
-            size: pageSize || 10,
-            prompt_id: filter.prompt_id,
-            version_id: filter.version_id,
-            generation_type: filter.generation_type,
-            model_name: filter.model_name,
-            status: filter.status,
-          });
-          return {
-            data: data?.data || [],
-            success: true,
-            total: data?.total || 0,
-          };
-=======
         request={async ({ current, pageSize, ...rest }) => {
           const res = await adminApi.listPromptTestRecords({ page: current || 1, size: pageSize || 10, ...rest });
           return { data: res?.data || [], success: true, total: res?.total || 0 };
->>>>>>> aeca84f6cf426e847e81e75893ed48eb14b3a98a
         }}
         toolbar={{ settings: [] }}
         headerTitle={<div />}

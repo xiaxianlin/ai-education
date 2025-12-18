@@ -17,7 +17,7 @@ const useContainer = () => {
   // 新增状态
   const [parameters, setParameters] = useState<TemplateParameter[]>([]);
   const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
-  const [generationType, setGenerationType] = useState<string>('text');
+  const [generationType, setGenerationType] = useState<GenerateType>('text');
   const [modelConfig, setModelConfig] = useState<ModelConfig>({
     model_provider: 'aliyun',
     model_name: 'qwen-plus',

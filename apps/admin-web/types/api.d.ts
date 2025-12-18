@@ -1,4 +1,5 @@
 declare global {
+  type GenerateType = 'text' | 'image' | 'video' | 'audio';
   /**
    * 登录模型
    */
@@ -212,7 +213,7 @@ declare global {
       max_tokens?: number;
       [key: string]: any;
     };
-    generation_type?: 'text' | 'image' | 'video' | 'audio';
+    generation_type?: GenerateType;
   }
 
   interface TestPromptResponse {
@@ -258,7 +259,7 @@ declare global {
     id: number;
     prompt_id: number;
     version_id: number;
-    generation_type?: 'text' | 'image' | 'audio' | 'video';
+    generation_type?: GenerateType;
     model_provider?: string;
     model_name?: string;
     input_payload: Record<string, any>;
