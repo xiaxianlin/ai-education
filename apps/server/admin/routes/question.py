@@ -9,9 +9,7 @@ question_router = APIRouter(prefix="/question")
 
 
 @question_router.patch("/{id}")
-async def update_question(
-    id: str, update: UpdateQuestionSchema, db: AsyncSession = Database
-):
+async def update_question(id: str, update: UpdateQuestionSchema, db: AsyncSession = Database):
     """更新题目"""
     await question.update_question(db, id, update)
 
@@ -23,19 +21,9 @@ async def delete_question(id: str, db: AsyncSession = Database):
 
 
 @question_router.get("/search")
-async def search_question(
-    params: SearchQuestionSchema = Depends(), db: AsyncSession = Database
-):
+async def search_question(params: SearchQuestionSchema = Depends(), db: AsyncSession = Database):
     """搜索题目"""
     return await question.search_question(db, params)
-
-
-@question_router.get("/resource/search")
-async def search_resource_question(
-    params: SearchQuestionSchema = Depends(), db: AsyncSession = Database
-):
-    """搜索资源题目"""
-    return await question.search_resource_questions(db, params)
 
 
 @question_router.get("/{id}")

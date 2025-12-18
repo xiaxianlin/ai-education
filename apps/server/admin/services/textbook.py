@@ -110,33 +110,25 @@ async def get_textbook(db: AsyncSession, textbook_id: int):
 
 
 async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
+    """搜索教材（无分页，返回列表）"""
     stmt = select(Textbook)
     if params.version:
         stmt = stmt.where(Textbook.version == params.version)
     if params.subject:
         stmt = stmt.where(Textbook.subject == params.subject)
-    if params.grade:
+    if params.grade is not None:
         stmt = stmt.where(Textbook.grade == params.grade)
 
-    # --- 总数 ---
-    count_stmt = select(func.count()).select_from(stmt.subquery())
-    total = await db.scalar(count_stmt)
-
-    # --- 排序（先按科目、后按年级，确保年级顺序） ---
-    stmt = stmt.order_by(asc(Textbook.subject), asc(Textbook.grade))
-
-    # --- 分页 ---
-    offset = (params.page - 1) * params.size
-    stmt = stmt.offset(offset).limit(params.size)
+    # 排序：先科目、再年级、再版本、再学期
+    stmt = stmt.order_by(
+        asc(Textbook.subject),
+        asc(Textbook.grade),
+        asc(Textbook.version),
+        asc(Textbook.semester),
+    )
 
     results = await db.scalars(stmt)
-
-    return {
-        "total": total,
-        "data": [
-            TextbookSchema.model_validate(item) for item in results.unique().all()
-        ],
-    }
+    return [TextbookSchema.model_validate(item) for item in results.unique().all()]
 
 
 async def parse_textbook(db: AsyncSession, id: int):

@@ -8,7 +8,7 @@ import { ResultView } from "./ResultView";
 import { SettlementView } from "./SettlementView";
 import { ProcessingView } from "./ProcessingView";
 import { usePageModel } from "../models/PageModel";
-import { LoadingPage } from "@/components/business/LoadingSpinner";
+import { LoadingPage } from "@/components/business";
 import { PanelType } from "../types";
 
 export function MainView() {

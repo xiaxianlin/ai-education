@@ -1,11 +1,12 @@
-import { PageContainer, ProColumns, ProFormText } from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ProFormText, ProTable } from '@ant-design/pro-components';
 import { useStudentListModel } from '../models/page';
 import { Button } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { CommonTable, FormModal } from '@/components/business';
+import { FormModal } from '@/components';
 import { createTimeColumn, createStatusColumn, createStatusSearchColumn, createActionColumn } from '@/hooks';
+import { PlusOutlined } from '@ant-design/icons';
 
 export default function MainView() {
   const {
@@ -45,7 +46,9 @@ export default function MainView() {
 
   return (
     <PageContainer title="学生管理" header={{ breadcrumb: {} }}>
-      <CommonTable<Student>
+      <ProTable<Student>
+        bordered
+        cardBordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
@@ -56,7 +59,7 @@ export default function MainView() {
           defaultCollapsed: false,
         }}
         headerTitle={
-          <Button type="primary" onClick={() => showForm()}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => showForm()}>
             新增学生
           </Button>
         }

@@ -1,7 +1,7 @@
 /**
  * 知识点弹窗组件
  */
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { X, Lightbulb } from "lucide-react";
 import { usePageModel } from "../models/PageModel";
 

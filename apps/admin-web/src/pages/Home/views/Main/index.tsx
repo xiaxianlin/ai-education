@@ -24,8 +24,7 @@ export default function MainView() {
   });
 
   const { data: textbookData } = useRequest(async () => {
-    const res = await adminApi.searchTextbooks({ page: 1, size: 1000 });
-    return res;
+    return await adminApi.searchTextbooks();
   });
 
   const { data: questionData } = useRequest(async () => {
@@ -36,7 +35,7 @@ export default function MainView() {
   // 计算统计数据
   const totalStudents = studentData?.data?.length || 0;
   const activeStudents = studentData?.data?.filter((s) => s.status === 1).length || 0;
-  const totalTextbooks = textbookData?.data?.length || 0;
+  const totalTextbooks = textbookData?.length || 0;
   const totalQuestions = questionData?.data?.length || 0;
 
   // 问候语

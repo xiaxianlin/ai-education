@@ -3,12 +3,10 @@
  * 显示所有类型的练习历史记录
  */
 import { useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
 import { HistoryCard } from "./components/HistoryCard";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const PRACTICE_TYPES: Array<{
   value: PracticeType;

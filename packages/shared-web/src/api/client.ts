@@ -1,10 +1,4 @@
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 /**
  * 基础 API 客户端
@@ -71,8 +65,8 @@ export class ApiClient {
   /**
    * GET 请求
    */
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<ApiResponse<T>>(url, config);
+  async get<T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.get<ApiResponse<T>>(url, { params, ...config });
     return response.data?.data as T;
   }
 

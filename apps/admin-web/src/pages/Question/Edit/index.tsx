@@ -36,11 +36,10 @@ export default function QuestionEditPage() {
 
   // 获取所有教材列表
   const { data: textbookOptions } = useRequest(async () => {
-    const res = await adminApi.searchTextbooks({ page: 1, size: 1000 });
-    return (res.data || []).reduce((prev: Record<number, string>, curr) => {
-      const gradeNum = typeof curr.grade === 'string' ? parseInt(curr.grade, 10) : curr.grade;
-      const gradeInfo = GRADES[gradeNum];
-      const label = `${curr.subject} - ${curr.version} - ${gradeInfo || gradeNum}年级 - ${curr.semester}`;
+    const res = await adminApi.searchTextbooks();
+    return res.reduce((prev: Record<number, string>, curr) => {
+      const gradeInfo = GRADES[curr.grade];
+      const label = `${curr.subject} - ${curr.version} - ${gradeInfo || curr.grade}年级 - ${curr.semester}`;
       prev[curr.id] = label;
       return prev;
     }, {});

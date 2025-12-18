@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageContainer, ProColumns } from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag, Flex } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 
@@ -37,7 +37,7 @@ export default function MainView() {
           <Tag color={isPublished === 1 ? 'green' : 'default'}>{isPublished === 1 ? '已发布' : '未发布'}</Tag>
         ),
       },
-      { title: '描述', dataIndex: 'description', width: 200 },
+      { title: '描述', dataIndex: 'description', width: 200, hideInSearch: true },
       createTimeColumn<Prompt>('创建时间', ['version', 'create_time'], { width: 180 }),
       createActionColumn<Prompt>(
         (_, record) => (
@@ -63,20 +63,23 @@ export default function MainView() {
 
   return (
     <PageContainer title="提示词管理" header={{ breadcrumb: {} }}>
-      <CommonTable<Prompt>
+      <ProTable<Prompt>
+        bordered
+        cardBordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
         search={{
           labelWidth: 'auto',
           layout: 'inline',
+          defaultCollapsed: true,
           defaultColsNumber: 6,
         }}
-        toolBarRender={() => [
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/prompt/form')}>
+        headerTitle={
+          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/prompt/form')}>
             新建提示词
-          </Button>,
-        ]}
+          </Button>
+        }
         request={async ({ pageSize, current, ...filter }) => {
           const data = await adminApi.listPrompts({
             page: current || 1,

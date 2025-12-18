@@ -132,7 +132,7 @@ pnpm build
 
 ```tsx
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { CommonTable, DeleteButton } from '@/components';
 import { createTimeColumn, useDelete } from '@/hooks';
 
 export default function ListPage() {
@@ -171,7 +171,7 @@ export default function ListPage() {
 
 ```tsx
 import { PageContainer } from '@ant-design/pro-components';
-import { PageHeader, DetailCard, DescriptionList } from '@/components/business';
+import { PageHeader, DetailCard, DescriptionList } from '@/components';
 
 export default function DetailPage() {
   const { id } = useParams();
@@ -221,7 +221,7 @@ import { Button, message } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 
 // 3. 项目内部
-import { CommonTable } from '@/components/business';
+import { CommonTable } from '@/components';
 import { useDelete } from '@/hooks';
 import { StudentApi } from '@/services/student';
 

@@ -3,7 +3,7 @@
  * 自动轮询检查报告生成状态，生成完成后自动切换到结果视图
  */
 import { memo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui";
 import { Loader2, Sparkles } from "lucide-react";
 
 export const SettlementView = memo(() => {

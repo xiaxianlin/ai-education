@@ -284,7 +284,7 @@ DELETE /api/admin/textbook/{id}
 #### 搜索教材
 
 ```
-GET /api/admin/textbook/search?keyword=数学&page=1&size=10
+GET /api/admin/textbook/search?subject=数学&grade=3&version=人教版
 ```
 
 **查询参数**:

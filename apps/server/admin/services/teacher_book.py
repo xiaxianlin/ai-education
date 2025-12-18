@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 from fastapi import UploadFile
-from sqlalchemy import asc, func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from admin.schema import SaveTeacherBookSchema, SearchTeacherBookSchema
+from admin.schema import SaveTeacherBookSchema
+
 # from shared.provider.aliyun import AliyunRag  # TODO: Implement RAG provider
 from shared.core.database import TeacherBook
 from shared.core.schema import TeacherBookSchema
@@ -72,32 +73,10 @@ async def get_teacher_book(db: AsyncSession, teacher_book_id: int):
     return TeacherBookSchema.model_validate(teacher_book)
 
 
-async def search_teacher_book(db: AsyncSession, params: SearchTeacherBookSchema):
-    stmt = select(TeacherBook)
-    if params.version:
-        stmt = stmt.where(TeacherBook.version == params.version)
-    if params.subject:
-        stmt = stmt.where(TeacherBook.subject == params.subject)
-    if params.grade:
-        stmt = stmt.where(TeacherBook.grade == params.grade)
+async def search_teacher_book(db: AsyncSession, subject: str, grade: int):
+    results = await db.scalars(select(TeacherBook).where(TeacherBook.subject == subject, TeacherBook.grade == grade))
 
-    # --- 总数 ---
-    count_stmt = select(func.count()).select_from(stmt.subquery())
-    total = await db.scalar(count_stmt)
-
-    # --- 排序（先按科目、后按年级，确保年级顺序） ---
-    stmt = stmt.order_by(asc(TeacherBook.subject), asc(TeacherBook.grade))
-
-    # --- 分页 ---
-    offset = (params.page - 1) * params.size
-    stmt = stmt.offset(offset).limit(params.size)
-
-    results = await db.scalars(stmt)
-
-    return {
-        "total": total,
-        "data": [TeacherBookSchema.model_validate(item) for item in results.unique().all()],
-    }
+    return [TeacherBookSchema.model_validate(item) for item in results.unique().all()]
 
 
 async def upload_teacher_book(db: AsyncSession, id: int, file: UploadFile):

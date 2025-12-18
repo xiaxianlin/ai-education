@@ -7,7 +7,7 @@ import { SetStateAction, useMemo, useState } from 'react';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { formatDateTime } from '@ai-education/shared-web';
-import { PageHeader } from '@/components/business';
+import { PageHeader } from '@/components';
 
 export default function PracticeDetailPage() {
   const { session_id } = useParams<{ session_id: string }>();
@@ -197,7 +197,7 @@ export default function PracticeDetailPage() {
           </Row>
         </Card>
 
-        <Card className="table-card" title={`题目列表（共 ${session.question_count} 题）`}>
+        <Card title={`题目列表（共 ${session.question_count} 题）`}>
           <ProTable
             rowKey="id"
             columns={columns}

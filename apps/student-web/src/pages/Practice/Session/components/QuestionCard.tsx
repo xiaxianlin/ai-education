@@ -3,7 +3,7 @@
  */
 
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui";
 import { useMemo } from "react";
 import AudioPlayer from "@/components/business/AudioPlayer";
 import { usePageModel } from "../models/PageModel";

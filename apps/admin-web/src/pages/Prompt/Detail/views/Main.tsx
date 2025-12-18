@@ -1,7 +1,7 @@
 import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { Button, Flex, Spin, Tag } from 'antd';
 import { usePromptDetailModel } from '../models/page';
-import { PageHeader } from '@/components/business';
+import { PageHeader } from '@/components';
 import { PublishModal } from '../components/PublishModal';
 
 export default function MainView() {

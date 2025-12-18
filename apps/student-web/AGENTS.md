@@ -55,8 +55,8 @@ pages/[Feature]/[PageName]/
 #### 导入顺序
 1. React 相关
 2. 第三方库（ahooks, react-router-dom 等）
-3. 业务组件（@/components/business）
-4. UI 组件（@/components/ui）
+3. 业务组件（@/components）
+4. UI 组件（@/components）
 5. 类型定义
 6. 工具函数/常量（@/lib, @/constants）
 

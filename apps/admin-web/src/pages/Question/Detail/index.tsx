@@ -1,12 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
+import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Tag, Image, Popconfirm, Flex } from 'antd';
+import { message, Button, Card, Space, Tag, Image, Flex, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
-import { AudioPlayer } from '@/components/ui';
+import { AudioPlayer, DeleteButton } from '@/components';
 import { getResourceUrl } from '@ai-education/shared-web';
+import { PageHeader } from '@/components';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -115,44 +116,25 @@ export default function QuestionDetailPage() {
 
   return (
     <PageContainer
-      title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Button
-            type="text"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
-            style={{ padding: 0, height: 'auto' }}
-          />
-          <span>题目详情</span>
-        </div>
-      }
-      header={{
-        breadcrumb: {},
-        extra: [
-          <Button key="edit" type="primary" onClick={() => navigate(`/question/edit/${question.id}`)}>
-            编辑
-          </Button>,
-          <Popconfirm
-            key="delete"
-            title="确定要删除这道题目吗？"
-            description="删除后无法恢复，请谨慎操作。"
-            onConfirm={handleDelete}
-            okText="确定"
-            cancelText="取消"
-            okButtonProps={{ danger: true }}
-          >
-            <Button danger loading={deleting}>
-              删除
-            </Button>
-          </Popconfirm>,
-        ],
-      }}
+      title={<PageHeader title="题目详情" />}
+      header={{ breadcrumb: {} }}
+      footer={[
+        <Button key="edit" type="primary" onClick={() => navigate(`/question/edit/${question.id}`)}>
+          编辑
+        </Button>,
+        <DeleteButton
+          key="delete"
+          title="确定要删除这道题目吗？"
+          onConfirm={() => handleDelete()}
+          buttonProps={{ type: 'primary', loading: deleting }}
+        />,
+      ]}
     >
-      <Space orientation="vertical" style={{ width: '100%' }} size="large">
+      <Flex vertical gap={16} style={{ width: '100%' }}>
         <Card
           title="基本信息"
           extra={
-            <Space>
+            <>
               {isImageQuestion && (
                 <Button type="primary" onClick={handleGenerateImage} loading={generatingImage}>
                   生成图片
@@ -163,7 +145,7 @@ export default function QuestionDetailPage() {
                   生成语音
                 </Button>
               )}
-            </Space>
+            </>
           }
         >
           <ProDescriptions column={3}>
@@ -217,17 +199,8 @@ export default function QuestionDetailPage() {
           </ProDescriptions>
         </Card>
 
-        <Card title="题目内容">
-          <div
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              fontSize: '14px',
-              lineHeight: '1.8',
-            }}
-          >
-            {question.content}
-          </div>
+        <ProCard title="题目内容" bordered={false}>
+          <Typography.Paragraph>{question.content}</Typography.Paragraph>
 
           {/* 图片组件 */}
           {isImageQuestion && resourceUrl && (
@@ -297,35 +270,23 @@ export default function QuestionDetailPage() {
               )}
             </div>
           )}
-        </Card>
+        </ProCard>
 
-        {optionsList.length > 0 && (
-          <Card title="选项">
-            <Flex gap={10}>
-              {optionsList.map((option, index) => (
-                <Tag key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                  <strong>{String.fromCharCode(65 + index)}.</strong> {option}
-                </Tag>
-              ))}
-            </Flex>
-          </Card>
-        )}
+        <ProCard title="选项">
+          <Flex gap={10}>
+            {optionsList.map((option, index) => (
+              <Tag key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                <strong>{String.fromCharCode(65 + index)}.</strong> {option}
+              </Tag>
+            ))}
+            {optionsList.length === 0 && '此题没有选项'}
+          </Flex>
+        </ProCard>
 
-        {question.answer && (
-          <Card title="答案">
-            <div
-              style={{
-                fontSize: '14px',
-                padding: '12px',
-                background: '#e6f7ff',
-                borderRadius: '4px',
-              }}
-            >
-              {question.answer}
-            </div>
-          </Card>
-        )}
-      </Space>
+        <ProCard title="答案">
+          <Tag color="blue">{question.answer}</Tag>
+        </ProCard>
+      </Flex>
     </PageContainer>
   );
 }

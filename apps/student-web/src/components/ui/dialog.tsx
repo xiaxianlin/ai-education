@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
+import { Button } from "./button";
 
 interface AlertDialogProps {
   open: boolean;
@@ -51,10 +45,7 @@ export function AlertDialog({
             <Button variant="outline" onClick={handleCancel}>
               {cancelText}
             </Button>
-            <Button
-              variant={variant === "destructive" ? "destructive" : "default"}
-              onClick={handleConfirm}
-            >
+            <Button variant={variant === "destructive" ? "destructive" : "default"} onClick={handleConfirm}>
               {confirmText}
             </Button>
           </div>

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageContainer, ProColumns } from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Tag, Flex, Button, Typography } from 'antd';
 import { usePromptTestRecordsModel } from '../models/page';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import RecordDetailDrawer from '../components/RecordDetailDrawer';
@@ -93,6 +93,7 @@ export default function MainView() {
         dataIndex: 'status',
         width: 100,
         valueType: 'select',
+        hideInSearch: true,
         valueEnum: {
           0: { text: '待测试' },
           1: { text: '测试中' },
@@ -143,16 +144,20 @@ export default function MainView() {
   );
 
   return (
-    <PageContainer className="simple-list-page" title="测试记录" header={{ breadcrumb: {} }}>
-      <CommonTable<PromptTestRecord>
+    <PageContainer title="测试记录" header={{ breadcrumb: {} }}>
+      <ProTable<PromptTestRecord>
+        bordered
+        cardBordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
         search={{
           labelWidth: 'auto',
           layout: 'inline',
+          defaultCollapsed: true,
           defaultColsNumber: 6,
         }}
+<<<<<<< HEAD
         request={async ({ pageSize, current, ...filter }) => {
           const data = await adminApi.listPromptTestRecords({
             page: current || 1,
@@ -168,7 +173,14 @@ export default function MainView() {
             success: true,
             total: data?.total || 0,
           };
+=======
+        request={async ({ current, pageSize, ...rest }) => {
+          const res = await adminApi.listPromptTestRecords({ page: current || 1, size: pageSize || 10, ...rest });
+          return { data: res?.data || [], success: true, total: res?.total || 0 };
+>>>>>>> aeca84f6cf426e847e81e75893ed48eb14b3a98a
         }}
+        toolbar={{ settings: [] }}
+        headerTitle={<div />}
       />
 
       <RecordDetailDrawer

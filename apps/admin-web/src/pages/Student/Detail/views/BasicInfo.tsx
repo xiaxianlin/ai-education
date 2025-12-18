@@ -1,8 +1,9 @@
 import { Card, Button } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
-import { StatusTag } from '@/components/ui';
+import { StatusTag } from '@/components';
 import { useStudentDetailModel } from '../models/page';
 import { GRADES } from '@/constants/course';
+import { EditOutlined } from '@ant-design/icons';
 
 export function BasicInfo() {
   const { student, loading, editForm, setEditFormVisible } = useStudentDetailModel();
@@ -19,7 +20,7 @@ export function BasicInfo() {
       title="基本信息"
       loading={loading}
       extra={
-        <Button type="primary" onClick={handleEdit} disabled={!student}>
+        <Button type="primary" icon={<EditOutlined />} onClick={handleEdit} disabled={!student}>
           编辑信息
         </Button>
       }

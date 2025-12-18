@@ -1,28 +1,21 @@
-import { PageContainer, ProCard, ProColumns } from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { useQuestionTypeListModel } from '../models/page';
-import { Button, Radio, Space, Tag, Tabs, Table, TableProps, Flex } from 'antd';
+import { Button, Radio, Tag, Tabs, Flex } from 'antd';
 import { useMemo } from 'react';
-import { GRADES } from '@/constants/course';
 import { useConfigs } from '@/hooks';
-import { DeleteButton } from '@/components/business';
+import { DeleteButton, SubjectGradeTabs } from '@/components';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 import { PlusOutlined } from '@ant-design/icons';
 
 export default function TableView() {
-  const { subjects, question_scenes } = useConfigs();
+  const { question_scenes } = useConfigs();
   const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
     useQuestionTypeListModel();
 
-  const columns = useMemo<TableProps<QuestionType>['columns']>(
+  const columns = useMemo<ProColumns<QuestionType>[]>(
     () => [
-      {
-        title: '标题',
-        dataIndex: 'title',
-      },
-      {
-        title: '类型',
-        dataIndex: 'scene',
-      },
+      { title: '标题', dataIndex: 'title' },
+      { title: '类型', dataIndex: 'scene' },
       {
         title: '资源类型',
         dataIndex: 'resource_type',
@@ -44,15 +37,15 @@ export default function TableView() {
         fixed: 'right',
         width: 150,
         render: (_, record) => (
-          <Space>
-            <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
+          <Flex>
+            <Button key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
-            <Button size="small" key="copy" type="link" onClick={() => showCopyForm(record)}>
+            <Button key="copy" type="link" onClick={() => showCopyForm(record)}>
               复制
             </Button>
-            <DeleteButton buttonProps={{ size: 'small', type: 'link' }} onConfirm={() => handleDelete(record.id)} />
-          </Space>
+            <DeleteButton buttonProps={{ type: 'link' }} onConfirm={() => handleDelete(record.id)} />
+          </Flex>
         ),
       },
     ],
@@ -61,50 +54,40 @@ export default function TableView() {
 
   return (
     <PageContainer title="题型管理" header={{ breadcrumb: {} }}>
-      <Tabs
-        style={{ marginTop: 16 }}
-        type="card"
-        onChange={setSubject}
-        activeKey={subject}
-        items={subjects.map((subject) => ({ label: subject, key: subject }))}
-        classNames={{ item: 'large-tab-item' }}
-      />
-      <Radio.Group
-        block
-        size="large"
-        buttonStyle="solid"
-        optionType="button"
-        style={{ marginBottom: 16 }}
-        value={grade}
-        onChange={(e) => setGrade(e.target.value)}
-        options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
-      />
-      <ProCard>
-        <Flex vertical gap={16}>
-          <Flex justify="space-between" align="center">
-            <Flex gap={8}>
-              {question_scenes.map((item) => {
-                const isActive = scene === item;
-                return (
-                  <Tag
-                    key={item}
-                    variant="filled"
-                    style={{ padding: '8px 16px', cursor: 'pointer' }}
-                    color={isActive ? 'volcano' : 'blue'}
-                    onClick={() => setScene(isActive ? undefined : item)}
-                  >
-                    {item}
-                  </Tag>
-                );
-              })}
-            </Flex>
+      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
+      <ProTable<QuestionType>
+        bordered
+        rowKey="id"
+        search={false}
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        headerTitle={
+          <Flex gap={8}>
+            {question_scenes.map((item) => {
+              const isActive = scene === item;
+              return (
+                <Tag
+                  key={item}
+                  variant="filled"
+                  style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
+                  color={isActive ? 'volcano' : 'blue'}
+                  onClick={() => setScene(isActive ? undefined : item)}
+                >
+                  {item}
+                </Tag>
+              );
+            })}
+          </Flex>
+        }
+        toolbar={{
+          settings: [
             <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
               新增题型
-            </Button>
-          </Flex>
-          <Table<QuestionType> bordered rowKey="id" columns={columns} dataSource={data} pagination={false} />
-        </Flex>
-      </ProCard>
+            </Button>,
+          ],
+        }}
+      />
     </PageContainer>
   );
 }

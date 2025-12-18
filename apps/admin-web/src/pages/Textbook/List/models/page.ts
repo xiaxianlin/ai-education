@@ -1,12 +1,14 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { adminApi } from '@/lib/api';
 
 const useContainer = () => {
+  const [subject, setSubject] = useState('英语');
+  const [grade, setGrade] = useState(1);
   const actionRef = useRef<ActionType>();
-  const form = useSimpleForm<SaveTextbookRequest, Textbook>({
+  const formProps = useSimpleForm<SaveTextbookRequest, Textbook>({
     service: async (values, item) => {
       if (item) {
         await adminApi.updateTextbook(item.id, values);
@@ -17,9 +19,17 @@ const useContainer = () => {
     onSubmit: () => actionRef.current?.reload(),
   });
 
+  useEffect(() => {
+    actionRef.current?.reload();
+  }, [subject, grade]);
+
   return {
-    ...form,
+    subject,
+    grade,
+    setSubject,
+    setGrade,
     actionRef,
+    formProps,
   };
 };
 

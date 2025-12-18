@@ -4,8 +4,7 @@
  */
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, Card, CardContent } from "@/components/ui";
 import { Trophy, CheckCircle, XCircle, Clock, Home, FileText } from "lucide-react";
 import { usePageModel } from "../models/PageModel";
 

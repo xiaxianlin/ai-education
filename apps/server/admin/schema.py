@@ -89,10 +89,12 @@ class SaveTextbookSchema(BaseModel):
         return v
 
 
-class SearchTextbookSchema(SearchSchema):
+class SearchTextbookSchema(BaseModel):
+    """教材搜索（无分页）"""
+
     version: Optional[str] = None
     subject: Optional[str] = None
-    grade: Optional[str] = None
+    grade: Optional[int] = None
 
 
 class SaveTeacherBookSchema(BaseModel):
@@ -129,11 +131,6 @@ class SaveTeacherBookSchema(BaseModel):
             raise ValueError(f"学期只能选择{'、'.join(SEMESTERS)}")
         return v
 
-
-class SearchTeacherBookSchema(SearchSchema):
-    version: Optional[str] = None
-    subject: Optional[str] = None
-    grade: Optional[str] = None
 
 
 class CreateUnitSchema(BaseModel):

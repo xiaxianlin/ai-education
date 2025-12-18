@@ -67,8 +67,8 @@
 
 ### shadcn/ui 组件 (student-web)
 ```tsx
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/card";
 
 <Card>
   <CardHeader>

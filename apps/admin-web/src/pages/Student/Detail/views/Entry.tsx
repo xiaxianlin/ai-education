@@ -1,7 +1,7 @@
 import { PageContainer, ProSkeleton } from '@ant-design/pro-components';
 import { Space } from 'antd';
 
-import { PageHeader } from '@/components/business';
+import { PageHeader } from '@/components';
 import { BasicInfo } from './BasicInfo';
 import { TextbookList } from './TextbookList';
 import { useStudentDetailModel } from '../models/page';
