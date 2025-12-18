@@ -93,7 +93,7 @@ export default function QuestionListPage() {
           };
         }}
         headerTitle={[
-          <Form layout="inline" form={form} onFinish={(values) => setParams({ ...values })}>
+          <Form size='large' layout="inline" form={form} onFinish={(values) => setParams({ ...values })}>
             <Form.Item name="question_id">
               <Space.Compact>
                 <Space.Addon>ID:</Space.Addon>
