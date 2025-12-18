@@ -23,7 +23,10 @@ declare global {
     question_scenes: string[];
     difficulty_levels: string[];
     providers: string[];
+    question_types: Record<string, Record<number, Record<string, string[]>>>;
   }
+
+  interface UpdateQuestionRequest extends Partial<Question> {}
 
   interface LoginModel {
     username?: string;

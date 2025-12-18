@@ -10,6 +10,7 @@ export const useConfigs = () => {
     question_scenes = [],
     difficulty_levels = [],
     providers = [],
+    question_types = {},
   } = (initialState?.configs || {}) as Configs;
   const subjectEnum = subjects.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
@@ -19,7 +20,7 @@ export const useConfigs = () => {
 
   const textbookVersionEmun = textbook_versions.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
-  const questionSceneEmun = question_scenes.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
+  const questionTypeEnum = question_scenes.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   return {
     semesters,
@@ -28,9 +29,10 @@ export const useConfigs = () => {
     question_scenes,
     difficulty_levels,
     providers,
+    question_types,
     subjectEnum,
     gradeEnum,
-    questionSceneEmun,
+    questionTypeEnum,
     difficultyLevelEmun,
     textbookVersionEmun,
   };

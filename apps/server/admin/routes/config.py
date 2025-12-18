@@ -6,6 +6,7 @@ from shared.core.constants import (
     SEMESTERS,
     QUESTION_SCENES,
     DIFFICULTY_LEVELS,
+    QUESTION_TYPES,
 )
 
 config_router = APIRouter()
@@ -21,5 +22,6 @@ async def configs():
         "semesters": SEMESTERS,
         "question_scenes": QUESTION_SCENES,
         "difficulty_levels": DIFFICULTY_LEVELS,
+        "question_types": QUESTION_TYPES,
         "providers": ["aliyun"],
     }

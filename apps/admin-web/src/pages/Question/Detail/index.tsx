@@ -119,7 +119,7 @@ export default function QuestionDetailPage() {
       title={<PageHeader title="题目详情" />}
       header={{ breadcrumb: {} }}
       footer={[
-        <Button key="edit" type="primary" onClick={() => navigate(`/question/edit/${question.id}`)}>
+        <Button key="edit" type="primary" onClick={() => navigate(`/question/form/${question.id}`)}>
           编辑
         </Button>,
         <DeleteButton
@@ -152,7 +152,7 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo || '-'}</ProDescriptions.Item>
-            <ProDescriptions.Item label="题型">{question.type}</ProDescriptions.Item>
+            <ProDescriptions.Item label="题型">{String(question.type)}</ProDescriptions.Item>
             {question.subtype && <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>}
             <ProDescriptions.Item label="难度">
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}

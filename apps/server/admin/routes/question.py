@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
+from admin.schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
 from admin.services import question
 from shared.core.database import Database
 
 question_router = APIRouter(prefix="/question")
+
+
+@question_router.post("/")
+async def create_question(data: CreateQuestionSchema, db: AsyncSession = Database):
+    """创建题目"""
+    return await question.create_question(db, data)
 
 
 @question_router.patch("/{id}")

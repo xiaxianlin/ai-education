@@ -8,7 +8,7 @@ import TextbookDetail from '@/pages/Textbook/Detail';
 import TeacherBookList from '@/pages/TeacherBook/List';
 import TeacherBookDetail from '@/pages/TeacherBook/Detail';
 import QuestionList from '@/pages/Question/List';
-import QuestionEdit from '@/pages/Question/Edit';
+import QuestionForm from '@/pages/Question/Form';
 import QuestionDetail from '@/pages/Question/Detail';
 import QuestionTypeList from '@/pages/QuestionType/List';
 import PromptList from '@/pages/Prompt/List';
@@ -41,7 +41,8 @@ export function Router() {
         { path: 'teacher_book', element: <TeacherBookList /> },
         { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
         { path: 'question', element: <QuestionList /> },
-        { path: 'question/edit/:id', element: <QuestionEdit /> },
+        { path: 'question/form', element: <QuestionForm /> },
+        { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
         { path: 'prompt/list', element: <PromptList /> },

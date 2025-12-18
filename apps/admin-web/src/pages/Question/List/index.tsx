@@ -7,6 +7,7 @@ import { Button, Flex, Form, Input, Select, Space } from 'antd';
 import { DeleteButton, SubjectGradeTabs } from '@/components';
 import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
 import { useEffect, useState } from 'react';
+import { PlusOutlined } from '@ant-design/icons';
 
 export default function QuestionListPage() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function QuestionListPage() {
           <Button type="link" onClick={() => navigate(`/question/detail/${record.id}`)}>
             详情
           </Button>
-          <Button type="link" onClick={() => navigate(`/question/edit/${record.id}`)}>
+          <Button type="link" onClick={() => navigate(`/question/form/${record.id}`)}>
             编辑
           </Button>
           <DeleteButton
@@ -80,7 +81,13 @@ export default function QuestionListPage() {
         search={false}
         columns={questionColumns}
         pagination={{ pageSize: 10 }}
-        toolbar={{ settings: [] }}
+        toolbar={{
+          settings: [
+            <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => navigate('/question/form')}>
+              新建题目
+            </Button>,
+          ],
+        }}
         request={async ({ current, pageSize }) => {
           const res = await adminApi.searchQuestions({ page: current, size: pageSize, subject, grade, ...params });
           return {

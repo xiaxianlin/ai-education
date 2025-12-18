@@ -213,6 +213,14 @@ export const adminApi = {
   },
 
   /**
+   * 创建题目
+   * POST /question
+   */
+  async createQuestion(data: UpdateQuestionRequest) {
+    return apiClient.post<Question>('/question', data);
+  },
+
+  /**
    * 更新题目
    * PATCH /question/{id}
    */

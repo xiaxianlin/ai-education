@@ -173,6 +173,22 @@ class UpdateQuestionSchema(BaseModel):
     textbook_id: Optional[int] = None
 
 
+class CreateQuestionSchema(BaseModel):
+    subject: str
+    grade: int
+    type: str
+    subtype: str
+    content: str
+    options: Optional[str] = None
+    answer: str
+    difficulty: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_content: Optional[str] = None
+    knowledge: Optional[str] = None
+    unit_id: Optional[int] = None
+    textbook_id: Optional[int] = None
+
+
 class SearchQuestionSchema(SearchSchema):
     question_id: Optional[str] = None
     subject: Optional[str] = None

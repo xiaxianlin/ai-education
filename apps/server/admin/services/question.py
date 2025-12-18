@@ -2,11 +2,34 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
-from admin.schema import SearchQuestionSchema, UpdateQuestionSchema
+from admin.schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
 from ai.question.resource import generate_question_audio as ai_generate_audio
 from ai.question.resource import generate_question_image as ai_generate_image
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
+
+
+async def create_question(db: AsyncSession, data: CreateQuestionSchema):
+    """创建问题"""
+    question = Question(
+        subject=data.subject,
+        grade=data.grade,
+        type=data.type,
+        subtype=data.subtype,
+        content=data.content,
+        options=data.options,
+        answer=data.answer,
+        difficulty=data.difficulty,
+        resource_type=data.resource_type,
+        resource_content=data.resource_content,
+        knowledge=data.knowledge,
+        unit_id=data.unit_id,
+        textbook_id=data.textbook_id,
+    )
+    db.add(question)
+    await db.commit()
+    await db.refresh(question)
+    return question
 
 
 async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
