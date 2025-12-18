@@ -1,7 +1,7 @@
 /**
  * 等待生成状态的练习卡片
  */
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { PracticeCardProps } from "./types";
 

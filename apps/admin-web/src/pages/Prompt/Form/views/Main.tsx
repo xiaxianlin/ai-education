@@ -7,7 +7,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { usePromptFormModel } from '../models/page';
-import { PageHeader } from '@/components/business';
+import { PageHeader } from '@/components';
 import { adminApi } from '@/lib/api';
 
 export default function MainView() {

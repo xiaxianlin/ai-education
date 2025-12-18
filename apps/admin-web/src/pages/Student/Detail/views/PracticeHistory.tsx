@@ -3,7 +3,7 @@ import { Button, Tag, Space, Card } from 'antd';
 import { Link } from 'react-router-dom';
 import { useRef, useMemo, useState } from 'react';
 import { formatDateTime } from '@ai-education/shared-web';
-import { DeleteButton } from '@/components/business/DeleteButton';
+import { DeleteButton } from '@/components/DeleteButton';
 import { useStudentDetailModel } from '../models/page';
 import { adminApi } from '@/lib/api';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
@@ -40,8 +40,7 @@ export function PracticeHistory() {
         dataIndex: 'textbook',
         width: 200,
         renderText: (textbook: Textbook) =>
-          `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${textbook.semester
-          }`,
+          `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${textbook.semester}`,
       },
       {
         title: '总题数',
@@ -66,9 +65,7 @@ export function PracticeHistory() {
         width: 100,
         render: (_, record) => {
           const accuracy =
-            record.question_count > 0
-              ? ((record.correct_count / record.question_count) * 100).toFixed(1)
-              : '0';
+            record.question_count > 0 ? ((record.correct_count / record.question_count) * 100).toFixed(1) : '0';
           return `${accuracy}%`;
         },
       },
@@ -106,8 +103,7 @@ export function PracticeHistory() {
             <DeleteButton
               onConfirm={() => handleDelete(record.id)}
               title="确定要删除这条练习记录吗？"
-              description={`删除后无法恢复，请谨慎操作。练习类型：${PRACTICE_TYPE_LABELS[record.session_type]
-                }`}
+              description={`删除后无法恢复，请谨慎操作。练习类型：${PRACTICE_TYPE_LABELS[record.session_type]}`}
               buttonText="删除"
               buttonProps={{ loading: deleteLoading }}
             />
@@ -120,7 +116,6 @@ export function PracticeHistory() {
 
   return (
     <Card
-      className="table-card"
       activeTabKey={practiceType}
       onTabChange={(key) => {
         setPracticeType(key as PracticeType);
@@ -139,10 +134,7 @@ export function PracticeHistory() {
         search={false}
         toolbar={{ settings: [] }}
         request={async () => {
-          const res = await adminApi.getPracticeHistory(
-            student?.id || '',
-            practiceType,
-          );
+          const res = await adminApi.getPracticeHistory(student?.id || '', practiceType);
           return { data: res || [], success: true, total: res.length || 0 };
         }}
         scroll={{ x: 'max-content' }}

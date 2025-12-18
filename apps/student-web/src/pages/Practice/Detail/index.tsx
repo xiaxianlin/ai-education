@@ -3,16 +3,16 @@
  * 显示单个练习会话的详细信息，包括题目、答案和报告
  */
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/card";
+import { Button } from "@/components/button";
+import { Badge } from "@/components/badge";
 import { useRequest } from "ahooks";
 import { studentApi } from "@/lib/api";
 import { QuestionAnswerCard } from "./components/QuestionAnswerCard";
 import { ReportSummary } from "./components/ReportSummary";
 import { formatDateTime } from "@ai-education/shared-web";
 import { ArrowLeft, Play } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/skeleton";
 
 /**
  * 获取练习类型名称

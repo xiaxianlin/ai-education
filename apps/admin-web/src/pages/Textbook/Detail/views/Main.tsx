@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import { Button } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { UploadButton } from '@/components/ui';
+import { UploadButton } from '@/components';
 
 export default function MainView() {
   const navigate = useNavigate();

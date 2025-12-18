@@ -2,8 +2,8 @@
  * 异常视图 - 会话不存在或数据异常
  */
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/button";
+import { Card, CardContent } from "@/components/card";
 import { AlertCircle } from "lucide-react";
 
 export function EmptyView() {

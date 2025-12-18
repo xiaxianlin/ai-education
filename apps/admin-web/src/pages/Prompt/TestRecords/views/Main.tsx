@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { Tag, Flex, Button, Typography } from 'antd';
 import { usePromptTestRecordsModel } from '../models/page';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { CommonTable, DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import RecordDetailDrawer from '../components/RecordDetailDrawer';
@@ -119,7 +119,7 @@ export default function MainView() {
   );
 
   return (
-    <PageContainer className="simple-list-page" title="测试记录" header={{ breadcrumb: {} }}>
+    <PageContainer  title="测试记录" header={{ breadcrumb: {} }}>
       <CommonTable<PromptTestRecord>
         actionRef={actionRef}
         rowKey="id"

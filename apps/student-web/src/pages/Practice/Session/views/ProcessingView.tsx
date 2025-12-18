@@ -4,9 +4,9 @@
  */
 import { ProgressIndicator } from "../components/ProgressIndicator";
 import { QuestionCard } from "../components/QuestionCard";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { AnswerCard } from "../components/AnswerCard";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/card";
 import { usePageModel } from "../models/PageModel";
 import { AnswerAnalysis } from "../components/AnswerAnalysis";
 

@@ -1,5 +1,5 @@
 import { Drawer, Tag, Image } from 'antd';
-import { AudioPlayer } from '@/components/ui';
+import { AudioPlayer } from '@/components';
 import { ProDescriptions } from '@ant-design/pro-components';
 
 // OSS 基础 URL

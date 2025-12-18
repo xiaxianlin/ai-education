@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Typography, Flex } from 'antd';
 import { usePromptVersionListModel } from '../models/page';
-import { CommonTable, PageHeader } from '@/components/business';
+import { CommonTable, PageHeader } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import { PublishModal } from '../../Detail/components/PublishModal';
@@ -83,7 +83,7 @@ export default function MainView() {
   return (
     <PageContainer
       title={<PageHeader title="提示词版本列表" />}
-      className="simple-list-page"
+      
       header={{ breadcrumb: {} }}
     >
       <CommonTable<PromptVersion>

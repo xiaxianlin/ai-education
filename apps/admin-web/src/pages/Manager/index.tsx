@@ -4,9 +4,9 @@ import { Button, message, Modal, Space } from 'antd';
 import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
-import { CommonTable } from '@/components/business';
+import { CommonTable } from '@/components';
 import { createTimeColumn } from '@/hooks';
-import { StatusTag } from '@/components/ui';
+import { StatusTag } from '@/components';
 
 export default function ManagerPage() {
   const actionRef = useRef<any>();

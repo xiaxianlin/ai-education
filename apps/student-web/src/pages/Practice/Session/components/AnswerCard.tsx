@@ -2,7 +2,7 @@
  * 答题卡片组件
  * - 根据题型渲染不同输入组件
  */
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/card";
 import { ChoiceInput } from "./AnswerForm/ChoiceInput";
 import { JudgeInput } from "./AnswerForm/JudgeInput";
 import { TextInput } from "./AnswerForm/TextInput";
@@ -10,7 +10,7 @@ import { AudioInput } from "./AnswerForm/AudioInput";
 import { usePageModel } from "../models/PageModel";
 import { QuestionType } from "../types";
 import { useMemo, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Loader2 } from "lucide-react";
 
 export function AnswerCard() {

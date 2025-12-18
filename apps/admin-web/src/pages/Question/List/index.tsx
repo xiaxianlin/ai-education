@@ -5,7 +5,7 @@ import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
 import { useConfigs, useDelete } from '@/hooks';
 import { Space, Button, message } from 'antd';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { CommonTable, DeleteButton } from '@/components';
 import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
 
 const RESOURCE_TYPE_ENUM = {
@@ -242,7 +242,7 @@ export default function QuestionListPage() {
     <PageContainer
       title="题目管理"
       header={{ breadcrumb: {} }}
-      className="simple-list-page"
+      
       tabList={[
         { key: 'question', tab: '题目列表' },
         { key: 'resource', tab: '资源列表' },

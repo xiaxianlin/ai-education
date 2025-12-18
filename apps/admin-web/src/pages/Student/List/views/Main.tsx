@@ -4,7 +4,7 @@ import { Button } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { CommonTable, FormModal } from '@/components/business';
+import { CommonTable, FormModal } from '@/components';
 import { createTimeColumn, createStatusColumn, createStatusSearchColumn, createActionColumn } from '@/hooks';
 
 export default function MainView() {

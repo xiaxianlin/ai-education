@@ -4,7 +4,7 @@ import { Button, Radio, Space, Tag, Tabs, Table, TableProps, Flex } from 'antd';
 import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { useConfigs } from '@/hooks';
-import { DeleteButton } from '@/components/business';
+import { DeleteButton } from '@/components';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 import { PlusOutlined } from '@ant-design/icons';
 

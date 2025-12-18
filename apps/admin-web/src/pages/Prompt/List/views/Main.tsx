@@ -4,7 +4,7 @@ import { PageContainer, ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Flex } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
-import { CommonTable, DeleteButton } from '@/components/business';
+import { CommonTable, DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 

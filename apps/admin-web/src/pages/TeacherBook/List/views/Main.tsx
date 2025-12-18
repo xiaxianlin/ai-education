@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
 import { useConfigs } from '@/hooks';
-import { CommonTable } from '@/components/business';
+import { CommonTable } from '@/components';
 
 export default function MainView() {
   const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();

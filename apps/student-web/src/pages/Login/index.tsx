@@ -2,8 +2,8 @@
  * 登录页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/button";
+import { Input } from "@/components/input";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import {
@@ -12,7 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/card";
 import { validators } from "@/lib/validators";
 import { useState } from "react";
 import { useRequest } from "ahooks";
@@ -20,7 +20,7 @@ import { studentApi } from "@/lib/api";
 import { useAuthModel } from "@/models/AuthModel";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/components/toast";
 
 export default function Login() {
   const navigate = useNavigate();

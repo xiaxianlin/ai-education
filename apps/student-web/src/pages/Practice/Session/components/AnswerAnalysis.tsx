@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/card";
 import { usePageModel } from "../models/PageModel";
 import { CheckCircle, Lightbulb } from "lucide-react";
 

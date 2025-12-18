@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { useTextbookDetailModel } from '../models/page';
-import { StatusTag } from '@/components/ui';
+import { StatusTag } from '@/components';
 import { GRADES } from '@/constants/course';
 
 export const BasicInfo = () => {

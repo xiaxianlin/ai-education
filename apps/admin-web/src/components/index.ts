@@ -4,3 +4,6 @@ export * from './FormModal';
 export * from './DeleteButton';
 export * from './DetailCard';
 export * from './DescriptionList';
+export * from './StatusTag';
+export * from './AudioPlayer';
+export * from './UploadButton';

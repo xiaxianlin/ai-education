@@ -1,6 +1,6 @@
 import { Card, Button } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
-import { StatusTag } from '@/components/ui';
+import { StatusTag } from '@/components';
 import { useStudentDetailModel } from '../models/page';
 import { GRADES } from '@/constants/course';
 

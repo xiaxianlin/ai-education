@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Sparkles } from "lucide-react";
 import { FC } from "react";
 interface PracticeCardProps {

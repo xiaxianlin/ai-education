@@ -4,16 +4,16 @@ import {
   DashboardOutlined,
   UserOutlined,
   BookOutlined,
-  ReadOutlined,
   QuestionCircleOutlined,
-  GithubOutlined,
-  FunnelPlotOutlined,
   FileTextOutlined,
+  LogoutOutlined,
+  EditOutlined,
+  SmileTwoTone,
 } from '@ant-design/icons';
-import { AvatarDropdown } from '@/components/ui';
 import logo from '@/assets/logo.png';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { useInitialStateModel } from '@/models/initialState';
+import { apiClient } from '@/lib/api';
 
 const menuDataRender = (): MenuDataItem[] => [
   {
@@ -65,26 +65,29 @@ const menuDataRender = (): MenuDataItem[] => [
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { manager } = useInitialStateModel();
+  const { manager, clearState } = useInitialStateModel();
 
   return (
     <ProLayout
       logo={logo}
       title="AI 教育"
-      layout="mix"
-      contentWidth="Fixed"
-      fixedHeader
-      fixSiderbar
       menu={{ defaultOpenAll: true, type: 'sub', autoClose: false }}
       menuDataRender={menuDataRender}
       location={location}
-      onMenuHeaderClick={() => navigate('/home')}
       menuItemRender={(item, dom) => <div onClick={() => navigate(item.path || '/')}>{dom}</div>}
-      avatarProps={{
-        title: manager?.username,
-        render: (_, avatarChildren) => {
-          return <AvatarDropdown>{avatarChildren}</AvatarDropdown>;
-        },
+      avatarProps={{ src: <SmileTwoTone />, title: manager?.username }}
+      actionsRender={() => {
+        return [
+          <EditOutlined key="password" onClick={() => navigate('/password')} />,
+          <LogoutOutlined
+            key="logout"
+            onClick={() => {
+              apiClient.removeToken();
+              clearState();
+              navigate('/login', { replace: true });
+            }}
+          />,
+        ];
       }}
     >
       <Outlet />

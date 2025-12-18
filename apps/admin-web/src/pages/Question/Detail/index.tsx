@@ -5,7 +5,7 @@ import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Popconfirm, Flex } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
-import { AudioPlayer } from '@/components/ui';
+import { AudioPlayer } from '@/components';
 import { getResourceUrl } from '@ai-education/shared-web';
 
 export default function QuestionDetailPage() {

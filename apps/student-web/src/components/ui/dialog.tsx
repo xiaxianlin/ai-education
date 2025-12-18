@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/components/card";
+import { Button } from "@/components/button";
 
 interface AlertDialogProps {
   open: boolean;
