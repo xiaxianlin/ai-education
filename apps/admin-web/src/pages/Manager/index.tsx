@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
-import { PageContainer, ProColumns, ModalForm, ProFormText, ProFormSelect } from '@ant-design/pro-components';
+import { PageContainer, ProColumns, ModalForm, ProFormText, ProFormSelect, ProTable } from '@ant-design/pro-components';
 import { Button, message, Modal, Space } from 'antd';
 import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
-import { CommonTable } from '@/components';
 import { createTimeColumn } from '@/hooks';
 import { StatusTag } from '@/components';
+import { PlusOutlined } from '@ant-design/icons';
 
 export default function ManagerPage() {
   const actionRef = useRef<any>();
@@ -140,9 +140,11 @@ export default function ManagerPage() {
 
   return (
     <PageContainer title="账号管理" header={{ breadcrumb: {} }}>
-      <CommonTable<Manager>
-        actionRef={actionRef}
+      <ProTable<Manager>
+        bordered
+        cardBordered
         rowKey="id"
+        actionRef={actionRef}
         columns={columns}
         request={async () => {
           const data = await adminApi.getAllManagers();
@@ -154,7 +156,7 @@ export default function ManagerPage() {
         }}
         search={{ labelWidth: 'auto', defaultFormItemsNumber: 3 }}
         headerTitle={
-          <Button key="add" type="primary" onClick={() => setFormVisible(true)}>
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setFormVisible(true)}>
             添加账号
           </Button>
         }

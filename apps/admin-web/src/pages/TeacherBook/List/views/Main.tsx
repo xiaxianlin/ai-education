@@ -1,4 +1,4 @@
-import { ModalForm, PageContainer, ProColumns, ProFormSelect } from '@ant-design/pro-components';
+import { ModalForm, PageContainer, ProColumns, ProFormSelect, ProTable } from '@ant-design/pro-components';
 import { useTeacherBookListModel } from '../models/page';
 import { Button, Space, Tag } from 'antd';
 import { adminApi } from '@/lib/api';
@@ -6,7 +6,6 @@ import { useMemo } from 'react';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
 import { useConfigs } from '@/hooks';
-import { CommonTable } from '@/components';
 
 export default function MainView() {
   const { semesters, textbook_versions, subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
@@ -82,7 +81,8 @@ export default function MainView() {
 
   return (
     <PageContainer title="教师用书管理" header={{ breadcrumb: {} }}>
-      <CommonTable<TeacherBook>
+      <ProTable<TeacherBook>
+        cardBordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}
