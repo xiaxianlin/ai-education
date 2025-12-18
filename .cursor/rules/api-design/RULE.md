@@ -9,16 +9,15 @@ alwaysApply: false
 
 ### 路由命名
 - 使用名词，不使用动词
-- 使用复数形式表示资源集合
+- **遵循项目现有约定**：本仓库当前资源路径多使用**单数**（例如 `/textbook`, `/unit`, `/student`），新增接口请保持一致
 - 使用嵌套路由表示资源关系
 
 ```
-GET    /api/admin/units              # 获取单元列表
-POST   /api/admin/units               # 创建单元
-GET    /api/admin/units/{id}          # 获取单个单元
-PATCH  /api/admin/units/{id}          # 更新单元
-DELETE /api/admin/units/{id}          # 删除单元
-GET    /api/admin/units/{id}/knowledges  # 获取单元下的知识点
+GET    /api/admin/unit/search            # 搜索单元（项目中常用 search 风格）
+POST   /api/admin/unit/                  # 创建单元
+PATCH  /api/admin/unit/{id}              # 更新单元
+DELETE /api/admin/unit/{id}              # 删除单元
+GET    /api/admin/unit/{id}/knowledges   # 获取单元下的知识点
 ```
 
 ### HTTP 方法
@@ -52,16 +51,20 @@ async def create_unit(
 ```
 
 ### 响应格式
-- 成功响应直接返回数据或使用统一的响应包装器
-- 使用 `WrappedResponse` 作为默认响应类
+- 本项目 Web 端默认使用统一的响应包装器 `ApiResponse<T>`
+- `@ai-education/shared-web` 的 `ApiClient` 会自动取 `response.data.data` 作为业务返回值
 - 错误响应使用 HTTP 状态码和错误详情
 
 ```python
 # 成功响应
 {
-  "id": 1,
-  "name": "单元名称",
-  "textbook_id": 1
+  "status": 0,
+  "message": "ok",
+  "data": {
+    "id": 1,
+    "name": "单元名称",
+    "textbook_id": 1
+  }
 }
 
 # 错误响应（由异常处理器自动生成）

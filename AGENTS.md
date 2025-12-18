@@ -10,7 +10,7 @@ K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace 和 Turborepo 
 
 - **前端**: React 18 + TypeScript 5 + Rsbuild
   - admin-web: Ant Design 5 + ahooks
-  - student-web: shadcn/ui + Zustand
+  - student-web: shadcn/ui + unstated-next + ahooks
 - **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0
 - **移动端**: Flutter 3.0+ + Dart 3.8+ + Riverpod
 

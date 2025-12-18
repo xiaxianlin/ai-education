@@ -32,9 +32,9 @@
 
 - `apps/student-web/src/components/ui/` - shadcn/ui 组件
 - `apps/student-web/src/components/business/` - 业务组件
-- `apps/admin-web/src/components/ui/` - UI 组件
-- `apps/admin-web/src/components/business/` - 业务组件
-- `apps/student-app/src/components/` - 移动端组件
+- `apps/admin-web/src/components/` - 管理端组件（Ant Design + 业务组件）
+- `apps/student-app/lib/shared/widgets/` - 移动端共享组件
+- `apps/student-app/lib/screens/**/presentation/widgets/` - 移动端页面内组件
 - 所有样式文件和组件文件
 
 ## 设计原则
@@ -67,8 +67,8 @@
 
 ### shadcn/ui 组件 (student-web)
 ```tsx
-import { Button } from "@/components/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 <Card>
   <CardHeader>
@@ -134,7 +134,7 @@ import { Button, Card, Space } from 'antd';
 - Neutral: `gray-*`
 
 ### 自定义主题
-参考 `student/tailwind.config.js` 和 `admin/tailwind.config.js`
+参考 `apps/student-web/tailwind.config.js` 和 `apps/admin-web/tailwind.config.js`
 
 ## 动画和过渡
 

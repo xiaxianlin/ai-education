@@ -144,7 +144,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 - 环境配置: `shared/core/settings.py`
 - 任务配置: `shared/worker/CONFIG.md`
 - API 文档: `docs/API.md`
-- FastAPI 文档: https://fastapi.tiangolo.com/
+- FastAPI 文档: `https://fastapi.tiangolo.com/`
 
 ## 核心功能模块
 

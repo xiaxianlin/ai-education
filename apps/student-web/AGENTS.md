@@ -7,7 +7,7 @@
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 组件**: shadcn/ui (基于 Radix UI)
-- **状态管理**: Zustand + unstated-next
+- **状态管理**: unstated-next + ahooks
 - **路由**: react-router-dom
 - **HTTP 客户端**: Axios
 - **样式**: Tailwind CSS
@@ -28,10 +28,9 @@
 4. 考虑可访问性 (a11y)
 
 ### 状态管理
-1. 全局状态使用 Zustand
-2. 页面级状态使用 `unstated-next` 的 `createContainer`
-3. 异步操作使用 `ahooks` 的 `useRequest`
-4. 从全局 Model 获取数据，计算派生状态
+1. 全局/页面级状态使用 `unstated-next` 的 `createContainer`
+2. 异步操作使用 `ahooks` 的 `useRequest`
+3. 从全局 Model 获取数据，计算派生状态
 
 ### 页面编码规范
 
@@ -55,15 +54,14 @@ pages/[Feature]/[PageName]/
 #### 导入顺序
 1. React 相关
 2. 第三方库（ahooks, react-router-dom 等）
-3. 业务组件（@/components）
-4. UI 组件（@/components）
+3. 业务组件（@/components/business）
+4. UI 组件（@/components/ui）
 5. 类型定义
 6. 工具函数/常量（@/lib, @/constants）
 
 ### API 调用
-- 使用 Axios 进行 API 调用
-- API 服务统一放在 `src/lib/api/` 目录
-- 使用 `@ai-education/shared-web` 中的 API 客户端
+- Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
+- 学生端 API 统一封装在 `src/lib/api.ts`（`studentApi`），新增/修改接口优先在这里集中维护
 
 ## 注意事项
 
@@ -77,4 +75,4 @@ pages/[Feature]/[PageName]/
 
 - 后端 API: `apps/server/student/routes/`
 - 共享类型: `packages/shared-web/src/types/`
-- shadcn/ui: https://ui.shadcn.com/
+- shadcn/ui: `https://ui.shadcn.com/`

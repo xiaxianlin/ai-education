@@ -11,19 +11,26 @@
 ## 后端服务入口
 
 - **代码目录**: `apps/server/`
-- **开发启动（推荐）**:
+- **开发启动（推荐）**（以仓库根目录 scripts 为准，默认端口 7890）:
 
 ```bash
-cd apps/server
-uv run main.py          # 启动 FastAPI 单体服务（含管理端 & 学生端）
+pnpm dev:server
 ```
 
-> 如需只启动 API，也可以使用：
+> 也可以在子项目内启动（等价方案）：
 >
 > ```bash
 > cd apps/server
-> uvicorn main:app --reload --port 7890
+> pnpm dev
+> # 或
+> uv run main.py
+> # 或仅启动 API
+> uv run uvicorn main:app --reload --host 0.0.0.0 --port 7890
 > ```
+
+> API 文档（服务启动后）：
+> - Swagger UI：`http://localhost:7890/docs`
+> - ReDoc：`http://localhost:7890/redoc`
 
 ## 常见 API 前缀
 
@@ -35,6 +42,15 @@ uv run main.py          # 启动 FastAPI 单体服务（含管理端 & 学生端
 - 管理端路由: `apps/server/admin/routes/*.py`
 - 学生端路由: `apps/server/student/routes/*.py`
 - 公共模型与工具: `apps/server/shared/core/`, `apps/server/shared/utils/`
+
+## Web 端调用位置（便于联调定位）
+
+- 管理端 Web API 封装：`apps/admin-web/src/lib/api.ts`（`adminApi`，base: `/api/admin`）
+- 学生端 Web API 封装：`apps/student-web/src/lib/api.ts`（`studentApi`，base: `/api/student`）
+
+## 鉴权提示
+
+- 管理端/学生端通常通过请求头 `x-access-token` 传递 Token（详见 `.cursor/rules/api-design/RULE.md`）
 
 ## 如何与我协作调试 API
 

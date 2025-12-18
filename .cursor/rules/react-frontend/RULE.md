@@ -20,14 +20,14 @@ alwaysApply: false
 
 ### admin-web (管理端)
 - UI 库: Ant Design 5 + Ant Design Pro Components
-- 状态管理: ahooks
+- 状态管理: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助）
 - 样式: Less + Tailwind CSS
 - 使用 `PageContainer` 包裹页面内容
 - 使用 `ProTable`、`ProForm` 等高级组件
 
 ### student-web (学生端)
 - UI 组件: shadcn/ui (基于 Radix UI)
-- 状态管理: Zustand + unstated-next
+- 状态管理: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
 - 样式: Tailwind CSS
 - 使用 Tailwind CSS 工具类进行样式设计
 
@@ -52,7 +52,7 @@ pages/[Feature]/[PageName]/
 
 ### 状态管理模式
 
-页面级状态使用 `unstated-next` 的 `createContainer`:
+页面级/模块级状态使用 `unstated-next` 的 `createContainer`（两个 Web 端都在用）:
 
 ```typescript
 // models/PageModel.ts
@@ -134,21 +134,19 @@ export const usePageNameHook = (params) => {
 
 ### API 调用
 
-使用 Axios 进行 API 调用，统一放在服务目录：
+项目 Web 端统一通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）进行请求。
+
+约定：
+- admin-web：在 `apps/admin-web/src/lib/api.ts` 里维护 `adminApi`（新增/修改接口优先在这里集中封装）
+- student-web：在 `apps/student-web/src/lib/api.ts` 里维护 `studentApi`（新增/修改接口优先在这里集中封装）
 
 ```typescript
-// services/some.ts
-import { api } from '@/lib/api';
+// 例：调用已封装的 API（推荐）
+// admin-web: import { adminApi } from "@/lib/api";
+// student-web: import { studentApi } from "@/lib/api";
 
 export const someService = {
-  list: async (params?: any) => {
-    const response = await api.get('/api/admin/some/list', { params });
-    return response.data;
-  },
-  create: async (data: any) => {
-    const response = await api.post('/api/admin/some/create', data);
-    return response.data;
-  },
+  // 这里只演示模式：实际请按项目已有的 adminApi/studentApi 方法组织与命名
 };
 ```
 

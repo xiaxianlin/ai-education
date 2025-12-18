@@ -60,9 +60,8 @@ pages/[Feature]/[PageName]/
 7. 工具函数/常量
 
 ### API 调用
-- 使用 Axios 进行 API 调用
-- API 服务统一放在 `src/services/` 目录
-- 使用 `@ai-education/shared-web` 中的 API 客户端
+- Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
+- 管理端 API 统一封装在 `src/lib/api.ts`（`adminApi`），新增/修改接口优先在这里集中维护
 
 ## 注意事项
 
@@ -76,4 +75,4 @@ pages/[Feature]/[PageName]/
 
 - 后端 API: `apps/server/admin/routes/`
 - 共享类型: `packages/shared-web/src/types/`
-- Ant Design Pro: https://pro.ant.design/
+- Ant Design Pro: `https://pro.ant.design/`

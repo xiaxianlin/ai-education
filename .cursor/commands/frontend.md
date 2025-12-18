@@ -21,8 +21,8 @@
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 库**: Ant Design 5 + Ant Design Pro Components
-- **状态管理**: ahooks
-- **HTTP 客户端**: Axios
+- **状态管理**: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助）
+- **HTTP 客户端**: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 - **样式**: Less + Tailwind CSS
 - **语言**: TypeScript 5
 
@@ -30,9 +30,9 @@
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 组件**: shadcn/ui (基于 Radix UI)
-- **状态管理**: Zustand
+- **状态管理**: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
 - **路由**: react-router-dom
-- **HTTP 客户端**: Axios
+- **HTTP 客户端**: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 - **样式**: Tailwind CSS
 - **语言**: TypeScript 5
 
@@ -55,8 +55,6 @@
 ```tsx
 // 页面组件
 import { useState, useEffect } from 'react';
-import { useSomeStore } from '@/stores';
-import { SomeService } from '@/services';
 
 export default function SomePage() {
   // Hooks
@@ -67,35 +65,36 @@ export default function SomePage() {
 }
 ```
 
-### 状态管理 (Zustand)
+### 状态管理（unstated-next：推荐做法）
 ```tsx
-import { create } from 'zustand';
+// models/PageModel.ts
+import { createContainer } from "unstated-next";
+import { useMemo } from "react";
+import { useRequest } from "ahooks";
 
-interface StoreState {
-  data: DataType[];
-  loading: boolean;
-  fetchData: () => Promise<void>;
-}
+import { studentApi } from "@/lib/api"; // student-web 示例；admin-web 对应 adminApi
 
-export const useStore = create<StoreState>((set) => ({
-  data: [],
-  loading: false,
-  fetchData: async () => {
-    set({ loading: true });
-    // fetch logic
-    set({ data: result, loading: false });
-  },
-}));
+const useContainer = () => {
+  const { data, loading, refresh } = useRequest(() => studentApi.getProfile());
+  const displayName = useMemo(() => data?.name ?? "-", [data]);
+
+  return { data, loading, refresh, displayName };
+};
+
+export const PageModel = createContainer(useContainer);
+export const usePageModel = PageModel.useContainer;
 ```
 
 ### API 调用
 ```tsx
-import { api } from '@/lib/api';
+// Web 端 API 统一集中封装在 src/lib/api.ts
+// - admin-web: adminApi
+// - student-web: studentApi
+import { studentApi } from "@/lib/api";
 
 const fetchData = async () => {
   try {
-    const response = await api.get('/endpoint');
-    return response.data;
+    return await studentApi.getProfile();
   } catch (error) {
     // error handling
   }

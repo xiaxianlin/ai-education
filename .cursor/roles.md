@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-这是一个全栈教育平台项目，采用 Monorepo 架构，包含 6 个主要应用：
+这是一个全栈教育平台项目，采用 Monorepo 架构，主要包含以下应用与共享包：
 
 ### 项目结构
 
@@ -23,6 +23,9 @@
    - LangChain + LangGraph（AI 工作流） / Celery (Redis 作为 Broker 和 Backend) 任务处理
    - 位置: `apps/server/`
 
+5. **shared-web** - Web 端共享包（类型、API 客户端、工具）
+   - 位置: `packages/shared-web/`
+
 ## 技术栈详情
 
 ### 前端技术栈
@@ -40,7 +43,7 @@
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 组件**: shadcn/ui (基于 Radix UI)
-- **状态管理**: Zustand
+- **状态管理**: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
 - **路由**: react-router-dom
 - **HTTP 客户端**: Axios
 - **样式**: Tailwind CSS
@@ -285,15 +288,14 @@
 
 ### 前端开发
 ```bash
-# 管理端
-cd apps/admin-web && pnpm dev        # 启动开发服务器
-cd apps/admin-web && pnpm build      # 构建生产版本
-cd apps/admin-web && pnpm tsc        # 类型检查
+# 推荐从仓库根目录运行（以 root package.json scripts 为准）
+pnpm dev:admin        # 管理端（apps/admin-web）
+pnpm dev:student      # 学生端 Web（apps/student-web）
+pnpm dev:all          # 同时启动 admin-web + student-web + server
 
-# 学生端 Web
-cd apps/student-web && pnpm dev      # 启动开发服务器
-cd apps/student-web && pnpm build    # 构建生产版本
-cd apps/student-web && pnpm type-check # 类型检查
+# 也可以进入子项目运行
+cd apps/admin-web && pnpm dev
+cd apps/student-web && pnpm dev
 ```
 
 ### 移动端开发
@@ -311,17 +313,23 @@ flutter test                 # 运行测试
 
 ### 后端开发
 ```bash
+# 推荐从仓库根目录运行（默认端口 7890）
+pnpm dev:server
+
+# Worker（需要单独启动）
+cd apps/server && pnpm dev:worker
+
+# 也可手动启动（等价方案）
 cd apps/server
-uv run main.py          # 开发启动（热重载）
-uv run worker.py        # 启动 Celery Worker（异步任务）
-# 或仅启动 API
-uvicorn main:app --reload --port 7890
+uv run main.py
+uv run worker.py
+uv run uvicorn main:app --reload --host 0.0.0.0 --port 7890
 ```
 
 ## 项目结构
 
 ```
-ai-eduaction/
+ai-education/
 ├── apps/
 │   ├── admin-web/           # 管理端前端
 │   │   └── src/
@@ -332,8 +340,8 @@ ai-eduaction/
 │   ├── student-web/         # 学生端 Web
 │   │   └── src/
 │   │       ├── pages/       # 页面组件
-│   │       ├── components/ # UI 组件
-│   │       ├── stores/      # Zustand 状态
+│   │       ├── components/  # 组件（business/ui）
+│   │       ├── models/      # 模型（unstated-next）
 │   │       └── hooks/       # 自定义 Hooks
 │   ├── student-app/         # 学生端移动应用
 │   │   └── lib/

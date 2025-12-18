@@ -12,11 +12,11 @@ alwaysApply: true
 ### 前端应用
 - **apps/admin-web**: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
   - TypeScript 5, Less + Tailwind CSS
-  - 状态管理: ahooks, HTTP 客户端: Axios
+  - 状态管理: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助），HTTP 客户端: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 
 - **apps/student-web**: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
   - TypeScript 5, Tailwind CSS
-  - 状态管理: Zustand, 路由: react-router-dom, HTTP 客户端: Axios
+  - 状态管理: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助），路由: react-router-dom, HTTP 客户端: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 
 ### 后端服务
 - **apps/server**: 服务端单体 (Python 3.12 + FastAPI)
@@ -35,13 +35,13 @@ alwaysApply: true
 ## 开发工作流
 
 1. **前端开发**: `pnpm dev:admin` 或 `pnpm dev:student`
-2. **后端开发**: `pnpm dev:server` 启动服务端（FastAPI 单体 + 任务）
-3. **移动应用**: `cd apps/student-app && flutter run`（需要先运行 `./build.sh` 生成代码）
+2. **后端开发**: `pnpm dev:server` 启动服务端（FastAPI 单体，默认端口 7890）
+3. **移动应用**: `cd apps/student-app && ./build.sh && flutter run`（修改模型后必须先生成代码）
 4. **全部启动**: `pnpm dev:all` 启动所有前端和后端服务
 
 ## 依赖管理
 
-- **Node.js**: 使用 pnpm (版本 >= 8.0.0, packageManager: pnpm@8.15.0)
+- **Node.js**: 使用 pnpm（与根 `package.json` 的 `packageManager` 保持一致，当前为 pnpm@9.x；Node >= 18）
 - **Python**: 使用 uv 进行依赖管理
 - **Flutter**: 使用 `flutter pub get` 进行依赖管理，使用 `build_runner` 生成代码
 

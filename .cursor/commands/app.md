@@ -330,12 +330,12 @@ flutter test
 - Web 端参考: `apps/student-web/src/`（保持逻辑一致性）
 - 后端 API: `apps/server/student/routes/`
 - API 文档: `.cursor/commands/api.md`
-- Flutter 文档: https://flutter.dev/
-- Riverpod 文档: https://riverpod.dev/
+- Flutter 文档: `https://flutter.dev/`
+- Riverpod 文档: `https://riverpod.dev/`
 
 ## 相关规则
 
 - `@flutter-mobile` - Flutter 移动端编码规范（自动应用）
 - `@naming-conventions` - 命名规范（自动应用）
-- GoRouter 文档: https://pub.dev/packages/go_router
-- Material Design: https://material.io/design
+- GoRouter 文档: `https://pub.dev/packages/go_router`
+- Material Design: `https://material.io/design`
