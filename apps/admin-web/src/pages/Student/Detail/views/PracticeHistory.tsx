@@ -8,6 +8,7 @@ import { useStudentDetailModel } from '../models/page';
 import { adminApi } from '@/lib/api';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { useRequest } from 'ahooks';
+import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
 import { GRADES } from '@/constants/course';
 
 export function PracticeHistory() {
@@ -69,11 +70,9 @@ export function PracticeHistory() {
           return `${accuracy}%`;
         },
       },
-      {
-        title: '状态',
-        dataIndex: 'status',
+      createStatusColumn<PracticeSession>('状态', 'status', {
         width: 100,
-        renderText: (status: number) => {
+        render: (status) => {
           const isCompleted = status === 2;
           return (
             <Tag color={isCompleted ? 'success' : status === 1 ? 'warning' : 'default'}>
@@ -81,20 +80,11 @@ export function PracticeHistory() {
             </Tag>
           );
         },
-      },
-      {
-        title: '创建时间',
-        dataIndex: 'create_time',
-        width: 180,
-        renderText: (time: number | undefined) => (time ? formatDateTime(time) : '-'),
-      },
-      {
-        title: '操作',
-        valueType: 'option',
-        width: 80,
-        fixed: 'right',
-        render: (_, record) => (
-          <Space>
+      }),
+      createTimeColumn<PracticeSession>('创建时间', 'create_time', { width: 180 }),
+      createActionColumn<PracticeSession>(
+        (record) => (
+          <>
             <Link to={`/practice/detail/${record.id}`}>
               <Button size="small" type="link">
                 详情
@@ -107,9 +97,10 @@ export function PracticeHistory() {
               buttonText="删除"
               buttonProps={{ loading: deleteLoading }}
             />
-          </Space>
+          </>
         ),
-      },
+        { width: 120 },
+      ),
     ],
     [practiceType],
   );

@@ -7,6 +7,8 @@ import { DeleteButton, SubjectGradeTabs } from '@/components';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 import { PlusOutlined } from '@ant-design/icons';
 
+import { createActionColumn } from '@/hooks/useTableColumns';
+
 export default function TableView() {
   const { question_scenes } = useConfigs();
   const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
@@ -31,13 +33,9 @@ export default function TableView() {
         dataIndex: 'description',
         render: (description) => description || '-',
       },
-      {
-        title: '操作',
-        valueType: 'option',
-        fixed: 'right',
-        width: 150,
-        render: (_, record) => (
-          <Flex>
+      createActionColumn<QuestionType>(
+        (record) => (
+          <>
             <Button key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
@@ -45,11 +43,12 @@ export default function TableView() {
               复制
             </Button>
             <DeleteButton buttonProps={{ type: 'link' }} onConfirm={() => handleDelete(record.id)} />
-          </Flex>
+          </>
         ),
-      },
+        { width: 220 },
+      ),
     ],
-    [showForm, handleDelete],
+    [showForm, showCopyForm, handleDelete],
   );
 
   return (

@@ -8,6 +8,7 @@ import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { formatDateTime } from '@ai-education/shared-web';
 import { PageHeader } from '@/components';
+import { createActionColumn } from '@/hooks';
 
 export default function PracticeDetailPage() {
   const { session_id } = useParams<{ session_id: string }>();
@@ -103,17 +104,14 @@ export default function PracticeDetailPage() {
           return `${Math.floor(seconds / 60)}分${seconds % 60}秒`;
         },
       },
-      {
-        title: '操作',
-        valueType: 'option',
-        width: 100,
-        fixed: 'right',
-        render: (_: unknown, record: SetStateAction<Question | undefined>) => (
+      createActionColumn<Question>(
+        (record) => (
           <Button type="link" size="small" onClick={() => setSelectedQuestion(record)}>
             详情
           </Button>
         ),
-      },
+        { width: 100 },
+      ),
     ],
     [answers],
   );

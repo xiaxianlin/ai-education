@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageContainer, ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Typography, Flex } from 'antd';
+import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import { Button, Tag, Typography } from 'antd';
+import { StatusTag } from '@/components';
 import { usePromptVersionListModel } from '../models/page';
-import { CommonTable, PageHeader } from '@/components';
+import { PageHeader } from '@/components';
 import { adminApi } from '@/lib/api';
-import { createTimeColumn, createActionColumn } from '@/hooks';
+import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 import { PublishModal } from '../../Detail/components/PublishModal';
 
 export default function MainView() {
@@ -24,14 +25,10 @@ export default function MainView() {
           </Button>
         ),
       },
-      {
-        title: '状态',
-        dataIndex: 'is_published',
+      createStatusColumn<PromptVersion>('状态', 'is_published', {
         width: 100,
-        renderText: (isPublished: number) => (
-          <Tag color={isPublished === 1 ? 'green' : 'default'}>{isPublished === 1 ? '已发布' : '未发布'}</Tag>
-        ),
-      },
+        render: (val) => <StatusTag status={val === 1} trueText="已发布" falseText="未发布" />,
+      }),
       {
         title: '模板内容',
         dataIndex: 'template_content',
@@ -54,8 +51,8 @@ export default function MainView() {
       createTimeColumn<PromptVersion>('创建时间', 'create_time'),
       createTimeColumn<PromptVersion>('更新时间', 'update_time'),
       createActionColumn<PromptVersion>(
-        (_, record) => (
-          <Flex gap={8}>
+        (record) => (
+          <>
             {record.is_published === 0 && (
               <>
                 <PublishModal
@@ -72,7 +69,7 @@ export default function MainView() {
             <Button size="small" type="link" onClick={() => navigate(`/prompt/test?version_id=${record.id}`)}>
               测试
             </Button>
-          </Flex>
+          </>
         ),
         { width: 180 },
       ),
@@ -81,12 +78,10 @@ export default function MainView() {
   );
 
   return (
-    <PageContainer
-      title={<PageHeader title="提示词版本列表" />}
-      
-      header={{ breadcrumb: {} }}
-    >
-      <CommonTable<PromptVersion>
+    <PageContainer title={<PageHeader title="提示词版本列表" />} header={{ breadcrumb: {} }}>
+      <ProTable<PromptVersion>
+        bordered
+        cardBordered
         actionRef={actionRef}
         rowKey="id"
         columns={columns}

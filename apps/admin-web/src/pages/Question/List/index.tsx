@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
-import { useConfigs, useDelete } from '@/hooks';
+import { useConfigs, useDelete, createActionColumn } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
 import { Button, Flex, Form, Input, Select, Space } from 'antd';
 import { DeleteButton, SubjectGradeTabs } from '@/components';
@@ -45,13 +45,9 @@ export default function QuestionListPage() {
       render: (_, record) =>
         renderResourceStatusTag(Boolean(record.resource && record.resource.trim()), record.resource_type || undefined),
     },
-    {
-      title: '操作',
-      key: 'option',
-      fixed: 'right',
-      width: 140,
-      render: (_, record) => (
-        <Flex align="center">
+    createActionColumn<Question>(
+      (record) => (
+        <>
           <Button type="link" onClick={() => navigate(`/question/detail/${record.id}`)}>
             详情
           </Button>
@@ -63,9 +59,10 @@ export default function QuestionListPage() {
             onConfirm={() => handleDelete(String(record.id))}
             buttonProps={{ type: 'link' }}
           />
-        </Flex>
+        </>
       ),
-    },
+      { width: 140 },
+    ),
   ];
 
   useEffect(() => {
@@ -93,7 +90,7 @@ export default function QuestionListPage() {
           };
         }}
         headerTitle={[
-          <Form size='large' layout="inline" form={form} onFinish={(values) => setParams({ ...values })}>
+          <Form size="large" layout="inline" form={form} onFinish={(values) => setParams({ ...values })}>
             <Form.Item name="question_id">
               <Space.Compact>
                 <Space.Addon>ID:</Space.Addon>

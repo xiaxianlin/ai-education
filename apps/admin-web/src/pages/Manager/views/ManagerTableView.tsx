@@ -1,12 +1,12 @@
 import React from 'react';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, message, Modal, Space } from 'antd';
+import { Button, Flex, message, Modal, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
 
 import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
-import { createTimeColumn } from '@/hooks';
+import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 import { StatusTag } from '@/components';
 
 export interface ManagerTableViewProps {
@@ -104,27 +104,22 @@ export function ManagerTableView(props: ManagerTableViewProps) {
       },
       render: (_, record) => ManagerTypeText[record.type],
     },
-    {
-      title: '状态',
-      dataIndex: 'status',
+    createStatusColumn<Manager>('状态', 'status', {
       width: 100,
       valueType: 'select',
       valueEnum: {
         1: { text: '启用', status: 'Success' },
         0: { text: '停用', status: 'Error' },
       },
-      render: (_, record) => <StatusTag status={Boolean(record.status)} />,
-    },
+      hideInSearch: false,
+      render: (_, record) => <StatusTag status={record.status === 1} />,
+    }),
     createTimeColumn<Manager>('创建时间', 'create_time', { width: 180 }),
     createTimeColumn<Manager>('更新时间', 'update_time', { width: 180 }),
-    {
-      title: '操作',
-      valueType: 'option',
-      fixed: 'right',
-      width: 200,
-      render: (_, record) => {
+    createActionColumn<Manager>(
+      (record) => {
         return record.type !== 0 ? (
-          <Space size={0}>
+          <>
             <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
               删除
             </Button>
@@ -134,10 +129,11 @@ export function ManagerTableView(props: ManagerTableViewProps) {
             <Button size="small" type="link" onClick={() => handleResetPassword(record)}>
               重置密码
             </Button>
-          </Space>
+          </>
         ) : null;
       },
-    },
+      { width: 220 },
+    ),
   ];
 
   return (
@@ -164,5 +160,3 @@ export function ManagerTableView(props: ManagerTableViewProps) {
     />
   );
 }
-
-

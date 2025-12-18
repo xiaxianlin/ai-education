@@ -8,6 +8,8 @@ import { GRADES } from '@/constants/course';
 import { PlusOutlined } from '@ant-design/icons';
 import { adminApi } from '@/lib/api';
 
+import { createActionColumn } from '@/hooks';
+
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
   const {
@@ -27,13 +29,9 @@ export default function TableView() {
         dataIndex: 'name',
         render: (_, record) => (record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>),
       },
-      {
-        title: '操作',
-        valueType: 'option',
-        fixed: 'right',
-        width: 120,
-        render: (_, record) => (
-          <Space>
+      createActionColumn<TeacherBook>(
+        (record) => (
+          <>
             <Link key="detail" to={`/teacher_book/detail/${record.id}`}>
               <Button size="small" type="link">
                 详情
@@ -42,9 +40,10 @@ export default function TableView() {
             <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
-          </Space>
+          </>
         ),
-      },
+        { width: 120 },
+      ),
     ],
     [showForm, subjectEnum, textbookVersionEmun, gradeEnum],
   );

@@ -11,6 +11,7 @@ import { Button } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
+import { createActionColumn } from '@/hooks';
 
 export const KnowledgeView: React.FC = () => {
   const { id, units } = useTextbookDetailModel();
@@ -32,20 +33,19 @@ export const KnowledgeView: React.FC = () => {
       valueEnum: units?.reduce((prev, curr) => ({ ...prev, [curr.id]: curr.name }), {}),
       renderText: (unit_id) => units?.find((u) => u.id === unit_id)?.name || '',
     },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 120,
-      fixed: 'right',
-      render: (_, record) => [
-        <Button key="edit" type="link" onClick={() => showForm(record)}>
-          编辑
-        </Button>,
-        <Button key="delete" type="link" danger onClick={() => handleDelete(record)}>
-          删除
-        </Button>,
-      ],
-    },
+    createActionColumn<Knowledge>(
+      (record) => (
+        <>
+          <Button key="edit" type="link" onClick={() => showForm(record)}>
+            编辑
+          </Button>
+          <Button key="delete" type="link" danger onClick={() => handleDelete(record)}>
+            删除
+          </Button>
+        </>
+      ),
+      { width: 120 },
+    ),
   ];
 
   return (

@@ -4,6 +4,8 @@ import { Button, Space } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
+import { createActionColumn } from '@/hooks';
+
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
   const {
@@ -16,22 +18,19 @@ export const UnitView: React.FC = () => {
     { title: 'ID', dataIndex: 'id' },
     { title: '单元名称', dataIndex: 'name' },
     { title: '单元内容', dataIndex: 'content', ellipsis: true },
-    {
-      title: '操作',
-      valueType: 'option',
-      width: 200,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space>
+    createActionColumn<Unit>(
+      (record) => (
+        <>
           <Button type="link" onClick={() => showForm(record)}>
             编辑
           </Button>
           <Button type="link" danger onClick={() => handleDelete(record)}>
             删除
           </Button>
-        </Space>
+        </>
       ),
-    },
+      { width: 120 },
+    ),
   ];
 
   return (

@@ -129,15 +129,15 @@ export default function MainView() {
       },
       createTimeColumn<PromptTestRecord>('测试时间', 'create_time', { width: 180 }),
       createActionColumn<PromptTestRecord>(
-        (_, record) => (
-          <Flex gap={8}>
+        (record) => (
+          <>
             <Button size="small" type="link" onClick={() => setDetailDrawer({ open: true, record })}>
               详情
             </Button>
             <DeleteButton onConfirm={() => handleDelete(record.id)} />
-          </Flex>
+          </>
         ),
-        { width: 120 },
+        { width: 100 },
       ),
     ],
     [navigate, handleDelete],

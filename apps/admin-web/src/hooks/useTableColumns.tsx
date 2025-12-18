@@ -1,6 +1,7 @@
 import { ProColumns } from '@ant-design/pro-components';
 import { formatDateTime } from '@ai-education/shared-web';
 import { StatusTag } from '@/components';
+import { Flex } from 'antd';
 
 /**
  * 通用的时间列配置
@@ -25,7 +26,7 @@ export function createTimeColumn<T>(
  */
 export function createStatusColumn<T>(
   title: string = '状态',
-  dataIndex: string = 'status',
+  dataIndex: string | string[] = 'status',
   options?: Partial<ProColumns<T>>,
 ): ProColumns<T> {
   return {
@@ -43,7 +44,7 @@ export function createStatusColumn<T>(
  */
 export function createStatusSearchColumn<T>(
   title: string = '状态',
-  dataIndex: string = 'status',
+  dataIndex: string | string[] = 'status',
   options?: Partial<ProColumns<T>>,
 ): ProColumns<T> {
   return {
@@ -63,7 +64,7 @@ export function createStatusSearchColumn<T>(
  * 通用的操作列配置
  */
 export function createActionColumn<T>(
-  render: ProColumns<T>['render'],
+  render: (record: T) => React.ReactNode,
   options?: Partial<ProColumns<T>>,
 ): ProColumns<T> {
   return {
@@ -71,7 +72,13 @@ export function createActionColumn<T>(
     valueType: 'option',
     fixed: 'right',
     width: 80,
-    render,
     ...options,
+    render: (_, record) => {
+      return (
+        <Flex gap={8} align="center">
+          {render(record)}
+        </Flex>
+      );
+    },
   };
 }

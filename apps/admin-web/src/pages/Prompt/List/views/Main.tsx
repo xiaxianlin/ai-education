@@ -4,9 +4,9 @@ import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Button, Tag, Flex } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
-import { DeleteButton } from '@/components';
+import { DeleteButton, StatusTag } from '@/components';
 import { adminApi } from '@/lib/api';
-import { createTimeColumn, createActionColumn } from '@/hooks';
+import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 
 export default function MainView() {
   const navigate = useNavigate();
@@ -28,32 +28,26 @@ export default function MainView() {
       { title: '名称', dataIndex: 'name', width: 120 },
       { title: '标识', dataIndex: 'slug', width: 120 },
       { title: '类型', dataIndex: 'type', width: 120, valueEnum: { system: '系统提示词', user: '用户提示词' } },
-      {
-        title: '状态',
-        dataIndex: ['version', 'is_published'],
+      createStatusColumn<Prompt>('状态', ['version', 'is_published'], {
         width: 100,
-        hideInSearch: true,
-        renderText: (isPublished: number) => (
-          <Tag color={isPublished === 1 ? 'green' : 'default'}>{isPublished === 1 ? '已发布' : '未发布'}</Tag>
-        ),
-      },
+        render: (val) => <StatusTag status={val === 1} trueText="已发布" falseText="未发布" />,
+      }),
       { title: '描述', dataIndex: 'description', width: 200, hideInSearch: true },
       createTimeColumn<Prompt>('创建时间', ['version', 'create_time'], { width: 180 }),
       createActionColumn<Prompt>(
-        (_, record) => (
-          <Flex gap={8}>
-            <Button size="small" type="link" onClick={() => navigate(`/prompt/test?version_id=${record.version?.id}`)}>
+        (record) => (
+          <>
+            <Button type="link" onClick={() => navigate(`/prompt/test?version_id=${record.version?.id}`)}>
               测试
             </Button>
-            <Button size="small" type="link" onClick={() => navigate(`/prompt/form?version_id=${record.version?.id}`)}>
+            <Button type="link" onClick={() => navigate(`/prompt/form?version_id=${record.version?.id}`)}>
               编辑
             </Button>
-
             <DeleteButton onConfirm={() => handleDelete(record.id)} />
-            <Button size="small" type="link" onClick={() => navigate(`/prompt/versions?prompt_id=${record.id}`)}>
+            <Button type="link" onClick={() => navigate(`/prompt/versions?prompt_id=${record.id}`)}>
               版本列表
             </Button>
-          </Flex>
+          </>
         ),
         { width: 150 },
       ),

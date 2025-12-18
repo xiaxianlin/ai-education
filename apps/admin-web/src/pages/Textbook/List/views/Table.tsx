@@ -8,6 +8,7 @@ import { useTextbookListModel } from '../models/page';
 import { useConfigs } from '@/hooks';
 import { GRADES } from '@/constants/course';
 import { adminApi } from '@/lib/api';
+import { createActionColumn } from '@/hooks';
 
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
@@ -33,13 +34,9 @@ export default function TableView() {
         dataIndex: 'is_parsed',
         render: (is_parsed) => (is_parsed ? <Tag color="success">已解析</Tag> : <Tag>未解析</Tag>),
       },
-      {
-        title: '操作',
-        valueType: 'option',
-        fixed: 'right',
-        width: 120,
-        render: (_, record) => (
-          <Flex>
+      createActionColumn<Textbook>(
+        (record) => (
+          <>
             <Link key="detail" to={`/textbook/detail/${record.id}`}>
               <Button size="small" type="link">
                 详情
@@ -48,9 +45,10 @@ export default function TableView() {
             <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
-          </Flex>
+          </>
         ),
-      },
+        { width: 120 },
+      ),
     ],
     [showForm, subjectEnum, textbookVersionEmun, gradeEnum],
   );
