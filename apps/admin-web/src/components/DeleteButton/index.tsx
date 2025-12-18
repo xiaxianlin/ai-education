@@ -32,7 +32,7 @@ export function DeleteButton({
       okButtonProps={{ danger: true }}
       {...popconfirmProps}
     >
-      <Button type="link" danger size="small" {...buttonProps}>
+      <Button type="link" danger {...buttonProps}>
         {buttonText}
       </Button>
     </Popconfirm>

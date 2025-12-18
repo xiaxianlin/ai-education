@@ -213,14 +213,6 @@ export const adminApi = {
   },
 
   /**
-   * 搜索资源题目
-   * GET /question/resource/search
-   */
-  async searchResourceQuestions(params?: SearchQuestionRequest) {
-    return apiClient.get<SearchResponse<Question>>('/question/resource/search', { params });
-  },
-
-  /**
    * 更新题目
    * PATCH /question/{id}
    */

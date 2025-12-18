@@ -6,6 +6,7 @@ import { TextbookCard } from '../components/TextbookCard';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';
+import { PlusOutlined } from '@ant-design/icons';
 
 export function TextbookList() {
   const { student } = useStudentDetailModel();
@@ -58,7 +59,7 @@ export function TextbookList() {
         title="关联教材"
         loading={loading}
         extra={
-          <Button type="primary" onClick={() => setVisible(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setVisible(true)}>
             添加教材
           </Button>
         }

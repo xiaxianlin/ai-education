@@ -91,13 +91,13 @@ export function PracticeHistory() {
       {
         title: '操作',
         valueType: 'option',
-        width: 200,
+        width: 80,
         fixed: 'right',
         render: (_, record) => (
           <Space>
             <Link to={`/practice/detail/${record.id}`}>
               <Button size="small" type="link">
-                查看详情
+                详情
               </Button>
             </Link>
             <DeleteButton
@@ -126,19 +126,22 @@ export function PracticeHistory() {
         { key: 'unit_practice', label: '单元练习' },
         { key: 'assessment', label: '能力评估' },
       ]}
+      styles={{ body: { padding: 0, paddingTop: 16 } }}
     >
       <ProTable<PracticeSession>
         actionRef={actionRef}
+        bordered
+        cardBordered
         rowKey="id"
         columns={columns}
         search={false}
-        toolbar={{ settings: [] }}
         request={async () => {
           const res = await adminApi.getPracticeHistory(student?.id || '', practiceType);
           return { data: res || [], success: true, total: res.length || 0 };
         }}
         scroll={{ x: 'max-content' }}
-        pagination={{ defaultPageSize: 10 }}
+        pagination={false}
+        toolbar={{ settings: [] }}
       />
     </Card>
   );

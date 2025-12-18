@@ -14,10 +14,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       token: {
         colorPrimary: '#ff7a00',
         colorInfo: '#ff7a00',
-        fontSize: 13,
+        fontSize: 14,
         borderRadius: 4,
         wireframe: true,
         colorBorder: '#e2e8f0',
+        colorLink: '#1677ff',
       },
       components: {
         Card: {
