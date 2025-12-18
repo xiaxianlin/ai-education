@@ -333,5 +333,6 @@ class SearchPromptVersionSchema(SearchSchema):
 class SearchPromptTestRecordSchema(SearchSchema):
     prompt_id: Optional[int] = None
     version_id: Optional[int] = None
+    generation_type: Optional[str] = None
     model_name: Optional[str] = None
     status: Optional[int] = None  # 0-待测试 1-测试中 2-测试成功 3-测试失败

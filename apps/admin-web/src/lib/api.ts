@@ -564,6 +564,7 @@ export const adminApi = {
       model_provider: data.model_provider,
       model_name: data.model_name,
       model_params: data.model_params || {},
+      generation_type: data.generation_type || 'text',
     });
   },
 

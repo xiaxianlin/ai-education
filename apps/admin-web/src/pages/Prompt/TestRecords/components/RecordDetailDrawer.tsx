@@ -17,6 +17,13 @@ const STATUS_CONFIG = {
   failed: { text: '失败', color: 'error', icon: <CloseCircleOutlined /> },
 };
 
+const GENERATION_TYPE_MAP = {
+  text: { text: '文本生成', color: 'blue' },
+  image: { text: '图片生成', color: 'green' },
+  audio: { text: '语音生成', color: 'orange' },
+  video: { text: '视频生成', color: 'purple' },
+};
+
 interface RecordDetailDrawerProps {
   open: boolean;
   record?: PromptTestRecord;
@@ -53,6 +60,13 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
         <Descriptions column={2} size="small">
           <Descriptions.Item label="记录 ID">{record.id}</Descriptions.Item>
           <Descriptions.Item label="版本 ID">{record.version_id}</Descriptions.Item>
+          <Descriptions.Item label="生成类型">
+            {(() => {
+              const type = record.generation_type || 'text';
+              const typeInfo = GENERATION_TYPE_MAP[type as keyof typeof GENERATION_TYPE_MAP] || GENERATION_TYPE_MAP.text;
+              return <Tag color={typeInfo.color}>{typeInfo.text}</Tag>;
+            })()}
+          </Descriptions.Item>
           <Descriptions.Item label="模型">
             <Text strong>
               {record.model_provider && <Text type="secondary">{record.model_provider} / </Text>}

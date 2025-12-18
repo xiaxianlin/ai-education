@@ -226,6 +226,7 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
     record = PromptTestRecord(
         prompt_id=version.prompt_id,
         version_id=version.id,
+        generation_type=generation_type,
         model_provider=result.get("model_provider"),
         model_name=result.get("model_name"),
         model_params=result.get("model_params", {}),
@@ -263,6 +264,8 @@ async def list_test_records(
         query = query.where(PromptTestRecord.prompt_id == params.prompt_id)
     if params.version_id:
         query = query.where(PromptTestRecord.version_id == params.version_id)
+    if params.generation_type:
+        query = query.where(PromptTestRecord.generation_type == params.generation_type)
     if params.model_name:
         query = query.where(PromptTestRecord.model_name.like(f"%{params.model_name}%"))
     if params.status is not None:
@@ -294,6 +297,7 @@ async def list_test_records(
                 id=r.id,
                 prompt_id=r.prompt_id,
                 version_id=r.version_id,
+                generation_type=r.generation_type or "text",
                 model_provider=r.model_provider,
                 model_name=r.model_name,
                 input_payload=r.input_payload or {},

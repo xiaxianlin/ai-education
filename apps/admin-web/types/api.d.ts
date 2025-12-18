@@ -258,6 +258,7 @@ declare global {
   interface SearchPromptTestRecordRequest extends SearchRequest {
     prompt_id?: number;
     version_id?: number;
+    generation_type?: string;
     model_name?: string;
     status?: number;
   }
@@ -266,6 +267,7 @@ declare global {
     id: number;
     prompt_id: number;
     version_id: number;
+    generation_type?: 'text' | 'image' | 'audio' | 'video';
     model_provider?: string;
     model_name?: string;
     input_payload: Record<string, any>;

@@ -271,6 +271,7 @@ class PromptTestRecordSchema(BaseModel):
     id: int
     prompt_id: int
     version_id: int
+    generation_type: str = "text"
     model_provider: Optional[str] = None
     model_name: Optional[str] = None
     input_payload: dict

@@ -17,6 +17,13 @@ const STATUS_MAP = {
   failed: { text: '失败', color: 'error' },
 };
 
+const GENERATION_TYPE_MAP = {
+  text: { text: '文本', color: 'blue' },
+  image: { text: '图片', color: 'green' },
+  audio: { text: '语音', color: 'orange' },
+  video: { text: '视频', color: 'purple' },
+};
+
 export default function MainView() {
   const navigate = useNavigate();
   const { actionRef, handleDelete } = usePromptTestRecordsModel();
@@ -52,6 +59,23 @@ export default function MainView() {
             {versionId}
           </Button>
         ),
+      },
+      {
+        title: '生成类型',
+        dataIndex: 'generation_type',
+        width: 100,
+        valueType: 'select',
+        valueEnum: {
+          text: { text: '文本' },
+          image: { text: '图片' },
+          audio: { text: '语音' },
+          video: { text: '视频' },
+        },
+        render: (_, record) => {
+          const type = record.generation_type || 'text';
+          const typeInfo = GENERATION_TYPE_MAP[type as keyof typeof GENERATION_TYPE_MAP] || GENERATION_TYPE_MAP.text;
+          return <Tag color={typeInfo.color}>{typeInfo.text}</Tag>;
+        },
       },
       {
         title: '模型',
@@ -135,6 +159,7 @@ export default function MainView() {
             size: pageSize || 10,
             prompt_id: filter.prompt_id,
             version_id: filter.version_id,
+            generation_type: filter.generation_type,
             model_name: filter.model_name,
             status: filter.status,
           });
