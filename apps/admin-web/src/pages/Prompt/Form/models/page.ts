@@ -30,7 +30,7 @@ const useContainer = () => {
       manual: true,
       onSuccess: () => {
         message.success('保存成功');
-        navigate(`/prompt`);
+        navigate(`/prompt/list`);
       },
     },
   );
