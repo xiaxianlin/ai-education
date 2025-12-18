@@ -4,9 +4,10 @@ import { adminApi } from '@/lib/api';
 import { GRADES } from '@/constants/course';
 import { Link } from 'react-router-dom';
 import { useConfigs, useDelete } from '@/hooks';
-import { Space, Button, message } from 'antd';
+import { Space, Button } from 'antd';
 import { CommonTable, DeleteButton } from '@/components/business';
 import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
+import { useAntdApp } from '@/lib/antdApp';
 
 const RESOURCE_TYPE_ENUM = {
   image: { text: '图片' },
@@ -19,6 +20,7 @@ const RESOURCE_STATUS_ENUM = {
 };
 
 export default function QuestionListPage() {
+  const { message } = useAntdApp();
   const { questionTypeEmun, subjectEnum, gradeEnum } = useConfigs();
   const [activeTab, setActiveTab] = React.useState<'question' | 'resource'>('question');
   const actionRef = React.useRef<any>();

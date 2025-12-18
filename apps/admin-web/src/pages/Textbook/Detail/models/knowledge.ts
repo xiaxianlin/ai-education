@@ -3,11 +3,12 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { message, Modal } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from './page';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
+  const { message, modal } = useAntdApp();
   const { id } = useTextbookDetailModel();
   const actionRef = useRef<ActionType>();
   const formProps = useSimpleForm<CreateKnowledgeRequest | UpdateKnowledgeRequest, Knowledge>({
@@ -30,7 +31,7 @@ const useContainer = () => {
   });
 
   const handleDelete = (knowledge: Knowledge) => {
-    Modal.confirm({
+    modal.confirm({
       centered: true,
       title: '删除确认',
       content: `确定要删除知识点「${knowledge.name}」吗？`,

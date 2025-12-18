@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
-import { Form, message } from 'antd';
+import { Form } from 'antd';
 import { adminApi } from '@/lib/api';
 import { extractTemplateParameters, TemplateParameter } from '../utils/templateParser';
 import { ModelConfig } from '../views/ModelDrawer';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
+  const { message } = useAntdApp();
   const [searchParams] = useSearchParams();
   const version_id = searchParams.get('version_id');
   const [prompt, setPrompt] = useState<PromptDetail | null>(null);

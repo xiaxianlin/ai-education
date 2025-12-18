@@ -7,13 +7,14 @@
     url('@/assets/auth/bg_02.png') 20% 80% no-repeat,
     url('@/assets/auth/bg_03.png') 80% 20% no-repeat,
     url('@/assets/auth/bg_04.png') 90% 90% no-repeat;
-  background-color: #f0f3f7;
+  background-color: var(--background);
 
   .container {
     flex: none;
     height: auto;
-    background: #fbfbf9;
-    box-shadow: -1px -1px 1px 1px #eee, 1px 1px 1px 1px #eee;
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     border-radius: 6px;
     :global {
       .ant-pro-form-login-container {

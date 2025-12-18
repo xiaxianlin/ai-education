@@ -1,5 +1,5 @@
-import { message } from 'antd';
 import { useRequest } from 'ahooks';
+import { useAntdApp } from '@/lib/antdApp';
 
 interface UseDeleteOptions {
   onSuccess?: () => void;
@@ -15,6 +15,7 @@ export function useDelete<T = string>(
   deleteFn: (id: T) => Promise<any>,
   options?: UseDeleteOptions,
 ) {
+  const { message } = useAntdApp();
   const {
     onSuccess,
     successMessage = '删除成功',

@@ -1,5 +1,6 @@
-import { type FormInstance, Empty, message, Divider, Tabs } from 'antd';
+import { type FormInstance, Empty, Divider, Tabs } from 'antd';
 import { ProCard, ProForm } from '@ant-design/pro-components';
+import { useAntdApp } from '@/lib/antdApp';
 
 type Props = {
   form: FormInstance;
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export function TestForm({ form, loading, result, onTest, requiredParamsSet = true }: Props) {
+  const { message } = useAntdApp();
+
   const handleSubmit = async (values: TestPromptRequest) => {
     // 检查必填参数是否已设置
     if (!requiredParamsSet) {
@@ -34,7 +37,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
             style={{
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
-              background: '#fafafa',
+              background: 'var(--app-code-bg)',
               padding: 16,
               borderRadius: 8,
               fontSize: 13,
@@ -42,7 +45,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
               maxHeight: 300,
               overflow: 'auto',
               margin: 0,
-              border: '1px solid #f0f0f0',
+              border: '1px solid var(--app-code-border)',
             }}
           >
             {result.rendered_prompt}
@@ -57,7 +60,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
             style={{
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
-              background: '#fafafa',
+              background: 'var(--app-code-bg)',
               padding: 16,
               borderRadius: 8,
               fontSize: 13,
@@ -65,7 +68,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
               maxHeight: 300,
               overflow: 'auto',
               margin: 0,
-              border: '1px solid #f0f0f0',
+              border: '1px solid var(--app-code-border)',
             }}
           >
             {JSON.stringify(result.response_snapshot, null, 2)}
@@ -80,7 +83,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
         <div style={{ marginBottom: 12 }}>
           <span style={{ marginRight: 24 }}>
             <strong>状态：</strong>
-            <span style={{ color: result.status === 'success' ? '#52c41a' : '#ff4d4f' }}>
+            <span style={{ color: result.status === 'success' ? 'var(--chart-2)' : 'var(--destructive)' }}>
               {result.status === 'success' ? '成功' : '失败'}
             </span>
           </span>
@@ -90,7 +93,7 @@ export function TestForm({ form, loading, result, onTest, requiredParamsSet = tr
           </span>
         </div>
         {result.error && (
-          <div style={{ marginBottom: 12, color: '#ff4d4f' }}>
+          <div style={{ marginBottom: 12, color: 'var(--destructive)' }}>
             <strong>错误：</strong>
             {result.error}
           </div>

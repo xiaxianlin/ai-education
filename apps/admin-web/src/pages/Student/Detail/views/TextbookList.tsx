@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Button, Card, Empty, Flex, message, Modal } from 'antd';
+import { Button, Card, Empty, Flex } from 'antd';
 import { ModalForm, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { useStudentDetailModel } from '../models/page';
 import { TextbookCard } from '../components/TextbookCard';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';
+import { useAntdApp } from '@/lib/antdApp';
 
 export function TextbookList() {
+  const { message, modal } = useAntdApp();
   const { student } = useStudentDetailModel();
   const [visible, setVisible] = useState(false);
   const [form] = ProForm.useForm<{ textbookId: number }>();
@@ -45,7 +47,7 @@ export function TextbookList() {
   );
 
   const handleRemoveTextbook = (textbookId: number) => {
-    Modal.confirm({
+    modal.confirm({
       title: '删除教材',
       content: '确定要删除该教材吗？',
       onOk: () => removeTextbook(textbookId),
@@ -77,7 +79,7 @@ export function TextbookList() {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联教材</span>}
+            description={<span style={{ color: 'var(--muted-foreground)', fontSize: '14px' }}>暂无关联教材</span>}
             style={{ padding: '40px 0' }}
           />
         )}

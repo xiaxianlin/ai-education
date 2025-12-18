@@ -1,10 +1,11 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
-import { message } from 'antd';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
+  const { message } = useAntdApp();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const versionId = Number(searchParams.get('version_id') || 0);

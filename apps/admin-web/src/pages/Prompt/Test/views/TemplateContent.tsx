@@ -40,7 +40,7 @@ export default function TemplateContent({ content, generationType = 'text', onGe
           style={{
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            background: '#fafafa',
+            background: 'var(--app-code-bg)',
             padding: 16,
             borderRadius: 8,
             fontSize: 14,
@@ -48,7 +48,7 @@ export default function TemplateContent({ content, generationType = 'text', onGe
             maxHeight: 420,
             overflow: 'auto',
             margin: 0,
-            border: '1px solid #f0f0f0',
+            border: '1px solid var(--app-code-border)',
           }}
         >
           {content || '暂无模板内容'}

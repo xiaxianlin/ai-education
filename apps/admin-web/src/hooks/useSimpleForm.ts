@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Form, message } from 'antd';
+import { Form } from 'antd';
 import { useRequest } from 'ahooks';
+import { useAntdApp } from '@/lib/antdApp';
 
 export function useSimpleForm<Values, Entity>(options?: {
   service?: (values: Values, item?: Entity) => Promise<void>;
   onSubmit?: () => void;
 }) {
+  const { message } = useAntdApp();
   const [form] = Form.useForm<Values>();
   const [item, setItem] = useState<Entity>();
   const [visible, setVisible] = useState(false);

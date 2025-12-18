@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Spin } from 'antd';
+import { useAntdApp } from '@/lib/antdApp';
 
 export interface GenerateConfirmOptions {
   /** 确认对话框标题 */
@@ -41,6 +42,7 @@ export function useGenerateWithConfirm<T = any>(
   generateFn: () => Promise<T>,
   options: GenerateConfirmOptions,
 ) {
+  const { modal } = useAntdApp();
   const {
     confirmTitle = '确认生成',
     confirmContent,
@@ -58,7 +60,7 @@ export function useGenerateWithConfirm<T = any>(
   } = options;
 
   const handleGenerate = () => {
-    Modal.confirm({
+    modal.confirm({
       centered: true,
       title: confirmTitle,
       content: confirmContent,
@@ -70,7 +72,7 @@ export function useGenerateWithConfirm<T = any>(
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // 显示全局 loading 弹窗
-        const hide = Modal.info({
+        const hide = modal.info({
           centered: true,
           title: loadingTitle,
           content: React.createElement(
@@ -79,7 +81,7 @@ export function useGenerateWithConfirm<T = any>(
             React.createElement(Spin, { size: 'large' }),
             React.createElement(
               'div',
-              { style: { color: '#666', marginTop: 16 } },
+              { style: { color: 'var(--muted-foreground)', marginTop: 16 } },
               loadingContent,
             ),
           ),
@@ -92,7 +94,7 @@ export function useGenerateWithConfirm<T = any>(
         try {
           const result = await generateFn();
           hide.destroy();
-          Modal.success({
+          modal.success({
             centered: true,
             title: successTitle,
             content: successContent,
@@ -107,7 +109,7 @@ export function useGenerateWithConfirm<T = any>(
             typeof errorContent === 'function'
               ? errorContent(error)
               : errorContent || error?.message || '操作失败，请稍后重试';
-          Modal.error({
+          modal.error({
             centered: true,
             title: errorTitle,
             content: errorMsg,
@@ -171,7 +173,7 @@ export function generateWithConfirm<T = any>(
           React.createElement(Spin, { size: 'large' }),
           React.createElement(
             'div',
-            { style: { color: '#666', marginTop: 16 } },
+            { style: { color: 'var(--muted-foreground)', marginTop: 16 } },
             loadingContent,
           ),
         ),

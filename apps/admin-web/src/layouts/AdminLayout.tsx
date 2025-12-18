@@ -9,11 +9,15 @@ import {
   GithubOutlined,
   FunnelPlotOutlined,
   FileTextOutlined,
+  BulbOutlined,
+  MoonOutlined,
 } from '@ant-design/icons';
 import { AvatarDropdown } from '@/components/ui';
 import logo from '@/assets/logo.png';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { useInitialStateModel } from '@/models/initialState';
+import { Switch, Tooltip } from 'antd';
+import { useAppTheme } from '@/theme/AppThemeProvider';
 
 const menuDataRender = (): MenuDataItem[] => [
   {
@@ -66,6 +70,7 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { manager } = useInitialStateModel();
+  const { resolvedMode, toggle } = useAppTheme();
 
   return (
     <ProLayout
@@ -80,6 +85,16 @@ export function AdminLayout() {
       location={location}
       onMenuHeaderClick={() => navigate('/home')}
       menuItemRender={(item, dom) => <div onClick={() => navigate(item.path || '/')}>{dom}</div>}
+      actionsRender={() => [
+        <Tooltip key="theme-toggle" title={resolvedMode === 'dark' ? '切换到亮色' : '切换到暗色'}>
+          <Switch
+            checked={resolvedMode === 'dark'}
+            checkedChildren={<MoonOutlined />}
+            unCheckedChildren={<BulbOutlined />}
+            onChange={() => toggle()}
+          />
+        </Tooltip>,
+      ]}
       avatarProps={{
         title: manager?.username,
         render: (_, avatarChildren) => {

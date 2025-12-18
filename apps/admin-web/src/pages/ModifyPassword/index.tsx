@@ -1,15 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Form, Input, message } from 'antd';
+import { Button, Card, Form, Input } from 'antd';
 import { validPassword } from '@/utils/validation';
 import { adminApi, apiClient } from '@/lib/api';
 import { useRequest } from 'ahooks';
 import { useInitialStateModel } from '@/models/initialState';
+import { useAntdApp } from '@/lib/antdApp';
 
 export default function MoidfyPasswordPage() {
   const navigate = useNavigate();
   const { clearState, manager } = useInitialStateModel();
+  const { message } = useAntdApp();
 
   const { runAsync } = useRequest(adminApi.modifyPassword, {
     manual: true,

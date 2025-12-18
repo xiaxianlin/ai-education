@@ -1,0 +1,170 @@
+:root {
+  /* Defaults: follow system (can be overridden by [data-theme]) */
+  color-scheme: light dark;
+}
+
+:root {
+  /* App-level semantic helpers */
+  --app-hero-gradient-from: var(--chart-1);
+  --app-hero-gradient-to: var(--chart-4);
+  --app-code-bg: var(--muted);
+  --app-code-border: var(--border);
+
+  /* Tech-style gradients */
+  --tech-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --tech-gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --tech-gradient-border: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --tech-glow: 0 0 20px rgba(79, 172, 254, 0.3);
+  --tech-border-glow: 0 0 10px rgba(79, 172, 254, 0.5);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/*
+  Tech-style theme with sharp edges and high contrast
+  Light: High contrast with tech aesthetic
+  Dark: Dark tech theme with neon accents
+*/
+:root:not([data-theme]),
+:root[data-theme='light'] {
+  /* Reduced border radius for sharp edges */
+  --radius: 0.25rem;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  /* Light: stronger layering between layout background and card surfaces */
+  --background: oklch(0.97 0 0);
+  --foreground: oklch(0.1 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.08 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.08 0 0);
+  --primary: oklch(0.25 0.15 250); /* Blue tech color */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.92 0.02 220); /* Slight blue tint */
+  --secondary-foreground: oklch(0.12 0 0);
+  --muted: oklch(0.94 0.01 220);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.3 0.2 280); /* Purple accent */
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.6 0.25 0); /* Red with high saturation */
+  --border: oklch(0.88 0 0); /* More visible border */
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.3 0.2 250);
+
+  --chart-1: oklch(0.25 0.25 250); /* Blue */
+  --chart-2: oklch(0.3 0.2 280); /* Purple */
+  --chart-3: oklch(0.4 0.25 150); /* Green */
+  --chart-4: oklch(0.35 0.3 30); /* Orange */
+  --chart-5: oklch(0.45 0.25 0); /* Red */
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.25 0.15 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.3 0.2 250);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* Sharp edges for tech style */
+    --radius: 0.25rem;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+      Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    /* Dark: clearer elevation between background and cards */
+    --background: oklch(0.14 0 0);
+    --foreground: oklch(0.92 0 0);
+    --card: oklch(0.18 0 0);
+    --card-foreground: oklch(0.9 0 0);
+    --popover: oklch(0.20 0 0);
+    --popover-foreground: oklch(0.9 0 0);
+    --primary: oklch(0.65 0.25 250); /* Bright blue */
+    --primary-foreground: oklch(0.08 0 0);
+    --secondary: oklch(0.25 0.15 280); /* Purple */
+    --secondary-foreground: oklch(0.9 0 0);
+    --muted: oklch(0.18 0.02 220);
+    --muted-foreground: oklch(0.6 0 0);
+    --accent: oklch(0.7 0.3 180); /* Cyan accent */
+    --accent-foreground: oklch(0.08 0 0);
+    --destructive: oklch(0.7 0.35 0); /* Bright red */
+    --border: oklch(0.30 0 0);
+    --input: oklch(0.26 0 0);
+    --ring: oklch(0.65 0.25 250);
+
+    --chart-1: oklch(0.65 0.25 250); /* Bright blue */
+    --chart-2: oklch(0.7 0.3 180); /* Cyan */
+    --chart-3: oklch(0.6 0.35 150); /* Green */
+    --chart-4: oklch(0.75 0.3 60); /* Yellow */
+    --chart-5: oklch(0.7 0.35 0); /* Red */
+
+    --sidebar: oklch(0.16 0 0);
+    --sidebar-foreground: oklch(0.86 0 0);
+    --sidebar-primary: oklch(0.65 0.25 250);
+    --sidebar-primary-foreground: oklch(0.08 0 0);
+    --sidebar-accent: oklch(0.15 0 0);
+    --sidebar-accent-foreground: oklch(0.8 0 0);
+    --sidebar-border: oklch(0.30 0 0);
+    --sidebar-ring: oklch(0.65 0.25 250);
+  }
+}
+
+:root[data-theme='dark'] {
+  /* Sharp edges for tech style */
+  --radius: 0.25rem;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  /* Dark: clearer elevation between background and cards */
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.92 0 0);
+  --card: oklch(0.18 0 0);
+  --card-foreground: oklch(0.9 0 0);
+  --popover: oklch(0.20 0 0);
+  --popover-foreground: oklch(0.9 0 0);
+  --primary: oklch(0.65 0.25 250); /* Bright blue */
+  --primary-foreground: oklch(0.08 0 0);
+  --secondary: oklch(0.25 0.15 280); /* Purple */
+  --secondary-foreground: oklch(0.9 0 0);
+  --muted: oklch(0.18 0.02 220);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.7 0.3 180); /* Cyan accent */
+  --accent-foreground: oklch(0.08 0 0);
+  --destructive: oklch(0.7 0.35 0); /* Bright red */
+  --chart-1: oklch(0.5940 0.0443 196.0233);
+  --chart-2: oklch(0.7214 0.1337 49.9802);
+  --chart-3: oklch(0.8721 0.0864 68.5474);
+  --chart-4: oklch(0.6268 0 0);
+  --chart-5: oklch(0.6830 0 0);
+
+  --sidebar: oklch(0.16 0 0);
+  --sidebar-foreground: oklch(0.86 0 0);
+  --sidebar-primary: oklch(0.7214 0.1337 49.9802);
+  --sidebar-primary-foreground: oklch(0.1797 0.0043 308.1928);
+  --sidebar-accent: oklch(0.3211 0 0);
+  --sidebar-accent-foreground: oklch(0.8109 0 0);
+  --sidebar-border: oklch(0.30 0 0);
+  --sidebar-ring: oklch(0.7214 0.1337 49.9802);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

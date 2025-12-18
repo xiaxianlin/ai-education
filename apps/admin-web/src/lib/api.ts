@@ -1,5 +1,6 @@
 import { message as AntdMessage } from 'antd';
 import { go, ApiClient } from '@ai-education/shared-web';
+import { getAntdMessageApi } from '@/lib/antdApp';
 
 export const apiClient = new ApiClient('/api/admin');
 
@@ -23,7 +24,9 @@ apiClient.addResponseInterceptor(
   (response) => response,
   (error) => {
     console.log(error.message);
-    AntdMessage.error(error.message || '网络错误');
+    const msg = getAntdMessageApi();
+    if (msg) msg.error(error.message || '网络错误');
+    else AntdMessage.error(error.message || '网络错误');
     return Promise.reject(error);
   },
 );

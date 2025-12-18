@@ -81,7 +81,7 @@ export default function PracticeDetailPage() {
         renderText: (questionId: string) => {
           const answer = answersMap[questionId];
           if (answer.status === 0) {
-            return <span style={{ color: '#999' }}>-</span>;
+            return <span style={{ color: 'var(--muted-foreground)' }}>-</span>;
           }
           const isCorrect = answer.status === 1;
           return <Tag color={isCorrect ? 'success' : 'error'}>{isCorrect ? '正确' : '错误'}</Tag>;
@@ -94,7 +94,7 @@ export default function PracticeDetailPage() {
         renderText: (questionId: string) => {
           const answer = answersMap[questionId];
           if (!answer || !answer.time_spent) {
-            return <span style={{ color: '#999' }}>-</span>;
+            return <span style={{ color: 'var(--muted-foreground)' }}>-</span>;
           }
           const seconds = answer.time_spent;
           if (seconds < 60) {
@@ -129,7 +129,9 @@ export default function PracticeDetailPage() {
           description={
             <div>
               <div style={{ marginBottom: 8 }}>加载失败</div>
-              <div style={{ fontSize: '12px', color: '#999' }}>{error?.message || '请检查网络连接或稍后重试'}</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted-foreground)' }}>
+                {error?.message || '请检查网络连接或稍后重试'}
+              </div>
             </div>
           }
         >

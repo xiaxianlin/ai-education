@@ -45,11 +45,11 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
       open={open}
       onClose={onClose}
       styles={{
-        body: { padding: '24px', background: '#fafafa' },
+        body: { padding: '24px', background: 'var(--muted)' },
       }}
     >
       {/* 基础信息卡片 */}
-      <div style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+      <div style={{ background: 'var(--card)', borderRadius: 8, padding: 20, marginBottom: 16 }}>
         <Descriptions column={2} size="small">
           <Descriptions.Item label="记录 ID">{record.id}</Descriptions.Item>
           <Descriptions.Item label="版本 ID">{record.version_id}</Descriptions.Item>
@@ -66,7 +66,7 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
       </div>
 
       {/* 性能指标 */}
-      <div style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+      <div style={{ background: 'var(--card)', borderRadius: 8, padding: 20, marginBottom: 16 }}>
         <Text strong style={{ fontSize: 14, marginBottom: 16, display: 'block' }}>
           <ThunderboltOutlined style={{ marginRight: 8 }} />
           性能指标
@@ -76,7 +76,7 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
             <Text type="secondary" style={{ fontSize: 12 }}>
               响应耗时
             </Text>
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#1890ff' }}>
+            <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--chart-1)' }}>
               {record.latency_ms !== undefined ? `${record.latency_ms}` : '-'}
               <Text type="secondary" style={{ fontSize: 14, marginLeft: 4 }}>
                 ms
@@ -89,19 +89,21 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   输入 Tokens
                 </Text>
-                <div style={{ fontSize: 24, fontWeight: 600, color: '#52c41a' }}>{usage.prompt_tokens ?? '-'}</div>
+                <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--chart-2)' }}>{usage.prompt_tokens ?? '-'}</div>
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   输出 Tokens
                 </Text>
-                <div style={{ fontSize: 24, fontWeight: 600, color: '#faad14' }}>{usage.completion_tokens ?? '-'}</div>
+                <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--chart-4)' }}>
+                  {usage.completion_tokens ?? '-'}
+                </div>
               </div>
               <div>
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   总计 Tokens
                 </Text>
-                <div style={{ fontSize: 24, fontWeight: 600, color: '#722ed1' }}>{usage.total_tokens ?? '-'}</div>
+                <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--chart-5)' }}>{usage.total_tokens ?? '-'}</div>
               </div>
             </>
           )}
@@ -110,13 +112,13 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
 
       {/* 输入参数 */}
       {record.input_payload && Object.keys(record.input_payload).length > 0 && (
-        <div style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+        <div style={{ background: 'var(--card)', borderRadius: 8, padding: 20, marginBottom: 16 }}>
           <Text strong style={{ fontSize: 14, marginBottom: 12, display: 'block' }}>
             输入参数
           </Text>
           <pre
             style={{
-              background: '#f6f8fa',
+              background: 'var(--app-code-bg)',
               padding: 16,
               borderRadius: 6,
               margin: 0,
@@ -124,7 +126,7 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
               lineHeight: 1.6,
               maxHeight: 120,
               overflow: 'auto',
-              border: '1px solid #e8e8e8',
+              border: '1px solid var(--app-code-border)',
             }}
           >
             {JSON.stringify(record.input_payload, null, 2)}
@@ -133,13 +135,13 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
       )}
 
       {/* 渲染后的提示词 */}
-      <div style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+      <div style={{ background: 'var(--card)', borderRadius: 8, padding: 20, marginBottom: 16 }}>
         <Text strong style={{ fontSize: 14, marginBottom: 12, display: 'block' }}>
           渲染后的提示词
         </Text>
         <pre
           style={{
-            background: '#f6f8fa',
+            background: 'var(--app-code-bg)',
             padding: 16,
             borderRadius: 6,
             margin: 0,
@@ -149,7 +151,7 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
             overflow: 'auto',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            border: '1px solid #e8e8e8',
+            border: '1px solid var(--app-code-border)',
           }}
         >
           {record.rendered_prompt || '-'}
@@ -158,20 +160,21 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
 
       {/* AI 响应内容 */}
       {record.response_snapshot?.content && (
-        <div style={{ background: '#fff', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+        <div style={{ background: 'var(--card)', borderRadius: 8, padding: 20, marginBottom: 16 }}>
           <Text strong style={{ fontSize: 14, marginBottom: 12, display: 'block' }}>
             AI 响应
           </Text>
           <div
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background:
+                'linear-gradient(135deg, var(--app-hero-gradient-from) 0%, var(--app-hero-gradient-to) 100%)',
               padding: 1,
               borderRadius: 6,
             }}
           >
             <pre
               style={{
-                background: '#fff',
+                background: 'var(--card)',
                 padding: 16,
                 borderRadius: 5,
                 margin: 0,
@@ -193,10 +196,10 @@ export default function RecordDetailDrawer({ open, record, onClose }: RecordDeta
       {record.error && (
         <div
           style={{
-            background: '#fff2f0',
+            background: 'var(--card)',
             borderRadius: 8,
             padding: 20,
-            border: '1px solid #ffccc7',
+            border: '1px solid var(--destructive)',
           }}
         >
           <Text strong type="danger" style={{ fontSize: 14, marginBottom: 12, display: 'block' }}>

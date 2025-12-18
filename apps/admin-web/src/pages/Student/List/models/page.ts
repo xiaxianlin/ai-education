@@ -3,9 +3,10 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { adminApi } from '@/lib/api';
-import { message, Modal } from 'antd';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
+  const { message, modal } = useAntdApp();
   const actionRef = useRef<ActionType>();
   const formProps = useSimpleForm<SaveStudentRequest, Student>({
     service: async (values, item) => {
@@ -13,7 +14,7 @@ const useContainer = () => {
         await adminApi.updateStudent(item.id, values);
       } else {
         await adminApi.createStudent(values);
-        Modal.success({
+        modal.success({
           title: '创建成功',
           content: `学生已创建，默认密码为手机号后6位`,
           okText: '确定',
@@ -24,7 +25,7 @@ const useContainer = () => {
   });
 
   const handleDelete = (student: Student) => {
-    Modal.confirm({
+    modal.confirm({
       centered: true,
       title: '删除确认',
       content: `确定要删除学生「${student?.name || ''}」吗？`,

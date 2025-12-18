@@ -1,14 +1,16 @@
 import React, { useRef } from 'react';
 import { PageContainer, ProColumns, ModalForm, ProFormText, ProFormSelect } from '@ant-design/pro-components';
-import { Button, message, Modal, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
 import { useRequest } from 'ahooks';
 import { CommonTable } from '@/components/business';
 import { createTimeColumn } from '@/hooks';
 import { StatusTag } from '@/components/ui';
+import { useAntdApp } from '@/lib/antdApp';
 
 export default function ManagerPage() {
+  const { message, modal } = useAntdApp();
   const actionRef = useRef<any>();
   const [formVisible, setFormVisible] = React.useState(false);
 
@@ -25,7 +27,7 @@ export default function ManagerPage() {
     onSuccess: (passwd: any) => {
       setFormVisible(false);
       actionRef.current?.reload();
-      Modal.success({
+      modal.success({
         title: '添加成功',
         content: `请保存好密码：${passwd.password}`,
       });
@@ -47,7 +49,7 @@ export default function ManagerPage() {
     manual: true,
     onSuccess: (passwd: any) => {
       message.success('密码重置成功');
-      Modal.success({
+      modal.success({
         title: '密码重置成功',
         content: `新密码：${passwd.password}，请保存好密码`,
       });
@@ -55,7 +57,7 @@ export default function ManagerPage() {
   });
 
   const handleDelete = (manager: Manager) => {
-    Modal.confirm({
+    modal.confirm({
       title: '确认删除',
       content: `确定要删除账号 "${manager.username}" 吗？`,
       okText: '确认',
@@ -66,7 +68,7 @@ export default function ManagerPage() {
   };
 
   const handleUpdateStatus = async (manager: Manager) => {
-    Modal.confirm({
+    modal.confirm({
       title: '状态变更',
       content: `确定要${manager.status === 1 ? '停用' : '启用'}账号 "${manager.username}" 吗？`,
       okText: '确认',
@@ -76,7 +78,7 @@ export default function ManagerPage() {
   };
 
   const handleResetPassword = (manager: Manager) => {
-    Modal.confirm({
+    modal.confirm({
       title: '确认重置密码',
       content: `确定要重置账号 "${manager.username}" 的密码吗？`,
       okText: '确认',

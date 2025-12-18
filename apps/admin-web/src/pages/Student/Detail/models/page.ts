@@ -2,13 +2,14 @@ import { adminApi } from '@/lib/api';
 import { ProForm } from '@ant-design/pro-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRequest } from 'ahooks';
-import { message, Modal } from 'antd';
 import { useState } from 'react';
 import { createContainer } from 'unstated-next';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { message, modal } = useAntdApp();
   const [editForm] = ProForm.useForm<SaveStudentRequest>();
   const [editFormVisible, setEditFormVisible] = useState(false);
 
@@ -32,7 +33,7 @@ const useContainer = () => {
   const { runAsync: handleResetPassword, loading: resetting } = useRequest(() => adminApi.resetStudentPassword(id!), {
     manual: true,
     onSuccess: (password) => {
-      Modal.success({
+      modal.success({
         title: '密码重置成功',
         content: `新密码：${password}，请妥善保管`,
         okText: '确定',

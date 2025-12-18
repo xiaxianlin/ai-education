@@ -1,6 +1,7 @@
-import { Drawer, Form, Input, InputNumber, Button, Space, message, Select } from 'antd';
+import { Drawer, Form, Input, InputNumber, Button, Space, Select } from 'antd';
 import { useEffect } from 'react';
 import { useConfigs } from '@/hooks/useConfigs';
+import { useAntdApp } from '@/lib/antdApp';
 
 export interface ModelConfig {
   model_provider: string;
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function ModelDrawer({ visible, onClose, config, onSave }: Props) {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
   const { providers } = useConfigs();
 

@@ -1,4 +1,4 @@
-import { message } from 'antd';
+import { useAntdApp } from '@/lib/antdApp';
 
 /**
  * 通用的表格请求处理
@@ -6,6 +6,7 @@ import { message } from 'antd';
 export function useTableRequest<T, P = any>(
   requestFn: (params: P) => Promise<{ data: T[]; total: number }>,
 ) {
+  const { message } = useAntdApp();
   return async (params: any) => {
     try {
       const { pageSize, current, ...filter } = params;

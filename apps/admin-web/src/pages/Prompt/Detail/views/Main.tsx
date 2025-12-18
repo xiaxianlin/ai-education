@@ -52,17 +52,17 @@ export default function MainView() {
         </ProDescriptions>
       </ProCard>
       <ProCard title="模板内容" style={{ marginTop: 16 }}>
-        <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+        <pre style={{ whiteSpace: 'pre-wrap', background: 'var(--app-code-bg)', padding: 16, borderRadius: 4 }}>
           {prompt.template_content}
         </pre>
       </ProCard>
       <ProCard title="负面提示" style={{ marginTop: 16 }}>
-        <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+        <pre style={{ whiteSpace: 'pre-wrap', background: 'var(--app-code-bg)', padding: 16, borderRadius: 4 }}>
           {prompt.negative_content}
         </pre>
       </ProCard>
       <ProCard title="模型参数" style={{ marginTop: 16 }}>
-        <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+        <pre style={{ whiteSpace: 'pre-wrap', background: 'var(--app-code-bg)', padding: 16, borderRadius: 4 }}>
           {JSON.stringify(prompt.model_params, null, 2)}
         </pre>
       </ProCard>

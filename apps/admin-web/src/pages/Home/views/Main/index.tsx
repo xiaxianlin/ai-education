@@ -62,25 +62,25 @@ export default function MainView() {
       title: '学生总数',
       value: totalStudents,
       prefix: <UserOutlined />,
-      valueStyle: { color: '#1890ff' },
+      styles: { content: { color: 'var(--chart-1)' } },
     },
     {
       title: '活跃学生',
       value: activeStudents,
       prefix: <CheckCircleOutlined />,
-      valueStyle: { color: '#52c41a' },
+      styles: { content: { color: 'var(--chart-2)' } },
     },
     {
       title: '教材总数',
       value: totalTextbooks,
       prefix: <BookOutlined />,
-      valueStyle: { color: '#722ed1' },
+      styles: { content: { color: 'var(--chart-5)' } },
     },
     {
       title: '题目总数',
       value: totalQuestions,
       prefix: <QuestionCircleOutlined />,
-      valueStyle: { color: '#fa8c16' },
+      styles: { content: { color: 'var(--chart-4)' } },
     },
   ];
 
@@ -90,7 +90,8 @@ export default function MainView() {
         {/* 欢迎区域 */}
         <Card
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background:
+              'linear-gradient(135deg, var(--app-hero-gradient-from) 0%, var(--app-hero-gradient-to) 100%)',
             color: 'white',
           }}
         >
@@ -121,7 +122,7 @@ export default function MainView() {
                   title={item.title}
                   value={item.value}
                   prefix={item.prefix}
-                  valueStyle={item.valueStyle}
+                  styles={item.styles}
                 />
               </Card>
             </Col>

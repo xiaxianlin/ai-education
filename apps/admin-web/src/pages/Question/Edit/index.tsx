@@ -3,10 +3,11 @@ import { PageContainer, ProForm, ProFormSelect, ProFormTextArea, ProFormText } f
 import { adminApi } from '@/lib/api';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { message, Button, Space, Card, Flex } from 'antd';
+import { Button, Space, Card, Flex } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useEffect, useMemo } from 'react';
 import { GRADES } from '@/constants/course';
+import { useAntdApp } from '@/lib/antdApp';
 
 // 资源类型选项
 const resourceTypeOptions = {
@@ -18,6 +19,7 @@ const resourceTypeOptions = {
 export default function QuestionEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { message } = useAntdApp();
   const { subjectEnum, gradeEnum, questionTypeEmun, difficultyLevelEmun, question_subtypes } = useConfigs();
   const [form] = ProForm.useForm<UpdateQuestionRequest>();
 

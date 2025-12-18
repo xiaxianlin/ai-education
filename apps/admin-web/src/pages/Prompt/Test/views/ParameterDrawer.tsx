@@ -1,6 +1,7 @@
-import { Drawer, Form, Input, InputNumber, Switch, Button, Space, message } from 'antd';
+import { Drawer, Form, Input, InputNumber, Switch, Button, Space } from 'antd';
 import { useEffect } from 'react';
 import { TemplateParameter, validateParameter } from '../utils/templateParser';
+import { useAntdApp } from '@/lib/antdApp';
 
 interface Props {
   visible: boolean;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ParameterDrawer({ visible, onClose, parameters, values, onSave }: Props) {
+  const { message } = useAntdApp();
   const [form] = Form.useForm();
 
   useEffect(() => {

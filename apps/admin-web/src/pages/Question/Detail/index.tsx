@@ -2,15 +2,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
 import { adminApi } from '@/lib/api';
 import { useRequest } from 'ahooks';
-import { message, Button, Card, Space, Tag, Image, Popconfirm, Flex } from 'antd';
+import { Button, Card, Space, Tag, Image, Popconfirm, Flex } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { GRADES } from '@/constants/course';
 import { AudioPlayer } from '@/components/ui';
 import { getResourceUrl } from '@ai-education/shared-web';
+import { useAntdApp } from '@/lib/antdApp';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { message } = useAntdApp();
 
   const {
     data: question,
@@ -247,7 +249,7 @@ export default function QuestionDetailPage() {
                   style={{
                     marginTop: '12px',
                     padding: '8px',
-                    background: '#f5f5f5',
+                    background: 'var(--muted)',
                     borderRadius: '4px',
                     fontSize: '14px',
                   }}
@@ -272,12 +274,12 @@ export default function QuestionDetailPage() {
               style={{
                 marginTop: '20px',
                 padding: '12px',
-                background: '#fffbe6',
+                background: 'var(--accent)',
                 borderRadius: '4px',
-                border: '1px solid #ffe58f',
+                border: '1px solid var(--border)',
               }}
             >
-              <div style={{ marginBottom: '8px', color: '#666' }}>
+              <div style={{ marginBottom: '8px', color: 'var(--muted-foreground)' }}>
                 {isImageQuestion && '该题目需要图片资源，但尚未生成。'}
                 {isAudioQuestion && '该题目需要音频资源，但尚未生成。'}
               </div>
@@ -286,7 +288,7 @@ export default function QuestionDetailPage() {
                   style={{
                     marginTop: '8px',
                     padding: '8px',
-                    background: '#f5f5f5',
+                    background: 'var(--muted)',
                     borderRadius: '4px',
                     fontSize: '14px',
                   }}
@@ -303,7 +305,7 @@ export default function QuestionDetailPage() {
           <Card title="选项">
             <Flex gap={10}>
               {optionsList.map((option, index) => (
-                <Tag key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                <Tag key={index} style={{ padding: '8px 12px', background: 'var(--muted)', borderRadius: '4px' }}>
                   <strong>{String.fromCharCode(65 + index)}.</strong> {option}
                 </Tag>
               ))}
@@ -317,7 +319,7 @@ export default function QuestionDetailPage() {
               style={{
                 fontSize: '14px',
                 padding: '12px',
-                background: '#e6f7ff',
+                background: 'var(--accent)',
                 borderRadius: '4px',
               }}
             >

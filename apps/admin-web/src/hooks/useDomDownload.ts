@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { message } from 'antd';
 import { useRequest } from 'ahooks';
 import html2canvas from 'html2canvas';
+import { useAntdApp } from '@/lib/antdApp';
 
 interface UseDomDownloadProps {
   success?: string;
@@ -9,6 +9,7 @@ interface UseDomDownloadProps {
 }
 
 export function useDomDownload(props?: UseDomDownloadProps) {
+  const { message } = useAntdApp();
   const ref = useRef<HTMLDivElement>(null);
 
   const { loading, run: download } = useRequest(
@@ -25,7 +26,7 @@ export function useDomDownload(props?: UseDomDownloadProps) {
     {
       manual: true,
       onSuccess: () => message.success(props?.success || '下载成功'),
-      onError: () => message.success(props?.error || '下载失败'),
+      onError: () => message.error(props?.error || '下载失败'),
     },
   );
 

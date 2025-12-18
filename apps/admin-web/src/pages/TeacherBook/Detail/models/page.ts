@@ -1,12 +1,13 @@
-import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
 import { adminApi } from '@/lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAntdApp } from '@/lib/antdApp';
 
 const useContainer = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { message, modal } = useAntdApp();
   const {
     data: teacherBook,
     loading,
@@ -36,7 +37,7 @@ const useContainer = () => {
 
   const handleDelete = () => {
     if (!teacherBook) return;
-    Modal.confirm({
+    modal.confirm({
       centered: true,
       title: '删除确认',
       content: `确定要删除该教师用书吗？`,

@@ -1,7 +1,8 @@
 import { adminApi } from '@/lib/api';
 import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
-import { Button, Form, message } from 'antd';
+import { Button, Form } from 'antd';
 import { ButtonSize } from 'antd/es/button';
+import { useAntdApp } from '@/lib/antdApp';
 
 interface PublishModalProps {
   versionId: number;
@@ -10,6 +11,7 @@ interface PublishModalProps {
   onSuccess?: () => void;
 }
 export function PublishModal({ size, versionId, buttonType = 'primary', onSuccess }: PublishModalProps) {
+  const { message } = useAntdApp();
   const [form] = Form.useForm<{ changelog: string }>();
   return (
     <ModalForm<{ changelog: string }>
