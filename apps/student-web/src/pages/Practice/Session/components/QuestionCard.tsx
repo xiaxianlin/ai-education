@@ -3,9 +3,9 @@
  */
 
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/badge";
+import { Badge } from "@/components/ui";
 import { useMemo } from "react";
-import AudioPlayer from "@/components/AudioPlayer";
+import AudioPlayer from "@/components/business/AudioPlayer";
 import { usePageModel } from "../models/PageModel";
 import { getResourceUrl } from "@ai-education/shared-web";
 

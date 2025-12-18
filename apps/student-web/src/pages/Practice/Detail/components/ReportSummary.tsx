@@ -2,7 +2,7 @@
  * 报告摘要组件
  */
 import { FC } from "react";
-import { Card, CardContent } from "@/components/card";
+import { Card, CardContent } from "@/components/ui";
 import { Trophy, CheckCircle, XCircle, Clock, TrendingUp } from "lucide-react";
 import { formatDuration } from "@ai-education/shared-web";
 

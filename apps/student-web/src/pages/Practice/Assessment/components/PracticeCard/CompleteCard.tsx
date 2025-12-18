@@ -1,7 +1,7 @@
 /**
  * 已完成状态的评估卡片
  */
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
 import { Loader2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PracticeCardProps } from "./types";

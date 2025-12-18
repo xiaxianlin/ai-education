@@ -2,9 +2,7 @@
  * 历史记录卡片组件
  */
 import { FC } from "react";
-import { Card, CardContent } from "@/components/card";
-import { Button } from "@/components/button";
-import { Badge } from "@/components/badge";
+import { Badge, Button, Card, CardContent } from "@/components/ui";
 import { useNavigate } from "react-router-dom";
 import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";

@@ -1,5 +1,5 @@
 import { X, Loader2 } from "lucide-react";
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
 
 interface ConfirmModalProps {
   unit: Unit;

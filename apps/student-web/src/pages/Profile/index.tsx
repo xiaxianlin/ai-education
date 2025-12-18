@@ -1,7 +1,6 @@
 import { useProfileModel } from "@/models/ProfileModel";
 import { useAuthModel } from "@/models/AuthModel";
-import { Card, CardContent } from "@/components/card";
-import { Button } from "@/components/button";
+import { Card, CardContent, Button } from "@/components/ui";
 import { User, BookOpen, LogOut, Phone } from "lucide-react";
 import { GRADES } from "@/constants/profile";
 

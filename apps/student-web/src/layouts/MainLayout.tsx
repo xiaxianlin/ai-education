@@ -1,6 +1,5 @@
-import { Header } from "@/components/Header";
+import { Header, LoadingPage } from "@/components/business";
 import { Outlet } from "react-router-dom";
-import { LoadingPage } from "@/components/LoadingSpinner";
 import { useGradeTheme } from "@/hooks/useGradeTheme";
 import { ProfileModel, useProfileModel } from "@/models/ProfileModel";
 

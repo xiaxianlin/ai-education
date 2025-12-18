@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
+import { ModeToggle } from "@/components/business";
 import { LogOut, User } from "lucide-react";
-import { ModeToggle } from "@/components/ModeToggle";
 import { useAuthModel } from "@/models/AuthModel";
 import { useProfileModel } from "@/models/ProfileModel";
 import { GRADES } from "@/constants/profile";

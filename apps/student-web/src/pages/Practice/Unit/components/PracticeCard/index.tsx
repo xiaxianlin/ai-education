@@ -1,4 +1,4 @@
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
 import { Lightbulb, Play, Loader2, Sparkles, FileText } from "lucide-react";
 import { useUnitPractice } from "../../hooks/useUnitPractice";
 import { PracticeStatus } from "../../../constants";

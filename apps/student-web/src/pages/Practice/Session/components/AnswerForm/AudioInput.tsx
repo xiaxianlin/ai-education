@@ -4,7 +4,7 @@
 import { useState, useRef } from "react";
 import { useRequest } from "ahooks";
 import { Mic, RotateCcw, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { studentApi } from "@/lib/api";
 import { usePageModel } from "../../models/PageModel";

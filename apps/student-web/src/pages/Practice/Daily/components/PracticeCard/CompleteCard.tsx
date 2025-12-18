@@ -1,7 +1,7 @@
 /**
  * 已完成状态的练习卡片
  */
-import { Button } from "@/components/button";
+import { Button } from "@/components/ui";
 import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PracticeCardProps } from "./types";
