@@ -114,7 +114,8 @@ async def create_prompt(db: AsyncSession, params: SavePromptSchema) -> int:
         template_content=params.template_content,
         negative_content=params.negative_content,
         model_params=params.model_params or {},
-        is_published=0,
+        is_published=1,
+        changelog="初始版本",
     )
     db.add(version)
     await db.flush()
@@ -172,7 +173,8 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
             template_content=params.template_content,
             negative_content=params.negative_content,
             model_params=params.model_params or {},
-            is_published=0,
+            is_published=1,
+            changelog=f"编辑版本: {version.id}",
         )
         db.add(new_version)
         await db.flush()

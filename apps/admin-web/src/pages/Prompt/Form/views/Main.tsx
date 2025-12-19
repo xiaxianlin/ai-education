@@ -9,6 +9,7 @@ import {
 import { usePromptFormModel } from '../models/page';
 import { PageHeader } from '@/components';
 import { adminApi } from '@/lib/api';
+import { Flex } from 'antd';
 
 export default function MainView() {
   const { versionId, handleSubmit } = usePromptFormModel();
@@ -31,20 +32,20 @@ export default function MainView() {
             };
           }}
         >
-          <ProForm.Group>
-            <ProFormText name="name" label="名称" rules={[{ required: true }]} width="lg" />
-            <ProFormText name="slug" label="Slug" rules={[{ required: true }]} width="lg" disabled={!!versionId} />
+          <Flex className="form-group-inline">
+            <ProFormText name="name" label="名称" rules={[{ required: true }]} style={{ flex: 1 }} />
+            <ProFormText name="slug" label="Slug" rules={[{ required: true }]} disabled={!!versionId} />
             <ProFormSelect
               name="type"
               label="类型"
               rules={[{ required: true }]}
-              width="lg"
+              width="md"
               options={[
                 { value: 'system', label: '系统提示词' },
                 { value: 'user', label: '用户提示词' },
               ]}
             />
-          </ProForm.Group>
+          </Flex>
 
           <ProFormTextArea
             name="template_content"
@@ -52,20 +53,20 @@ export default function MainView() {
             rules={[{ required: true }]}
             fieldProps={{ rows: 16 }}
           />
-          <ProForm.Group>
+          <Flex className="form-group-inline">
             <ProFormTextArea
               name="negative_content"
               label="负面提示"
               fieldProps={{ rows: 4, placeholder: '可选，用于指定模型需要避免的内容说明' }}
-              width="lg"
+              width="md"
             />
             <ProFormTextArea
               name="model_params"
               label="模型参数"
-              width="lg"
+              width="md"
               fieldProps={{
                 rows: 4,
-                placeholder: '可选，JSON 格式，例如：{\"temperature\": 0.7, \"max_tokens\": 1024}',
+                placeholder: '可选，JSON 格式，例如：{"temperature": 0.7, "max_tokens": 1024}',
               }}
               rules={[
                 {
@@ -87,9 +88,9 @@ export default function MainView() {
               name="description"
               label="描述"
               fieldProps={{ rows: 4, placeholder: '可选，对提示词的用途和使用场景进行说明' }}
-              width="lg"
+              width="md"
             />
-          </ProForm.Group>
+          </Flex>
         </ProForm>
       </ProCard>
     </PageContainer>

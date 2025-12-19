@@ -40,16 +40,5 @@ export default defineConfig({
     distPath: {
       root: 'dist',
     },
-    filename: {
-      js: '[name].[contenthash:8].js',
-      css: '[name].[contenthash:8].css',
-    },
-  },
-  tools: {
-    rspack: {
-      resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-      },
-    },
   },
 });

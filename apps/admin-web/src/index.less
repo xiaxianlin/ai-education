@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html,
 body,
 #root {
@@ -34,6 +38,7 @@ ol {
   min-width: 200px;
   justify-content: center;
 }
+
 .ant-table {
   .ant-btn-link {
     padding: 0;
@@ -41,5 +46,16 @@ ol {
   .ant-tag {
     font-size: 13px;
     padding: 4px 8px;
+  }
+}
+
+.form-group-inline {
+  gap: 16px;
+  .ant-form-item {
+    flex: 1;
+    textarea,
+    .ant-select {
+      width: 100% !important;
+    }
   }
 }

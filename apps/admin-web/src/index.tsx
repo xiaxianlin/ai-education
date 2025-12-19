@@ -1,4 +1,3 @@
-import './tailwind.css';
 import './index.less';
 import ReactDOM from 'react-dom/client';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
