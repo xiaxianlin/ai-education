@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from shared.core.database import PracticeSession, PracticeAnswer, Question
 from student.schema import AnswerQuestionSchema
 from shared.utils.time import now
-from ai.question.answer import analyze_text_answer
+from shared.services.answer import analyze_text_answer
 from shared.core.schema import PracticeAnswerSchema
 
 

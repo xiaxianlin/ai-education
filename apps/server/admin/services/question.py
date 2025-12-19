@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
 from admin.schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
-from ai.question.resource import generate_question_audio as ai_generate_audio
-from ai.question.resource import generate_question_image as ai_generate_image
+from shared.services.ai import generate_question_audio as ai_generate_audio
+from shared.services.ai import generate_question_image as ai_generate_image
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
 

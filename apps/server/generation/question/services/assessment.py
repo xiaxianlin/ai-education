@@ -26,12 +26,14 @@ from generation.question.utils import (
 
 class AssessmentGenerateService:
 
-    def validate_state(state: QuestionGenerationState) -> None:
+    @classmethod
+    def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证能力评估的状态参数"""
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
 
-    async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
+    @classmethod
+    async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """加载能力评估所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]

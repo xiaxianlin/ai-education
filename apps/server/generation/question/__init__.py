@@ -3,9 +3,8 @@ from typing import List
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from shared.core.database import Textbook, Unit, Question
-from ai.schema import QuestionGenerationState
+from generation.question.schema import QuestionGenerationState
 from .graph import create_question_generation_graph
 
 app = create_question_generation_graph()

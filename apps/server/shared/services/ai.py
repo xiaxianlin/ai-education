@@ -1,47 +1,73 @@
+import requests
+from typing import Optional
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from shared.core.database import Question
+from shared.utils import oss
+from shared.utils.question import build_full_question_text
 from shared.provider import get_provider
-from shared.services.prompt import get_image_optimize_prompt
+from shared.services.prompt import PromptService
 
 
-def _build_full_question_text(question: Question) -> str:
-    """构建完整的问题内容，包含题目、选项、答案"""
-    parts = []
+async def _optimize_image_prompt(text: str, db: Optional[AsyncSession] = None) -> str:
+    """使用 LLM 优化图片生成提示词
 
-    # 题目内容
-    if question.content:
-        parts.append(f"题目：{question.content}")
+    Args:
+        text: 题目文本内容
+        db: 数据库会话，用于动态加载提示词
+    """
+    if not text or not text.strip():
+        logger.warning("输入文本为空，返回默认提示词")
+        return "卡通风格，简单背景，明亮色彩，适合小学生"
 
-    # 选项
-    if question.options:
-        try:
-            parsed = json.loads(question.options)
-            if isinstance(parsed, list):
-                options_text = "\n".join(
-                    [
-                        f"{chr(65 + i)}. {opt if isinstance(opt, str) else opt.get('text', opt.get('label', str(opt)))}"
-                        for i, opt in enumerate(parsed)
-                    ]
-                )
-            else:
-                # 如果不是数组，尝试按换行符分割
-                options_text = question.options
-            if options_text:
-                parts.append(f"选项：\n{options_text}")
-        except (json.JSONDecodeError, Exception):
-            # 如果解析失败，直接使用原始文本
-            if question.options.strip():
-                parts.append(f"选项：\n{question.options}")
+    # 清理输入文本
+    question_content = text.strip()
+    logger.debug(f"开始优化图片提示词，原始文本长度: {len(question_content)}")
 
-    # 答案
-    if question.answer:
-        parts.append(f"答案：{question.answer}")
+    try:
+        # 使用 PromptService 获取 prompt
+        prompt = await PromptService.get_image_optimize_prompt(db=db)
 
-    return "\n\n".join(parts) if parts else question.content or ""
+        # 使用 provider 调用
+        provider = get_provider()
+        result = provider.invoke_chain(
+            prompt=prompt,
+            prompt_input={"question_content": question_content},
+        )
+
+        # 提取优化后的提示词
+        if isinstance(result, str):
+            optimized_prompt = result.strip()
+        elif hasattr(result, "content"):
+            optimized_prompt = result.content.strip()
+        elif isinstance(result, dict) and "content" in result:
+            optimized_prompt = result["content"].strip()
+        else:
+            logger.error(f"LLM 返回结果格式异常: {type(result)}, 内容: {result}")
+            raise ValueError(f"LLM 返回结果格式错误: {type(result).__name__}")
+
+        # 验证结果
+        if not optimized_prompt:
+            logger.error("LLM 返回的提示词为空")
+            raise ValueError("LLM 返回的提示词为空，请重试")
+
+        return optimized_prompt
+
+    except Exception as e:
+        logger.error(f"优化图片提示词失败: {e}")
+        # 如果 LLM 调用失败，返回一个基础的提示词作为降级方案
+        logger.warning("LLM 调用失败，使用降级方案")
+        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生，{question_content[:50]}"
+        return fallback_prompt
 
 
-async def generate_question_image(db: AsyncSession, question: Question, width: int = 1328, height: int = 1328) -> str:
+async def generate_question_image(
+    question: Question,
+    width: int = 1328,
+    height: int = 1328,
+    db: Optional[AsyncSession] = None,
+) -> str:
     """为指定题目生成图片
 
     Args:
@@ -50,22 +76,33 @@ async def generate_question_image(db: AsyncSession, question: Question, width: i
         height: 图片高度
         db: 数据库会话，用于动态加载提示词
     """
-
-    provider = get_provider()
-
-    optimize_prompt = await get_image_optimize_prompt(db=db)
-
-    image_prompt = provider.invoke_chain(
-        prompt=optimize_prompt, prompt_input={"question_content": _build_full_question_text(question)}
-    )
-
+    # 生成图片
+    question_text = build_full_question_text(question)
+    # 如果启用提示词优化，使用提示词优化服务
+    image_prompt = await _optimize_image_prompt(question_text, db)
     logger.info(f"图片生成提示词: {image_prompt}")
 
-    logger.info(f"开始生成图片，尺寸: {width}*{height}, 提示词长度: {len(image_prompt)}")
+    size_str = f"{width}*{height}" if width and height else "默认"
+    logger.info(f"开始生成图片，尺寸: {size_str}, 提示词长度: {len(image_prompt)}")
 
-    image_url = provider.invoke_image_generate(prompt=image_prompt, width=width, height=height)
+    # 使用 provider 生成图片
+    provider = get_provider()
+    image_url = provider.invoke_image_generate(
+        prompt=image_prompt,
+        width=width,
+        height=height,
+        model="qwen-image-plus",
+        negative_prompt="",
+        prompt_extend=True,
+    )
 
-    return image_url
+    response = requests.get(image_url, stream=True)
+    response.raise_for_status()
+    oss_path = f"questions/{question.textbook_id}/images/{question.id}.jpg"
+    oss.upload(oss_path, response.content)
+
+    logger.info(f"题目 {question.id} 图片生成并更新成功")
+    return oss_path
 
 
 async def generate_question_audio(question: Question, language: str = "English") -> str:

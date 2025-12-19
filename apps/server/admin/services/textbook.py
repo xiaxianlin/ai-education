@@ -8,8 +8,8 @@ from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
-from ai.texttbook import parse_textbook_units
-from ai.utils import rag
+from shared.services.textbook_parser import parse_textbook_units
+from shared.utils import rag
 from shared.core.database import Knowledge, Question, Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs

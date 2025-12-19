@@ -3,8 +3,8 @@ from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from ai.utils import rag
-from ai.schema import UnitInfo, UnitExtractionResult
+from shared.utils import rag
+from generation.question.schema import UnitInfo, UnitExtractionResult
 from shared.provider import get_provider
 
 
@@ -74,3 +74,4 @@ async def parse_textbook_units(file_index_id: str) -> List[UnitInfo]:
     except Exception as e:
         logger.error(f"AI解析单元信息失败: {e}")
         raise ValueError(f"AI解析失败: {str(e)}")
+

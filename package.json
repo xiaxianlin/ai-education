@@ -23,7 +23,8 @@
     "build:app:android": "cd apps/student-app && flutter build apk",
     "build:all": "turbo run build",
     "install:all": "pnpm install && cd apps/server && uv sync && cd ../student-app && flutter pub get",
-    "generate:types": "tsx scripts/generate-types.ts"
+    "generate:types": "tsx scripts/generate-types.ts",
+    "keep-all": "./scripts/keep-all-and-push.sh"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

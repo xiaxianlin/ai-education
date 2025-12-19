@@ -11,7 +11,7 @@ from shared.core.database import (
     PracticeAnswer,
     Unit,
 )
-from ai.question_generate import invoke_generate_workflow
+from generation.question import invoke_generate_workflow
 
 
 async def create_answer_records(

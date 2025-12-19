@@ -21,7 +21,8 @@ from langchain_core.output_parsers import JsonOutputParser
 
 class UnitPracticeGenerateService:
 
-    def validate_state(state: QuestionGenerationState) -> None:
+    @classmethod
+    def validate_state(cls, state: QuestionGenerationState) -> None:
         """验证单元练习的状态参数"""
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
@@ -29,7 +30,8 @@ class UnitPracticeGenerateService:
         if state.get("unit") is None:
             raise ValueError("单元 (unit) 不能为空")
 
-    async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
+    @classmethod
+    async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """加载单元练习所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
@@ -60,7 +62,8 @@ class UnitPracticeGenerateService:
             logger.error(f"✗ 加载单元练习数据失败: {e}")
             raise
 
-    async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
+    @classmethod
+    async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
         """构建单元练习的 Prompt"""
         db: AsyncSession = state["db"]
         unit = state["unit"]

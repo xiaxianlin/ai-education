@@ -1,19 +1,21 @@
 from typing import List, Dict, Any
 from loguru import logger
 from shared.core.database import Question
+from shared.services.ai import generate_question_image, generate_question_audio
 from generation.question.schema import QuestionGenerationState
 
 
 async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
     """图片生成节点 - 根据 resource_type 标识为题目生成图片（并行生成）"""
     questions: List[Question] = state.get("questions", [])
+    db = state.get("db")
 
     count = 0
     for question in questions:
         if question.resource_type != "image":
             continue
         try:
-            image_url = await generate_question_image(question)
+            image_url = await generate_question_image(question, db=db)
             question.resource = image_url
             logger.info(f"题目 {question.id} 图片生成成功")
             count += 1
