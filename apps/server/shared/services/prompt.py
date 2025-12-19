@@ -1,62 +1,167 @@
-from typing import Optional, Dict, Any
-from sqlalchemy import select
+"""Prompt 服务 - 提供统一的 Prompt 获取和处理接口
+
+使用 LangChain 进行 prompt 模板处理，支持从数据库动态加载。
+"""
+
+from typing import Optional
+from sqlalchemy import select, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
+from langchain_core.prompts import ChatPromptTemplate
 
-from shared.core.database import Prompt, PromptVersion
+from shared.core.database import PracticePrompt, Prompt, PromptVersion
 
 
-class SharedPromptService:
-    """共享 Prompt 服务，提供给 Admin 和 AI 业务使用"""
+async def get_prompt_version(db: AsyncSession, slug: str):
+    """获取指定 slug 的当前发布版本 PromptVersion
 
-    @staticmethod
-    def validate_required(input_params: dict, variables: Dict[str, Any]):
-        """校验必填变量"""
-        required = input_params.get("required", []) if isinstance(input_params, dict) else []
-        for field in required:
-            if field not in variables or variables[field] in (None, ""):
-                raise ValueError(f"缺少必填变量: {field}")
+    Args:
+        db: 数据库会话
+        slug: Prompt 唯一标识
 
-    @staticmethod
-    def render_template(template_content: str, variables: Dict[str, Any]) -> str:
-        """渲染模板"""
-        try:
-            return template_content.format(**variables)
-        except KeyError as e:
-            raise ValueError(f"缺少变量: {e.args[0]}") from e
+    Returns:
+        PromptVersion 对象，如果未找到则返回 None
+    """
+    stmt = (
+        select(PromptVersion)
+        .options(joinedload(PromptVersion.prompt))
+        .join(Prompt, Prompt.current_version_id == PromptVersion.id)
+        .where(Prompt.slug == slug, PromptVersion.is_published == 1)
+        .order_by(PromptVersion.id.desc())
+    )
+    return await db.scalar(stmt)
 
-    @classmethod
-    async def get_active_prompt_version(cls, db: AsyncSession, slug: str) -> Optional[PromptVersion]:
-        """获取指定 slug 的当前发布版本 PromptVersion"""
-        stmt = (
-            select(PromptVersion)
-            .join(Prompt, Prompt.current_version_id == PromptVersion.id)
-            .where(Prompt.slug == slug)
-            .where(PromptVersion.is_published == 1)
+
+async def get_chat_prompt_template(
+    db: AsyncSession, slug: str, extra_prompt: Optional[str] = None
+) -> ChatPromptTemplate:
+    """获取 ChatPromptTemplate，优先从数据库加载
+
+    Args:
+        db: 数据库会话，如果为 None 则使用默认模板
+        slug: Prompt 唯一标识
+        extra_prompt: 额外的提示词
+
+    Returns:
+        ChatPromptTemplate 对象
+    """
+    prompt_version = await get_prompt_version(db, slug)
+    if not prompt_version:
+        raise ValueError(f"Prompt 不存在: {slug}")
+
+    content = prompt_version.template_content
+    if extra_prompt:
+        content = content + "\n" + extra_prompt
+
+    template = ChatPromptTemplate.from_messages((prompt_version.prompt.type, content))
+    logger.info(f"获取 Prompt: {slug}, 内容: {content}")
+    return template
+
+
+# ==================== 业务入口方法 ====================
+
+
+async def get_image_optimize_prompt(db: AsyncSession, input_payload: Optional[dict] = None):
+    """获取图片优化提示词模板
+
+    Args:
+        db: 数据库会话
+        input_payload: 需要预先填充的变量（使用 partial）
+
+    Returns:
+        ChatPromptTemplate 对象
+    """
+
+    template = await get_chat_prompt_template(db=db, slug="image_prompt_optimize")
+    return template.partial(**input_payload)
+
+
+async def get_answer_analyze_prompt(db: AsyncSession, input_payload: Optional[dict] = None):
+    """获取答案分析提示词模板
+
+    Args:
+        db: 数据库会话
+        input_payload: 需要预先填充的变量（使用 partial）
+
+    Returns:
+        ChatPromptTemplate 对象
+    """
+
+    template = await get_chat_prompt_template(db=db, slug="analyze_question_answer")
+    return template.partial(**input_payload)
+
+
+async def get_practice_prompt_slug(db: AsyncSession, practice_type: str, grade: int, subject: str):
+    """获取练习提示词模板标识
+
+    Args:
+        db: 数据库会话
+        practice_type: 练习类型（"daily_practice" 或 "unit_practice"）
+        grade: 年级
+        subject: 学科（"数学" 或 "英语"）
+
+    Returns:
+        Prompt 唯一标识
+    """
+    practice_prompt = await db.scalar(
+        select(PracticePrompt)
+        .options(joinedload(PracticePrompt.prompt))
+        .where(
+            PracticePrompt.practice_type == practice_type,
+            PracticePrompt.grade == grade,
+            PracticePrompt.subject == subject,
         )
-        return await db.scalar(stmt)
+    )
+    if not practice_prompt:
+        raise ValueError(f"练习提示词不存在: {practice_type} {grade} {subject}")
 
-    @classmethod
-    async def render_prompt(cls, db: AsyncSession, slug: str, variables: Dict[str, Any]) -> Optional[str]:
-        """
-        渲染指定 Slug 的 Prompt
+    return practice_prompt.prompt.slug
 
-        Args:
-            db: 数据库会话
-            slug: Prompt 唯一标识
-            variables: 变量字典
 
-        Returns:
-            渲染后的 prompt 内容
-            如果未找到 active prompt，返回 None
-        """
-        version = await cls.get_active_prompt_version(db, slug)
-        if not version:
-            logger.warning(f"Prompt not found or not published: {slug}")
-            return None
+async def get_daily_practice_prompt(db: AsyncSession, grade: int, subject: str, extra_prompt: Optional[str] = None):
+    """获取每日练习提示词模板
 
-        # 校验变量
-        cls.validate_required(version.input_params or {}, variables)
+    Args:
+        db: 数据库会话
+        grade: 年级
+        subject: 学科（"数学" 或 "英语"）
+        extra_prompt: 额外的提示词
 
-        # 渲染
-        return cls.render_template(version.template_content, variables)
+    Returns:
+        ChatPromptTemplate 对象
+    """
+
+    slug = await get_practice_prompt_slug(db, "daily_practice", grade, subject)
+    return await get_chat_prompt_template(db, slug, extra_prompt)
+
+
+async def get_unit_practice_prompt(db: AsyncSession, grade: int, subject: str, extra_prompt: Optional[str] = None):
+    """获取单元练习提示词模板
+
+    Args:
+        db: 数据库会话
+        grade: 年级
+        subject: 学科（"数学" 或 "英语"）
+        extra_prompt: 额外的提示词
+
+    Returns:
+        ChatPromptTemplate 对象
+    """
+    slug = await get_practice_prompt_slug(db, "unit_practice", grade, subject)
+    return await get_chat_prompt_template(db, slug, extra_prompt)
+
+
+async def get_assessment_prompt(db: AsyncSession, grade: int, subject: str, extra_prompt: Optional[str] = None):
+    """获取能力评估提示词模板
+
+    Args:
+        db: 数据库会话
+        grade: 年级
+        subject: 学科（"数学" 或 "英语"）
+        extra_prompt: 额外的提示词
+
+    Returns:
+        ChatPromptTemplate 对象
+    """
+    slug = await get_practice_prompt_slug(db, "assessment", grade, subject)
+    return await get_chat_prompt_template(db, slug, extra_prompt)

@@ -188,7 +188,7 @@ async def generate_question_image(db: AsyncSession, id: str):
         raise ValueError("问题不存在")
 
     # 调用 AI 服务生成图片
-    resource_path = await ai_generate_image(question)
+    resource_path = await ai_generate_image(question, db=db)
 
     # 更新数据库
     question.resource = resource_path

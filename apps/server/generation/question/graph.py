@@ -1,27 +1,21 @@
 """问题生成流程图 - 使用LangGraph构建题目生成工作流"""
 
 from typing import Any, Dict, List
-
-from langgraph.graph import END, StateGraph
 from loguru import logger
+from langgraph.graph import END, StateGraph
 
 from shared.core.database import Question
-from ai.schema import GenerationType, QuestionGenerationState
-from ai.question_generate.services import llm as llm_service
-from ai.question_generate.services import resource as resource_service
-from ai.question_generate.services import storage as storage_service
-
-# 导入各生成类型的Service
-from ai.question_generate.services.daily_practice import DailyPracticeGenerateService
-from ai.question_generate.services.unit_practice import UnitPracticeGenerateService
-from ai.question_generate.services.assessment import AssessmentGenerateService
+from generation.question.schema import GenerationType, QuestionGenerationState
+from generation.question.utils import generate_images, generate_audios
+from generation.question.services.daily_practice import DailyPracticeGenerateService
+from generation.question.services.unit_practice import UnitPracticeGenerateService
+from generation.question.services.assessment import AssessmentGenerateService
+from generation.question.services.llm import LLMService
 
 
 def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """入口节点，负责基础校验"""
-    logger.info(
-        f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}"
-    )
+    logger.info(f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}")
 
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
@@ -112,34 +106,18 @@ async def build_assessment_prompt_node(
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """调用大模型生成题目"""
+
     logger.info("开始调用大模型生成题目")
-    try:
-        result = await llm_service.call_llm(state)
-        logger.info(
-            f"大模型生成完成，共生成 {len(result.get('generated_questions', []))} 道题目"
-        )
-        return result
-    except Exception as e:
-        logger.error(f"大模型调用失败: {e}")
-        raise
+    questions = await LLMService.call_llm(state)
+    logger.info(f"大模型生成题目完成，共 {len(questions)} 道题目")
 
-
-async def convert_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """将内容转换成 Question 数组，并根据问题类型分流，然后保存到数据库"""
-    logger.info("开始转换问题对象并分流")
-    try:
-        result = await storage_service.convert_questions(state)
-        logger.info("问题对象转换和分流完成")
-        return result
-    except Exception as e:
-        logger.error(f"数据转换或保存失败: {e}")
-        raise
+    return {"questions": questions}
 
 
 async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成图片"""
     try:
-        result = await resource_service.generate_images(state)
+        result = await generate_images(state)
         logger.info("图片生成完成")
         return result
     except Exception as e:
@@ -151,7 +129,7 @@ async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
 async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成语音"""
     try:
-        result = await resource_service.generate_audios(state)
+        result = await generate_audios(state)
         logger.info("语音生成完成")
         return result
     except Exception as e:
@@ -173,7 +151,7 @@ async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
     return {}
 
 
-async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def update_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
 
     db = state["db"]
@@ -219,11 +197,10 @@ def create_question_generation_graph() -> StateGraph:
 
     # 添加其他处理节点
     workflow.add_node("call_llm", call_llm_node)
-    workflow.add_node("convert_data", convert_data_node)
     workflow.add_node("handle_image", handle_image_node)
     workflow.add_node("handle_audio", handle_audio_node)
     workflow.add_node("handle_text", handle_text_node)
-    workflow.add_node("save_question", save_questions_node)
+    workflow.add_node("update_questions", update_questions_node)
 
     # 设置入口点
     workflow.set_entry_point("entry")
@@ -254,20 +231,17 @@ def create_question_generation_graph() -> StateGraph:
     workflow.add_edge("build_unit_practice_prompt", "call_llm")
     workflow.add_edge("build_assessment_prompt", "call_llm")
 
-    # 添加边：LLM调用 -> 数据转换
-    workflow.add_edge("call_llm", "convert_data")
+    # 添加边：LLM调用 -> 资源处理（并行）
+    workflow.add_edge("call_llm", "handle_image")
+    workflow.add_edge("call_llm", "handle_audio")
+    workflow.add_edge("call_llm", "handle_text")
 
-    # 添加边：数据转换 -> 资源处理（并行）
-    workflow.add_edge("convert_data", "handle_image")
-    workflow.add_edge("convert_data", "handle_audio")
-    workflow.add_edge("convert_data", "handle_text")
+    # 添加边：资源处理 -> 保存题目
+    workflow.add_edge("handle_image", "update_questions")
+    workflow.add_edge("handle_audio", "update_questions")
+    workflow.add_edge("handle_text", "update_questions")
 
-    # 添加边：资源处理 -> 文件上传
-    workflow.add_edge("handle_image", "save_question")
-    workflow.add_edge("handle_audio", "save_question")
-    workflow.add_edge("handle_text", "save_question")
-
-    # 添加边：更新问题 -> 结束
-    workflow.add_edge("save_question", END)
+    # 添加边：保存题目 -> 结束
+    workflow.add_edge("update_questions", END)
 
     return workflow.compile()

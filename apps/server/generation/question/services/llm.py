@@ -1,23 +1,51 @@
-"""存储服务 - 负责文件上传和题目保存"""
 import secrets
-from typing import Any, Dict, List
+from typing import Dict, Any, List
+
 from loguru import logger
-from pydantic import TypeAdapter
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from shared.core.database import Question
-from shared.core.constants import get_question_types
-from ai.schema import QuestionGenerationState, GeneratedQuestion, QuestionOption
+from shared.provider import get_provider
+from generation.question.schema import QuestionGenerationState
+from generation.question.schema import GeneratedQuestion
 
 
-async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
-    """将内容转换成 Question 数组，并根据问题类型分流"""
+def convert_llm_result(result: Dict[str, Any]) -> List[GeneratedQuestion]:
+    """验证大模型返回的结果"""
+    # 处理 knowledge 字段：如果 LLM 返回的是列表，转换为字符串
+    if "questions" not in result:
+        raise ValueError("LLM 返回结果中没有 questions 字段")
+
+    # 确保 questions 是列表
+    if not isinstance(result["questions"], list):
+        raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
+
+    questions = []
+    for question in result["questions"]:
+        if not isinstance(question, dict):
+            logger.warning(f"题目项类型错误: {type(question)}, 跳过处理")
+            continue
+
+        if "knowledge" in question and isinstance(question["knowledge"], list):
+            # 将列表转换为字符串，用顿号分隔
+            question["knowledge"] = "、".join(str(k) for k in question["knowledge"])
+        elif "knowledge" in question and not isinstance(question["knowledge"], str):
+            # 如果不是字符串也不是列表，转换为字符串
+            question["knowledge"] = str(question["knowledge"]) if question["knowledge"] else ""
+        elif "knowledge" not in question:
+            # 如果没有 knowledge 字段，设置为空字符串
+            question["knowledge"] = ""
+
+        questions.append(GeneratedQuestion.model_validate(question))
+
+    return questions
+
+
+async def save_questions(state: QuestionGenerationState, generated_questions: List[GeneratedQuestion]):
+    """保存题目到数据库"""
 
     db: AsyncSession = state["db"]
-    # 处理单元：教材生成可能有多个单元，单元生成只有一个单元
     unit = state.get("unit")
     textbook = state.get("textbook")
-    generated_questions: List[GeneratedQuestion] = state["generated_questions"]
 
     questions: List[Question] = []
 
@@ -27,8 +55,7 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
     # 验证题型列表不为空（虽然 generate_prompt 已经验证过，但这里再次验证以确保安全）
     if not question_types:
         raise ValueError(
-            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。"
-            f"目前仅支持一年级的英语和数学。"
+            f"科目 {textbook.subject} 的 {textbook.grade} 年级暂不支持题目生成。" f"目前仅支持一年级的英语和数学。"
         )
 
     for item in generated_questions:
@@ -113,3 +140,19 @@ async def convert_questions(state: QuestionGenerationState) -> Dict[str, Any]:
 
     db.add_all(questions)
     return {"questions": questions}
+
+
+class LLMService:
+    @classmethod
+    async def call_llm(cls, state: QuestionGenerationState):
+        prompt = state["prompt"]
+        prompt_input = state["prompt_input"]
+        parser = state["parser"]
+
+        provider = get_provider()
+
+        result = await provider.invoke_chain(prompt=prompt, parser=parser, prompt_input=prompt_input)
+        logger.info("✓ LLM 调用成功")
+
+        questions = await convert_llm_result(result)
+        return await save_questions(state, questions)

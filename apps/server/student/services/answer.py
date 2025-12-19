@@ -10,8 +10,13 @@ from ai.question.answer import analyze_text_answer
 from shared.core.schema import PracticeAnswerSchema
 
 
-async def _check_answer(question: Question, params: AnswerQuestionSchema):
+async def _check_answer(question: Question, params: AnswerQuestionSchema, db: AsyncSession):
     """检查答案是否正确并生成分析
+
+    Args:
+        question: 题目对象
+        params: 答题参数
+        db: 数据库会话
 
     Returns:
         tuple: (is_correct, analysis) - 是否正确和错题分析（如果错误）
@@ -25,7 +30,7 @@ async def _check_answer(question: Question, params: AnswerQuestionSchema):
         is_correct = params.answer.strip() == question.answer.strip()
         # 文本题答案错误，进行分析
         if not is_correct:
-            result = await analyze_text_answer(question, params.answer)
+            result = await analyze_text_answer(question, params.answer, db)
             is_correct = result.match
             analysis = result.analysis
 
@@ -64,7 +69,7 @@ async def submit_answer(
         raise ValueError("答题记录不存在")
 
     # 4. 检查答案并生成分析
-    is_correct, analysis = await _check_answer(question, params)
+    is_correct, analysis = await _check_answer(question, params, db)
 
     # 5. 更新答题记录
     answer_record.text_answer = params.answer

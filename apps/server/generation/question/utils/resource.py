@@ -1,12 +1,7 @@
-"""资源生成服务 - 负责生成图片和音频资源"""
-
-import asyncio
-from typing import Any, Dict, List
+from typing import List, Dict, Any
 from loguru import logger
-
 from shared.core.database import Question
-from ai.schema import QuestionGenerationState
-from ai.question.resource import generate_question_image, generate_question_audio
+from generation.question.schema import QuestionGenerationState
 
 
 async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -23,9 +18,7 @@ async def generate_images(state: QuestionGenerationState) -> Dict[str, Any]:
             logger.info(f"题目 {question.id} 图片生成成功")
             count += 1
         except Exception as e:
-            logger.error(
-                f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}"
-            )
+            logger.error(f"为问题 {question.content[:50] if question.content else 'N/A'} 生成图片失败: {e}")
             question.resource = None
 
     if count:

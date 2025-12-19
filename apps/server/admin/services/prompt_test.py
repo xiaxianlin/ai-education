@@ -9,7 +9,7 @@ from loguru import logger
 from admin.schema import TestPromptSchema, SearchPromptTestRecordSchema
 from shared.core.database import PromptVersion, PromptTestRecord
 from shared.core.schema import PromptTestRecordSchema, SearchResultSchema
-from shared.services.prompt import SharedPromptService
+from shared.services.prompt import PromptService
 from shared.provider import get_provider
 
 
@@ -167,8 +167,11 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
     if not version:
         raise ValueError("版本不存在")
 
-    # 渲染模板
-    rendered_prompt = SharedPromptService.render_template(version.template_content, params.input_payload or {})
+    # 渲染模板（使用 Python 的 format 方法）
+    try:
+        rendered_prompt = version.template_content.format(**(params.input_payload or {}))
+    except KeyError as e:
+        raise ValueError(f"缺少变量: {e.args[0]}")
 
     # 根据生成类型调用不同的处理函数
     generation_type = params.generation_type or "text"

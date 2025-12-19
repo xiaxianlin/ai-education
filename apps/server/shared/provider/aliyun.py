@@ -7,6 +7,7 @@ from openai import OpenAI
 from dashscope import MultiModalConversation
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import BasePromptTemplate
+from langchain_core.output_parsers import BaseOutputParser
 
 from shared.core.settings import envs
 from .base import BaseProvider
@@ -22,6 +23,8 @@ class AliyunProvider(BaseProvider):
         """初始化阿里云 Provider"""
         self.api_key = envs.AI_PLATFORM_KEY
         self.api_base = envs.AI_PLATFORM_URL
+        self.default_model = "qwen3-max"
+        self.default_tts_voice = getattr(envs, "AI_TTS_VOICE", "Elias")
         dashscope.api_key = self.api_key
 
     def get_openai_client(self) -> OpenAI:
@@ -45,6 +48,7 @@ class AliyunProvider(BaseProvider):
         """图片生成"""
         model = kwargs.get("model", "qwen-image-plus")
         negative_prompt = kwargs.get("negative_prompt", "")
+        prompt_extend = kwargs.get("prompt_extend", False)
         size = f"{width}*{height}" if width and height else None
 
         logger.info(f"开始生成图片，模型: {model}, 尺寸: {size}, 提示词长度: {len(prompt)}")
@@ -57,7 +61,7 @@ class AliyunProvider(BaseProvider):
                 size=size,
                 negative_prompt=negative_prompt,
                 stream=False,
-                prompt_extend=False,
+                prompt_extend=prompt_extend,
             )
 
             logger.debug(f"图片生成响应: {response}")
@@ -98,11 +102,18 @@ class AliyunProvider(BaseProvider):
             logger.error(f"文本生成失败: {e}", exc_info=True)
             raise ValueError(f"文本生成失败: {str(e)}")
 
-    def invoke_chain(self, prompt: BasePromptTemplate, **kwargs) -> Any:
+    def invoke_chain(
+        self,
+        prompt: BasePromptTemplate,
+        parser: Optional[BaseOutputParser] = None,
+        prompt_input: Optional[dict] = None,
+        **kwargs,
+    ) -> Any:
         """LangChain 链式调用"""
-        prompt_input = kwargs.get("prompt_input", {})
-        parser = kwargs.get("parser", None)
-        logger.info(f"开始 LangChain 链式调用，prompt: {prompt}")
+        if prompt_input is None:
+            prompt_input = {}
+        if parser is None:
+            parser = kwargs.get("parser", None)
 
         try:
             client = self.get_langchain_client(
@@ -116,9 +127,11 @@ class AliyunProvider(BaseProvider):
                 chain = prompt | client
 
             result = chain.invoke(prompt_input)
-            logger.info(f"LangChain 链式调用成功: {result.content}")
 
-            return result.content
+            # 如果有 parser，返回解析后的结果（dict）；否则返回 content
+            if parser:
+                return result
+            return result.content if hasattr(result, "content") else result
 
         except Exception as e:
             logger.error(f"LangChain 链式调用失败: {e}", exc_info=True)

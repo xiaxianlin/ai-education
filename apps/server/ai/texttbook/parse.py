@@ -3,8 +3,9 @@ from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from ai.utils import rag, llm
+from ai.utils import rag
 from ai.schema import UnitInfo, UnitExtractionResult
+from shared.provider import get_provider
 
 
 async def parse_textbook_units(file_index_id: str) -> List[UnitInfo]:
@@ -53,12 +54,14 @@ async def parse_textbook_units(file_index_id: str) -> List[UnitInfo]:
         "format_instructions": format_instructions,
     }
 
-    client = llm.get_chat_client()
-
-    chain = prompt | client | parser
+    provider = get_provider()
 
     try:
-        result = chain.invoke(prompt_input)
+        result = provider.invoke_chain(
+            prompt=prompt,
+            parser=parser,
+            prompt_input=prompt_input,
+        )
         logger.info("AI解析单元信息成功")
 
         # 验证结果

@@ -3,16 +3,12 @@
 本模块提供可复用的prompt构建辅助函数,用于消除代码重复并提高一致性。
 """
 
-from typing import List, Optional, Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
-from shared.services.prompt import SharedPromptService
+from typing import List, Optional
 from shared.core.database import Question, Unit
 from shared.core.constants import get_question_types
 
 
-def build_common_prompt(
-    subject: str, grade: int, recall_questions: Optional[List[Question]] = None
-) -> str:
+def build_common_prompt(subject: str, grade: int, recall_questions: Optional[List[Question]] = None) -> str:
     """构建题型配置信息，遍历题型和子题型生成适合 prompt 的字符串"""
 
     question_types = get_question_types(subject, grade)
@@ -51,26 +47,7 @@ def build_common_prompt(
 def build_difficulty_distribution(
     count: int, simple_ratio: float = 0.3, medium_ratio: float = 0.5, hard_ratio: float = 0.2
 ) -> dict:
-    """计算题目难度分布
-
-    Args:
-        count: 总题目数量
-        simple_ratio: 简单题比例(默认30%)
-        medium_ratio: 普通题比例(默认50%)
-        hard_ratio: 困难题比例(默认20%)
-
-    Returns:
-        包含各难度题目数量的字典
-        {
-            'simple_count': int,
-            'medium_count': int,
-            'hard_count': int
-        }
-
-    Note:
-        确保三个比例之和为1.0
-        实际数量会根据总数调整,确保总和等于count
-    """
+    """计算题目难度分布"""
     if abs(simple_ratio + medium_ratio + hard_ratio - 1.0) > 0.01:
         raise ValueError("难度比例之和必须为1.0")
 
@@ -88,24 +65,7 @@ def build_question_distribution(
     challenge_ratio: float = 0.2,
     new_ratio: float = 0.1,
 ) -> dict:
-    """计算每日练习题目类型分布
-
-    Args:
-        count: 总题目数量
-        wrong_ratio: 错题复习比例(默认30%)
-        mastered_ratio: 巩固练习比例(默认40%)
-        challenge_ratio: 挑战题比例(默认20%)
-        new_ratio: 新知引入比例(默认10%)
-
-    Returns:
-        包含各类型题目数量的字典
-        {
-            'wrong_count': int,
-            'mastered_count': int,
-            'challenge_count': int,
-            'new_count': int
-        }
-    """
+    """计算每日练习题目类型分布"""
     if abs(wrong_ratio + mastered_ratio + challenge_ratio + new_ratio - 1.0) > 0.01:
         raise ValueError("题目类型比例之和必须为1.0")
 
@@ -145,22 +105,3 @@ def build_units_prompt(units: List[Unit]) -> str:
         prompt_lines.append(f"- **{unit.content}**")
 
     return "\n".join(prompt_lines) or "（无）"
-
-
-async def load_prompt_by_slug(
-    db: Optional[AsyncSession],
-    slug: str,
-    default_template: str,
-    default_system_prompt: str,
-) -> Tuple[str, str]:
-    """根据 Slug 获取 Prompt，如果未获取到则使用默认值"""
-    if not db:
-        return default_system_prompt, default_template
-
-    version = await SharedPromptService.get_active_prompt_version(db, slug)
-    if version:
-        # 新模型只有 template_content，没有 system_prompt
-        # template_content 作为 user prompt，system prompt 使用默认值
-        return default_system_prompt, version.template_content
-
-    return default_system_prompt, default_template
