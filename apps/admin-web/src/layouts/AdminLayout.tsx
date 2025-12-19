@@ -57,6 +57,7 @@ const menuDataRender = (): MenuDataItem[] => [
     icon: <FileTextOutlined />,
     children: [
       { path: '/prompt/list', name: '提示词列表' },
+      { path: '/prompt/practice', name: '练习提示词管理' },
       { path: '/prompt/test/records', name: '测试记录' },
     ],
   },

@@ -12,3 +12,5 @@ export const GRADES: Record<number, string> = {
   11: '高二',
   12: '高三',
 };
+
+export const SUBJECTS = ['英语', '数学'];

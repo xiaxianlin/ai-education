@@ -281,6 +281,7 @@
 - **命名规范**: `.cursor/rules/naming-conventions/` - 适用于所有文件
 - **API 设计规范**: `.cursor/rules/api-design/` - API 设计时自动应用
 - **代码审查要点**: `.cursor/rules/code-review/` - 代码审查时自动应用
+- **更新 Cursor 规则**: `.cursor/rules/cursor-rules-update/` - 更新 Cursor 规则的工作流程说明
 
 这些规则会根据文件类型自动应用，也可以在对话中使用 `@rule-name` 手动触发。
 
@@ -381,7 +382,7 @@ ai-education/
 
 项目使用 Cursor 的新规则系统（`.cursor/rules`），规则会根据文件类型自动应用：
 
-- **Always Apply**: 每个聊天会话都会应用（如 `project-overview`, `naming-conventions`）
+- **Always Apply**: 每个聊天会话都会应用（如 `project-overview`, `naming-conventions`, `cursor-rules-update`）
 - **Apply to Specific Files**: 编辑匹配的文件时自动应用（如 `react-frontend`, `python-backend`, `flutter-mobile`）
 - **Apply Intelligently**: Agent 根据上下文判断是否需要应用（如 `api-design`, `code-review`）
 

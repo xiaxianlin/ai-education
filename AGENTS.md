@@ -71,6 +71,7 @@ async def create(params: Schema, db: AsyncSession = Database):
 - `naming-conventions/` - 命名规范
 - `api-design/` - API 设计规范
 - `code-review/` - 代码审查要点
+- `cursor-rules-update/` - 更新 Cursor 规则的工作流程说明
 
 ## 角色切换
 

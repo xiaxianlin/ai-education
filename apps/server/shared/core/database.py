@@ -385,3 +385,23 @@ class PromptTestRecord(BaseModel):
     status: Mapped[int] = mapped_column(default=0, comment="状态: 0-待测试 1-测试中 2-测试成功 3-测试失败")
     error: Mapped[str] = mapped_column(Text, nullable=True, comment="错误信息")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+
+
+class PracticePrompt(BaseModel):
+    """练习提示词关联表"""
+    __tablename__ = "ah_practice_prompt"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    practice_type: Mapped[str] = mapped_column(String(50), comment="练习类型：daily_practice/unit_practice/assessment")
+    subject: Mapped[str] = mapped_column(String(50), comment="科目：英语/数学")
+    grade: Mapped[int] = mapped_column(comment="年级（1-12）")
+    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
+    
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    prompt: Mapped["Prompt"] = relationship(
+        "Prompt",
+        primaryjoin="foreign(PracticePrompt.prompt_id) == Prompt.id",
+        lazy="joined",
+    )

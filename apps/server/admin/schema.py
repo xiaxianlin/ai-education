@@ -349,3 +349,60 @@ class SearchPromptTestRecordSchema(SearchSchema):
     generation_type: Optional[str] = None
     model_name: Optional[str] = None
     status: Optional[int] = None  # 0-待测试 1-测试中 2-测试成功 3-测试失败
+
+
+class SavePracticePromptSchema(BaseModel):
+    """保存练习提示词关联"""
+    practice_type: str
+    subject: str
+    grade: int
+    prompt_id: int
+
+    @field_validator("practice_type")
+    @classmethod
+    def valid_practice_type(cls, v):
+        if v not in ["daily_practice", "unit_practice", "assessment"]:
+            raise ValueError("练习类型只能是 daily_practice、unit_practice 或 assessment")
+        return v
+
+    @field_validator("subject")
+    @classmethod
+    def valid_subject(cls, v):
+        if v and v not in SUBJECTS:
+            raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
+        return v
+
+    @field_validator("grade")
+    @classmethod
+    def valid_grade(cls, v):
+        if v and v not in range(1, 13):
+            raise ValueError("非法年级")
+        return v
+
+    @field_validator("prompt_id")
+    @classmethod
+    def valid_prompt_id(cls, v):
+        if v <= 0:
+            raise ValueError("提示词ID必须大于0")
+        return v
+
+
+class SearchPracticePromptSchema(SearchSchema):
+    """搜索练习提示词关联"""
+    practice_type: Optional[str] = None
+    subject: Optional[str] = None
+    grade: Optional[int] = None
+    prompt_id: Optional[int] = None
+
+
+class PracticePromptSchema(BaseModel):
+    """练习提示词关联 Schema"""
+    id: int
+    practice_type: str
+    subject: str
+    grade: int
+    prompt_id: int
+    prompt_name: Optional[str] = None
+    prompt_slug: Optional[str] = None
+    create_time: int
+    update_time: int

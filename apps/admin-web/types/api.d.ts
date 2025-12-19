@@ -297,6 +297,34 @@ declare global {
     scene?: string;
     tags?: string[];
   }
+
+  // ========== 练习提示词管理 ==========
+
+  interface PracticePrompt {
+    id: number;
+    practice_type: 'daily_practice' | 'unit_practice' | 'assessment';
+    subject: string;
+    grade: number;
+    prompt_id: number;
+    prompt_name?: string;
+    prompt_slug?: string;
+    create_time: number;
+    update_time: number;
+  }
+
+  interface SavePracticePromptRequest {
+    practice_type: 'daily_practice' | 'unit_practice' | 'assessment';
+    subject: string;
+    grade: number;
+    prompt_id: number;
+  }
+
+  interface SearchPracticePromptRequest extends SearchRequest {
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    subject?: string;
+    grade?: number;
+    prompt_id?: number;
+  }
 }
 
 export {};

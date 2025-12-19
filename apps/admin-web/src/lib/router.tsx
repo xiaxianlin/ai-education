@@ -17,6 +17,7 @@ import PromptForm from '@/pages/Prompt/Form';
 import PromptVersionList from '@/pages/Prompt/VersionList';
 import PromptTest from '@/pages/Prompt/Test';
 import PromptTestRecords from '@/pages/Prompt/TestRecords';
+import PracticePrompt from '@/pages/Prompt/Practice';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
 import PracticeDetail from '@/pages/Student/PraticeDetail';
@@ -51,6 +52,7 @@ export function Router() {
         { path: 'prompt/versions', element: <PromptVersionList /> },
         { path: 'prompt/test', element: <PromptTest /> },
         { path: 'prompt/test/records', element: <PromptTestRecords /> },
+        { path: 'prompt/practice', element: <PracticePrompt /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'practice/detail/:session_id', element: <PracticeDetail /> },

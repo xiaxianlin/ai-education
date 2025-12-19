@@ -583,4 +583,46 @@ export const adminApi = {
   async deletePromptTestRecord(recordId: number) {
     return apiClient.delete(`/prompt/test/records/${recordId}`);
   },
+
+  // ========== 练习提示词管理 ==========
+
+  /**
+   * 获取练习提示词关联列表
+   * GET /api/admin/practice/list
+   */
+  async listPracticePrompts(params?: SearchPracticePromptRequest) {
+    return apiClient.get<SearchResponse<PracticePrompt>>('/practice_prompt/list', params);
+  },
+
+  /**
+   * 获取练习提示词关联详情
+   * GET /api/admin/practice/{id}
+   */
+  async getPracticePromptDetail(id: number): Promise<PracticePrompt> {
+    return apiClient.get<PracticePrompt>(`/practice_prompt/${id}`);
+  },
+
+  /**
+   * 创建练习提示词关联
+   * POST /api/admin/practice/
+   */
+  async createPracticePrompt(data: SavePracticePromptRequest) {
+    return apiClient.post<number>('/practice_prompt/', data);
+  },
+
+  /**
+   * 更新练习提示词关联
+   * PUT /api/admin/practice/{id}
+   */
+  async updatePracticePrompt(id: number, data: SavePracticePromptRequest) {
+    return apiClient.put(`/practice_prompt/${id}`, data);
+  },
+
+  /**
+   * 删除练习提示词关联
+   * DELETE /api/admin/practice/{id}
+   */
+  async deletePracticePrompt(id: number) {
+    return apiClient.delete(`/practice_prompt/${id}`);
+  },
 };
