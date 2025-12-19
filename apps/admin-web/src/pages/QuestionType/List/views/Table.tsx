@@ -1,6 +1,6 @@
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { useQuestionTypeListModel } from '../models/page';
-import { Button, Radio, Tag, Tabs, Flex } from 'antd';
+import { Button, Tag, Flex } from 'antd';
 import { useMemo } from 'react';
 import { useConfigs } from '@/hooks';
 import { DeleteButton, SubjectGradeTabs } from '@/components';
@@ -62,28 +62,28 @@ export default function TableView() {
         dataSource={data}
         pagination={false}
         headerTitle={
-          <Flex gap={8}>
-            {question_scenes.map((item) => {
-              const isActive = scene === item;
-              return (
-                <Tag
-                  key={item}
-                  variant="filled"
-                  style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
-                  color={isActive ? 'volcano' : 'blue'}
-                  onClick={() => setScene(isActive ? undefined : item)}
-                >
-                  {item}
-                </Tag>
-              );
-            })}
-          </Flex>
+          <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
+            新增题型
+          </Button>
         }
         toolbar={{
           settings: [
-            <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
-              新增题型
-            </Button>,
+            <Flex gap={8}>
+              {question_scenes.map((item) => {
+                const isActive = scene === item;
+                return (
+                  <Tag
+                    key={item}
+                    variant="filled"
+                    style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
+                    color={isActive ? 'volcano' : 'blue'}
+                    onClick={() => setScene(isActive ? undefined : item)}
+                  >
+                    {item}
+                  </Tag>
+                );
+              })}
+            </Flex>,
           ],
         }}
       />

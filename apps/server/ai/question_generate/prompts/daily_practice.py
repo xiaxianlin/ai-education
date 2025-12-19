@@ -17,7 +17,8 @@ from ai.question_generate.prompts.utils import (
     load_prompt_by_slug,
 )
 
-SYSTEM_PROMPT = """你是一名资深教研员，专注于个性化学习设计。
+SYSTEM_PROMPT = """
+你是一名资深教研员，专注于个性化学习设计。
 
 **核心职责**：
 - 根据学生学习数据，设计个性化每日练习
@@ -25,9 +26,11 @@ SYSTEM_PROMPT = """你是一名资深教研员，专注于个性化学习设计�
 - 激发学习兴趣，保持学习连续性
 
 **输出要求**：
-严格按照 {format_instructions} 生成 JSON 格式输出。"""
+严格按照 {format_instructions} 生成 JSON 格式输出。
+"""
 
-DAILY_PRACTICE_PROMPT_ENGLISH = """# 英语每日智能练习
+DAILY_PRACTICE_PROMPT_ENGLISH = """
+# 英语每日智能练习
 
 ## 一、任务概述
 **学科**：英语 | **年级**：{grade} | **题目数量**：{count}道
@@ -351,27 +354,23 @@ async def build_daily_practice_prompt(state: QuestionGenerationState) -> Dict[st
     format_instructions = parser.get_format_instructions()
 
     # 构建公共提示词组件
-    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(
-        subject, grade, recall_questions
-    )
+    grade_text, question_types_text, avoid_duplicate_hint = build_common_prompt(subject, grade, recall_questions)
 
     # 根据学科选择 slug 和 默认 template
     slug = "daily_practice_english" if subject == "英语" else "daily_practice_math"
     default_template = DAILY_PRACTICE_PROMPT_ENGLISH if subject == "英语" else DAILY_PRACTICE_PROMPT_MATH
 
     # 加载 prompt
-    current_system_prompt, template = await load_prompt_by_slug(
-        state.get("db"), slug, default_template, SYSTEM_PROMPT
-    )
+    current_system_prompt, template = await load_prompt_by_slug(state.get("db"), slug, default_template, SYSTEM_PROMPT)
 
     # 追加避免重复提示（如有召回的题目）
     if avoid_duplicate_hint:
         template = template + "\n" + avoid_duplicate_hint
 
     # 构建 ChatPromptTemplate，使用 partial 提前填充 format_instructions 避免 JSON 中的花括号被当作模板变量
-    prompt = ChatPromptTemplate.from_messages(
-        [("system", current_system_prompt), ("human", template)]
-    ).partial(format_instructions=format_instructions)
+    prompt = ChatPromptTemplate.from_messages([("system", current_system_prompt), ("human", template)]).partial(
+        format_instructions=format_instructions
+    )
 
     # 简化学生学习数据获取（server-ai 中可能没有 StudentService）
     # 这里先使用空列表，后续可以通过 API 调用 server-api 获取
