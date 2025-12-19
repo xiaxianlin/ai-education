@@ -28,6 +28,9 @@ pnpm dev:server       # 启动服务端
 cd apps/student-app
 ./build.sh            # 生成代码（必须！）
 flutter run           # 运行应用
+
+# Git 工作流
+pnpm keep-all         # 自动提交并推送所有变更（keep all 后使用）
 ```
 
 ## 核心原则

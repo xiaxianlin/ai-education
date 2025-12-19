@@ -327,6 +327,19 @@ uv run worker.py
 uv run uvicorn main:app --reload --host 0.0.0.0 --port 7890
 ```
 
+### Git 工作流
+```bash
+# Keep All 脚本：自动提交并推送所有变更
+pnpm keep-all                    # 使用默认提交信息
+pnpm keep-all "feat: 重构代码"   # 使用自定义提交信息
+
+# 脚本会自动：
+# 1. 检测当前分支
+# 2. 添加所有变更（包括删除的文件）
+# 3. 提交变更
+# 4. 推送到远程仓库
+```
+
 ## 项目结构
 
 ```

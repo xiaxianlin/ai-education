@@ -39,6 +39,27 @@ alwaysApply: true
 3. **移动应用**: `cd apps/student-app && ./build.sh && flutter run`（修改模型后必须先生成代码）
 4. **全部启动**: `pnpm dev:all` 启动所有前端和后端服务
 
+## Git 工作流
+
+### Keep All 脚本
+在合并冲突或需要保留所有变更时，可以使用 `keep-all` 脚本自动提交并推送到远程仓库：
+
+```bash
+# 使用默认提交信息
+pnpm keep-all
+
+# 使用自定义提交信息
+pnpm keep-all "feat: 重构代码结构"
+```
+
+脚本功能：
+- 自动检测当前分支
+- 添加所有变更（包括删除的文件）
+- 提交变更
+- 推送到远程仓库
+
+详细说明请查看 `scripts/README.md`。
+
 ## 依赖管理
 
 - **Node.js**: 使用 pnpm（与根 `package.json` 的 `packageManager` 保持一致，当前为 pnpm@9.x；Node >= 18）
