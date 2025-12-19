@@ -5,24 +5,26 @@ import { ApiClient } from "@ai-education/shared-web/api";
 export const apiClient = new ApiClient("/api/student");
 
 apiClient.addResponseInterceptor(
-  (response) => response,
-  (error) => {
-    // 统一错误处理
-    const response = error.response;
-    if (response) {
-      const data = response.data as ApiResponse;
-      const status = data?.status || response.status;
-
-      // 处理认证错误
-      if (status === 401 || status === 403) {
-        apiClient.removeToken();
-        go("/login");
-      } else {
-        toast.error(data?.message || "网络错误");
-      }
+  (response) => {
+    const { status, message } = response?.data || {};
+    // 处理认证错误
+    if (status === 0) {
       return response;
     }
+    if (status === 401) {
+      apiClient.removeToken();
+      go("/login");
+    }
+    throw Error(message);
+  },
+  (error) => error
+);
 
+apiClient.addResponseInterceptor(
+  (response) => response,
+  (error) => {
+    console.log(error.message);
+    toast.error(error.message || "网络错误");
     return Promise.reject(error);
   }
 );

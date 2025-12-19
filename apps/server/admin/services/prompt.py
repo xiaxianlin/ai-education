@@ -150,6 +150,8 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
     # 更新 Prompt 基本信息（这些字段对所有版本都是共享的）
     if params.name is not None:
         prompt.name = params.name
+    if params.slug is not None:
+        prompt.slug = params.slug
     if params.type is not None:
         prompt.type = params.type
     if params.description is not None:

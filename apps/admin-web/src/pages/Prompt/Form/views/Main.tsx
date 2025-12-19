@@ -41,7 +41,7 @@ export default function MainView() {
             />
             <div>
               <ProFormText name="name" label="名称" rules={[{ required: true }]} width="lg" />
-              <ProFormText name="slug" label="Slug" rules={[{ required: true }]} disabled={!!versionId} />
+              <ProFormText name="slug" label="Slug" rules={[{ required: true }]} />
               <ProFormSelect
                 name="type"
                 label="类型"
