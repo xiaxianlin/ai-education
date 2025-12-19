@@ -4,7 +4,8 @@
 """
 
 from typing import Optional
-from sqlalchemy import select, joinedload
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from langchain_core.prompts import ChatPromptTemplate
@@ -61,34 +62,62 @@ async def get_chat_prompt_template(
 # ==================== 业务入口方法 ====================
 
 
+class PromptService:
+    """Prompt 服务类 - 提供统一的 Prompt 获取和处理接口"""
+
+    @staticmethod
+    async def get_image_optimize_prompt(db: AsyncSession, input_payload: Optional[dict] = None):
+        """获取图片优化提示词模板
+
+        Args:
+            db: 数据库会话
+            input_payload: 需要预先填充的变量（使用 partial），如果为 None 则返回未填充的模板
+
+        Returns:
+            ChatPromptTemplate 对象
+        """
+        template = await get_chat_prompt_template(db=db, slug="image_prompt_optimize")
+        if input_payload:
+            return template.partial(**input_payload)
+        return template
+
+    @staticmethod
+    async def get_answer_analyze_prompt(
+        db: AsyncSession, format_instructions: Optional[str] = None, input_payload: Optional[dict] = None
+    ):
+        """获取答案分析提示词模板
+
+        Args:
+            db: 数据库会话
+            format_instructions: JSON 格式说明，会通过 partial 填充到模板中
+            input_payload: 需要预先填充的其他变量（使用 partial）
+
+        Returns:
+            ChatPromptTemplate 对象
+        """
+        template = await get_chat_prompt_template(db=db, slug="analyze_question_answer")
+        
+        # 合并所有需要 partial 填充的变量
+        partial_vars = {}
+        if format_instructions:
+            partial_vars["format_instructions"] = format_instructions
+        if input_payload:
+            partial_vars.update(input_payload)
+        
+        if partial_vars:
+            return template.partial(**partial_vars)
+        return template
+
+
+# 保持向后兼容的函数接口
 async def get_image_optimize_prompt(db: AsyncSession, input_payload: Optional[dict] = None):
-    """获取图片优化提示词模板
-
-    Args:
-        db: 数据库会话
-        input_payload: 需要预先填充的变量（使用 partial）
-
-    Returns:
-        ChatPromptTemplate 对象
-    """
-
-    template = await get_chat_prompt_template(db=db, slug="image_prompt_optimize")
-    return template.partial(**input_payload)
+    """获取图片优化提示词模板（向后兼容函数）"""
+    return await PromptService.get_image_optimize_prompt(db, input_payload)
 
 
 async def get_answer_analyze_prompt(db: AsyncSession, input_payload: Optional[dict] = None):
-    """获取答案分析提示词模板
-
-    Args:
-        db: 数据库会话
-        input_payload: 需要预先填充的变量（使用 partial）
-
-    Returns:
-        ChatPromptTemplate 对象
-    """
-
-    template = await get_chat_prompt_template(db=db, slug="analyze_question_answer")
-    return template.partial(**input_payload)
+    """获取答案分析提示词模板（向后兼容函数）"""
+    return await PromptService.get_answer_analyze_prompt(db, input_payload=input_payload)
 
 
 async def get_practice_prompt_slug(db: AsyncSession, practice_type: str, grade: int, subject: str):

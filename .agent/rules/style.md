@@ -16,6 +16,7 @@ alwaysApply: true
 - **Files**: `snake_case.py` (e.g., `user_service.py`).
 - **Classes**: `PascalCase` (e.g., `QuestionModel`).
 - **Methods/Variables**: `snake_case` (e.g., `def create_unit(...)`).
+- **AI/LLM Nodes**: Node functions in LangGraph MUST use `snake_case_node` suffix (e.g., `call_llm_node`).
 - **Constants**: `UPPER_SNAKE_CASE`.
 
 ## TypeScript/React (Frontend)
@@ -26,12 +27,10 @@ alwaysApply: true
 - **Types/Interfaces**: `PascalCase`.
 - **Constants**: `UPPER_SNAKE_CASE`.
 
-## Dart (Flutter)
+## AI Workflow Naming
 
-- **Files**: `snake_case.dart`.
-- **Classes**: `PascalCase`.
-- **Variables/Methods**: `camelCase`.
-- **Constants**: `lowerCamelCase` (Standard Dart convention).
+- **State Model**: `PascalCase` (e.g., `QuestionGenerationState`).
+- **Node Functions**: `snake_case` (e.g., `entry_node`, `call_llm_node`).
 
 ## Import Ordering
 
@@ -41,5 +40,5 @@ alwaysApply: true
 
 ## Implementation Steps
 
-1. Before committing, MUST run the platform-specific formatter (`pnpm lint:fix` for Web, `black` for Python, `flutter format` for App).
+1. Before committing, MUST run the platform-specific formatter (`pnpm lint:fix` for Web, `uv run ruff format` for Python).
 2. MUST NOT use magic numbers; define them as constants in a dedicated `constants/` or `utils/` file.

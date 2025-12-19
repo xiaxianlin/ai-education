@@ -21,18 +21,21 @@ This project is a K12 education tutoring platform using a Monorepo architecture 
 ALL implementations MUST follow the standard layering architecture:
 
 ### Backend (apps/server/)
-`Routes Layer (API)` → `Service Layer (Business Logic)` → `Data Layer (Database/Models)`
+`Routes Layer (API)` → `Service Layer (Business Logic)` → `AI Layer (LLM Workflows)` → `Data Layer (Database/Models)`
 
 - **Routes**: Handle HTTP requests, input validation (Pydantic), and call services.
-- **Services**: Implement core business logic, orchestration, and DB transactions.
+- **Services**: Implement core business logic and orchestration.
+- **AI/LLM**: Complex generation workflows using LangGraph (Nodes, Edges, State).
 - **Data**: Models (SQLAlchemy) and raw data access.
 
 ### Frontend (Web)
 `Pages` → `Main Views` → `Models (unstated-next)` → `Hooks` → `Components`
 
-- **Pages**: Entry points and Provider injection.
-- **Models**: State management containers using `unstated-next`.
+- **Pages**: Entry points located in `pages/[Feature]/[PageName]/index.tsx`.
+- **Main Views**: Sub-page layouts in `views/` directory.
+- **Models**: State management containers in `models/` directory using `unstated-next`.
 - **Hooks**: Reusable business logic and data fetching (ahooks).
+- **Components**: UI components in `parts/` (page-specific) or global `components/`.
 
 ## Operational Instructions
 

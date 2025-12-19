@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Tag, Flex } from 'antd';
+import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
 import { DeleteButton, StatusTag } from '@/components';

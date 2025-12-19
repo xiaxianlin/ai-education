@@ -212,7 +212,7 @@ def create_question_generation_graph() -> StateGraph:
         {
             GenerationType.DAILY_PRACTICE.value: "check_daily_practice",
             GenerationType.UNIT_PRACTICE.value: "check_unit_practice",
-            GenerationType.ASSESSTENT.value: "check_assessment",
+            GenerationType.ASSESSMENT.value: "check_assessment",
         },
     )
 

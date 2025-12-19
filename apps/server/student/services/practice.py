@@ -7,7 +7,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, joinedload
 
-import ai
+from shared.services import answer as ai_answer
 from shared.core.database import (
     PracticeAnswer,
     PracticeReport,
@@ -277,7 +277,7 @@ async def analyze_audio_answer(
     audio_url = oss.get_access_url(oss_path)
     logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
-    analysis_result = await ai.question.analyze_audio_answer(question, audio_url)
+    analysis_result = await ai_answer.analyze_audio_answer(question, audio_url)
     logger.info(
         f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
     )

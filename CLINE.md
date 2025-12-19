@@ -10,7 +10,7 @@ This is a K12 educational tutoring platform built as a unified monorepo using pn
 
 ### Applications (`apps/`)
 - **admin-web** - Management dashboard (React 18 + Rsbuild + Ant Design 5, TypeScript + Less + Tailwind CSS)
-- **student-web** - Student frontend (React 18 + Rsbuild + shadcn/ui, TypeScript + Tailwind CSS + Zustand)
+- **student-web** - Student frontend (React 18 + Rsbuild + shadcn/ui, TypeScript + Tailwind CSS + unstated-next)
 - **server** - Unified backend server (Python 3.12 + FastAPI, SQLAlchemy 2.0 async ORM, MySQL + Redis + Celery)
 - **student-app** - Mobile application (Flutter 3.0+, Dart 3.8+, Riverpod + GoRouter)
 
@@ -143,16 +143,18 @@ cd apps/student-app && dart run build_runner build
 - Uses **pnpm workspaces** for package management
 - Uses **Turborepo** for build orchestration and caching
 - Uses **uv workspace** for Python dependency management
-- Root package manager: pnpm@8.15.0
+- Root package manager: pnpm@9.12.3
 
 ### Package Management
-- **Node.js**: pnpm workspace with apps/* pattern
+- **Node.js**: pnpm workspace with apps/* and packages/* pattern (packageManager: pnpm@9.12.3)
 - **Python**: uv workspace with server as member (Python 3.12+)
 - **Flutter**: standard pub package manager with code generation
+- **Shared Package**: @ai-education/shared-web for common web utilities and API client
 
 ### Frontend Applications
-- **Admin**: React 18 + Rsbuild + Ant Design Pro + TypeScript 5 + ahooks + Axios
-- **Student**: React 18 + Rsbuild + shadcn/ui + TypeScript 5 + Zustand + react-router-dom + Axios
+- **Admin**: React 18 + Rsbuild + Ant Design Pro + TypeScript 5 + ahooks + unstated-next + Axios
+- **Student**: React 18 + Rsbuild + shadcn/ui + TypeScript 5 + unstated-next + react-router-dom + Axios
+- **Shared**: @ai-education/shared-web package with common API client, types, and utilities
 
 ### Backend (Unified Server)
 - Python 3.12 + FastAPI 0.115+ application
@@ -192,7 +194,7 @@ The server includes advanced AI capabilities:
 ## Environment Requirements
 
 - **Node.js**: >=18.0.0
-- **pnpm**: >=8.0.0 (packageManager: pnpm@8.15.0)
+- **pnpm**: >=9.0.0 (packageManager: pnpm@9.12.3)
 - **Python**: >=3.12,<3.13
 - **uv**: Latest version for Python package management
 - **Flutter**: Latest stable version with Dart SDK
@@ -215,7 +217,7 @@ The server includes advanced AI capabilities:
 Cline should automatically adapt its behavior based on the current file context:
 
 - **When working in `apps/admin-web/`**: Apply React frontend + Ant Design + ahooks patterns
-- **When working in `apps/student-web/`**: Apply React frontend + shadcn/ui + Zustand patterns  
+- **When working in `apps/student-web/`**: Apply React frontend + shadcn/ui + unstated-next patterns  
 - **When working in `apps/server/`**: Apply Python + FastAPI + SQLAlchemy patterns
 - **When working in `apps/student-app/`**: Apply Flutter + Riverpod + GoRouter patterns
 
@@ -238,11 +240,12 @@ Cline should recognize and enforce these patterns:
 
 ## Important Notes
 
-- This is a unified monorepo with 4 core applications (no shared packages)
+- This is a unified monorepo with 4 core applications and 1 shared package
 - Single backend server consolidates API, AI, and task services
 - Mobile app requires code generation before running (`./build.sh`)
 - Comprehensive rules system for specialized workflows
 - Flutter mobile app is managed independently (not in pnpm workspace)
+- Shared package @ai-education/shared-web provides common utilities for web applications
 
 ## Common Troubleshooting
 

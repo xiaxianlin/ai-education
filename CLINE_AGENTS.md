@@ -9,9 +9,10 @@ K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace 和 Turborepo 
 ## 技术栈
 
 - **前端**: React 18 + TypeScript 5 + Rsbuild
-  - admin-web: Ant Design 5 + ahooks
-  - student-web: shadcn/ui + Zustand
-- **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0
+  - admin-web: Ant Design 5 + ahooks + unstated-next
+  - student-web: shadcn/ui + unstated-next
+  - shared-web: @ai-education/shared-web (共享包)
+- **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0 + LangChain + LangGraph
 - **移动端**: Flutter 3.0+ + Dart 3.8+ + Riverpod
 
 ## 快速命令
@@ -23,6 +24,7 @@ pnpm dev:student      # 学生端 Web
 
 # 后端开发
 pnpm dev:server       # 启动服务端
+cd apps/server && uv run worker.py  # 启动任务队列
 
 # 移动端开发
 cd apps/student-app
@@ -99,7 +101,8 @@ Cline 应该根据文件路径自动应用相应的开发规范：
 - 使用 TypeScript 类型系统
 - 遵循组件化和状态管理模式
 - admin-web 使用 Ant Design + ahooks
-- student-web 使用 shadcn/ui + Zustand
+- student-web 使用 shadcn/ui + unstated-next
+- 使用 @ai-education/shared-web 共享包的 API 客户端和工具
 
 ### 后端上下文 (`apps/server/`)
 - 应用 Python/FastAPI 编码规范
@@ -107,6 +110,9 @@ Cline 应该根据文件路径自动应用相应的开发规范：
 - 遵循分层架构：路由 → 服务 → 数据
 - 使用 Pydantic 进行数据验证
 - 使用 SQLAlchemy 2.0 异步 ORM
+- AI 功能：LangChain + LangGraph 工作流
+- 任务队列：Celery + Redis
+- 支持 OpenAI 和阿里云百炼 AI 平台
 
 ### 移动端上下文 (`apps/student-app/`)
 - 应用 Flutter/Dart 编码规范

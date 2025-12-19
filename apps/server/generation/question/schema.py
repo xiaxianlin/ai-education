@@ -1,8 +1,17 @@
+from enum import Enum
 from typing import Any, List, Dict, NotRequired, Optional, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Question, Unit, Knowledge, Textbook
+
+
+class GenerationType(str, Enum):
+    """题目生成类型枚举"""
+
+    DAILY_PRACTICE = "daily_practice"
+    UNIT_PRACTICE = "unit_practice"
+    ASSESSMENT = "assessment"
 
 
 class QuestionOption(BaseModel):
@@ -23,6 +32,28 @@ class GeneratedQuestion(BaseModel):
     answer: str = Field(description="标准答案")
     difficulty: str = Field(description="题目难度：简单、普通、困难")
     knowledge: str = Field(description="知识点")
+
+
+class QuestionGenerationResult(BaseModel):
+    """题目生成结果模型 - LLM 返回的 JSON 结构"""
+
+    questions: List[GeneratedQuestion] = Field(description="生成的题目列表")
+
+
+class UnitInfo(BaseModel):
+    """单元信息模型"""
+
+    unit_name: str = Field(description="单元名称")
+    unit_content: str = Field(description="单元内容摘要")
+    topics: List[Dict[str, str]] = Field(
+        description="知识点列表，每个知识点包含 topic_name 和 topic_content", default=[]
+    )
+
+
+class UnitExtractionResult(BaseModel):
+    """单元提取结果模型 - LLM 返回的 JSON 结构"""
+
+    units: List[UnitInfo] = Field(description="提取的单元列表")
 
 
 class QuestionGenerateRequest(BaseModel):

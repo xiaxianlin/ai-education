@@ -2,8 +2,10 @@ import requests
 from typing import Optional
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from langchain_core.output_parsers import JsonOutputParser
 
 from shared.core.database import Question
+from shared.core.schema import AnswerAnalysisSchema
 from shared.utils import oss
 from shared.utils.question import build_full_question_text
 from shared.provider import get_provider
@@ -182,10 +184,12 @@ async def recognize_audio_answer(audio_url: str) -> str:
     """识别题目音频答案
 
     Args:
-        question: 题目对象
         audio_url: 音频 URL
+
+    Returns:
+        识别出的文本内容
     """
-    logger.info(f"开始识别音频答案: audio_url={audio_url}, 问题: {question.content[:100]}...")
+    logger.info(f"开始识别音频答案: audio_url={audio_url}")
 
     # 使用 provider 识别音频答案
     provider = get_provider()
