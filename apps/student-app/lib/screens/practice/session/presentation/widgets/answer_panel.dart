@@ -54,12 +54,13 @@ class AnswerPanel extends ConsumerWidget {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -67,6 +68,7 @@ class AnswerPanel extends ConsumerWidget {
               '您的答案：',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
             ),
             const SizedBox(height: 16),
@@ -87,13 +89,24 @@ class AnswerPanel extends ConsumerWidget {
               onAudioRecorded: (audioPath) {
                 sessionNotifier.setCurrentAudioAnswer(audioPath);
               },
-              onAnalysisReceived: (analysisData) {
+              onAudioAnalysisReceived: (analysisData) {
                 sessionNotifier.setCurrentAudioAnalysis(
                   analysisData['reason'] ?? analysisData['transcription'] ?? '',
                 );
               },
               sessionId: sessionId,
             ),
+            
+            // 答案解析部分 (仅在已答且错误时显示)
+            if (hasAnswered && answerStatus == AnswerStatus.wrong) ...[
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 24),
+              AnswerAnalysisWidget(
+                correctAnswer: ref.watch(sessionStateProvider.select((s) => s.currentCorrectAnswer)),
+                analysis: ref.watch(sessionStateProvider.select((s) => s.currentAnalysis)),
+              ),
+            ],
           ],
         ),
       ),
@@ -112,7 +125,7 @@ class AnswerPanel extends ConsumerWidget {
     bool? isCorrect,
     required ValueChanged<String> onAnswerChanged,
     required ValueChanged<String> onAudioRecorded,
-    required ValueChanged<Map<String, dynamic>> onAnalysisReceived,
+    required ValueChanged<Map<String, dynamic>> onAudioAnalysisReceived,
     required int sessionId,
   }) {
     switch (question.type) {
@@ -151,7 +164,7 @@ class AnswerPanel extends ConsumerWidget {
           analysis: analysis,
           disabled: hasAnswered,
           onAudioRecorded: onAudioRecorded,
-          onAnalysisReceived: onAnalysisReceived,
+          onAnalysisReceived: onAudioAnalysisReceived,
         );
       default:
         return TextInputWidget(
@@ -163,4 +176,105 @@ class AnswerPanel extends ConsumerWidget {
     }
   }
 }
+
+/// 答案解析组件
+class AnswerAnalysisWidget extends StatelessWidget {
+  final String? correctAnswer;
+  final String? analysis;
+
+  const AnswerAnalysisWidget({
+    super.key,
+    this.correctAnswer,
+    this.analysis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (correctAnswer != null && correctAnswer!.isNotEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      '正确答案',
+                      style: TextStyle(
+                        color: AppColors.success.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  correctAnswer!,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (analysis != null && analysis!.isNotEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.lightbulb_outline, color: AppColors.warning, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      '解析',
+                      style: TextStyle(
+                        color: AppColors.warning.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  analysis!,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 

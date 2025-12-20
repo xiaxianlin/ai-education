@@ -30,10 +30,12 @@ class SessionState {
   final PracticeSession? session;
   final List<Question> questions;
   final int currentQuestionIndex;
-  final Map<int, String> userAnswers; // questionId -> answer
-  final Map<int, String> audioAnswers; // questionId -> audioPath
-  final Map<int, String> audioAnalysis; // questionId -> analysis
-  final Map<int, AnswerStatus> answerStatus; // questionId -> status
+  final Map<String, String> userAnswers; // questionId -> answer
+  final Map<String, String> audioAnswers; // questionId -> audioPath
+  final Map<String, String> audioAnalysis; // questionId -> audio recognition analysis
+  final Map<String, String> correctAnswers; // questionId -> correct answer
+  final Map<String, String> analyses; // questionId -> wrong answer analysis
+  final Map<String, AnswerStatus> answerStatus; // questionId -> status
   final bool submitting;
   final PracticeReport? report;
   final int? startTime; // 当前题目开始时间（毫秒时间戳）
@@ -46,6 +48,8 @@ class SessionState {
     this.userAnswers = const {},
     this.audioAnswers = const {},
     this.audioAnalysis = const {},
+    this.correctAnswers = const {},
+    this.analyses = const {},
     this.answerStatus = const {},
     this.submitting = false,
     this.report,
@@ -57,10 +61,12 @@ class SessionState {
     PracticeSession? session,
     List<Question>? questions,
     int? currentQuestionIndex,
-    Map<int, String>? userAnswers,
-    Map<int, String>? audioAnswers,
-    Map<int, String>? audioAnalysis,
-    Map<int, AnswerStatus>? answerStatus,
+    Map<String, String>? userAnswers,
+    Map<String, String>? audioAnswers,
+    Map<String, String>? audioAnalysis,
+    Map<String, String>? correctAnswers,
+    Map<String, String>? analyses,
+    Map<String, AnswerStatus>? answerStatus,
     bool? submitting,
     PracticeReport? report,
     int? startTime,
@@ -74,6 +80,8 @@ class SessionState {
       userAnswers: userAnswers ?? this.userAnswers,
       audioAnswers: audioAnswers ?? this.audioAnswers,
       audioAnalysis: audioAnalysis ?? this.audioAnalysis,
+      correctAnswers: correctAnswers ?? this.correctAnswers,
+      analyses: analyses ?? this.analyses,
       answerStatus: answerStatus ?? this.answerStatus,
       submitting: submitting ?? this.submitting,
       report: report ?? this.report,
@@ -108,6 +116,20 @@ class SessionState {
     final question = currentQuestion;
     if (question == null) return AnswerStatus.unanswered;
     return answerStatus[question.id] ?? AnswerStatus.unanswered;
+  }
+
+  /// 获取当前题目的正确答案
+  String? get currentCorrectAnswer {
+    final question = currentQuestion;
+    if (question == null) return null;
+    return correctAnswers[question.id];
+  }
+
+  /// 获取当前题目的分析
+  String? get currentAnalysis {
+    final question = currentQuestion;
+    if (question == null) return null;
+    return analyses[question.id];
   }
 
   /// 是否已回答当前题目
@@ -154,9 +176,11 @@ class SessionNotifier extends StateNotifier<SessionState> {
       final report = detail.report;
 
       // 恢复已提交的答案
-      final restoredAnswers = <int, String>{};
-      final restoredAudioAnswers = <int, String>{};
-      final restoredStatus = <int, AnswerStatus>{};
+      final restoredAnswers = <String, String>{};
+      final restoredAudioAnswers = <String, String>{};
+      final restoredStatus = <String, AnswerStatus>{};
+      final restoredCorrectAnswers = <String, String>{};
+      final restoredAnalyses = <String, String>{};
 
       if (answers.isNotEmpty) {
         for (final answer in answers) {
@@ -165,6 +189,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
           }
           if (answer.audioAnswer != null && answer.audioAnswer!.isNotEmpty) {
             restoredAudioAnswers[answer.questionId] = answer.audioAnswer!;
+          }
+          if (answer.correctAnswer != null) {
+            restoredCorrectAnswers[answer.questionId] = answer.correctAnswer!;
+          }
+          if (answer.analysis != null) {
+            restoredAnalyses[answer.questionId] = answer.analysis!;
           }
           restoredStatus[answer.questionId] =
               AnswerStatus.fromInt(answer.status);
@@ -191,6 +221,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
         userAnswers: restoredAnswers,
         audioAnswers: restoredAudioAnswers,
         answerStatus: restoredStatus,
+        correctAnswers: restoredCorrectAnswers,
+        analyses: restoredAnalyses,
         currentQuestionIndex: firstUnansweredIndex,
         report: report,
         startTime: DateTime.now().millisecondsSinceEpoch,
@@ -276,7 +308,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 
   /// 提交当前题目答案
-  Future<SubmitAnswerResponse> submitAnswer() async {
+  Future<PracticeAnswer> submitAnswer() async {
     final session = state.session;
     final question = state.currentQuestion;
     final startTime = state.startTime;
@@ -327,11 +359,13 @@ class SessionNotifier extends StateNotifier<SessionState> {
       final result = await _repository.submitAnswer(params);
 
       // 更新答案状态
-      final newStatus = result.isCorrect
+      final newStatus = result.status == 1
           ? AnswerStatus.correct
           : AnswerStatus.wrong;
 
-      // 更新会话状态（创建新对象，因为 PracticeSession 是不可变的）
+      // 更新会话状态
+      // 由于 PracticeAnswer 不带 sessionProgress 了，我们只能手动增量更新，或者再次请求 session 详情
+      // 这里暂时手动增量更新
       PracticeSession? updatedSession = state.session;
       if (updatedSession != null) {
         updatedSession = PracticeSession(
@@ -341,9 +375,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
           targetId: updatedSession.targetId,
           textbookId: updatedSession.textbookId,
           questionCount: updatedSession.questionCount,
-          answerCount: result.sessionProgress.answerCount,
-          correctCount: result.sessionProgress.correctCount,
-          status: result.sessionProgress.status,
+          answerCount: updatedSession.answerCount + 1,
+          correctCount: updatedSession.correctCount + (result.status == 1 ? 1 : 0),
+          status: updatedSession.status,
           generateStatus: updatedSession.generateStatus,
           startTime: updatedSession.startTime,
           endTime: updatedSession.endTime,
@@ -357,6 +391,14 @@ class SessionNotifier extends StateNotifier<SessionState> {
         answerStatus: {
           ...state.answerStatus,
           question.id: newStatus,
+        },
+        correctAnswers: {
+          ...state.correctAnswers,
+          question.id: result.correctAnswer ?? '',
+        },
+        analyses: {
+          ...state.analyses,
+          if (result.analysis != null) question.id: result.analysis!,
         },
         session: updatedSession,
         startTime: DateTime.now().millisecondsSinceEpoch,
@@ -423,4 +465,5 @@ final sessionProvider = Provider<SessionNotifier>((ref) {
 final sessionStateProvider = Provider<SessionState>((ref) {
   return ref.watch(sessionProvider).currentState;
 });
+
 

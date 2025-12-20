@@ -6,6 +6,7 @@ import 'package:student_app/core/models/unit.dart';
 import 'package:student_app/core/models/textbook.dart';
 import 'package:student_app/core/constants/practice_constants.dart';
 import 'package:student_app/screens/practice/unit/providers/unit_practice_provider.dart';
+import 'knowledge_dialog.dart';
 
 /// 单元练习卡片组件
 class UnitPracticeCard extends ConsumerWidget {
@@ -79,68 +80,65 @@ class WaitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          width: 2,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.book,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        unit.name,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        unit.content.isNotEmpty
-                            ? unit.content
-                            : '本单元包含多个重点知识点，快来挑战吧！',
-                        style: Theme.of(context).textTheme.bodySmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      const Text('✨', style: TextStyle(fontSize: 32)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          unit.name,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(
+                    unit.content.isNotEmpty
+                        ? unit.content
+                        : '本单元包含多个重点知识点，快来挑战吧！',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: 显示知识点弹窗
-                    },
-                    icon: const Icon(Icons.lightbulb_outline, size: 18),
-                    label: const Text('查看知识点'),
+                    onPressed: () => KnowledgeDialog.show(context, unit.id, unit.name),
+                    icon: const Icon(Icons.lightbulb_outline, size: 20),
+                    label: const Text('知识点'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -148,10 +146,14 @@ class WaitCard extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: onCreate,
-                    icon: const Icon(Icons.play_arrow, size: 20),
-                    label: const Text('开始练习'),
+                    icon: const Icon(Icons.auto_awesome, size: 20),
+                    label: const Text('开始'),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -176,73 +178,66 @@ class GeneratingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          width: 2,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.book,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        unit.name,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'AI 正在为你精心准备练习题目，请稍候片刻～',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      const Text('⏳', style: TextStyle(fontSize: 32)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          unit.name,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(
+                    'AI 正在为你精心准备练习题目，请稍候片刻～',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).colorScheme.primary,
-                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  '正在生成练习',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  '正在创建练习',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -253,7 +248,7 @@ class GeneratingCard extends StatelessWidget {
   }
 }
 
-/// 进行中状态的单元卡片
+/// 练习中/已完成状态的单元卡片
 class InProgressCard extends StatelessWidget {
   final Unit unit;
   final PracticeSession practice;
@@ -269,70 +264,88 @@ class InProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompleted = practice.status == PracticeConstants.statusCompleted;
+    final emoji = isCompleted ? '🎉' : '📝';
+    final cardColor = isCompleted
+        ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1)
+        : Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.1);
+    final borderColor = isCompleted
+        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+        : Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3);
 
     return Card(
       elevation: 4,
+      color: cardColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: Theme.of(context).colorScheme.primary,
+          color: borderColor,
           width: 2,
         ),
       ),
-      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.book,
-                    size: 32,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        unit.name,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '✨ 已完成 ${practice.answerCount}/${practice.questionCount} 题 · 正确 ${practice.correctCount} 题',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
+                      Text(emoji, style: const TextStyle(fontSize: 32)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          unit.name,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Text(
+                    isCompleted
+                        ? '本单元练习已完成，查看报告或重新生成新练习。'
+                        : '正在进行中，随时可以继续完成剩余题目。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '✨ 已完成 ${practice.answerCount}/${practice.questionCount} 题 · 正确 ${practice.correctCount} 题',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: 显示知识点弹窗
-                    },
-                    icon: const Icon(Icons.lightbulb_outline, size: 18),
-                    label: const Text('查看知识点'),
+                    onPressed: () => KnowledgeDialog.show(context, unit.id, unit.name),
+                    icon: const Icon(Icons.lightbulb_outline, size: 20),
+                    label: const Text('知识点'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -343,12 +356,16 @@ class InProgressCard extends StatelessWidget {
                       context.push('/practice/session/${practice.id}');
                     },
                     icon: Icon(
-                      isCompleted ? Icons.visibility : Icons.play_arrow,
+                      isCompleted ? Icons.description_outlined : Icons.play_arrow,
                       size: 20,
                     ),
-                    label: Text(isCompleted ? '查看结果' : '继续练习'),
+                    label: Text(isCompleted ? '报告' : '继续'),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -360,4 +377,5 @@ class InProgressCard extends StatelessWidget {
     );
   }
 }
+
 

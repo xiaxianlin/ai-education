@@ -4,6 +4,7 @@ import 'package:student_app/core/models/question.dart';
 import 'package:student_app/core/utils/image_cache_config.dart';
 import 'package:student_app/core/utils/resource.dart';
 import 'package:student_app/screens/practice/session/providers/session_provider.dart';
+import 'package:student_app/core/theme/app_colors.dart';
 
 /// 题目卡片组件
 class QuestionCard extends StatelessWidget {
@@ -34,135 +35,180 @@ class QuestionCard extends StatelessWidget {
     }
   }
 
-  /// 获取答题状态颜色
-  Color? _getStatusColor(AnswerStatus? status) {
-    if (status == null) return null;
-    switch (status) {
-      case AnswerStatus.correct:
-        return Colors.green;
-      case AnswerStatus.wrong:
-        return Colors.red;
-      case AnswerStatus.unanswered:
-        return null;
-    }
-  }
-
-  /// 获取答题状态文本
-  String? _getStatusText(AnswerStatus? status) {
-    if (status == null) return null;
-    switch (status) {
-      case AnswerStatus.correct:
-        return '✓ 回答正确';
-      case AnswerStatus.wrong:
-        return '✗ 回答错误';
-      case AnswerStatus.unanswered:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         side: answerStatus != null
             ? BorderSide(
-                color: _getStatusColor(answerStatus) ?? Colors.transparent,
+                color: answerStatus == AnswerStatus.correct
+                    ? AppColors.success.withValues(alpha: 0.5)
+                    : AppColors.error.withValues(alpha: 0.5),
                 width: 2,
               )
             : BorderSide.none,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 题目序号和类型
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '第 ${index + 1} 题',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    _getQuestionTypeName(question.type),
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                // 答题状态
-                if (answerStatus != null && answerStatus != AnswerStatus.unanswered)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(answerStatus)?.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      _getStatusText(answerStatus) ?? '',
-                      style: TextStyle(
-                        color: _getStatusColor(answerStatus),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            // 顶部栏：题目序号、类型、难度、知识点
+            _buildHeader(context),
             const SizedBox(height: 16),
+            
+            // 答题结果徽章 (Premium)
+            if (answerStatus != null && answerStatus != AnswerStatus.unanswered)
+              _buildResultBadge(context),
+            
+            const SizedBox(height: 16),
+            
             // 题目内容
             Text(
               question.content,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: 16,
-                    height: 1.5,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    height: 1.6,
+                    color: AppColors.textPrimary,
                   ),
             ),
+            
             // 题目资源（图片/音频）
             if (question.resource != null && question.resource!.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildResource(context),
             ],
+            
             // 选项（如果是选择题）
             if (question.type == 'choice' &&
                 question.options != null &&
                 question.options!.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildOptions(context),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '第 ${index + 1} 题',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.muted,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                _getQuestionTypeName(question.type),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (question.difficulty != null || question.knowledge != null) ...[
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (question.difficulty != null)
+                _buildTag(
+                  question.difficulty!,
+                  AppColors.primary.withValues(alpha: 0.1),
+                  AppColors.primary,
+                ),
+              if (question.knowledge != null)
+                _buildTag(
+                  question.knowledge!,
+                  const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                  const Color(0xFFD97706),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTag(String label, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: textColor.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultBadge(BuildContext context) {
+    final isCorrect = answerStatus == AnswerStatus.correct;
+    final bgColor = isCorrect 
+        ? AppColors.success.withValues(alpha: 0.1) 
+        : AppColors.error.withValues(alpha: 0.1);
+    final iconColor = isCorrect ? AppColors.success : AppColors.error;
+    final emoji = isCorrect ? '😊✨' : '💪💖';
+    final text = isCorrect ? '回答正确' : '回答错误';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: iconColor.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: TextStyle(
+              color: iconColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -175,65 +221,76 @@ class QuestionCard extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: CachedNetworkImage(
           imageUrl: imageUrl,
           cacheManager: ImageCacheConfig.defaultCacheManager,
           placeholder: (context, url) => ImageCacheConfig.getPlaceholder(
-            height: 200,
+            height: 250,
             fit: BoxFit.contain,
           ),
           errorWidget: (context, url, error) => ImageCacheConfig.getErrorWidget(
-            height: 200,
-            onRetry: () {
-              // 重新加载图片
-              // CachedNetworkImage 会自动重试
-            },
+            height: 250,
+            onRetry: () {},
           ),
           fit: BoxFit.contain,
           fadeInDuration: const Duration(milliseconds: 300),
-          fadeOutDuration: const Duration(milliseconds: 100),
         ),
       );
     } else if (question.resourceType == 'audio') {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.primary.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
-            Icon(Icons.audiotrack, color: Colors.blue.shade700),
-            const SizedBox(width: 12),
+            const CircleAvatar(
+              backgroundColor: AppColors.primary,
+              child: Icon(Icons.audiotrack, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     '音频资源',
                     style: TextStyle(
-                      color: Colors.blue.shade700,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   if (question.resourceContent != null)
                     Text(
                       question.resourceContent!,
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.play_circle_outline),
-              onPressed: () {
-                // TODO: 实现音频播放
-              },
+              icon: const Icon(Icons.play_circle_filled, color: AppColors.primary, size: 36),
+              onPressed: () {},
             ),
           ],
         ),
@@ -248,25 +305,31 @@ class QuestionCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           '选项：',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         ...options.map((option) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.muted.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Text(
                   option.trim(),
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),),
@@ -274,4 +337,5 @@ class QuestionCard extends StatelessWidget {
     );
   }
 }
+
 

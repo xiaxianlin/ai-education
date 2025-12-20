@@ -175,10 +175,11 @@ class _PracticeSessionPageState extends ConsumerState<PracticeSessionPage> {
                   // ignore: use_build_context_synchronously
                   final messenger = ScaffoldMessenger.maybeOf(context);
                   if (messenger != null) {
+                    final isCorrect = result.status == 1;
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text(result.isCorrect ? '回答正确！' : '回答错误'),
-                        backgroundColor: result.isCorrect ? Colors.green : Colors.red,
+                        content: Text(isCorrect ? '回答正确！' : '回答错误'),
+                        backgroundColor: isCorrect ? Colors.green : Colors.red,
                       ),
                     );
                   }

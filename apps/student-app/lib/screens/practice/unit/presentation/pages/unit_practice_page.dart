@@ -73,17 +73,24 @@ class _UnitPracticePageState extends ConsumerState<UnitPracticePage> {
 
   /// 顶部 Header
   Widget _buildHeader(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.success.withValues(alpha: 0.1),
+            AppColors.success.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-          width: 2,
+        border: Border.all(
+          color: AppColors.success.withValues(alpha: 0.2),
+          width: 1.5,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Column(
           children: [
             Row(
@@ -91,21 +98,25 @@ class _UnitPracticePageState extends ConsumerState<UnitPracticePage> {
               children: [
                 const Text(
                   '📚',
-                  style: TextStyle(fontSize: 32),
+                  style: TextStyle(fontSize: 36),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   '单元练习',
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
-              '选择单元进行专项练习，巩固知识点，提升学习效果。',
+              '选择单元进行专项练习，巩固知识点，提升学习效果。✨',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: AppColors.textSecondary,
+                    height: 1.5,
                   ),
             ),
           ],
@@ -116,41 +127,53 @@ class _UnitPracticePageState extends ConsumerState<UnitPracticePage> {
 
   /// 空状态提示
   Widget _buildEmptyState(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+      decoration: BoxDecoration(
+        color: AppColors.muted,
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
-          width: 2,
-        ),
+        border: Border.all(color: AppColors.border),
       ),
-      color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.3),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-        child: Column(
-          children: [
-            const Text(
-              '📖',
-              style: TextStyle(fontSize: 48),
+      child: Column(
+        children: [
+          const Text(
+            '📖',
+            style: TextStyle(fontSize: 56),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            '还没有选教材呢',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '去设置里选择你的学习教材，系统就能为你生成单元练习啦～',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.6,
+                ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: 跳转到系统设置或个人中心
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '还没有选教材呢',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '去设置里选择你的学习教材，系统就能为你生成单元练习啦～',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-            ),
-          ],
-        ),
+            child: const Text('去选教材'),
+          ),
+        ],
       ),
     );
   }
 }
+
 

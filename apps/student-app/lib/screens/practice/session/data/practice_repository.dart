@@ -20,20 +20,20 @@ class PracticeRepository {
   }
 
   /// 提交答案
-  Future<SubmitAnswerResponse> submitAnswer(
+  Future<PracticeAnswer> submitAnswer(
     SubmitAnswerParams params,
   ) async {
     return await PracticeEndpoints.submitAnswer(params);
   }
 
-  /// 上传录音
-  Future<UploadRecordingResult> uploadRecording({
+  /// 上传口语题录音并进行语音识别
+  Future<UploadRecordingResult> audioAnswerAnalyze({
     required int sessionId,
-    required int questionId,
+    required String questionId,
     required String audioFilePath,
   }) async {
     final file = File(audioFilePath);
-    return await PracticeEndpoints.uploadRecording(
+    return await PracticeEndpoints.audioAnswerAnalyze(
       sessionId: sessionId,
       questionId: questionId,
       audioFile: file,

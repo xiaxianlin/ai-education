@@ -19,76 +19,95 @@ class PracticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
+    final bool isDaily = title.contains('每日');
+    final bool isUnit = title.contains('单元');
+    
+    final Color color = isDaily 
+        ? AppColors.primary 
+        : (isUnit ? AppColors.success : const Color(0xFFF59E0B));
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: AppColors.primary.withValues(alpha: 0.2),
-          width: 2,
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.1),
+            color.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1.5,
         ),
       ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-          child: Container(
+        child: Padding(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            color: AppColors.card,
-          ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 图标和标题
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    icon,
-                    style: const TextStyle(fontSize: 32),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    child: Text(
+                      icon,
+                      style: const TextStyle(fontSize: 28),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (description != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            description!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: color.withValues(alpha: 0.5),
                   ),
                 ],
               ),
-              if (description != null) ...[
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    description!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              // 按钮
+              const SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(16),
+                  color: color,
+                  borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
+                      color: color.withValues(alpha: 0.3),
+                      blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -98,16 +117,16 @@ class PracticeCard extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.auto_awesome,
-                      color: AppColors.primaryForeground,
-                      size: 20,
+                      color: Colors.white,
+                      size: 18,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       _getButtonText(title),
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryForeground,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -131,4 +150,5 @@ class PracticeCard extends StatelessWidget {
     return '开始';
   }
 }
+
 

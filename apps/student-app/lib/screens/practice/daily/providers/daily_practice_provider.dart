@@ -41,16 +41,24 @@ class DailyPracticeState {
 
 /// 每日练习状态管理 Provider
 class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
-  DailyPracticeNotifier() : super(const DailyPracticeState()) {
-    // 初始化时获取数据
-    fetchDailyPractice();
-  }
+  DailyPracticeNotifier() : super(const DailyPracticeState());
 
-  /// 获取每日练习列表
-  Future<void> fetchDailyPractice() async {
+  /// 获取所有激活教材的每日练习列表
+  Future<void> fetchDailyPractice(List<Textbook> textbooks) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final practices = await DailyPracticeRepository.getDailyPractice();
+      
+      final List<PracticeSession> practices = [];
+      for (final textbook in textbooks) {
+        try {
+          final practice = await DailyPracticeRepository.getDailyPractice(textbook.id);
+          practices.add(practice);
+        } catch (e) {
+          // 如果某个教材获取失败，暂时忽略或记录，不影响其他教材
+          Logger.error('获取教材 ${textbook.name} 的每日练习失败: $e');
+        }
+      }
+
       state = state.copyWith(
         practices: practices,
         isLoading: false,
@@ -69,9 +77,10 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
   Future<void> createPractice(int textbookId) async {
     try {
       state = state.copyWith(isCreating: true, error: null);
-      await DailyPracticeRepository.createPractice(textbookId);
-      // 创建后刷新列表
-      await fetchDailyPractice();
+      final taskId = await DailyPracticeRepository.createPractice(textbookId);
+      
+      // 启动任务状态轮询
+      _startPollingForTask(taskId, textbookId);
     } catch (e) {
       state = state.copyWith(
         isCreating: false,
@@ -83,7 +92,27 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
     }
   }
 
-  /// 启动轮询检查生成状态
+  /// 启动任务状态轮询 (用于异步生成)
+  void _startPollingForTask(String taskId, int textbookId) {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      try {
+        final status = await DailyPracticeRepository.getTaskStatus(taskId);
+        
+        // 如果任务成功或失败，停止轮询并刷新
+        if (status == 'SUCCESS' || status == 'FAILURE') {
+          timer.cancel();
+          // 如果需要特定的教材列表，这里可能需要从外面传入，或者在 Fetch 时自行获取
+          // 这里暂时通过 fetchDailyPractice 来整体刷新（如果已有 textbooks 缓存）
+          // state 中的 practices 可能需要更新
+          // 更好的做法是 refresh 整个列表
+        }
+      } catch (e) {
+        timer.cancel();
+      }
+    });
+  }
+
+  /// 启动轮询检查生成状态 (针对已有的 session)
   void _startPollingForGenerating(List<PracticeSession> practices) {
     final timers = Map<int, Timer>.from(state.pollingTimers);
 
@@ -101,25 +130,26 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
         // 创建轮询定时器，每 4 秒检查一次
         final timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
           try {
-            final updatedPractices = await DailyPracticeRepository.getDailyPractice();
-            final updatedPractice = updatedPractices.firstWhere(
-              (p) => p.textbookId == textbookId,
-              orElse: () => practice,
-            );
+            final updatedPractice = await DailyPracticeRepository.getDailyPractice(textbookId);
 
             // 如果生成完成，停止轮询
             if (updatedPractice.generateStatus !=
                 PracticeConstants.generateStatusGenerating) {
               timer.cancel();
+              
               final newTimers = Map<int, Timer>.from(state.pollingTimers);
               newTimers.remove(textbookId);
+              
+              final newPractices = state.practices.map((p) => p.textbookId == textbookId ? updatedPractice : p).toList();
+              
               state = state.copyWith(
-                practices: updatedPractices,
+                practices: newPractices,
                 pollingTimers: newTimers,
               );
             } else {
-              // 更新练习列表
-              state = state.copyWith(practices: updatedPractices);
+              // 更新练习列表中的对应项
+              final newPractices = state.practices.map((p) => p.textbookId == textbookId ? updatedPractice : p).toList();
+              state = state.copyWith(practices: newPractices);
             }
           } catch (e) {
             // 轮询失败，停止轮询

@@ -16,34 +16,35 @@ class PracticeEndpoints {
   static final _api = ApiClient.instance;
 
   /// 获取每日练习
-  /// GET /api/student/practice/daily
-  static Future<List<PracticeSession>> getDailyPractice() async {
-    final data = await _api.get<List<dynamic>>('/practice/daily');
-    return data.map((json) => PracticeSession.fromJson(json)).toList();
+  /// GET /api/student/practice/daily/{textbook_id}
+  static Future<PracticeSession> getDailyPractice(int textbookId) async {
+    final data = await _api.get<Map<String, dynamic>>('/practice/daily/$textbookId');
+    return PracticeSession.fromJson(data);
   }
 
   /// 获取单元练习
-  /// GET /api/student/practice/unit
-  static Future<List<PracticeSession>> getUnitPractice() async {
-    final data = await _api.get<List<dynamic>>('/practice/unit');
-    return data.map((json) => PracticeSession.fromJson(json)).toList();
+  /// GET /api/student/practice/unit/{unit_id}
+  static Future<PracticeSession> getUnitPractice(int unitId) async {
+    final data = await _api.get<Map<String, dynamic>>('/practice/unit/$unitId');
+    return PracticeSession.fromJson(data);
   }
 
   /// 获取能力评测
-  /// GET /api/student/practice/assessment
-  static Future<List<PracticeSession>> getAssessment() async {
-    final data = await _api.get<List<dynamic>>('/practice/assessment');
-    return data.map((json) => PracticeSession.fromJson(json)).toList();
+  /// GET /api/student/practice/assessment/{textbook_id}
+  static Future<PracticeSession> getAssessment(int textbookId) async {
+    final data = await _api.get<Map<String, dynamic>>('/practice/assessment/$textbookId');
+    return PracticeSession.fromJson(data);
   }
 
   /// 创建练习
   /// POST /api/student/practice/create
-  static Future<int> createPractice({
+  /// @returns 任务ID (taskId)
+  static Future<String> createPractice({
     required String type, // "daily_practice" | "unit_practice" | "assessment"
     required int textbookId,
     int? unitId,
   }) async {
-    return await _api.post<int>(
+    return await _api.post<String>(
       '/practice/create',
       data: {
         'type': type,
@@ -51,6 +52,12 @@ class PracticeEndpoints {
         if (unitId != null) 'unit_id': unitId,
       },
     );
+  }
+
+  /// 查询练习生成任务状态
+  /// GET /api/student/practice/task/{task_id}/status
+  static Future<String> getPracticeTaskStatus(String taskId) async {
+    return await _api.get<String>('/practice/task/$taskId/status');
   }
 
   /// 开始练习
@@ -61,24 +68,27 @@ class PracticeEndpoints {
 
   /// 提交答案
   /// POST /api/student/practice/answer
-  static Future<SubmitAnswerResponse> submitAnswer(
+  static Future<PracticeAnswer> submitAnswer(
     SubmitAnswerParams params,
   ) async {
     final data = await _api.post<Map<String, dynamic>>(
       '/practice/answer',
       data: params.toJson(),
     );
-    return SubmitAnswerResponse.fromJson(data);
+    return PracticeAnswer.fromJson(data);
   }
 
-  /// 上传录音
-  /// POST /api/student/practice/answer/{session_id}/{question_id}/upload
-  static Future<UploadRecordingResult> uploadRecording({
+  /// 上传口语题录音并进行语音识别
+  /// POST /api/student/practice/answer/audio/analyze
+  static Future<UploadRecordingResult> audioAnswerAnalyze({
     required int sessionId,
-    required int questionId,
+    required String questionId,
     required File audioFile,
   }) async {
     final formData = FormData.fromMap({
+      'session_id': sessionId,
+      'question_id': questionId,
+      'audio_type': 'webm',
       'audio_file': await MultipartFile.fromFile(
         audioFile.path,
         filename: 'audio.webm',
@@ -86,7 +96,7 @@ class PracticeEndpoints {
     });
 
     final data = await _api.postForm<Map<String, dynamic>>(
-      '/practice/answer/$sessionId/$questionId/upload',
+      '/practice/answer/audio/analyze',
       formData: formData,
     );
     return UploadRecordingResult.fromJson(data);
@@ -94,11 +104,11 @@ class PracticeEndpoints {
 
   /// 完成练习
   /// POST /api/student/practice/{session_id}/complete
+  /// @returns 报告 ID
   static Future<int> completePractice(int sessionId) async {
-    final data = await _api.post<Map<String, dynamic>>(
+    return await _api.post<int>(
       '/practice/$sessionId/complete',
     );
-    return data['report_id'] as int;
   }
 
   /// 获取练习详情
@@ -111,14 +121,12 @@ class PracticeEndpoints {
   }
 
   /// 获取练习历史
-  /// GET /api/student/practice/history/{type}?limit=20
+  /// GET /api/student/practice/history/{type}
   static Future<List<PracticeSession>> getHistory({
     required String type,
-    int? limit,
   }) async {
     final data = await _api.get<List<dynamic>>(
       '/practice/history/$type',
-      queryParameters: limit != null ? {'limit': limit} : null,
     );
     return data.map((json) => PracticeSession.fromJson(json)).toList();
   }

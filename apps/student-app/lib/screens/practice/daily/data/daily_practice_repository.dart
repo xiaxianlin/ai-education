@@ -6,11 +6,11 @@ import 'package:student_app/core/constants/practice_constants.dart';
 class DailyPracticeRepository {
   DailyPracticeRepository._();
 
-  /// 获取每日练习列表
-  /// GET /api/student/practice/daily
-  static Future<List<PracticeSession>> getDailyPractice() async {
+  /// 获取特定教材的每日练习
+  /// GET /api/student/practice/daily/{textbook_id}
+  static Future<PracticeSession> getDailyPractice(int textbookId) async {
     try {
-      return await PracticeEndpoints.getDailyPractice();
+      return await PracticeEndpoints.getDailyPractice(textbookId);
     } catch (e) {
       throw Exception('获取每日练习失败: $e');
     }
@@ -18,8 +18,8 @@ class DailyPracticeRepository {
 
   /// 创建每日练习
   /// POST /api/student/practice/create
-  /// Returns: session_id
-  static Future<int> createPractice(int textbookId) async {
+  /// Returns: task_id
+  static Future<String> createPractice(int textbookId) async {
     try {
       return await PracticeEndpoints.createPractice(
         type: PracticeConstants.typeDailyPractice,
@@ -27,6 +27,15 @@ class DailyPracticeRepository {
       );
     } catch (e) {
       throw Exception('创建每日练习失败: $e');
+    }
+  }
+
+  /// 获取练习生成状态
+  static Future<String> getTaskStatus(String taskId) async {
+    try {
+      return await PracticeEndpoints.getPracticeTaskStatus(taskId);
+    } catch (e) {
+      throw Exception('获取任务状态失败: $e');
     }
   }
 }

@@ -8,7 +8,7 @@ class SubmitAnswerParams {
   @JsonKey(name: 'session_id')
   final int sessionId;
   @JsonKey(name: 'question_id')
-  final int questionId;
+  final String questionId;
   final String answer;
   @JsonKey(name: 'time_spent')
   final int timeSpent; // 答题耗时（秒）

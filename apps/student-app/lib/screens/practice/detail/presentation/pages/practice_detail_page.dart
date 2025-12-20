@@ -69,16 +69,16 @@ class PracticeDetailPage extends ConsumerWidget {
                 // 会话信息卡片
                 Container(
                   margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.border),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -92,8 +92,9 @@ class PracticeDetailPage extends ConsumerWidget {
                           Text(
                             practiceTypeName,
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           Container(
@@ -104,14 +105,13 @@ class PracticeDetailPage extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: statusColor),
                             ),
                             child: Text(
                               statusText,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: statusColor,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -120,59 +120,72 @@ class PracticeDetailPage extends ConsumerWidget {
                       if (session.textbook != null) ...[
                         const SizedBox(height: 8),
                         Text(
-                          '${session.textbook!.subject} ${session.textbook!.version} ${session.textbook!.grade}年级',
-                          style: TextStyle(
+                          '${session.textbook!.subject} ${session.textbook!.version} ${ProfileConstants.getGradeName(session.textbook!.grade)}${session.textbook!.semester}',
+                          style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       // 统计信息
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatItem(
-                            '总题数',
-                            session.questionCount.toString(),
-                            Colors.blue,
-                          ),
-                          _buildStatItem(
-                            '已答题',
-                            session.answerCount.toString(),
-                            Colors.orange,
-                          ),
-                          _buildStatItem(
-                            '正确数',
-                            session.correctCount.toString(),
-                            Colors.green,
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.muted,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                              '总题数',
+                              session.questionCount.toString(),
+                              AppColors.primary,
+                            ),
+                            _buildStatItem(
+                              '已答题',
+                              session.answerCount.toString(),
+                              const Color(0xFFF59E0B),
+                            ),
+                            _buildStatItem(
+                              '正确数',
+                              session.correctCount.toString(),
+                              AppColors.success,
+                            ),
+                          ],
+                        ),
                       ),
                       if (session.answerCount > 0) ...[
                         const SizedBox(height: 16),
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary.withValues(alpha: 0.1),
+                                AppColors.primary.withValues(alpha: 0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              const Text(
                                 '正确率: ',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey.shade700,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 '$accuracy%',
-                                style: TextStyle(
-                                  fontSize: 18,
+                                style: const TextStyle(
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade700,
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ],
@@ -181,26 +194,43 @@ class PracticeDetailPage extends ConsumerWidget {
                       ],
                       // 时间信息
                       const SizedBox(height: 16),
-                      Text(
-                        session.endTime != null
-                            ? '完成时间: ${Formatters.formatDateTime(session.endTime!)}'
-                            : '开始时间: ${Formatters.formatDateTime(session.startTime)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            session.endTime != null
+                                ? '完成时间: ${Formatters.formatDateTime(session.endTime!)}'
+                                : '开始时间: ${Formatters.formatDateTime(session.startTime)}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                       // 操作按钮
                       if (isInProgress) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton.icon(
+                          height: 48,
+                          child: ElevatedButton(
                             onPressed: () {
                               context.push('/practice/session/$sessionId');
                             },
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('继续练习'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              '继续练习',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                       ],
@@ -219,24 +249,28 @@ class PracticeDetailPage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '题目详情',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      const Padding(
+                        padding: EdgeInsets.only(left: 4, bottom: 12),
+                        child: Text(
+                          '题目详情',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
                       if (sortedQuestions.isEmpty)
                         Container(
-                          padding: const EdgeInsets.all(40),
+                          padding: const EdgeInsets.all(48),
+                          width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.muted,
+                            borderRadius: BorderRadius.circular(24),
                           ),
-                          child: Column(
+                          child: const Column(
                             children: [
-                              const Text(
+                              Text(
                                 '📝',
                                 style: TextStyle(fontSize: 48),
                               ),
@@ -245,15 +279,16 @@ class PracticeDetailPage extends ConsumerWidget {
                                 '暂无题目',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '该练习还没有题目',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -273,7 +308,7 @@ class PracticeDetailPage extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 32),
               ],
             ),
           );
@@ -337,13 +372,15 @@ class PracticeDetailPage extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
   }
 }
+
 

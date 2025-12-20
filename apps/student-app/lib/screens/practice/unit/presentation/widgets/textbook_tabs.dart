@@ -3,6 +3,7 @@ import 'package:student_app/core/models/textbook.dart';
 import 'package:student_app/screens/profile/providers/profile_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:student_app/core/constants/profile_constants.dart';
+import 'package:student_app/core/theme/app_colors.dart';
 
 /// 教材 Tab 切换组件
 class TextbookTabs extends ConsumerWidget {
@@ -28,13 +29,11 @@ class TextbookTabs extends ConsumerWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: AppColors.muted,
               borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: AppColors.border),
             ),
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(4),
             child: TabBar(
               tabs: activeTextbooks.map((textbook) {
                 final title =
@@ -42,23 +41,30 @@ class TextbookTabs extends ConsumerWidget {
                 return Tab(text: title);
               }).toList(),
               indicator: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Theme.of(context).colorScheme.onPrimary,
-              unselectedLabelColor:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              labelColor: Colors.white,
+              unselectedLabelColor: AppColors.textSecondary,
               labelStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
               unselectedLabelStyle: const TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
               dividerColor: Colors.transparent,
-              isScrollable: activeTextbooks.length > 3,
+              isScrollable: activeTextbooks.length > 2,
+              tabAlignment: activeTextbooks.length > 2 ? TabAlignment.start : TabAlignment.fill,
             ),
           ),
           const SizedBox(height: 16),
@@ -72,4 +78,5 @@ class TextbookTabs extends ConsumerWidget {
     );
   }
 }
+
 

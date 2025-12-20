@@ -15,7 +15,7 @@ typedef RecordingCompleteCallback = void Function(
 
 /// 音频录制组件
 class AudioRecorderWidget extends StatefulWidget {
-  final int questionId;
+  final String questionId;
   final int sessionId;
   final bool disabled;
   final RecordingCompleteCallback onRecordingComplete;

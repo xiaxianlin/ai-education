@@ -50,16 +50,27 @@ class UnitPracticeState {
 
 /// 单元练习状态管理 Provider
 class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
-  UnitPracticeNotifier() : super(const UnitPracticeState()) {
-    // 初始化时获取数据
-    fetchUnitPractice();
-  }
+  UnitPracticeNotifier() : super(const UnitPracticeState());
 
-  /// 获取单元练习列表
-  Future<void> fetchUnitPractice() async {
+  /// 获取单元练习列表（获取所有历史记录以展示各单元状态）
+  Future<void> fetchUnitPractice({int? unitId}) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final practices = await UnitPracticeRepository.getUnitPractice();
+      
+      List<PracticeSession> practices;
+      if (unitId != null) {
+        // 获取特定单元的最新会话
+        final practice = await UnitPracticeRepository.getUnitPractice(unitId);
+        // 更新现有列表中的对应项
+        practices = state.practices.map((p) => p.targetId == unitId ? practice : p).toList();
+        if (!state.practices.any((p) => p.targetId == unitId)) {
+          practices.add(practice);
+        }
+      } else {
+        // 获取所有单元练习历史
+        practices = await PracticeEndpoints.getHistory(type: PracticeConstants.typeUnitPractice);
+      }
+
       state = state.copyWith(
         practices: practices,
         isLoading: false,
@@ -76,11 +87,14 @@ class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
 
   /// 获取单元列表
   Future<void> fetchUnits(int textbookId) async {
+    // 同时也获取该教材相关的练习记录
+    fetchUnitPractice();
+
     // 如果已缓存，直接返回
     if (state.unitsCache.containsKey(textbookId)) {
       return;
     }
-
+    // ... rest of the fetchUnits logic ...
     try {
       state = state.copyWith(
         unitsLoading: {
@@ -114,9 +128,10 @@ class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
   Future<void> createPractice(int textbookId, int unitId) async {
     try {
       state = state.copyWith(isCreating: true, error: null);
-      await UnitPracticeRepository.createPractice(textbookId, unitId);
-      // 创建后刷新列表
-      await fetchUnitPractice();
+      final taskId = await UnitPracticeRepository.createPractice(textbookId, unitId);
+      
+      // 启动任务状态轮询
+      _startPollingForTask(taskId, unitId);
     } catch (e) {
       state = state.copyWith(
         isCreating: false,
@@ -126,6 +141,23 @@ class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
     } finally {
       state = state.copyWith(isCreating: false);
     }
+  }
+
+  /// 启动任务状态轮询 (用于异步生成)
+  void _startPollingForTask(String taskId, int unitId) {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      try {
+        final status = await UnitPracticeRepository.getTaskStatus(taskId);
+        
+        if (status == 'SUCCESS' || status == 'FAILURE') {
+          timer.cancel();
+          // 刷新该单元的状态
+          fetchUnitPractice(unitId: unitId);
+        }
+      } catch (e) {
+        timer.cancel();
+      }
+    });
   }
 
   /// 启动轮询检查生成状态
@@ -147,12 +179,8 @@ class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
         // 创建轮询定时器，每 4 秒检查一次
         final timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
           try {
-            final updatedPractices = await UnitPracticeRepository.getUnitPractice();
-            final updatedPractice = updatedPractices.firstWhere(
-              (p) => p.textbookId == practice.textbookId! &&
-                  p.targetId == practice.targetId!,
-              orElse: () => practice,
-            );
+            final unitId = practice.targetId!;
+            final updatedPractice = await UnitPracticeRepository.getUnitPractice(unitId);
 
             // 如果生成完成，停止轮询
             if (updatedPractice.generateStatus !=
@@ -160,13 +188,17 @@ class UnitPracticeNotifier extends StateNotifier<UnitPracticeState> {
               timer.cancel();
               final newTimers = Map<String, Timer>.from(state.pollingTimers);
               newTimers.remove(key);
+              
+              final newPractices = state.practices.map((p) => p.targetId == unitId ? updatedPractice : p).toList();
+              
               state = state.copyWith(
-                practices: updatedPractices,
+                practices: newPractices,
                 pollingTimers: newTimers,
               );
             } else {
-              // 更新练习列表
-              state = state.copyWith(practices: updatedPractices);
+              // 更新练习列表中的对应项
+              final newPractices = state.practices.map((p) => p.targetId == unitId ? updatedPractice : p).toList();
+              state = state.copyWith(practices: newPractices);
             }
           } catch (e) {
             // 轮询失败，停止轮询

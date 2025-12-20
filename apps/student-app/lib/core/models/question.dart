@@ -5,7 +5,7 @@ part 'question.g.dart';
 /// 题目信息模型
 @JsonSerializable()
 class Question {
-  final int id;
+  final String id;
   final String type; // 题目类型（主类型）
   final String? subtype; // 题目子类型
   final String subject; // 科目

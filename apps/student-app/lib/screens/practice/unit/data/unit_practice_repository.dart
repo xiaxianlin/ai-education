@@ -8,11 +8,11 @@ import 'package:student_app/core/constants/practice_constants.dart';
 class UnitPracticeRepository {
   UnitPracticeRepository._();
 
-  /// 获取单元练习列表
-  /// GET /api/student/practice/unit
-  static Future<List<PracticeSession>> getUnitPractice() async {
+  /// 获取特定单元的练习会话
+  /// GET /api/student/practice/unit/{unit_id}
+  static Future<PracticeSession> getUnitPractice(int unitId) async {
     try {
-      return await PracticeEndpoints.getUnitPractice();
+      return await PracticeEndpoints.getUnitPractice(unitId);
     } catch (e) {
       throw Exception('获取单元练习失败: $e');
     }
@@ -30,8 +30,8 @@ class UnitPracticeRepository {
 
   /// 创建单元练习
   /// POST /api/student/practice/create
-  /// Returns: session_id
-  static Future<int> createPractice(int textbookId, int unitId) async {
+  /// Returns: task_id
+  static Future<String> createPractice(int textbookId, int unitId) async {
     try {
       return await PracticeEndpoints.createPractice(
         type: PracticeConstants.typeUnitPractice,
@@ -40,6 +40,15 @@ class UnitPracticeRepository {
       );
     } catch (e) {
       throw Exception('创建单元练习失败: $e');
+    }
+  }
+
+  /// 获取练习生成状态
+  static Future<String> getTaskStatus(String taskId) async {
+    try {
+      return await PracticeEndpoints.getPracticeTaskStatus(taskId);
+    } catch (e) {
+      throw Exception('获取任务状态失败: $e');
     }
   }
 }

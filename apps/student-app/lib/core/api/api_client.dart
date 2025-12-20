@@ -76,14 +76,6 @@ class ApiClient {
 
             // 如果 status 不为 0，说明有业务错误
             if (apiResponse.status != null && apiResponse.status != 0) {
-              // 如果业务错误码是 401 或 403，需要设置正确的 HTTP 状态码
-              // 这样 ErrorInterceptor 才能正确识别为认证错误
-              final statusCode = apiResponse.status;
-              if (statusCode == 401 || statusCode == 403) {
-                // 修改响应的状态码，让 ErrorInterceptor 能识别
-                response.statusCode = statusCode;
-              }
-
               return handler.reject(
                 DioException(
                   requestOptions: response.requestOptions,
@@ -94,9 +86,8 @@ class ApiClient {
               );
             }
 
-            Logger.debug('ApiClient: response11111 = ${apiResponse.data.data}', 'ApiClient');
             // 成功时，只返回 ApiResponse.data
-            response.data = apiResponse.data.data;
+            response.data = apiResponse.data;
           }
 
           return handler.next(response);

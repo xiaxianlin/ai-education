@@ -41,16 +41,23 @@ class AssessmentState {
 
 /// 能力评测状态管理 Provider
 class AssessmentNotifier extends StateNotifier<AssessmentState> {
-  AssessmentNotifier() : super(const AssessmentState()) {
-    // 初始化时获取数据
-    fetchAssessment();
-  }
+  AssessmentNotifier() : super(const AssessmentState());
 
-  /// 获取能力评测列表
-  Future<void> fetchAssessment() async {
+  /// 获取所有激活教材的能力评测列表
+  Future<void> fetchAssessment(List<Textbook> textbooks) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final assessments = await AssessmentRepository.getAssessment();
+      
+      final List<PracticeSession> assessments = [];
+      for (final textbook in textbooks) {
+        try {
+          final session = await AssessmentRepository.getAssessment(textbook.id);
+          assessments.add(session);
+        } catch (e) {
+          Logger.error('获取教材 ${textbook.name} 的能力评测失败: $e');
+        }
+      }
+
       state = state.copyWith(
         assessments: assessments,
         isLoading: false,
@@ -69,9 +76,10 @@ class AssessmentNotifier extends StateNotifier<AssessmentState> {
   Future<void> createPractice(int textbookId) async {
     try {
       state = state.copyWith(isCreating: true, error: null);
-      await AssessmentRepository.createPractice(textbookId);
-      // 创建后刷新列表
-      await fetchAssessment();
+      final taskId = await AssessmentRepository.createPractice(textbookId);
+      
+      // 启动任务状态轮询
+      _startPollingForTask(taskId, textbookId);
     } catch (e) {
       state = state.copyWith(
         isCreating: false,
@@ -81,6 +89,22 @@ class AssessmentNotifier extends StateNotifier<AssessmentState> {
     } finally {
       state = state.copyWith(isCreating: false);
     }
+  }
+
+  /// 启动任务状态轮询 (用于异步生成)
+  void _startPollingForTask(String taskId, int textbookId) {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      try {
+        final status = await AssessmentRepository.getTaskStatus(taskId);
+        
+        if (status == 'SUCCESS' || status == 'FAILURE') {
+          timer.cancel();
+          // 刷新数据通常在页面层面调用 fetchAssessment
+        }
+      } catch (e) {
+        timer.cancel();
+      }
+    });
   }
 
   /// 启动轮询检查生成状态
@@ -101,11 +125,7 @@ class AssessmentNotifier extends StateNotifier<AssessmentState> {
         // 创建轮询定时器，每 4 秒检查一次
         final timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
           try {
-            final updatedAssessments = await AssessmentRepository.getAssessment();
-            final updatedAssessment = updatedAssessments.firstWhere(
-              (p) => p.textbookId == textbookId,
-              orElse: () => assessment,
-            );
+            final updatedAssessment = await AssessmentRepository.getAssessment(textbookId);
 
             // 如果生成完成，停止轮询
             if (updatedAssessment.generateStatus !=
@@ -113,13 +133,17 @@ class AssessmentNotifier extends StateNotifier<AssessmentState> {
               timer.cancel();
               final newTimers = Map<int, Timer>.from(state.pollingTimers);
               newTimers.remove(textbookId);
+              
+              final newAssessments = state.assessments.map((p) => p.textbookId == textbookId ? updatedAssessment : p).toList();
+              
               state = state.copyWith(
-                assessments: updatedAssessments,
+                assessments: newAssessments,
                 pollingTimers: newTimers,
               );
             } else {
               // 更新评测列表
-              state = state.copyWith(assessments: updatedAssessments);
+              final newAssessments = state.assessments.map((p) => p.textbookId == textbookId ? updatedAssessment : p).toList();
+              state = state.copyWith(assessments: newAssessments);
             }
           } catch (e) {
             // 轮询失败，停止轮询

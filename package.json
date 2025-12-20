@@ -24,7 +24,7 @@
     "build:all": "turbo run build",
     "install:all": "pnpm install && cd apps/server && uv sync && cd ../student-app && flutter pub get",
     "generate:types": "tsx scripts/generate-types.ts",
-    "keep-all": "./scripts/keep-all-and-push.sh"
+    "push": "./scripts/keep-all-and-push.sh"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
