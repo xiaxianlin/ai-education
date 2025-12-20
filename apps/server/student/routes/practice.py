@@ -15,8 +15,15 @@ from student.schema import (
     PracticeType,
 )
 from student.services import answer, practice, practice_generate
+from admin.services import practice as practice_service
 
 practice_router = APIRouter(prefix="/practice")
+
+
+@practice_router.get("/list")
+async def list_available_practices(db: AsyncSession = Database):
+    """获取可用的练习列表（系统+自定义）"""
+    return await practice_service.list_available_practices(db)
 
 
 @practice_router.get("/daily/{textbook_id}")
@@ -50,10 +57,11 @@ async def create_practice(request: Request, params: CreatePracticeSchema):
 
     task_id = f"practice_{uuid4().hex[:16]}"
     payload = PracticeSubmitParams(
-        type=params.type.value,
+        type=params.type.value if params.type else None,
         student_id=request.state.student.id,
         textbook_id=params.textbook_id,
         unit_id=params.unit_id,
+        practice_id=params.practice_id,
     )
 
     # 提交任务到队列
@@ -68,10 +76,11 @@ async def create_practice_immediately(
     student = request.state.student
     return await practice_generate.generate_practice_session(
         db=db,
-        type=params.type.value,
+        type=params.type.value if params.type else None,
         student_id=student.id,
         textbook_id=params.textbook_id,
         unit_id=params.unit_id,
+        practice_id=params.practice_id,
     )
 
 

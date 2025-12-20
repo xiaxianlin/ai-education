@@ -3,14 +3,15 @@ from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.utils.time import now, today
-from shared.core.constants import GENERATE_QUESTION_COUNT
 from shared.core.database import (
     PracticeSession,
     Question,
     Textbook,
     PracticeAnswer,
     Unit,
+    Practice,
 )
+from shared.utils.practice_config import get_generate_count
 from generation.question import invoke_generate_workflow
 
 
@@ -50,31 +51,54 @@ async def generate_practice_session(
     student_id: str,
     textbook_id: int,
     unit_id: int = None,
+    practice_id: int = None,
 ):
     """
     生成练习会话
 
     Args:
         db: 数据库会话
-        type: 练习类型
+        type: 练习类型（兼容旧逻辑）
         student_id: 学生ID
         textbook_id: 教材ID
         unit_id: 单元ID（可选）
+        practice_id: 练习ID（优先使用）
     """
 
     textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
     if not textbook:
         raise ValueError("教材不存在")
 
+    # 获取 Practice 对象
+    practice = None
+    if practice_id:
+        practice = await db.scalar(select(Practice).where(Practice.id == practice_id))
+        if not practice:
+            raise ValueError("练习不存在")
+        # 使用 practice 的 practice_type 作为 type
+        type = practice.practice_type or type
+    elif type:
+        # 兼容旧逻辑：根据 type 查找系统练习
+        practice = await db.scalar(
+            select(Practice).where(
+                Practice.type == "system",
+                Practice.practice_type == type
+            )
+        )
+        if practice:
+            practice_id = practice.id
+
     unit = None
     target_id = today()
     if type == "unit_practice":
         unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
         target_id = unit_id
+    
     # 生成开始前，先创建会话记录
     session = PracticeSession(
         student_id=student_id,
         session_type=type,
+        practice_id=practice_id,
         target_id=target_id,
         textbook_id=textbook_id,
     )
@@ -83,11 +107,18 @@ async def generate_practice_session(
     await db.refresh(session)
 
     try:
-        count = GENERATE_QUESTION_COUNT[textbook.grade][type]
+        # 从 Practice 配置获取生成数量
+        if practice:
+            count = get_generate_count(practice, textbook.grade)
+        else:
+            # 降级到旧逻辑（兼容）
+            from shared.core.constants import GENERATE_QUESTION_COUNT
+            count = GENERATE_QUESTION_COUNT.get(textbook.grade, {}).get(type, 15)
+        
         if not count:
             raise ValueError("生成数量异常")
 
-        logger.info(f"开始生成练习会话: session_id={session.id}, type={type}")
+        logger.info(f"开始生成练习会话: session_id={session.id}, type={type}, practice_id={practice_id}, count={count}")
         questions = await invoke_generate_workflow(
             db=db,
             type=type,

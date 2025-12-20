@@ -406,3 +406,67 @@ class PracticePromptSchema(BaseModel):
     prompt_slug: Optional[str] = None
     create_time: int
     update_time: int
+
+
+# ======================== 练习管理 ======================== #
+
+
+class SavePracticeSchema(BaseModel):
+    """保存练习"""
+    name: str
+    slug: str
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    type: str  # system/custom
+    practice_type: Optional[str] = None  # daily_practice/unit_practice/assessment
+    config: dict = {}  # 配置信息
+
+    @field_validator("type")
+    @classmethod
+    def valid_type(cls, v):
+        if v not in ["system", "custom"]:
+            raise ValueError("类型只能是 system 或 custom")
+        return v
+
+    @field_validator("practice_type")
+    @classmethod
+    def valid_practice_type(cls, v):
+        if v is not None and v not in ["daily_practice", "unit_practice", "assessment"]:
+            raise ValueError("练习类型只能是 daily_practice、unit_practice 或 assessment")
+        return v
+
+    @field_validator("slug")
+    @classmethod
+    def valid_slug(cls, v):
+        if not v or not v.replace("_", "").replace("-", "").isalnum():
+            raise ValueError("标识只能包含字母、数字、下划线和连字符")
+        return v
+
+
+class SearchPracticeSchema(SearchSchema):
+    """搜索练习"""
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    type: Optional[str] = None
+    practice_type: Optional[str] = None
+
+
+class PracticeSchema(BaseModel):
+    """练习 Schema"""
+    id: int
+    name: str
+    slug: str
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    type: str
+    practice_type: Optional[str] = None
+    config: dict = {}
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class SavePracticeConfigSchema(BaseModel):
+    """保存练习配置"""
+    config: dict  # 配置信息：生成题目数量、召回题目数量等

@@ -11,6 +11,8 @@ class PracticeSession {
   final String studentId;
   @JsonKey(name: 'session_type')
   final String sessionType; // "daily_practice" | "unit_practice" | "assessment"
+  @JsonKey(name: 'practice_id')
+  final int? practiceId; // 练习ID
   @JsonKey(name: 'target_id')
   final int? targetId; // 单元ID或日期（如 20241123）
   @JsonKey(name: 'textbook_id')
@@ -38,6 +40,7 @@ class PracticeSession {
     required this.id,
     required this.studentId,
     required this.sessionType,
+    this.practiceId,
     this.targetId,
     this.textbookId,
     required this.questionCount,

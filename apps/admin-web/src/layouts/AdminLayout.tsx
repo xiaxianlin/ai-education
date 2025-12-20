@@ -61,6 +61,16 @@ const menuDataRender = (): MenuDataItem[] => [
       { path: '/prompt/test/records', name: '测试记录' },
     ],
   },
+  {
+    key: 'practice',
+    name: '练习',
+    icon: <EditOutlined />,
+    children: [
+      { path: '/practice/prompt', name: '新增练习管理' },
+      { path: '/practice/list', name: '练习列表' },
+      { path: '/practice/config', name: '练习配置' },
+    ],
+  },
 ];
 
 export function AdminLayout() {

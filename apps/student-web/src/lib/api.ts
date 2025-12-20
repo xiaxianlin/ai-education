@@ -88,6 +88,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取可用的练习列表（系统+自定义）
+   * GET /practice/list
+   */
+  async listPractices() {
+    return apiClient.get<Practice[]>("/practice/list");
+  },
+
+  /**
    * 创建练习（异步任务）
    * POST /practice/create
    * @returns 任务ID

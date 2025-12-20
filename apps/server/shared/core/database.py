@@ -212,6 +212,7 @@ class PracticeSession(BaseModel):
         index=True,
         comment="会话类型:daily_practice/unit_practice/assessment",
     )
+    practice_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="练习ID")
 
     target_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID或者时间戳")
     textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
@@ -230,6 +231,11 @@ class PracticeSession(BaseModel):
     textbook: Mapped["Textbook"] = relationship(
         "Textbook",
         primaryjoin="foreign(PracticeSession.textbook_id) == Textbook.id",
+        lazy="joined",
+    )
+    practice: Mapped["Practice"] = relationship(
+        "Practice",
+        primaryjoin="foreign(PracticeSession.practice_id) == Practice.id",
         lazy="joined",
     )
 
@@ -405,3 +411,22 @@ class PracticePrompt(BaseModel):
         primaryjoin="foreign(PracticePrompt.prompt_id) == Prompt.id",
         lazy="joined",
     )
+
+
+class Practice(BaseModel):
+    """练习表"""
+    __tablename__ = "ah_practice"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), comment="练习名称")
+    slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
+    icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
+    type: Mapped[str] = mapped_column(String(20), index=True, comment="类型：system/custom")
+    practice_type: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="系统练习标识（兼容旧逻辑）"
+    )
+    config: Mapped[str] = mapped_column(Text, default="{}", comment="配置信息JSON")
+
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")

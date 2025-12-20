@@ -18,6 +18,9 @@ import PromptVersionList from '@/pages/Prompt/VersionList';
 import PromptTest from '@/pages/Prompt/Test';
 import PromptTestRecords from '@/pages/Prompt/TestRecords';
 import PracticePrompt from '@/pages/Prompt/Practice';
+import PracticeList from '@/pages/Practice/List';
+import PracticeConfig from '@/pages/Practice/Config';
+import PracticePromptNew from '@/pages/Practice/Prompt';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
 import PracticeDetail from '@/pages/Student/PraticeDetail';
@@ -53,6 +56,9 @@ export function Router() {
         { path: 'prompt/test', element: <PromptTest /> },
         { path: 'prompt/test/records', element: <PromptTestRecords /> },
         { path: 'prompt/practice', element: <PracticePrompt /> },
+        { path: 'practice/list', element: <PracticeList /> },
+        { path: 'practice/config', element: <PracticeConfig /> },
+        { path: 'practice/prompt', element: <PracticePromptNew /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'practice/detail/:session_id', element: <PracticeDetail /> },

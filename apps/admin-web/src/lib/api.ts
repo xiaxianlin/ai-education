@@ -625,4 +625,54 @@ export const adminApi = {
   async deletePracticePrompt(id: number) {
     return apiClient.delete(`/practice_prompt/${id}`);
   },
+
+  // ========== 练习管理 ==========
+
+  /**
+   * 获取练习列表
+   * GET /api/admin/practice/list
+   */
+  async listPractices(params?: SearchPracticeRequest) {
+    return apiClient.get<SearchResponse<Practice>>('/practice/list', params);
+  },
+
+  /**
+   * 获取练习详情
+   * GET /api/admin/practice/{id}
+   */
+  async getPracticeDetail(id: number): Promise<Practice> {
+    return apiClient.get<Practice>(`/practice/${id}`);
+  },
+
+  /**
+   * 创建练习
+   * POST /api/admin/practice/
+   */
+  async createPractice(data: SavePracticeRequest) {
+    return apiClient.post<number>('/practice/', data);
+  },
+
+  /**
+   * 更新练习
+   * PUT /api/admin/practice/{id}
+   */
+  async updatePractice(id: number, data: SavePracticeRequest) {
+    return apiClient.put(`/practice/${id}`, data);
+  },
+
+  /**
+   * 更新练习配置
+   * PATCH /api/admin/practice/{id}/config
+   */
+  async updatePracticeConfig(id: number, data: SavePracticeConfigRequest) {
+    return apiClient.patch(`/practice/${id}/config`, data);
+  },
+
+  /**
+   * 删除练习
+   * DELETE /api/admin/practice/{id}
+   */
+  async deletePractice(id: number) {
+    return apiClient.delete(`/practice/${id}`);
+  },
 };

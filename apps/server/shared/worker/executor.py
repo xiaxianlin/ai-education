@@ -42,6 +42,7 @@ def execute_generate_practice_task(self, payload: Dict[str, Any]) -> Dict[str, A
                 student_id=payload.get("student_id"),
                 textbook_id=payload.get("textbook_id"),
                 unit_id=payload.get("unit_id", None),
+                practice_id=payload.get("practice_id", None),
             )
 
     try:

@@ -325,6 +325,45 @@ declare global {
     grade?: number;
     prompt_id?: number;
   }
+
+  // ========== 练习管理 ==========
+
+  interface Practice {
+    id: number;
+    name: string;
+    slug: string;
+    icon?: string;
+    description?: string;
+    type: 'system' | 'custom';
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    config: {
+      default?: { generate_count?: number; recall_count?: number };
+      grade_specific?: Record<string, { generate_count?: number; recall_count?: number }>;
+    };
+    create_time: number;
+    update_time: number;
+  }
+
+  interface SavePracticeRequest {
+    name: string;
+    slug: string;
+    icon?: string;
+    description?: string;
+    type: 'system' | 'custom';
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    config?: Record<string, any>;
+  }
+
+  interface SearchPracticeRequest extends SearchRequest {
+    name?: string;
+    slug?: string;
+    type?: 'system' | 'custom';
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+  }
+
+  interface SavePracticeConfigRequest {
+    config: Record<string, any>;
+  }
 }
 
 export {};

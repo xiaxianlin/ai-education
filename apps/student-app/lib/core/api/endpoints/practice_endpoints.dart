@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:student_app/core/api/api_client.dart';
 import 'package:student_app/core/models/practice_session.dart';
+import 'package:student_app/core/models/practice.dart';
 import 'package:student_app/core/models/practice_answer.dart';
 import 'package:student_app/core/models/practice_report.dart';
 import 'package:student_app/core/models/submit_answer_params.dart';
@@ -36,18 +37,27 @@ class PracticeEndpoints {
     return PracticeSession.fromJson(data);
   }
 
+  /// 获取可用的练习列表（系统+自定义）
+  /// GET /api/student/practice/list
+  static Future<List<Practice>> listPractices() async {
+    final data = await _api.get<List<dynamic>>('/practice/list');
+    return data.map((json) => Practice.fromJson(json)).toList();
+  }
+
   /// 创建练习
   /// POST /api/student/practice/create
   /// @returns 任务ID (taskId)
   static Future<String> createPractice({
-    required String type, // "daily_practice" | "unit_practice" | "assessment"
+    String? type, // "daily_practice" | "unit_practice" | "assessment" (兼容旧逻辑)
+    int? practiceId, // 练习ID（优先使用）
     required int textbookId,
     int? unitId,
   }) async {
     return await _api.post<String>(
       '/practice/create',
       data: {
-        'type': type,
+        if (type != null) 'type': type,
+        if (practiceId != null) 'practice_id': practiceId,
         'textbook_id': textbookId,
         if (unitId != null) 'unit_id': unitId,
       },

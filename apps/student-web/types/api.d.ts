@@ -17,9 +17,26 @@ declare global {
   }
 
   interface CreatePracticeRequest {
-    type: PracticeType;
+    type?: PracticeType;  // 兼容旧逻辑
+    practice_id?: number;  // 优先使用
     textbook_id: number;
     unit_id?: number;
+  }
+
+  interface Practice {
+    id: number;
+    name: string;
+    slug: string;
+    icon?: string;
+    description?: string;
+    type: 'system' | 'custom';
+    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    config: {
+      default?: { generate_count?: number; recall_count?: number };
+      grade_specific?: Record<string, { generate_count?: number; recall_count?: number }>;
+    };
+    create_time: number;
+    update_time: number;
   }
 
   interface AnswerRequest {
