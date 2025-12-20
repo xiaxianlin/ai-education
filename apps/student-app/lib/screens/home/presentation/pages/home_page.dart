@@ -40,7 +40,7 @@ class HomePage extends ConsumerWidget {
               
               // 三个练习卡片（垂直排列，适合移动端）
               PracticeCard(
-                title: '每日练习',
+                title: '日常练习',
                 description: '快来开始今天的练习吧！✨',
                 icon: '📆',
                 onTap: () => context.push('/practice/daily'),

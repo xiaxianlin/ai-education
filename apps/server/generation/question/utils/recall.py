@@ -7,7 +7,7 @@ from loguru import logger
 
 
 async def recall_for_daily_practice(db: AsyncSession, student_id: str, textbook_id: int) -> List[Question]:
-    """为每日练习召回题目
+    """为日常练习召回题目
 
     Args:
         db: 数据库会话
@@ -32,7 +32,7 @@ async def recall_for_daily_practice(db: AsyncSession, student_id: str, textbook_
     result = await db.execute(stmt)
     questions = result.scalars().all()
 
-    logger.debug(f"每日练习召回题目: student_id={student_id}, textbook_id={textbook_id}, " f"召回数量={len(questions)}")
+    logger.debug(f"日常练习召回题目: student_id={student_id}, textbook_id={textbook_id}, " f"召回数量={len(questions)}")
 
     return list(questions[:QUESTION_RECALL_COUNT])
 
@@ -66,7 +66,7 @@ async def recall_for_unit_practice(db: AsyncSession, unit_id: int) -> List[Quest
 
 
 async def recall_for_assessment(db: AsyncSession, textbook_id: int) -> List[Question]:
-    """为能力评估召回题目
+    """为综合评估召回题目
 
     Args:
         db: 数据库会话
@@ -91,6 +91,6 @@ async def recall_for_assessment(db: AsyncSession, textbook_id: int) -> List[Ques
     result = await db.execute(stmt)
     questions = result.scalars().all()
 
-    logger.debug(f"能力评估召回题目: textbook_id={textbook_id}, " f"召回数量={len(questions)}")
+    logger.debug(f"综合评估召回题目: textbook_id={textbook_id}, " f"召回数量={len(questions)}")
 
     return list(questions[:QUESTION_RECALL_COUNT])

@@ -38,8 +38,8 @@ def router_node(state: QuestionGenerationState) -> str:
 
 
 async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查每日练习参数"""
-    logger.info("开始检查每日练习参数")
+    """检查日常练习参数"""
+    logger.info("开始检查日常练习参数")
     DailyPracticeGenerateService.validate_state(state)
     return {}
 
@@ -52,8 +52,8 @@ async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, 
 
 
 async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查能力评估参数"""
-    logger.info("开始检查能力评估参数")
+    """检查综合评估参数"""
+    logger.info("开始检查综合评估参数")
     AssessmentGenerateService.validate_state(state)
     return {}
 
@@ -61,8 +61,8 @@ async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any
 async def load_daily_practice_data_node(
     state: QuestionGenerationState,
 ) -> Dict[str, Any]:
-    """加载每日练习数据"""
-    logger.info("开始加载每日练习数据")
+    """加载日常练习数据"""
+    logger.info("开始加载日常练习数据")
     return await DailyPracticeGenerateService.load_data(state)
 
 
@@ -75,16 +75,16 @@ async def load_unit_practice_data_node(
 
 
 async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """加载能力评估数据"""
-    logger.info("开始加载能力评估数据")
+    """加载综合评估数据"""
+    logger.info("开始加载综合评估数据")
     return await AssessmentGenerateService.load_data(state)
 
 
 async def build_daily_practice_prompt_node(
     state: QuestionGenerationState,
 ) -> Dict[str, Any]:
-    """构建每日练习prompt"""
-    logger.info("开始构建每日练习prompt")
+    """构建日常练习prompt"""
+    logger.info("开始构建日常练习prompt")
     return await DailyPracticeGenerateService.build_prompt(state)
 
 
@@ -99,8 +99,8 @@ async def build_unit_practice_prompt_node(
 async def build_assessment_prompt_node(
     state: QuestionGenerationState,
 ) -> Dict[str, Any]:
-    """构建能力评估prompt"""
-    logger.info("开始构建能力评估prompt")
+    """构建综合评估prompt"""
+    logger.info("开始构建综合评估prompt")
     return await AssessmentGenerateService.build_prompt(state)
 
 

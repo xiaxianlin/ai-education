@@ -7,11 +7,11 @@ export const useConfigs = () => {
     semesters = [],
     subjects = [],
     textbook_versions = [],
-    question_scenes = [],
+    question_types = [],
     difficulty_levels = [],
     providers = [],
-    question_types = {},
   } = (initialState?.configs || {}) as Configs;
+
   const subjectEnum = subjects.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   const gradeEnum = Object.keys(GRADES).reduce((prev, key) => ({ ...prev, [key]: GRADES[Number(key)] }), {});
@@ -20,16 +20,15 @@ export const useConfigs = () => {
 
   const textbookVersionEmun = textbook_versions.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
-  const questionTypeEnum = question_scenes.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
+  const questionTypeEnum = question_types.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   return {
     semesters,
     subjects,
     textbook_versions,
-    question_scenes,
+    question_types,
     difficulty_levels,
     providers,
-    question_types,
     subjectEnum,
     gradeEnum,
     questionTypeEnum,

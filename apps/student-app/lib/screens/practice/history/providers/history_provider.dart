@@ -26,7 +26,7 @@ final selectedHistoryTypeStateProvider = Provider<String>((ref) {
   return ref.watch(selectedHistoryTypeProvider).currentState;
 });
 
-/// 每日练习历史数据
+/// 日常练习历史数据
 final dailyHistoryProvider = FutureProvider<List<PracticeSession>>((ref) async {
   return await PracticeEndpoints.getHistory(
     type: PracticeConstants.typeDailyPractice,

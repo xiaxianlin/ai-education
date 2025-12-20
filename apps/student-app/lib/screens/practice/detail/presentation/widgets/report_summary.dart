@@ -136,7 +136,7 @@ class ReportSummary extends StatelessWidget {
               ),
             ),
 
-            // 能力评估 (精美版)
+            // 综合评估 (精美版)
             if (sessionType == PracticeConstants.typeAssessment && report.currentAbility != null) ...[
               const SizedBox(height: 24),
               Container(
@@ -155,7 +155,7 @@ class ReportSummary extends StatelessWidget {
                         const Icon(Icons.trending_up, color: AppColors.primary, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          '能力评估',
+                          '综合评估',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

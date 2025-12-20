@@ -16,9 +16,9 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-foreground px-2">🚀 开始练习</h2>
         {/* 练习卡片区域 - 并排一行 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* 每日练习卡片 */}
+          {/* 日常练习卡片 */}
           <PracticeCard
-            title="每日练习"
+            title="日常练习"
             description="快来开始今天的练习吧！✨"
             buttonText="去练习"
             icon="📆"

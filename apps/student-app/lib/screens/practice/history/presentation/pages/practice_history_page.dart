@@ -48,7 +48,7 @@ class _PracticeHistoryPageState extends ConsumerState<PracticeHistoryPage>
             ref.read(selectedHistoryTypeProvider).setType(types[index]);
           },
           tabs: const [
-            Tab(text: '每日练习'),
+            Tab(text: '日常练习'),
             Tab(text: '单元练习'),
             Tab(text: '能力评测'),
           ],

@@ -17,7 +17,7 @@ interface HistoryCardProps {
 function getPracticeTypeName(type: PracticeType): string {
   switch (type) {
     case "daily_practice":
-      return "每日练习";
+      return "日常练习";
     case "unit_practice":
       return "单元练习";
     case "assessment":

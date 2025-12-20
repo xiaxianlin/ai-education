@@ -11,7 +11,7 @@ import { PlusOutlined } from '@ant-design/icons';
 
 export default function QuestionListPage() {
   const navigate = useNavigate();
-  const { question_scenes } = useConfigs();
+  const { question_types } = useConfigs();
   const [subject, setSubject] = useState('英语');
   const [grade, setGrade] = useState(1);
   const [params, setParams] = useState<SearchQuestionRequest>({});
@@ -116,7 +116,7 @@ export default function QuestionListPage() {
                 <Select
                   allowClear
                   placeholder="请选择题型"
-                  options={question_scenes.map((scene) => ({ label: scene, value: scene }))}
+                  options={question_types.map((scene) => ({ label: scene, value: scene }))}
                   style={{ width: 160 }}
                 />
               </Space.Compact>

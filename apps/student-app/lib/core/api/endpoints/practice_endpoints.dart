@@ -15,7 +15,7 @@ class PracticeEndpoints {
 
   static final _api = ApiClient.instance;
 
-  /// 获取每日练习
+  /// 获取日常练习
   /// GET /api/student/practice/daily/{textbook_id}
   static Future<PracticeSession> getDailyPractice(int textbookId) async {
     final data = await _api.get<Map<String, dynamic>>('/practice/daily/$textbookId');

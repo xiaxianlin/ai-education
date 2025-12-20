@@ -12,14 +12,13 @@ const PRACTICE_TYPES: Array<{
   value: PracticeType;
   label: string;
 }> = [
-  { value: "daily_practice", label: "每日练习" },
+  { value: "daily_practice", label: "日常练习" },
   { value: "unit_practice", label: "单元练习" },
   { value: "assessment", label: "能力评测" },
 ];
 
 export default function PracticeHistory() {
-  const [activeTab, setActiveTab] =
-    useState<PracticeType>("daily_practice");
+  const [activeTab, setActiveTab] = useState<PracticeType>("daily_practice");
 
   // 获取各类型的历史记录
   const { data: dailyHistory = [], loading: dailyLoading } = useRequest(() =>
@@ -30,8 +29,9 @@ export default function PracticeHistory() {
     studentApi.getPracticeHistory("unit_practice")
   );
 
-  const { data: assessmentHistory = [], loading: assessmentLoading } =
-    useRequest(() => studentApi.getPracticeHistory("assessment"));
+  const { data: assessmentHistory = [], loading: assessmentLoading } = useRequest(() =>
+    studentApi.getPracticeHistory("assessment")
+  );
 
   const getHistoryByType = (type: PracticeType) => {
     switch (type) {
@@ -105,19 +105,13 @@ export default function PracticeHistory() {
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <div className="text-4xl">📚</div>练习记录
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              查看你的所有练习历史记录，回顾学习历程。
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">查看你的所有练习历史记录，回顾学习历程。</p>
           </div>
         </CardContent>
       </Card>
 
       {/* 按类型分类的标签页 */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as PracticeType)}
-        className="w-full"
-      >
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PracticeType)} className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-auto rounded-full bg-muted/80 px-3.5 py-2 gap-2 border border-border my-3">
           {PRACTICE_TYPES.map((type) => (
             <TabsTrigger

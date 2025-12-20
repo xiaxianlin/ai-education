@@ -13,7 +13,7 @@ export function MainView() {
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-center gap-4">
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <div className="text-4xl">📅</div>每日练习
+              <div className="text-4xl">📅</div>日常练习
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               根据你已选教材，智能生成当天的练习任务，帮你保持学习节奏。

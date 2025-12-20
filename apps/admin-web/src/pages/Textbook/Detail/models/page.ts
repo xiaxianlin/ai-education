@@ -4,7 +4,6 @@ import { createContainer } from 'unstated-next';
 import { adminApi } from '@/lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
-import { useGenerateWithConfirm } from '@/hooks/useGenerateWithConfirm';
 
 const useContainer = () => {
   const navigate = useNavigate();

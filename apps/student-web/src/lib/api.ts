@@ -64,7 +64,7 @@ export const studentApi = {
   // ========== 练习相关 ==========
 
   /**
-   * 获取每日练习
+   * 获取日常练习
    * GET /practice/daily
    */
   async getDailyPractice(textbookId: number) {

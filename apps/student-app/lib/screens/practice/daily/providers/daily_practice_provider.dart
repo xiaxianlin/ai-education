@@ -6,7 +6,7 @@ import 'package:student_app/core/models/practice_session.dart';
 import 'package:student_app/core/constants/practice_constants.dart';
 import 'package:student_app/core/utils/error_handler.dart';
 
-/// 每日练习状态
+/// 日常练习状态
 class DailyPracticeState {
   final List<PracticeSession> practices;
   final bool isLoading;
@@ -39,11 +39,11 @@ class DailyPracticeState {
   }
 }
 
-/// 每日练习状态管理 Provider
+/// 日常练习状态管理 Provider
 class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
   DailyPracticeNotifier() : super(const DailyPracticeState());
 
-  /// 获取所有激活教材的每日练习列表
+  /// 获取所有激活教材的日常练习列表
   Future<void> fetchDailyPractice(List<Textbook> textbooks) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -55,7 +55,7 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
           practices.add(practice);
         } catch (e) {
           // 如果某个教材获取失败，暂时忽略或记录，不影响其他教材
-          Logger.error('获取教材 ${textbook.name} 的每日练习失败: $e');
+          Logger.error('获取教材 ${textbook.name} 的日常练习失败: $e');
         }
       }
 
@@ -73,7 +73,7 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
     }
   }
 
-  /// 创建每日练习
+  /// 创建日常练习
   Future<void> createPractice(int textbookId) async {
     try {
       state = state.copyWith(isCreating: true, error: null);
@@ -185,12 +185,12 @@ class DailyPracticeNotifier extends StateNotifier<DailyPracticeState> {
   DailyPracticeState get currentState => state;
 }
 
-/// 每日练习状态 Provider (Riverpod 3.x compatible)
+/// 日常练习状态 Provider (Riverpod 3.x compatible)
 final dailyPracticeProvider = Provider<DailyPracticeNotifier>((ref) {
   return DailyPracticeNotifier();
 });
 
-/// 每日练习状态 Provider (用于访问状态)
+/// 日常练习状态 Provider (用于访问状态)
 final dailyPracticeStateProvider = Provider<DailyPracticeState>((ref) {
   return ref.watch(dailyPracticeProvider).currentState;
 });

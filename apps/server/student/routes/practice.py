@@ -1,4 +1,4 @@
-"""练习路由（每日练习 + 单元练习 + 能力评测）"""
+"""练习路由（日常练习 + 单元练习 + 能力评测）"""
 
 from typing import Dict
 from uuid import uuid4
@@ -21,7 +21,7 @@ practice_router = APIRouter(prefix="/practice")
 
 @practice_router.get("/daily/{textbook_id}")
 async def get_daily_practice(textbook_id: int, request: Request, db: AsyncSession = Database):
-    """获取每日练习信息"""
+    """获取日常练习信息"""
     student = request.state.student
     return await practice.get_daily_practice(db, student.id, textbook_id)
 
@@ -35,7 +35,7 @@ async def get_unit_practice(unit_id: int, request: Request, db: AsyncSession = D
 
 @practice_router.get("/assessment/{textbook_id}")
 async def get_assessment(textbook_id: int, request: Request, db: AsyncSession = Database):
-    """获取能力评估信息"""
+    """获取综合评估信息"""
     student = request.state.student
     return await practice.get_assessment(db, student.id, textbook_id)
 

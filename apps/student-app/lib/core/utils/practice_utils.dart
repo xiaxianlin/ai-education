@@ -9,7 +9,7 @@ class PracticeUtils {
   static String getPracticeTypeName(String? sessionType) {
     switch (sessionType) {
       case PracticeConstants.typeDailyPractice:
-        return '每日练习';
+        return '日常练习';
       case PracticeConstants.typeUnitPractice:
         return '单元练习';
       case PracticeConstants.typeAssessment:

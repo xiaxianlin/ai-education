@@ -19,7 +19,6 @@ admin/
 │   │   └── util/           # 工具组件
 │   ├── hooks/              # 自定义 Hooks
 │   │   ├── useTableColumns.tsx    # 表格列配置
-│   │   ├── useTableRequest.ts     # 表格请求处理
 │   │   ├── useDelete.ts           # 删除操作
 │   │   ├── useSimpleForm.ts       # 简单表单
 │   │   └── useConfigs.ts          # 配置管理

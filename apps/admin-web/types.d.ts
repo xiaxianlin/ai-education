@@ -20,7 +20,7 @@ declare global {
     subjects: string[];
     textbook_versions: string[];
     semesters: string[];
-    question_scenes: string[];
+    question_types: string[];
     difficulty_levels: string[];
     providers: string[];
     question_types: Record<string, Record<number, Record<string, string[]>>>;

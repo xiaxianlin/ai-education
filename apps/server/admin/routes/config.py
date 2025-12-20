@@ -4,9 +4,9 @@ from shared.core.constants import (
     SUBJECTS,
     TEXTBOOK_VERSIONS,
     SEMESTERS,
-    QUESTION_SCENES,
+    question_types,
     DIFFICULTY_LEVELS,
-    QUESTION_TYPES,
+    question_types,
 )
 
 config_router = APIRouter()
@@ -20,8 +20,8 @@ async def configs():
         "subjects": SUBJECTS,
         "textbook_versions": TEXTBOOK_VERSIONS,
         "semesters": SEMESTERS,
-        "question_scenes": QUESTION_SCENES,
+        "question_types": question_types,
         "difficulty_levels": DIFFICULTY_LEVELS,
-        "question_types": QUESTION_TYPES,
+        "question_types": question_types,
         "providers": ["aliyun"],
     }

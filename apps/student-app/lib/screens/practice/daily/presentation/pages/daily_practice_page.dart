@@ -6,7 +6,7 @@ import 'package:student_app/screens/practice/daily/presentation/widgets/practice
 import 'package:student_app/screens/practice/daily/presentation/widgets/subject_tabs.dart';
 import 'package:student_app/core/models/practice_session.dart';
 
-/// 每日练习页面
+/// 日常练习页面
 class DailyPracticePage extends ConsumerStatefulWidget {
   const DailyPracticePage({super.key});
 
@@ -42,7 +42,7 @@ class _DailyPracticePageState extends ConsumerState<DailyPracticePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('每日练习'),
+        title: const Text('日常练习'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -155,7 +155,7 @@ class _DailyPracticePageState extends ConsumerState<DailyPracticePage> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  '每日练习',
+                  '日常练习',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -203,7 +203,7 @@ class _DailyPracticePageState extends ConsumerState<DailyPracticePage> {
           ),
           const SizedBox(height: 12),
           Text(
-            '去设置里选择你的学习教材，系统就能为你生成每日练习啦～',
+            '去设置里选择你的学习教材，系统就能为你生成日常练习啦～',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,

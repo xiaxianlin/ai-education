@@ -8,7 +8,7 @@ import { GRADES } from "@/constants/profile";
 import { cn } from "@/lib/utils";
 
 const MODULES = [
-  { label: "每日练习", emoji: "📆", path: "/practice/daily" },
+  { label: "日常练习", emoji: "📆", path: "/practice/daily" },
   { label: "单元练习", emoji: "📚", path: "/practice/unit" },
   { label: "综合评估", emoji: "🎯", path: "/practice/assessment" },
   { label: "练习记录", emoji: "📊", path: "/practice/history" },

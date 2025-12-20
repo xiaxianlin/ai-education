@@ -5,13 +5,11 @@
 
 from typing import List, Optional
 from shared.core.database import Question, Unit
-from shared.core.constants import get_question_types
 
 
 def build_common_prompt(subject: str, grade: int, recall_questions: Optional[List[Question]] = None) -> str:
     """构建题型配置信息，遍历题型和子题型生成适合 prompt 的字符串"""
 
-    question_types = get_question_types(subject, grade)
 
     if question_types:
         prompt_lines = []
@@ -65,7 +63,7 @@ def build_question_distribution(
     challenge_ratio: float = 0.2,
     new_ratio: float = 0.1,
 ) -> dict:
-    """计算每日练习题目类型分布"""
+    """计算日常练习题目类型分布"""
     if abs(wrong_ratio + mastered_ratio + challenge_ratio + new_ratio - 1.0) > 0.01:
         raise ValueError("题目类型比例之和必须为1.0")
 

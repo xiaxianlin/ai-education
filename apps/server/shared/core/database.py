@@ -201,7 +201,7 @@ class StudentTextbook(BaseModel):
     )
 
 
-# 练习会话表，合并单元练习、每日练习、能力评估
+# 练习会话表，合并单元练习、日常练习、综合评估
 class PracticeSession(BaseModel):
     __tablename__ = "ah_practice_session"
 
@@ -290,7 +290,7 @@ class PracticeReport(BaseModel):
     total_time: Mapped[int] = mapped_column(default=0, comment="总耗时(秒)")
     overall_score: Mapped[float] = mapped_column(default=0.0, comment="总得分")
 
-    # 能力评估（主要用于assessment）
+    # 综合评估（主要用于assessment）
     current_ability: Mapped[float] = mapped_column(default=0.0, comment="当前能力值（-3到+3）")
     confidence: Mapped[float] = mapped_column(default=0.0, comment="置信度")
     ability_level: Mapped[str] = mapped_column(String(50), default="", comment="能力等级")

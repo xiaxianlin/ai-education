@@ -10,7 +10,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { createActionColumn } from '@/hooks/useTableColumns';
 
 export default function TableView() {
-  const { question_scenes } = useConfigs();
+  const { question_types } = useConfigs();
   const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
     useQuestionTypeListModel();
 
@@ -69,7 +69,7 @@ export default function TableView() {
         toolbar={{
           settings: [
             <Flex gap={8}>
-              {question_scenes.map((item) => {
+              {question_types.map((item) => {
                 const isActive = scene === item;
                 return (
                   <Tag

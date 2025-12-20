@@ -1,6 +1,6 @@
-"""能力评估服务
+"""综合评估服务
 
-本模块负责IRT能力评估题目生成的业务逻辑：
+本模块负责IRT综合评估题目生成的业务逻辑：
 - 参数验证
 - 数据加载（教材、全部知识点）
 - Prompt 构建（基于教材和知识点）
@@ -28,13 +28,13 @@ class AssessmentGenerateService:
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
-        """验证能力评估的状态参数"""
+        """验证综合评估的状态参数"""
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """加载能力评估所需的上下文数据"""
+        """加载综合评估所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
@@ -50,7 +50,7 @@ class AssessmentGenerateService:
             recalled_questions = await recall_for_assessment(db, textbook.id)
 
             logger.info(
-                f"✓ 能力评估数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
+                f"✓ 综合评估数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
                 f"subject={textbook.subject}, version={textbook.version}, "
                 f"grade={textbook.grade}, semester={textbook.semester}, "
                 f"知识点={len(knowledges)}个, 召回题目={len(recalled_questions)}道"
@@ -61,12 +61,12 @@ class AssessmentGenerateService:
                 "recall_questions": recalled_questions,
             }
         except Exception as e:
-            logger.error(f"✗ 加载能力评估数据失败: {e}")
+            logger.error(f"✗ 加载综合评估数据失败: {e}")
             raise
 
     @classmethod
     async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
-        """构建能力评估的 Prompt"""
+        """构建综合评估的 Prompt"""
         db: AsyncSession = state["db"]
         count = state["count"]
         textbook = state["textbook"]

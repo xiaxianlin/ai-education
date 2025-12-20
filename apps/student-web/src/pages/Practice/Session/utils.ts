@@ -4,7 +4,7 @@ export const getPracticeTypeName = (sessionType?: PracticeType): string => {
   if (!sessionType) return "练习";
   switch (sessionType) {
     case "daily_practice":
-      return "每日练习";
+      return "日常练习";
     case "unit_practice":
       return "单元练习";
     case "assessment":

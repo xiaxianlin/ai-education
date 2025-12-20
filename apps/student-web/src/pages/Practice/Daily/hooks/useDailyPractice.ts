@@ -3,7 +3,7 @@ import { useRequest } from "ahooks";
 import { useCreatePractice } from "@/hooks/useCreatePractice";
 
 export const useDailyPractice = (textbookId: number) => {
-  /** 获取每日练习 */
+  /** 获取日常练习 */
   const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId), {
     onSuccess: (res) => {
       if (res.generate_status === 0) {

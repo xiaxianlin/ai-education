@@ -1,6 +1,6 @@
-"""每日练习服务
+"""日常练习服务
 
-本模块负责个性化每日练习题目生成的业务逻辑：
+本模块负责个性化日常练习题目生成的业务逻辑：
 - 参数验证
 - 数据加载（学生学习数据）
 - Prompt 构建（基于教材和学生学习数据）
@@ -27,13 +27,13 @@ class DailyPracticeGenerateService:
 
     @classmethod
     def validate_state(cls, state: QuestionGenerationState) -> None:
-        """验证每日练习的状态参数"""
+        """验证日常练习的状态参数"""
         if state.get("student_id") is None:
             raise ValueError("学生 ID (student_id) 不能为空")
 
     @classmethod
     async def load_data(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """加载每日练习所需的上下文数据"""
+        """加载日常练习所需的上下文数据"""
         try:
             db: AsyncSession = state["db"]
             student_id: str = state["student_id"]
@@ -43,7 +43,7 @@ class DailyPracticeGenerateService:
             recalled_questions = await recall_for_daily_practice(db, student_id, textbook.id)
 
             logger.info(
-                f"✓ 每日练习数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
+                f"✓ 日常练习数据加载完成: student_id={student_id}, textbook_id={textbook.id}, "
                 f"subject={textbook.subject}, grade={textbook.grade}, "
                 f"召回题目={len(recalled_questions)}道"
             )
@@ -53,12 +53,12 @@ class DailyPracticeGenerateService:
                 "recall_questions": recalled_questions,
             }
         except Exception as e:
-            logger.error(f"✗ 加载每日练习数据失败: {e}")
+            logger.error(f"✗ 加载日常练习数据失败: {e}")
             raise
 
     @classmethod
     async def build_prompt(cls, state: QuestionGenerationState) -> Dict[str, Any]:
-        """构建每日练习的 Prompt"""
+        """构建日常练习的 Prompt"""
         db: AsyncSession = state["db"]
         count = state["count"]
         textbook = state["textbook"]

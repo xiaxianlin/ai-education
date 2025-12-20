@@ -6,9 +6,9 @@ import { adminApi } from '@/lib/api';
 import { GRADES, SUBJECTS } from '@/constants/course';
 
 const PRACTICE_TYPE_OPTIONS = [
-  { label: '每日练习', value: 'daily_practice' },
+  { label: '日常练习', value: 'daily_practice' },
   { label: '单元练习', value: 'unit_practice' },
-  { label: '能力评估', value: 'assessment' },
+  { label: '综合评估', value: 'assessment' },
 ];
 
 const GRADE_OPTIONS = Object.keys(GRADES).map((key) => ({

@@ -5,7 +5,6 @@ from loguru import logger
 from pydantic import TypeAdapter
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.core.database import Question
-from shared.core.constants import get_question_types
 from shared.provider import get_provider
 from generation.question.schema import QuestionGenerationState, GeneratedQuestion, QuestionOption
 

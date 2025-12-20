@@ -64,12 +64,12 @@ export const ReportSummary: FC<ReportSummaryProps> = ({ report, sessionType }) =
             </div>
           </div>
 
-          {/* 能力评估（仅能力评测显示） */}
+          {/* 综合评估（仅能力评测显示） */}
           {sessionType === "assessment" && current_ability !== undefined && (
             <div className="bg-primary/10 rounded-2xl p-6 border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-foreground">能力评估</h3>
+                <h3 className="text-lg font-semibold text-foreground">综合评估</h3>
               </div>
               <div className="space-y-2 text-center">
                 {ability_level && <div className="text-2xl font-bold text-primary">{ability_level}</div>}

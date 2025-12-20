@@ -162,7 +162,7 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
 
 
 async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_id: int, **kwargs):
-    """为学生生成每日练习"""
+    """为学生生成日常练习"""
     current_date = today()
 
     session = await db.scalar(
@@ -175,7 +175,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
     )
 
     if session:
-        raise ValueError("当天每日练习已存在")
+        raise ValueError("当天日常练习已存在")
 
     uncompleted_session = await db.scalar(
         select(PracticeSession)
@@ -191,7 +191,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
     if uncompleted_session:
 
         logger.info(
-            f"找到未完成的每日练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}"
+            f"找到未完成的日常练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}"
         )
 
         try:
@@ -211,7 +211,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
                 answer.is_corrected = 0
                 answer.corrected_time = None
 
-            # 重置进度并更新为当天的每日练习
+            # 重置进度并更新为当天的日常练习
             uncompleted_session.target_id = current_date
             uncompleted_session.status = 0
             uncompleted_session.answer_count = 0
@@ -222,7 +222,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
             await db.commit()
 
             logger.info(
-                f"未完成每日练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}"
+                f"未完成日常练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}"
             )
 
             return uncompleted_session.id
@@ -230,11 +230,11 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
         except Exception as e:
             await db.rollback()
             logger.error(
-                f"重置未完成每日练习失败: student_id={student_id}, session_id={uncompleted_session.id}, error={e}"
+                f"重置未完成日常练习失败: student_id={student_id}, session_id={uncompleted_session.id}, error={e}"
             )
-            raise ValueError(f"重置未完成每日练习失败: {str(e)}")
+            raise ValueError(f"重置未完成日常练习失败: {str(e)}")
 
-    logger.info(f"开始创建每日练习: student_id={student_id}")
+    logger.info(f"开始创建日常练习: student_id={student_id}")
     session = await generate_practice_session(
         db=db,
         type="daily_practice",

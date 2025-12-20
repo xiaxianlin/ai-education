@@ -63,7 +63,7 @@ class QuestionGenerateRequest(BaseModel):
     count: int = Field(description="生成题目数量")
     textbook_id: int = Field(description="教材ID")
     unit_id: Optional[int] = Field(None, description="单元ID（单元练习时需要）")
-    student_id: Optional[str] = Field(None, description="学生ID（每日练习时需要）")
+    student_id: Optional[str] = Field(None, description="学生ID（日常练习时需要）")
 
 
 class QuestionGenerationState(TypedDict, total=False):
@@ -77,7 +77,7 @@ class QuestionGenerationState(TypedDict, total=False):
     count: int
     # 教材对象
     textbook: Textbook
-    # 学生 ID，每日练习需要
+    # 学生 ID，日常练习需要
     student_id: str
     # 单元模型
     unit: NotRequired[Unit]

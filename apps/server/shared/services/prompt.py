@@ -148,7 +148,7 @@ async def get_practice_prompt_slug(db: AsyncSession, practice_type: str, grade: 
 
 
 async def get_daily_practice_prompt(db: AsyncSession, grade: int, subject: str, extra_prompt: Optional[str] = None):
-    """获取每日练习提示词模板
+    """获取日常练习提示词模板
 
     Args:
         db: 数据库会话
@@ -181,7 +181,7 @@ async def get_unit_practice_prompt(db: AsyncSession, grade: int, subject: str, e
 
 
 async def get_assessment_prompt(db: AsyncSession, grade: int, subject: str, extra_prompt: Optional[str] = None):
-    """获取能力评估提示词模板
+    """获取综合评估提示词模板
 
     Args:
         db: 数据库会话

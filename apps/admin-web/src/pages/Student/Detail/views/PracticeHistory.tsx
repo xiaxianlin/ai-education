@@ -113,9 +113,9 @@ export function PracticeHistory() {
         actionRef.current?.reload();
       }}
       tabList={[
-        { key: 'daily_practice', label: '每日练习' },
+        { key: 'daily_practice', label: '日常练习' },
         { key: 'unit_practice', label: '单元练习' },
-        { key: 'assessment', label: '能力评估' },
+        { key: 'assessment', label: '综合评估' },
       ]}
       styles={{ body: { padding: 0, paddingTop: 16 } }}
     >
