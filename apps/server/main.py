@@ -14,6 +14,7 @@ from shared.core.logger import logger
 
 from admin import admin_app
 from admin.services.manager import init_super_manager
+from admin.services.practice import init_system_practices
 from student import student_app
 
 dotenv.load_dotenv()
@@ -32,6 +33,8 @@ async def lifespan(_: FastAPI):
     # 初始化超级管理员
     if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
         await init_super_manager()
+    # 初始化系统练习
+    await init_system_practices()
 
     yield
 

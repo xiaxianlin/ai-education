@@ -24,8 +24,6 @@ async def list_practices(
         query = query.where(Practice.slug.like(f"%{params.slug}%"))
     if params.type:
         query = query.where(Practice.type == params.type)
-    if params.practice_type:
-        query = query.where(Practice.practice_type == params.practice_type)
 
     # 总数查询
     count_query = select(func.count()).select_from(query.subquery())
@@ -48,7 +46,6 @@ async def list_practices(
                 icon=item.icon,
                 description=item.description,
                 type=item.type,
-                practice_type=item.practice_type,
                 config=json.loads(item.config) if item.config else {},
                 create_time=item.create_time,
                 update_time=item.update_time,
@@ -75,7 +72,6 @@ async def get_practice(
         icon=practice.icon,
         description=practice.description,
         type=practice.type,
-        practice_type=practice.practice_type,
         config=json.loads(practice.config) if practice.config else {},
         create_time=practice.create_time,
         update_time=practice.update_time,
@@ -93,24 +89,13 @@ async def create_practice(
     if existed:
         raise ValueError("练习标识已存在")
 
-    # 如果是系统练习，检查 practice_type 是否已存在
-    if params.type == "system" and params.practice_type:
-        existed_system = await db.scalar(
-            select(Practice).where(
-                Practice.type == "system",
-                Practice.practice_type == params.practice_type
-            )
-        )
-        if existed_system:
-            raise ValueError(f"系统练习类型 {params.practice_type} 已存在")
-
     practice = Practice(
         name=params.name,
         slug=params.slug,
         icon=params.icon,
         description=params.description,
         type=params.type,
-        practice_type=params.practice_type,
+        practice_type=None,
         config=json.dumps(params.config, ensure_ascii=False),
     )
     db.add(practice)
@@ -140,10 +125,10 @@ async def update_practice(
         if existed:
             raise ValueError("练习标识已存在")
 
-    # 系统练习不允许修改类型和 practice_type
+    # 系统练习不允许修改类型
     if practice.type == "system":
-        if params.type != "system" or params.practice_type != practice.practice_type:
-            raise ValueError("系统练习不允许修改类型和练习类型")
+        if params.type != "system":
+            raise ValueError("系统练习不允许修改类型")
 
     # 更新字段
     practice.name = params.name
@@ -151,8 +136,6 @@ async def update_practice(
     practice.icon = params.icon
     practice.description = params.description
     practice.type = params.type
-    if params.type == "system":
-        practice.practice_type = params.practice_type
     practice.config = json.dumps(params.config, ensure_ascii=False)
 
     await db.commit()
@@ -207,7 +190,6 @@ async def list_available_practices(db: AsyncSession) -> list[PracticeSchema]:
                 icon=item.icon,
                 description=item.description,
                 type=item.type,
-                practice_type=item.practice_type,
                 config=json.loads(item.config) if item.config else {},
                 create_time=item.create_time,
                 update_time=item.update_time,
@@ -215,3 +197,57 @@ async def list_available_practices(db: AsyncSession) -> list[PracticeSchema]:
         )
     
     return items
+
+
+async def init_system_practices():
+    """初始化系统练习"""
+    from shared.core.database import AsyncSessionLocal
+    from shared.core.logger import logger
+    from shared.utils.time import now
+    
+    async with AsyncSessionLocal() as db:
+        # 定义三个系统练习
+        system_practices = [
+            {
+                "name": "日常练习",
+                "slug": "daily_practice",
+                "type": "system",
+                "config": {"default": {"generate_count": 15, "recall_count": 0}},
+            },
+            {
+                "name": "单元练习",
+                "slug": "unit_practice",
+                "type": "system",
+                "config": {"default": {"generate_count": 15, "recall_count": 0}},
+            },
+            {
+                "name": "综合评估",
+                "slug": "assessment",
+                "type": "system",
+                "config": {"default": {"generate_count": 25, "recall_count": 0}},
+            },
+        ]
+        
+        for practice_data in system_practices:
+            # 检查是否已存在
+            existing = await db.scalar(
+                select(Practice).where(Practice.slug == practice_data["slug"])
+            )
+            
+            if existing is None:
+                # 创建新的系统练习
+                practice = Practice(
+                    name=practice_data["name"],
+                    slug=practice_data["slug"],
+                    type=practice_data["type"],
+                    practice_type=None,
+                    config=json.dumps(practice_data["config"], ensure_ascii=False),
+                    create_time=now(),
+                    update_time=now(),
+                )
+                db.add(practice)
+                logger.info(f"初始化系统练习: {practice_data['name']} ({practice_data['slug']})")
+            else:
+                logger.debug(f"系统练习已存在: {practice_data['name']} ({practice_data['slug']})")
+        
+        await db.commit()

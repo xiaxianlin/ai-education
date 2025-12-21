@@ -17,7 +17,6 @@ import PromptForm from '@/pages/Prompt/Form';
 import PromptVersionList from '@/pages/Prompt/VersionList';
 import PromptTest from '@/pages/Prompt/Test';
 import PromptTestRecords from '@/pages/Prompt/TestRecords';
-import PracticePrompt from '@/pages/Prompt/Practice';
 import PracticeList from '@/pages/Practice/List';
 import PracticeConfig from '@/pages/Practice/Config';
 import PracticePromptNew from '@/pages/Practice/Prompt';
@@ -55,7 +54,6 @@ export function Router() {
         { path: 'prompt/versions', element: <PromptVersionList /> },
         { path: 'prompt/test', element: <PromptTest /> },
         { path: 'prompt/test/records', element: <PromptTestRecords /> },
-        { path: 'prompt/practice', element: <PracticePrompt /> },
         { path: 'practice/list', element: <PracticeList /> },
         { path: 'practice/config', element: <PracticeConfig /> },
         { path: 'practice/prompt', element: <PracticePromptNew /> },

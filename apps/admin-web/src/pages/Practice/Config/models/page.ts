@@ -6,7 +6,7 @@ import { adminApi } from '@/lib/api';
 const useContainer = () => {
   const [loading, setLoading] = useState(false);
   const [practices, setPractices] = useState<Practice[]>([]);
-  const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
   const [editingPractice, setEditingPractice] = useState<Practice | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
 
@@ -28,11 +28,11 @@ const useContainer = () => {
 
   const handleOpenConfig = (practice: Practice) => {
     setEditingPractice(practice);
-    setConfigDrawerOpen(true);
+    setConfigModalOpen(true);
   };
 
   const handleCloseConfig = () => {
-    setConfigDrawerOpen(false);
+    setConfigModalOpen(false);
     setEditingPractice(null);
   };
 
@@ -55,7 +55,7 @@ const useContainer = () => {
   return {
     loading,
     practices,
-    configDrawerOpen,
+    configModalOpen,
     editingPractice,
     configLoading,
     loadPractices,

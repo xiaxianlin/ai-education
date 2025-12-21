@@ -22,7 +22,7 @@ const useContainer = () => {
 
   const handleCreate = () => {
     setEditingId(null);
-    setInitialValues(undefined);
+    setInitialValues({ type: 'custom' });
     setDrawerOpen(true);
   };
 
@@ -38,7 +38,6 @@ const useContainer = () => {
           icon: data.icon,
           description: data.description,
           type: data.type,
-          practice_type: data.practice_type,
           config: data.config,
         });
         setDrawerOpen(true);

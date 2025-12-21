@@ -6,14 +6,7 @@ import { usePracticeListModel } from '../models/page';
 import { DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
-import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import FormDrawer from './FormDrawer';
-
-const PRACTICE_TYPE_OPTIONS = [
-  { label: '日常练习', value: 'daily_practice' },
-  { label: '单元练习', value: 'unit_practice' },
-  { label: '综合评估', value: 'assessment' },
-];
 
 const TYPE_OPTIONS = [
   { label: '系统', value: 'system' },
@@ -50,15 +43,6 @@ export default function MainView() {
         ),
         renderFormItem: () => (
           <Select placeholder="请选择类型" options={TYPE_OPTIONS} />
-        ),
-      },
-      {
-        title: '练习类型',
-        dataIndex: 'practice_type',
-        width: 120,
-        valueEnum: PRACTICE_TYPE_LABELS,
-        renderFormItem: () => (
-          <Select placeholder="请选择练习类型" options={PRACTICE_TYPE_OPTIONS} />
         ),
       },
       {
@@ -117,7 +101,6 @@ export default function MainView() {
             name: filter.name,
             slug: filter.slug,
             type: filter.type,
-            practice_type: filter.practice_type,
           });
           return {
             data: data?.data || [],

@@ -56,9 +56,8 @@ const menuDataRender = (): MenuDataItem[] => [
     name: '提示词',
     icon: <FileTextOutlined />,
     children: [
-      { path: '/prompt/list', name: '提示词列表' },
-      { path: '/prompt/practice', name: '练习提示词管理' },
-      { path: '/prompt/test/records', name: '测试记录' },
+      { path: '/prompt/list', name: '提示词管理' },
+      { path: '/prompt/test/records', name: '提示词测试' },
     ],
   },
   {
@@ -66,9 +65,9 @@ const menuDataRender = (): MenuDataItem[] => [
     name: '练习',
     icon: <EditOutlined />,
     children: [
-      { path: '/practice/prompt', name: '新增练习管理' },
-      { path: '/practice/list', name: '练习列表' },
-      { path: '/practice/config', name: '练习配置' },
+      { path: '/practice/list', name: '练习管理' },
+      { path: '/practice/config', name: '配置管理' },
+      { path: '/practice/prompt', name: '提示词管理' },
     ],
   },
 ];

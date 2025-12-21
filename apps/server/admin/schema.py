@@ -418,7 +418,6 @@ class SavePracticeSchema(BaseModel):
     icon: Optional[str] = None
     description: Optional[str] = None
     type: str  # system/custom
-    practice_type: Optional[str] = None  # daily_practice/unit_practice/assessment
     config: dict = {}  # 配置信息
 
     @field_validator("type")
@@ -426,13 +425,6 @@ class SavePracticeSchema(BaseModel):
     def valid_type(cls, v):
         if v not in ["system", "custom"]:
             raise ValueError("类型只能是 system 或 custom")
-        return v
-
-    @field_validator("practice_type")
-    @classmethod
-    def valid_practice_type(cls, v):
-        if v is not None and v not in ["daily_practice", "unit_practice", "assessment"]:
-            raise ValueError("练习类型只能是 daily_practice、unit_practice 或 assessment")
         return v
 
     @field_validator("slug")
@@ -448,7 +440,6 @@ class SearchPracticeSchema(SearchSchema):
     name: Optional[str] = None
     slug: Optional[str] = None
     type: Optional[str] = None
-    practice_type: Optional[str] = None
 
 
 class PracticeSchema(BaseModel):
@@ -459,7 +450,6 @@ class PracticeSchema(BaseModel):
     icon: Optional[str] = None
     description: Optional[str] = None
     type: str
-    practice_type: Optional[str] = None
     config: dict = {}
     create_time: int
     update_time: int
