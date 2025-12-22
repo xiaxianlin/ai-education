@@ -5,6 +5,14 @@ from admin.services.auth import admin_login
 from admin.services.manager import update_manager_password
 from shared.core.database import Database
 from shared.core.schema import ManagerSchema
+from shared.core.constants import (
+    SUBJECTS,
+    TEXTBOOK_VERSIONS,
+    SEMESTERS,
+    DIFFICULTY_LEVELS,
+    QUESTION_TYPES,
+)
+
 
 auth_router = APIRouter()
 
@@ -23,3 +31,17 @@ async def login(params: LoginSchema, db: AsyncSession = Database):
 async def modify_password(params: ModifyPasswordSchema, request: Request, db=Database):
     manager: ManagerSchema = request.state.manager
     await update_manager_password(db, manager.id, params)
+
+
+@auth_router.get("/configs")
+async def configs():
+    """获取配置信息"""
+
+    return {
+        "subjects": SUBJECTS,
+        "textbook_versions": TEXTBOOK_VERSIONS,
+        "semesters": SEMESTERS,
+        "question_types": QUESTION_TYPES,
+        "difficulty_levels": DIFFICULTY_LEVELS,
+        "providers": ["aliyun"],
+    }
