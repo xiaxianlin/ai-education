@@ -4,7 +4,7 @@ import { useConfigs } from '@/hooks';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 
 export default function FormView() {
-  const { subjectEnum, gradeEnum, questionSceneEmun } = useConfigs();
+  const { questionTypeEnum } = useConfigs();
   const { form, item, visible, onCancel, handleSubmit } = useQuestionTypeListModel();
 
   return (
@@ -32,7 +32,7 @@ export default function FormView() {
         label="类型"
         placeholder="请选择类型"
         rules={[{ required: true, message: '请选择类型' }]}
-        valueEnum={questionSceneEmun}
+        valueEnum={questionTypeEnum}
       />
       <ProFormTextArea
         name="description"

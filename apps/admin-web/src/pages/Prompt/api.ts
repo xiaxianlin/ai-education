@@ -62,28 +62,12 @@ export const PromptApi = {
    * POST /api/admin/prompt/{version_id}/test
    */
   async testPrompt(versionId: number, data: TestPromptRequest) {
-    return apiClient.post<TestPromptResponse>(`/prompt/${versionId}/test`, {
+    return apiClient.post<any>(`/prompt/${versionId}/test`, {
       input_payload: data.variables || {},
       model_provider: data.model_provider,
       model_name: data.model_name,
       model_params: data.model_params || {},
       generation_type: data.generation_type || 'text',
     });
-  },
-
-  /**
-   * 获取 Prompt 测试记录列表
-   * GET /api/admin/prompt/test/records
-   */
-  async listPromptTestRecords(params?: SearchPromptTestRecordRequest) {
-    return apiClient.get<SearchResponse<PromptTestRecord>>('/prompt/test/records', params);
-  },
-
-  /**
-   * 删除 Prompt 测试记录
-   * DELETE /api/admin/prompt/test/records/{record_id}
-   */
-  async deletePromptTestRecord(recordId: number) {
-    return apiClient.delete(`/prompt/test/records/${recordId}`);
   },
 };

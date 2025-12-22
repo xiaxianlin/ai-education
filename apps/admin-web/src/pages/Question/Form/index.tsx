@@ -24,9 +24,9 @@ export default function QuestionFormPage() {
   const [form] = ProForm.useForm<UpdateQuestionRequest>();
 
   // 获取表单实时字段值
-  const selectedSubject = ProForm.useWatch('subject', form);
+  const selectedSubject = ProForm.useWatch<number>('subject', form);
   const selectedGrade = ProForm.useWatch('grade', form);
-  const selectedType = ProForm.useWatch('type', form);
+  const selectedType = ProForm.useWatch<number>('type', form);
   const selectedTextbookId = ProForm.useWatch('textbook_id', form);
 
   // 根据选择的科目、年级和题型动态获取子类型选项

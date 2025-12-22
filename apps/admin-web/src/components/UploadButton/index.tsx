@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Button, ButtonProps, Upload } from 'antd';
 
 interface UploadButtonProps extends ButtonProps {

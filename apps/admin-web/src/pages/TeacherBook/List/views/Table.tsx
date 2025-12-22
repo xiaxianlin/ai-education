@@ -1,13 +1,12 @@
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Space, Tag } from 'antd';
+import { Button, Tag } from 'antd';
 import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useTeacherBookListModel } from '../models/page';
 import { useConfigs } from '@/hooks';
-import { GRADES } from '@/constants/course';
 import { PlusOutlined } from '@ant-design/icons';
 import { createActionColumn } from '@/hooks';
-import { TeacherBookApi } from '../api';
+import { TeacherBookApi } from '../../api';
 
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();

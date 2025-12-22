@@ -1,4 +1,4 @@
-import { StudentApi } from '../api';
+import { StudentApi } from '../../api';
 import { ProForm } from '@ant-design/pro-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRequest } from 'ahooks';

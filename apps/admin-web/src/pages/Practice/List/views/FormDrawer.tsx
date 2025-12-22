@@ -20,7 +20,7 @@ export default function FormDrawerView() {
       width={600}
       destroyOnClose
     >
-      <ProForm<SavePracticeRequest>
+      <ProForm<Practice>
         loading={formLoading}
         initialValues={initialValues}
         onFinish={handleSubmit}
@@ -56,4 +56,3 @@ export default function FormDrawerView() {
     </Drawer>
   );
 }
-

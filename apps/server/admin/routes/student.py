@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
 from admin.services import student
+from admin.services import practice_session
 from shared.core.database import Database
 
 
@@ -66,3 +67,9 @@ async def get_student_textbooks(id: str, db: AsyncSession = Database):
 async def get_student_unused_textbooks(id: str, db: AsyncSession = Database):
     """查询学生教材"""
     return await student.get_student_unused_textbooks(db, id)
+
+
+@student_router.get("/{id}/practice_sessions/{session_type}")
+async def get_student_practice_sessions(id: str, session_type: str, db: AsyncSession = Database):
+    """查询学生练习历史"""
+    return await practice_session.get_student_practice_sessions(db, id, session_type)

@@ -1,6 +1,6 @@
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { StudentApi } from '../api';
+import { StudentApi } from '../../api';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createActionColumn, createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';

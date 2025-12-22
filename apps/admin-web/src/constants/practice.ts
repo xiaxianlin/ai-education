@@ -1,7 +1,6 @@
 export const PRACTICE_TYPE_LABELS: Record<PracticeType, string> = {
-  daily_practice: '日常练习',
-  unit_practice: '单元练习',
-  assessment: '综合评估',
+  system: '系统练习',
+  custom: '自定义练习',
 };
 
 export const PRACTICE_STATUS_LABELS: Record<PracticeSessionStatus, string> = {

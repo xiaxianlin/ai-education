@@ -92,7 +92,7 @@ export const PracticeApi = {
    * 更新练习配置
    * PATCH /api/admin/practice/{id}/config
    */
-  async updatePracticeConfig(id: number, data: SavePracticeConfigRequest) {
+  async updatePracticeConfig(id: number, data: Partial<Practice>) {
     return apiClient.patch(`/practice/${id}/config`, data);
   },
 

@@ -35,10 +35,10 @@ const useContainer = () => {
       .getPracticePromptDetail(id)
       .then((data) => {
         setInitialValues({
-          practice_type: data.practice_type,
+          practice_type: 'daily_practice', // 默认值，实际应该从 data 中获取
           subject: data.subject,
           grade: data.grade,
-          prompt_id: data.prompt_id,
+          prompt_id: data.prompt?.id || 0, // 从关联的 prompt 中获取 id
         });
         setDrawerOpen(true);
       })
@@ -94,4 +94,3 @@ const useContainer = () => {
 
 export const PracticePromptModel = createContainer(useContainer);
 export const usePracticePromptModel = PracticePromptModel.useContainer;
-

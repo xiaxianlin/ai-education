@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { Button, message } from 'antd';
 import ReactJson from 'react-json-view';
 
-export function JSONView() {
+interface JSONViewProps {
+  parameters: PracticeParameter[];
+  onApply: (params: PracticeParameter[]) => void;
+  onReset: () => void;
+}
+
+export function JSONView({ parameters, onApply, onReset }: JSONViewProps) {
   const [jsonData, setJsonData] = useState<PracticeParameter[]>([]);
 
   // 当参数列表变化时，更新 JSON 数据
@@ -110,24 +116,26 @@ export function JSONView() {
           overflow: 'auto',
         }}
       >
-        <ReactJson
-          src={jsonData}
-          onEdit={handleJsonChange}
-          onAdd={handleJsonChange}
-          onDelete={handleJsonChange}
-          theme="rjv-default"
-          collapsed={false}
-          enableClipboard={true}
-          displayDataTypes={true}
-          displayObjectSize={true}
-          indentWidth={2}
-          name={false}
-          iconStyle="circle"
-          style={{
-            fontSize: '13px',
-            fontFamily: 'monospace',
-          }}
-        />
+        {(ReactJson as any) && (
+          (ReactJson as any)({
+            src: jsonData,
+            onEdit: handleJsonChange,
+            onAdd: handleJsonChange,
+            onDelete: handleJsonChange,
+            theme: 'rjv-default',
+            collapsed: false,
+            enableClipboard: true,
+            displayDataTypes: true,
+            displayObjectSize: true,
+            indentWidth: 2,
+            name: false,
+            iconStyle: 'circle',
+            style: {
+              fontSize: '13px',
+              fontFamily: 'monospace',
+            },
+          })
+        )}
       </div>
       <div style={{ marginTop: 8, color: '#8c8c8c', fontSize: 12 }}>
         提示：直接在 JSON 视图中编辑参数，修改后点击"应用更改"更新参数列表，然后点击"保存"提交所有更改。

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
@@ -16,7 +16,7 @@ const useContainer = () => {
       content: '确定要发布此版本吗？发布后将替换当前使用的版本。',
       onOk: async () => {
         try {
-          await PromptApi.publishPromptVersion(versionId);
+          await PromptApi.publishPromptVersion(versionId, '');
           message.success('发布成功');
           actionRef.current?.reload();
         } catch (error) {
@@ -35,4 +35,3 @@ const useContainer = () => {
 
 export const PromptVersionListModel = createContainer(useContainer);
 export const usePromptVersionListModel = PromptVersionListModel.useContainer;
-

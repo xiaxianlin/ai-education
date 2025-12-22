@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.schema import SavePracticeSchema, SearchPracticeSchema, PracticeParameterSchema
 from admin.data.practice import INIT_SYSTEM_PRACTICES
-from shared.core.database import Practice, AsyncSessionLocal
+from shared.core.database import Practice, AsyncSessionLocal, PracticePrompt
 from shared.core.schema import PracticeSchema, SearchResultSchema
 
 
@@ -34,7 +34,7 @@ async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> Sear
     if params.name:
         query = query.where(Practice.name.like(f"%{params.name}%"))
     if params.slug:
-        query = query.where(Practice.slug.like(f"%{params.slug}%"))
+        query = query.where(Practice.slug == params.slug)
     if params.type:
         query = query.where(Practice.type == params.type)
 
@@ -113,6 +113,11 @@ async def delete_practice(db: AsyncSession, id: int):
     # 系统练习不允许删除
     if practice.type == "system":
         raise ValueError("系统练习不允许删除")
+
+    # 检查是否有关联的练习提示词
+    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.practice_slug == practice.slug))
+    if practice_prompt:
+        raise ValueError("练习有关联的练习提示词，无法删除")
 
     await db.execute(delete(Practice).where(Practice.id == id))
     await db.commit()

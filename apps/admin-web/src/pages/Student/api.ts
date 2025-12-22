@@ -86,7 +86,7 @@ export const StudentApi = {
    * 获取学生练习历史
    * GET /practice/{student_id}/history/{practice_type}
    */
-  async getPracticeHistory(studentId: string, practiceType: string) {
-    return apiClient.get<PracticeSession[]>(`/practice/${studentId}/history/${practiceType}`);
+  async getPracticeHistory(id: string, practice_slug: string) {
+    return apiClient.get<PracticeSession[]>(`/student/${id}/practice_sessions/${practice_slug}`);
   },
 };

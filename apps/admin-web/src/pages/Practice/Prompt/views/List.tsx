@@ -4,9 +4,8 @@ import { Button, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePracticePromptModel } from '../models/page';
 import { DeleteButton } from '@/components';
-import { PracticeApi } from '../../../api';
+import { PracticeApi } from '../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
-import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { GRADES, SUBJECTS } from '@/constants/course';
 
 const PRACTICE_TYPE_OPTIONS = [
@@ -14,6 +13,12 @@ const PRACTICE_TYPE_OPTIONS = [
   { label: '单元练习', value: 'unit_practice' },
   { label: '综合评估', value: 'assessment' },
 ];
+
+const PRACTICE_TYPE_LABELS_EXTENDED = {
+  daily_practice: '日常练习',
+  unit_practice: '单元练习',
+  assessment: '综合评估',
+};
 
 const GRADE_OPTIONS = Object.keys(GRADES).map((key) => ({
   label: GRADES[Number(key)],
@@ -29,7 +34,7 @@ export default function ListView() {
         title: '练习类型',
         dataIndex: 'practice_type',
         width: 120,
-        valueEnum: PRACTICE_TYPE_LABELS,
+        valueEnum: PRACTICE_TYPE_LABELS_EXTENDED,
         renderFormItem: () => (
           <Select placeholder="请选择练习类型" options={PRACTICE_TYPE_OPTIONS} />
         ),
@@ -121,4 +126,3 @@ export default function ListView() {
     </PageContainer>
   );
 }
-

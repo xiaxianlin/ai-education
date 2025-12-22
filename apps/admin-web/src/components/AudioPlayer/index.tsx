@@ -1,5 +1,4 @@
 import React from 'react';
-import { Space } from 'antd';
 
 interface AudioPlayerProps {
   src: string;
@@ -26,4 +25,3 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, resourceContent }
     </div>
   );
 };
-

@@ -1,10 +1,10 @@
 import React from 'react';
 import { ProTable, ProColumns, ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
-import { Button, Space } from 'antd';
+import { Button } from 'antd';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
 import { createActionColumn } from '@/hooks';
-import { TextbookApi } from '../api';
+import { TextbookApi } from '../../api';
 
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();

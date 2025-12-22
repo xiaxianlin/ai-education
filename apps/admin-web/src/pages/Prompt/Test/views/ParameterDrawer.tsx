@@ -50,11 +50,11 @@ export default function ParameterDrawer({ visible, onClose, parameters, values, 
       key: parameter.name,
       name: parameter.name,
       label: parameter.name,
-      tooltip: parameter.description,
+      tooltip: (parameter as any).description || '',
       rules: [{ required: parameter.required, message: `请输入 ${parameter.name}` }],
     };
 
-    switch (parameter.type) {
+    switch ((parameter as any).type) {
       case 'number':
         return (
           <Form.Item {...commonProps}>

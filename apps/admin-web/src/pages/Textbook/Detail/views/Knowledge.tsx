@@ -11,7 +11,7 @@ import { Button } from 'antd';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookKnowledgeModel } from '../models/knowledge';
 import { createActionColumn } from '@/hooks';
-import { TextbookApi } from '../api';
+import { TextbookApi } from '../../api';
 
 export const KnowledgeView: React.FC = () => {
   const { id, units } = useTextbookDetailModel();

@@ -57,7 +57,7 @@ export default function MainView() {
           <TemplateContent
             content={prompt.template_content || ''}
             generationType={generationType}
-            onGenerationTypeChange={setGenerationType}
+            onGenerationTypeChange={(type: string) => setGenerationType(type as GenerateType)}
           />
           <ParameterInfo
             parameters={parameters}

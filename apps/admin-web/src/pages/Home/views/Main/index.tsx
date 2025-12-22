@@ -2,29 +2,31 @@ import { PageContainer } from '@ant-design/pro-components';
 import { Card, Col, Row, Space, Typography, Statistic } from 'antd';
 import { UserOutlined, BookOutlined, QuestionCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { CommonApi } from '@/lib/api';
+import { StudentApi } from '@/pages/Student/api';
+import { TextbookApi } from '@/pages/Textbook/api';
+import { QuestionApi } from '@/pages/Question/api';
 
 const { Title, Text } = Typography;
 
 export default function MainView() {
   // 获取系统概览数据
   const { data: studentData } = useRequest(async () => {
-    const res = await CommonApi.searchStudents({ page: 1, size: 1000 });
+    const res = await StudentApi.searchStudents({ page: 1, size: 1000 });
     return res;
   });
 
   const { data: textbookData } = useRequest(async () => {
-    return await CommonApi.searchTextbooks();
+    return await TextbookApi.searchTextbooks();
   });
 
   const { data: questionData } = useRequest(async () => {
-    const res = await CommonApi.searchQuestions({ page: 1, size: 1000 });
+    const res = await QuestionApi.searchQuestions({ page: 1, size: 1000 });
     return res;
   });
 
   // 计算统计数据
   const totalStudents = studentData?.data?.length || 0;
-  const activeStudents = studentData?.data?.filter((s) => s.status === 1).length || 0;
+  const activeStudents = studentData?.data?.filter((s: any) => s.status === 1).length || 0;
   const totalTextbooks = textbookData?.length || 0;
   const totalQuestions = questionData?.data?.length || 0;
 

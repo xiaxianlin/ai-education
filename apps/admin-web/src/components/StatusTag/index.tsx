@@ -1,5 +1,5 @@
 import { Tag } from 'antd';
-import React, { FC } from 'react';
+import { FC } from 'react';
 
 export const StatusTag: FC<{
   status: boolean;

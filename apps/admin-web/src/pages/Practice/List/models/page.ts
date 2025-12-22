@@ -11,7 +11,7 @@ const useContainer = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
-  const [initialValues, setInitialValues] = useState<Partial<SavePracticeRequest>>();
+  const [initialValues, setInitialValues] = useState<Partial<Practice>>();
 
   const { handleDelete, loading: deleteLoading } = useDelete(
     PracticeApi.deletePractice,
@@ -38,7 +38,6 @@ const useContainer = () => {
           icon: data.icon,
           description: data.description,
           type: data.type,
-          config: data.config,
         });
         setDrawerOpen(true);
       })
@@ -56,7 +55,7 @@ const useContainer = () => {
     setInitialValues(undefined);
   };
 
-  const handleSubmit = async (values: SavePracticeRequest) => {
+  const handleSubmit = async (values: Practice) => {
     setFormLoading(true);
     try {
       if (editingId) {
@@ -92,4 +91,3 @@ const useContainer = () => {
 
 export const PracticeListModel = createContainer(useContainer);
 export const usePracticeListModel = PracticeListModel.useContainer;
-

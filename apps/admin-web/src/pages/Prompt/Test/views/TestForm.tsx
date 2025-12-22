@@ -4,7 +4,7 @@ import { ProCard, ProForm } from '@ant-design/pro-components';
 type Props = {
   form: FormInstance;
   loading: boolean;
-  result: TestPromptResponse | null;
+  result?: any;
   onTest: (values: TestPromptRequest) => Promise<void>;
   requiredParamsSet?: boolean;
 };

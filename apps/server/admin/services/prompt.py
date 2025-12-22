@@ -6,7 +6,7 @@ from admin.schema import (
     SavePromptSchema,
     PromptDetailSchema,
 )
-from shared.core.database import Prompt, PromptVersion, PromptTestRecord
+from shared.core.database import Prompt, PromptVersion, PracticePrompt
 from shared.core.schema import (
     PromptSchema,
     PromptVersionSchema,
@@ -189,8 +189,15 @@ async def update_prompt(db: AsyncSession, version_id: int, params: SavePromptSch
 
 async def delete_prompt(db: AsyncSession, id: int) -> PromptSchema:
     """删除 Prompt"""
+    prompt = await db.scalar(select(Prompt).where(Prompt.id == id))
+    if not prompt:
+        raise ValueError("提示词不存在")
+    # 检查是否有关联的练习提示词
+    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.prompt_slug == prompt.slug))
+    if practice_prompt:
+        raise ValueError("提示词有关联的练习提示词，无法删除")
+
     try:
-        await db.execute(delete(PromptTestRecord).where(PromptTestRecord.prompt_id == id))
         await db.execute(delete(PromptVersion).where(PromptVersion.prompt_id == id))
         await db.execute(delete(Prompt).where(Prompt.id == id))
         await db.commit()

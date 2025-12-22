@@ -9,9 +9,9 @@ import { ModelConfig } from '../views/ModelDrawer';
 const useContainer = () => {
   const [searchParams] = useSearchParams();
   const version_id = searchParams.get('version_id');
-  const [prompt, setPrompt] = useState<PromptDetail | null>(null);
+  const [prompt, setPrompt] = useState<PromptDetail>();
   const [loading, setLoading] = useState(false);
-  const [testResult, setTestResult] = useState<TestPromptResponse | null>(null);
+  const [testResult, setTestResult] = useState<any>();
   const [testForm] = Form.useForm();
 
   // 新增状态
@@ -45,7 +45,7 @@ const useContainer = () => {
 
         // 初始化参数值
         const initialValues: Record<string, any> = {};
-        extractedParams.forEach(param => {
+        extractedParams.forEach((param) => {
           initialValues[param.name] = '';
         });
         setParameterValues(initialValues);

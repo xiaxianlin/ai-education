@@ -176,14 +176,17 @@ class PracticePromptSchema(BaseModel):
     """练习提示词关联 Schema"""
 
     id: int
-    practice_type: str
     subject: str
     grade: int
-    prompt_id: int
-    prompt_name: Optional[str] = None
-    prompt_slug: Optional[str] = None
+    practice_slug: str
+    prompt_slug: str
     create_time: int
     update_time: int
+
+    practice: Optional["PracticeSchema"] = None
+    prompt: Optional["PromptSchema"] = None
+
+    model_config = {"from_attributes": True}
 
 
 class PracticeSessionSchema(BaseModel):

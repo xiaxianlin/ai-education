@@ -1,4 +1,3 @@
-import React from 'react';
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { useTeacherBookDetailModel } from '../models/page';
 import { GRADES } from '@/constants/course';
@@ -9,12 +8,12 @@ export const BasicInfo = () => {
   return (
     <ProCard>
       <ProDescriptions column={3} title="基本信息">
-        <ProDescriptions.Item label="科目">{teacherBook?.subject}</ProDescriptions.Item>
-        <ProDescriptions.Item label="版本">{teacherBook?.version}</ProDescriptions.Item>
-        <ProDescriptions.Item label="年级">{info}</ProDescriptions.Item>
-        <ProDescriptions.Item label="学期">{teacherBook?.semester}</ProDescriptions.Item>
-        <ProDescriptions.Item label="文件">{teacherBook?.file}</ProDescriptions.Item>
-        <ProDescriptions.Item label="索引ID">{teacherBook?.index_file_id}</ProDescriptions.Item>
+        <ProDescriptions.Item label="科目">{(teacherBook as any)?.subject || '-'}</ProDescriptions.Item>
+        <ProDescriptions.Item label="版本">{(teacherBook as any)?.version || '-'}</ProDescriptions.Item>
+        <ProDescriptions.Item label="年级">{info || '-'}</ProDescriptions.Item>
+        <ProDescriptions.Item label="学期">{(teacherBook as any)?.semester || '-'}</ProDescriptions.Item>
+        <ProDescriptions.Item label="文件">{(teacherBook as any)?.file || '-'}</ProDescriptions.Item>
+        <ProDescriptions.Item label="索引ID">{(teacherBook as any)?.index_file_id || '-'}</ProDescriptions.Item>
       </ProDescriptions>
     </ProCard>
   );

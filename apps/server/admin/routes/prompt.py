@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from admin.schema import SavePromptSchema, SearchPromptTestRecordSchema
+from admin.schema import SavePromptSchema
 from shared.core.database import Database
 from admin.services import prompt, prompt_test
 from admin.schema import SearchPromptSchema, SearchPromptVersionSchema, PublishPromptSchema, TestPromptSchema

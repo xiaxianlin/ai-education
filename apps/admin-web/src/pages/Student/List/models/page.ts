@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
-import { StudentApi } from '../api';
+import { StudentApi } from '../../api';
 import { message, Modal } from 'antd';
 
 const useContainer = () => {

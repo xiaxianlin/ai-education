@@ -1,8 +1,7 @@
 import { ProTable, ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Card } from 'antd';
+import { Button, Tag, Card } from 'antd';
 import { Link } from 'react-router-dom';
 import { useRef, useMemo, useState } from 'react';
-import { formatDateTime } from '@ai-education/shared-web';
 import { DeleteButton } from '@/components/DeleteButton';
 import { useStudentDetailModel } from '../models/page';
 import { StudentApi } from '../../api';
@@ -15,7 +14,7 @@ import { GRADES } from '@/constants/course';
 export function PracticeHistory() {
   const actionRef = useRef<ActionType>();
   const { student } = useStudentDetailModel();
-  const [practiceType, setPracticeType] = useState<PracticeType>('daily_practice');
+  const [practiceType, setPracticeType] = useState<string>();
 
   // 删除功能
   const { runAsync: handleDelete, loading: deleteLoading } = useRequest(
@@ -29,13 +28,6 @@ export function PracticeHistory() {
         title: '目标ID',
         dataIndex: 'target_id',
         width: 120,
-        renderText: (targetId: number | undefined, record) => {
-          if (record.session_type === 'daily_practice' && targetId) {
-            const dateStr = String(targetId);
-            return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-          }
-          return targetId || '-';
-        },
       },
       {
         title: '教材',
@@ -128,7 +120,7 @@ export function PracticeHistory() {
         columns={columns}
         search={false}
         request={async () => {
-          const res = await StudentApi.getPracticeHistory(student?.id || '', practiceType);
+          const res = await StudentApi.getPracticeHistory(student?.id || '', practiceType || '');
           return { data: res || [], success: true, total: res.length || 0 };
         }}
         scroll={{ x: 'max-content' }}

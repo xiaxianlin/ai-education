@@ -3,7 +3,7 @@ import { PageContainer, ProDescriptions, ProTable, ProColumns, ProSkeleton } fro
 import { PracticeApi } from '@/pages/Practice/api';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
-import { SetStateAction, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { formatDateTime } from '@ai-education/shared-web';
@@ -22,10 +22,13 @@ export default function PracticeDetailPage() {
   const { session, answers = [] } = data || {};
 
   const answersMap = useMemo(() => {
-    return answers.reduce((acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
-      acc[answer.question_id] = answer;
-      return acc;
-    }, {} as Record<string, PracticeAnswer>);
+    return answers.reduce(
+      (acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
+        acc[answer.question_id] = answer;
+        return acc;
+      },
+      {} as Record<string, PracticeAnswer>,
+    );
   }, [answers]);
 
   const columns = useMemo<ProColumns<Question>[]>(
