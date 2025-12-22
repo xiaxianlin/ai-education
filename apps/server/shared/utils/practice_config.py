@@ -14,46 +14,37 @@ def get_practice_config(practice: Practice, grade: Optional[int] = None) -> dict
         
     Returns:
         配置字典，包含 generate_count 和 recall_count 等字段
-        
-    Raises:
-        ValueError: 当配置格式错误时
     """
-    if not practice or not practice.config:
-        # 如果没有配置，返回默认值
-        return {"generate_count": 15, "recall_count": 0}
+    config = {"generate_count": 15, "recall_count": 0}
     
-    try:
-        config = json.loads(practice.config)
-        if not isinstance(config, dict):
-            raise ValueError(f"练习配置格式错误: practice_id={practice.id}, config 不是字典类型")
-    except json.JSONDecodeError as e:
-        raise ValueError(f"练习配置 JSON 解析失败: practice_id={practice.id}, error={str(e)}")
+    if not practice or not hasattr(practice, "parameters") or not practice.parameters:
+        return config
     
-    # 如果提供了年级，优先返回年级配置
-    if grade is not None:
-        grade_specific = config.get("grade_specific", {})
-        if not isinstance(grade_specific, dict):
-            logger.warning(f"年级特定配置格式错误: practice_id={practice.id}, 使用默认配置")
+    for param in practice.parameters:
+        key = param.get("key")
+        if key not in ["generate_count", "recall_count"]:
+            continue
+            
+        values = param.get("value")
+        if not isinstance(values, list):
+            if isinstance(values, (int, float)):
+                config[key] = int(values)
+            continue
+            
+        if grade is not None:
+            grade_str = str(grade)
+            for item in values:
+                if isinstance(item, dict) and grade_str in item:
+                    config[key] = item[grade_str]
+                    break
         else:
-            grade_key = str(grade)
-            if grade_key in grade_specific:
-                grade_config = grade_specific[grade_key]
-                if isinstance(grade_config, dict):
-                    return grade_config
-                else:
-                    logger.warning(f"年级配置格式错误: practice_id={practice.id}, grade={grade}, 使用默认配置")
-    
-    # 返回默认配置
-    default_config = config.get("default", {})
-    if not isinstance(default_config, dict):
-        logger.warning(f"默认配置格式错误: practice_id={practice.id}, 使用系统默认值")
-        return {"generate_count": 15, "recall_count": 0}
-    
-    if not default_config:
-        # 如果没有配置，返回默认值
-        return {"generate_count": 15, "recall_count": 0}
-    
-    return default_config
+            # 如果没有提供年级，尝试取第一个值作为默认值
+            if values and isinstance(values[0], dict):
+                first_val = list(values[0].values())[0]
+                if isinstance(first_val, (int, float)):
+                    config[key] = int(first_val)
+                    
+    return config
 
 
 def get_generate_count(practice: Practice, grade: Optional[int] = None) -> int:

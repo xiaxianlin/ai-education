@@ -8,13 +8,12 @@ from student.services import auth
 auth_router = APIRouter()
 
 
-@auth_router.get("/check")
+@auth_router.get("/check", tags=["认证"], summary="检查登录状态", description="检查当前学生的登录状态并返回学生 ID")
 async def check(request: Request):
-    """检查当前学生登录状态"""
     student = request.state.student
     return student.id
 
 
-@auth_router.post("/login")
+@auth_router.post("/login", tags=["认证"], summary="学生登录", description="学生使用手机号和密码进行登录")
 async def login(params: LoginSchema, db: AsyncSession = Database):
     return await auth.student_login(db, params.phone, params.password)

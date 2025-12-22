@@ -6,3 +6,4 @@ __pycache__
 tmp
 __runtime__
 .langgraph_api
+.pytest_cache

@@ -60,7 +60,7 @@ class Manager(BaseModel):
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
-    token: Mapped[str] = mapped_column(String(255), index=True)
+    token: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
     type: Mapped[int] = mapped_column(default=0)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
@@ -104,7 +104,7 @@ class Knowledge(BaseModel):
     textbook_id: Mapped[int] = mapped_column(index=True)
     unit_id: Mapped[int] = mapped_column(index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    content: Mapped[str] = mapped_column(Text, index=True)
+    content: Mapped[str] = mapped_column(Text, default="")
 
     # 知识点属性（简化）
     difficulty: Mapped[str] = mapped_column(String(50), nullable=True, comment="知识点难度（简单/普通/困难）")
@@ -403,7 +403,7 @@ class Student(BaseModel):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255), default="")
-    token: Mapped[str] = mapped_column(String(255), index=True)
+    token: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
     grade: Mapped[int] = mapped_column(nullable=False)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
