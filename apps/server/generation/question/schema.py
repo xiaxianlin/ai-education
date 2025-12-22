@@ -3,7 +3,7 @@ from typing import Any, List, Dict, NotRequired, Optional, TypedDict
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Question, Unit, Knowledge, Textbook
+from shared.core.database import Question, Unit, Knowledge, Textbook, Practice
 
 
 class GenerationType(str, Enum):
@@ -59,11 +59,8 @@ class UnitExtractionResult(BaseModel):
 class QuestionGenerateRequest(BaseModel):
     """题目生成请求"""
 
-    type: str = Field(description="生成类型: daily_practice, unit_practice, assessment")
-    count: int = Field(description="生成题目数量")
-    textbook_id: int = Field(description="教材ID")
-    unit_id: Optional[int] = Field(None, description="单元ID（单元练习时需要）")
     student_id: Optional[str] = Field(None, description="学生ID（日常练习时需要）")
+    slug: str = Field(description="练习唯一标识")
 
 
 class QuestionGenerationState(TypedDict, total=False):
@@ -71,9 +68,13 @@ class QuestionGenerationState(TypedDict, total=False):
 
     # 数据库会话
     db: AsyncSession
-    # 问题生成类型
-    type: str
-    # 需要生成的题目数量
+    # 练习标识（用于查询 Practice）
+    slug: str
+    # 练习对象
+    practice: Practice
+    # 练习配置（包含 generate_count 等）
+    practice_config: dict[str, Any]
+    # 需要生成的题目数量（从 practice_config 获取，为了兼容服务类保留）
     count: int
     # 教材对象
     textbook: Textbook

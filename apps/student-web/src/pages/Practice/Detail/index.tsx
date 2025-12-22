@@ -43,7 +43,7 @@ function getStatusInfo(status: PracticeSessionStatus) {
   }
 }
 
-export default function PracticeDetail() {
+export default function PracticeData() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
 

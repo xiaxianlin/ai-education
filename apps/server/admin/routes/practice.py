@@ -46,3 +46,18 @@ async def update_practice_config(id: int, params: SavePracticeConfigSchema, db: 
 async def delete_practice(id: int, db: AsyncSession = Database):
     """删除练习"""
     return await practice.delete_practice(db, id)
+
+
+# ======================== 练习参数配置 ======================== #
+
+
+@practice_router.get("/{id}/parameters")
+async def get_practice_parameters(id: int, db: AsyncSession = Database):
+    """获取练习参数列表"""
+    return await practice.get_practice_parameters(db, id)
+
+
+@practice_router.post("/{id}/parameters")
+async def save_practice_parameters(id: int, parameters: list[dict], db: AsyncSession = Database):
+    """保存练习参数"""
+    return await practice.save_practice_parameters(db, id, parameters)

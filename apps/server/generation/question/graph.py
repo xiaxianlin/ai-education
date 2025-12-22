@@ -3,9 +3,11 @@
 from typing import Any, Dict, List
 from loguru import logger
 from langgraph.graph import END, StateGraph
+from sqlalchemy import select
 
-from shared.core.database import Question
-from generation.question.schema import GenerationType, QuestionGenerationState
+from shared.core.database import Question, Practice
+from shared.utils.practice_config import get_practice_config
+from generation.question.schema import QuestionGenerationState
 from generation.question.utils import generate_images, generate_audios
 from generation.question.services.daily_practice import DailyPracticeGenerateService
 from generation.question.services.unit_practice import UnitPracticeGenerateService
@@ -13,95 +15,88 @@ from generation.question.services.assessment import AssessmentGenerateService
 from generation.question.services.llm import LLMService
 
 
-def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """入口节点，负责基础校验"""
-    logger.info(f"进入题目生成工作流: type={state.get('type')}, count={state.get('count')}")
+async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """入口节点，负责基础校验和加载练习信息"""
+    slug = state.get("slug")
+    logger.info(f"进入题目生成工作流: slug={slug}")
 
     if state.get("db") is None:
         raise ValueError("数据库会话（db）不能为空")
 
-    if state.get("type") is None:
-        raise ValueError("生成类型（type）不能为空")
-
-    if state.get("count") is None:
-        raise ValueError("题目数量（count）不能为空")
+    if slug is None:
+        raise ValueError("练习标识（slug）不能为空")
 
     if state.get("textbook") is None:
         raise ValueError("教材 (textbook) 不能为空")
 
+    # 通过 slug 查询 Practice
+    db = state["db"]
+    practice = await db.scalar(select(Practice).where(Practice.slug == slug))
+    if not practice:
+        raise ValueError(f"练习不存在: slug={slug}")
+
+    # 解析配置（使用 textbook 的 grade）
+    textbook = state["textbook"]
+    practice_config = get_practice_config(practice, grade=textbook.grade)
+
+    generate_count = practice_config.get("generate_count", 15)
+    logger.info(
+        f"练习信息加载完成: practice_id={practice.id}, slug={practice.slug}, " f"generate_count={generate_count}"
+    )
+
+    return {
+        "practice": practice,
+        "practice_config": practice_config,
+        "count": generate_count,  # 为了兼容服务类，保留 count 字段
+    }
+
+
+# 练习服务映射
+PRACTICE_SERVICES = {
+    "daily_practice": DailyPracticeGenerateService,
+    "unit_practice": UnitPracticeGenerateService,
+    "assessment": AssessmentGenerateService,
+}
+
+
+async def check_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """统一的参数检查节点，根据 practice.slug 路由到对应服务"""
+    practice = state["practice"]
+    slug = practice.slug
+
+    if slug not in PRACTICE_SERVICES:
+        raise ValueError(f"不支持的练习类型: slug={slug}")
+
+    service = PRACTICE_SERVICES[slug]
+    logger.info(f"开始检查练习参数: slug={slug}")
+    service.validate_state(state)
     return {}
 
 
-def router_node(state: QuestionGenerationState) -> str:
-    """路由节点，根据生成类型分发"""
-    return state["type"]
+async def load_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """统一的数据加载节点，根据 practice.slug 路由到对应服务"""
+    practice = state["practice"]
+    slug = practice.slug
+
+    if slug not in PRACTICE_SERVICES:
+        raise ValueError(f"不支持的练习类型: slug={slug}")
+
+    service = PRACTICE_SERVICES[slug]
+    logger.info(f"开始加载练习数据: slug={slug}")
+    return await service.load_data(state)
 
 
-async def check_daily_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查日常练习参数"""
-    logger.info("开始检查日常练习参数")
-    DailyPracticeGenerateService.validate_state(state)
-    return {}
+async def build_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """统一的 prompt 构建节点，根据 practice.slug 路由到对应服务"""
+    practice = state["practice"]
+    slug = practice.slug
 
+    if slug not in PRACTICE_SERVICES:
+        raise ValueError(f"不支持的练习类型: slug={slug}")
 
-async def check_unit_practice_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查单元练习参数"""
-    logger.info("开始检查单元练习参数")
-    UnitPracticeGenerateService.validate_state(state)
-    return {}
-
-
-async def check_assessment_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查综合评估参数"""
-    logger.info("开始检查综合评估参数")
-    AssessmentGenerateService.validate_state(state)
-    return {}
-
-
-async def load_daily_practice_data_node(
-    state: QuestionGenerationState,
-) -> Dict[str, Any]:
-    """加载日常练习数据"""
-    logger.info("开始加载日常练习数据")
-    return await DailyPracticeGenerateService.load_data(state)
-
-
-async def load_unit_practice_data_node(
-    state: QuestionGenerationState,
-) -> Dict[str, Any]:
-    """加载单元练习数据"""
-    logger.info("开始加载单元练习数据")
-    return await UnitPracticeGenerateService.load_data(state)
-
-
-async def load_assessment_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """加载综合评估数据"""
-    logger.info("开始加载综合评估数据")
-    return await AssessmentGenerateService.load_data(state)
-
-
-async def build_daily_practice_prompt_node(
-    state: QuestionGenerationState,
-) -> Dict[str, Any]:
-    """构建日常练习prompt"""
-    logger.info("开始构建日常练习prompt")
-    return await DailyPracticeGenerateService.build_prompt(state)
-
-
-async def build_unit_practice_prompt_node(
-    state: QuestionGenerationState,
-) -> Dict[str, Any]:
-    """构建单元练习prompt"""
-    logger.info("开始构建单元练习prompt")
-    return await UnitPracticeGenerateService.build_prompt(state)
-
-
-async def build_assessment_prompt_node(
-    state: QuestionGenerationState,
-) -> Dict[str, Any]:
-    """构建综合评估prompt"""
-    logger.info("开始构建综合评估prompt")
-    return await AssessmentGenerateService.build_prompt(state)
+    service = PRACTICE_SERVICES[slug]
+    logger.info(f"开始构建练习 prompt: slug={slug}")
+    return await service.build_prompt(state)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -177,25 +172,11 @@ def create_question_generation_graph() -> StateGraph:
     """创建问题生成流程图"""
     workflow = StateGraph(QuestionGenerationState)
 
-    # 添加入口节点
+    # 添加节点
     workflow.add_node("entry", entry_node)
-
-    # 添加校验节点
-    workflow.add_node("check_daily_practice", check_daily_practice_node)
-    workflow.add_node("check_unit_practice", check_unit_practice_node)
-    workflow.add_node("check_assessment", check_assessment_node)
-
-    # 添加加载数据节点
-    workflow.add_node("load_unit_practice_data", load_unit_practice_data_node)
-    workflow.add_node("load_daily_practice_data", load_daily_practice_data_node)
-    workflow.add_node("load_assessment_data", load_assessment_data_node)
-
-    # 添加构建prompt节点
-    workflow.add_node("build_daily_practice_prompt", build_daily_practice_prompt_node)
-    workflow.add_node("build_unit_practice_prompt", build_unit_practice_prompt_node)
-    workflow.add_node("build_assessment_prompt", build_assessment_prompt_node)
-
-    # 添加其他处理节点
+    workflow.add_node("check", check_node)
+    workflow.add_node("load_data", load_data_node)
+    workflow.add_node("build_prompt", build_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
     workflow.add_node("handle_image", handle_image_node)
     workflow.add_node("handle_audio", handle_audio_node)
@@ -205,31 +186,11 @@ def create_question_generation_graph() -> StateGraph:
     # 设置入口点
     workflow.set_entry_point("entry")
 
-    # 添加条件边：根据生成类型路由
-    workflow.add_conditional_edges(
-        "entry",
-        router_node,
-        {
-            GenerationType.DAILY_PRACTICE.value: "check_daily_practice",
-            GenerationType.UNIT_PRACTICE.value: "check_unit_practice",
-            GenerationType.ASSESSMENT.value: "check_assessment",
-        },
-    )
-
-    # 添加边：参数检查 -> 数据加载
-    workflow.add_edge("check_daily_practice", "load_daily_practice_data")
-    workflow.add_edge("check_unit_practice", "load_unit_practice_data")
-    workflow.add_edge("check_assessment", "load_assessment_data")
-
-    # 添加边：数据加载 -> prompt构建
-    workflow.add_edge("load_daily_practice_data", "build_daily_practice_prompt")
-    workflow.add_edge("load_unit_practice_data", "build_unit_practice_prompt")
-    workflow.add_edge("load_assessment_data", "build_assessment_prompt")
-
-    # 添加边：prompt构建 -> LLM调用
-    workflow.add_edge("build_daily_practice_prompt", "call_llm")
-    workflow.add_edge("build_unit_practice_prompt", "call_llm")
-    workflow.add_edge("build_assessment_prompt", "call_llm")
+    # 添加边：entry -> check -> load_data -> build_prompt -> call_llm
+    workflow.add_edge("entry", "check")
+    workflow.add_edge("check", "load_data")
+    workflow.add_edge("load_data", "build_prompt")
+    workflow.add_edge("build_prompt", "call_llm")
 
     # 添加边：LLM调用 -> 资源处理（并行）
     workflow.add_edge("call_llm", "handle_image")

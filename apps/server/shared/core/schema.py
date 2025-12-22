@@ -1,5 +1,5 @@
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, Generic, TypeVar
 
 
@@ -112,6 +112,21 @@ class QuestionSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class QuestionTypeSchema(BaseModel):
+    id: int
+    title: str
+    scene: str
+    subject: str
+    grade: int
+    description: Optional[str] = None
+    resource_type: Optional[str] = None
+    prompt: Optional[str] = None
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
 #### ================================= 分割线 ================================= ####
 
 
@@ -139,6 +154,36 @@ class StudentTextbookSchema(BaseModel):
 
 
 # ======================== 练习管理 ======================== #
+
+
+class PracticeSchema(BaseModel):
+    """练习 Schema"""
+
+    id: int
+    name: str
+    type: str
+    slug: str
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    parameters: list = Field(default_factory=list, description="参数列表")
+    create_time: int
+    update_time: int
+
+    model_config = {"from_attributes": True}
+
+
+class PracticePromptSchema(BaseModel):
+    """练习提示词关联 Schema"""
+
+    id: int
+    practice_type: str
+    subject: str
+    grade: int
+    prompt_id: int
+    prompt_name: Optional[str] = None
+    prompt_slug: Optional[str] = None
+    create_time: int
+    update_time: int
 
 
 class PracticeSessionSchema(BaseModel):
@@ -281,23 +326,5 @@ class PromptTestRecordSchema(BaseModel):
     status: str
     error: Optional[str] = None
     create_time: int
-
-    model_config = {"from_attributes": True}
-
-
-# ======================== 题型管理 ======================== #
-
-
-class QuestionTypeSchema(BaseModel):
-    id: int
-    title: str
-    scene: str
-    subject: str
-    grade: int
-    description: Optional[str] = None
-    resource_type: Optional[str] = None
-    prompt: Optional[str] = None
-    create_time: int
-    update_time: int
 
     model_config = {"from_attributes": True}

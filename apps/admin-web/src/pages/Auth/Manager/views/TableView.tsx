@@ -3,11 +3,10 @@ import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, message, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-
-import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
 import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 import { StatusTag } from '@/components';
+import { AuthApi } from '../../api';
 
 export interface ManagerTableViewProps {
   actionRef: React.MutableRefObject<any>;
@@ -17,7 +16,7 @@ export interface ManagerTableViewProps {
 export function ManagerTableView(props: ManagerTableViewProps) {
   const { actionRef, onAddClick } = props;
 
-  const { runAsync: remove } = useRequest((id: string) => adminApi.deleteManager(id), {
+  const { runAsync: remove } = useRequest((id: string) => AuthApi.deleteManager(id), {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -28,21 +27,18 @@ export function ManagerTableView(props: ManagerTableViewProps) {
     },
   });
 
-  const { runAsync: updateStatus } = useRequest(
-    (id: string, status: number) => adminApi.updateManager(id, { status }),
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('状态更新成功');
-        actionRef.current?.reload();
-      },
-      onError: (error: any) => {
-        message.error(error?.message || '状态更新失败');
-      },
+  const { runAsync: updateStatus } = useRequest((id: string, status: number) => AuthApi.updateManager(id, { status }), {
+    manual: true,
+    onSuccess: () => {
+      message.success('状态更新成功');
+      actionRef.current?.reload();
     },
-  );
+    onError: (error: any) => {
+      message.error(error?.message || '状态更新失败');
+    },
+  });
 
-  const { runAsync: resetPassword } = useRequest((id: string) => adminApi.resetManagerPassword(id), {
+  const { runAsync: resetPassword } = useRequest((id: string) => AuthApi.resetManagerPassword(id), {
     manual: true,
     onSuccess: (passwd: any) => {
       message.success('密码重置成功');
@@ -144,7 +140,7 @@ export function ManagerTableView(props: ManagerTableViewProps) {
       actionRef={actionRef}
       columns={columns}
       request={async () => {
-        const data = await adminApi.getAllManagers();
+        const data = await AuthApi.getAllManagers();
         return {
           data: data || [],
           success: true,

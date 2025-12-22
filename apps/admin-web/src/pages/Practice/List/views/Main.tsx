@@ -7,6 +7,7 @@ import { DeleteButton } from '@/components';
 import { adminApi } from '@/lib/api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import FormDrawer from './FormDrawer';
+import { useNavigate } from 'react-router-dom';
 
 const TYPE_OPTIONS = [
   { label: '系统', value: 'system' },
@@ -14,60 +15,42 @@ const TYPE_OPTIONS = [
 ];
 
 export default function MainView() {
+  const navigate = useNavigate();
   const { actionRef, handleDelete, handleCreate, handleEdit } = usePracticeListModel();
 
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
-      {
-        title: '名称',
-        dataIndex: 'name',
-        width: 150,
-      },
-      {
-        title: '标识',
-        dataIndex: 'slug',
-        width: 150,
-      },
+      { title: '名称', dataIndex: 'name', width: 150 },
+      { title: '标识', dataIndex: 'slug', width: 150 },
       {
         title: '类型',
         dataIndex: 'type',
         width: 100,
-        valueEnum: {
-          system: '系统',
-          custom: '自定义',
-        },
+        valueEnum: { system: '系统', custom: '自定义' },
         render: (_, record) => (
-          <Tag color={record.type === 'system' ? 'blue' : 'green'}>
-            {record.type === 'system' ? '系统' : '自定义'}
-          </Tag>
+          <Tag color={record.type === 'system' ? 'blue' : 'green'}>{record.type === 'system' ? '系统' : '自定义'}</Tag>
         ),
-        renderFormItem: () => (
-          <Select placeholder="请选择类型" options={TYPE_OPTIONS} />
-        ),
+        renderFormItem: () => <Select placeholder="请选择类型" options={TYPE_OPTIONS} />,
       },
-      {
-        title: '描述',
-        dataIndex: 'description',
-        width: 200,
-        ellipsis: true,
-        hideInSearch: true,
-      },
+      { title: '图标', dataIndex: 'icon', width: 100, hideInSearch: true },
+      { title: '描述', dataIndex: 'description', width: 200, ellipsis: true, hideInSearch: true },
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 180 }),
       createActionColumn<Practice>(
         (record) => (
           <>
+            <Button type="link" onClick={() => navigate(`/practice/config?id=${record.id}`)}>
+              参数配置
+            </Button>
             <Button type="link" onClick={() => handleEdit(record.id)}>
               编辑
             </Button>
-            {record.type === 'custom' && (
-              <DeleteButton onConfirm={() => handleDelete(record.id)} />
-            )}
+            {record.type === 'custom' && <DeleteButton onConfirm={() => handleDelete(record.id)} />}
           </>
         ),
-        { width: 100 },
+        { width: 130 },
       ),
     ],
-    [handleEdit, handleDelete]
+    [handleEdit, handleDelete],
   );
 
   return (
@@ -85,12 +68,7 @@ export default function MainView() {
           defaultColsNumber: 6,
         }}
         headerTitle={
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
+          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleCreate}>
             新建练习
           </Button>
         }
@@ -113,4 +91,3 @@ export default function MainView() {
     </PageContainer>
   );
 }
-

@@ -9,7 +9,7 @@ import UnitPractice from "@/pages/Practice/Unit";
 import AssessmentPractice from "@/pages/Practice/Assessment";
 import PracticeSession from "@/pages/Practice/Session";
 import PracticeHistory from "@/pages/Practice/History";
-import PracticeDetail from "@/pages/Practice/Detail";
+import PracticeData from "@/pages/Practice/Detail";
 import PracticeReport from "@/pages/Practice/Report";
 import WrongRecords from "@/pages/WrongRecords";
 
@@ -35,7 +35,7 @@ export function Router() {
             { path: "practice/assessment", element: <AssessmentPractice /> },
             { path: "practice/history", element: <PracticeHistory /> },
             { path: "practice/session/:sessionId", element: <PracticeSession /> },
-            { path: "practice/detail/:sessionId", element: <PracticeDetail /> },
+            { path: "practice/detail/:sessionId", element: <PracticeData /> },
             { path: "practice/report/:sessionId", element: <PracticeReport /> },
             { path: "wrong-records", element: <WrongRecords /> },
           ],

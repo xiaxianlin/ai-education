@@ -122,14 +122,18 @@ async def generate_practice_session(
     await db.refresh(session)
 
     try:
-        # 从 Practice 配置获取生成数量
-        count = _get_question_count(practice, textbook, type)
+        # 确定使用的 practice slug
+        if practice:
+            slug = practice.slug
+        else:
+            # 兼容旧逻辑：如果没有 practice，使用 type 作为 slug
+            slug = type
+            logger.warning(f"未找到 practice，使用 type 作为 slug: type={type}")
 
-        logger.info(f"开始生成练习会话: session_id={session.id}, type={type}, practice_id={practice_id}, count={count}")
+        logger.info(f"开始生成练习会话: session_id={session.id}, slug={slug}, practice_id={practice_id}")
         questions = await invoke_generate_workflow(
             db=db,
-            type=type,
-            count=count,
+            slug=slug,
             unit=unit,
             textbook=textbook,
             student_id=student_id,
@@ -203,13 +207,17 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         if not textbook:
             raise ValueError("教材不存在")
         
-        # 获取生成数量
-        count = _get_question_count(practice, textbook, session.session_type)
+        # 确定使用的 practice slug
+        if practice:
+            slug = practice.slug
+        else:
+            # 兼容旧逻辑：如果没有 practice，使用 session_type 作为 slug
+            slug = session.session_type
+            logger.warning(f"未找到 practice，使用 session_type 作为 slug: session_type={session.session_type}")
 
         questions = await invoke_generate_workflow(
             db=db,
-            type=session.session_type,
-            count=count,
+            slug=slug,
             unit=unit,
             textbook=textbook,
             student_id=session.student_id,

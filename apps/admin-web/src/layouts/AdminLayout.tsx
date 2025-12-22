@@ -66,7 +66,6 @@ const menuDataRender = (): MenuDataItem[] => [
     icon: <EditOutlined />,
     children: [
       { path: '/practice/list', name: '练习管理' },
-      { path: '/practice/config', name: '配置管理' },
       { path: '/practice/prompt', name: '提示词管理' },
     ],
   },

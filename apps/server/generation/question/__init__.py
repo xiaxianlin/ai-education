@@ -13,8 +13,7 @@ app = create_question_generation_graph()
 async def invoke_generate_workflow(
     *,
     db: AsyncSession,
-    count: int,
-    type: str,
+    slug: str,
     textbook: Textbook,
     student_id: str | None = None,  # 学生练习需要
     unit: Unit | None = None,  # 单元练习需要
@@ -25,8 +24,7 @@ async def invoke_generate_workflow(
 
     initial_state = QuestionGenerationState(
         db=db,
-        count=count,
-        type=type,
+        slug=slug,
         textbook=textbook,
         student_id=student_id,
         unit=unit,
@@ -39,10 +37,14 @@ async def invoke_generate_workflow(
         # 计算生成时长
         elapsed_time = time.time() - start_time
 
+        # 从 result 中获取 practice 信息用于日志
+        practice = result.get("practice")
+        practice_slug = practice.slug if practice else slug
+
         logger.info(
-            "题目生成完成 | type={type} | subject={subject} | grade={grade} | "
+            "题目生成完成 | slug={slug} | subject={subject} | grade={grade} | "
             "生成题目数={question_count} | 耗时={elapsed_time:.2f}秒",
-            type=type,
+            slug=practice_slug,
             subject=textbook.subject,
             grade=textbook.grade,
             question_count=len(questions),
@@ -55,9 +57,9 @@ async def invoke_generate_workflow(
         elapsed_time = time.time() - start_time
 
         logger.error(
-            "题目生成失败 | type={type} | subject={subject} | grade={grade} | "
+            "题目生成失败 | slug={slug} | subject={subject} | grade={grade} | "
             "耗时={elapsed_time:.2f}秒 | 错误={error}",
-            type=type,
+            slug=slug,
             subject=textbook.subject,
             grade=textbook.grade,
             elapsed_time=elapsed_time,

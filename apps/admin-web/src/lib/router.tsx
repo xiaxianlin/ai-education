@@ -1,8 +1,9 @@
 import { Navigate, useRoutes } from 'react-router-dom';
 import { AdminLayout } from '@/layouts/AdminLayout';
-import Login from '@/pages/Login';
 import Home from '@/pages/Home';
-import Manager from '@/pages/Manager';
+import Login from '@/pages/Auth/Login';
+import Manager from '@/pages/Auth/Manager';
+import ModifyPassword from '@/pages/Auth/Password';
 import TextbookList from '@/pages/Textbook/List';
 import TextbookDetail from '@/pages/Textbook/Detail';
 import TeacherBookList from '@/pages/TeacherBook/List';
@@ -10,7 +11,7 @@ import TeacherBookDetail from '@/pages/TeacherBook/Detail';
 import QuestionList from '@/pages/Question/List';
 import QuestionForm from '@/pages/Question/Form';
 import QuestionDetail from '@/pages/Question/Detail';
-import QuestionTypeList from '@/pages/QuestionType/List';
+import QuestionTypeList from '@/pages/Question/Type';
 import PromptList from '@/pages/Prompt/List';
 import PromptDetail from '@/pages/Prompt/Detail';
 import PromptForm from '@/pages/Prompt/Form';
@@ -22,8 +23,8 @@ import PracticeConfig from '@/pages/Practice/Config';
 import PracticePromptNew from '@/pages/Practice/Prompt';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
-import PracticeDetail from '@/pages/Student/PraticeDetail';
-import ModifyPassword from '@/pages/ModifyPassword';
+import PracticeData from '@/pages/Student/Pratice';
+
 import NotFound from '@/pages/404';
 
 export function Router() {
@@ -59,7 +60,7 @@ export function Router() {
         { path: 'practice/prompt', element: <PracticePromptNew /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
-        { path: 'practice/detail/:session_id', element: <PracticeDetail /> },
+        { path: 'practice/detail/:session_id', element: <PracticeData /> },
         { path: 'password', element: <ModifyPassword /> },
         { path: '*', element: <NotFound /> },
       ],

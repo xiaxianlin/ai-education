@@ -80,18 +80,6 @@ class Textbook(BaseModel):
     is_parsed: Mapped[int] = mapped_column(default=0)
 
 
-class TeacherBook(BaseModel):
-    __tablename__ = "ah_teacher_book"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    subject: Mapped[str] = mapped_column(String(255), nullable=False)
-    version: Mapped[str] = mapped_column(String(255), nullable=False)
-    grade: Mapped[int] = mapped_column(nullable=False)
-    semester: Mapped[str] = mapped_column(String(255), nullable=False)
-    file: Mapped[str] = mapped_column(String(255), nullable=True)
-    index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
-
-
 class Unit(BaseModel):
     __tablename__ = "ah_unit"
 
@@ -136,6 +124,18 @@ class Knowledge(BaseModel):
     )
 
 
+class TeacherBook(BaseModel):
+    __tablename__ = "ah_teacher_book"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(255), nullable=False)
+    grade: Mapped[int] = mapped_column(nullable=False)
+    semester: Mapped[str] = mapped_column(String(255), nullable=False)
+    file: Mapped[str] = mapped_column(String(255), nullable=True)
+    index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
+
+
 class Question(BaseModel):
     __tablename__ = "ah_question"
     id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
@@ -169,34 +169,125 @@ class Question(BaseModel):
     )
 
 
-class Student(BaseModel):
-    __tablename__ = "ah_student"
+class QuestionType(BaseModel):
+    """题型表"""
 
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    password: Mapped[str] = mapped_column(String(255), default="")
-    token: Mapped[str] = mapped_column(String(255), index=True)
-    grade: Mapped[int] = mapped_column(nullable=False)
-    status: Mapped[int] = mapped_column(default=0)
+    __tablename__ = "ah_question_type"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(100), comment="题型标题（如：看图选词、根据首字母填空）")
+    scene: Mapped[str] = mapped_column(String(50), comment="题型类型")
+    subject: Mapped[str] = mapped_column(String(50), comment="科目")
+    grade: Mapped[int] = mapped_column(comment="年级（1-6）")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")
+    resource_type: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="资源类型：image-图片，audio-语音，空-无资源"
+    )
+    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）")
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
-class StudentTextbook(BaseModel):
-    __tablename__ = "ah_student_textbook"
-    __table_args__ = (
-        # 添加联合唯一索引，防止重复绑定
-        {"mysql_charset": "utf8mb4"},
-    )
+# ================ Prompt 相关表 ================
+# Prompt 主表
+class Prompt(BaseModel):
+    __tablename__ = "ah_prompt"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(String(255), index=True)
-    textbook_id: Mapped[int] = mapped_column(index=True)
+    name: Mapped[str] = mapped_column(String(128), comment="Prompt 名称")
+    slug: Mapped[str] = mapped_column(String(128), unique=True, index=True, comment="唯一短名")
+    type: Mapped[str] = mapped_column(String(64), comment="类型：system/user")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
+    current_version_id: Mapped[int] = mapped_column(index=True, comment="当前版本ID")
 
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
+    version: Mapped["PromptVersion"] = relationship(
+        "PromptVersion",
+        primaryjoin="foreign(Prompt.current_version_id) == PromptVersion.id",
+        lazy="joined",
+    )
+
+
+class PromptVersion(BaseModel):
+    __tablename__ = "ah_prompt_version"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="版本 ID")
+    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
+    template_content: Mapped[str] = mapped_column(Text, comment="模版内容")
+    negative_content: Mapped[str] = mapped_column(Text, nullable=True, comment="用于图像生成类")
+    model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
+    changelog: Mapped[str] = mapped_column(Text, nullable=True, comment="变更说明")
+    is_published: Mapped[int] = mapped_column(default=0, comment="是否当前已发布")
+
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    prompt: Mapped["Prompt"] = relationship(
+        "Prompt",
+        primaryjoin="foreign(PromptVersion.prompt_id) == Prompt.id",
+        lazy="joined",
+    )
+
+
+class PromptTestRecord(BaseModel):
+    __tablename__ = "ah_prompt_test_record"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="测试记录 ID")
+    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
+    version_id: Mapped[int] = mapped_column(index=True, comment="版本 ID")
+    generation_type: Mapped[str] = mapped_column(String(32), default="text", comment="生成类型: text/image/audio/video")
+    model_provider: Mapped[str] = mapped_column(String(64), comment="模型提供方")
+    model_name: Mapped[str] = mapped_column(String(128), comment="模型名称")
+    model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
+    input_payload: Mapped[dict] = mapped_column(JSON, default=dict, comment="输入参数")
+    rendered_prompt: Mapped[str] = mapped_column(Text, comment="渲染后的提示词")
+    response: Mapped[dict] = mapped_column(JSON, nullable=True, comment="响应快照")
+    status: Mapped[int] = mapped_column(default=0, comment="状态: 0-待测试 1-测试中 2-测试成功 3-测试失败")
+    error: Mapped[str] = mapped_column(Text, nullable=True, comment="错误信息")
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+
+
+# ================ 练习相关表 ================
+
+
+class Practice(BaseModel):
+    """练习表"""
+
+    __tablename__ = "ah_practice"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), comment="练习名称")
+    slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
+    type: Mapped[str] = mapped_column(String(20), index=True, comment="类型：system/custom")
+    icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
+    parameters: Mapped[list] = mapped_column(JSON, default=list, comment="配置参数")
+
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+
+class PracticePrompt(BaseModel):
+    """练习提示词关联表"""
+
+    __tablename__ = "ah_practice_prompt"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    subject: Mapped[str] = mapped_column(String(50), comment="科目")
+    grade: Mapped[int] = mapped_column(comment="年级")
+    practice_slug: Mapped[str] = mapped_column(String(50), comment="练习标识")
+    prompt_slug: Mapped[str] = mapped_column(String(50), comment="提示词标识")
+
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    practice: Mapped["Practice"] = relationship(
+        "Practice",
+        primaryjoin="foreign(PracticePrompt.practice_slug) == Practice.slug",
+        lazy="joined",
+    )
+    prompt: Mapped["Prompt"] = relationship(
+        "Prompt",
+        primaryjoin="foreign(PracticePrompt.prompt_slug) == Prompt.slug",
         lazy="joined",
     )
 
@@ -221,7 +312,9 @@ class PracticeSession(BaseModel):
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
     status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态:0 - 未开始，1 - 作答中，2 - 已完成")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="生成状态: -1-生成失败, 0-生成中, 1-生成成功")
+    generate_status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="生成状态: -1-生成失败, 0-生成中, 1-生成成功"
+    )
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
@@ -233,6 +326,7 @@ class PracticeSession(BaseModel):
         primaryjoin="foreign(PracticeSession.textbook_id) == Textbook.id",
         lazy="joined",
     )
+
     practice: Mapped["Practice"] = relationship(
         "Practice",
         primaryjoin="foreign(PracticeSession.practice_id) == Practice.id",
@@ -317,116 +411,36 @@ class PracticeReport(BaseModel):
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
 
 
-class QuestionType(BaseModel):
-    """题型表"""
+# ================ 学生相关表 ================
 
-    __tablename__ = "ah_question_type"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(100), comment="题型标题（如：看图选词、根据首字母填空）")
-    scene: Mapped[str] = mapped_column(String(50), comment="题型类型")
-    subject: Mapped[str] = mapped_column(String(50), comment="科目")
-    grade: Mapped[int] = mapped_column(comment="年级（1-6）")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")
-    resource_type: Mapped[str] = mapped_column(
-        String(50), nullable=True, comment="资源类型：image-图片，audio-语音，空-无资源"
-    )
-    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）")
+class Student(BaseModel):
+    __tablename__ = "ah_student"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    phone: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password: Mapped[str] = mapped_column(String(255), default="")
+    token: Mapped[str] = mapped_column(String(255), index=True)
+    grade: Mapped[int] = mapped_column(nullable=False)
+    status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
-# Prompt 主表
-class Prompt(BaseModel):
-    __tablename__ = "ah_prompt"
+class StudentTextbook(BaseModel):
+    __tablename__ = "ah_student_textbook"
+    __table_args__ = (
+        # 添加联合唯一索引，防止重复绑定
+        {"mysql_charset": "utf8mb4"},
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(128), comment="Prompt 名称")
-    slug: Mapped[str] = mapped_column(String(128), unique=True, index=True, comment="唯一短名")
-    type: Mapped[str] = mapped_column(String(64), comment="类型：system/user")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
-    current_version_id: Mapped[int] = mapped_column(index=True, comment="当前版本ID")
+    student_id: Mapped[str] = mapped_column(String(255), index=True)
+    textbook_id: Mapped[int] = mapped_column(index=True)
 
-    version: Mapped["PromptVersion"] = relationship(
-        "PromptVersion",
-        primaryjoin="foreign(Prompt.current_version_id) == PromptVersion.id",
+    textbook: Mapped["Textbook"] = relationship(
+        "Textbook",
+        primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
         lazy="joined",
     )
-
-
-class PromptVersion(BaseModel):
-    __tablename__ = "ah_prompt_version"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="版本 ID")
-    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
-    template_content: Mapped[str] = mapped_column(Text, comment="模版内容")
-    negative_content: Mapped[str] = mapped_column(Text, nullable=True, comment="用于图像生成类")
-    model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
-    changelog: Mapped[str] = mapped_column(Text, nullable=True, comment="变更说明")
-    is_published: Mapped[int] = mapped_column(default=0, comment="是否当前已发布")
-
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-    prompt: Mapped["Prompt"] = relationship(
-        "Prompt",
-        primaryjoin="foreign(PromptVersion.prompt_id) == Prompt.id",
-        lazy="joined",
-    )
-
-
-class PromptTestRecord(BaseModel):
-    __tablename__ = "ah_prompt_test_record"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="测试记录 ID")
-    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
-    version_id: Mapped[int] = mapped_column(index=True, comment="版本 ID")
-    generation_type: Mapped[str] = mapped_column(String(32), default="text", comment="生成类型: text/image/audio/video")
-    model_provider: Mapped[str] = mapped_column(String(64), comment="模型提供方")
-    model_name: Mapped[str] = mapped_column(String(128), comment="模型名称")
-    model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
-    input_payload: Mapped[dict] = mapped_column(JSON, default=dict, comment="输入参数")
-    rendered_prompt: Mapped[str] = mapped_column(Text, comment="渲染后的提示词")
-    response: Mapped[dict] = mapped_column(JSON, nullable=True, comment="响应快照")
-    status: Mapped[int] = mapped_column(default=0, comment="状态: 0-待测试 1-测试中 2-测试成功 3-测试失败")
-    error: Mapped[str] = mapped_column(Text, nullable=True, comment="错误信息")
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-
-
-class PracticePrompt(BaseModel):
-    """练习提示词关联表"""
-    __tablename__ = "ah_practice_prompt"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    practice_type: Mapped[str] = mapped_column(String(50), comment="练习类型：daily_practice/unit_practice/assessment")
-    subject: Mapped[str] = mapped_column(String(50), comment="科目：英语/数学")
-    grade: Mapped[int] = mapped_column(comment="年级（1-12）")
-    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
-    
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-    prompt: Mapped["Prompt"] = relationship(
-        "Prompt",
-        primaryjoin="foreign(PracticePrompt.prompt_id) == Prompt.id",
-        lazy="joined",
-    )
-
-
-class Practice(BaseModel):
-    """练习表"""
-    __tablename__ = "ah_practice"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), comment="练习名称")
-    slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
-    icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
-    type: Mapped[str] = mapped_column(String(20), index=True, comment="类型：system/custom")
-    practice_type: Mapped[str] = mapped_column(
-        String(50), nullable=True, comment="系统练习标识（兼容旧逻辑）"
-    )
-    config: Mapped[str] = mapped_column(Text, default="{}", comment="配置信息JSON")
-
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")

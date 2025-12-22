@@ -159,7 +159,7 @@ export const studentApi = {
    * GET /practice/detail/{session_id}
    */
   async getSessionDetail(sessionId: number) {
-    return apiClient.get<PracticeDetail>(`/practice/detail/${sessionId}`);
+    return apiClient.get<PracticeData>(`/practice/detail/${sessionId}`);
   },
 
   /**

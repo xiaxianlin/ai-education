@@ -83,7 +83,7 @@ export class StudentApiClient extends ApiClient {
 - `PracticeAnswer`: 答题记录
 - `PracticeWrongRecord`: 错题记录
 - `PracticeReport`: 练习报告
-- `PracticeDetail`: 练习会话详情
+- `PracticeData`: 练习会话详情
 
 ### 工具函数
 

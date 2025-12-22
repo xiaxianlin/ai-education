@@ -1,34 +1,24 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Card, Col, Row, Space, Typography, Statistic } from 'antd';
-import {
-  UserOutlined,
-  BookOutlined,
-  QuestionCircleOutlined,
-  CheckCircleOutlined,
-} from '@ant-design/icons';
+import { UserOutlined, BookOutlined, QuestionCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useRequest } from 'ahooks';
-import { adminApi } from '@/lib/api';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { GRADES } from '@/constants/course';
+import { CommonApi } from '@/lib/api';
 
 const { Title, Text } = Typography;
 
 export default function MainView() {
-  const [greeting, setGreeting] = useState('');
-
   // 获取系统概览数据
   const { data: studentData } = useRequest(async () => {
-    const res = await adminApi.searchStudents({ page: 1, size: 1000 });
+    const res = await CommonApi.searchStudents({ page: 1, size: 1000 });
     return res;
   });
 
   const { data: textbookData } = useRequest(async () => {
-    return await adminApi.searchTextbooks();
+    return await CommonApi.searchTextbooks();
   });
 
   const { data: questionData } = useRequest(async () => {
-    const res = await adminApi.searchQuestions({ page: 1, size: 1000 });
+    const res = await CommonApi.searchQuestions({ page: 1, size: 1000 });
     return res;
   });
 
@@ -47,13 +37,6 @@ export default function MainView() {
   };
 
   const currentGreeting = getGreeting();
-
-  // 学生年级分布数据
-  const gradeDistribution = Array.from({ length: 12 }, (_, i) => {
-    const gradeId = i + 1;
-    const count = studentData?.data?.filter((s) => s.grade === gradeId).length || 0;
-    return { grade: gradeId, count };
-  }).filter((item) => item.count > 0);
 
   // 统计卡片列配置
   const statisticItems = [
@@ -116,12 +99,7 @@ export default function MainView() {
           {statisticItems.map((item, index) => (
             <Col xs={24} sm={12} lg={6} key={index}>
               <Card>
-                <Statistic
-                  title={item.title}
-                  value={item.value}
-                  prefix={item.prefix}
-                  valueStyle={item.valueStyle}
-                />
+                <Statistic title={item.title} value={item.value} prefix={item.prefix} valueStyle={item.valueStyle} />
               </Card>
             </Col>
           ))}

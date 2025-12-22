@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { validPassword } from '@/utils/validation';
-import { adminApi, apiClient } from '@/lib/api';
+import { apiClient } from '@/lib/api';
 import './index.less';
+import { AuthApi } from '../api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const { runAsync: login } = useRequest((data) => adminApi.login(data), {
+  const { runAsync: login } = useRequest((data) => AuthApi.login(data), {
     manual: true,
     onSuccess: async (res) => {
       apiClient.setToken(res);
@@ -20,7 +21,7 @@ export default function LoginPage() {
   return (
     <div className="layout">
       <div className="container">
-        <LoginForm<LoginModel>
+        <LoginForm<LoginRequest>
           size="large"
           title="管理员登录"
           subTitle="请输入您的凭据以访问管理后台"

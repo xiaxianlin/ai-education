@@ -1,10 +1,10 @@
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
-import { adminApi } from '@/lib/api';
+import { CommonApi } from '@/lib/api';
 
 const useInitialStateContainer = () => {
   const { data, loading, refresh, mutate } = useRequest<InitialState, any>(async () => {
-    const [manager, configs] = await Promise.all([adminApi.check(), adminApi.getConfigs()]);
+    const [manager, configs] = await Promise.all([CommonApi.check(), CommonApi.getConfigs()]);
     return { manager, configs };
   });
 

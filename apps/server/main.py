@@ -13,9 +13,9 @@ from shared.core.settings import envs
 from shared.core.logger import logger
 
 from admin import admin_app
+from student import student_app
 from admin.services.manager import init_super_manager
 from admin.services.practice import init_system_practices
-from student import student_app
 
 dotenv.load_dotenv()
 os.environ["NO_PROXY"] = "*"

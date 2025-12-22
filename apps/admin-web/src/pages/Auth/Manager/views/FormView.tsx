@@ -2,9 +2,8 @@ import React from 'react';
 import { ModalForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
-
-import { adminApi } from '@/lib/api';
 import { ManagerTypeText } from '@/constants/manager';
+import { AuthApi } from '../../api';
 
 export interface ManagerFormViewProps {
   open: boolean;
@@ -15,7 +14,7 @@ export interface ManagerFormViewProps {
 export function ManagerFormView(props: ManagerFormViewProps) {
   const { open, onOpenChange, actionRef } = props;
 
-  const { runAsync: add } = useRequest((values: any) => adminApi.createManager(values), {
+  const { runAsync: add } = useRequest((values: any) => AuthApi.createManager(values), {
     manual: true,
     onSuccess: (passwd: any) => {
       onOpenChange(false);

@@ -1,70 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { message } from 'antd';
 import { adminApi } from '@/lib/api';
+import { useBoolean, useRequest } from 'ahooks';
+import { useSearchParams } from 'react-router-dom';
+import { ProForm } from '@ant-design/pro-components';
 
 const useContainer = () => {
-  const [loading, setLoading] = useState(false);
-  const [practices, setPractices] = useState<Practice[]>([]);
-  const [configModalOpen, setConfigModalOpen] = useState(false);
-  const [editingPractice, setEditingPractice] = useState<Practice | null>(null);
-  const [configLoading, setConfigLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const practiceId = Number(searchParams.get('id') || 0);
+  const [parameter, setParameter] = useState<PracticeParameter>();
+  const [parameters, setParameters] = useState<PracticeParameter[]>([]);
+  const [visible, { setTrue, setFalse }] = useBoolean(false);
 
-  const loadPractices = async () => {
-    setLoading(true);
-    try {
-      const data = await adminApi.listPractices({ page: 1, size: 1000 });
-      setPractices(data?.data || []);
-    } catch (error) {
-      // error handled by interceptor
-    } finally {
-      setLoading(false);
+  const [form] = ProForm.useForm<PracticeParameter>();
+
+  const { data: practice, loading } = useRequest(() => adminApi.getPractice(practiceId), {
+    ready: !!practiceId,
+    onSuccess: (res) => setParameters(res.parameters || []),
+  });
+
+  const { run: submit } = useRequest(() => adminApi.savePracticeParameters(practiceId, parameters), {
+    manual: true,
+  });
+
+  const removeParameter = (key: string) => {
+    setParameters(parameters.filter((param) => param.key !== key));
+  };
+
+  const saveParameter = (param: PracticeParameter) => {
+    if (parameter) {
+      setParameters(parameters.map((p) => (p.key === parameter.key ? param : p)));
+    } else {
+      setParameters([...parameters, param]);
     }
   };
 
-  useEffect(() => {
-    loadPractices();
-  }, []);
-
-  const handleOpenConfig = (practice: Practice) => {
-    setEditingPractice(practice);
-    setConfigModalOpen(true);
-  };
-
-  const handleCloseConfig = () => {
-    setConfigModalOpen(false);
-    setEditingPractice(null);
-  };
-
-  const handleSaveConfig = async (config: Record<string, any>) => {
-    if (!editingPractice) return;
-    
-    setConfigLoading(true);
-    try {
-      await adminApi.updatePracticeConfig(editingPractice.id, { config });
-      message.success('配置保存成功');
-      handleCloseConfig();
-      loadPractices();
-    } catch (error) {
-      // error handled by interceptor
-    } finally {
-      setConfigLoading(false);
+  const showDrawerForm = (recored?: PracticeParameter) => {
+    setTrue();
+    setParameter(recored);
+    if (recored) {
+      form.setFieldsValue(recored);
     }
+  };
+
+  const hideDrawerForm = () => {
+    setFalse();
+    setParameter(undefined);
+    form.resetFields();
   };
 
   return {
+    form,
     loading,
-    practices,
-    configModalOpen,
-    editingPractice,
-    configLoading,
-    loadPractices,
-    handleOpenConfig,
-    handleCloseConfig,
-    handleSaveConfig,
+    visible,
+    practice,
+    parameter,
+    parameters,
+    submit,
+    saveParameter,
+    removeParameter,
+    showDrawerForm,
+    hideDrawerForm,
   };
 };
 
 export const PracticeConfigModel = createContainer(useContainer);
 export const usePracticeConfigModel = PracticeConfigModel.useContainer;
-
