@@ -2,8 +2,8 @@ import uuid
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import CreateStudentSchema, SearchStudentSchema, UpdateStudentSchema
-from shared.core.database import Student, StudentTextbook, Textbook
-from shared.core.schema import SearchResultSchema, StudentSchema, TextbookSchema
+from shared.core.database import Student, StudentTextbook, Textbook, StudentPractice, Practice
+from shared.core.schema import SearchResultSchema, StudentSchema, TextbookSchema, PracticeSchema
 from shared.utils import encrypt
 from shared.utils.time import now
 
@@ -176,3 +176,62 @@ async def get_student_detail(db: AsyncSession, id: str):
         raise ValueError("学生不存在")
 
     return StudentSchema.model_validate(student)
+
+
+async def add_student_practice(db: AsyncSession, id: str, practice_id: int):
+    """添加学生的练习"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
+
+    practice = await db.scalar(select(Practice).where(Practice.id == practice_id))
+    if not practice:
+        raise ValueError("练习不存在")
+
+    record = await db.scalar(
+        select(StudentPractice).where(
+            StudentPractice.student_id == id, StudentPractice.practice_id == practice_id
+        )
+    )
+
+    if record:
+        raise ValueError("练习已经添加过了")
+
+    record = StudentPractice(student_id=id, practice_id=practice_id)
+    db.add(record)
+    await db.commit()
+
+
+async def remove_student_practice(db: AsyncSession, id: str, practice_id: int):
+    """移除学生的练习"""
+    student = await db.scalar(select(Student).where(Student.id == id))
+    if not student:
+        raise ValueError("学生不存在")
+
+    await db.execute(
+        delete(StudentPractice).where(
+            StudentPractice.student_id == id, StudentPractice.practice_id == practice_id
+        )
+    )
+    await db.commit()
+
+
+async def get_student_practices(db: AsyncSession, id: str):
+    """查询学生的练习"""
+    result = await db.scalars(
+        select(Practice)
+        .join(StudentPractice, StudentPractice.practice_id == Practice.id)
+        .where(StudentPractice.student_id == id)
+    )
+    return [PracticeSchema.model_validate(item) for item in result.all()]
+
+
+async def get_student_unused_practices(db: AsyncSession, id: str):
+    """查询学生未选练习"""
+    used_practices = await get_student_practices(db, id)
+    ids = [practice.id for practice in used_practices]
+    query = select(Practice)
+    if ids:
+        query = query.where(Practice.id.not_in(ids))
+    result = await db.scalars(query.order_by(Practice.id))
+    return [PracticeSchema.model_validate(item) for item in result.all()]

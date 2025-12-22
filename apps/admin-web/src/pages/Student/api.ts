@@ -89,4 +89,36 @@ export const StudentApi = {
   async getPracticeHistory(id: string, practice_slug: string) {
     return apiClient.get<PracticeSession[]>(`/student/${id}/practice_sessions/${practice_slug}`);
   },
+
+  /**
+   * 获取学生的练习列表
+   * GET /student/{id}/practices
+   */
+  async getStudentPractices(id: string) {
+    return apiClient.get<Practice[]>(`/student/${id}/practices`);
+  },
+
+  /**
+   * 获取学生未使用的练习列表
+   * GET /student/{id}/unused_practices
+   */
+  async getStudentUnusedPractices(id: string) {
+    return apiClient.get<Practice[]>(`/student/${id}/unused_practices`);
+  },
+
+  /**
+   * 为学生添加练习
+   * POST /student/{id}/practice/{practice_id}
+   */
+  async addStudentPractice(id: string, practiceId: number) {
+    return apiClient.post(`/student/${id}/practice/${practiceId}`);
+  },
+
+  /**
+   * 移除学生的练习
+   * DELETE /student/{id}/practice/{practice_id}
+   */
+  async removeStudentPractice(id: string, practiceId: number) {
+    return apiClient.delete(`/student/${id}/practice/${practiceId}`);
+  },
 };

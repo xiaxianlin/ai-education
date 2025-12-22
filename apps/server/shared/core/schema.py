@@ -153,6 +153,17 @@ class StudentTextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class StudentPracticeSchema(BaseModel):
+    id: int
+    student_id: str
+    practice_id: int
+
+    practice: Optional["PracticeSchema"] = None
+
+    model_config = {"from_attributes": True}
+
+
+
 # ======================== 练习管理 ======================== #
 
 

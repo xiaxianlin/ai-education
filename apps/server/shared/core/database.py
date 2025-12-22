@@ -426,3 +426,18 @@ class StudentTextbook(BaseModel):
         primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
         lazy="joined",
     )
+
+
+class StudentPractice(BaseModel):
+    __tablename__ = "ah_student_practice"
+    __table_args__ = ({"mysql_charset": "utf8mb4"},)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[str] = mapped_column(String(255), index=True)
+    practice_id: Mapped[int] = mapped_column(index=True)
+
+    practice: Mapped["Practice"] = relationship(
+        "Practice",
+        primaryjoin="foreign(StudentPractice.practice_id) == Practice.id",
+        lazy="joined",
+    )

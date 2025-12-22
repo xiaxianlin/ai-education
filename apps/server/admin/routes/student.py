@@ -91,3 +91,37 @@ async def get_student_unused_textbooks(id: str, db: AsyncSession = Database):
 )
 async def get_student_practice_sessions(id: str, session_type: str, db: AsyncSession = Database):
     return await practice_session.get_student_practice_sessions(db, id, session_type)
+
+
+@student_router.post(
+    "/{id}/practice/{practice_id}", tags=["学生练习管理"], summary="保存学生练习", description="为学生关联指定的练习"
+)
+async def add_student_practice(id: str, practice_id: int, db: AsyncSession = Database):
+    await student.add_student_practice(db, id, practice_id)
+
+
+@student_router.delete(
+    "/{id}/practice/{practice_id}",
+    tags=["学生练习管理"],
+    summary="删除学生练习",
+    description="取消学生与指定练习的关联",
+)
+async def remove_student_practice(id: str, practice_id: int, db: AsyncSession = Database):
+    await student.remove_student_practice(db, id, practice_id)
+
+
+@student_router.get(
+    "/{id}/practices", tags=["学生练习管理"], summary="查询学生练习", description="获取学生已关联的所有练习列表"
+)
+async def get_student_practices(id: str, db: AsyncSession = Database):
+    return await student.get_student_practices(db, id)
+
+
+@student_router.get(
+    "/{id}/unused_practices",
+    tags=["学生练习管理"],
+    summary="查询学生未选练习",
+    description="获取系统中学生尚未关联的练习列表",
+)
+async def get_student_unused_practices(id: str, db: AsyncSession = Database):
+    return await student.get_student_unused_practices(db, id)
