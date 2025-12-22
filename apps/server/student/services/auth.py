@@ -24,6 +24,7 @@ async def student_router_filter(request: Request):
     if not payload:
         raise HTTPException(status_code=401, detail="登录失效")
 
+    # 使用 async with 确保数据库会话正确关闭
     student = None
     async with AsyncSessionLocal() as db:
         student = await db.scalar(select(Student).where(Student.token == token))

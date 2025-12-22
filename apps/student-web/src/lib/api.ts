@@ -23,7 +23,10 @@ apiClient.addResponseInterceptor(
 apiClient.addResponseInterceptor(
   (response) => response,
   (error) => {
-    console.log(error.message);
+    // 仅在开发环境输出日志
+    if (process.env.NODE_ENV === 'development') {
+      console.log(error.message);
+    }
     toast.error(error.message || "网络错误");
     return Promise.reject(error);
   }

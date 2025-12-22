@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTextbookSchema, SearchTextbookSchema
 from shared.services.textbook_parser import parse_textbook_units
 from shared.utils import rag
+from shared.utils.file_validation import validate_file_upload
 from shared.core.database import Knowledge, Question, Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
@@ -189,20 +190,21 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
         raise ValueError("教材不存在")
-    textbook.file = file.filename
 
-    data = await file.read()
+    # 验证文件并获取安全文件名
+    data, safe_filename = validate_file_upload(file)
+    textbook.file = safe_filename
 
     try:
         tmp_dir = f"{envs.TMP_DIR}/textbook"
         os.makedirs(tmp_dir, exist_ok=True)
-        tmp_file_path = Path(tmp_dir) / file.filename
+        tmp_file_path = Path(tmp_dir) / safe_filename
 
         with open(tmp_file_path, "wb") as buffer:
             buffer.write(data)
 
         textbook.index_file_id = rag.upload(
-            file_name=file.filename,
+            file_name=safe_filename,
             file_path=str(tmp_file_path),
             old_file_id=textbook.index_file_id if textbook.index_file_id else None,
         )
@@ -210,4 +212,5 @@ async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
     except ValueError as e:
         raise e
     finally:
-        os.remove(tmp_file_path)
+        if tmp_file_path.exists():
+            os.remove(tmp_file_path)

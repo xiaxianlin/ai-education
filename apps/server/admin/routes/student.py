@@ -45,14 +45,14 @@ async def get_student_detail(id: str, db: AsyncSession = Database):
 
 
 @student_router.post("/{id}/textbook/{textbook_id}")
-async def add_student_textbook(id: str, textbook_id, db: AsyncSession = Database):
+async def add_student_textbook(id: str, textbook_id: int, db: AsyncSession = Database):
     """保存学生教材"""
     await student.add_student_textbook(db, id, textbook_id)
 
 
 @student_router.delete("/{id}/textbook/{textbook_id}")
-async def remove_student_textbook(id: str, textbook_id, db: AsyncSession = Database):
-    """保存学生教材"""
+async def remove_student_textbook(id: str, textbook_id: int, db: AsyncSession = Database):
+    """删除学生教材"""
     await student.remove_student_textbook(db, id, textbook_id)
 
 

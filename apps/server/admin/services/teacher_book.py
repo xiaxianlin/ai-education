@@ -5,10 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from admin.schema import SaveTeacherBookSchema
 
-# from shared.provider.aliyun import AliyunRag  # TODO: Implement RAG provider
+# from shared.provider.aliyun import AliyunRag  # NOTE: RAG provider implementation planned for future release
 from shared.core.database import TeacherBook
 from shared.core.schema import TeacherBookSchema
 from shared.core.settings import envs
+from shared.utils.file_validation import validate_file_upload
 
 
 async def create_teacher_book(db: AsyncSession, data: SaveTeacherBookSchema):
@@ -57,7 +58,7 @@ async def delete_teacher_book(db: AsyncSession, id: int):
     if not teacher_book:
         raise ValueError("教师用书不存在")
 
-    # TODO: Implement RAG index deletion
+        # NOTE: RAG index deletion implementation planned for future release
     # if teacher_book.index_file_id:
     #     rag = AliyunRag()
     #     rag.delete_index_document(teacher_book.index_file_id)
@@ -84,23 +85,24 @@ async def upload_teacher_book(db: AsyncSession, id: int, file: UploadFile):
     teacher_book = await db.scalar(select(TeacherBook).where(TeacherBook.id == id))
     if not teacher_book:
         raise ValueError("教师用书不存在")
-    teacher_book.file = file.filename
 
-    data = await file.read()
+    # 验证文件并获取安全文件名
+    data, safe_filename = validate_file_upload(file)
+    teacher_book.file = safe_filename
 
     try:
         tmp_dir = f"{envs.TMP_DIR}/teacher_book"
         os.makedirs(tmp_dir, exist_ok=True)
-        tmp_file_path = Path(tmp_dir) / file.filename
+        tmp_file_path = Path(tmp_dir) / safe_filename
 
         with open(tmp_file_path, "wb") as buffer:
             buffer.write(data)
 
-        # TODO: Implement RAG index upload
+        # NOTE: RAG index upload implementation planned for future release
         # rag = AliyunRag()
         # # 更新索引（同步）
         # teacher_book.index_file_id = rag.exec_upload(
-        #     file.filename, tmp_file_path, teacher_book.index_file_id
+        #     safe_filename, tmp_file_path, teacher_book.index_file_id
         # )
 
         await db.commit()

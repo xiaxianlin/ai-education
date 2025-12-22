@@ -18,7 +18,7 @@ async_engine = create_async_engine(
     pool_size=envs.DATABASE_POOL_SIZE,  # 连接池大小
     max_overflow=envs.DATABASE_MAX_OVERFLOW,  # 最大溢出连接数
     pool_timeout=envs.DATABASE_POOL_TIMEOUT,  # 连接超时时间
-    pool_recycle=3600,  # 连接回收时间（1小时），避免MySQL的wait_timeout问题
+    pool_recycle=envs.DATABASE_POOL_RECYCLE,  # 连接回收时间，避免MySQL的wait_timeout问题
 )
 
 AsyncSessionLocal = sessionmaker(

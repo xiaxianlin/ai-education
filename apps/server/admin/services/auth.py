@@ -25,6 +25,7 @@ async def admin_route_filter(request: Request):
     if not payload:
         raise HTTPException(status_code=401, detail="登录失效")
 
+    # 使用 async with 确保数据库会话正确关闭
     async with AsyncSessionLocal() as db:
         manager: Manager = await db.scalar(select(Manager).where(Manager.token == token))
 
@@ -58,7 +59,7 @@ async def admin_login(db: AsyncSession, params: LoginSchema):
 
 
 def check_super_permission(request: Request):
-    """检查炒股管理员权限"""
+    """检查超级管理员权限"""
     manager: ManagerSchema = request.state.manager
     if manager.type != 0:
         raise HTTPException(status_code=403, detail="权限不足")

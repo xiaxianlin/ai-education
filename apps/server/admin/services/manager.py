@@ -68,8 +68,7 @@ async def update_manager_password(db: AsyncSession, id: str, params: ModifyPassw
     if not manager:
         raise ValueError("账号不存在")
 
-    origin = encrypt.hash(params.origin)
-    if origin != manager.password:
+    if not encrypt.verify_password(params.origin, manager.password):
         raise ValueError("旧密码错误")
 
     manager.password = encrypt.hash(params.password)

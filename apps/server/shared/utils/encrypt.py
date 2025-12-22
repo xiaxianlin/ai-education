@@ -1,10 +1,12 @@
 import jwt, json, hashlib, string, secrets
 import bcrypt
+from loguru import logger
 from shared.core.settings import envs
+from shared.core.constants import TOKEN_EXPIRES_HOURS, PASSWORD_LENGTH
 from datetime import datetime, timedelta, timezone
 
 
-def encode(data: dict, expires_hours: int = 168) -> str:  # 默认7天
+def encode(data: dict, expires_hours: int = TOKEN_EXPIRES_HOURS) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=expires_hours)
     to_encode = data.copy()
     to_encode.update({"exp": expire})
@@ -12,13 +14,24 @@ def encode(data: dict, expires_hours: int = 168) -> str:  # 默认7天
 
 
 def decode(token: str) -> dict | None:
+    """
+    解码 JWT Token
+    
+    Args:
+        token: JWT Token 字符串
+        
+    Returns:
+        Token payload 字典，如果 Token 无效或过期则返回 None
+    """
     try:
         payload = jwt.decode(token, envs.APP_SECRET_KEY, algorithms=["HS256"])
+        return payload
     except jwt.exceptions.ExpiredSignatureError:
-        return None  # Token 已过期
-    except jwt.exceptions.InvalidTokenError:
+        logger.warning("Token 已过期")
         return None
-    return payload
+    except jwt.exceptions.InvalidTokenError as e:
+        logger.warning(f"Token 无效: {e}")
+        return None
 
 
 def hash(data: str | dict) -> str:
@@ -78,7 +91,7 @@ def generate_password() -> str:
     """
     生成强密码（保证每个被启用的类别至少出现一次）。
     """
-    length = 16
+    length = PASSWORD_LENGTH
     pools = [
         string.ascii_lowercase,
         string.ascii_uppercase,

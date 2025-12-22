@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from shared.core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
 from shared.core.schema import SearchSchema
@@ -38,7 +38,7 @@ class ModifyPasswordSchema(BaseModel):
 
 
 class CreateManangeSchema(BaseModel):
-    username: str
+    username: str = Field(..., min_length=1, max_length=255, description="用户名")
     type: int
 
     @field_validator("type")
@@ -220,13 +220,13 @@ class SearchStudentSchema(SearchSchema):
 
 
 class CreateQuestionTypeSchema(BaseModel):
-    title: str  # 题型标题，如：看图选词、根据首字母填空
-    scene: str  # 类型，如：选择题、填空题、判断题、口语题、应用题
-    subject: str
+    title: str = Field(..., min_length=1, max_length=100, description="题型标题，如：看图选词、根据首字母填空")
+    scene: str = Field(..., min_length=1, max_length=50, description="类型，如：选择题、填空题、判断题、口语题、应用题")
+    subject: str = Field(..., min_length=1, max_length=50)
     grade: int
-    description: Optional[str] = None
-    resource_type: Optional[str] = None
-    prompt: Optional[str] = None  # 生成该题型的 AI 指令
+    description: Optional[str] = Field(None, max_length=500, description="题型描述")
+    resource_type: Optional[str] = Field(None, max_length=50)
+    prompt: Optional[str] = Field(None, max_length=2000, description="生成该题型的 AI 指令")
 
     @field_validator("subject")
     @classmethod
@@ -298,13 +298,13 @@ class PromptDetailSchema(BaseModel):
 class SavePromptSchema(BaseModel):
     """提示词表单"""
 
-    name: str
-    slug: str
-    type: str
-    description: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=128, description="Prompt 名称")
+    slug: str = Field(..., min_length=1, max_length=128, description="唯一短名")
+    type: str = Field(..., min_length=1, max_length=64, description="类型：system/user")
+    description: Optional[str] = Field(None, max_length=1000, description="描述")
     tags: list[str] = []
-    template_content: str
-    negative_content: Optional[str] = None
+    template_content: str = Field(..., min_length=1, description="模版内容")
+    negative_content: Optional[str] = Field(None, max_length=2000, description="用于图像生成类")
     model_params: dict = {}
     timeout: Optional[int] = None
 
@@ -413,11 +413,11 @@ class PracticePromptSchema(BaseModel):
 
 class SavePracticeSchema(BaseModel):
     """保存练习"""
-    name: str
-    slug: str
-    icon: Optional[str] = None
-    description: Optional[str] = None
-    type: str  # system/custom
+    name: str = Field(..., min_length=1, max_length=100, description="练习名称")
+    slug: str = Field(..., min_length=1, max_length=100, description="练习标识")
+    icon: Optional[str] = Field(None, max_length=255, description="图标URL")
+    description: Optional[str] = Field(None, max_length=500, description="描述")
+    type: str = Field(..., min_length=1, max_length=20, description="类型：system/custom")
     config: dict = {}  # 配置信息
 
     @field_validator("type")

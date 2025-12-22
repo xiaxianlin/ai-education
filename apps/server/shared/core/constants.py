@@ -15,3 +15,12 @@ GENERATE_QUESTION_COUNT = {
 
 # 题目召回数量
 QUESTION_RECALL_COUNT = 0
+
+# Token 配置
+TOKEN_EXPIRES_HOURS = 168  # Token 过期时间（小时），默认7天
+
+# 密码配置
+PASSWORD_LENGTH = 16  # 生成的密码长度
+
+# AI 服务配置
+AI_FALLBACK_CONTENT_MAX_LENGTH = 50  # 降级方案中用户输入的最大长度

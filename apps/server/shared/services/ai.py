@@ -6,6 +6,7 @@ from langchain_core.output_parsers import JsonOutputParser
 
 from shared.core.database import Question
 from shared.core.schema import AnswerAnalysisSchema
+from shared.core.constants import AI_FALLBACK_CONTENT_MAX_LENGTH
 from shared.utils import oss
 from shared.utils.question import build_full_question_text
 from shared.provider import get_provider
@@ -56,11 +57,29 @@ async def _optimize_image_prompt(text: str, db: Optional[AsyncSession] = None) -
 
         return optimized_prompt
 
-    except Exception as e:
-        logger.error(f"优化图片提示词失败: {e}")
-        # 如果 LLM 调用失败，返回一个基础的提示词作为降级方案
+    except ValueError as e:
+        # 业务逻辑错误（如格式错误）
+        logger.error(f"优化图片提示词失败（业务错误）: {e}")
+        raise
+    except (ConnectionError, TimeoutError, OSError) as e:
+        # 网络或系统错误
+        logger.error(f"优化图片提示词失败（网络/系统错误）: {e}")
         logger.warning("LLM 调用失败，使用降级方案")
-        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生，{question_content[:50]}"
+        # 清理用户输入，只保留安全的字符，避免提示词注入
+        safe_content = "".join(c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、")
+        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生"
+        if safe_content:
+            fallback_prompt += f"，主题：{safe_content}"
+        return fallback_prompt
+    except Exception as e:
+        # 其他未知错误
+        logger.error(f"优化图片提示词失败（未知错误）: {e}", exc_info=True)
+        logger.warning("LLM 调用失败，使用降级方案")
+        # 清理用户输入，只保留安全的字符，避免提示词注入
+        safe_content = "".join(c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、")
+        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生"
+        if safe_content:
+            fallback_prompt += f"，主题：{safe_content}"
         return fallback_prompt
 
 
