@@ -46,7 +46,7 @@ async def submit_answer(
         select(PracticeSession).where(PracticeSession.id == params.session_id)
     )
     if not session:
-        raise ValueError("练习会话不存在")
+        raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
     if session.student_id != student_id:
         raise ValueError("无权操作此练习")
@@ -56,7 +56,7 @@ async def submit_answer(
         select(Question).where(Question.id == params.question_id)
     )
     if not question:
-        raise ValueError("题目不存在")
+        raise ValueError(f"题目不存在: question_id={params.question_id}")
 
     # 3. 查询答题记录
     answer_record = await db.scalar(
@@ -66,7 +66,13 @@ async def submit_answer(
         )
     )
     if not answer_record:
-        raise ValueError("答题记录不存在")
+        raise ValueError(
+            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
+        )
+
+    # 检查是否已经提交过答案
+    old_status = answer_record.status
+    is_repeat_submit = old_status != 0
 
     # 4. 检查答案并生成分析
     is_correct, analysis = await _check_answer(question, params, db)
@@ -85,8 +91,23 @@ async def submit_answer(
             f"记录错题信息: student_id={student_id}, question_id={params.question_id}, "
             f"session_id={params.session_id}"
         )
+    else:
+        # 如果答对，清除之前的错题信息
+        answer_record.correct_answer = None
+        answer_record.analysis = None
 
     # 6. 更新练习会话统计
+    if is_repeat_submit:
+        # 如果是重复提交，需要先撤销之前的统计
+        if old_status == 1:
+            session.correct_count -= 1
+        session.answer_count -= 1
+        logger.warning(
+            f"检测到重复提交答案: student_id={student_id}, question_id={params.question_id}, "
+            f"session_id={params.session_id}, 旧状态={old_status}, 新状态={answer_record.status}"
+        )
+    
+    # 更新新的统计
     session.answer_count += 1
     if is_correct:
         session.correct_count += 1

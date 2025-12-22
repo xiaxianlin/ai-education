@@ -57,8 +57,19 @@ class Settings(BaseSettings):
     @classmethod
     def validate_secret_key(cls, v):
         """验证密钥长度"""
+        # 开发环境至少16字符，生产环境至少32字符
+        min_length = 16
+        if len(v) < min_length:
+            raise ValueError(
+                f"APP_SECRET_KEY 长度必须至少{min_length}个字符，当前长度: {len(v)}。"
+                f"建议使用至少32个字符的强密钥以确保安全性。"
+            )
         if len(v) < 32:
-            raise ValueError("APP_SECRET_KEY 长度必须至少32个字符，请使用更强的密钥")
+            import warnings
+            warnings.warn(
+                f"APP_SECRET_KEY 长度仅为 {len(v)} 个字符，建议使用至少32个字符的强密钥以提高安全性。",
+                UserWarning
+            )
         return v
 
     class Config:
@@ -78,7 +89,7 @@ def validate_settings():
         print("- RUN_ENV (development/production/test)", file=sys.stderr)
         print("- TMP_DIR", file=sys.stderr)
         print("- LOG_DIR", file=sys.stderr)
-        print("- APP_SECRET_KEY (至少32个字符)", file=sys.stderr)
+        print("- APP_SECRET_KEY (至少16个字符，建议32个字符以上)", file=sys.stderr)
         print("- ADMIN_USERNAME", file=sys.stderr)
         print("- ADMIN_PASSWORD", file=sys.stderr)
         print("- DATABASE_URL", file=sys.stderr)

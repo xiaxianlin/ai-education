@@ -73,7 +73,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 10. 综合评估（主要用于assessment类型）
     current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
-        overall_score, consistency, session.session_type
+        overall_score, consistency
     )
 
     # 11. 创建报告
@@ -110,11 +110,19 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
 async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析知识点掌握情况"""
+    if not answers:
+        return {}
+    
+    # 批量查询所有题目
+    question_ids = [answer.question_id for answer in answers]
+    questions_result = await db.scalars(
+        select(Question).where(Question.id.in_(question_ids))
+    )
+    questions = {q.id: q for q in questions_result.all()}
+    
     knowledge_stats = {}
-
     for answer in answers:
-        # 查询题目获取知识点
-        question = await db.scalar(select(Question).where(Question.id == answer.question_id))
+        question = questions.get(answer.question_id)
         if not question or not question.knowledge:
             continue
 
@@ -141,10 +149,19 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswe
 
 async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析题目来源分布（按题型）"""
+    if not answers:
+        return {}
+    
+    # 批量查询所有题目
+    question_ids = [answer.question_id for answer in answers]
+    questions_result = await db.scalars(
+        select(Question).where(Question.id.in_(question_ids))
+    )
+    questions = {q.id: q for q in questions_result.all()}
+    
     type_stats = {}
-
     for answer in answers:
-        question = await db.scalar(select(Question).where(Question.id == answer.question_id))
+        question = questions.get(answer.question_id)
         if not question:
             continue
 
@@ -171,10 +188,19 @@ async def analyze_question_distribution(db: AsyncSession, answers: List[Practice
 
 async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析能力分解（按难度）"""
+    if not answers:
+        return {}
+    
+    # 批量查询所有题目
+    question_ids = [answer.question_id for answer in answers]
+    questions_result = await db.scalars(
+        select(Question).where(Question.id.in_(question_ids))
+    )
+    questions = {q.id: q for q in questions_result.all()}
+    
     difficulty_stats = {}
-
     for answer in answers:
-        question = await db.scalar(select(Question).where(Question.id == answer.question_id))
+        question = questions.get(answer.question_id)
         if not question:
             continue
 

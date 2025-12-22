@@ -221,7 +221,7 @@ class PracticeSession(BaseModel):
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
     status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态:0 - 未开始，1 - 作答中，2 - 已完成")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="生成状态 0 - 生成中；1 - 生成成功 ")
+    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="生成状态: -1-生成失败, 0-生成中, 1-生成成功")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 

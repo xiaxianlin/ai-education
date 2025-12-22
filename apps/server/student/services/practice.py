@@ -93,12 +93,20 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
     )
 
     if not session:
-        raise ValueError("练习会话不存在")
+        raise ValueError(f"练习会话不存在: session_id={session_id}")
 
     if session.student_id != student_id:
-        raise ValueError("无权操作此练习")
+        raise ValueError(f"无权操作此练习: session_id={session_id}, student_id={student_id}")
 
     if session.status == 0:
+        # 检查生成状态
+        if session.generate_status == 0:
+            raise ValueError("练习正在生成中，请稍候")
+        if session.generate_status == -1:
+            raise ValueError("练习生成失败，请重新生成")
+        if session.generate_status != 1:
+            raise ValueError(f"练习状态异常，无法开始（generate_status={session.generate_status}）")
+        
         # 更新状态为进行中
         session.status = 1
         session.start_time = now()
@@ -127,17 +135,31 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
     )
 
     if not session:
-        raise ValueError("练习会话不存在")
+        raise ValueError(f"练习会话不存在: session_id={session_id}")
 
     if session.student_id != student_id:
-        raise ValueError("无权操作此练习")
+        raise ValueError(f"无权操作此练习: session_id={session_id}, student_id={student_id}")
+
+    # 检查是否已完成所有题目
+    if session.answer_count < session.question_count:
+        logger.warning(
+            f"练习未完成所有题目: session_id={session_id}, "
+            f"已答={session.answer_count}, 总数={session.question_count}"
+        )
+        # 允许未完成就结束，但记录警告日志
 
     # 如果已经完成，直接返回报告ID
     if session.status == 2:
-        logger.warning(f"练习已完成: session_id={session_id}")
-        # 查询报告ID
+        logger.info(f"练习已完成: session_id={session_id}")
+        # 先查询报告是否存在
+        from shared.core.database import PracticeReport
+        report = await db.scalar(
+            select(PracticeReport).where(PracticeReport.session_id == session_id)
+        )
+        if report:
+            return report.id
+        # 如果报告不存在，再生成
         from student.services.report import generate_practice_report
-
         report_id = await generate_practice_report(db, student_id, session_id)
         return report_id
 

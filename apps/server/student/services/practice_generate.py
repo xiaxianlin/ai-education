@@ -15,6 +15,21 @@ from shared.utils.practice_config import get_generate_count
 from generation.question import invoke_generate_workflow
 
 
+def _get_question_count(
+    practice: Practice | None, textbook: Textbook, practice_type: str
+) -> int:
+    """获取题目生成数量（统一处理配置获取和降级逻辑）"""
+    if practice:
+        return get_generate_count(practice, textbook.grade)
+    else:
+        # 降级到旧逻辑（兼容）
+        from shared.core.constants import GENERATE_QUESTION_COUNT
+        count = GENERATE_QUESTION_COUNT.get(textbook.grade, {}).get(practice_type, 15)
+        if not count:
+            raise ValueError(f"生成数量异常: grade={textbook.grade}, type={practice_type}")
+        return count
+
+
 async def create_answer_records(
     db: AsyncSession, session: PracticeSession, questions: list[Question]
 ):
@@ -67,14 +82,14 @@ async def generate_practice_session(
 
     textbook = await db.scalar(select(Textbook).where(Textbook.id == textbook_id))
     if not textbook:
-        raise ValueError("教材不存在")
+        raise ValueError(f"教材不存在: textbook_id={textbook_id}")
 
     # 获取 Practice 对象
     practice = None
     if practice_id:
         practice = await db.scalar(select(Practice).where(Practice.id == practice_id))
         if not practice:
-            raise ValueError("练习不存在")
+            raise ValueError(f"练习不存在: practice_id={practice_id}")
         # 使用 practice 的 practice_type 作为 type
         type = practice.practice_type or type
     elif type:
@@ -108,15 +123,7 @@ async def generate_practice_session(
 
     try:
         # 从 Practice 配置获取生成数量
-        if practice:
-            count = get_generate_count(practice, textbook.grade)
-        else:
-            # 降级到旧逻辑（兼容）
-            from shared.core.constants import GENERATE_QUESTION_COUNT
-            count = GENERATE_QUESTION_COUNT.get(textbook.grade, {}).get(type, 15)
-        
-        if not count:
-            raise ValueError("生成数量异常")
+        count = _get_question_count(practice, textbook, type)
 
         logger.info(f"开始生成练习会话: session_id={session.id}, type={type}, practice_id={practice_id}, count={count}")
         questions = await invoke_generate_workflow(
@@ -141,17 +148,32 @@ async def generate_practice_session(
         return session
     except Exception as e:
         logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
-        await db.rollback()
-        await db.delete(session)
-        raise ValueError(f"会话生成失败: {str(e)}")
+        # 先设置失败状态
+        session.generate_status = -1
+        session.update_time = now()
+        try:
+            await db.commit()
+            logger.info(f"已设置练习生成失败状态: session_id={session.id}, generate_status=-1")
+        except Exception as commit_error:
+            logger.error(f"提交失败状态失败: session_id={session.id}, error={commit_error}")
+            await db.rollback()
+            # 如果提交失败，再删除 session
+            try:
+                await db.delete(session)
+                await db.commit()
+                logger.warning(f"已删除失败的练习会话: session_id={session.id}")
+            except Exception as delete_error:
+                logger.error(f"删除失败会话也失败: session_id={session.id}, error={delete_error}")
+                await db.rollback()
+        raise ValueError(f"会话生成失败: session_id={session.id}, error={str(e)}")
 
 
-@staticmethod
 async def regenerate_practice_session(db: AsyncSession, session_id: int):
+    """重新生成练习会话"""
     # 查询练习会话
     session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
     if not session:
-        raise ValueError("当前练习不存在")
+        raise ValueError(f"当前练习不存在: session_id={session_id}")
 
     if session.generate_status == 0:
         raise ValueError("当前练习正在生成中，请稍后重试")
@@ -164,22 +186,39 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         session.start_time = 0
         session.answer_count = 0
 
-        logger.info(f"开始重新生成练习会话: session_id={session_id}, type={type}")
+        logger.info(f"开始重新生成练习会话: session_id={session_id}, type={session.session_type}")
 
-        unit_id = session.target_id if session.session_type == "unit_practice" else None
+        # 获取单元信息
+        unit = None
+        if session.session_type == "unit_practice":
+            unit = await db.scalar(select(Unit).where(Unit.id == session.target_id))
+        
+        # 获取 Practice 配置
+        practice = None
+        if session.practice_id:
+            practice = await db.scalar(select(Practice).where(Practice.id == session.practice_id))
+        
+        # 获取教材信息
+        textbook = await db.scalar(select(Textbook).where(Textbook.id == session.textbook_id))
+        if not textbook:
+            raise ValueError("教材不存在")
+        
+        # 获取生成数量
+        count = _get_question_count(practice, textbook, session.session_type)
 
         questions = await invoke_generate_workflow(
             db=db,
             type=session.session_type,
-            count=session.question_count,
-            unit_id=unit_id,
-            textbook_id=session.textbook_id,
+            count=count,
+            unit=unit,
+            textbook=textbook,
             student_id=session.student_id,
         )
-        await create_answer_records(db, session.id, questions)
+        await create_answer_records(db, session, questions)
 
         session.question_count = len(questions)
         session.generate_status = 1
+        session.update_time = now()
         await db.commit()
 
         logger.info(
