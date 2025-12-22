@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { adminApi } from '@/lib/api';
+import { PracticeApi } from '../../api';
 import { useBoolean, useRequest } from 'ahooks';
 import { useSearchParams } from 'react-router-dom';
 import { ProForm } from '@ant-design/pro-components';
@@ -14,12 +14,12 @@ const useContainer = () => {
 
   const [form] = ProForm.useForm<PracticeParameter>();
 
-  const { data: practice, loading } = useRequest(() => adminApi.getPractice(practiceId), {
+  const { data: practice, loading } = useRequest(() => PracticeApi.getPractice(practiceId), {
     ready: !!practiceId,
     onSuccess: (res) => setParameters(res.parameters || []),
   });
 
-  const { run: submit } = useRequest(() => adminApi.savePracticeParameters(practiceId, parameters), {
+  const { run: submit } = useRequest(() => PracticeApi.savePracticeParameters(practiceId, parameters), {
     manual: true,
   });
 

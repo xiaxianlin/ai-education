@@ -1,8 +1,8 @@
 import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
-import { adminApi } from '@/lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
+import { TeacherBookApi } from '../api';
 
 const useContainer = () => {
   const navigate = useNavigate();
@@ -11,11 +11,11 @@ const useContainer = () => {
     data: teacherBook,
     loading,
     refresh,
-  } = useRequest(() => adminApi.getTeacherBook(Number(id)), {
+  } = useRequest(() => TeacherBookApi.getTeacherBook(Number(id)), {
     ready: !!id,
   });
 
-  const { runAsync: deleteTeacherBook } = useRequest(adminApi.deleteTeacherBook, {
+  const { runAsync: deleteTeacherBook } = useRequest(TeacherBookApi.deleteTeacherBook, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -24,7 +24,7 @@ const useContainer = () => {
   });
 
   const { loading: uploading, run: upload } = useRequest(
-    (data) => adminApi.uploadTeacherBook(teacherBook!.id, data),
+    (data) => TeacherBookApi.uploadTeacherBook(teacherBook!.id, data),
     {
       manual: true,
       onSuccess: () => {

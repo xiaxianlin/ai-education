@@ -1,4 +1,4 @@
-import { adminApi } from '@/lib/api';
+import { StudentApi } from '../api';
 import { ProForm } from '@ant-design/pro-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRequest } from 'ahooks';
@@ -16,12 +16,12 @@ const useContainer = () => {
     data: student,
     error,
     refresh,
-  } = useRequest(() => adminApi.getStudent(id!), {
+  } = useRequest(() => StudentApi.getStudent(id!), {
     ready: !!id,
     refreshDeps: [id],
   });
 
-  const { runAsync: handleDelete, loading: deleting } = useRequest(() => adminApi.deleteStudent(id!), {
+  const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.deleteStudent(id!), {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -29,7 +29,7 @@ const useContainer = () => {
     },
   });
 
-  const { runAsync: handleResetPassword, loading: resetting } = useRequest(() => adminApi.resetStudentPassword(id!), {
+  const { runAsync: handleResetPassword, loading: resetting } = useRequest(() => StudentApi.resetStudentPassword(id!), {
     manual: true,
     onSuccess: (password) => {
       Modal.success({
@@ -41,7 +41,7 @@ const useContainer = () => {
   });
 
   const { runAsync: handleToggleStatus, loading: toggling } = useRequest(
-    async (status: number) => adminApi.updateStudent(id!, { status }),
+    async (status: number) => StudentApi.updateStudent(id!, { status }),
     {
       manual: true,
       onSuccess: (_, [status]) => {

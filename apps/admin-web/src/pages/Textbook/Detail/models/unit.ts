@@ -4,8 +4,8 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from './page';
+import { TextbookApi } from '../../api';
 
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
@@ -13,15 +13,15 @@ const useContainer = () => {
   const formProps = useSimpleForm<CreateUnitRequest | UpdateUnitRequest, Unit>({
     service: async (values, item) => {
       if (item) {
-        await adminApi.updateUnit(item.id, values as UpdateUnitRequest);
+        await TextbookApi.updateUnit(item.id, values as UpdateUnitRequest);
       } else {
-        await adminApi.createUnit({ ...values, textbook_id: Number(id) } as CreateUnitRequest);
+        await TextbookApi.createUnit({ ...values, textbook_id: Number(id) } as CreateUnitRequest);
       }
     },
     onSubmit: () => actionRef.current?.reload(),
   });
 
-  const { runAsync: deleteUnit } = useRequest(adminApi.deleteUnit, {
+  const { runAsync: deleteUnit } = useRequest(TextbookApi.deleteUnit, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');

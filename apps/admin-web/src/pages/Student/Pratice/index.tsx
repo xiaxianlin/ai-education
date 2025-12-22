@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageContainer, ProDescriptions, ProTable, ProColumns, ProSkeleton } from '@ant-design/pro-components';
-import { adminApi } from '@/lib/api';
+import { PracticeApi } from '@/pages/Practice/api';
 import { useRequest } from 'ahooks';
 import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
 import { SetStateAction, useMemo, useState } from 'react';
@@ -15,7 +15,7 @@ export default function PracticeDetailPage() {
   const navigate = useNavigate();
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
   // 使用统一的会话详情接口
-  const { data, loading, error } = useRequest(() => adminApi.getPracticeSession(Number(session_id)), {
+  const { data, loading, error } = useRequest(() => PracticeApi.getPracticeSession(Number(session_id)), {
     ready: !!session_id,
   });
 

@@ -3,7 +3,7 @@ import { Button, Card, Empty, Flex, message, Modal } from 'antd';
 import { ModalForm, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { useStudentDetailModel } from '../models/page';
 import { TextbookCard } from '../components/TextbookCard';
-import { adminApi } from '@/lib/api';
+import { StudentApi } from '../../api';
 import { useRequest } from 'ahooks';
 import { GRADES } from '@/constants/course';
 import { PlusOutlined } from '@ant-design/icons';
@@ -12,16 +12,16 @@ export function TextbookList() {
   const { student } = useStudentDetailModel();
   const [visible, setVisible] = useState(false);
   const [form] = ProForm.useForm<{ textbookId: number }>();
-  const { data, loading, refresh } = useRequest(() => adminApi.getStudentTextbooks(student?.id || ''), {
+  const { data, loading, refresh } = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
     ready: !!student?.id,
   });
 
-  const { data: unusedTextbooks } = useRequest(() => adminApi.getStudentUnusedTextbooks(student?.id || ''), {
+  const { data: unusedTextbooks } = useRequest(() => StudentApi.getStudentUnusedTextbooks(student?.id || ''), {
     ready: !!student?.id,
   });
 
   const { runAsync: handleAddTextbook } = useRequest(
-    (textbookId: number) => adminApi.addStudentTextbook(student?.id || '', textbookId),
+    (textbookId: number) => StudentApi.addStudentTextbook(student?.id || '', textbookId),
     {
       manual: true,
       ready: !!student?.id,
@@ -34,7 +34,7 @@ export function TextbookList() {
   );
 
   const { runAsync: removeTextbook } = useRequest(
-    (textbookId: number) => adminApi.removeStudentTextbook(student?.id || '', textbookId),
+    (textbookId: number) => StudentApi.removeStudentTextbook(student?.id || '', textbookId),
     {
       manual: true,
       ready: !!student?.id,

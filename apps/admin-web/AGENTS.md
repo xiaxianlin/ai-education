@@ -61,7 +61,8 @@ pages/[Feature]/[PageName]/
 
 ### API 调用
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
-- 管理端 API 统一封装在 `src/lib/api.ts`（`adminApi`），新增/修改接口优先在这里集中维护
+- 管理端 API 按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi` 等），新增/修改接口优先在对应模块的 `api.ts` 中维护
+- 通用 API（如 `check`、`getConfigs`）统一封装在 `src/lib/api.ts` 的 `CommonApi` 中
 
 ## 注意事项
 

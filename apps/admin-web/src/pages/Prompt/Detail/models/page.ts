@@ -1,6 +1,6 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { useRequest } from 'ahooks';
 
 const useContainer = () => {
@@ -13,7 +13,7 @@ const useContainer = () => {
     data: prompt,
     loading,
     refresh,
-  } = useRequest(() => adminApi.getPromptDetail(versionId), {
+  } = useRequest(() => PromptApi.getPromptDetail(versionId), {
     ready: !!versionId,
   });
 

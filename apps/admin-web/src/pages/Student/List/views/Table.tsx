@@ -1,6 +1,6 @@
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { adminApi } from '@/lib/api';
+import { StudentApi } from '../api';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createActionColumn, createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';
@@ -61,7 +61,7 @@ export default function TableView() {
         </Button>
       }
       request={async ({ pageSize, current, ...filter }) => {
-        const data = await adminApi.searchStudents({
+        const data = await StudentApi.searchStudents({
           page: current || 1,
           size: pageSize || 10,
           ...filter,

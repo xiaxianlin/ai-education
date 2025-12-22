@@ -1,6 +1,6 @@
 import { useRequest } from 'ahooks';
 import { ModalForm, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
-import { adminApi } from '@/lib/api';
+import { StudentApi } from '../../api';
 import { useStudentDetailModel } from '../models/page';
 import { message } from 'antd';
 import { GRADES } from '@/constants/course';
@@ -9,7 +9,7 @@ export function EditForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =
     useStudentDetailModel();
   const { runAsync: handleEditSubmit, loading: editing } = useRequest(
-    async (values: SaveStudentRequest) => adminApi.updateStudent((student as any)?.id || '', values),
+    async (values: SaveStudentRequest) => StudentApi.updateStudent((student as any)?.id || '', values),
     {
       manual: true,
       onSuccess: () => {

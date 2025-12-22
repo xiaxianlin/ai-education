@@ -7,8 +7,8 @@ import { useMemo } from 'react';
 import { useTextbookListModel } from '../models/page';
 import { useConfigs } from '@/hooks';
 import { GRADES } from '@/constants/course';
-import { adminApi } from '@/lib/api';
 import { createActionColumn } from '@/hooks';
+import { TextbookApi } from '../api';
 
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
@@ -67,7 +67,7 @@ export default function TableView() {
         </Button>
       }
       request={async () => {
-        const data = await adminApi.searchTextbooks({ subject, grade });
+        const data = await TextbookApi.searchTextbooks({ subject, grade });
         return { data, success: true, total: data.length };
       }}
       pagination={false}

@@ -1,10 +1,10 @@
 import React from 'react';
 import { ProTable, ProColumns, ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
-import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from '../models/page';
 import { useTextbookUnitModel } from '../models/unit';
 import { createActionColumn } from '@/hooks';
+import { TextbookApi } from '../api';
 
 export const UnitView: React.FC = () => {
   const { id, setUnits } = useTextbookDetailModel();
@@ -43,7 +43,7 @@ export const UnitView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async () => {
-          const data = await adminApi.getTextbookUnits(id);
+          const data = await TextbookApi.getTextbookUnits(id);
           setUnits(data);
           return { data, success: true, total: data.length };
         }}

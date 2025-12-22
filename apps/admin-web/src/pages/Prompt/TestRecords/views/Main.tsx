@@ -4,7 +4,7 @@ import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components'
 import { Tag, Button, Typography } from 'antd';
 import { usePromptTestRecordsModel } from '../models/page';
 import { DeleteButton } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import RecordDetailDrawer from '../components/RecordDetailDrawer';
 
@@ -158,7 +158,7 @@ export default function MainView() {
           defaultColsNumber: 6,
         }}
         request={async ({ current, pageSize, ...rest }) => {
-          const res = await adminApi.listPromptTestRecords({ page: current || 1, size: pageSize || 10, ...rest });
+          const res = await PromptApi.listPromptTestRecords({ page: current || 1, size: pageSize || 10, ...rest });
           return { data: res?.data || [], success: true, total: res?.total || 0 };
         }}
         toolbar={{ settings: [] }}

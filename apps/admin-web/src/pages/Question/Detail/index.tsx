@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
-import { adminApi } from '@/lib/api';
+import { QuestionApi } from '../api';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Space, Tag, Image, Flex, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
@@ -17,7 +17,7 @@ export default function QuestionDetailPage() {
     data: question,
     loading,
     refresh,
-  } = useRequest(() => adminApi.getQuestion(id!), {
+  } = useRequest(() => QuestionApi.getQuestion(id!), {
     ready: !!id,
     onError: () => {
       message.error('加载问题失败');
@@ -29,7 +29,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleGenerateImage, loading: generatingImage } = useRequest(
     async () => {
       if (!id) return;
-      await adminApi.generateQuestionImage(id);
+      await QuestionApi.generateQuestionImage(id);
     },
     {
       manual: true,
@@ -47,7 +47,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleGenerateAudio, loading: generatingAudio } = useRequest(
     async () => {
       if (!id) return;
-      await adminApi.generateQuestionAudio(id);
+      await QuestionApi.generateQuestionAudio(id);
     },
     {
       manual: true,
@@ -65,7 +65,7 @@ export default function QuestionDetailPage() {
   const { runAsync: handleDelete, loading: deleting } = useRequest(
     async () => {
       if (!id) return;
-      await adminApi.deleteQuestion(id);
+      await QuestionApi.deleteQuestion(id);
     },
     {
       manual: true,

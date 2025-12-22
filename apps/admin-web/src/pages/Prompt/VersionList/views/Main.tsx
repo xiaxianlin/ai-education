@@ -5,7 +5,7 @@ import { Button, Tag, Typography } from 'antd';
 import { StatusTag } from '@/components';
 import { usePromptVersionListModel } from '../models/page';
 import { PageHeader } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 import { PublishModal } from '../../Detail/components/PublishModal';
 
@@ -87,7 +87,7 @@ export default function MainView() {
         columns={columns}
         search={false}
         request={async ({ pageSize, current }) => {
-          const data = await adminApi.listPromptVersions({
+          const data = await PromptApi.listPromptVersions({
             prompt_id: promptId,
             page: current || 1,
             size: pageSize || 10,

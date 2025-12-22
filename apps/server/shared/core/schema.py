@@ -310,21 +310,3 @@ class PromptSchema(BaseModel):
     version: Optional["PromptVersionSchema"] = None
 
     model_config = {"from_attributes": True}
-
-
-class PromptTestRecordSchema(BaseModel):
-    id: int
-    prompt_id: int
-    version_id: int
-    generation_type: str = "text"
-    model_provider: Optional[str] = None
-    model_name: Optional[str] = None
-    input_payload: dict
-    rendered_prompt: str
-    response_snapshot: Optional[dict] = None
-    latency_ms: Optional[int] = None
-    status: str
-    error: Optional[str] = None
-    create_time: int
-
-    model_config = {"from_attributes": True}

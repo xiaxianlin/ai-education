@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { usePracticePromptModel } from '../models/page';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '@/pages/Prompt/api';
 import { GRADES, SUBJECTS } from '@/constants/course';
 
 const PRACTICE_TYPE_OPTIONS = [
@@ -29,7 +29,7 @@ export default function FormDrawerView() {
 
   useEffect(() => {
     // 加载提示词列表
-    adminApi.listPrompts({ page: 1, size: 1000 }).then((res) => {
+    PromptApi.listPrompts({ page: 1, size: 1000 }).then((res) => {
       setPromptOptions(
         (res?.data || []).map((p) => ({
           label: `${p.name} (${p.slug})`,

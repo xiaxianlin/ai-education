@@ -3,7 +3,7 @@ import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { message } from 'antd';
 import { useDelete } from '@/hooks/useDelete';
-import { adminApi } from '@/lib/api';
+import { PracticeApi } from '../../api';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
@@ -14,7 +14,7 @@ const useContainer = () => {
   const [initialValues, setInitialValues] = useState<Partial<SavePracticeRequest>>();
 
   const { handleDelete, loading: deleteLoading } = useDelete(
-    adminApi.deletePractice,
+    PracticeApi.deletePractice,
     {
       onSuccess: () => actionRef.current?.reload(),
     }
@@ -29,8 +29,8 @@ const useContainer = () => {
   const handleEdit = (id: number) => {
     setEditingId(id);
     setDataLoading(true);
-    adminApi
-      .getPracticeDetail(id)
+    PracticeApi
+      .getPractice(id)
       .then((data) => {
         setInitialValues({
           name: data.name,
@@ -60,10 +60,10 @@ const useContainer = () => {
     setFormLoading(true);
     try {
       if (editingId) {
-        await adminApi.updatePractice(editingId, values);
+        await PracticeApi.updatePractice(editingId, values);
         message.success('更新成功');
       } else {
-        await adminApi.createPractice(values);
+        await PracticeApi.createPractice(values);
         message.success('创建成功');
       }
       handleClose();

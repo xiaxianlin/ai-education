@@ -2,12 +2,12 @@ import { useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { ActionType } from '@ant-design/pro-components';
 import { useDelete } from '@/hooks/useDelete';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
 
-  const { handleDelete, loading: deletePromptLoading } = useDelete(adminApi.deletePrompt, {
+  const { handleDelete, loading: deletePromptLoading } = useDelete(PromptApi.deletePrompt, {
     onSuccess: () => actionRef.current?.reload(),
   });
 

@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { message } from 'antd';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { useRequest } from 'ahooks';
 
 const useContainer = () => {
@@ -23,8 +23,8 @@ const useContainer = () => {
       }
 
       return versionId
-        ? adminApi.updatePrompt(versionId, { ...params, model_params: parsedModelParams })
-        : adminApi.createPrompt({ ...params, model_params: parsedModelParams });
+        ? PromptApi.updatePrompt(versionId, { ...params, model_params: parsedModelParams })
+        : PromptApi.createPrompt({ ...params, model_params: parsedModelParams });
     },
     {
       manual: true,

@@ -4,7 +4,7 @@ import { Button, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePracticePromptModel } from '../models/page';
 import { DeleteButton } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PracticeApi } from '../../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import { PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { GRADES, SUBJECTS } from '@/constants/course';
@@ -103,7 +103,7 @@ export default function ListView() {
           </Button>
         }
         request={async ({ pageSize, current, ...filter }) => {
-          const data = await adminApi.listPracticePrompts({
+          const data = await PracticeApi.listPracticePrompts({
             page: current || 1,
             size: pageSize || 10,
             practice_type: filter.practice_type,

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageContainer, ProForm, ProFormSelect, ProFormTextArea, ProFormText } from '@ant-design/pro-components';
-import { adminApi } from '@/lib/api';
+import { QuestionApi } from '../api';
+import { TextbookApi } from '@/pages/Textbook/api';
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Button, Card, Flex, Row, Col } from 'antd';
@@ -39,7 +40,7 @@ export default function QuestionFormPage() {
 
   // 获取所有教材列表
   const { data: textbookOptions } = useRequest(async () => {
-    const res = await adminApi.searchTextbooks();
+    const res = await TextbookApi.searchTextbooks();
     return res.reduce((prev: Record<number, string>, curr) => {
       const gradeInfo = GRADES[curr.grade];
       const label = `${curr.subject} - ${curr.version} - ${gradeInfo || curr.grade}年级 - ${curr.semester}`;
@@ -52,7 +53,7 @@ export default function QuestionFormPage() {
   const { data: unitOptions } = useRequest(
     async () => {
       if (!selectedTextbookId) return [];
-      const units = await adminApi.getTextbookUnits(Number(selectedTextbookId));
+      const units = await TextbookApi.getTextbookUnits(Number(selectedTextbookId));
       return units.reduce((prev: Record<number, string>, curr) => {
         prev[curr.id] = curr.name;
         return prev;
@@ -65,7 +66,7 @@ export default function QuestionFormPage() {
   );
 
   // 获取详情（编辑状态）
-  const { data: question, loading } = useRequest(() => adminApi.getQuestion(id!), {
+  const { data: question, loading } = useRequest(() => QuestionApi.getQuestion(id!), {
     ready: isEdit,
     onError: () => {
       message.error('加载详情失败');
@@ -82,10 +83,10 @@ export default function QuestionFormPage() {
         unit_id: values.unit_id ? Number(values.unit_id) : undefined,
       };
       if (isEdit) {
-        await adminApi.updateQuestion(id!, submitData);
+        await QuestionApi.updateQuestion(id!, submitData);
         message.success('更新成功');
       } else {
-        await adminApi.createQuestion(submitData);
+        await QuestionApi.createQuestion(submitData);
         message.success('创建成功');
       }
     },

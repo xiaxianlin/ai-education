@@ -228,24 +228,6 @@ class PromptVersion(BaseModel):
     )
 
 
-class PromptTestRecord(BaseModel):
-    __tablename__ = "ah_prompt_test_record"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="测试记录 ID")
-    prompt_id: Mapped[int] = mapped_column(index=True, comment="提示词 ID")
-    version_id: Mapped[int] = mapped_column(index=True, comment="版本 ID")
-    generation_type: Mapped[str] = mapped_column(String(32), default="text", comment="生成类型: text/image/audio/video")
-    model_provider: Mapped[str] = mapped_column(String(64), comment="模型提供方")
-    model_name: Mapped[str] = mapped_column(String(128), comment="模型名称")
-    model_params: Mapped[dict] = mapped_column(JSON, default=dict, comment="模型参数")
-    input_payload: Mapped[dict] = mapped_column(JSON, default=dict, comment="输入参数")
-    rendered_prompt: Mapped[str] = mapped_column(Text, comment="渲染后的提示词")
-    response: Mapped[dict] = mapped_column(JSON, nullable=True, comment="响应快照")
-    status: Mapped[int] = mapped_column(default=0, comment="状态: 0-待测试 1-测试中 2-测试成功 3-测试失败")
-    error: Mapped[str] = mapped_column(Text, nullable=True, comment="错误信息")
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-
-
 # ================ 练习相关表 ================
 
 

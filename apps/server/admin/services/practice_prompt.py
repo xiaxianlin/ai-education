@@ -2,13 +2,9 @@ from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from admin.schema import (
-    SavePracticePromptSchema,
-    SearchPracticePromptSchema,
-    PracticePromptSchema,
-)
+from admin.schema import SavePracticePromptSchema, SearchPracticePromptSchema
 from shared.core.database import PracticePrompt, Prompt
-from shared.core.schema import SearchResultSchema
+from shared.core.schema import SearchResultSchema, PracticePromptSchema
 
 
 async def list_practice_prompts(
@@ -33,9 +29,7 @@ async def list_practice_prompts(
 
     # 分页查询
     result = await db.scalars(
-        query.order_by(PracticePrompt.id.desc())
-        .offset((params.page - 1) * params.size)
-        .limit(params.size)
+        query.order_by(PracticePrompt.id.desc()).offset((params.page - 1) * params.size).limit(params.size)
     )
 
     items = []
@@ -57,14 +51,10 @@ async def list_practice_prompts(
     return SearchResultSchema(total=total or 0, data=items)
 
 
-async def get_practice_prompt(
-    db: AsyncSession, id: int
-) -> PracticePromptSchema:
+async def get_practice_prompt(db: AsyncSession, id: int) -> PracticePromptSchema:
     """获取练习提示词关联详情"""
     practice_prompt = await db.scalar(
-        select(PracticePrompt)
-        .options(joinedload(PracticePrompt.prompt))
-        .where(PracticePrompt.id == id)
+        select(PracticePrompt).options(joinedload(PracticePrompt.prompt)).where(PracticePrompt.id == id)
     )
     if not practice_prompt:
         raise ValueError("关联不存在")
@@ -82,9 +72,7 @@ async def get_practice_prompt(
     )
 
 
-async def create_practice_prompt(
-    db: AsyncSession, params: SavePracticePromptSchema
-) -> int:
+async def create_practice_prompt(db: AsyncSession, params: SavePracticePromptSchema) -> int:
     """创建练习提示词关联"""
     # 检查提示词是否存在
     prompt = await db.scalar(select(Prompt).where(Prompt.id == params.prompt_id))
@@ -114,13 +102,9 @@ async def create_practice_prompt(
     return practice_prompt.id
 
 
-async def update_practice_prompt(
-    db: AsyncSession, id: int, params: SavePracticePromptSchema
-) -> dict:
+async def update_practice_prompt(db: AsyncSession, id: int, params: SavePracticePromptSchema) -> dict:
     """更新练习提示词关联"""
-    practice_prompt = await db.scalar(
-        select(PracticePrompt).where(PracticePrompt.id == id)
-    )
+    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.id == id))
     if not practice_prompt:
         raise ValueError("关联不存在")
 
@@ -159,13 +143,10 @@ async def update_practice_prompt(
 
 async def delete_practice_prompt(db: AsyncSession, id: int) -> dict:
     """删除练习提示词关联"""
-    practice_prompt = await db.scalar(
-        select(PracticePrompt).where(PracticePrompt.id == id)
-    )
+    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.id == id))
     if not practice_prompt:
         raise ValueError("关联不存在")
 
     await db.execute(delete(PracticePrompt).where(PracticePrompt.id == id))
     await db.commit()
     return {"id": id}
-

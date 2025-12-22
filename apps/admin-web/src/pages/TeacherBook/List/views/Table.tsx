@@ -6,9 +6,8 @@ import { useTeacherBookListModel } from '../models/page';
 import { useConfigs } from '@/hooks';
 import { GRADES } from '@/constants/course';
 import { PlusOutlined } from '@ant-design/icons';
-import { adminApi } from '@/lib/api';
-
 import { createActionColumn } from '@/hooks';
+import { TeacherBookApi } from '../api';
 
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
@@ -62,7 +61,7 @@ export default function TableView() {
         </Button>
       }
       request={async () => {
-        const data = await adminApi.searchTeacherBooks(subject, grade);
+        const data = await TeacherBookApi.searchTeacherBooks(subject, grade);
         return { data, success: true, total: data.length };
       }}
       pagination={false}

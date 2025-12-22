@@ -342,60 +342,6 @@ class SearchPromptVersionSchema(SearchSchema):
     prompt_id: int
 
 
-class SearchPromptTestRecordSchema(SearchSchema):
-    prompt_id: Optional[int] = None
-    version_id: Optional[int] = None
-    generation_type: Optional[str] = None
-    model_name: Optional[str] = None
-    status: Optional[int] = None  # 0-待测试 1-测试中 2-测试成功 3-测试失败
-
-
-class SavePracticePromptSchema(BaseModel):
-    """保存练习提示词关联"""
-
-    practice_type: str
-    subject: str
-    grade: int
-    prompt_id: int
-
-    @field_validator("practice_type")
-    @classmethod
-    def valid_practice_type(cls, v):
-        if v not in ["daily_practice", "unit_practice", "assessment"]:
-            raise ValueError("练习类型只能是 daily_practice、unit_practice 或 assessment")
-        return v
-
-    @field_validator("subject")
-    @classmethod
-    def valid_subject(cls, v):
-        if v and v not in SUBJECTS:
-            raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
-        return v
-
-    @field_validator("grade")
-    @classmethod
-    def valid_grade(cls, v):
-        if v and v not in range(1, 13):
-            raise ValueError("非法年级")
-        return v
-
-    @field_validator("prompt_id")
-    @classmethod
-    def valid_prompt_id(cls, v):
-        if v <= 0:
-            raise ValueError("提示词ID必须大于0")
-        return v
-
-
-class SearchPracticePromptSchema(SearchSchema):
-    """搜索练习提示词关联"""
-
-    practice_type: Optional[str] = None
-    subject: Optional[str] = None
-    grade: Optional[int] = None
-    prompt_id: Optional[int] = None
-
-
 # ======================== 练习管理 ======================== #
 
 
@@ -483,3 +429,38 @@ class PracticeParameterSchema(BaseModel):
             raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是布尔值")
 
         return v
+
+
+# ======================== 练习提示词管理 ======================== #
+
+
+class SavePracticePromptSchema(BaseModel):
+    """保存练习提示词关联"""
+
+    subject: str
+    grade: int
+    practice_slug: str
+    prompt_slug: str
+
+    @field_validator("subject")
+    @classmethod
+    def valid_subject(cls, v):
+        if v and v not in SUBJECTS:
+            raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
+        return v
+
+    @field_validator("grade")
+    @classmethod
+    def valid_grade(cls, v):
+        if v and v not in range(1, 13):
+            raise ValueError("非法年级")
+        return v
+
+
+class SearchPracticePromptSchema(SearchSchema):
+    """搜索练习提示词关联"""
+
+    subject: Optional[str] = None
+    grade: Optional[int] = None
+    prompt_slug: Optional[str] = None
+    practice_slug: Optional[str] = None

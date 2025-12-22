@@ -4,7 +4,7 @@ import { Button, Select, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePracticeListModel } from '../models/page';
 import { DeleteButton } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PracticeApi } from '../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import FormDrawer from './FormDrawer';
 import { useNavigate } from 'react-router-dom';
@@ -73,7 +73,7 @@ export default function MainView() {
           </Button>
         }
         request={async ({ pageSize, current, ...filter }) => {
-          const data = await adminApi.listPractices({
+          const data = await PracticeApi.listPractices({
             page: current || 1,
             size: pageSize || 10,
             name: filter.name,

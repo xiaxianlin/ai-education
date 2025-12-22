@@ -4,8 +4,8 @@ import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { adminApi } from '@/lib/api';
 import { useTextbookDetailModel } from './page';
+import { TextbookApi } from '../../api';
 
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
@@ -13,15 +13,15 @@ const useContainer = () => {
   const formProps = useSimpleForm<CreateKnowledgeRequest | UpdateKnowledgeRequest, Knowledge>({
     service: async (values, item) => {
       if (item) {
-        await adminApi.updateKnowledge(item.id, values as UpdateKnowledgeRequest);
+        await TextbookApi.updateKnowledge(item.id, values as UpdateKnowledgeRequest);
       } else {
-        await adminApi.createKnowledge({ ...values, textbook_id: Number(id) } as CreateKnowledgeRequest);
+        await TextbookApi.createKnowledge({ ...values, textbook_id: Number(id) } as CreateKnowledgeRequest);
       }
     },
     onSubmit: () => actionRef.current?.reload(),
   });
 
-  const { runAsync: deleteUnit } = useRequest(adminApi.deleteKnowledge, {
+  const { runAsync: deleteUnit } = useRequest(TextbookApi.deleteKnowledge, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');

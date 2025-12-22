@@ -5,7 +5,7 @@ import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePromptListModel } from '../models/page';
 import { DeleteButton, StatusTag } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
 
 export default function MainView() {
@@ -75,7 +75,7 @@ export default function MainView() {
           </Button>
         }
         request={async ({ pageSize, current, ...filter }) => {
-          const data = await adminApi.listPrompts({
+          const data = await PromptApi.listPrompts({
             page: current || 1,
             size: pageSize || 10,
             name: filter.name,

@@ -8,7 +8,7 @@ import {
 } from '@ant-design/pro-components';
 import { usePromptFormModel } from '../models/page';
 import { PageHeader } from '@/components';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { Flex } from 'antd';
 
 export default function MainView() {
@@ -25,7 +25,7 @@ export default function MainView() {
             if (!versionId) {
               return {};
             }
-            const { model_params, ...data } = await adminApi.getPromptDetail(versionId);
+            const { model_params, ...data } = await PromptApi.getPromptDetail(versionId);
             return {
               ...data,
               model_params: model_params ? JSON.stringify(model_params) : undefined,

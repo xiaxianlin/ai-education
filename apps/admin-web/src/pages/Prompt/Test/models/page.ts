@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { Form, message } from 'antd';
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '../../api';
 import { extractTemplateParameters, TemplateParameter } from '../utils/templateParser';
 import { ModelConfig } from '../views/ModelDrawer';
 
@@ -35,7 +35,7 @@ const useContainer = () => {
   const loadPrompt = async (versionId: number) => {
     setLoading(true);
     try {
-      const data = await adminApi.getPromptDetail(versionId);
+      const data = await PromptApi.getPromptDetail(versionId);
       setPrompt(data);
 
       // 解析模板参数
@@ -101,7 +101,7 @@ const useContainer = () => {
 
     try {
       // 使用参数值和模型配置进行测试
-      const result = await adminApi.testPrompt(Number(version_id), {
+      const result = await PromptApi.testPrompt(Number(version_id), {
         variables: parameterValues,
         model_provider: modelConfig.model_provider,
         model_name: modelConfig.model_name,

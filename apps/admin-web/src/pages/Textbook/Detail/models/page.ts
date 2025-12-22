@@ -1,9 +1,9 @@
 import { message, Modal } from 'antd';
 import { useRequest } from 'ahooks';
 import { createContainer } from 'unstated-next';
-import { adminApi } from '@/lib/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
+import { TextbookApi } from '../api';
 
 const useContainer = () => {
   const navigate = useNavigate();
@@ -13,18 +13,18 @@ const useContainer = () => {
     data: textbook,
     loading,
     refresh,
-  } = useRequest(() => adminApi.getTextbook(Number(id)), {
+  } = useRequest(() => TextbookApi.getTextbook(Number(id)), {
     ready: !!id,
   });
 
-  const { runAsync: deleteTextbook } = useRequest(adminApi.deleteTextbook, {
+  const { runAsync: deleteTextbook } = useRequest(TextbookApi.deleteTextbook, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
       navigate('/textbook');
     },
   });
-  const { loading: parsing, runAsync: parse } = useRequest(adminApi.parseTextbook, {
+  const { loading: parsing, runAsync: parse } = useRequest(TextbookApi.parseTextbook, {
     manual: true,
     onSuccess: () => {
       message.success('解析完成');
@@ -34,7 +34,7 @@ const useContainer = () => {
 
 
   const { loading: uploading, run: upload } = useRequest(
-    (data) => adminApi.uploadTextbook(textbook!.id, data),
+    (data) => TextbookApi.uploadTextbook(textbook!.id, data),
     {
       manual: true,
       onSuccess: () => {

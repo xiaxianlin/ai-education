@@ -1,4 +1,4 @@
-import { adminApi } from '@/lib/api';
+import { PromptApi } from '@/pages/Prompt/api';
 import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Form, message } from 'antd';
 import { ButtonSize } from 'antd/es/button';
@@ -24,7 +24,7 @@ export function PublishModal({ size, versionId, buttonType = 'primary', onSucces
       }
       onFinish={async (values) => {
         try {
-          await adminApi.publishPromptVersion(versionId, values.changelog);
+          await PromptApi.publishPromptVersion(versionId, values.changelog);
           message.success('发布成功');
           onSuccess?.();
           return true;

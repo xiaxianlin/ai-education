@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { adminApi } from '@/lib/api';
+import { QuestionApi } from '../api';
 import { useConfigs, useDelete, createActionColumn } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
 import { Button, Flex, Form, Input, Select, Space } from 'antd';
@@ -20,7 +20,7 @@ export default function QuestionListPage() {
   const actionRef = React.useRef<ActionType>();
 
   // 删除题目
-  const { handleDelete } = useDelete(adminApi.deleteQuestion, {
+  const { handleDelete } = useDelete(QuestionApi.deleteQuestion, {
     onSuccess: () => actionRef.current?.reload(),
   });
 
@@ -89,7 +89,7 @@ export default function QuestionListPage() {
           ],
         }}
         request={async ({ current, pageSize }) => {
-          const res = await adminApi.searchQuestions({ page: current, size: pageSize, subject, grade, ...params });
+          const res = await QuestionApi.searchQuestions({ page: current, size: pageSize, subject, grade, ...params });
           return {
             data: res?.data || [],
             total: res?.total || 0,
