@@ -13,12 +13,9 @@ const useContainer = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [initialValues, setInitialValues] = useState<Partial<SavePracticePromptRequest>>();
 
-  const { handleDelete, loading: deleteLoading } = useDelete(
-    PracticeApi.deletePracticePrompt,
-    {
-      onSuccess: () => actionRef.current?.reload(),
-    }
-  );
+  const { handleDelete, loading: deleteLoading } = useDelete(PracticeApi.deletePracticePrompt, {
+    onSuccess: () => actionRef.current?.reload(),
+  });
 
   // 打开新建表单
   const handleCreate = () => {
@@ -31,14 +28,13 @@ const useContainer = () => {
   const handleEdit = (id: number) => {
     setEditingId(id);
     setDataLoading(true);
-    PracticeApi
-      .getPracticePromptDetail(id)
+    PracticeApi.getPracticePromptDetail(id)
       .then((data) => {
         setInitialValues({
-          practice_type: 'daily_practice', // 默认值，实际应该从 data 中获取
+          practice_slug: data.practice_slug,
           subject: data.subject,
           grade: data.grade,
-          prompt_id: data.prompt?.id || 0, // 从关联的 prompt 中获取 id
+          prompt_slug: data.prompt_slug,
         });
         setDrawerOpen(true);
       })

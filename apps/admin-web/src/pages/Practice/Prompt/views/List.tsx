@@ -1,24 +1,12 @@
 import { useMemo } from 'react';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Select } from 'antd';
+import { Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { usePracticePromptModel } from '../models/page';
 import { DeleteButton } from '@/components';
 import { PracticeApi } from '../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
 import { GRADES, SUBJECTS } from '@/constants/course';
-
-const PRACTICE_TYPE_OPTIONS = [
-  { label: '日常练习', value: 'daily_practice' },
-  { label: '单元练习', value: 'unit_practice' },
-  { label: '综合评估', value: 'assessment' },
-];
-
-const PRACTICE_TYPE_LABELS_EXTENDED = {
-  daily_practice: '日常练习',
-  unit_practice: '单元练习',
-  assessment: '综合评估',
-};
 
 const GRADE_OPTIONS = Object.keys(GRADES).map((key) => ({
   label: GRADES[Number(key)],
@@ -31,13 +19,9 @@ export default function ListView() {
   const columns = useMemo<ProColumns<PracticePrompt>[]>(
     () => [
       {
-        title: '练习类型',
-        dataIndex: 'practice_type',
-        width: 120,
-        valueEnum: PRACTICE_TYPE_LABELS_EXTENDED,
-        renderFormItem: () => (
-          <Select placeholder="请选择练习类型" options={PRACTICE_TYPE_OPTIONS} />
-        ),
+        title: '练习标识',
+        dataIndex: 'practice_slug',
+        width: 150,
       },
       {
         title: '科目',
@@ -50,14 +34,11 @@ export default function ListView() {
         dataIndex: 'grade',
         width: 100,
         valueType: 'select',
-        valueEnum: GRADE_OPTIONS.reduce(
-          (acc, opt) => ({ ...acc, [opt.value]: opt.label }),
-          {}
-        ),
+        valueEnum: GRADE_OPTIONS.reduce((acc, opt) => ({ ...acc, [opt.value]: opt.label }), {}),
       },
       {
         title: '提示词名称',
-        dataIndex: 'prompt_name',
+        dataIndex: ['prompt', 'name'],
         width: 150,
         hideInSearch: true,
       },
@@ -65,7 +46,6 @@ export default function ListView() {
         title: '提示词标识',
         dataIndex: 'prompt_slug',
         width: 150,
-        hideInSearch: true,
       },
       createTimeColumn<PracticePrompt>('创建时间', 'create_time', { width: 180 }),
       createActionColumn<PracticePrompt>(
@@ -80,11 +60,11 @@ export default function ListView() {
         { width: 100 },
       ),
     ],
-    [handleEdit, handleDelete]
+    [handleEdit, handleDelete],
   );
 
   return (
-    <PageContainer title="新增练习管理" header={{ breadcrumb: {} }}>
+    <PageContainer title="练习提示词管理" header={{ breadcrumb: {} }}>
       <ProTable<PracticePrompt>
         bordered
         cardBordered
@@ -98,12 +78,7 @@ export default function ListView() {
           defaultColsNumber: 6,
         }}
         headerTitle={
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
+          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={handleCreate}>
             新建关联
           </Button>
         }
@@ -111,10 +86,10 @@ export default function ListView() {
           const data = await PracticeApi.listPracticePrompts({
             page: current || 1,
             size: pageSize || 10,
-            practice_type: filter.practice_type,
+            practice_slug: filter.practice_slug,
             subject: filter.subject,
             grade: filter.grade,
-            prompt_id: filter.prompt_id,
+            prompt_slug: filter.prompt_slug,
           });
           return {
             data: data?.data || [],

@@ -3,13 +3,8 @@ import { ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { usePracticePromptModel } from '../models/page';
 import { PromptApi } from '@/pages/Prompt/api';
+import { PracticeApi } from '../../api';
 import { GRADES, SUBJECTS } from '@/constants/course';
-
-const PRACTICE_TYPE_OPTIONS = [
-  { label: '日常练习', value: 'daily_practice' },
-  { label: '单元练习', value: 'unit_practice' },
-  { label: '综合评估', value: 'assessment' },
-];
 
 const GRADE_OPTIONS = Object.keys(GRADES).map((key) => ({
   label: GRADES[Number(key)],
@@ -17,15 +12,9 @@ const GRADE_OPTIONS = Object.keys(GRADES).map((key) => ({
 }));
 
 export default function FormDrawerView() {
-  const {
-    drawerOpen,
-    editingId,
-    formLoading,
-    initialValues,
-    handleClose,
-    handleSubmit,
-  } = usePracticePromptModel();
-  const [promptOptions, setPromptOptions] = useState<{ label: string; value: number }[]>([]);
+  const { drawerOpen, editingId, formLoading, initialValues, handleClose, handleSubmit } = usePracticePromptModel();
+  const [promptOptions, setPromptOptions] = useState<{ label: string; value: string }[]>([]);
+  const [practiceOptions, setPracticeOptions] = useState<{ label: string; value: string }[]>([]);
 
   useEffect(() => {
     // 加载提示词列表
@@ -33,8 +22,18 @@ export default function FormDrawerView() {
       setPromptOptions(
         (res?.data || []).map((p) => ({
           label: `${p.name} (${p.slug})`,
-          value: p.id,
-        }))
+          value: p.slug,
+        })),
+      );
+    });
+
+    // 加载练习列表
+    PracticeApi.listPractices({ page: 1, size: 1000 }).then((res) => {
+      setPracticeOptions(
+        (res?.data || []).map((p) => ({
+          label: `${p.name} (${p.slug})`,
+          value: p.slug,
+        })),
       );
     });
   }, []);
@@ -58,10 +57,14 @@ export default function FormDrawerView() {
         }}
       >
         <ProFormSelect
-          name="practice_type"
-          label="练习类型"
-          rules={[{ required: true, message: '请选择练习类型' }]}
-          options={PRACTICE_TYPE_OPTIONS}
+          name="practice_slug"
+          label="练习"
+          rules={[{ required: true, message: '请选择练习' }]}
+          options={practiceOptions}
+          fieldProps={{
+            showSearch: true,
+            filterOption: (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+          }}
         />
         <ProFormSelect
           name="subject"
@@ -76,18 +79,16 @@ export default function FormDrawerView() {
           options={GRADE_OPTIONS}
         />
         <ProFormSelect
-          name="prompt_id"
+          name="prompt_slug"
           label="提示词"
           rules={[{ required: true, message: '请选择提示词' }]}
           options={promptOptions}
           fieldProps={{
             showSearch: true,
-            filterOption: (input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+            filterOption: (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
           }}
         />
       </ProForm>
     </Drawer>
   );
 }
-

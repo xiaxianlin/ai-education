@@ -178,6 +178,31 @@ task_id = submit_task(
 - 学生端使用 `student_router_filter` 中间件
 - 认证信息通过 `request.state` 传递
 
+## FastAPI 应用架构
+
+项目采用子应用挂载架构，使用 `app.mount()` 将管理端和学生端作为独立的 FastAPI 应用挂载到主应用：
+
+```python
+# main.py
+from admin import admin_app
+from student import student_app
+
+app = FastAPI(lifespan=lifespan)
+app.mount("/api/admin", admin_app)
+app.mount("/api/student", student_app)
+```
+
+**架构说明**:
+- 每个子应用（`admin_app`、`student_app`）是独立的 FastAPI 实例
+- 子应用可以有自己的中间件、异常处理器、依赖注入等
+- 子应用的 OpenAPI 文档独立生成，访问路径为 `/api/admin/docs` 和 `/api/student/docs`
+- 根应用的 `/docs` 和 `/openapi.json` 不会包含子应用的路由（这是 FastAPI 的设计行为）
+
+**优势**:
+- 模块化设计，管理端和学生端完全隔离
+- 独立的认证中间件和异常处理
+- 便于未来拆分为微服务
+
 ## 注意事项
 
 1. **异步优先**: 所有数据库操作使用异步 SQLAlchemy
@@ -186,3 +211,4 @@ task_id = submit_task(
 4. **日志记录**: 使用 Loguru 记录日志
 5. **任务队列**: 长时间任务使用 Celery 异步处理
 6. **工作流**: 复杂业务逻辑使用 LangGraph 工作流
+7. **API 文档**: 访问子应用的 `/docs` 路径查看 OpenAPI 文档，而非根路径

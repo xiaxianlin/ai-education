@@ -48,14 +48,34 @@ export function TableView() {
       width: 200,
       ellipsis: true,
       render: (value, record) => {
-        console.log(record, value);
         if (!value) return '-';
+
+        // For object or array types, ensure we display as JSON string
         if (record.value_type === 'object' || record.value_type === 'array') {
           try {
+            // If value is already a string, try to parse and re-stringify for consistency
+            if (typeof value === 'string') {
+              const parsed = JSON.parse(value);
+              return JSON.stringify(parsed);
+            }
+            // If value is an object/array, stringify it
             return JSON.stringify(value);
-          } catch (e) {}
+          } catch (e) {
+            // If parsing fails but it's a string, return as-is
+            if (typeof value === 'string') {
+              return value;
+            }
+            // Last resort: try to stringify whatever it is
+            try {
+              return JSON.stringify(value);
+            } catch {
+              return String(value);
+            }
+          }
         }
-        return value;
+
+        // For other types, convert to string
+        return String(value);
       },
     },
     {
@@ -68,7 +88,7 @@ export function TableView() {
     {
       title: '操作',
       key: 'action',
-      width: 120,
+      width: 160,
       fixed: 'right',
       render: (_, record) => (
         <Space>

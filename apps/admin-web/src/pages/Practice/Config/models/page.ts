@@ -56,6 +56,7 @@ const useContainer = () => {
     practice,
     parameter,
     parameters,
+    setParameters,
     submit,
     saveParameter,
     removeParameter,

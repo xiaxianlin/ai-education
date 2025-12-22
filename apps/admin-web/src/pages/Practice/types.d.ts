@@ -1,16 +1,16 @@
 declare global {
   interface SavePracticePromptRequest {
-    practice_type: 'daily_practice' | 'unit_practice' | 'assessment';
+    practice_slug: string;
     subject: string;
     grade: number;
-    prompt_id: number;
+    prompt_slug: string;
   }
 
   interface SearchPracticePromptRequest extends SearchRequest {
-    practice_type?: 'daily_practice' | 'unit_practice' | 'assessment';
+    practice_slug?: string;
     subject?: string;
     grade?: number;
-    prompt_id?: number;
+    prompt_slug?: string;
   }
 
   // ========== 练习管理 ==========

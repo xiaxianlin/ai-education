@@ -59,41 +59,41 @@ export const QuestionApi = {
 
   /**
    * 搜索题型
-   * GET /question_type/search
+   * GET /question/type/search
    */
   async searchQuestionTypes(params?: SearchQuestionTypeRequest) {
-    return apiClient.get<QuestionType[]>('/question_type/search', params);
+    return apiClient.get<QuestionType[]>('/question/type/search', params);
   },
 
   /**
    * 创建题型
-   * POST /question_type
+   * POST /question/type
    */
   async createQuestionType(data: CreateQuestionTypeRequest) {
-    return apiClient.post<QuestionType>('/question_type', data);
+    return apiClient.post<QuestionType>('/question/type', data);
   },
 
   /**
    * 更新题型
-   * PATCH /question_type/{id}
+   * PATCH /question/type/{id}
    */
   async updateQuestionType(id: number, data: UpdateQuestionTypeRequest) {
-    return apiClient.patch<QuestionType>(`/question_type/${id}`, data);
+    return apiClient.patch<QuestionType>(`/question/type/${id}`, data);
   },
 
   /**
    * 删除题型
-   * DELETE /question_type/{id}
+   * DELETE /question/type/{id}
    */
   async deleteQuestionType(id: number) {
-    return apiClient.delete(`/question_type/${id}`);
+    return apiClient.delete(`/question/type/${id}`);
   },
 
   /**
    * 获取题型详情
-   * GET /question_type/{id}
+   * GET /question/type/{id}
    */
   async getQuestionType(id: number) {
-    return apiClient.get<QuestionType>(`/question_type/${id}`);
+    return apiClient.get<QuestionType>(`/question/type/${id}`);
   },
 };

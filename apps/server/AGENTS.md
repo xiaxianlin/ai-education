@@ -138,6 +138,25 @@ async def create(db: AsyncSession, params: SomeSchema):
 5. **安全性**: 实现适当的认证和授权
 6. **性能**: 使用缓存、查询优化、连接池
 
+## API 文档访问
+
+FastAPI 自动生成的 OpenAPI 文档可通过以下地址访问：
+
+- **管理端 API 文档**: `http://localhost:7890/api/admin/docs`
+- **学生端 API 文档**: `http://localhost:7890/api/student/docs`
+- **管理端 OpenAPI JSON**: `http://localhost:7890/api/admin/openapi.json`
+- **学生端 OpenAPI JSON**: `http://localhost:7890/api/student/openapi.json`
+
+**注意**: 由于项目使用 `app.mount()` 挂载子应用，根路径 `/docs` 和 `/openapi.json` 不会显示路由信息。请访问上述子应用的文档地址。
+
+## 应用架构
+
+项目采用子应用挂载架构：
+- `main.py` 创建主 FastAPI 应用
+- `admin_app` 和 `student_app` 作为独立的 FastAPI 实例
+- 使用 `app.mount()` 将子应用挂载到 `/api/admin` 和 `/api/student` 路径
+- 每个子应用有独立的中间件、异常处理器和依赖注入
+
 ## 相关资源
 
 - 数据库模型: `shared/core/database.py`

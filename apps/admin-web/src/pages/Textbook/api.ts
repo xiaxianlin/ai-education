@@ -65,62 +65,61 @@ export const TextbookApi = {
     return apiClient.get<Unit[]>(`/textbook/${id}/units`);
   },
 
-
   /**
    * 创建单元
-   * POST /unit
+   * POST /textbook/unit
    */
   async createUnit(data: CreateUnitRequest) {
-    return apiClient.post<number>('/unit', data);
+    return apiClient.post<number>('/textbook/unit', data);
   },
 
   /**
    * 更新单元
-   * PATCH /unit/{id}
+   * PATCH /textbook/unit/{id}
    */
   async updateUnit(id: number, data: UpdateUnitRequest) {
-    return apiClient.patch(`/unit/${id}`, data);
+    return apiClient.patch(`/textbook/unit/${id}`, data);
   },
 
   /**
    * 删除单元
-   * DELETE /unit/{id}
+   * DELETE /textbook/unit/{id}
    */
   async deleteUnit(id: number) {
-    return apiClient.delete(`/unit/${id}`);
+    return apiClient.delete(`/textbook/unit/${id}`);
   },
 
   /**
    * 获取单元的知识点列表
-   * GET /unit/{id}/knowledges
+   * GET /textbook/unit/{id}/knowledges
    */
   async getUnitKnowledges(id: number) {
-    return apiClient.get<Knowledge[]>(`/unit/${id}/knowledges`);
+    return apiClient.get<Knowledge[]>(`/textbook/unit/${id}/knowledges`);
   },
 
   // ========== 知识点管理 ==========
 
   /**
    * 创建知识点
-   * POST /knowledge
+   * POST /textbook/knowledge
    */
   async createKnowledge(data: CreateKnowledgeRequest) {
-    return apiClient.post<number>('/knowledge', data);
+    return apiClient.post<number>('/textbook/knowledge', data);
   },
 
   /**
    * 更新知识点
-   * PATCH /knowledge/{id}
+   * PATCH /textbook/knowledge/{id}
    */
   async updateKnowledge(id: number, data: UpdateKnowledgeRequest) {
-    return apiClient.patch(`/knowledge/${id}`, data);
+    return apiClient.patch(`/textbook/knowledge/${id}`, data);
   },
 
   /**
    * 删除知识点
-   * DELETE /knowledge/{id}
+   * DELETE /textbook/knowledge/{id}
    */
   async deleteKnowledge(id: number) {
-    return apiClient.delete(`/knowledge/${id}`);
+    return apiClient.delete(`/textbook/knowledge/${id}`);
   },
 };

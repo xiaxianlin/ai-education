@@ -33,6 +33,17 @@
 - **管理端**: `http://your-domain/api/admin`
 - **学生端**: `http://your-domain/api/student`
 
+### API 文档访问
+
+FastAPI 自动生成的 OpenAPI 文档可通过以下地址访问：
+
+- **管理端 API 文档**: `http://localhost:7890/api/admin/docs`
+- **学生端 API 文档**: `http://localhost:7890/api/student/docs`
+- **管理端 OpenAPI JSON**: `http://localhost:7890/api/admin/openapi.json`
+- **学生端 OpenAPI JSON**: `http://localhost:7890/api/student/openapi.json`
+
+**注意**: 由于项目使用 `app.mount()` 挂载子应用，根路径 `/docs` 和 `/openapi.json` 不会显示路由信息。请访问上述子应用的文档地址。
+
 ### 认证方式
 
 所有接口（除登录接口外）都需要在请求头中携带JWT Token：

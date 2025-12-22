@@ -2,59 +2,43 @@ import { apiClient } from '@/lib/api';
 
 export const PracticeApi = {
   /**
-   * 获取练习会话详情
-   * GET /practice/session/{session_id}
-   */
-  async getPracticeSession(sessionId: number) {
-    return apiClient.get<PracticeData>(`/practice/session/${sessionId}`);
-  },
-
-  /**
-   * 删除练习会话
-   * DELETE /practice/session/{session_id}
-   */
-  async removePracticeSession(sessionId: number) {
-    return apiClient.delete(`/practice/session/${sessionId}`);
-  },
-
-  /**
    * 获取练习提示词关联列表
-   * GET /api/admin/practice/list
+   * GET /api/admin/practice/prompt/list
    */
   async listPracticePrompts(params?: SearchPracticePromptRequest) {
-    return apiClient.get<SearchResponse<PracticePrompt>>('/practice_prompt/list', params);
+    return apiClient.get<SearchResponse<PracticePrompt>>('/practice/prompt/list', params);
   },
 
   /**
    * 获取练习提示词关联详情
-   * GET /api/admin/practice/{id}
+   * GET /api/admin/practice/prompt/{id}
    */
   async getPracticePromptDetail(id: number): Promise<PracticePrompt> {
-    return apiClient.get<PracticePrompt>(`/practice_prompt/${id}`);
+    return apiClient.get<PracticePrompt>(`/practice/prompt/${id}`);
   },
 
   /**
    * 创建练习提示词关联
-   * POST /api/admin/practice/
+   * POST /api/admin/practice/prompt
    */
   async createPracticePrompt(data: SavePracticePromptRequest) {
-    return apiClient.post<number>('/practice_prompt/', data);
+    return apiClient.post<number>('/practice/prompt', data);
   },
 
   /**
    * 更新练习提示词关联
-   * PUT /api/admin/practice/{id}
+   * PUT /api/admin/practice/prompt/{id}
    */
   async updatePracticePrompt(id: number, data: SavePracticePromptRequest) {
-    return apiClient.put(`/practice_prompt/${id}`, data);
+    return apiClient.put(`/practice/prompt/${id}`, data);
   },
 
   /**
    * 删除练习提示词关联
-   * DELETE /api/admin/practice/{id}
+   * DELETE /api/admin/practice/prompt/{id}
    */
   async deletePracticePrompt(id: number) {
-    return apiClient.delete(`/practice_prompt/${id}`);
+    return apiClient.delete(`/practice/prompt/${id}`);
   },
   /**
    * 获取练习列表
@@ -74,10 +58,10 @@ export const PracticeApi = {
 
   /**
    * 创建练习
-   * POST /api/admin/practice/
+   * POST /api/admin/practice
    */
   async createPractice(data: Practice) {
-    return apiClient.post<number>('/practice/', data);
+    return apiClient.post<number>('/practice', data);
   },
 
   /**
@@ -86,14 +70,6 @@ export const PracticeApi = {
    */
   async updatePractice(id: number, data: Practice) {
     return apiClient.put(`/practice/${id}`, data);
-  },
-
-  /**
-   * 更新练习配置
-   * PATCH /api/admin/practice/{id}/config
-   */
-  async updatePracticeConfig(id: number, data: Partial<Practice>) {
-    return apiClient.patch(`/practice/${id}/config`, data);
   },
 
   /**
@@ -108,17 +84,17 @@ export const PracticeApi = {
 
   /**
    * 获取练习参数列表
-   * GET /api/admin/practice/{id}/parameters
+   * GET /api/admin/practice/parameters/{id}
    */
   async getPracticeParameters(id: number): Promise<PracticeParameter[]> {
-    return apiClient.get<PracticeParameter[]>(`/practice/${id}/parameters`);
+    return apiClient.get<PracticeParameter[]>(`/practice/parameters/${id}`);
   },
 
   /**
    * 保存练习参数
-   * POST /api/admin/practice/{id}/parameters
+   * POST /api/admin/practice/parameters/{id}/
    */
   async savePracticeParameters(id: number, parameters: PracticeParameter[]) {
-    return apiClient.post(`/practice/${id}/parameters`, parameters);
+    return apiClient.post(`/practice/parameters/${id}/`, parameters);
   },
 };
