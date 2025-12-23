@@ -1,27 +1,14 @@
+import { useEffect } from 'react';
 import { ModalForm, ProFormText, ProFormTextArea, ProFormSelect, ProFormSwitch } from '@ant-design/pro-components';
 import { usePracticeConfigModel } from '../models/page';
-import { useEffect } from 'react';
-
-const VALUE_TYPE_OPTIONS = [
-  { label: '字符串', value: 'string' },
-  { label: '数字', value: 'number' },
-  { label: '对象', value: 'object' },
-  { label: '数组', value: 'array' },
-];
-
-const PARAM_TYPE_OPTIONS = [
-  { label: '内置参数', value: 'system' },
-  { label: '输入参数', value: 'input' },
-];
+import { PRACTICE_PARAMETER_VALUE_TYPE_OPTIONS, PRACTICE_PARAMETER_TYPE_OPTIONS } from '../utils';
 
 export function FormView() {
   const { form, visible, parameter, saveParameter, hideDrawerForm } = usePracticeConfigModel();
 
-  // When parameter changes, convert object/array values to JSON strings for display
   useEffect(() => {
     if (parameter && visible) {
       const formValues = { ...parameter };
-      // If value is an object or array, stringify it for the textarea
       if (formValues.value && (formValues.value_type === 'object' || formValues.value_type === 'array')) {
         if (typeof formValues.value !== 'string') {
           formValues.value = JSON.stringify(formValues.value, null, 2);
@@ -32,21 +19,17 @@ export function FormView() {
   }, [parameter, visible, form]);
 
   const handleFinish = async (values: PracticeParameter) => {
-    // Convert value back to appropriate type before saving
     const processedValues = { ...values };
 
     if (processedValues.value_type === 'object' || processedValues.value_type === 'array') {
-      // If it's a string, try to parse it
       if (typeof processedValues.value === 'string' && processedValues.value.trim()) {
         try {
           processedValues.value = JSON.parse(processedValues.value);
-        } catch (e) {
-          // If parsing fails, keep it as string (validation should catch this)
-        }
+        } catch (e) {}
       }
     }
-
     saveParameter(processedValues);
+    hideDrawerForm();
   };
 
   return (
@@ -80,14 +63,14 @@ export function FormView() {
         name="type"
         label="参数类型"
         rules={[{ required: true, message: '请选择参数类型' }]}
-        options={PARAM_TYPE_OPTIONS}
+        options={PRACTICE_PARAMETER_TYPE_OPTIONS}
       />
       <ProFormSwitch name="required" label="是否必填" />
       <ProFormSelect
         name="value_type"
         label="值类型"
         rules={[{ required: true, message: '请选择值类型' }]}
-        options={VALUE_TYPE_OPTIONS}
+        options={PRACTICE_PARAMETER_VALUE_TYPE_OPTIONS}
       />
       <ProFormTextArea
         name="value"

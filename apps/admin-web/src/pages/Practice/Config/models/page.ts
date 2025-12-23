@@ -11,12 +11,17 @@ const useContainer = () => {
   const [parameter, setParameter] = useState<PracticeParameter>();
   const [parameters, setParameters] = useState<PracticeParameter[]>([]);
   const [visible, { setTrue, setFalse }] = useBoolean(false);
+  const [jsonText, setJsonText] = useState<string>('');
+  const [jsonError, setJsonError] = useState<string>('');
 
   const [form] = ProForm.useForm<PracticeParameter>();
 
   const { data: practice, loading } = useRequest(() => PracticeApi.getPractice(practiceId), {
     ready: !!practiceId,
-    onSuccess: (res) => setParameters(res.parameters || []),
+    onSuccess: (res) => {
+      setParameters(res.parameters || []);
+      setJsonText(JSON.stringify(res.parameters || [], null, 2));
+    },
   });
 
   const { run: submit } = useRequest(() => PracticeApi.savePracticeParameters(practiceId, parameters), {
@@ -25,14 +30,15 @@ const useContainer = () => {
 
   const removeParameter = (key: string) => {
     setParameters(parameters.filter((param) => param.key !== key));
+    setJsonText(JSON.stringify(parameters, null, 2));
   };
 
   const saveParameter = (param: PracticeParameter) => {
-    if (parameter) {
-      setParameters(parameters.map((p) => (p.key === parameter.key ? param : p)));
-    } else {
-      setParameters([...parameters, param]);
-    }
+    const nextParameters = parameter
+      ? parameters.map((p) => (p.key === parameter.key ? param : p))
+      : [...parameters, param];
+    setParameters(nextParameters);
+    setJsonText(JSON.stringify(nextParameters, null, 2));
   };
 
   const showDrawerForm = (recored?: PracticeParameter) => {
@@ -49,6 +55,20 @@ const useContainer = () => {
     form.resetFields();
   };
 
+  const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setJsonText(value);
+
+    // 实时验证 JSON 格式
+    try {
+      const nextValue = JSON.parse(value);
+      setParameters(nextValue);
+      setJsonError('');
+    } catch (error: any) {
+      setJsonError(error.message);
+    }
+  };
+
   return {
     form,
     loading,
@@ -56,12 +76,17 @@ const useContainer = () => {
     practice,
     parameter,
     parameters,
+    jsonText,
+    jsonError,
     setParameters,
+    setJsonText,
+    setJsonError,
     submit,
     saveParameter,
     removeParameter,
     showDrawerForm,
     hideDrawerForm,
+    handleJsonChange,
   };
 };
 

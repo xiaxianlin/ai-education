@@ -26,7 +26,7 @@ export default function MainView() {
         </Button>,
       ]}
     >
-      <Tabs defaultValue="list">
+      <Tabs defaultValue="list" type="card">
         <Tabs.TabPane tab="表单模式" key="list">
           <TableView />
         </Tabs.TabPane>
