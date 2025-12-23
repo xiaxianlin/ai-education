@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "zai-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@z_ai/mcp-server"],
+      "env": {
+        "Z_AI_API_KEY": "fe5dbd403eb44075a8a75a04c3746b84.TD66T5bkLg3dfIqX",
+        "Z_AI_MODE": "ZHIPU"
+      },
+      "disabled": false,
+      "alwaysAllow": []
+    },
+    "web-search-prime": {
+      "type": "streamable-http",
+      "url": "https://open.bigmodel.cn/api/mcp/web_search_prime/mcp",
+      "headers": {
+        "Authorization": "Bearer fe5dbd403eb44075a8a75a04c3746b84.TD66T5bkLg3dfIqX"
+      }
+    },
+    "web-reader": {
+      "type": "streamable-http",
+      "url": "https://open.bigmodel.cn/api/mcp/web_reader/mcp",
+      "headers": {
+        "Authorization": "Bearer fe5dbd403eb44075a8a75a04c3746b84.TD66T5bkLg3dfIqX"
+      }
+    }
+  }
+}
