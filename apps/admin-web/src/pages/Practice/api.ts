@@ -97,4 +97,22 @@ export const PracticeApi = {
   async savePracticeParameters(id: number, parameters: PracticeParameter[]) {
     return apiClient.post(`/practice/parameters/${id}/`, parameters);
   },
+
+  // ========== 练习会话 ==========
+
+  /**
+   * 获取练习会话详情
+   * GET /api/admin/practice/session/{session_id}
+   */
+  async getPracticeSession(sessionId: number) {
+    return apiClient.get<{ session: PracticeSession; answers: PracticeAnswer[] }>(`/practice/session/${sessionId}`);
+  },
+
+  /**
+   * 删除练习会话
+   * DELETE /api/admin/practice/session/{session_id}
+   */
+  async removePracticeSession(sessionId: number) {
+    return apiClient.delete(`/practice/session/${sessionId}`);
+  },
 };

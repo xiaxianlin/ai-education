@@ -5,7 +5,7 @@ import { useStudentDetailModel } from '../models/page';
 import { message } from 'antd';
 import { GRADES } from '@/constants/course';
 
-export function EditForm() {
+export function BasicInfoForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =
     useStudentDetailModel();
   const { runAsync: handleEditSubmit, loading: editing } = useRequest(

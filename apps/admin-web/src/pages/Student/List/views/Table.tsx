@@ -32,9 +32,14 @@ export default function TableView() {
       createTimeColumn<Student>('更新时间', 'update_time'),
       createActionColumn<Student>(
         (record) => (
-          <Button type="link" onClick={() => navigate(`/student/detail/${record.id}`)}>
-            详情
-          </Button>
+          <>
+            <Button type="link" onClick={() => navigate(`/student/detail/${record.id}`)}>
+              详情
+            </Button>
+            <Button type="link" onClick={() => navigate(`/student/${record.id}/practice_sessions`)}>
+              练习记录
+            </Button>
+          </>
         ),
         { width: 80 },
       ),
@@ -76,5 +81,3 @@ export default function TableView() {
     />
   );
 }
-
-

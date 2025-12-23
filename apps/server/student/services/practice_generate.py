@@ -1,47 +1,43 @@
+from generation.question import invoke_generate_workflow
 from loguru import logger
-from sqlalchemy import select, delete, desc
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from shared.utils.time import now, today
 from shared.core.database import (
+    Practice,
     PracticeSession,
+    PracticeSessionAnswer,
     Question,
     Textbook,
-    PracticeAnswer,
     Unit,
-    Practice,
 )
 from shared.utils.practice_config import get_generate_count
-from generation.question import invoke_generate_workflow
+from shared.utils.time import now, today
+from sqlalchemy import delete, desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
-def _get_question_count(
-    practice: Practice | None, textbook: Textbook, practice_type: str
-) -> int:
+def _get_question_count(practice: Practice | None, textbook: Textbook, practice_type: str) -> int:
     """获取题目生成数量（统一处理配置获取和降级逻辑）"""
     if practice:
         return get_generate_count(practice, textbook.grade)
     else:
         # 降级到旧逻辑（兼容）
         from shared.core.constants import GENERATE_QUESTION_COUNT
+
         count = GENERATE_QUESTION_COUNT.get(textbook.grade, {}).get(practice_type, 15)
         if not count:
             raise ValueError(f"生成数量异常: grade={textbook.grade}, type={practice_type}")
         return count
 
 
-async def create_answer_records(
-    db: AsyncSession, session: PracticeSession, questions: list[Question]
-):
+async def create_answer_records(db: AsyncSession, session: PracticeSession, questions: list[Question]):
     """为练习会话创建答题记录"""
 
-    await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id))
+    await db.execute(delete(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session.id))
     await db.flush()  # 确保删除操作完成
 
     # 批量创建答题记录
     answer_records = []
     for index, question in enumerate(questions):
-        answer_record = PracticeAnswer(
+        answer_record = PracticeSessionAnswer(
             session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
@@ -94,12 +90,7 @@ async def generate_practice_session(
         type = practice.practice_type or type
     elif type:
         # 兼容旧逻辑：根据 type 查找系统练习
-        practice = await db.scalar(
-            select(Practice).where(
-                Practice.type == "system",
-                Practice.practice_type == type
-            )
-        )
+        practice = await db.scalar(select(Practice).where(Practice.type == "system", Practice.practice_type == type))
         if practice:
             practice_id = practice.id
 
@@ -108,7 +99,7 @@ async def generate_practice_session(
     if type == "unit_practice":
         unit = await db.scalar(select(Unit).where(Unit.id == unit_id))
         target_id = unit_id
-    
+
     # 生成开始前，先创建会话记录
     session = PracticeSession(
         student_id=student_id,
@@ -146,9 +137,7 @@ async def generate_practice_session(
         session.update_time = now()
         await db.commit()
 
-        logger.info(
-            f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}"
-        )
+        logger.info(f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}")
         return session
     except Exception as e:
         logger.error(f"生成练习会话失败: session_id={session.id}, error={e}")
@@ -196,17 +185,17 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         unit = None
         if session.session_type == "unit_practice":
             unit = await db.scalar(select(Unit).where(Unit.id == session.target_id))
-        
+
         # 获取 Practice 配置
         practice = None
         if session.practice_id:
             practice = await db.scalar(select(Practice).where(Practice.id == session.practice_id))
-        
+
         # 获取教材信息
         textbook = await db.scalar(select(Textbook).where(Textbook.id == session.textbook_id))
         if not textbook:
             raise ValueError("教材不存在")
-        
+
         # 确定使用的 practice slug
         if practice:
             slug = practice.slug
@@ -229,9 +218,7 @@ async def regenerate_practice_session(db: AsyncSession, session_id: int):
         session.update_time = now()
         await db.commit()
 
-        logger.info(
-            f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}"
-        )
+        logger.info(f"练习会话重新生成完成: session_id={session_id}, question_count={session.question_count}")
         return session
     except Exception as e:
         logger.error(f"重新生成练习会话失败: session_id={session_id}, error={e}")
@@ -268,14 +255,12 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
 
     if uncompleted_session:
 
-        logger.info(
-            f"找到未完成的日常练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}"
-        )
+        logger.info(f"找到未完成的日常练习，准备重置: student_id={student_id},session_id={uncompleted_session.id}")
 
         try:
             # 重置所有答题记录的信息
             answer_records = await db.scalars(
-                select(PracticeAnswer).where(PracticeAnswer.session_id == uncompleted_session.id)
+                select(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == uncompleted_session.id)
             )
             for answer in answer_records.all():
                 answer.text_answer = None
@@ -299,9 +284,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
 
             await db.commit()
 
-            logger.info(
-                f"未完成日常练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}"
-            )
+            logger.info(f"未完成日常练习已重置为当天:student_id={student_id}, session_id={uncompleted_session.id}")
 
             return uncompleted_session.id
 
@@ -323,9 +306,7 @@ async def create_daily_practice(*, db: AsyncSession, student_id: str, textbook_i
     return session.id
 
 
-async def create_unit_practice(
-    *, db: AsyncSession, student_id: str, textbook_id: int, unit_id: int, **kwargs
-):
+async def create_unit_practice(*, db: AsyncSession, student_id: str, textbook_id: int, unit_id: int, **kwargs):
     """为学生生成单元练习"""
 
     # 获取单元信息
@@ -358,9 +339,7 @@ async def create_unit_practice(
         student_id=student_id,
     )
 
-    logger.info(
-        f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}"
-    )
+    logger.info(f"单元练习创建成功: student_id={student_id}, session_id={session.id}, unit_id={unit_id}")
 
     return session.id
 

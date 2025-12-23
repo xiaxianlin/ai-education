@@ -22,7 +22,8 @@ import PracticeConfig from '@/pages/Practice/Config';
 import PracticePromptNew from '@/pages/Practice/Prompt';
 import StudentList from '@/pages/Student/List';
 import StudentDetail from '@/pages/Student/Detail';
-import PracticeData from '@/pages/Student/Pratice';
+import PracticeSessionList from '@/pages/Student/PracticeSessionList';
+import PracticeSessionDetail from '@/pages/Student/PraticeSessionDetail';
 
 import NotFound from '@/pages/404';
 
@@ -58,7 +59,8 @@ export function Router() {
         { path: 'practice/prompt', element: <PracticePromptNew /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
-        { path: 'practice/detail/:session_id', element: <PracticeData /> },
+        { path: 'student/:id/practice_sessions', element: <PracticeSessionList /> },
+        { path: 'student/:id/practice_session/:session_id', element: <PracticeSessionDetail /> },
         { path: 'password', element: <ModifyPassword /> },
         { path: '*', element: <NotFound /> },
       ],

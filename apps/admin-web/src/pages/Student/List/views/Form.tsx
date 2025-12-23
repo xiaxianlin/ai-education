@@ -1,5 +1,5 @@
-import { ModalForm, ProFormText } from '@ant-design/pro-components';
-
+import { ModalForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
+import { GRADES } from '@/constants/course';
 import { useStudentListModel } from '../models/page';
 
 export default function FormView() {
@@ -37,6 +37,16 @@ export default function FormView() {
           { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' },
         ]}
         fieldProps={{ maxLength: 11 }}
+      />
+      <ProFormSelect
+        name="grade"
+        label="年级"
+        placeholder="请选择年级"
+        rules={[{ required: true, message: '请选择年级' }]}
+        options={Object.keys(GRADES).map((grade) => ({
+          label: GRADES[Number(grade)],
+          value: Number(grade),
+        }))}
       />
     </ModalForm>
   );

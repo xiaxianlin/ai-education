@@ -1,26 +1,20 @@
 """通用练习服务"""
 
-from typing import Dict
-
 from loguru import logger
-from sqlalchemy import desc, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import noload, joinedload
-
-from shared.services import answer as ai_answer
 from shared.core.database import (
-    PracticeAnswer,
-    PracticeReport,
     PracticeSession,
+    PracticeSessionAnswer,
     Question,
 )
 from shared.core.schema import (
-    PracticeAnswerSchema,
-    PracticeReportSchema,
     PracticeSessionSchema,
 )
+from shared.services import answer as ai_answer
 from shared.utils import oss
 from shared.utils.time import now, today
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import noload
 
 
 async def get_daily_practice(db: AsyncSession, student_id: str, textbook_id: int):
@@ -88,9 +82,7 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
 
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError(f"练习会话不存在: session_id={session_id}")
@@ -106,7 +98,7 @@ async def begin_practice(db: AsyncSession, student_id: str, session_id: int) -> 
             raise ValueError("练习生成失败，请重新生成")
         if session.generate_status != 1:
             raise ValueError(f"练习状态异常，无法开始（generate_status={session.generate_status}）")
-        
+
         # 更新状态为进行中
         session.status = 1
         session.start_time = now()
@@ -130,9 +122,7 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
         报告ID
     """
     # 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
 
     if not session:
         raise ValueError(f"练习会话不存在: session_id={session_id}")
@@ -152,14 +142,14 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
     if session.status == 2:
         logger.info(f"练习已完成: session_id={session_id}")
         # 先查询报告是否存在
-        from shared.core.database import PracticeReport
-        report = await db.scalar(
-            select(PracticeReport).where(PracticeReport.session_id == session_id)
-        )
+        from shared.core.database import PracticeSessionReport
+
+        report = await db.scalar(select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id))
         if report:
             return report.id
         # 如果报告不存在，再生成
         from student.services.report import generate_practice_report
+
         report_id = await generate_practice_report(db, student_id, session_id)
         return report_id
 
@@ -179,9 +169,7 @@ async def complete_practice(db: AsyncSession, student_id: str, session_id: int) 
     return report_id
 
 
-async def get_practice_history(
-    db: AsyncSession, student_id: str, practice_type: str, limit: int = 30
-):
+async def get_practice_history(db: AsyncSession, student_id: str, practice_type: str, limit: int = 30):
     """
     获取指定类型的练习历史记录
 
@@ -206,73 +194,6 @@ async def get_practice_history(
     )
 
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
-
-
-async def get_session_detail(
-    db: AsyncSession, student_id: str, session_id: int
-) -> Dict:
-    """
-    根据练习会话ID查询会话详情（学生端）
-    包括：会话基本信息、问题列表、已完成练习的报告
-
-    Args:
-        db: 数据库会话
-        student_id: 学生ID
-        session_id: 练习会话ID
-
-    Returns:
-        会话详情，包含session、questions、answers、report
-    """
-    # 查询会话基本信息
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
-    )
-
-    if not session:
-        raise ValueError("练习会话不存在")
-
-    # 验证权限
-    if session.student_id != student_id:
-        raise ValueError("无权访问此练习会话")
-
-    # 查询答题记录和题目信息
-    results = await db.scalars(
-        select(PracticeAnswer)
-        .options(joinedload(PracticeAnswer.question))
-        .where(PracticeAnswer.session_id == session_id)
-        .order_by(PracticeAnswer.question_order)
-    )
-
-    # 获取所有答题记录
-    answers = [PracticeAnswerSchema.model_validate(answer) for answer in results.all()]
-
-    # 对 answers 根据 question_order 进行排序
-    answers.sort(key=lambda x: x.question_order)
-    questions = [answer.question for answer in answers]
-
-    for answer in answers:
-        answer.question = None
-
-    # 查询报告（如果练习已完成）
-    report = None
-    if session.status == 2:
-        report = await db.scalar(
-            select(PracticeReport).where(PracticeReport.session_id == session_id)
-        )
-
-    # 构建返回结果
-    result = {
-        "session": PracticeSessionSchema.model_validate(session),
-        "questions": questions,
-        "answers": answers,
-        "report": PracticeReportSchema.model_validate(report) if report else None,
-    }
-
-    logger.info(
-        f"[Student] 获取会话详情成功: session_id={session_id}, question_count={len(questions)}"
-    )
-
-    return result
 
 
 async def analyze_audio_answer(
@@ -300,15 +221,13 @@ async def analyze_audio_answer(
     logger.info(f"获取 OSS 访问地址成功: {audio_url}")
 
     analysis_result = await ai_answer.analyze_audio_answer(question, audio_url)
-    logger.info(
-        f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}"
-    )
+    logger.info(f"音频理解成功: match={analysis_result.match}, text_length={len(analysis_result.text)}")
 
-    # 更新 PracticeAnswer
+    # 更新 PracticeSessionAnswer
     answer = await db.scalar(
-        select(PracticeAnswer).where(
-            PracticeAnswer.session_id == session_id,
-            PracticeAnswer.question_id == question_id,
+        select(PracticeSessionAnswer).where(
+            PracticeSessionAnswer.session_id == session_id,
+            PracticeSessionAnswer.question_id == question_id,
         )
     )
     if not answer:

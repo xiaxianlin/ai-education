@@ -1,111 +1,142 @@
-import { useState } from 'react';
-import { Button, Card, Empty, Flex, message, Modal } from 'antd';
-import { ModalForm, ProForm, ProFormSelect } from '@ant-design/pro-components';
-import { useStudentDetailModel } from '../models/page';
-import { PracticeCard } from '../components/PracticeCard';
-import { StudentApi } from '../../api';
 import { useRequest } from 'ahooks';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Card, Checkbox, Empty, message, Modal, Space } from 'antd';
+import { useMemo, useState } from 'react';
+import { StudentApi } from '../../api';
+import { AddPracticeForm } from '../components/AddPracticeForm';
+import { PracticeCard } from '../components/PracticeCard';
+import { useStudentDetailModel } from '../models/page';
 
 export function PracticeList() {
-  const { student } = useStudentDetailModel();
-  const [visible, setVisible] = useState(false);
-  const [form] = ProForm.useForm<{ practiceId: number }>();
-  const { data, loading, refresh } = useRequest(() => StudentApi.getStudentPractices(student?.id || ''), {
-    ready: !!student?.id,
-  });
+  const { student, practiceService, addPracticeVisible, setAddPracticeVisible } = useStudentDetailModel();
 
-  const { data: unusedPractices } = useRequest(() => StudentApi.getStudentUnusedPractices(student?.id || ''), {
-    ready: !!student?.id,
-  });
-
-  const { runAsync: handleAddPractice } = useRequest(
-    (practiceId: number) => StudentApi.addStudentPractice(student?.id || '', practiceId),
-    {
-      manual: true,
-      ready: !!student?.id,
-      onSuccess: () => {
-        message.success('关联成功');
-        refresh();
-        setVisible(false);
-      },
-    },
-  );
+  const { data, loading, refresh } = practiceService;
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isManaging, setIsManaging] = useState(false);
 
   const { runAsync: removePractice } = useRequest(
-    (practiceId: number) => StudentApi.removeStudentPractice(student?.id || '', practiceId),
+    (practiceIds: number[]) => StudentApi.removeStudentPractice(student?.id || '', practiceIds),
     {
       manual: true,
       ready: !!student?.id,
       onSuccess: () => {
         message.success('移除成功');
+        setSelectedIds([]);
         refresh();
       },
     },
   );
 
-  const handleRemovePractice = (practiceId: number) => {
+  const handleSelect = (practiceId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, practiceId]);
+    } else {
+      setSelectedIds(selectedIds.filter((id) => id !== practiceId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.map((practice) => practice.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedIds.length === 0) return;
+
     Modal.confirm({
-      title: '移除练习',
-      content: '确定要从该学生中移除该练习吗？',
-      onOk: () => removePractice(practiceId),
+      title: '批量移除练习',
+      content: `确定要移除选中的 ${selectedIds.length} 个练习吗？`,
+      onOk: () => removePractice(selectedIds),
     });
   };
 
+  const handleSingleDelete = (practiceId: number) => {
+    removePractice([practiceId]);
+  };
+
+  const handleEnterManage = () => {
+    setIsManaging(true);
+  };
+
+  const handleExitManage = () => {
+    setIsManaging(false);
+    setSelectedIds([]);
+  };
+
+  const allSelected = useMemo(() => {
+    return data && data.length > 0 && selectedIds.length === data.length;
+  }, [data, selectedIds]);
+
+  const someSelected = useMemo(() => {
+    return selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
+  }, [data, selectedIds]);
+
   return (
-    <>
-      <Card
-        title="关联练习"
-        loading={loading}
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setVisible(true)}>
-            关联练习
-          </Button>
-        }
-      >
-        {data?.length && data.length > 0 ? (
-          <Flex gap={16} wrap="wrap">
-            {data.map((practice) => (
-              <PracticeCard key={practice.id} practice={practice} onDelete={() => handleRemovePractice(practice.id)} />
-            ))}
-          </Flex>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联练习</span>}
-            style={{ padding: '40px 0' }}
-          />
-        )}
-      </Card>
-      <ModalForm<{ practiceId: number }>
-        size="large"
-        width={600}
-        form={form}
-        open={visible}
-        title="关联练习"
-        layout="horizontal"
-        onFinish={(values) => handleAddPractice(values.practiceId)}
-        modalProps={{
-          destroyOnClose: true,
-          onCancel: () => {
-            form.resetFields();
-            setVisible(false);
-          },
-        }}
-      >
-        <div style={{ paddingTop: '16px' }} />
-        <ProFormSelect
-          showSearch
-          name="practiceId"
-          label="练习"
-          placeholder="请选择练习"
-          rules={[{ required: true, message: '请选择练习' }]}
-          options={unusedPractices?.map((practice) => ({
-            label: `${practice.name} (${practice.type})`,
-            value: practice.id,
-          }))}
+    <Card
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>关联练习</span>
+          {data && data.length > 0 && (
+            <Space>
+              {!isManaging ? (
+                <Button size="small" onClick={handleEnterManage}>
+                  管理
+                </Button>
+              ) : (
+                <>
+                  <Checkbox
+                    indeterminate={someSelected}
+                    checked={allSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  >
+                    全选
+                  </Checkbox>
+                  {selectedIds.length > 0 && (
+                    <Button danger size="small" onClick={handleBatchDelete}>
+                      批量删除 ({selectedIds.length})
+                    </Button>
+                  )}
+                  <Button size="small" onClick={handleExitManage}>
+                    退出
+                  </Button>
+                </>
+              )}
+            </Space>
+          )}
+        </div>
+      }
+      loading={loading}
+    >
+      {data?.length && data.length > 0 ? (
+        <div className="grid grid-cols-4 gap-3">
+          {data.map((practice) => (
+            <PracticeCard
+              key={practice.id}
+              practice={practice}
+              selected={isManaging ? selectedIds.includes(practice.id) : undefined}
+              onSelect={isManaging ? (checked) => handleSelect(practice.id, checked) : undefined}
+              onDelete={() => handleSingleDelete(practice.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联练习</span>}
+          style={{ padding: '40px 0' }}
         />
-      </ModalForm>
-    </>
+      )}
+      <AddPracticeForm
+        studentId={student?.id || ''}
+        open={addPracticeVisible}
+        onCancel={() => setAddPracticeVisible(false)}
+        onSuccess={() => {
+          refresh();
+          setAddPracticeVisible(false);
+        }}
+      />
+    </Card>
   );
 }

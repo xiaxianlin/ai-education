@@ -2,12 +2,17 @@
 
 import json
 from typing import Dict, List
+
 from loguru import logger
+from shared.core.database import (
+    PracticeSession,
+    PracticeSessionAnswer,
+    PracticeSessionReport,
+    Question,
+)
+from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from shared.core.database import PracticeSession, PracticeAnswer, PracticeReport, Question
-from shared.utils.time import now
 
 
 async def generate_practice_report(db: AsyncSession, student_id: str, session_id: int) -> int:
@@ -33,7 +38,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 2. 检查是否已存在报告
     existing_report = await db.scalar(
-        select(PracticeReport).where(PracticeReport.session_id == session_id)
+        select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id)
     )
     if existing_report:
         logger.info(f"报告已存在: report_id={existing_report.id}")
@@ -41,7 +46,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 3. 查询所有答题记录
     answer_records = await db.scalars(
-        select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
+        select(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session_id)
     )
     answers = answer_records.all()
 
@@ -72,12 +77,10 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     )
 
     # 10. 综合评估（主要用于assessment类型）
-    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
-        overall_score, consistency
-    )
+    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(overall_score, consistency)
 
     # 11. 创建报告
-    report = PracticeReport(
+    report = PracticeSessionReport(
         session_id=session_id,
         student_id=student_id,
         total_questions=total_questions,
@@ -108,18 +111,16 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     return report.id
 
 
-async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
+async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
     """分析知识点掌握情况"""
     if not answers:
         return {}
-    
+
     # 批量查询所有题目
     question_ids = [answer.question_id for answer in answers]
-    questions_result = await db.scalars(
-        select(Question).where(Question.id.in_(question_ids))
-    )
+    questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
-    
+
     knowledge_stats = {}
     for answer in answers:
         question = questions.get(answer.question_id)
@@ -147,18 +148,16 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswe
     return result
 
 
-async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
+async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
     """分析题目来源分布（按题型）"""
     if not answers:
         return {}
-    
+
     # 批量查询所有题目
     question_ids = [answer.question_id for answer in answers]
-    questions_result = await db.scalars(
-        select(Question).where(Question.id.in_(question_ids))
-    )
+    questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
-    
+
     type_stats = {}
     for answer in answers:
         question = questions.get(answer.question_id)
@@ -186,18 +185,16 @@ async def analyze_question_distribution(db: AsyncSession, answers: List[Practice
     return result
 
 
-async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
+async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
     """分析能力分解（按难度）"""
     if not answers:
         return {}
-    
+
     # 批量查询所有题目
     question_ids = [answer.question_id for answer in answers]
-    questions_result = await db.scalars(
-        select(Question).where(Question.id.in_(question_ids))
-    )
+    questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
-    
+
     difficulty_stats = {}
     for answer in answers:
         question = questions.get(answer.question_id)
@@ -225,7 +222,7 @@ async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeAnsw
     return result
 
 
-def calculate_learning_speed(answers: List[PracticeAnswer]) -> float:
+def calculate_learning_speed(answers: List[PracticeSessionAnswer]) -> float:
     """计算学习速度（平均答题时间）"""
     if not answers:
         return 0.0
@@ -241,7 +238,7 @@ def calculate_learning_speed(answers: List[PracticeAnswer]) -> float:
     return avg_time
 
 
-def calculate_consistency(answers: List[PracticeAnswer]) -> float:
+def calculate_consistency(answers: List[PracticeSessionAnswer]) -> float:
     """计算稳定性（答题正确率的标准差）"""
     if len(answers) < 5:
         return 0.0
@@ -272,7 +269,7 @@ def calculate_consistency(answers: List[PracticeAnswer]) -> float:
 
 async def generate_recommendations(
     db: AsyncSession,
-    answers: List[PracticeAnswer],
+    answers: List[PracticeSessionAnswer],
     knowledge_scores: Dict,
     overall_score: float,
     session_type: str,
@@ -302,9 +299,7 @@ async def generate_recommendations(
 
     # 针对薄弱点的建议
     if weaknesses:
-        recommendations.append(
-            f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}"
-        )
+        recommendations.append(f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}")
 
     # 根据练习类型给建议
     if session_type == "daily_practice":

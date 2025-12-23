@@ -1,7 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from shared.core.database import PracticeSession
 from shared.core.schema import PracticeSessionSchema
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def get_student_practice_sessions(db: AsyncSession, student_id: str, session_type: str):

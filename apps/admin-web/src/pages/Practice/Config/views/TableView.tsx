@@ -1,6 +1,6 @@
-import { Space, Tag, Popconfirm, Card, theme } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { ProDescriptions } from '@ant-design/pro-components';
+import { Card, Popconfirm, Space, Tag, theme } from 'antd';
 import { usePracticeConfigModel } from '../models/page';
 import { PRACTICE_PARAMETER_VALUE_TYPE_MAP, formatValue } from '../utils';
 
@@ -39,7 +39,8 @@ const ParameterCard = ({ record }: { record: PracticeParameter }) => {
   return (
     <Card
       hoverable
-      style={{ height: '100%' }}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      styles={{ body: { flex: 1 } }}
       title={record.key}
       extra={
         <Space size="small">

@@ -1,13 +1,13 @@
 """答题服务"""
 
 from loguru import logger
+from shared.core.database import PracticeSession, PracticeSessionAnswer, Question
+from shared.core.schema import PracticeSessionAnswerSchema
+from shared.services.answer import analyze_text_answer
+from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from shared.core.database import PracticeSession, PracticeAnswer, Question
 from student.schema import AnswerQuestionSchema
-from shared.utils.time import now
-from shared.services.answer import analyze_text_answer
-from shared.core.schema import PracticeAnswerSchema
 
 
 async def _check_answer(question: Question, params: AnswerQuestionSchema, db: AsyncSession):
@@ -37,14 +37,10 @@ async def _check_answer(question: Question, params: AnswerQuestionSchema, db: As
     return is_correct, analysis
 
 
-async def submit_answer(
-    db: AsyncSession, student_id: str, params: AnswerQuestionSchema
-):
+async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestionSchema):
     """提交答题答案"""
     # 1. 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == params.session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == params.session_id))
     if not session:
         raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
@@ -52,23 +48,19 @@ async def submit_answer(
         raise ValueError("无权操作此练习")
 
     # 2. 查询题目信息
-    question = await db.scalar(
-        select(Question).where(Question.id == params.question_id)
-    )
+    question = await db.scalar(select(Question).where(Question.id == params.question_id))
     if not question:
         raise ValueError(f"题目不存在: question_id={params.question_id}")
 
     # 3. 查询答题记录
     answer_record = await db.scalar(
-        select(PracticeAnswer).where(
-            PracticeAnswer.session_id == params.session_id,
-            PracticeAnswer.question_id == params.question_id,
+        select(PracticeSessionAnswer).where(
+            PracticeSessionAnswer.session_id == params.session_id,
+            PracticeSessionAnswer.question_id == params.question_id,
         )
     )
     if not answer_record:
-        raise ValueError(
-            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
 
     # 检查是否已经提交过答案
     old_status = answer_record.status
@@ -106,7 +98,7 @@ async def submit_answer(
             f"检测到重复提交答案: student_id={student_id}, question_id={params.question_id}, "
             f"session_id={params.session_id}, 旧状态={old_status}, 新状态={answer_record.status}"
         )
-    
+
     # 更新新的统计
     session.answer_count += 1
     if is_correct:
@@ -122,4 +114,4 @@ async def submit_answer(
         f"question_id={params.question_id}, is_correct={is_correct}"
     )
 
-    return PracticeAnswerSchema.model_validate(answer_record)
+    return PracticeSessionAnswerSchema.model_validate(answer_record)

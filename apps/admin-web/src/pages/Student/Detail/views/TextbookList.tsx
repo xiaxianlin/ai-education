@@ -1,119 +1,143 @@
-import { useState } from 'react';
-import { Button, Card, Empty, Flex, message, Modal } from 'antd';
-import { ModalForm, ProForm, ProFormSelect } from '@ant-design/pro-components';
-import { useStudentDetailModel } from '../models/page';
-import { TextbookCard } from '../components/TextbookCard';
-import { StudentApi } from '../../api';
 import { useRequest } from 'ahooks';
-import { GRADES } from '@/constants/course';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Card, Checkbox, Empty, message, Modal, Space } from 'antd';
+import { useMemo, useState } from 'react';
+import { StudentApi } from '../../api';
+import { AddTextbookForm } from '../components/AddTextbookForm';
+import { TextbookCard } from '../components/TextbookCard';
+import { useStudentDetailModel } from '../models/page';
 
 export function TextbookList() {
-  const { student } = useStudentDetailModel();
-  const [visible, setVisible] = useState(false);
-  const [form] = ProForm.useForm<{ textbookId: number }>();
-  const { data, loading, refresh } = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
-    ready: !!student?.id,
-  });
+  const { student, textbookService, addTextbookVisible, setAddTextbookVisible } = useStudentDetailModel();
 
-  const { data: unusedTextbooks } = useRequest(() => StudentApi.getStudentUnusedTextbooks(student?.id || ''), {
-    ready: !!student?.id,
-  });
-
-  const { runAsync: handleAddTextbook } = useRequest(
-    (textbookId: number) => StudentApi.addStudentTextbook(student?.id || '', textbookId),
-    {
-      manual: true,
-      ready: !!student?.id,
-      onSuccess: () => {
-        message.success('添加成功');
-        refresh();
-        setVisible(false);
-      },
-    },
-  );
+  const { data, loading, refresh } = textbookService;
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isManaging, setIsManaging] = useState(false);
 
   const { runAsync: removeTextbook } = useRequest(
-    (textbookId: number) => StudentApi.removeStudentTextbook(student?.id || '', textbookId),
+    (textbookIds: number[]) => StudentApi.removeStudentTextbook(student?.id || '', textbookIds),
     {
       manual: true,
       ready: !!student?.id,
       onSuccess: () => {
         message.success('删除成功');
+        setSelectedIds([]);
         refresh();
       },
     },
   );
 
-  const handleRemoveTextbook = (textbookId: number) => {
+  const handleSelect = (textbookId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, textbookId]);
+    } else {
+      setSelectedIds(selectedIds.filter((id) => id !== textbookId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.map((textbook) => textbook.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedIds.length === 0) return;
+
     Modal.confirm({
-      title: '删除教材',
-      content: '确定要删除该教材吗？',
-      onOk: () => removeTextbook(textbookId),
+      title: '批量删除教材',
+      content: `确定要删除选中的 ${selectedIds.length} 本教材吗？`,
+      onOk: () => removeTextbook(selectedIds),
     });
   };
 
+  const handleSingleDelete = (textbookId: number) => {
+    removeTextbook([textbookId]);
+  };
+
+  const handleEnterManage = () => {
+    setIsManaging(true);
+  };
+
+  const handleExitManage = () => {
+    setIsManaging(false);
+    setSelectedIds([]);
+  };
+
+  const allSelected = useMemo(() => {
+    return data && data.length > 0 && selectedIds.length === data.length;
+  }, [data, selectedIds]);
+
+  const someSelected = useMemo(() => {
+    return selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
+  }, [data, selectedIds]);
+
   return (
-    <>
-      <Card
-        title="关联教材"
-        loading={loading}
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setVisible(true)}>
-            添加教材
-          </Button>
-        }
-      >
-        {data?.length && data.length > 0 ? (
-          <Flex gap={16}>
-            {data.map((textbook) => (
-              <TextbookCard
-                key={textbook.id}
-                textbook={textbook}
-                active={textbook.grade === (student?.grade || 0)}
-                onDelete={() => handleRemoveTextbook(textbook.id)}
-              />
-            ))}
-          </Flex>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联教材</span>}
-            style={{ padding: '40px 0' }}
-          />
-        )}
-      </Card>
-      <ModalForm<{ textbookId: number }>
-        size="large"
-        width={600}
-        form={form}
-        open={visible}
-        title="添加教材"
-        layout="horizontal"
-        onFinish={(values) => handleAddTextbook(values.textbookId)}
-        modalProps={{
-          destroyOnClose: true,
-          onCancel: () => {
-            form.resetFields();
-            setVisible(false);
-          },
-        }}
-      >
-        <div style={{ paddingTop: '16px' }} />
-        <ProFormSelect
-          showSearch
-          name="textbookId"
-          label="教材"
-          placeholder="请选择教材"
-          rules={[{ required: true, message: '请选择教材' }]}
-          options={unusedTextbooks?.map((textbook) => ({
-            label: `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${
-              textbook.semester
-            }`,
-            value: textbook.id,
-          }))}
+    <Card
+      title={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>关联教材</span>
+          {data && data.length > 0 && (
+            <Space>
+              {!isManaging ? (
+                <Button size="small" onClick={handleEnterManage}>
+                  管理
+                </Button>
+              ) : (
+                <>
+                  <Checkbox
+                    indeterminate={someSelected}
+                    checked={allSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  >
+                    全选
+                  </Checkbox>
+                  {selectedIds.length > 0 && (
+                    <Button danger size="small" onClick={handleBatchDelete}>
+                      批量删除 ({selectedIds.length})
+                    </Button>
+                  )}
+                  <Button size="small" onClick={handleExitManage}>
+                    退出
+                  </Button>
+                </>
+              )}
+            </Space>
+          )}
+        </div>
+      }
+      loading={loading}
+    >
+      {data?.length && data.length > 0 ? (
+        <div className="grid grid-cols-4 gap-3">
+          {data.map((textbook) => (
+            <TextbookCard
+              key={textbook.id}
+              textbook={textbook}
+              active={textbook.grade === (student?.grade || 0)}
+              selected={isManaging ? selectedIds.includes(textbook.id) : undefined}
+              onSelect={isManaging ? (checked) => handleSelect(textbook.id, checked) : undefined}
+              onDelete={() => handleSingleDelete(textbook.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联教材</span>}
+          style={{ padding: '40px 0' }}
         />
-      </ModalForm>
-    </>
+      )}
+      <AddTextbookForm
+        studentId={student?.id || ''}
+        open={addTextbookVisible}
+        onCancel={() => setAddTextbookVisible(false)}
+        onSuccess={() => {
+          refresh();
+          setAddTextbookVisible(false);
+        }}
+      />
+    </Card>
   );
 }

@@ -6,8 +6,8 @@ import { BasicInfo } from './BasicInfo';
 import { TextbookList } from './TextbookList';
 import { PracticeList } from './PracticeList';
 import { useStudentDetailModel } from '../models/page';
-import { PracticeHistory } from './PracticeHistory';
-import { EditForm } from './Form';
+import { BasicInfoForm } from '../components/BasicInfoForm';
+import { Footer } from './Footer';
 
 export function Entry() {
   const { loading } = useStudentDetailModel();
@@ -26,12 +26,11 @@ export function Entry() {
     >
       <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <BasicInfo />
-
         <TextbookList />
         <PracticeList />
-        <PracticeHistory />
-        <EditForm />
+        <BasicInfoForm />
       </Space>
+      <Footer />
     </PageContainer>
   );
 }

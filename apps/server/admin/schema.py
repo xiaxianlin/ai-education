@@ -197,27 +197,6 @@ class SearchQuestionSchema(SearchSchema):
     resource_generated: Optional[bool] = None
 
 
-class CreateStudentSchema(BaseModel):
-    name: str
-    phone: str
-
-
-class SaveStudentSubjectSchema(BaseModel):
-    ids: list[int]
-
-
-class UpdateStudentSchema(BaseModel):
-    name: Optional[str] = None
-    phone: Optional[str] = None
-    grade: Optional[int] = None
-    status: Optional[int] = None
-
-
-class SearchStudentSchema(SearchSchema):
-    phone: Optional[str] = None
-    status: Optional[int] = None
-
-
 class CreateQuestionTypeSchema(BaseModel):
     title: str = Field(..., min_length=1, max_length=100, description="题型标题，如：看图选词、根据首字母填空")
     scene: str = Field(..., min_length=1, max_length=50, description="类型，如：选择题、填空题、判断题、口语题、应用题")

@@ -1,23 +1,23 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from admin.services.auth import admin_route_filter
-from shared.core.middleware import WrappedResponse
 from shared.core.exception import (
     global_exception_handler,
     http_exception_handler,
-    value_error_handler,
     validation_exception_handler,
+    value_error_handler,
 )
+from shared.core.middleware import WrappedResponse
+
+from admin.services.auth import admin_route_filter
 
 from .routes.auth import auth_router
 from .routes.manager import manager_router
-from .routes.question import question_router
-from .routes.student import student_router
-from .routes.textbook import textbook_router
-from .routes.teacher_book import teacher_book_router
 from .routes.practice import practice_router
 from .routes.prompt import prompt_router
-
+from .routes.question import question_router
+from .routes.teacher_book import teacher_book_router
+from .routes.textbook import textbook_router
+from .student.route import student_router
 
 admin_app = FastAPI(
     default_response_class=WrappedResponse,

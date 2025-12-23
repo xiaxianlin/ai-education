@@ -1,5 +1,7 @@
 import re
 
+from shared.core.constants import SUBJECTS
+
 
 def username(v):
     if not re.match(r"^\w+$", v):  # 等价于 [a-zA-Z0-9_]
@@ -25,4 +27,22 @@ def password(v):
 def phone(v):
     if not re.fullmatch(r"^1[3-9]\d{9}$", v):
         raise ValueError("手机号格式不正确")
+    return v
+
+
+def grade(v):
+    if v and v not in range(1, 13):
+        raise ValueError("年级只能为1-12年级")
+    return v
+
+
+def subject(v):
+    if v and v not in SUBJECTS:
+        raise ValueError(f"科目只能为{'、'.join(SUBJECTS)}")
+    return v
+
+
+def status(v, options: list[int] = [0, 1]):
+    if v and v not in options:
+        raise ValueError(f"状态只能为{'、'.join(options)}")
     return v

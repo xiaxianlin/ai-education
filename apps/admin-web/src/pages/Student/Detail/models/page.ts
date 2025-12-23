@@ -11,6 +11,8 @@ const useContainer = () => {
   const { id } = useParams<{ id: string }>();
   const [editForm] = ProForm.useForm<SaveStudentRequest>();
   const [editFormVisible, setEditFormVisible] = useState(false);
+  const [addTextbookVisible, setAddTextbookVisible] = useState(false);
+  const [addPracticeVisible, setAddPracticeVisible] = useState(false);
 
   const {
     data: student,
@@ -19,6 +21,14 @@ const useContainer = () => {
   } = useRequest(() => StudentApi.getStudent(id!), {
     ready: !!id,
     refreshDeps: [id],
+  });
+
+  const practiceService = useRequest(() => StudentApi.getStudentPractices(student?.id || ''), {
+    ready: !!student?.id,
+  });
+
+  const textbookService = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
+    ready: !!student?.id,
   });
 
   const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.deleteStudent(id!), {
@@ -40,29 +50,23 @@ const useContainer = () => {
     },
   });
 
-  const { runAsync: handleToggleStatus, loading: toggling } = useRequest(
-    async (status: number) => StudentApi.updateStudent(id!, { status }),
-    {
-      manual: true,
-      onSuccess: (_, [status]) => {
-        message.success(status === 1 ? '启用成功' : '停用成功');
-        refresh();
-      },
-    },
-  );
   return {
     student,
     loading: !student && !error,
     deleting,
     resetting,
-    toggling,
     refresh,
     handleDelete,
     handleResetPassword,
-    handleToggleStatus,
     editForm,
     editFormVisible,
     setEditFormVisible,
+    practiceService,
+    textbookService,
+    addTextbookVisible,
+    setAddTextbookVisible,
+    addPracticeVisible,
+    setAddPracticeVisible,
   };
 };
 

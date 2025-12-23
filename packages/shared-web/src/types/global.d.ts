@@ -276,19 +276,18 @@ declare global {
   interface PracticeSession {
     id: number;
     student_id: string;
-    session_type: PracticeType;
-    target_id?: number; // 单元ID或日期（如 20241123）
-    textbook_id?: number; // 教材ID
+    practice_id?: number; // 练习ID
+    parameters?: Record<string, any>; // 练习参数
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
     correct_count: number; // 正确数
-    status: PracticeSessionStatus;
-    generate_status: PracticeGenerateStatus;
+    status: PracticeSessionStatus; // 会话状态: 0-未开始, 1-进行中, 2-已完成
+    generate_status: PracticeGenerateStatus; // 生成状态: 0-失败, 1-生成中, 2-成功
     start_time: number; // 开始时间（Unix时间戳，秒）
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
     update_time?: number; // 更新时间（Unix时间戳，秒）
-    textbook?: Textbook;
+    practice?: Practice; // 关联的练习信息
   }
 
   /**

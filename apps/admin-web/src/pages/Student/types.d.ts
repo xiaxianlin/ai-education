@@ -8,12 +8,12 @@ declare global {
   }
 
   /**
-   * 更新学生请求
+   * 保存学生请求（创建/更新）
    */
   interface SaveStudentRequest {
-    name?: string;
-    phone?: string;
-    grade?: number;
+    name: string;
+    phone: string;
+    grade: number;
     status?: number;
   }
 }

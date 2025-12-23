@@ -20,6 +20,8 @@
 - **范围**: `apps/server/**`
 - **描述**: Python/FastAPI 后端编码规范
 - **内容**: 路由层、服务层、数据库操作、错误处理、任务队列
+- **子规则**: 
+  - `sqlalchemy-2.0`: SQLAlchemy 2.0 ORM 风格规范（强制要求）
 
 ### 4. flutter-mobile
 - **类型**: Apply to Specific Files

@@ -1,7 +1,6 @@
-from fastapi import Query
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional, Generic, TypeVar
+from typing import Generic, Optional, TypeVar
 
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
@@ -17,9 +16,6 @@ class ResponseSchema(BaseModel, Generic[T]):
 class SearchSchema(BaseModel):
     page: Optional[int] = 1
     size: Optional[int] = 10
-    sort: Optional[str] = Query("id", description="排序字段")
-    order: Optional[str] = Query("desc", pattern="^(asc|desc)$", description="排序方式")
-    keywords: Optional[str] = None
 
 
 class SearchResultSchema(BaseModel, Generic[T]):
@@ -163,7 +159,6 @@ class StudentPracticeSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-
 # ======================== 练习管理 ======================== #
 
 
@@ -203,25 +198,24 @@ class PracticePromptSchema(BaseModel):
 class PracticeSessionSchema(BaseModel):
     id: int
     student_id: str
-    session_type: str
-    target_id: Optional[int] = None
-    textbook_id: Optional[int] = None
+    practice_id: Optional[int] = None
+    parameters: dict = Field(default_factory=dict, description="练习参数")
     question_count: int = 0
-    answer_count: int = 0  # 添加 answer_count 字段
+    answer_count: int = 0
     correct_count: int = 0
-    status: int = 0  # 改为 int 类型，与数据库模型一致 (0-未开始, 1-进行中, 2-已完成)
-    generate_status: int = 0  # 生成状态：-1：生成失败；0：生成中；1：生成成功
+    status: int = 0  # 会话状态: 0-未开始, 1-进行中, 2-已完成
+    generate_status: int = 0  # 生成状态: 0-失败, 1-生成中, 2-成功
     start_time: int
     end_time: Optional[int] = None
     create_time: int
-    update_time: Optional[int] = None  # 添加 update_time 字段
+    update_time: Optional[int] = None
 
-    textbook: Optional["TextbookSchema"] = None
+    practice: Optional["PracticeSchema"] = None
 
     model_config = {"from_attributes": True}
 
 
-class PracticeAnswerSchema(BaseModel):
+class PracticeSessionAnswerSchema(BaseModel):
     id: int
     session_id: int
     question_id: str
@@ -255,7 +249,7 @@ class PracticeAnswerSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PracticeReportSchema(BaseModel):
+class PracticeSessionReportSchema(BaseModel):
     id: int
     session_id: int
     student_id: str
@@ -278,10 +272,11 @@ class PracticeReportSchema(BaseModel):
     create_time: int
 
 
-class PracticeDetailSchema(BaseModel):
+class PracticeSessionDataSchema(BaseModel):
     session: PracticeSessionSchema
-    answers: list[PracticeAnswerSchema]
-    report: Optional[PracticeReportSchema] = None
+    questions: list[QuestionSchema]
+    answers: list[PracticeSessionAnswerSchema]
+    report: Optional[PracticeSessionReportSchema] = None
 
     model_config = {"from_attributes": True}
 

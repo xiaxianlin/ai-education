@@ -125,7 +125,7 @@ async def create(db: AsyncSession, params: SomeSchema):
   - `Unit`: 单元表
   - `Knowledge`: 知识点表
   - `PracticeSession`: 练习会话表
-  - `PracticeAnswer`: 答题记录表
+  - `PracticeSessionAnswer`: 答题记录表
   - `Prompt`: Prompt 表，包含 Prompt 基本信息（名称、slug、场景、描述、标签等）
   - `PromptVersion`: Prompt 版本表，包含版本内容（模板内容、负面提示、模型参数等）
 

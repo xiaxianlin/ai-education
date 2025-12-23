@@ -8,8 +8,21 @@ body,
   height: 100vh;
   margin: 0;
   padding: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji';
   background: oklch(1 0 0);
   color: oklch(0.145 0 0);
 }
@@ -66,5 +79,18 @@ ol {
     .ant-pro-table-list-toolbar-right {
       justify-content: flex-start;
     }
+  }
+}
+
+.page-footer {
+  .ant-pro-footer-bar-left {
+    display: none;
+  }
+  .ant-pro-footer-bar-right {
+    flex: 1;
+    height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }

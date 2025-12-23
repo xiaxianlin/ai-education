@@ -85,14 +85,25 @@ async def update(db: AsyncSession, id: int, update: UpdateSchema):
 
 ### 数据库操作
 
+**重要**: 所有 SQLAlchemy 代码必须严格遵循 2.0 版本 ORM 风格，详细规范请参考 [SQLAlchemy 2.0 ORM 风格规范](./sqlalchemy-2.0.md)
+
+核心要求：
 - 使用异步 SQLAlchemy (`AsyncSession`)
-- 使用 `select` 进行查询
-- 使用 `joinedload` 或 `noload` 优化关联查询
+- 使用 `select` 进行查询（禁止使用 `session.query()`）
+- 使用 `Mapped[Type]` 类型注解和 `mapped_column()` 定义模型字段
+- 使用 `joinedload` / `selectinload` / `noload` 优化关联查询
 - 所有数据库操作必须使用 `async/await`
 
 ```python
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Mapped, mapped_column, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# 模型定义（2.0 风格）
+class Model(Base):
+    __tablename__ = "some_table"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
 
 # 基础查询
 result = await db.scalar(select(Model).where(Model.id == id))

@@ -19,10 +19,10 @@ export const StudentApi = {
 
   /**
    * 更新学生
-   * PATCH /student/{id}
+   * PUT /student/{id}
    */
   async updateStudent(id: string, data: SaveStudentRequest) {
-    return apiClient.patch(`/student/${id}`, data);
+    return apiClient.put(`/student/${id}`, data);
   },
 
   /**
@@ -67,27 +67,35 @@ export const StudentApi = {
   },
 
   /**
-   * 为学生添加教材
-   * POST /student/{id}/textbook/{textbook_id}
+   * 为学生批量添加教材
+   * POST /student/{id}/textbook
    */
-  async addStudentTextbook(id: string, textbookId: number) {
-    return apiClient.post(`/student/${id}/textbook/${textbookId}`);
+  async addStudentTextbook(id: string, textbookIds: number[]) {
+    return apiClient.post(`/student/${id}/textbook`, { ids: textbookIds });
   },
 
   /**
-   * 移除学生的教材
-   * DELETE /student/{id}/textbook/{textbook_id}
+   * 批量移除学生的教材
+   * DELETE /student/{id}/textbook
    */
-  async removeStudentTextbook(id: string, textbookId: number) {
-    return apiClient.delete(`/student/${id}/textbook/${textbookId}`);
+  async removeStudentTextbook(id: string, textbookIds: number[]) {
+    return apiClient.delete(`/student/${id}/textbook`, { data: { ids: textbookIds } });
   },
 
   /**
    * 获取学生练习历史
-   * GET /practice/{student_id}/history/{practice_type}
+   * GET /student/{id}/practice_sessions/{session_type}
    */
-  async getPracticeHistory(id: string, practice_slug: string) {
-    return apiClient.get<PracticeSession[]>(`/student/${id}/practice_sessions/${practice_slug}`);
+  async getStudentPracticeSessions(id: string, practiceId: number) {
+    return apiClient.get<PracticeSession[]>(`/student/${id}/practice_sessions/${practiceId}`);
+  },
+
+  /**
+   * 获取学生练习会话详情
+   * GET /student/{id}/practice_session/{session_id}
+   */
+  async getStudentPracticeSessionData(id: string, sessionId: number) {
+    return apiClient.get(`/student/${id}/practice_session/${sessionId}`);
   },
 
   /**
@@ -107,18 +115,18 @@ export const StudentApi = {
   },
 
   /**
-   * 为学生添加练习
-   * POST /student/{id}/practice/{practice_id}
+   * 为学生批量添加练习
+   * POST /student/{id}/practice
    */
-  async addStudentPractice(id: string, practiceId: number) {
-    return apiClient.post(`/student/${id}/practice/${practiceId}`);
+  async addStudentPractice(id: string, practiceIds: number[]) {
+    return apiClient.post(`/student/${id}/practice`, { ids: practiceIds });
   },
 
   /**
-   * 移除学生的练习
-   * DELETE /student/{id}/practice/{practice_id}
+   * 批量移除学生的练习
+   * DELETE /student/{id}/practice
    */
-  async removeStudentPractice(id: string, practiceId: number) {
-    return apiClient.delete(`/student/${id}/practice/${practiceId}`);
+  async removeStudentPractice(id: string, practiceIds: number[]) {
+    return apiClient.delete(`/student/${id}/practice`, { data: { ids: practiceIds } });
   },
 };

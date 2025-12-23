@@ -1,15 +1,15 @@
 from fastapi import Depends
-from sqlalchemy import String, Text, JSON
-from sqlalchemy.orm import (
-    relationship,
-    Mapped,
-    mapped_column,
-    DeclarativeBase,
-    sessionmaker,
-)
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from shared.core.settings import envs
 from shared.utils.time import now
+from sqlalchemy import JSON, String, Text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    sessionmaker,
+)
 
 async_engine = create_async_engine(
     envs.DATABASE_URL,
@@ -280,34 +280,20 @@ class PracticeSession(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
-    session_type: Mapped[str] = mapped_column(
-        String(50),
-        index=True,
-        comment="会话类型:daily_practice/unit_practice/assessment",
-    )
     practice_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="练习ID")
+    parameters: Mapped[str] = mapped_column(JSON, default=dict, comment="练习参数")
 
-    target_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID或者时间戳")
-    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态:0 - 未开始，1 - 作答中，2 - 已完成")
-    generate_status: Mapped[int] = mapped_column(
-        default=0, index=True, comment="生成状态: -1-生成失败, 0-生成中, 1-生成成功"
-    )
+    status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态:0 - 未开始，1 - 进行中，2 - 已完成")
+    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="失败: 0, 生成中: 1, 成功: 2")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(PracticeSession.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
 
     practice: Mapped["Practice"] = relationship(
         "Practice",
@@ -317,8 +303,8 @@ class PracticeSession(BaseModel):
 
 
 # 答题记录表（合并了原 PracticeWrongRecord 的功能）
-class PracticeAnswer(BaseModel):
-    __tablename__ = "ah_practice_answer"
+class PracticeSessionAnswer(BaseModel):
+    __tablename__ = "ah_practice_session_answer"
 
     # 主键
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -353,14 +339,14 @@ class PracticeAnswer(BaseModel):
 
     question: Mapped["Question"] = relationship(
         "Question",
-        primaryjoin="foreign(PracticeAnswer.question_id) == Question.id",
+        primaryjoin="foreign(PracticeSessionAnswer.question_id) == Question.id",
         lazy="joined",
     )
 
 
 # 练习报告表
-class PracticeReport(BaseModel):
-    __tablename__ = "ah_practice_report"
+class PracticeSessionReport(BaseModel):
+    __tablename__ = "ah_practice_session_report"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     session_id: Mapped[int] = mapped_column(unique=True, index=True)
@@ -412,10 +398,6 @@ class Student(BaseModel):
 
 class StudentTextbook(BaseModel):
     __tablename__ = "ah_student_textbook"
-    __table_args__ = (
-        # 添加联合唯一索引，防止重复绑定
-        {"mysql_charset": "utf8mb4"},
-    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)
@@ -430,7 +412,6 @@ class StudentTextbook(BaseModel):
 
 class StudentPractice(BaseModel):
     __tablename__ = "ah_student_practice"
-    __table_args__ = ({"mysql_charset": "utf8mb4"},)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)

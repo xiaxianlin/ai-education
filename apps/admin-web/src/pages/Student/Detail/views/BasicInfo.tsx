@@ -1,35 +1,21 @@
-import { Card, Button } from 'antd';
+import { Card } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { StatusTag } from '@/components';
 import { useStudentDetailModel } from '../models/page';
 import { GRADES } from '@/constants/course';
-import { EditOutlined } from '@ant-design/icons';
 
 export function BasicInfo() {
-  const { student, loading, editForm, setEditFormVisible } = useStudentDetailModel();
-
-  const handleEdit = () => {
-    if (student) {
-      editForm.setFieldsValue({ ...student });
-      setEditFormVisible(true);
-    }
-  };
+  const { student, loading } = useStudentDetailModel();
 
   return (
-    <Card
-      title="基本信息"
-      loading={loading}
-      extra={
-        <Button type="primary" icon={<EditOutlined />} onClick={handleEdit} disabled={!student}>
-          编辑信息
-        </Button>
-      }
-    >
+    <Card title="基本信息" loading={loading}>
       {student ? (
         <ProDescriptions column={3}>
           <ProDescriptions.Item label="姓名">{(student as any)?.name || ''}</ProDescriptions.Item>
           <ProDescriptions.Item label="手机号">{(student as any)?.phone || ''}</ProDescriptions.Item>
-          <ProDescriptions.Item label="年级">{(student as any)?.grade !== undefined ? GRADES[(student as any).grade] : ''}</ProDescriptions.Item>
+          <ProDescriptions.Item label="年级">
+            {(student as any)?.grade !== undefined ? GRADES[(student as any).grade] : ''}
+          </ProDescriptions.Item>
           <ProDescriptions.Item label="状态">
             <StatusTag status={(student as any)?.status === 1} />
           </ProDescriptions.Item>
