@@ -8,10 +8,8 @@ from shared.core.exception import (
 )
 from shared.core.middleware import WrappedResponse
 
-from admin.services.auth import admin_route_filter
-
-from .routes.auth import auth_router
-from .routes.manager import manager_router
+from .auth import admin_route_filter
+from .auth.route import auth_router
 from .routes.practice import practice_router
 from .routes.prompt import prompt_router
 from .routes.question import question_router
@@ -32,7 +30,6 @@ admin_app = FastAPI(
 
 
 admin_app.include_router(auth_router)
-admin_app.include_router(manager_router)
 admin_app.include_router(question_router)
 admin_app.include_router(student_router)
 admin_app.include_router(textbook_router)

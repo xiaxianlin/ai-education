@@ -1,21 +1,21 @@
 import os
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 import dotenv
 import uvicorn
-from pathlib import Path
+from admin import admin_app
+from admin.auth import init_super_manager
+from admin.services.practice import init_system_practices
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from contextlib import asynccontextmanager
 
 ##################################
 from shared.core.database import init_database
-from shared.core.settings import envs
 from shared.core.logger import logger
-
-from admin import admin_app
+from shared.core.settings import envs
 from student import student_app
-from admin.services.manager import init_super_manager
-from admin.services.practice import init_system_practices
 
 dotenv.load_dotenv()
 os.environ["NO_PROXY"] = "*"

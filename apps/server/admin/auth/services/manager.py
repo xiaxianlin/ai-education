@@ -1,12 +1,18 @@
 import uuid
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from admin.schema import ModifyPasswordSchema, CreateManangeSchema, UpdateManangeSchema
+
 from shared.core.database import AsyncSessionLocal, Manager
 from shared.core.schema import ManagerSchema
 from shared.core.settings import envs
 from shared.utils import encrypt
 from shared.utils.time import now
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..schema import (
+    CreateManangeSchema,
+    ModifyPasswordSchema,
+    UpdateManangeSchema,
+)
 
 
 async def init_super_manager():
