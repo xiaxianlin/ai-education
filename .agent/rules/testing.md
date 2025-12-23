@@ -8,18 +8,22 @@ alwaysApply: true
 
 ## Error Handling
 
-- **Client-Side**: ALL API calls MUST have `.catch()` or `try-catch` blocks and notify users of errors (e.g., via AntD `message` or shadcn `toast`).
-- **Server-Side**: Business logic MUST raise `ValueError` for handled cases; unhandled exceptions MUST be logged via `loguru` with full context.
-- **Mobile**: Use `AsyncValue` (Riverpod) for state management to handle loading/error states gracefully.
+- **Web**: Catch API errors in `apiClient` interceptors or local `useRequest`. Notify via AntD `message.error` or shadcn `toast`.
+- **Server**: Raise specific exceptions for business logic. Log complex errors using `loguru`.
+- **Mobile**: Use Riverpod `AsyncValue` for error states.
+
+## Testing
+
+- **Backend**: Use `pytest` with async support for service and route testing.
+- **Frontend**: Manual verification for UI; unit tests for complex utility logic.
 
 ## Code Review Focus
 
-- **Security Check**: Verify that `Authorize` headers and authentication filters are correctly applied to new routes.
-- **Performance**: Review SQL queries for N+1 issues. Checks for redundant re-renders in React components.
-- **Readability**: Ensure naming follows the `style.md` convention and complex logic is commented.
+- **N+1 Queries**: Review SQLAlchemy relationships (`joinedload` vs `lazy`).
+- **React**: Check for unnecessary re-renders in heavy components.
+- **Security**: Validate `x-access-token` usage and input sanitization.
 
 ## Operational Instructions
 
-1. After modifying core business logic, MUST manually verify the feature in the dev environment.
-2. When fixing a bug, MUST describe the root cause and the fix in the PR or commit message.
-3. Before submitting code for review, ensure all linting and type checks pass locally.
+1. Feature changes MUST be verified in local dev environment before submission.
+2. MUST use `walkthrough.md` to document the verification process for non-trivial tasks.

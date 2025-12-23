@@ -25,16 +25,14 @@ alwaysApply: false
 ## Admin-Web Specifics (ProComponents)
 
 - **ProTable**: MUST use standardized column creators from `@/hooks/useTableColumns` where possible:
-  - `createTimeColumn`: For date-time display.
-  - `createStatusColumn`: For boolean status with `StatusTag`.
-  - `createStatusSearchColumn`: For status dropdown in search forms.
-  - `createActionColumn`: For the right-side action menu.
+  - `createTimeColumn`, `createStatusColumn`, `createActionColumn`.
 - **Status Indicators**: Use `StatusTag` component for uniform success/error state display.
 
 ## API Calls
 
-- ALL API calls MUST go through the centralized `ApiClient` in `@ai-education/shared-web`.
-- Frontend endpoints MUST be defined in `lib/api.ts` (e.g., `adminApi`, `studentApi`).
+- **Centralized Client**: Use `apiClient` from `@/lib/api` which wraps `@ai-education/shared-web`.
+- **Feature APIs**: Define localized API calls in `pages/[Feature]/api.ts`.
+- **Types**: Define request/response types in `pages/[Feature]/types.d.ts`.
 
 ## Styling
 
@@ -44,5 +42,5 @@ alwaysApply: false
 ## Operational Instructions
 
 1. When creating a new page, MUST follow the directory structure: `pages/[Feature]/[PageName]/index.tsx`.
-2. MUST NOT use `any`. Define proper types in `@/types.d.ts` or `models/page.ts`.
-3. After meaningful UI changes, MUST check responsiveness on both Desktop and Mobile (for student-web).
+2. MUST NOT use `any`. Define proper types or use those generated from backend schemas.
+3. After meaningful UI changes, MUST check responsiveness on both Desktop and Mobile.

@@ -6,7 +6,7 @@ import dotenv
 import uvicorn
 from admin import admin_app
 from admin.auth import init_super_manager
-from admin.services.practice import init_system_practices
+from admin.practice import init_system_practices
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware

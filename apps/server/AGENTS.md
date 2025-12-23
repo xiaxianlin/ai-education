@@ -1,7 +1,7 @@
 # 服务端 - Agent 配置
 
 ## 应用概述
-基于 FastAPI 的单体应用，包含管理端、学生端、AI 功能、任务处理等核心模块。
+基于 FastAPI 的单体应用，包含管理端、学生端、AI 生成、任务处理等核心模块。
 
 ## 技术栈
 - **框架**: FastAPI 0.115+
@@ -26,37 +26,96 @@
 ```
 
 ### 模块划分
-1. **admin/** - 管理端模块
-   - 路由: `admin/routes/`
-   - 服务: `admin/services/`
-   - 模型: `admin/schema.py`
-   - 功能模块:
-     - 认证管理: `admin/routes/auth.py`
-     - 管理员管理: `admin/routes/manager.py`
-     - 教材管理: `admin/routes/textbook.py`
-     - 单元管理: `admin/routes/unit.py`
-     - 知识点管理: `admin/routes/knowledge.py`
-     - 题目管理: `admin/routes/question.py`
-     - 题型管理: `admin/routes/question_type.py`
-     - 学生管理: `admin/routes/student.py`
-     - 练习管理: `admin/routes/practice.py`
-     - 配置管理: `admin/routes/config.py`
-     - Prompt 管理: `admin/routes/prompt.py`
 
-2. **student/** - 学生端模块
-   - 路由: `student/routes/`
-   - 服务: `student/services/`
-   - 模型: `student/schema.py`
+#### 1. admin/ - 管理端模块
+管理后台 API，供管理端 Web 应用调用。
 
-3. **ai/** - AI 功能模块
-   - 题目生成: `ai/question_generate/` (LangGraph 工作流)
-   - 答题分析: `ai/question/answer.py`
-   - 资源生成: `ai/question/resource.py`
+| 子模块 | 路由文件 | 服务文件 | 说明 |
+|--------|----------|----------|------|
+| auth | `auth/route.py` | `auth/services/auth.py`, `manager.py` | 认证、管理员管理 |
+| textbook | `textbook/route.py` | `textbook/services/textbook.py`, `unit.py`, `knowledge.py` | 教材、单元、知识点管理 |
+| teacher_book | `teacher_book/route.py` | `teacher_book/services/teacher_book.py` | 教师参考书管理 |
+| question | `question/route.py` | `question/services/question.py`, `question_type.py` | 题目、题型管理 |
+| prompt | `prompt/route.py` | `prompt/services/prompt.py`, `prompt_test.py` | Prompt 管理与测试 |
+| practice | `practice/route.py` | `practice/services/practice.py`, `practice_prompt.py` | 练习类型、练习Prompt管理 |
+| student | `student/route.py` | `student/services/student.py`, `textbook.py`, `practice.py`, `practice_session.py` | 学生管理 |
+| data | `data/practice.py` | - | 练习静态数据 |
 
-4. **shared/** - 共享模块
-   - 核心: `shared/core/` (数据库、配置、日志等)
-   - 任务: `shared/worker/` (Celery Worker)
-   - 工具: `shared/utils/`
+#### 2. student/ - 学生端模块
+学生端 API，供学生端 Web 和移动端应用调用。
+
+| 路由文件 | 服务文件 | 说明 |
+|----------|----------|------|
+| `routes/auth.py` | `services/auth.py` | 学生认证（登录、注册） |
+| `routes/textbook.py` | `services/textbook.py` | 教材查询 |
+| `routes/practice.py` | `services/practice.py`, `practice_generate.py`, `answer.py`, `report.py` | 练习会话、题目生成、答题、报告 |
+| `routes/profile.py` | - | 学生个人信息 |
+
+#### 3. generation/ - AI 生成模块
+基于 LangGraph 的 AI 内容生成工作流。
+
+| 子模块 | 说明 | 核心文件 |
+|--------|------|----------|
+| question | 题目生成 | `graph.py`, `services/daily_practice.py`, `unit_practice.py`, `assessment.py`, `llm.py` |
+| audio | 语音生成 | `graph.py`, `services/generate.py` |
+| image | 图片生成 | `graph.py`, `services/generate.py` |
+| video | 视频生成 | `graph.py`, `services/generate.py` |
+
+**题目生成流程：**
+- 日常练习 (daily_practice): 基于学生教材生成日常练习题
+- 单元练习 (unit_practice): 基于特定单元和知识点生成练习题
+- 综合评估 (assessment): 基于能力评估算法生成自适应测试题
+
+#### 4. shared/ - 共享模块
+
+| 子模块 | 文件 | 说明 |
+|--------|------|------|
+| core | `database.py` | 数据库模型与连接 |
+| core | `settings.py` | 环境配置 |
+| core | `logger.py` | 日志配置 |
+| core | `exception.py` | 统一异常处理 |
+| core | `middleware.py` | 中间件 |
+| core | `schema.py` | 通用 Schema |
+| core | `constants.py` | 常量定义 |
+| provider | `aliyun.py` | 阿里云服务（OSS、AI） |
+| services | `ai.py` | AI 服务调用 |
+| services | `answer.py` | 答题处理 |
+| services | `practice_analysis.py` | 练习分析 |
+| services | `practice_session.py` | 练习会话管理 |
+| services | `prompt.py` | Prompt 获取 |
+| services | `textbook_parser.py` | 教材解析 |
+| utils | `oss.py` | OSS 工具 |
+| utils | `question.py` | 题目工具 |
+| utils | `rag.py` | RAG 检索 |
+| utils | `practice_config.py` | 练习配置 |
+| utils | `encrypt.py` | 加密工具 |
+| utils | `validation.py` | 验证工具 |
+| worker | `celery.py` | Celery 配置与任务提交 |
+| worker | `executor.py` | 任务执行器 |
+
+## 数据模型
+
+主要数据模型定义在 `shared/core/database.py`：
+
+| 模型 | 表名 | 说明 |
+|------|------|------|
+| Manager | ah_manager | 管理员 |
+| Textbook | ah_textbook | 教材 |
+| Unit | ah_unit | 单元 |
+| Knowledge | ah_knowledge | 知识点 |
+| TeacherBook | ah_teacher_book | 教师参考书 |
+| Question | ah_question | 题目 |
+| QuestionType | ah_question_type | 题型 |
+| Prompt | ah_prompt | Prompt 主表 |
+| PromptVersion | ah_prompt_version | Prompt 版本 |
+| Practice | ah_practice | 练习类型 |
+| PracticePrompt | ah_practice_prompt | 练习Prompt关联 |
+| PracticeSession | ah_practice_session | 练习会话 |
+| PracticeSessionAnswer | ah_practice_session_answer | 答题记录 |
+| PracticeSessionReport | ah_practice_session_report | 练习报告 |
+| Student | ah_student | 学生 |
+| StudentTextbook | ah_student_textbook | 学生教材关联 |
+| StudentPractice | ah_student_practice | 学生练习关联 |
 
 ## 开发规范
 
@@ -77,15 +136,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.core.database import Database
-from admin.schema import SomeSchema
-from admin.services import some_service
+from admin.[module].schema import SomeSchema
+from admin.[module].services import some_service
 
 router = APIRouter(prefix="/some", tags=["Some"])
 
-@router.post("/create")
+@router.post("/")
 async def create_something(
     params: SomeSchema,
-    db: AsyncSession = Depends(Database.get_session)
+    db: AsyncSession = Depends(Database)
 ):
     return await some_service.create(db, params)
 ```
@@ -109,25 +168,25 @@ async def create(db: AsyncSession, params: SomeSchema):
 - 任务提交: `shared.worker.celery.submit_task()`
 - 任务执行: `shared.worker.executor.execute_*_task()`
 
-### AI 工作流
-- 使用 LangGraph 构建题目生成工作流
-- 工作流定义: `ai/question_generate/graph.py`
-- Prompt 模板: `ai/question_generate/prompts/`
-- 题型管理: 题型包含 AI 生成指令（prompt），用于指导 AI 生成特定类型的题目
-- Prompt 管理: 系统化的 Prompt 版本管理，支持创建、更新、发布 Prompt 版本
+### AI 工作流 (LangGraph)
+- 工作流定义: `generation/[type]/graph.py`
+- 服务实现: `generation/[type]/services/`
+- Schema 定义: `generation/[type]/schema.py`
 
-### 数据模型
-- 数据库模型定义在 `shared/core/database.py`
-- 主要模型:
-  - `QuestionType`: 题型表，包含题型标题、类型、科目、年级、描述、资源类型、AI 生成指令等
-  - `Question`: 题目表，关联题型信息
-  - `Textbook`: 教材表
-  - `Unit`: 单元表
-  - `Knowledge`: 知识点表
-  - `PracticeSession`: 练习会话表
-  - `PracticeSessionAnswer`: 答题记录表
-  - `Prompt`: Prompt 表，包含 Prompt 基本信息（名称、slug、场景、描述、标签等）
-  - `PromptVersion`: Prompt 版本表，包含版本内容（模板内容、负面提示、模型参数等）
+## 应用架构
+
+项目采用子应用挂载架构：
+- `main.py` 创建主 FastAPI 应用
+- `admin_app` 和 `student_app` 作为独立的 FastAPI 实例
+- 使用 `app.mount()` 将子应用挂载到 `/api/admin` 和 `/api/student` 路径
+- 每个子应用有独立的中间件、异常处理器和依赖注入
+
+## API 文档访问
+
+- **管理端 API 文档**: `http://localhost:7890/api/admin/docs`
+- **学生端 API 文档**: `http://localhost:7890/api/student/docs`
+- **管理端 OpenAPI JSON**: `http://localhost:7890/api/admin/openapi.json`
+- **学生端 OpenAPI JSON**: `http://localhost:7890/api/student/openapi.json`
 
 ## 注意事项
 
@@ -138,25 +197,6 @@ async def create(db: AsyncSession, params: SomeSchema):
 5. **安全性**: 实现适当的认证和授权
 6. **性能**: 使用缓存、查询优化、连接池
 
-## API 文档访问
-
-FastAPI 自动生成的 OpenAPI 文档可通过以下地址访问：
-
-- **管理端 API 文档**: `http://localhost:7890/api/admin/docs`
-- **学生端 API 文档**: `http://localhost:7890/api/student/docs`
-- **管理端 OpenAPI JSON**: `http://localhost:7890/api/admin/openapi.json`
-- **学生端 OpenAPI JSON**: `http://localhost:7890/api/student/openapi.json`
-
-**注意**: 由于项目使用 `app.mount()` 挂载子应用，根路径 `/docs` 和 `/openapi.json` 不会显示路由信息。请访问上述子应用的文档地址。
-
-## 应用架构
-
-项目采用子应用挂载架构：
-- `main.py` 创建主 FastAPI 应用
-- `admin_app` 和 `student_app` 作为独立的 FastAPI 实例
-- 使用 `app.mount()` 将子应用挂载到 `/api/admin` 和 `/api/student` 路径
-- 每个子应用有独立的中间件、异常处理器和依赖注入
-
 ## 相关资源
 
 - 数据库模型: `shared/core/database.py`
@@ -164,47 +204,3 @@ FastAPI 自动生成的 OpenAPI 文档可通过以下地址访问：
 - 任务配置: `shared/worker/CONFIG.md`
 - API 文档: `docs/API.md`
 - FastAPI 文档: `https://fastapi.tiangolo.com/`
-
-## 核心功能模块
-
-### 题型管理
-题型管理模块用于管理题型的配置信息，包括：
-- **题型标题** (title): 如"看图选词"、"根据首字母填空"等
-- **类型** (scene): 如"选择题"、"填空题"、"判断题"、"口语题"、"应用题"等
-- **科目和年级**: 题型与特定科目、年级关联
-- **资源类型** (resource_type): 标识题型是否需要图片或语音资源
-- **AI 生成指令** (prompt): 用于指导 AI 生成该类型题目的指令
-
-题型管理接口:
-- `POST /api/admin/question_type/` - 创建题型
-- `PATCH /api/admin/question_type/{id}` - 更新题型
-- `DELETE /api/admin/question_type/{id}` - 删除题型
-- `GET /api/admin/question_type/{id}` - 获取题型详情
-- `GET /api/admin/question_type/search` - 搜索题型
-
-相关文件:
-- 数据模型: `shared/core/database.py` (QuestionType)
-- Schema: `admin/schema.py` (CreateQuestionTypeSchema, UpdateQuestionTypeSchema, SearchQuestionTypeSchema)
-- 服务层: `admin/services/question_type.py`
-- 路由层: `admin/routes/question_type.py`
-
-### Prompt 管理
-Prompt 管理模块用于系统化管理 AI 提示词模板，支持版本控制和发布管理：
-- **Prompt 基本信息**: 名称、slug（唯一标识）、场景、描述、标签等
-- **版本管理**: 每个 Prompt 可以有多个版本，支持版本历史记录
-- **模板内容**: 包含模板内容（template_content）、负面提示（negative_content）、模型参数（model_params）等
-- **发布机制**: 支持发布特定版本，发布后的版本成为当前使用的版本
-
-Prompt 管理接口:
-- `POST /api/admin/prompt/` - 创建 Prompt
-- `PUT /api/admin/prompt/{version_id}` - 更新 Prompt 版本
-- `POST /api/admin/prompt/{version_id}/publish` - 发布 Prompt 版本
-- `GET /api/admin/prompt/list` - 获取 Prompt 列表
-- `GET /api/admin/prompt/versions` - 获取 Prompt 版本列表
-- `GET /api/admin/prompt/{version_id}` - 获取 Prompt 详情
-
-相关文件:
-- 数据模型: `shared/core/database.py` (Prompt, PromptVersion)
-- Schema: `admin/schema.py` (SavePromptSchema, PromptDetailSchema, SearchPromptSchema, SearchPromptVersionSchema)
-- 服务层: `admin/services/prompt.py`
-- 路由层: `admin/routes/prompt.py`

@@ -13,34 +13,131 @@
 - **UI**: Material Design + 自定义组件
 - **代码生成**: json_serializable, freezed, build_runner
 
+## 项目结构
+
+```
+lib/
+├── app/                          # 应用配置
+│   └── router.dart              # GoRouter 路由配置
+├── core/                         # 核心功能
+│   ├── api/                     # API 层
+│   │   ├── api_client.dart      # Dio 客户端封装
+│   │   ├── endpoints/           # API 端点定义
+│   │   └── interceptors/        # 请求拦截器
+│   ├── constants/               # 常量定义
+│   ├── models/                  # 数据模型 (需要代码生成)
+│   ├── theme/                   # 主题配置
+│   └── utils/                   # 工具类
+├── screens/                      # 功能模块
+│   ├── auth/                    # 认证模块
+│   ├── home/                    # 首页
+│   ├── practice/                # 练习模块
+│   ├── profile/                 # 个人中心
+│   ├── textbook/                # 教材模块
+│   └── wrong_records/           # 错题记录
+├── shared/                       # 共享组件
+│   └── widgets/                 # 通用 Widget
+└── main.dart                     # 应用入口
+```
+
+## 功能模块
+
+### 认证模块 (auth)
+- **登录页**: `presentation/pages/login_page.dart`
+- **状态管理**: `providers/auth_provider.dart`
+- **服务层**: `domain/auth_service.dart`
+
+### 首页 (home)
+- **首页**: `presentation/pages/home_page.dart`
+- **组件**: WelcomeCard, QuickActions, PracticeCard
+- **状态管理**: `providers/practice_list_provider.dart`
+
+### 练习模块 (practice)
+采用 Clean Architecture 风格组织：
+
+| 子模块 | 说明 | 关键文件 |
+|--------|------|----------|
+| daily | 日常练习 | `daily_practice_provider.dart`, `daily_practice_repository.dart` |
+| unit | 单元练习 | `unit_practice_provider.dart`, `unit_practice_repository.dart` |
+| assessment | 综合评估 | `assessment_provider.dart`, `assessment_repository.dart` |
+| session | 练习会话 | `session_provider.dart`, `practice_repository.dart` |
+| detail | 练习详情 | `detail_provider.dart` |
+| report | 练习报告 | `report_provider.dart` |
+| history | 练习历史 | `history_provider.dart` |
+
+每个子模块结构：
+```
+[module]/
+├── data/
+│   └── [module]_repository.dart    # 数据仓库
+├── presentation/
+│   ├── pages/                      # 页面
+│   └── widgets/                    # 组件
+└── providers/
+    └── [module]_provider.dart      # Riverpod Provider
+```
+
+### 教材模块 (textbook)
+- **教材列表**: `presentation/pages/textbook_list_page.dart`
+- **单元列表**: `presentation/pages/unit_list_page.dart`
+- **状态管理**: `providers/textbook_provider.dart`
+- **数据仓库**: `data/textbook_repository.dart`
+
+### 个人中心 (profile)
+- **个人页**: `presentation/pages/profile_page.dart`
+- **状态管理**: `providers/profile_provider.dart`
+
+### 错题记录 (wrong_records)
+- **错题列表**: `presentation/pages/wrong_records_page.dart`
+- **状态管理**: `providers/wrong_records_provider.dart`
+- **数据仓库**: `data/wrong_records_repository.dart`
+
+## 核心模块
+
+### API 端点 (core/api/endpoints)
+| 文件 | 说明 |
+|------|------|
+| `auth_endpoints.dart` | 认证 API |
+| `practice_endpoints.dart` | 练习 API |
+| `textbook_endpoints.dart` | 教材 API |
+| `profile_endpoints.dart` | 个人信息 API |
+| `wrong_records_endpoints.dart` | 错题 API |
+
+### 数据模型 (core/models)
+| 模型 | 说明 |
+|------|------|
+| `student.dart` | 学生信息 |
+| `textbook.dart` | 教材 |
+| `unit.dart` | 单元 |
+| `knowledge.dart` | 知识点 |
+| `question.dart` | 题目 |
+| `practice_session.dart` | 练习会话 |
+| `practice_answer.dart` | 答题记录 |
+| `practice_report.dart` | 练习报告 |
+| `practice_wrong_record.dart` | 错题记录 |
+| `wrong_question_summary.dart` | 错题汇总 |
+
+### 共享组件 (shared/widgets)
+| 组件 | 说明 |
+|------|------|
+| `main_layout.dart` | 主布局 |
+| `loading_indicator.dart` | 加载指示器 |
+| `empty_state.dart` | 空状态 |
+| `error_widget.dart` | 错误组件 |
+| `error_boundary.dart` | 错误边界 |
+| `error_snackbar.dart` | 错误提示 |
+| `skeleton_loader.dart` | 骨架屏 |
+| `paginated_list.dart` | 分页列表 |
+| `custom_refresh_indicator.dart` | 下拉刷新 |
+| `animations/` | 动画组件（FadeIn, Scale, Slide, Staggered） |
+
 ## 开发原则
 
 ### Flutter 最佳实践
-1. 使用函数式组件和 StatefulWidget/StatelessWidget
+1. 使用 StatelessWidget/StatefulWidget 合理分离
 2. 使用 Riverpod 进行状态管理
 3. 优化性能和内存使用
 4. 遵循 Flutter 代码规范
-
-### 项目结构
-```
-lib/
-├── screens/              # 功能模块
-│   ├── auth/           # 认证模块
-│   ├── home/           # 首页
-│   ├── practice/       # 练习模块
-│   ├── profile/        # 个人中心
-│   ├── textbook/       # 教材模块
-│   └── wrong_records/  # 错题记录
-├── core/               # 核心功能
-│   ├── api/           # API 客户端
-│   ├── models/        # 数据模型
-│   ├── theme/         # 主题配置
-│   └── utils/         # 工具类
-├── shared/            # 共享组件
-│   └── widgets/       # 共享 Widget
-└── app/               # 应用配置
-    └── router.dart    # 路由配置
-```
 
 ### 状态管理 (Riverpod)
 ```dart
@@ -103,7 +200,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
 2. **生成代码**: `./build.sh`
 3. **运行应用**: `flutter run`
 4. **代码检查**: `flutter analyze`
-5. **格式化**: `flutter format .`
+5. **格式化**: `dart format .`
 
 ## 注意事项
 
@@ -118,3 +215,4 @@ flutter pub run build_runner build --delete-conflicting-outputs
 - 后端 API: `apps/server/student/routes/`
 - Web 端参考: `apps/student-web/`
 - Flutter 文档: `https://flutter.dev/`
+- Riverpod 文档: `https://riverpod.dev/`

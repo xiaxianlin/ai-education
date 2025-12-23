@@ -12,6 +12,71 @@
 - **样式**: Less + Tailwind CSS
 - **语言**: TypeScript 5
 
+## 功能模块
+
+### 认证与管理员 (Auth)
+- **登录**: `pages/Auth/Login/` - 管理员登录页面
+- **管理员管理**: `pages/Auth/Manager/` - 管理员账号管理
+- **密码修改**: `pages/Auth/Password/` - 修改密码
+- **个人资料**: `pages/Auth/Profile/` - 管理员个人资料
+
+### 首页 (Home)
+- **首页**: `pages/Home/` - 管理后台首页
+
+### 教材管理 (Textbook)
+- **教材列表**: `pages/Textbook/List/` - 教材CRUD操作
+- **教材详情**: `pages/Textbook/Detail/` - 教材详情、单元管理、知识点管理
+
+### 教师参考书管理 (TeacherBook)
+- **参考书列表**: `pages/TeacherBook/List/` - 教师参考书CRUD
+- **参考书详情**: `pages/TeacherBook/Detail/` - 参考书详情
+
+### 题目管理 (Question)
+- **题目列表**: `pages/Question/List/` - 题目CRUD操作
+- **题目详情**: `pages/Question/Detail/` - 题目详情查看
+- **题目表单**: `pages/Question/Form/` - 题目编辑表单
+- **题型管理**: `pages/Question/Type/` - 题型配置管理（包含AI生成指令）
+
+### Prompt 管理 (Prompt)
+- **Prompt列表**: `pages/Prompt/List/` - Prompt CRUD操作
+- **Prompt表单**: `pages/Prompt/Form/` - Prompt 创建/编辑
+- **Prompt详情**: `pages/Prompt/Detail/` - Prompt 详情与发布
+- **版本列表**: `pages/Prompt/VersionList/` - Prompt 版本历史
+- **Prompt测试**: `pages/Prompt/Test/` - Prompt 模板测试与参数调试
+
+### 练习管理 (Practice)
+- **练习列表**: `pages/Practice/List/` - 练习类型管理
+- **练习配置**: `pages/Practice/Config/` - 练习参数配置（JSON编辑）
+- **练习Prompt**: `pages/Practice/Prompt/` - 练习与Prompt关联配置
+
+### 学生管理 (Student)
+- **学生列表**: `pages/Student/List/` - 学生CRUD操作
+- **学生详情**: `pages/Student/Detail/` - 学生信息、教材配置、练习配置
+- **练习会话列表**: `pages/Student/PracticeSessionList/` - 学生练习会话查看
+- **练习会话详情**: `pages/Student/PraticeSessionDetail/` - 练习答题详情
+
+## 共享组件
+
+| 组件名 | 说明 |
+|--------|------|
+| `AudioPlayer` | 音频播放器组件 |
+| `DeleteButton` | 带确认的删除按钮 |
+| `DescriptionList` | 描述列表组件 |
+| `DetailCard` | 详情卡片组件 |
+| `PageHeader` | 页面头部组件 |
+| `StatusTag` | 状态标签组件 |
+| `SubjectGradeTabs` | 科目年级选项卡 |
+| `UploadButton` | 文件上传按钮 |
+
+## 共享 Hooks
+
+| Hook 名 | 说明 |
+|---------|------|
+| `useConfigs` | 配置数据获取（科目、年级、题型等） |
+| `useDelete` | 通用删除操作 |
+| `useSimpleForm` | 简单表单状态管理 |
+| `useTableColumns` | 表格列配置生成 |
+
 ## 开发原则
 
 ### React 最佳实践
@@ -38,7 +103,7 @@
 pages/[Feature]/[PageName]/
 ├── index.tsx                    # 页面入口
 ├── models/
-│   └── PageModel.ts            # 页面级状态管理
+│   └── page.ts                 # 页面级状态管理
 ├── views/
 │   └── Main.tsx                # 主视图组件
 ├── hooks/
@@ -46,7 +111,6 @@ pages/[Feature]/[PageName]/
 └── components/
     └── [ComponentName]/
         ├── index.tsx           # 组件入口
-        ├── types.ts            # 类型定义
         └── [SubComponent].tsx  # 子组件
 ```
 
@@ -61,8 +125,8 @@ pages/[Feature]/[PageName]/
 
 ### API 调用
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
-- 管理端 API 按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi` 等），新增/修改接口优先在对应模块的 `api.ts` 中维护
-- 通用 API（如 `check`、`getConfigs`）统一封装在 `src/lib/api.ts` 的 `CommonApi` 中
+- 管理端 API 按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi` 等）
+- 通用 API 封装在 `src/lib/api.ts` 的 `CommonApi` 中
 
 ## 注意事项
 
@@ -74,6 +138,6 @@ pages/[Feature]/[PageName]/
 
 ## 相关资源
 
-- 后端 API: `apps/server/admin/routes/`
+- 后端 API: `apps/server/admin/`
 - 共享类型: `packages/shared-web/src/types/`
 - Ant Design Pro: `https://pro.ant.design/`

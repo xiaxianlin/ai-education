@@ -8,17 +8,17 @@ alwaysApply: false
 
 ## Tech Stack
 
-- **Base**: Flutter 3.0+ + Dart 3.8+.
-- **State Management**: Riverpod (hooks_riverpod).
+- **Base**: Flutter 3.8+ + Dart 3.8+.
+- **State Management**: Riverpod 3.0 (hooks_riverpod).
 - **Navigation**: GoRouter 17.0+.
 - **API**: Dio 5.4.0+.
 - **Serialization**: json_serializable + freezed.
 
 ## Core Standards
 
-- **State Management**: Use `ConsumerWidget` or `HookConsumerWidget`. Logic SHOULD be placed in `StateNotifier` or `Notifier` classes.
+- **State Management**: Use `ConsumerWidget` or `HookConsumerWidget`. Logic SHOULD be placed in `Notifier` or `AsyncNotifier` classes.
 - **UI/Logic Separation**: Keep build methods clean. Delegate logic to Providers/Notifiers.
-- **Code Generation**: MUST use `build_runner` for model generation.
+- **Code Generation**: MUST use `build_runner` for model and provider generation.
 
 ## Network & Data
 
@@ -28,6 +28,6 @@ alwaysApply: false
 
 ## Operational Instructions
 
-1. After modifying any `@freezed` or `@JsonSerializable` classes, MUST run `./build.sh` (or `dart run build_runner build`).
+1. After modifying any `@freezed` or `@JsonSerializable` classes, MUST run `./build.sh` (wraps `dart run build_runner build`).
 2. MUST use `snake_case.dart` for file names and `PascalCase` for Widget/Class names.
 3. Verify UI layouts on multiple screen sizes (Simulator/Emulator) before final submission.

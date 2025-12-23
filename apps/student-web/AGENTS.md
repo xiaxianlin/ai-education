@@ -13,6 +13,99 @@
 - **样式**: Tailwind CSS
 - **语言**: TypeScript 5
 
+## 项目结构
+
+```
+src/
+├── components/                   # 组件库
+│   ├── business/                # 业务组件
+│   ├── ui/                      # UI 基础组件 (shadcn/ui)
+│   └── theme-provider.tsx       # 主题提供者
+├── hooks/                        # 共享 Hooks
+├── lib/                          # 工具库
+├── models/                       # 全局状态
+├── pages/                        # 页面模块
+├── layouts/                      # 布局组件
+└── constants/                    # 常量定义
+```
+
+## 功能模块
+
+### 登录 (Login)
+- **登录页**: `pages/Login/index.tsx`
+
+### 首页 (Home)
+- **首页**: `pages/Home/index.tsx`
+- **组件**: WelcomeCard, QuickActions, PracticeCard
+
+### 练习模块 (Practice)
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| 日常练习 | `Practice/Daily/` | 每日练习入口，生成日常练习题 |
+| 单元练习 | `Practice/Unit/` | 选择教材单元进行练习 |
+| 综合评估 | `Practice/Assessment/` | 能力评估测试 |
+| 练习会话 | `Practice/Session/` | 答题页面，核心交互模块 |
+| 练习详情 | `Practice/Detail/` | 练习完成后的详情查看 |
+| 练习报告 | `Practice/Report/` | 练习报告展示 |
+| 练习历史 | `Practice/History/` | 历史练习记录 |
+
+**练习会话 (Session) 核心组件：**
+| 组件 | 说明 |
+|------|------|
+| `QuestionCard` | 题目卡片 |
+| `AnswerCard` | 答案展示 |
+| `AnswerAnalysis` | 答案解析 |
+| `ProgressIndicator` | 进度指示器 |
+| `AnswerForm/` | 答题表单（ChoiceInput, TextInput, AudioInput, JudgeInput） |
+| `LowerGradeReadyPanel` | 低年级准备面板 |
+| `UpperGradeReadyPanel` | 高年级准备面板 |
+
+**练习会话视图：**
+| 视图 | 说明 |
+|------|------|
+| `ReadyView` | 准备开始 |
+| `ProcessingView` | 答题进行中 |
+| `ResultView` | 单题结果 |
+| `SettlementView` | 结算页面 |
+| `EmptyView` | 空状态 |
+
+### 个人中心 (Profile)
+- **个人页**: `pages/Profile/index.tsx`
+
+### 设置 (Settings)
+- **设置页**: `pages/Settings/index.tsx`
+- **组件**: TextbookCard（教材配置）
+
+### 错题记录 (WrongRecords)
+- **错题页**: `pages/WrongRecords/index.tsx`
+
+## 组件库
+
+### 业务组件 (components/business)
+| 组件 | 说明 |
+|------|------|
+| `AudioPlayer` | 音频播放器 |
+| `AudioRecorder` | 语音录制 |
+| `Header` | 页面头部 |
+| `LoadingSpinner` | 加载动画 |
+| `ModeToggle` | 主题切换 |
+| `SubjectTab` | 科目选项卡 |
+
+### UI 组件 (components/ui)
+基于 shadcn/ui 的组件：
+- `alert`, `badge`, `button`, `card`, `dialog`
+- `dropdown`, `input`, `progress`, `separator`
+- `skeleton`, `tabs`, `toast`
+
+## 共享 Hooks
+
+| Hook | 说明 |
+|------|------|
+| `useCreatePractice` | 创建练习会话 |
+| `useFormValidation` | 表单验证 |
+| `useGradeTheme` | 年级主题样式 |
+| `useOnce` | 只执行一次 |
+
 ## 开发原则
 
 ### React 最佳实践
@@ -74,5 +167,6 @@ pages/[Feature]/[PageName]/
 ## 相关资源
 
 - 后端 API: `apps/server/student/routes/`
+- 移动端参考: `apps/student-app/`
 - 共享类型: `packages/shared-web/src/types/`
 - shadcn/ui: `https://ui.shadcn.com/`

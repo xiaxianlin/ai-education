@@ -87,18 +87,18 @@ export const usePageModel = PageModel.useContainer;
 
 ### API 调用
 ```tsx
-// Web 端 API 统一集中封装在 src/lib/api.ts
-// - admin-web: adminApi
-// - student-web: studentApi
+// admin-web: 使用业务模块 API
+import { StudentApi } from "@/pages/Student/api";
+import { CommonApi } from "@/lib/api";
+
+const data = await StudentApi.searchStudents(params);
+const configs = await CommonApi.getConfigs();
+
+// student-web: 使用统一封装的 API
 import { studentApi } from "@/lib/api";
 
-const fetchData = async () => {
-  try {
-    return await studentApi.getProfile();
-  } catch (error) {
-    // error handling
-  }
-};
+const profile = await studentApi.getProfile();
+const practices = await studentApi.listPractices();
 ```
 
 ## 快速参考

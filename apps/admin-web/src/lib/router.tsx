@@ -3,6 +3,7 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import Home from '@/pages/Home';
 import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
+import Profile from '@/pages/Auth/Profile';
 import ModifyPassword from '@/pages/Auth/Password';
 import TextbookList from '@/pages/Textbook/List';
 import TextbookDetail from '@/pages/Textbook/Detail';
@@ -49,12 +50,12 @@ export function Router() {
         { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
-        { path: 'prompt/list', element: <PromptList /> },
+        { path: 'prompt', element: <PromptList /> },
         { path: 'prompt/form', element: <PromptForm /> },
         { path: 'prompt/detail', element: <PromptDetail /> },
         { path: 'prompt/versions', element: <PromptVersionList /> },
         { path: 'prompt/test', element: <PromptTest /> },
-        { path: 'practice/list', element: <PracticeList /> },
+        { path: 'practice', element: <PracticeList /> },
         { path: 'practice/config', element: <PracticeConfig /> },
         { path: 'practice/prompt', element: <PracticePromptNew /> },
         { path: 'student', element: <StudentList /> },
@@ -62,6 +63,7 @@ export function Router() {
         { path: 'student/:id/practice_sessions', element: <PracticeSessionList /> },
         { path: 'student/:id/practice_session/:session_id', element: <PracticeSessionDetail /> },
         { path: 'password', element: <ModifyPassword /> },
+        { path: 'profile', element: <Profile /> },
         { path: '*', element: <NotFound /> },
       ],
     },

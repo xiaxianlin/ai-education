@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react';
-import { createContainer } from 'unstated-next';
+import { useDelete } from '@/hooks/useDelete';
 import { ActionType } from '@ant-design/pro-components';
 import { message } from 'antd';
-import { useDelete } from '@/hooks/useDelete';
+import { useRef, useState } from 'react';
+import { createContainer } from 'unstated-next';
 import { PracticeApi } from '../../api';
 
 const useContainer = () => {
   const actionRef = useRef<ActionType>();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
@@ -21,7 +21,7 @@ const useContainer = () => {
   const handleCreate = () => {
     setEditingId(null);
     setInitialValues(undefined);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   // 打开编辑表单
@@ -36,7 +36,7 @@ const useContainer = () => {
           grade: data.grade,
           prompt_slug: data.prompt_slug,
         });
-        setDrawerOpen(true);
+        setModalOpen(true);
       })
       .catch(() => {
         message.error('加载数据失败');
@@ -48,7 +48,7 @@ const useContainer = () => {
 
   // 关闭抽屉
   const handleClose = () => {
-    setDrawerOpen(false);
+    setModalOpen(false);
     setEditingId(null);
     setInitialValues(undefined);
   };
@@ -77,7 +77,7 @@ const useContainer = () => {
     actionRef,
     handleDelete,
     deleteLoading,
-    drawerOpen,
+    modalOpen,
     editingId,
     formLoading: formLoading || dataLoading,
     initialValues,

@@ -137,17 +137,27 @@ export const usePageNameHook = (params) => {
 项目 Web 端统一通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）进行请求。
 
 约定：
-- admin-web：在 `apps/admin-web/src/lib/api.ts` 里维护 `adminApi`（新增/修改接口优先在这里集中封装）
-- student-web：在 `apps/student-web/src/lib/api.ts` 里维护 `studentApi`（新增/修改接口优先在这里集中封装）
+- **admin-web**：
+  - 基础 API 客户端：`apps/admin-web/src/lib/api.ts` 中的 `apiClient` 和 `CommonApi`（通用接口如 `check`、`getConfigs`）
+  - 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `StudentApi`、`PracticeApi`、`TextbookApi`、`QuestionApi`、`TeacherBookApi`、`PromptApi`、`AuthApi`）
+  - 新增/修改接口优先在对应模块的 `api.ts` 中维护
+- **student-web**：
+  - API 统一封装在 `apps/student-web/src/lib/api.ts` 中的 `studentApi`
+  - 新增/修改接口优先在这里集中维护
 
 ```typescript
-// 例：调用已封装的 API（推荐）
-// admin-web: import { adminApi } from "@/lib/api";
-// student-web: import { studentApi } from "@/lib/api";
+// admin-web 示例：调用业务模块 API
+import { StudentApi } from "@/pages/Student/api";
+import { CommonApi } from "@/lib/api";
 
-export const someService = {
-  // 这里只演示模式：实际请按项目已有的 adminApi/studentApi 方法组织与命名
-};
+const data = await StudentApi.searchStudents(params);
+const configs = await CommonApi.getConfigs();
+
+// student-web 示例：调用统一封装的 API
+import { studentApi } from "@/lib/api";
+
+const profile = await studentApi.getProfile();
+const practices = await studentApi.listPractices();
 ```
 
 ## 性能优化
