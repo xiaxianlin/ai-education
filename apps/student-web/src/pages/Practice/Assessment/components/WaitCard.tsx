@@ -2,10 +2,12 @@
  * 等待生成状态的评估卡片
  */
 import { Button } from "@/components/ui";
-import { Sparkles, Loader2 } from "lucide-react";
-import { PracticeCardProps } from "./types";
+import { Loader2, Sparkles } from "lucide-react";
+import { usePageModel } from "../models/page";
+import { PracticeCardProps } from "../types";
 
-export function WaitCard({ textbook, onCreate, loading }: PracticeCardProps) {
+export function WaitCard({ textbook }: PracticeCardProps) {
+  const { loading, createPractice } = usePageModel();
   return (
     <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
@@ -23,15 +25,15 @@ export function WaitCard({ textbook, onCreate, loading }: PracticeCardProps) {
 
         {/* 操作按钮 */}
         <Button
-          onClick={onCreate}
-          disabled={loading}
           size="lg"
-          className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl font-semibold text-base transition-all text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
+          onClick={() => createPractice(textbook.id)}
+          className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl font-semibold text-base transition-all text-primary-foreground"
         >
           {loading ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              创建评估中...
+              创建中...
             </>
           ) : (
             <>

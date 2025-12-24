@@ -1,12 +1,11 @@
-import { Play } from "lucide-react";
 import { Button } from "@/components/ui";
-import { PracticeCardProps } from "./types";
-import { PracticeStatus } from "@/pages/Practice/constants";
+import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PracticeCardProps } from "../types";
 
-export function PracticingCard({ practice, textbook, status }: PracticeCardProps) {
+export function PracticingCard({ practice, textbook }: PracticeCardProps) {
   const navigate = useNavigate();
-  const isInProgress = status === PracticeStatus.PRACTICING;
+  const isInProgress = practice?.status === PracticeSessionStatus.PRACTICING;
   const { question_count, answer_count, correct_count } = practice || {};
 
   return (
@@ -41,3 +40,4 @@ export function PracticingCard({ practice, textbook, status }: PracticeCardProps
     </div>
   );
 }
+

@@ -154,7 +154,15 @@ export const studentApi = {
    * 获取单元的知识点列表
    * GET /textbook/{unit_id}/knowledges
    */
-  async getUnitKnowledge(unitId: number) {
+  async getUnitKnowledges(unitId: number) {
     return apiClient.get<Knowledge[]>(`/textbook/${unitId}/knowledges`);
+  },
+
+  /**
+   * 获取教材的单元列表
+   * GET /textbook/{textbook_id}/units
+   */
+  async getTextbookUnits(textbookId: number) {
+    return apiClient.get<Unit[]>(`/textbook/${textbookId}/units`);
   },
 };

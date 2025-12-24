@@ -2,12 +2,12 @@ import { BookOpen, LogOut, Phone, User } from "lucide-react";
 
 import { Button, Card, CardContent, Skeleton } from "@/components/ui";
 
-import { GRADES } from "@/constants/profile";
 import { useAuthModel } from "@/models/AuthModel";
 import { useProfileModel } from "@/models/ProfileModel";
+import { GRADES } from "@ai-education/shared-web/constants";
 
 export default function Profile() {
-  const { student, textbooks, loading } = useProfileModel();
+  const { profile, textbooks, loading } = useProfileModel();
   const { logout } = useAuthModel();
 
   return (
@@ -30,10 +30,10 @@ export default function Profile() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold">{student?.name}</h2>
+                  <h2 className="text-2xl font-bold">{profile?.name}</h2>
                   <p className="text-muted-foreground mt-1 flex items-center justify-center gap-2">
                     <Phone className="h-4 w-4" />
-                    {student?.phone}
+                    {profile?.phone}
                   </p>
                 </>
               )}
@@ -50,10 +50,7 @@ export default function Profile() {
 
         <div className="grid grid-cols-3 gap-4">
           {textbooks?.map((book) => (
-            <Card
-              key={book.id}
-              className="overflow-hidden transition-all hover:shadow-md"
-            >
+            <Card key={book.id} className="overflow-hidden transition-all hover:shadow-md">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="font-medium">{book.subject}</div>
@@ -66,20 +63,13 @@ export default function Profile() {
           ))}
 
           {(!textbooks || textbooks.length === 0) && (
-            <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">
-              暂无教材信息
-            </div>
+            <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg">暂无教材信息</div>
           )}
         </div>
       </div>
 
       <div className="pt-2">
-        <Button
-          size="lg"
-          variant="destructive"
-          className="w-full"
-          onClick={logout}
-        >
+        <Button size="lg" variant="destructive" className="w-full" onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           退出登录
         </Button>

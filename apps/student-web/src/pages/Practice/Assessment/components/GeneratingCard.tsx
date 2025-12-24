@@ -2,7 +2,7 @@
  * 生成中状态的评估卡片
  */
 import { Loader2 } from "lucide-react";
-import { PracticeCardProps } from "./types";
+import { PracticeCardProps } from "../types";
 
 export function GeneratingCard({ textbook }: PracticeCardProps) {
   return (
@@ -27,3 +27,4 @@ export function GeneratingCard({ textbook }: PracticeCardProps) {
     </div>
   );
 }
+

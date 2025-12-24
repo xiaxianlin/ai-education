@@ -4,10 +4,12 @@
 import { Button } from "@/components/ui";
 import { Loader2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PracticeCardProps } from "./types";
+import { usePageModel } from "../models/page";
+import { PracticeCardProps } from "../types";
 
-export function CompleteCard({ practice, textbook, shouldCreate, onCreate, loading }: PracticeCardProps) {
+export function CompleteCard({ practice, textbook, shouldCreate }: PracticeCardProps & { shouldCreate: boolean }) {
   const navigate = useNavigate();
+  const { loading, createPractice } = usePageModel();
   const { id, question_count, answer_count, correct_count } = practice || {};
 
   return (
@@ -33,7 +35,7 @@ export function CompleteCard({ practice, textbook, shouldCreate, onCreate, loadi
           {shouldCreate && (
             <Button
               size="lg"
-              onClick={onCreate}
+              onClick={() => createPractice(textbook.id)}
               disabled={loading}
               className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
             >
@@ -52,11 +54,11 @@ export function CompleteCard({ practice, textbook, shouldCreate, onCreate, loadi
           )}
           <Button
             size="lg"
-            onClick={() => navigate(`/practice/session/${id}`)}
+            onClick={() => navigate(`/practice/result/${id}`)}
             className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
           >
             <Play className="h-5 w-5 mr-2" fill="currentColor" />
-            查看报告
+            查看结果
           </Button>
         </div>
       </div>
