@@ -16,7 +16,9 @@ from sqlalchemy.orm import noload
 from .report import generate_practice_report
 
 
-async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: int, limit: int = 30):
+async def get_practice_sessions(
+    db: AsyncSession, student_id: str, practice_id: int, limit: int = 30
+):
     """获取指定练习的练习会话记录"""
     # 查询最近的练习记录（按创建时间倒序）
     sessions = await db.scalars(
@@ -36,11 +38,9 @@ async def get_daily_practices(db: AsyncSession, student_id: str):
     """获取当天的日常练习记录"""
     start = pendulum.today()
     result = await db.scalars(
-        select(PracticeSession)
-        .options(noload(PracticeSession.textbook))
-        .where(
+        select(PracticeSession).where(
             PracticeSession.student_id == student_id,
-            PracticeSession.slug == "daily_practice",
+            PracticeSession.practice_slug == "daily_practice",
             PracticeSession.create_time >= start.int_timestamp,
         )
     )
@@ -50,11 +50,9 @@ async def get_daily_practices(db: AsyncSession, student_id: str):
 async def get_unit_practices(db: AsyncSession, student_id: str, textbook_id: int):
     """获取所有单元练习记录"""
     result = await db.scalars(
-        select(PracticeSession)
-        .options(noload(PracticeSession.textbook))
-        .where(
+        select(PracticeSession).where(
             PracticeSession.student_id == student_id,
-            PracticeSession.slug == "unit_practice",
+            PracticeSession.practice_slug == "unit_practice",
             PracticeSession.textbook_id == textbook_id,
             PracticeSession.status != 2,
         )
@@ -72,7 +70,7 @@ async def get_assessments(db: AsyncSession, student_id: str):
         .options(noload(PracticeSession.textbook))
         .where(
             PracticeSession.student_id == student_id,
-            PracticeSession.slug == "assessment",
+            PracticeSession.practice_slug == "assessment",
             PracticeSession.create_time >= thirty_days_ago.int_timestamp,
         )
     )

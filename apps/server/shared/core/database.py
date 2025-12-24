@@ -108,7 +108,9 @@ class Knowledge(BaseModel):
     content: Mapped[str] = mapped_column(Text, default="")
 
     # 知识点属性（简化）
-    difficulty: Mapped[str] = mapped_column(String(50), nullable=True, comment="知识点难度（简单/普通/困难）")
+    difficulty: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="知识点难度（简单/普通/困难）"
+    )
     importance: Mapped[int] = mapped_column(default=5, comment="重要性（1-10，10最重要）")
     order: Mapped[int] = mapped_column(default=0, comment="同级知识点排序")
 
@@ -149,8 +151,12 @@ class Question(BaseModel):
     answer: Mapped[str] = mapped_column(Text, comment="问题答案")
     difficulty: Mapped[str] = mapped_column(String(255), comment="问题难度")
     resource: Mapped[str] = mapped_column(String(255), nullable=True, comment="资源路径")
-    resource_type: Mapped[str] = mapped_column(String(50), comment="资源类型：image/audio", nullable=True)
-    resource_content: Mapped[str] = mapped_column(Text, comment="资源内容（录音文本等）", nullable=True)
+    resource_type: Mapped[str] = mapped_column(
+        String(50), comment="资源类型：image/audio", nullable=True
+    )
+    resource_content: Mapped[str] = mapped_column(
+        Text, comment="资源内容（录音文本等）", nullable=True
+    )
     textbook_id: Mapped[int] = mapped_column(comment="教材ID")
     unit_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID")
     prompt_id: Mapped[int] = mapped_column(nullable=True, comment="提示词ID")
@@ -175,7 +181,9 @@ class QuestionType(BaseModel):
     __tablename__ = "ah_question_type"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(100), comment="题型标题（如：看图选词、根据首字母填空）")
+    title: Mapped[str] = mapped_column(
+        String(100), comment="题型标题（如：看图选词、根据首字母填空）"
+    )
     scene: Mapped[str] = mapped_column(String(50), comment="题型类型")
     subject: Mapped[str] = mapped_column(String(50), comment="科目")
     grade: Mapped[int] = mapped_column(comment="年级（1-6）")
@@ -183,7 +191,9 @@ class QuestionType(BaseModel):
     resource_type: Mapped[str] = mapped_column(
         String(50), nullable=True, comment="资源类型：image-图片，audio-语音，空-无资源"
     )
-    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）")
+    prompt: Mapped[str] = mapped_column(
+        Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）"
+    )
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
@@ -280,15 +290,20 @@ class PracticeSession(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
-    practice_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="练习ID")
+    practice_id: Mapped[int] = mapped_column(comment="练习ID")
+    practice_slug: Mapped[str] = mapped_column(String(50), comment="练习标识")
     parameters: Mapped[str] = mapped_column(JSON, default=dict, comment="练习参数")
 
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="失败: 0, 生成中: 1, 成功: 2")
+    status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2"
+    )
+    generate_status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="失败: 0, 生成中: 1, 成功: 2"
+    )
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
@@ -326,7 +341,9 @@ class PracticeSessionAnswer(BaseModel):
 
     # 答题信息
     text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="文本答案/用户答案")
-    audio_answer: Mapped[str] = mapped_column(String(255), nullable=True, comment="语音回答（OSS 存储路径）")
+    audio_answer: Mapped[str] = mapped_column(
+        String(255), nullable=True, comment="语音回答（OSS 存储路径）"
+    )
     status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")

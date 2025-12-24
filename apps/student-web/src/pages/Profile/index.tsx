@@ -4,7 +4,7 @@ import { Button, Card, CardContent, Skeleton } from "@/components/ui";
 
 import { useAuthModel } from "@/models/AuthModel";
 import { useProfileModel } from "@/models/ProfileModel";
-import { GRADES } from "@ai-education/shared-web/constants";
+import { GRADES } from "@ai-education/shared-web";
 
 export default function Profile() {
   const { profile, textbooks, loading } = useProfileModel();

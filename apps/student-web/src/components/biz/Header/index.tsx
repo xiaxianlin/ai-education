@@ -2,9 +2,9 @@ import { PRACTICE_PATH_MAP } from "@/common/constants";
 import { cn } from "@/common/utils";
 import { ModeToggle } from "@/components/biz";
 import { Dropdown, DropdownItem, DropdownSeparator } from "@/components/ui";
-import { GRADES } from "@/constants/profile";
 import { useAuthModel } from "@/models/AuthModel";
 import { useProfileModel } from "@/models/ProfileModel";
+import { GRADES } from "@ai-education/shared-web";
 import { History, LogOut, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 

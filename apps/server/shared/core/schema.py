@@ -198,7 +198,8 @@ class PracticePromptSchema(BaseModel):
 class PracticeSessionSchema(BaseModel):
     id: int
     student_id: str
-    practice_id: Optional[int] = None
+    practice_id: int
+    practice_slug: str
     parameters: dict = Field(default_factory=dict, description="练习参数")
     question_count: int = 0
     answer_count: int = 0
