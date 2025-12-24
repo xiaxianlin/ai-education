@@ -5,7 +5,7 @@ from uuid import uuid4
 from fastapi import APIRouter, File, Request, UploadFile
 from shared.core.database import Database
 from shared.services.practice_session import get_practice_session_data
-from shared.worker import Executor, get_task_status, submit_task
+from shared.worker import Executor, submit_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
@@ -85,7 +85,7 @@ async def create_practice(request: Request, params: CreatePracticeSchema):
 
 
 @practice_router.get(
-    "/history/{type}",
+    "/records/{type}",
     tags=["练习会话"],
     summary="查询练习历史",
     description="根据练习类型（日常、单元、评估）查询最近的练习记录",
@@ -111,16 +111,6 @@ async def create_practice_immediately(request: Request, params: CreatePracticeSc
         unit_id=params.unit_id,
         practice_id=params.practice_id,
     )
-
-
-@practice_router.get(
-    "/task/{task_id}/status",
-    tags=["练习会话"],
-    summary="查询练习生成状态",
-    description="根据任务 ID 查询异步练习生成任务的当前状态",
-)
-async def get_practice_task_status(task_id: str):
-    return get_task_status(task_id)
 
 
 @practice_router.post(

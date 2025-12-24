@@ -1,14 +1,14 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { PageContainer, ProDescriptions, ProTable, ProColumns, ProSkeleton } from '@ant-design/pro-components';
-import { PracticeApi } from '@/pages/Practice/api';
-import { useRequest } from 'ahooks';
-import { Button, Card, Space, Tag, Empty, Row, Col, Statistic } from 'antd';
-import { useMemo, useState } from 'react';
-import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
-import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
-import { formatDateTime } from '@ai-education/shared-web';
 import { PageHeader } from '@/components';
+import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { createActionColumn } from '@/hooks';
+import { PracticeApi } from '@/pages/Practice/api';
+import { formatDateTime } from '@ai-education/shared-web';
+import { PageContainer, ProColumns, ProDescriptions, ProSkeleton, ProTable } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { Button, Card, Col, Empty, Row, Space, Statistic, Tag } from 'antd';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 
 export default function PracticeDetailPage() {
   const { session_id } = useParams<{ session_id: string }>();
@@ -23,11 +23,11 @@ export default function PracticeDetailPage() {
 
   const answersMap = useMemo(() => {
     return answers.reduce(
-      (acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
+      (acc: { [x: string]: PracticeSessionAnswer }, answer: PracticeSessionAnswer) => {
         acc[answer.question_id] = answer;
         return acc;
       },
-      {} as Record<string, PracticeAnswer>,
+      {} as Record<string, PracticeSessionAnswer>,
     );
   }, [answers]);
 
@@ -204,7 +204,7 @@ export default function PracticeDetailPage() {
             columns={columns}
             search={false}
             pagination={false}
-            dataSource={answers.map((answer: PracticeAnswer) => answer.question!)}
+            dataSource={answers.map((answer: PracticeSessionAnswer) => answer.question!)}
             loading={loading}
             options={false}
             toolbar={{ actions: [] }}

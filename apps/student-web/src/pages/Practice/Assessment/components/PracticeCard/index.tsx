@@ -1,10 +1,10 @@
-import { GeneratingCard } from "./GeneratingCard";
-import { WaitCard } from "./WaitCard";
-import { PracticingCard } from "./PracticingCard";
+import { PracticeStatus } from "@/pages/Practice/constants";
 import { useAssessmentPractice } from "../../hooks/useAssessmentPractice";
-import { PracticeStatus } from "../../../constants";
 import { CompleteCard } from "./CompleteCard";
+import { GeneratingCard } from "./GeneratingCard";
+import { PracticingCard } from "./PracticingCard";
 import { PracticeCardProps } from "./types";
+import { WaitCard } from "./WaitCard";
 
 export function PracticeCard({ textbook }: PracticeCardProps) {
   const { practice, status, loading, createPractice, shouldCreate } = useAssessmentPractice(textbook.id);

@@ -1,5 +1,5 @@
+import { studentApi } from "@/common/api";
 import { useCreatePractice } from "@/hooks/useCreatePractice";
-import { studentApi } from "@/lib/api";
 import { useBoolean, useRequest } from "ahooks";
 
 export const useUnitPractice = (unit: Unit, textbook: Textbook) => {

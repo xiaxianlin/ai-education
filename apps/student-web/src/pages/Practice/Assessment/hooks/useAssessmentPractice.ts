@@ -1,5 +1,5 @@
+import { studentApi } from "@/common/api";
 import { useCreatePractice } from "@/hooks/useCreatePractice";
-import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import dayjs from "dayjs";
 import { useMemo } from "react";

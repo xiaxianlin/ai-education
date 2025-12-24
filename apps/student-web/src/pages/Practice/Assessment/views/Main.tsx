@@ -1,4 +1,4 @@
-import { SubjectTabs } from "@/components/business";
+import { SubjectTabs } from "@/components/biz";
 import { Card, CardContent } from "@/components/ui";
 import { usePageModel } from "@/pages/Practice/Assessment/models/PageModel";
 import { PracticeCard } from "../components/PracticeCard";

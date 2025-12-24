@@ -1,8 +1,57 @@
 declare global {
-  type GenerateType = "text" | "image" | "video" | "audio";
+  // ================ API 响应类型 ================
+
+  /**
+   * API 响应类型
+   */
+  interface ApiResponse<T = any> {
+    data: T;
+    message?: string;
+    status?: number;
+  }
+
+  /**
+   * 搜索参数
+   */
+  interface SearchRequest {
+    page?: number;
+    size?: number;
+  }
+
+  /**
+   * 分页列表数据
+   */
+  interface SearchResponse<T> {
+    data?: T[];
+    total?: number;
+  }
+
+  /**
+   * 生成类型
+   */
+  enum GenerateType {
+    /** 文本 */
+    TEXT = "text",
+    /** 图片 */
+    IMAGE = "image",
+    /** 视频 */
+    VIDEO = "video",
+    /** 音频 */
+    AUDIO = "audio",
+  }
 
   // ================ 基础类型 ================
-  type ManagerType = 0 | 1 | 2;
+  /**
+   * 管理员类型
+   */
+  enum ManagerType {
+    /** 系统管理员 */
+    SYSTEM = 0,
+    /** 超级管理员 */
+    ADMIN = 1,
+    /** 普通管理员 */
+    NORMAL = 2,
+  }
 
   /**
    * 管理员信息（对应 ManagerSchema）
@@ -28,6 +77,19 @@ declare global {
     file?: string;
     index_file_id?: string;
     is_parsed?: number; // 0-未解析, 1-已解析
+  }
+
+  /**
+   * 教师用书信息（对应 TeacherBookSchema）
+   */
+  interface TeacherBook {
+    id: number;
+    subject: string;
+    version: string;
+    grade: number;
+    semester: string;
+    file?: string;
+    index_file_id?: string;
   }
 
   /**
@@ -58,19 +120,6 @@ declare global {
   }
 
   /**
-   * 教师用书信息（对应 TeacherBookSchema）
-   */
-  interface TeacherBook {
-    id: number;
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-    file?: string;
-    index_file_id?: string;
-  }
-
-  /**
    * 题目信息（对应 QuestionSchema）
    */
   interface Question {
@@ -84,7 +133,7 @@ declare global {
     answer?: string; // 答案
     resource?: string; // 资源路径（图片/音频URL）
     difficulty?: string; // 难度
-    resource_type?: "image" | "audio" | string; // 资源类型
+    resource_type?: "image" | "audio"; // 资源类型
     resource_content?: string; // 资源内容（录音文本等）
     textbook_id?: number;
     unit_id?: number; // 单元ID
@@ -113,88 +162,27 @@ declare global {
   }
 
   /**
-   * 提示词实体
+   * 学生信息（对应 StudentSchema）
    */
-  interface Prompt {
-    id: number;
+  interface Student {
+    id: string;
     name: string;
-    slug: string;
-    type: string;
-    description?: string;
-    version?: PromptVersion;
-  }
-
-  /**
-   * 提示词版本实体
-   */
-  interface PromptVersion {
-    id: number;
-    prompt_id: number;
-    template_content: string;
-    negative_content?: string;
-    model_params?: Record<string, any>;
-    changelog?: string;
-    is_published: number;
-    create_time: number;
-    update_time?: number;
-  }
-
-  type PromptTestRecordStatus = "pending" | "testing" | "success" | "failed";
-  /**
-   * 提示词测试记录实体
-   */
-  interface PromptTestRecord {
-    id: number;
-    prompt_id: number;
-    version_id: number;
-    generation_type?: GenerateType;
-    model_provider?: string;
-    model_name?: string;
-    input_payload: Record<string, any>;
-    rendered_prompt: string;
-    response_snapshot?: {
-      content?: string;
-      model?: string;
-      usage?: {
-        prompt_tokens?: number;
-        completion_tokens?: number;
-        total_tokens?: number;
-      };
-      latency_ms?: number;
-      error?: string;
-    };
-    latency_ms?: number;
-    status: PromptTestRecordStatus;
-    error?: string;
-    create_time: number;
-  }
-
-  /**
-   * 提示词详情实体
-   */
-  interface PromptDetail {
-    id: number;
-    name: string;
-    slug: string;
-    type: string;
-    description?: string;
-    last_version_id: number;
-    version_id: number;
-    template_content: string;
-    negative_content?: string;
-    model_params: Record<string, any>;
-    changelog?: string;
-    is_published: number;
+    phone: string;
+    grade: number;
+    status: number; // 0-正常, 1-禁用
     create_time: number;
     update_time?: number;
   }
 
   /**
    * 练习类型
-   * system: 系统练习
-   * custom: 自定义练习
    */
-  type PracticeType = "system" | "custom";
+  enum PracticeType {
+    /** 系统练习 */
+    SYSTEM = "system",
+    /** 自定义练习 */
+    CUSTOM = "custom",
+  }
 
   /**
    * 练习实体
@@ -229,19 +217,27 @@ declare global {
 
   /**
    * 练习参数类型
-   * system: 内置参数
-   * input: 输入参数
    */
-  type PracticeParameterType = "system" | "input";
+  enum PracticeParameterType {
+    /** 内置参数 */
+    SYSTEM = "system",
+    /** 输入参数 */
+    INPUT = "input",
+  }
 
   /**
    * 练习参数值类型
-   * string: 字符串
-   * number: 数字
-   * object: 对象
-   * array: 数组
    */
-  type PracticeParameterValueType = "string" | "number" | "object" | "array";
+  enum PracticeParameterValueType {
+    /** 字符串 */
+    STRING = "string",
+    /** 数字 */
+    NUMBER = "number",
+    /** 对象 */
+    OBJECT = "object",
+    /** 数组 */
+    ARRAY = "array",
+  }
 
   /**
    * 练习参数配置
@@ -257,19 +253,27 @@ declare global {
 
   /**
    * 练习会话状态
-   * 0: 未开始
-   * 1: 进行中
-   * 2: 已完成
    */
-  type PracticeSessionStatus = 0 | 1 | 2;
+  enum PracticeSessionStatus {
+    /** 等待练习 */
+    READY = 0,
+    /** 正在生成中 */
+    PRACTICING = 1,
+    /** 已完成 */
+    COMPLETED = 2,
+  }
 
   /**
    * 练习生成状态
-   * 0: 生成失败
-   * 1: 生成中
-   * 2: 生成成功
    */
-  type PracticeGenerateStatus = 0 | 1 | 2;
+  enum PracticeGenerateStatus {
+    /** 生成失败 */
+    FAILED = 0,
+    /** 生成中 */
+    GENERATING = 1,
+    /** 生成成功 */
+    SUCCESS = 2,
+  }
   /**
    * 练习会话
    */
@@ -287,13 +291,15 @@ declare global {
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
     update_time?: number; // 更新时间（Unix时间戳，秒）
-    practice?: Practice; // 关联的练习信息
+
+    textbook_id?: number; // 教材ID
+    unit_id?: number; // 单元ID
   }
 
   /**
    * 答题记录
    */
-  interface PracticeAnswer {
+  interface PracticeSessionAnswer {
     id: number;
     session_id: number;
     question_id: string;
@@ -328,7 +334,7 @@ declare global {
   /**
    * 练习会话报告
    */
-  interface PracticeReport {
+  interface PracticeSessionReport {
     id: number;
     session_id: number;
     student_id: string;
@@ -354,51 +360,58 @@ declare global {
   /**
    * 练习会话数据
    */
-  interface PracticeData {
+  interface PracticeSessionData {
     session: PracticeSession;
-    answers: PracticeAnswer[];
+    answers: PracticeSessionAnswer[];
     questions: Question[];
-    report?: PracticeReport;
+    report?: PracticeSessionReport;
   }
 
   /**
-   * 学生信息（对应 StudentSchema）
+   * 提示词实体
    */
-  interface Student {
-    id: string;
+  interface Prompt {
+    id: number;
     name: string;
-    phone: string;
-    grade: number;
-    status: number; // 0-正常, 1-禁用
+    slug: string;
+    type: string;
+    description?: string;
+    version?: PromptVersion;
+  }
+
+  /**
+   * 提示词版本实体
+   */
+  interface PromptVersion {
+    id: number;
+    prompt_id: number;
+    template_content: string;
+    negative_content?: string;
+    model_params?: Record<string, any>;
+    changelog?: string;
+    is_published: number;
     create_time: number;
     update_time?: number;
   }
 
-  // ================ API 响应类型 ================
-
   /**
-   * API 响应类型
+   * 提示词详情实体
    */
-  interface ApiResponse<T = any> {
-    data: T;
-    message?: string;
-    status?: number;
-  }
-
-  /**
-   * 搜索参数
-   */
-  interface SearchRequest {
-    page?: number;
-    size?: number;
-  }
-
-  /**
-   * 分页列表数据
-   */
-  interface SearchResponse<T> {
-    data?: T[];
-    total?: number;
+  interface PromptDetail {
+    id: number;
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    last_version_id: number;
+    version_id: number;
+    template_content: string;
+    negative_content?: string;
+    model_params: Record<string, any>;
+    changelog?: string;
+    is_published: number;
+    create_time: number;
+    update_time?: number;
   }
 }
 export { };

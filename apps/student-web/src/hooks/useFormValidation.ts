@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { ValidationResult } from "../lib/validators";
+import { useCallback, useState } from "react";
+import { ValidationResult } from "../common/validators";
 
 export function useFormValidation<T extends Record<string, any>>() {
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});

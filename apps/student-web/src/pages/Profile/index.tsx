@@ -1,11 +1,13 @@
-import { useProfileModel } from "@/models/ProfileModel";
-import { useAuthModel } from "@/models/AuthModel";
-import { Card, CardContent, Button } from "@/components/ui";
-import { User, BookOpen, LogOut, Phone } from "lucide-react";
+import { BookOpen, LogOut, Phone, User } from "lucide-react";
+
+import { Button, Card, CardContent, Skeleton } from "@/components/ui";
+
 import { GRADES } from "@/constants/profile";
+import { useAuthModel } from "@/models/AuthModel";
+import { useProfileModel } from "@/models/ProfileModel";
 
 export default function Profile() {
-  const { student, textbooks } = useProfileModel();
+  const { student, textbooks, loading } = useProfileModel();
   const { logout } = useAuthModel();
 
   return (
@@ -21,11 +23,20 @@ export default function Profile() {
               <User className="h-10 w-10 text-primary" />
             </div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold">{student?.name}</h2>
-              <p className="text-muted-foreground mt-1 flex items-center justify-center gap-2">
-                <Phone className="h-4 w-4" />
-                {student?.phone}
-              </p>
+              {loading ? (
+                <>
+                  <Skeleton className="h-8 w-32 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold">{student?.name}</h2>
+                  <p className="text-muted-foreground mt-1 flex items-center justify-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    {student?.phone}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </CardContent>

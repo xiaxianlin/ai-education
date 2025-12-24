@@ -2,8 +2,8 @@
  * 教材单元区域组件
  * 显示某个教材下的所有单元练习卡片
  */
+import { studentApi } from "@/common/api";
 import { useRequest } from "ahooks";
-import { studentApi } from "@/lib/api";
 import { PracticeCard } from "./PracticeCard";
 
 interface TextbookUnitsSectionProps {

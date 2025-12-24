@@ -105,7 +105,7 @@ export const PracticeApi = {
    * GET /api/admin/practice/session/{session_id}
    */
   async getPracticeSession(sessionId: number) {
-    return apiClient.get<{ session: PracticeSession; answers: PracticeAnswer[] }>(`/practice/session/${sessionId}`);
+    return apiClient.get<{ session: PracticeSession; answers: PracticeSessionAnswer[] }>(`/practice/session/${sessionId}`);
   },
 
   /**

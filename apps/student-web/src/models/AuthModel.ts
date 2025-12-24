@@ -1,9 +1,9 @@
-import { apiClient, studentApi } from "@/lib/api";
+import { apiClient, studentApi } from "@/common/api";
 import { useRequest } from "ahooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createContainer } from "unstated-next";
 
-const useContaienr = () => {
+const useContainer = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,11 +25,8 @@ const useContaienr = () => {
     navigate("/login");
   };
 
-  return {
-    setToken,
-    logout,
-  };
+  return { setToken, logout };
 };
 
-export const AuthModel = createContainer(useContaienr);
+export const AuthModel = createContainer(useContainer);
 export const useAuthModel = AuthModel.useContainer;

@@ -210,6 +210,9 @@ class PracticeSessionSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
 
+    textbook_id: Optional[int] = None
+    unit_id: Optional[int] = None
+
     practice: Optional["PracticeSchema"] = None
 
     model_config = {"from_attributes": True}

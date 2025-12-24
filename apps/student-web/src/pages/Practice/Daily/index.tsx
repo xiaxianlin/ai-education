@@ -1,10 +1,44 @@
-import { PageModel } from "@/pages/Practice/Daily/models/PageModel";
-import { MainView } from "./views/Main";
+import { SubjectTabs } from "@/components/biz";
+import { Card, CardContent } from "@/components/ui";
+import { useProfileModel } from "@/models/ProfileModel";
+import { PageModel } from "./models/page";
+import { PracticeCard } from "./views/PracticeCard";
 
 export default function DailyPractice() {
+  const { activeTextbooks } = useProfileModel();
+
   return (
     <PageModel.Provider>
-      <MainView />
+      {/* 顶部介绍卡片 */}
+      <Card className="border-2 border-primary/20 shadow-lg rounded-3xl bg-card overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <div className="text-4xl">📅</div>日常练习
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              根据你已选教材，智能生成当天的练习任务，帮你保持学习节奏。
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 主体：按学科分组的练习卡片 */}
+      <SubjectTabs className="my-2">
+        {(subject) => {
+          return (
+            <div key={subject} className="space-y-4">
+              <div className="grid grid-cols-2 gap-5">
+                {activeTextbooks
+                  .filter((t) => t.subject === subject)
+                  .map((t) => (
+                    <PracticeCard key={t.id} textbook={t} />
+                  ))}
+              </div>
+            </div>
+          );
+        }}
+      </SubjectTabs>
     </PageModel.Provider>
   );
 }

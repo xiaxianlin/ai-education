@@ -2,6 +2,10 @@
  * 登录页面
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
+import logo from "@/assets/logo.png";
+import { studentApi } from "@/common/api";
+import { cn } from "@/common/utils";
+import { validators } from "@/common/validators";
 import {
   Button,
   Card,
@@ -12,14 +16,10 @@ import {
   Input,
   toast,
 } from "@/components/ui";
-import logo from "@/assets/logo.png";
-import { cn } from "@/lib/utils";
-import { validators } from "@/lib/validators";
-import { useState } from "react";
-import { useRequest } from "ahooks";
-import { studentApi } from "@/lib/api";
-import { useAuthModel } from "@/models/AuthModel";
 import { useFormValidation } from "@/hooks/useFormValidation";
+import { useAuthModel } from "@/models/AuthModel";
+import { useRequest } from "ahooks";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -27,7 +27,7 @@ export default function Login() {
   const { setToken } = useAuthModel();
 
   const [phone, setPhone] = useState("15068114669");
-  const [password, setPassword] = useState("bJLlwh4Wka#ha$8s");
+  const [password, setPassword] = useState("3Mbu&4T95Mqs*iBm");
 
   const { errors, validate, clearError } = useFormValidation<LoginRequest>();
 

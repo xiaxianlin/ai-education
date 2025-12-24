@@ -1,4 +1,4 @@
-import { PageModel } from "@/pages/Practice/Assessment/models/PageModel";
+import { PageModel } from "./models/PageModel";
 import { MainView } from "./views/Main";
 
 export default function AssessmentPractice() {

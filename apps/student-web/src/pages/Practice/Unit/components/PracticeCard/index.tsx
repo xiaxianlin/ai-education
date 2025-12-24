@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui";
-import { Lightbulb, Play, Loader2, Sparkles, FileText } from "lucide-react";
-import { useUnitPractice } from "../../hooks/useUnitPractice";
-import { PracticeStatus } from "../../../constants";
-import { useMemo, ReactNode } from "react";
-import { ConfirmModal } from "./ConfirmModal";
+import { FileText, Lightbulb, Loader2, Play, Sparkles } from "lucide-react";
+import { ReactNode, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { PracticeStatus } from "@/pages/Practice/constants";
+import { useUnitPractice } from "../../hooks/useUnitPractice";
 import { usePageModel } from "../../models/PageModel";
+import { ConfirmModal } from "./ConfirmModal";
 
 export interface PracticeCardProps {
   unit: Unit;

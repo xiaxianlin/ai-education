@@ -1,7 +1,7 @@
+import { history } from "@ai-education/shared-web";
 import { createRoot } from "react-dom/client";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
-import { history } from "@ai-education/shared-web";
-import { Router } from "./lib/router";
+import { Router } from "./common/router";
 import "./index.css";
 
 import { ThemeProvider } from "./components/theme-provider";

@@ -1,27 +1,28 @@
-import { studentApi } from "@/lib/api";
+import { studentApi } from "@/common/api";
 import { useRequest } from "ahooks";
-import { uniq } from "lodash-es";
+import { orderBy, uniq } from "lodash-es";
 import { useMemo } from "react";
 import { createContainer } from "unstated-next";
 
 const useContainer = () => {
   const { data, loading } = useRequest(() => studentApi.getProfile());
 
+  const { name, phone, grade, textbooks = [], practices = [] } = data || {};
+
   const activeTextbooks = useMemo(() => {
-    return (data?.textbooks || [])
-      .filter((t) => t.grade === data?.student.grade)
-      .sort((a, b) => {
-        if (a.subject > b.subject) return -1;
-        if (a.subject < b.subject) return 1;
-        return a.semester.localeCompare(b.semester);
-      });
-  }, [data]);
+    return orderBy(
+      textbooks.filter((t) => t.grade === grade),
+      ["subject", "semester"],
+      ["asc", "asc"]
+    );
+  }, [textbooks, grade]);
 
   return {
     loading,
-    student: data?.student,
-    textbooks: data?.textbooks || [],
-    subjects: uniq(data?.textbooks?.map((t) => t.subject) ?? []),
+    profile: { name, phone, grade },
+    textbooks,
+    practices,
+    subjects: uniq(activeTextbooks.map((t) => t.subject)),
     activeTextbooks,
   };
 };

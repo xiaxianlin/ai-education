@@ -1,11 +1,11 @@
-import { Header, LoadingPage } from "@/components/business";
-import { Outlet } from "react-router-dom";
+import { Header, LoadingPage } from "@/components/biz";
 import { useGradeTheme } from "@/hooks/useGradeTheme";
 import { ProfileModel, useProfileModel } from "@/models/ProfileModel";
+import { Outlet } from "react-router-dom";
 
 const MainContainer = () => {
-  const { student, loading } = useProfileModel();
-  useGradeTheme(student?.grade);
+  const { profile, loading } = useProfileModel();
+  useGradeTheme(profile?.grade);
 
   if (loading) {
     return <LoadingPage />;

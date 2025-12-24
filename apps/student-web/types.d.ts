@@ -2,10 +2,48 @@
  * 全局类型声明
  * 引用 shared-web 的统一类型，使类型全局可用
  */
-import '@ai-education/shared-web/types';
+import "@ai-education/shared-web/types";
 
-// 确保全局类型可用
 declare global {
-  // 类型已经在 shared-web/types/global.d.ts 中声明
-  // 这里只是确保它们被加载
+  interface LoginRequest {
+    phone: string;
+    password: string;
+  }
+
+  interface Profile {
+    name: string;
+    phone: string;
+    grade: number;
+
+    textbooks: Textbook[];
+    practices: Practice[];
+  }
+  
+
+  interface CreatePracticeRequest {
+    type?: PracticeSessionType; // 兼容旧逻辑
+    practice_id?: number; // 优先使用
+    textbook_id: number;
+    unit_id?: number;
+  }
+
+
+  interface AnswerRequest {
+    session_id: number;
+    question_id: string;
+    answer: string;
+    time_spent: number;
+    is_audio_answer: boolean;
+    audio_match?: boolean;
+    audio_analysis?: string;
+  }
+
+  interface AudioAnswerAnalysisResponse {
+    text: string;
+    match: boolean;
+    analysis: string;
+  }
 }
+
+export { };
+

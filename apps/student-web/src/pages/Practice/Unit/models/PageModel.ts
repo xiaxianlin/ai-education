@@ -1,7 +1,7 @@
-import { createContainer } from "unstated-next";
+import { studentApi } from "@/common/api";
 import { useProfileModel } from "@/models/ProfileModel";
 import { useCallback, useState } from "react";
-import { studentApi } from "@/lib/api";
+import { createContainer } from "unstated-next";
 
 interface KnowledgeModalState {
   open: boolean;

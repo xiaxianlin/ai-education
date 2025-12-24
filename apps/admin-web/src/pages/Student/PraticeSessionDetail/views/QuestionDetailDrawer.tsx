@@ -1,6 +1,6 @@
-import { Drawer, Tag, Image } from 'antd';
 import { AudioPlayer } from '@/components';
 import { ProDescriptions } from '@ant-design/pro-components';
+import { Drawer, Image, Tag } from 'antd';
 
 // OSS 基础 URL
 const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
@@ -8,7 +8,7 @@ const OSS_BASE_URL = 'https://xxl-ai-education.oss-cn-hangzhou.aliyuncs.com';
 interface QuestionDetailDrawerProps {
   open: boolean;
   question?: Question;
-  answer?: PracticeAnswer;
+  answer?: PracticeSessionAnswer;
   onClose: () => void;
 }
 
