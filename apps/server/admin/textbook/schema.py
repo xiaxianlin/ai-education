@@ -42,7 +42,7 @@ class SaveTextbookSchema(BaseModel):
 
 
 class SearchTextbookSchema(BaseModel):
-    """教材搜索（无分页）"""
+    """教材搜索"""
 
     version: Optional[str] = None
     subject: Optional[str] = None
@@ -50,17 +50,23 @@ class SearchTextbookSchema(BaseModel):
 
 
 class CreateUnitSchema(BaseModel):
+    """创建单元"""
+
     textbook_id: int
     name: str
     content: str
 
 
 class UpdateUnitSchema(BaseModel):
+    """更新单元"""
+
     name: Optional[str] = None
     content: Optional[str] = None
 
 
 class CreateKnowledgeSchema(BaseModel):
+    """创建知识点"""
+
     textbook_id: int
     unit_id: int
     name: str
@@ -68,5 +74,7 @@ class CreateKnowledgeSchema(BaseModel):
 
 
 class UpdateKnowledgeSchema(BaseModel):
+    """更新知识点"""
+
     name: Optional[str] = None
     content: Optional[str] = None

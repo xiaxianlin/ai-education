@@ -1,22 +1,17 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List
 
-from loguru import logger
-from sqlalchemy import delete, func, or_, select
+from shared.core.database import Knowledge, Textbook, Unit
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import noload
 
 from ..schema import CreateUnitSchema, UpdateUnitSchema
-from shared.core.database import Knowledge, Textbook, Unit
-from shared.core.schema import SearchResultSchema, SearchSchema, UnitSchema
 
 
 async def create_unit(db: AsyncSession, create: CreateUnitSchema) -> Unit:
     """创建课程单元"""
-    textbook = await db.scalar(
-        select(Textbook).where(Textbook.id == create.textbook_id)
-    )
+    textbook = await db.scalar(select(Textbook).where(Textbook.id == create.textbook_id))
     if not textbook:
         raise ValueError("教材不存在")
 
@@ -53,9 +48,7 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     if not unit:
         raise ValueError("课程单元不存在")
 
-    knowledge_ids_result = await db.scalars(
-        select(Knowledge.id).where(Knowledge.unit_id == id)
-    )
+    knowledge_ids_result = await db.scalars(select(Knowledge.id).where(Knowledge.unit_id == id))
     knowledge_ids = knowledge_ids_result.all()
 
     if knowledge_ids:
@@ -65,9 +58,7 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     await db.commit()
 
 
-async def query_unit_by_textbook(db: AsyncSession, textbook_id: int) -> List[Unit]:
+async def query_units_by_textbook(db: AsyncSession, textbook_id: int) -> List[Unit]:
     """根据教材ID查询课程单元"""
-    units_result = await db.scalars(
-        select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id)
-    )
+    units_result = await db.scalars(select(Unit).where(Unit.textbook_id == textbook_id).order_by(Unit.id))
     return units_result.all()

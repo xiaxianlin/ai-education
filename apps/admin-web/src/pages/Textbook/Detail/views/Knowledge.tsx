@@ -1,17 +1,17 @@
-import React from 'react';
+import { createActionColumn } from '@/hooks';
 import {
-  ProTable,
-  ProColumns,
   ModalForm,
+  ProColumns,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProFormSelect,
+  ProTable,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import { useTextbookDetailModel } from '../models/page';
-import { useTextbookKnowledgeModel } from '../models/knowledge';
-import { createActionColumn } from '@/hooks';
+import React from 'react';
 import { TextbookApi } from '../../api';
+import { useTextbookKnowledgeModel } from '../models/knowledge';
+import { useTextbookDetailModel } from '../models/page';
 
 export const KnowledgeView: React.FC = () => {
   const { id, units } = useTextbookDetailModel();
@@ -20,7 +20,6 @@ export const KnowledgeView: React.FC = () => {
     formProps: { form, visible, item, showForm, onCancel, handleSubmit },
     handleDelete,
   } = useTextbookKnowledgeModel();
-  console.log(units);
 
   const columns: ProColumns<Knowledge>[] = [
     { title: '知识点名称', dataIndex: 'name' },
@@ -59,21 +58,8 @@ export const KnowledgeView: React.FC = () => {
         scroll={{ x: 'max-content' }}
         toolbar={{ settings: [] }}
         request={async (params) => {
-          const data = await TextbookApi.getUnitKnowledges(id);
-          const filtered = data.filter((item: any) => {
-            const results = ['unit']
-              .filter((key) => Boolean(params[key]))
-              .map((key) => {
-                const value = params[key];
-                switch (key) {
-                  case 'unit':
-                    return item.unit_id === Number(value);
-                }
-              });
-            return results.every(Boolean);
-          });
-
-          return { data: filtered, success: true, total: filtered.length };
+          const data = await TextbookApi.getTextbookKnowledges(id, { page: params.current, size: params.pageSize });
+          return { data: data.data ?? [], success: true, total: data.total };
         }}
         pagination={{ pageSize: 10 }}
         headerTitle={

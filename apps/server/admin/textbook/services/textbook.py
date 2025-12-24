@@ -1,21 +1,18 @@
-from __future__ import annotations
-
 import os
 from pathlib import Path
-from typing import List
 
 from fastapi import UploadFile
 from loguru import logger
+from shared.core.database import Knowledge, Question, Textbook, Unit
+from shared.core.schema import TextbookSchema
+from shared.core.settings import envs
+from shared.services.textbook_parser import parse_textbook_units
+from shared.utils import rag
+from shared.utils.file_validation import validate_file_upload
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import SaveTextbookSchema, SearchTextbookSchema
-from shared.services.textbook_parser import parse_textbook_units
-from shared.utils import rag
-from shared.utils.file_validation import validate_file_upload
-from shared.core.database import Knowledge, Question, Textbook, Unit
-from shared.core.schema import TextbookSchema
-from shared.core.settings import envs
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -30,11 +27,7 @@ async def _clean_textbook(db: AsyncSession, id: int):
     await db.execute(stmt)
 
     # 4. 更新所有问题关联（清理旧的字符串字段）
-    stmt = (
-        update(Question)
-        .where(Question.textbook_id == id)
-        .values({"unit_id": None, "knowledge": None})
-    )
+    stmt = update(Question).where(Question.textbook_id == id).values({"unit_id": None, "knowledge": None})
     await db.execute(stmt)
 
     await db.commit()
@@ -86,12 +79,7 @@ async def delete_textbook(db: AsyncSession, id: int):
     if not textbook:
         raise ValueError("教材不存在")
 
-    count = (
-        await db.scalar(
-            select(func.count()).select_from(Question).where(Question.textbook_id == id)
-        )
-        or 0
-    )
+    count = await db.scalar(select(func.count()).select_from(Question).where(Question.textbook_id == id)) or 0
 
     if count > 0:
         raise ValueError("教材已经被使用，不能被删除")

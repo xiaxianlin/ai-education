@@ -1,11 +1,11 @@
-import { useRef } from 'react';
-import { createContainer } from 'unstated-next';
-import { ActionType } from '@ant-design/pro-components';
 import { useSimpleForm } from '@/hooks';
+import { ActionType } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
 import { message, Modal } from 'antd';
-import { useTextbookDetailModel } from './page';
+import { useRef } from 'react';
+import { createContainer } from 'unstated-next';
 import { TextbookApi } from '../../api';
+import { useTextbookDetailModel } from './page';
 
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
@@ -21,7 +21,7 @@ const useContainer = () => {
     onSubmit: () => actionRef.current?.reload(),
   });
 
-  const { runAsync: deleteUnit } = useRequest(TextbookApi.deleteKnowledge, {
+  const { runAsync: deleteKnowledge } = useRequest(TextbookApi.deleteKnowledge, {
     manual: true,
     onSuccess: () => {
       message.success('删除成功');
@@ -36,7 +36,7 @@ const useContainer = () => {
       content: `确定要删除知识点「${knowledge.name}」吗？`,
       okType: 'danger',
       onOk: () => {
-        deleteUnit(knowledge.id);
+        deleteKnowledge(knowledge.id);
       },
     });
   };

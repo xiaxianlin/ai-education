@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-from sqlalchemy import func, or_, select
+from shared.core.database import Knowledge, Unit
+from shared.core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
 from ..schema import CreateKnowledgeSchema, UpdateKnowledgeSchema
-from shared.core.database import Knowledge, Unit
-from shared.core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
-from shared.utils.time import now
 
 
 async def create_knowledge(db: AsyncSession, create: CreateKnowledgeSchema):
     """创建知识点"""
-    # 验证课程单元是否存在
     unit = await db.scalar(select(Unit).where(Unit.id == create.unit_id))
     if not unit:
         raise ValueError("课程单元不存在")
@@ -80,3 +78,20 @@ async def delete_knowledge(db: AsyncSession, id: int):
 
     await db.delete(knowledge)
     await db.commit()
+
+
+async def query_knowledges_by_textbook(db: AsyncSession, textbook_id: int, params: SearchSchema):
+    """搜索知识点"""
+    query = select(Knowledge).where(Knowledge.textbook_id == textbook_id)
+
+    count_query = select(func.count(Knowledge.id)).select_from(query.subquery())
+    total = await db.scalar(count_query) or 0
+
+    offset = (params.page - 1) * params.size
+    query = query.offset(offset).limit(params.size)
+    result = await db.scalars(query)
+
+    return SearchResultSchema(
+        total=total,
+        data=[KnowledgeSchema.model_validate(item) for item in result.all()],
+    )

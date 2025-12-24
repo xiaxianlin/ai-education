@@ -391,9 +391,6 @@ declare global {
   interface SearchRequest {
     page?: number;
     size?: number;
-    sort?: string;
-    order?: string;
-    keywords?: string;
   }
 
   /**
@@ -404,4 +401,5 @@ declare global {
     total?: number;
   }
 }
-export {};
+export { };
+
