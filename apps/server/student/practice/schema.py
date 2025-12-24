@@ -1,18 +1,13 @@
-from typing import Optional
-from pydantic import BaseModel, Field
-
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class PracticeType(str, Enum):
     daily = "daily_practice"
     unit = "unit_practice"
     assessment = "assessment"
-
-
-class LoginSchema(BaseModel):
-    phone: str
-    password: str
 
 
 class CreatePracticeSchema(BaseModel):
@@ -29,9 +24,7 @@ class AnswerQuestionSchema(BaseModel):
     time_spent: int  # 答题耗时，单位秒
     is_audio_answer: bool = False  # 是否为音频回答（口语题）
     audio_match: Optional[bool] = None  # 音频理解结果：是否匹配题目要求（仅口语题）
-    audio_analysis: Optional[str] = (
-        None  # 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
-    )
+    audio_analysis: Optional[str] = None  # 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
 
 
 class PracticeSubmitParams(BaseModel):

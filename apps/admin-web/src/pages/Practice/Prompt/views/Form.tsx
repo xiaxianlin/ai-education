@@ -30,12 +30,14 @@ export default function FormView() {
 
   return (
     <ModalForm<SavePracticePromptRequest>
+      layout="horizontal"
+      labelCol={{ span: 3 }}
       title={editingId ? '编辑练习提示词关联' : '新建练习提示词关联'}
       open={modalOpen}
       onOpenChange={(visible) => {
         if (!visible) handleClose();
       }}
-      layout="vertical"
+      width={600}
       size="large"
       initialValues={initialValues}
       onFinish={handleSubmit}

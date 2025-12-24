@@ -1,19 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from student.services.auth import student_router_filter
-from shared.core.middleware import WrappedResponse
 from shared.core.exception import (
     global_exception_handler,
     http_exception_handler,
-    value_error_handler,
     validation_exception_handler,
+    value_error_handler,
 )
+from shared.core.middleware import WrappedResponse
 
-from .routes.auth import auth_router
-from .routes.textbook import textbook_router
-from .routes.profile import profile_router
-from .routes.practice import practice_router
-
+from .auth import auth_router, student_router_filter
+from .practice import practice_router
+from .profile import profile_router
+from .textbook import textbook_router
 
 student_app = FastAPI(
     default_response_class=WrappedResponse,

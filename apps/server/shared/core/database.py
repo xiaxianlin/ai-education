@@ -1,11 +1,12 @@
 from fastapi import Depends
 from shared.core.settings import envs
 from shared.utils.time import now
-from sqlalchemy import JSON, String, Text
+from sqlalchemy import JSON, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
+    column_property,
     mapped_column,
     relationship,
     sessionmaker,
@@ -287,13 +288,17 @@ class PracticeSession(BaseModel):
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(default=0, index=True, comment="会话状态:0 - 未开始，1 - 进行中，2 - 已完成")
+    status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2")
     generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="失败: 0, 生成中: 1, 成功: 2")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    # ========================== parameters 的生成列字段 ========================== #
+    textbook_id = column_property(mapped_column(Integer), deferred=False)
+    unit_id = column_property(mapped_column(Integer), deferred=False)
 
     practice: Mapped["Practice"] = relationship(
         "Practice",

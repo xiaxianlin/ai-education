@@ -7,7 +7,8 @@ from shared.services.answer import analyze_text_answer
 from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from student.schema import AnswerQuestionSchema
+
+from ..schema import AnswerQuestionSchema
 
 
 async def _check_answer(question: Question, params: AnswerQuestionSchema, db: AsyncSession):
@@ -115,3 +116,8 @@ async def submit_answer(db: AsyncSession, student_id: str, params: AnswerQuestio
     )
 
     return PracticeSessionAnswerSchema.model_validate(answer_record)
+
+
+async def asr_audio_answer(db: AsyncSession, audio_data: bytes):
+    """语音识别"""
+    pass

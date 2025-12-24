@@ -1,11 +1,10 @@
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 from shared.core.database import AsyncSessionLocal, Student
 from shared.core.schema import StudentSchema
 from shared.utils import encrypt
 from shared.utils.time import now
-
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 student_ignore_routes = ["/api/student/login"]
 
