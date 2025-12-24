@@ -1086,7 +1086,7 @@ GET /api/admin/configs
     "subjects": ["英语", "数学"],
     "textbook_versions": ["人教版"],
     "semesters": ["上学期", "下学期", "整学期"],
-    "question_types": ["选择题", "输入题", "口语题", "判断题", "匹配题", "应用题"],
+    "question_types": ["选择题", "拼写题", "口语题", "判断题", "匹配题", "应用题"],
     "difficulty_levels": ["简单", "普通", "困难"],
     "providers": ["aliyun"]
   }

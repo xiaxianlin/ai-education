@@ -149,12 +149,11 @@ class Question(BaseModel):
     answer: Mapped[str] = mapped_column(Text, comment="问题答案")
     difficulty: Mapped[str] = mapped_column(String(255), comment="问题难度")
     resource: Mapped[str] = mapped_column(String(255), nullable=True, comment="资源路径")
-    resource_type: Mapped[str] = mapped_column(
-        String(50), comment="资源类型：image-图片，audio-语音，空-无资源", nullable=True
-    )
+    resource_type: Mapped[str] = mapped_column(String(50), comment="资源类型：image/audio", nullable=True)
     resource_content: Mapped[str] = mapped_column(Text, comment="资源内容（录音文本等）", nullable=True)
-    textbook_id: Mapped[int] = mapped_column(nullable=False)
-    unit_id: Mapped[int] = mapped_column(nullable=True)
+    textbook_id: Mapped[int] = mapped_column(comment="教材ID")
+    unit_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID")
+    prompt_id: Mapped[int] = mapped_column(nullable=True, comment="提示词ID")
     knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
 
     unit: Mapped["Unit"] = relationship(

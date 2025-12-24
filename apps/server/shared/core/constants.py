@@ -2,7 +2,7 @@ SUBJECTS = ["英语", "数学"]
 TEXTBOOK_VERSIONS = ["人教版"]
 SEMESTERS = ["上学期", "下学期", "整学期"]
 DIFFICULTY_LEVELS = ["简单", "普通", "困难"]
-QUESTION_TYPES = ["选择题", "输入题", "口语题", "判断题", "匹配题", "应用题"]
+QUESTION_TYPES = ["选择题", "拼写题", "口语题", "判断题", "匹配题", "简答题", "应用题"]
 
 # 生成题目数量
 GENERATE_QUESTION_COUNT = {

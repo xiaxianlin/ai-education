@@ -1,13 +1,12 @@
-import React from 'react';
-import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { QuestionApi } from '../api';
-import { useConfigs, useDelete, createActionColumn } from '@/hooks';
-import { useNavigate } from 'react-router-dom';
-import { Button, Flex, Form, Input, Select, Space } from 'antd';
 import { DeleteButton, SubjectGradeTabs } from '@/components';
-import { renderResourceTypeTag, renderResourceStatusTag } from '@/utils/tag';
-import { useEffect, useState } from 'react';
+import { createActionColumn, useConfigs, useDelete } from '@/hooks';
+import { renderResourceStatusTag, renderResourceTypeTag } from '@/utils/tag';
 import { PlusOutlined } from '@ant-design/icons';
+import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import { Button, Flex, Form, Input, Select, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { QuestionApi } from '../api';
 
 export default function QuestionListPage() {
   const navigate = useNavigate();
@@ -107,7 +106,7 @@ export default function QuestionListPage() {
             <Form.Item name="content">
               <Space.Compact>
                 <Space.Addon>题目：</Space.Addon>
-                <Input placeholder="请输入题目内容" allowClear style={{ width: 200 }} />
+                <Input placeholder="请拼写题目内容" allowClear style={{ width: 200 }} />
               </Space.Compact>
             </Form.Item>
             <Form.Item name="type" style={{ width: 230 }}>

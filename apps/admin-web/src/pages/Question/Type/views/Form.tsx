@@ -1,7 +1,7 @@
+import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
+import { useConfigs } from '@/hooks';
 import { ModalForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { useQuestionTypeListModel } from '../models/page';
-import { useConfigs } from '@/hooks';
-import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 
 export default function FormView() {
   const { questionTypeEnum } = useConfigs();
@@ -24,8 +24,8 @@ export default function FormView() {
       <ProFormText
         name="title"
         label="名称"
-        placeholder="请输入题型标题，如：看图选词、根据首字母填空"
-        rules={[{ required: true, message: '请输入题型标题' }]}
+        placeholder="请拼写题型标题，如：看图选词、根据首字母填空"
+        rules={[{ required: true, message: '请拼写题型标题' }]}
       />
       <ProFormSelect
         name="scene"
@@ -37,7 +37,7 @@ export default function FormView() {
       <ProFormTextArea
         name="description"
         label="题型描述"
-        placeholder="请输入题型描述（可选）"
+        placeholder="请拼写题型描述（可选）"
         fieldProps={{ rows: 3 }}
       />
       <ProFormSelect

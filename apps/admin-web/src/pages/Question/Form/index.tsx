@@ -1,13 +1,13 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { PageContainer, ProForm, ProFormSelect, ProFormTextArea, ProFormText } from '@ant-design/pro-components';
-import { QuestionApi } from '../api';
-import { TextbookApi } from '@/pages/Textbook/api';
-import { useConfigs } from '@/hooks';
-import { useRequest } from 'ahooks';
-import { message, Button, Card, Flex, Row, Col } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useEffect, useMemo } from 'react';
 import { GRADES } from '@/constants/course';
+import { useConfigs } from '@/hooks';
+import { TextbookApi } from '@/pages/Textbook/api';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { PageContainer, ProForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { Button, Card, Col, Flex, message, Row } from 'antd';
+import { useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { QuestionApi } from '../api';
 
 // 资源类型选项
 const resourceTypeOptions = {
@@ -188,9 +188,9 @@ export default function QuestionFormPage() {
               <ProFormTextArea
                 name="content"
                 label="题目内容"
-                placeholder="请输入题目内容"
+                placeholder="请拼写题目内容"
                 fieldProps={{ rows: 4 }}
-                rules={[{ required: true, message: '请输入题目内容' }]}
+                rules={[{ required: true, message: '请拼写题目内容' }]}
               />
               <ProFormTextArea
                 name="options"
