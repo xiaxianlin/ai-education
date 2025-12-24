@@ -8,13 +8,14 @@ import {
   EditOutlined,
   FileTextOutlined,
   LogoutOutlined,
+  ProfileOutlined,
   QuestionCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown } from 'antd';
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 const routes = {
   path: '/',
   children: [
@@ -78,28 +79,34 @@ const routes = {
 
 export function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { manager, clearState } = useInitialStateModel();
-  const [pathname, setPathname] = useState('/');
+  const [pathname, setPathname] = useState(location.pathname);
 
   return (
     <ProLayout
       logo={logo}
       title="AI 教育"
-      layout="top"
+      layout="mix"
+      fixSiderbar
       fixedHeader
-      location={{ pathname }}
-      menu={{ collapsedShowGroupTitle: true }}
       route={routes}
-      menuItemRender={(item, dom) => (
-        <div
-          onClick={() => {
-            navigate(item.path || '/');
-            setPathname(item.path || '/');
-          }}
-        >
-          {dom}
-        </div>
-      )}
+      location={location}
+      menu={{ defaultOpenAll: true, ignoreFlatMenu: true }}
+      menuProps={{ selectedKeys: [pathname] }}
+      menuItemRender={(item, dom) => {
+        console.log(item);
+        return (
+          <div
+            onClick={() => {
+              navigate(item.path || '/');
+              setPathname(item.path || '/');
+            }}
+          >
+            {dom}
+          </div>
+        );
+      }}
       avatarProps={{
         // src: <UserOutlined />,
         src: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
@@ -109,6 +116,12 @@ export function AdminLayout() {
           <Dropdown
             menu={{
               items: [
+                {
+                  key: 'profile',
+                  icon: <ProfileOutlined />,
+                  label: '个人中心',
+                  onClick: () => navigate('/profile'),
+                },
                 {
                   key: 'logout',
                   icon: <LogoutOutlined />,

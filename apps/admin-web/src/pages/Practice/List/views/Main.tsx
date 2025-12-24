@@ -6,7 +6,7 @@ import { usePracticeListModel } from '../models/page';
 import { DeleteButton } from '@/components';
 import { PracticeApi } from '../../api';
 import { createTimeColumn, createActionColumn } from '@/hooks';
-import FormDrawer from './FormDrawer';
+import FormDrawer from './Form';
 import { useNavigate } from 'react-router-dom';
 
 const TYPE_OPTIONS = [

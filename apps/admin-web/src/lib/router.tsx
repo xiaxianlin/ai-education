@@ -1,30 +1,30 @@
-import { Navigate, useRoutes } from 'react-router-dom';
 import { AdminLayout } from '@/layouts/AdminLayout';
-import Home from '@/pages/Home';
 import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
-import Profile from '@/pages/Auth/Profile';
 import ModifyPassword from '@/pages/Auth/Password';
-import TextbookList from '@/pages/Textbook/List';
-import TextbookDetail from '@/pages/Textbook/Detail';
-import TeacherBookList from '@/pages/TeacherBook/List';
-import TeacherBookDetail from '@/pages/TeacherBook/Detail';
-import QuestionList from '@/pages/Question/List';
-import QuestionForm from '@/pages/Question/Form';
-import QuestionDetail from '@/pages/Question/Detail';
-import QuestionTypeList from '@/pages/Question/Type';
-import PromptList from '@/pages/Prompt/List';
+import Profile from '@/pages/Auth/Profile';
+import Home from '@/pages/Home';
+import PracticeConfig from '@/pages/Practice/Config';
+import PracticeList from '@/pages/Practice/List';
+import PracticePrompt from '@/pages/Practice/Prompt';
 import PromptDetail from '@/pages/Prompt/Detail';
 import PromptForm from '@/pages/Prompt/Form';
-import PromptVersionList from '@/pages/Prompt/VersionList';
+import PromptList from '@/pages/Prompt/List';
 import PromptTest from '@/pages/Prompt/Test';
-import PracticeList from '@/pages/Practice/List';
-import PracticeConfig from '@/pages/Practice/Config';
-import PracticePromptNew from '@/pages/Practice/Prompt';
-import StudentList from '@/pages/Student/List';
+import PromptVersionList from '@/pages/Prompt/VersionList';
+import QuestionDetail from '@/pages/Question/Detail';
+import QuestionForm from '@/pages/Question/Form';
+import QuestionList from '@/pages/Question/List';
+import QuestionTypeList from '@/pages/Question/Type';
 import StudentDetail from '@/pages/Student/Detail';
+import StudentList from '@/pages/Student/List';
 import PracticeSessionList from '@/pages/Student/PracticeSessionList';
 import PracticeSessionDetail from '@/pages/Student/PraticeSessionDetail';
+import TeacherBookDetail from '@/pages/TeacherBook/Detail';
+import TeacherBookList from '@/pages/TeacherBook/List';
+import TextbookDetail from '@/pages/Textbook/Detail';
+import TextbookList from '@/pages/Textbook/List';
+import { Navigate, useRoutes } from 'react-router-dom';
 
 import NotFound from '@/pages/404';
 
@@ -57,7 +57,7 @@ export function Router() {
         { path: 'prompt/test', element: <PromptTest /> },
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/config', element: <PracticeConfig /> },
-        { path: 'practice/prompt', element: <PracticePromptNew /> },
+        { path: 'practice/prompt', element: <PracticePrompt /> },
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
         { path: 'student/:id/practice_sessions', element: <PracticeSessionList /> },
