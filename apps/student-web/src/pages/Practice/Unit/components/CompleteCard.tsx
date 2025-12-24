@@ -15,53 +15,62 @@ export function CompleteCard({ practice, unit }: PracticeCardProps) {
   const { setUnit } = usePageModel();
   const { creating, createPractice } = useUnitPracticeModel();
   const [visible, { setTrue, setFalse }] = useBoolean(false);
-  const { id, question_count, answer_count, correct_count } = practice || {};
+  const { id, answer_count = 0, correct_count = 0 } = practice || {};
 
   return (
     <>
-      <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative p-8 flex flex-col h-full">
-          {/* 内容区域 */}
-          <div className="flex-1 flex flex-col gap-6">
-            <div className="flex items-center justify-center gap-2">
-              <div className="text-4xl">🎉</div>
-              <h3 className="text-2xl font-bold text-foreground">{unit.name}</h3>
+      <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
+        <div className="p-6 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">🎉</div>
+              <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
             </div>
-
-            <div className="text-center space-y-2">
-              <p className="text-base text-muted-foreground">本单元练习已完成，查看报告或重新生成新练习。</p>
-              <p className="text-base text-muted-foreground font-medium">
-                ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
-              </p>
+            <div className="px-3 py-1 bg-green-100 rounded-lg text-[10px] font-black text-green-600 uppercase tracking-wider">
+              已完成
             </div>
           </div>
-          {/* 操作按钮 */}
-          <div className="flex gap-3">
+
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">本单元练习已完成，快来看看你的学习成果吧！</p>
+            <div className="p-3 bg-secondary/30 rounded-xl flex items-center justify-between">
+              <span className="text-xs font-bold text-muted-foreground">正确率</span>
+              <span className="text-xs font-black text-foreground">
+                {answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0}% ({correct_count}/
+                {answer_count})
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
             <Button
-              variant="outline"
-              onClick={() => setUnit(unit)}
-              className="flex-1 h-14 rounded-2xl text-base font-semibold transition-all"
+              size="sm"
+              onClick={() => navigate(`/practice/result/${id}`)}
+              className="w-full h-11 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
             >
-              <Lightbulb className="h-5 w-5 mr-2" />
-              查看知识点
-            </Button>
-            <Button
-              variant="outline"
-              onClick={setTrue}
-              className="flex-1 h-14 rounded-2xl text-base font-semibold transition-all"
-            >
-              <Sparkles className="h-5 w-5 mr-2" />
-              创建练习
-            </Button>
-            <Button
-              size="lg"
-              onClick={() => navigate(`/practice/session/${id}`)}
-              className="flex-1 h-14 rounded-2xl text-base font-semibold transition-all text-primary-foreground bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl"
-            >
-              <FileText className="h-5 w-5 mr-2" />
+              <FileText className="h-4 w-4 mr-2" />
               查看报告
             </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUnit(unit)}
+                className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all text-muted-foreground"
+              >
+                <Lightbulb className="h-4 w-4 mr-2" />
+                知识点
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={setTrue}
+                className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all text-muted-foreground"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                重新挑战
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -75,4 +84,3 @@ export function CompleteCard({ practice, unit }: PracticeCardProps) {
     </>
   );
 }
-

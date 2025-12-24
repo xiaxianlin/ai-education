@@ -9,35 +9,26 @@ import { PracticeCardProps } from "../types";
 export function WaitCard({ textbook }: PracticeCardProps) {
   const { loading, createPractice } = usePageModel();
   return (
-    <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative p-8 flex flex-col h-full">
-        {/* 内容区域 */}
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-2">
-            <div className="text-4xl">✨</div>
-            <h3 className="text-2xl font-bold text-foreground">{textbook.semester}</h3>
-          </div>
-          <p className="text-base text-muted-foreground text-center">
-            还没有为这本教材创建今日练习，点击下方按钮，一键创建专属题目。
-          </p>
+    <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
+      <div className="p-6 flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl">✨</div>
+          <h3 className="text-xl font-bold text-foreground">{textbook.semester}</h3>
         </div>
-
-        {/* 操作按钮 */}
+        <p className="text-sm text-muted-foreground">还没有为这本教材创建今日练习，点击下方按钮开始吧。</p>
         <Button
-          size="lg"
           disabled={loading}
           onClick={() => createPractice(textbook.id)}
-          className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl font-semibold text-base transition-all text-primary-foreground"
+          className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 font-bold text-sm transition-all"
         >
           {loading ? (
             <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               创建中...
             </>
           ) : (
             <>
-              <Sparkles className="h-5 w-5 mr-2" />
+              <Sparkles className="h-4 w-4 mr-2" />
               创建练习
             </>
           )}

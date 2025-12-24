@@ -3,14 +3,7 @@ import { useProfileModel } from "@/common/models/ProfileModel";
 import { PRACTICE_PATH_MAP } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { GRADES } from "@ai-education/shared-web";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
-import { History, LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export function Header() {
@@ -18,80 +11,94 @@ export function Header() {
   const { profile, practices } = useProfileModel();
   const location = useLocation();
   const navigate = useNavigate();
-  const isHomePage = location.pathname === "/home";
+
+  const navItems = [
+    { name: "首页", path: "/home", icon: <span className="text-xl">🏠</span> },
+    ...practices.map((p) => ({
+      name: p.name,
+      path: PRACTICE_PATH_MAP[p.slug],
+      icon: <span className="text-xl">{p.icon}</span>,
+    })),
+    { name: "练习记录", path: "/practice/record", icon: <span className="text-xl">📊</span> },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background border-b border-border shadow-sm">
-      <div className="h-16 flex items-center justify-between px-4 gap-4">
-        <div className="flex items-center gap-3  min-w-0">
-          <Link
-            to="/home"
-            title="返回首页"
-            className="flex items-center gap-1.5 h-9 px-3 rounded-lg hover:bg-muted transition-colors"
-          >
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer max-w-full">
-              <span className="text-4xl">🎓</span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-muted-foreground">当前年级</span>
-                <span className="text-sm font-semibold text-foreground truncate">
-                  {GRADES[profile?.grade || 0] || "未设置年级"}
-                </span>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* 中间：模块快捷入口（非首页时显示） */}
-        {!isHomePage && (
-          <div className="hidden md:flex items-center gap-1 flex-1">
-            {practices.map((practice) => {
-              const path = PRACTICE_PATH_MAP[practice.slug];
-              const isActive = location.pathname.startsWith(path);
-              return (
-                <Link
-                  key={path}
-                  to={path}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                  title={practice.name}
-                >
-                  <span className="text-base">{practice.icon}</span>
-                  <span className="hidden lg:inline">{practice.name}</span>
-                </Link>
-              );
-            })}
+    <>
+      {/* Mobile/iPad Portrait Toggle (Hidden for now as we focus on iPad landscape/split) */}
+      <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r-2 border-primary/10 p-6 z-50 animate-springy">
+        {/* Logo/Grade Area */}
+        <Link to="/home" className="flex items-center gap-3 px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
+          <span className="text-4xl animate-float">🎓</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs font-bold text-secondary-foreground uppercase tracking-wider">我的年级</span>
+            <span className="text-lg font-bold text-foreground truncate">
+              {GRADES[profile?.grade || 0] || "未设置"}
+            </span>
           </div>
-        )}
+        </Link>
 
-        {/* 右侧：个人信息和操作 */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <span className="text-sm font-semibold text-foreground truncate">{profile?.name || "学生"}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  个人中心
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/practice/record")}>
-                  <History className="mr-2 h-4 w-4" />
-                  练习记录
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  退出登录
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Navigation Items */}
+        <nav className="flex-1 flex flex-col gap-2">
+          {navItems.map((item) => {
+            const isActive =
+              location.pathname === item.path || (item.path !== "/home" && location.pathname.startsWith(item.path));
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all duration-300",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
+                    : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                )}
+              >
+                {item.icon}
+                <span className="text-base">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom Area: Profile & Logout */}
+        <div className="mt-auto space-y-3">
+          <button
+            onClick={() => navigate("/profile")}
+            className={cn(
+              "w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all",
+              location.pathname === "/profile"
+                ? "bg-accent/10 text-accent-foreground border-2 border-accent/20"
+                : "text-muted-foreground hover:bg-accent/5 hover:text-accent"
+            )}
+          >
+            <span className="text-xl">👤</span>
+            <span className="truncate">{profile?.name || "个人中心"}</span>
+          </button>
+
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-destructive hover:bg-destructive/5 transition-all"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>退出登录</span>
+          </button>
         </div>
-      </div>
-    </header>
+      </aside>
+
+      {/* Mobile Top Bar (Simplified) */}
+      <header className="md:hidden sticky top-0 w-full h-16 bg-white/80 backdrop-blur-md border-b border-primary/10 flex items-center justify-between px-6 z-50">
+        <Link to="/home" className="text-2xl">
+          🎓
+        </Link>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate("/profile")} className="text-xl">
+            👤
+          </button>
+          <button onClick={() => navigate("/practice/record")} className="text-xl">
+            📊
+          </button>
+        </div>
+      </header>
+    </>
   );
 }

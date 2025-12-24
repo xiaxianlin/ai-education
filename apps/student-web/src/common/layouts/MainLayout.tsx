@@ -10,11 +10,13 @@ const MainContainer = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
+    <div className="flex min-h-screen bg-background bg-pattern">
       <Header />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <Outlet />
-      </div>
+      <main className="flex-1 min-w-0 pb-12 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-8">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 };

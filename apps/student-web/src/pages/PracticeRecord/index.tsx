@@ -3,7 +3,7 @@
  * 显示所有类型的练习历史记录
  */
 import { useProfileModel } from "@/common/models/ProfileModel";
-import { Card, CardContent, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { useState } from "react";
@@ -32,44 +32,44 @@ export default function PracticeRecord() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data.map((session) => (
-          <HistoryCard key={session.id} session={session} practice={practice} />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-springy">
+        {data.map((session, idx) => (
+          <div key={session.id} className="animate-springy" style={{ animationDelay: `${idx * 100}ms` }}>
+            <HistoryCard session={session} practice={practice} />
+          </div>
         ))}
       </div>
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto space-y-12 animate-springy">
       {/* 顶部介绍卡片 */}
-      <Card className="border-2 border-primary/20 shadow-lg rounded-3xl bg-card overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <div className="text-4xl">📚</div>练习记录
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">查看你的所有练习历史记录，回顾学习历程。</p>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="bg-white rounded-[2rem] p-8 border-4 border-white shadow-xl shadow-primary/5 flex items-center gap-6">
+        <div className="text-6xl animate-float">📊</div>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black text-foreground">我的练习记录</h1>
+          <p className="text-lg font-bold text-muted-foreground italic">查看你的成长历程，每一次练习都是进步！🚀</p>
+        </div>
+      </section>
 
       {/* 按类型分类的标签页 */}
       <Tabs value={String(activeTab)} onValueChange={(key) => setActiveTab(Number(key))} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-auto rounded-full bg-muted/80 px-3.5 py-2 gap-2 border border-border my-3">
-          {practices.map((practice) => (
+        <TabsList className="bg-white/50 backdrop-blur-md p-2 rounded-[2rem] border-2 border-primary/10 mb-10 h-auto grid grid-cols-3 gap-2">
+          {practices.map((p) => (
             <TabsTrigger
-              key={practice.id}
-              value={String(practice.id)}
-              className="rounded-full px-6 py-2.5 text-base font-medium text-muted-foreground transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:scale-105 hover:text-primary"
+              key={p.id}
+              value={String(p.id)}
+              className="rounded-2xl py-4 text-lg font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-primary/20 data-[state=active]:scale-105"
             >
-              {practice.name}
+              <span className="mr-2 text-xl">{p.icon}</span>
+              {p.name}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {practices.map((practice) => (
-          <TabsContent key={practice.id} value={String(practice.id)} className="mt-4">
+        {practices.map((p) => (
+          <TabsContent key={p.id} value={String(p.id)} className="mt-0 focus-visible:outline-none">
             {renderHistoryList()}
           </TabsContent>
         ))}

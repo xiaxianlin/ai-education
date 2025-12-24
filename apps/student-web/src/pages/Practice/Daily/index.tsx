@@ -1,6 +1,5 @@
 import { useProfileModel } from "@/common/models/ProfileModel";
 import { SubjectTabs } from "@/components/biz";
-import { Card, CardContent } from "@/components/ui";
 import { PageModel } from "./models/page";
 import { PracticeCard } from "./views/PracticeCard";
 
@@ -9,36 +8,33 @@ export default function DailyPractice() {
 
   return (
     <PageModel.Provider>
-      {/* 顶部介绍卡片 */}
-      <Card className="border-2 border-primary/20 shadow-lg rounded-3xl bg-card overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <div className="text-4xl">📅</div>日常练习
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              根据你已选教材，智能生成当天的练习任务，帮你保持学习节奏。
-            </p>
+      <div className="space-y-8 animate-springy">
+        {/* 顶部介绍卡片 */}
+        <section className="bg-white rounded-[2rem] p-8 border-4 border-white shadow-xl shadow-primary/5 flex items-center gap-6">
+          <div className="text-6xl animate-float select-none">📅</div>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-foreground tracking-tight">日常练习</h1>
+            <p className="text-lg font-bold text-muted-foreground italic">保持学习节奏，每天进步一点点！✨</p>
           </div>
-        </CardContent>
-      </Card>
+        </section>
 
-      {/* 主体：按学科分组的练习卡片 */}
-      <SubjectTabs className="my-2">
-        {(subject) => {
-          return (
-            <div key={subject} className="space-y-4">
-              <div className="grid grid-cols-2 gap-5">
-                {activeTextbooks
-                  .filter((t) => t.subject === subject)
-                  .map((t) => (
-                    <PracticeCard key={t.id} textbook={t} />
-                  ))}
+        {/* 主体：按学科分组的练习卡片 */}
+        <SubjectTabs className="my-2">
+          {(subject) => {
+            return (
+              <div key={subject} className="space-y-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {activeTextbooks
+                    .filter((t) => t.subject === subject)
+                    .map((t) => (
+                      <PracticeCard key={t.id} textbook={t} />
+                    ))}
+                </div>
               </div>
-            </div>
-          );
-        }}
-      </SubjectTabs>
+            );
+          }}
+        </SubjectTabs>
+      </div>
     </PageModel.Provider>
   );
 }

@@ -1,7 +1,8 @@
 /**
  * 历史记录卡片组件
  */
-import { Badge, Button, Card, CardContent } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 import { FC } from "react";
@@ -53,68 +54,89 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session, practice }) => {
   };
 
   return (
-    <Card className="border-2 border-border hover:border-primary/40 transition-all shadow-sm h-full flex flex-col">
-      <CardContent className="p-4 flex-1 flex flex-col">
-        <div className="space-y-3 flex-1">
-          {/* 头部信息 */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h3 className="text-base font-semibold text-foreground truncate">{practice?.name}</h3>
-                <Badge variant={statusInfo.variant} className="text-xs shrink-0">
-                  {statusInfo.text}
-                </Badge>
+    <div className="relative group bg-white rounded-[2rem] p-6 border-4 border-white shadow-xl shadow-primary/5 h-full flex flex-col bubbly-card transition-all">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+
+      <div className="flex-1 space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl grayscale group-hover:grayscale-0 transition-all transform group-hover:scale-110">
+              {practice?.icon || "📝"}
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-lg font-black text-foreground truncate">{practice?.name}</h3>
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
+                {timeText}
               </div>
             </div>
           </div>
+          <Badge
+            variant={statusInfo.variant}
+            className={cn(
+              "rounded-xl px-3 py-1 font-black text-[10px]",
+              isCompleted
+                ? "bg-green-100 text-green-600 border-green-200"
+                : isInProgress
+                  ? "bg-primary/10 text-primary border-primary/20"
+                  : "bg-muted text-muted-foreground"
+            )}
+          >
+            {statusInfo.text}
+          </Badge>
+        </div>
 
-          {/* 统计信息 */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="text-center">
-              <div className="text-xl font-bold text-foreground">{question_count}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">总题数</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-primary">{answer_count}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">已答题</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-green-600">{correct_count}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">正确数</div>
-            </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-secondary/30 rounded-2xl p-4 text-center">
+            <div className="text-2xl font-black text-foreground">{question_count}</div>
+            <div className="text-[10px] font-bold text-muted-foreground uppercase mt-1">总题数</div>
           </div>
-
-          {/* 正确率 */}
-          {answer_count > 0 && (
-            <div className="bg-primary/10 rounded-lg p-2 text-center">
-              <div className="text-sm font-semibold text-primary">正确率: {accuracy}%</div>
-            </div>
-          )}
-
-          {/* 时间信息 */}
-          <div className="text-xs text-muted-foreground line-clamp-1">
-            {isCompleted && end_time
-              ? `完成: ${timeText}`
-              : isInProgress && start_time
-                ? `开始: ${timeText}`
-                : `创建: ${timeText}`}
+          <div className="bg-primary/5 rounded-2xl p-4 text-center">
+            <div className="text-2xl font-black text-primary">{accuracy}%</div>
+            <div className="text-[10px] font-bold text-primary/60 uppercase mt-1">正确率</div>
           </div>
         </div>
 
-        {/* 操作按钮 */}
-        <div className="flex gap-2 pt-2 mt-auto">
-          <Button variant="outline" onClick={handleViewDetail} className="flex-1 text-xs h-8" size="sm">
-            <Eye className="h-3 w-3 mr-1" />
-            详情
+        {/* Progress Bar (if in progress) */}
+        {isInProgress && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
+              <span>进度</span>
+              <span>
+                {answer_count} / {question_count}
+              </span>
+            </div>
+            <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-500"
+                style={{ width: `${(answer_count / question_count) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 mt-6">
+        <Button
+          variant="outline"
+          onClick={handleViewDetail}
+          className="flex-1 rounded-xl font-black text-xs border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/20 transition-all"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          详情
+        </Button>
+        {!isCompleted && (
+          <Button
+            onClick={handleContinue}
+            className="flex-1 rounded-xl font-black text-xs shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+          >
+            <Play className="h-4 w-4 mr-2" />
+            开始
           </Button>
-          {!isCompleted && (
-            <Button onClick={handleContinue} className="flex-1 text-xs h-8" size="sm">
-              <Play className="h-3 w-3 mr-1" />
-              继续
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        )}
+      </div>
+    </div>
   );
 };

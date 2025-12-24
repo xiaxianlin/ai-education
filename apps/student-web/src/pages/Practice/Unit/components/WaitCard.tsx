@@ -16,45 +16,41 @@ export function WaitCard({ unit }: PracticeCardProps) {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative p-8 flex flex-col h-full">
-          {/* 内容区域 */}
-          <div className="flex-1 flex flex-col gap-6">
-            <div className="flex items-center justify-center gap-2">
-              <div className="text-4xl">✨</div>
-              <h3 className="text-2xl font-bold text-foreground">{unit.name}</h3>
-            </div>
-            <p className="text-base text-muted-foreground text-center">
-              {unit.content || "本单元包含多个重点知识点，快来挑战吧！"}
-            </p>
+      <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
+        <div className="p-6 flex flex-col gap-5">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">✨</div>
+            <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
           </div>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {unit.content || "本单元包含多个重点知识点，快来挑战吧！"}
+          </p>
 
-          {/* 操作按钮 */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 mt-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setUnit(unit)}
-              className="flex-1 h-14 rounded-2xl text-base font-semibold transition-all"
+              className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all"
             >
-              <Lightbulb className="h-5 w-5 mr-2" />
-              查看知识点
+              <Lightbulb className="h-4 w-4 mr-2" />
+              知识点
             </Button>
             <Button
-              size="lg"
+              size="sm"
               disabled={creating}
               onClick={setTrue}
-              className="flex-1 h-14 rounded-2xl text-base font-semibold transition-all text-primary-foreground bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl"
+              className="flex-1 h-11 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
             >
               {creating ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  创建中...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  创建中
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-5 w-5 mr-2" fill="currentColor" />
-                  创建练习
+                  <Sparkles className="h-4 w-4 mr-2" fill="currentColor" />
+                  开始挑战
                 </>
               )}
             </Button>
@@ -71,4 +67,3 @@ export function WaitCard({ unit }: PracticeCardProps) {
     </>
   );
 }
-

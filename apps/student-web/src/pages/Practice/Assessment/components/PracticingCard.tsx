@@ -6,38 +6,41 @@ import { PracticeCardProps } from "../types";
 export function PracticingCard({ practice, textbook }: PracticeCardProps) {
   const navigate = useNavigate();
   const isInProgress = practice?.status === PracticeSessionStatus.PRACTICING;
-  const { question_count, answer_count, correct_count } = practice || {};
+  const { question_count = 0, answer_count = 0 } = practice || {};
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative p-8 flex flex-col h-full">
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-2">
-            <div className="text-4xl">{isInProgress ? "📝" : "✨"}</div>
-            <h3 className="text-2xl font-bold text-foreground">{textbook.semester}</h3>
+    <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
+      <div className="p-6 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">{isInProgress ? "📝" : "✨"}</div>
+            <h3 className="text-xl font-bold text-foreground">{textbook.semester}</h3>
           </div>
-          <div className="text-center space-y-2">
-            <p className="text-base text-muted-foreground">
-              {isInProgress ? "正在评估中，随时可以继续完成剩余题目。" : "评估已准备完成，随时可以开始答题。"}
-            </p>
-            <p className="text-base text-muted-foreground font-medium">
-              ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
-            </p>
+          <div className="px-3 py-1 bg-primary/10 rounded-lg text-[10px] font-black text-primary uppercase tracking-wider">
+            {isInProgress ? "进行中" : "已就绪"}
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <Button
-            onClick={() => navigate(`/practice/session/${practice?.id}`)}
-            className="flex-1 h-14 rounded-2xl font-semibold bg-primary hover:bg-primary/90"
-          >
-            <Play className="h-5 w-5 mr-2" fill="currentColor" />
-            {isInProgress ? "继续评估" : "开始评估"}
-          </Button>
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {isInProgress ? "正在评估中，继续完成剩余题目吧。" : "评估已准备完成，随时可以开始。"}
+          </p>
+          <div className="p-3 bg-secondary/30 rounded-xl flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground">进度</span>
+            <span className="text-xs font-black text-foreground">
+              {answer_count}/{question_count} 题
+            </span>
+          </div>
         </div>
+
+        <Button
+          onClick={() => navigate(`/practice/session/${practice?.id}`)}
+          className="w-full h-12 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 transition-all"
+        >
+          <Play className="h-4 w-4 mr-2" fill="currentColor" />
+          {isInProgress ? "继续评估" : "开始评估"}
+        </Button>
       </div>
     </div>
   );
 }
-

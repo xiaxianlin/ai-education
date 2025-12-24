@@ -8,35 +8,38 @@ import { PracticeCardProps } from "../types";
 
 export function CompleteCard({ practice, textbook }: PracticeCardProps) {
   const navigate = useNavigate();
-  const { id, question_count, answer_count, correct_count } = practice || {};
+  const { id, answer_count = 0, correct_count = 0 } = practice || {};
 
   return (
-    <div className="relative overflow-hidden bg-card rounded-3xl shadow-xl border-2 border-primary/20 hover:border-primary/40 transition-all min-h-[280px]">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative p-8 flex flex-col h-full">
-        {/* 内容区域 */}
-        <div className="flex-1 flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-2">
-            <div className="text-4xl">🎉</div>
-            <h3 className="text-2xl font-bold text-foreground text-center">{textbook.semester}</h3>
+    <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
+      <div className="p-6 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">🎉</div>
+            <h3 className="text-xl font-bold text-foreground">{textbook.semester}</h3>
           </div>
-
-          <div className="text-center space-y-2">
-            <p className="text-base text-muted-foreground">
-              今日练习已为你准备完成，随时可以开始答题或继续完成剩余题目。
-            </p>
-            <p className="text-base text-muted-foreground font-medium">
-              ✨ 已完成 {answer_count}/{question_count} 题 · 正确 {correct_count} 题
-            </p>
+          <div className="px-3 py-1 bg-green-100 rounded-lg text-[10px] font-black text-green-600 uppercase tracking-wider">
+            已完成
           </div>
         </div>
-        {/* 操作按钮 */}
+
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">今日练习已完成，快来看看你的学习记录吧！</p>
+          <div className="p-3 bg-secondary/30 rounded-xl flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground">正确率</span>
+            <span className="text-xs font-black text-foreground">
+              {answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0}% ({correct_count}/{answer_count}
+              )
+            </span>
+          </div>
+        </div>
+
         <Button
           size="lg"
           onClick={() => navigate(`/practice/result/${id}`)}
-          className="w-full h-14 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all text-base text-primary-foreground bg-primary hover:bg-primary/90"
+          className="w-full h-12 rounded-xl font-bold transition-all text-sm bg-primary hover:bg-primary/90"
         >
-          <Play className="h-5 w-5 mr-2" fill="currentColor" />
+          <Play className="h-4 w-4 mr-2" fill="currentColor" />
           查看结果
         </Button>
       </div>

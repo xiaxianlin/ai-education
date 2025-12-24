@@ -17,7 +17,7 @@ export function TextbookUnits() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       {units.map((unit) => {
         const practice = practices.find((p) => p.unit_id === unit.id);
         return <UnitPracticeCard key={unit.id} unit={unit} practice={practice} />;
