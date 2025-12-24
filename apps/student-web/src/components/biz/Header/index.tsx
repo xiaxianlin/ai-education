@@ -1,10 +1,15 @@
-import { PRACTICE_PATH_MAP } from "@/common/constants";
-import { cn } from "@/common/utils";
-import { ModeToggle } from "@/components/biz";
-import { Dropdown, DropdownItem, DropdownSeparator } from "@/components/ui";
-import { useAuthModel } from "@/models/AuthModel";
-import { useProfileModel } from "@/models/ProfileModel";
+import { useAuthModel } from "@/common/models/AuthModel";
+import { useProfileModel } from "@/common/models/ProfileModel";
+import { PRACTICE_PATH_MAP } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { GRADES } from "@ai-education/shared-web";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 import { History, LogOut, User } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -44,8 +49,8 @@ export function Header() {
               const isActive = location.pathname.startsWith(path);
               return (
                 <Link
-                  key={module.path}
-                  to={module.path}
+                  key={path}
+                  to={path}
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                     isActive
@@ -64,34 +69,27 @@ export function Header() {
 
         {/* 右侧：个人信息和操作 */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <ModeToggle />
-          <Dropdown
-            trigger={
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex flex-col leading-tight min-w-0">
-                  <span className="text-sm font-semibold text-foreground truncate">{profile?.name || "学生"}</span>
-                </div>
-              </div>
-            }
-            align="right"
-          >
-            <DropdownItem onClick={() => navigate("/profile")}>
-              <User className="mr-2 h-4 w-4" />
-              个人中心
-            </DropdownItem>
-            <DropdownItem onClick={() => navigate("/practice/record")}>
-              <History className="mr-2 h-4 w-4" />
-              练习记录
-            </DropdownItem>
-            <DropdownSeparator />
-            <DropdownItem onClick={logout} className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              退出登录
-            </DropdownItem>
-          </Dropdown>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <span className="text-sm font-semibold text-foreground truncate">{profile?.name || "学生"}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <User className="mr-2 h-4 w-4" />
+                  个人中心
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/practice/record")}>
+                  <History className="mr-2 h-4 w-4" />
+                  练习记录
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

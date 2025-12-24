@@ -2,10 +2,10 @@
  * 首页
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
-import { PRACTICE_PATH_MAP } from "@/common/constants";
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { PracticeCard } from "@/components/biz";
 import { Skeleton } from "@/components/ui";
-import { useProfileModel } from "@/models/ProfileModel";
+import { PRACTICE_PATH_MAP } from "@/lib/constants";
 
 export default function Home() {
   const { practices, loading } = useProfileModel();

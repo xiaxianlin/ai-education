@@ -1,7 +1,7 @@
 /**
  * 文本输入组件 - 用于主观题、拼写题等
  */
-import { cn } from "@/common/utils";
+import { cn } from "@/lib/utils";
 
 export function TextInput({ value, disabled, onChange }: AnswerFormProps) {
   return (

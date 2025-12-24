@@ -4,14 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class PracticeType(str, Enum):
-    daily = "daily_practice"
-    unit = "unit_practice"
-    assessment = "assessment"
-
-
 class CreatePracticeSchema(BaseModel):
-    type: Optional[PracticeType] = None  # 兼容旧逻辑
     practice_id: Optional[int] = None  # 优先使用
     textbook_id: int
     unit_id: Optional[int] = None

@@ -1,4 +1,4 @@
-import { apiClient, studentApi } from "@/common/api";
+import { apiClient, studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createContainer } from "unstated-next";

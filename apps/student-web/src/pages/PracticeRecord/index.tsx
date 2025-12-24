@@ -2,95 +2,39 @@
  * 练习记录列表页面
  * 显示所有类型的练习历史记录
  */
-import { studentApi } from "@/common/api";
-import { Card, CardContent, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { useProfileModel } from "@/common/models/ProfileModel";
+import { Card, CardContent, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
+import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { useState } from "react";
 import { HistoryCard } from "./components/HistoryCard";
+import { RecordEmpty } from "./components/RecordEmpty";
+import { RecordSkeleton } from "./components/RecordSkeleton";
 
-const PRACTICE_TYPES: Array<{
-  value: string;
-  label: string;
-}> = [
-  { value: "daily_practice", label: "日常练习" },
-  { value: "unit_practice", label: "单元练习" },
-  { value: "assessment", label: "能力评测" },
-];
+export default function PracticeRecord() {
+  const { practices } = useProfileModel();
+  const [activeTab, setActiveTab] = useState(practices[0].id);
 
-export default function PracticeHistory() {
-  const [activeTab, setActiveTab] = useState<string>("daily_practice");
-
+  const practice = practices.find((p) => p.id === activeTab);
   // 获取各类型的历史记录
-  const { data: dailyHistory = [], loading: dailyLoading } = useRequest(() =>
-    studentApi.getPracticeHistory("daily_practice")
-  );
+  const { data = [], loading } = useRequest(() => studentApi.getPracticeRecords(Number(activeTab)), {
+    ready: !!activeTab,
+    refreshDeps: [activeTab],
+  });
 
-  const { data: unitHistory = [], loading: unitLoading } = useRequest(() =>
-    studentApi.getPracticeHistory("unit_practice")
-  );
-
-  const { data: assessmentHistory = [], loading: assessmentLoading } = useRequest(() =>
-    studentApi.getPracticeHistory("assessment")
-  );
-
-  const getHistoryByType = (type: string) => {
-    switch (type) {
-      case "daily_practice":
-        return dailyHistory;
-      case "unit_practice":
-        return unitHistory;
-      case "assessment":
-        return assessmentHistory;
-    }
-  };
-
-  const getLoadingByType = (type: string) => {
-    switch (type) {
-      case "daily_practice":
-        return dailyLoading;
-      case "unit_practice":
-        return unitLoading;
-      case "assessment":
-        return assessmentLoading;
-    }
-  };
-
-  const renderHistoryList = (type: string) => {
-    const history = getHistoryByType(type);
-    const loading = getLoadingByType(type);
-
+  const renderHistoryList = () => {
     if (loading) {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="border-2 border-border">
-              <CardContent className="p-6">
-                <Skeleton className="h-32 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      );
+      return <RecordSkeleton />;
     }
 
-    if (!history || history.length === 0) {
-      return (
-        <Card className="border-2 border-accent/50 bg-accent/10">
-          <CardContent className="py-10 px-6 text-center space-y-3">
-            <div className="text-5xl">📝</div>
-            <p className="text-xl font-bold text-foreground">暂无记录</p>
-            <p className="text-sm text-muted-foreground">
-              还没有{PRACTICE_TYPES.find((t) => t.value === type)?.label}记录
-            </p>
-          </CardContent>
-        </Card>
-      );
+    if (!data || data.length === 0) {
+      return <RecordEmpty title={practice?.name} />;
     }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {history.map((session) => (
-          <HistoryCard key={session.id} session={session} />
+        {data.map((session) => (
+          <HistoryCard key={session.id} session={session} practice={practice} />
         ))}
       </div>
     );
@@ -111,22 +55,22 @@ export default function PracticeHistory() {
       </Card>
 
       {/* 按类型分类的标签页 */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={String(activeTab)} onValueChange={(key) => setActiveTab(Number(key))} className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-auto rounded-full bg-muted/80 px-3.5 py-2 gap-2 border border-border my-3">
-          {PRACTICE_TYPES.map((type) => (
+          {practices.map((practice) => (
             <TabsTrigger
-              key={type.value}
-              value={type.value}
+              key={practice.id}
+              value={String(practice.id)}
               className="rounded-full px-6 py-2.5 text-base font-medium text-muted-foreground transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:scale-105 hover:text-primary"
             >
-              {type.label}
+              {practice.name}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {PRACTICE_TYPES.map((type) => (
-          <TabsContent key={type.value} value={type.value} className="mt-4">
-            {renderHistoryList(type.value)}
+        {practices.map((practice) => (
+          <TabsContent key={practice.id} value={String(practice.id)} className="mt-4">
+            {renderHistoryList()}
           </TabsContent>
         ))}
       </Tabs>

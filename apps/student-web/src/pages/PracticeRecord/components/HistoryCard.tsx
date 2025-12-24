@@ -1,31 +1,15 @@
 /**
  * 历史记录卡片组件
  */
-import { FC } from "react";
 import { Badge, Button, Card, CardContent } from "@/components/ui";
-import { useNavigate } from "react-router-dom";
 import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
+import { FC } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface HistoryCardProps {
+  practice?: Practice;
   session: PracticeSession;
-}
-
-/**
- * 获取练习类型名称
- */
-function getPracticeTypeName(type?: string): string {
-  if (!type) return "练习";
-  switch (type) {
-    case "daily_practice":
-      return "日常练习";
-    case "unit_practice":
-      return "单元练习";
-    case "assessment":
-      return "能力评测";
-    default:
-      return "练习";
-  }
 }
 
 /**
@@ -44,11 +28,10 @@ function getStatusInfo(status: PracticeSessionStatus) {
   }
 }
 
-export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
+export const HistoryCard: FC<HistoryCardProps> = ({ session, practice }) => {
   const navigate = useNavigate();
 
-  const { id, session_type, question_count, answer_count, correct_count, status, create_time, start_time, end_time } =
-    session;
+  const { id, question_count, answer_count, correct_count, status, create_time, start_time, end_time } = session;
 
   const isCompleted = status === 2;
   const isInProgress = status === 1;
@@ -77,18 +60,11 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h3 className="text-base font-semibold text-foreground truncate">
-                  {getPracticeTypeName(session_type)}
-                </h3>
+                <h3 className="text-base font-semibold text-foreground truncate">{practice?.name}</h3>
                 <Badge variant={statusInfo.variant} className="text-xs shrink-0">
                   {statusInfo.text}
                 </Badge>
               </div>
-              {session.textbook && (
-                <p className="text-xs text-muted-foreground truncate">
-                  {session.textbook.subject} {session.textbook.grade}年级{session.textbook.semester}
-                </p>
-              )}
             </div>
           </div>
 
@@ -103,7 +79,7 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
               <div className="text-xs text-muted-foreground mt-0.5">已答题</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">{correct_count}</div>
+              <div className="text-xl font-bold text-green-600">{correct_count}</div>
               <div className="text-xs text-muted-foreground mt-0.5">正确数</div>
             </div>
           </div>

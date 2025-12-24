@@ -127,125 +127,6 @@
     /* Radius: Refined small radius - sleek */
     --radius: 0.5rem; /* 8px */
   }
-
-  /* Dark Theme: Low Grade (Grade 1-2) - Midnight Starry Sky 午夜星空 */
-  .dark [data-grade="low"],
-  [data-grade="low"].dark,
-  .dark {
-    /* Primary: Brightened Sky Blue - Good visibility on dark background */
-    --primary: 210 90% 70%;
-    --primary-foreground: 222 47% 11%;
-
-    /* Secondary: Deep Midnight Blue - Slightly brighter than background */
-    --secondary: 220 40% 20%;
-    --secondary-foreground: 210 40% 98%;
-
-    /* Accent: Firefly Yellow - Glowing effect */
-    --accent: 35 95% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Destructive: Soft Red for dark mode */
-    --destructive: 0 60% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Background: Deep blue instead of pure black */
-    --background: 225 40% 10%;
-    --foreground: 210 40% 98%;
-
-    --card: 225 40% 13%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 225 40% 13%;
-    --popover-foreground: 210 40% 98%;
-
-    --muted: 220 30% 20%;
-    --muted-foreground: 210 30% 70%;
-
-    --border: 220 30% 20%;
-    --input: 220 30% 20%;
-    --ring: 210 90% 70%;
-
-    /* Chart Colors for Dark Mode */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 50%;
-    --chart-3: 197 37% 40%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-  }
-
-  /* Dark Theme: Middle Grade (Grade 3-4) - Deep Forest 深林探险 */
-  .dark [data-grade="middle"],
-  [data-grade="middle"].dark {
-    /* Primary: Bright Emerald Green */
-    --primary: 160 70% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary: Deep Moss Green */
-    --secondary: 160 30% 15%;
-    --secondary-foreground: 150 20% 98%;
-
-    /* Accent: Coral for contrast */
-    --accent: 12 85% 65%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Destructive: Muted Red */
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Background: Deep Gray-Green/Slate */
-    --background: 170 30% 8%;
-    --foreground: 150 20% 98%;
-
-    --card: 170 30% 10%;
-    --card-foreground: 150 20% 98%;
-
-    --popover: 170 30% 10%;
-    --popover-foreground: 150 20% 98%;
-
-    --muted: 160 20% 18%;
-    --muted-foreground: 150 15% 70%;
-
-    --border: 160 20% 18%;
-    --input: 160 20% 18%;
-    --ring: 160 70% 50%;
-  }
-
-  /* Dark Theme: High Grade (Grade 5-6) - Deep Space 深空专注 */
-  .dark [data-grade="high"],
-  [data-grade="high"].dark {
-    /* Primary: Slightly brighter Tech Blue */
-    --primary: 220 80% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary: Deep Gray */
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    /* Accent: Electric Purple */
-    --accent: 262 80% 60%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Destructive: Deep Red */
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-
-    /* Background: Near-black deep gray */
-    --background: 240 10% 4%;
-    --foreground: 210 40% 98%;
-
-    --card: 240 10% 6%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 240 10% 6%;
-    --popover-foreground: 210 40% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 220 15% 65%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 220 80% 60%;
-  }
 }
 
 @layer base {
@@ -254,13 +135,16 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 }
 
 /* 练习开始界面动画 */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -269,7 +153,8 @@
 }
 
 @keyframes gentle-bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) scale(1);
   }
   50% {
@@ -278,7 +163,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
   }
   50% {

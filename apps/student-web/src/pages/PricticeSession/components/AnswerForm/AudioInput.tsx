@@ -1,9 +1,9 @@
 /**
  * 口语题录音输入组件
  */
-import { studentApi } from "@/common/api";
-import { cn } from "@/common/utils";
 import { Button } from "@/components/ui";
+import { studentApi } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { useRequest } from "ahooks";
 import { CheckCircle, Loader2, Mic, RotateCcw, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
@@ -21,25 +21,22 @@ export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { run: analyze } = useRequest(
-    (data: Blob) => studentApi.audioAnswerAnalyze(data),
-    {
-      manual: true,
-      onBefore: () => setState("parsing"),
-      onSuccess: (res) => {
-        onChange({
-          ...value,
-          text_answer: res.text,
-          analysis: res.analysis,
-        } as PracticeSessionAnswer);
-        setState("success");
-      },
-      onError: (error) => {
-        setErrorMessage(error.message || "录音解析失败");
-        setState("failure");
-      },
-    }
-  );
+  const { run: analyze } = useRequest((data: Blob) => studentApi.audioAnswerAnalyze(data), {
+    manual: true,
+    onBefore: () => setState("parsing"),
+    onSuccess: (res) => {
+      onChange({
+        ...value,
+        text_answer: res.text,
+        analysis: res.analysis,
+      } as PracticeSessionAnswer);
+      setState("success");
+    },
+    onError: (error) => {
+      setErrorMessage(error.message || "录音解析失败");
+      setState("failure");
+    },
+  });
 
   const startRecording = async () => {
     try {

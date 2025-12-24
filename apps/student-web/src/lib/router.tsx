@@ -1,5 +1,5 @@
-import { MainLayout } from "@/layouts/MainLayout";
-import { RootLayout } from "@/layouts/RootLayout";
+import { MainLayout } from "@/common/layouts/MainLayout";
+import { RootLayout } from "@/common/layouts/RootLayout";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Assessment from "@/pages/Practice/Assessment";

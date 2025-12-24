@@ -3,14 +3,14 @@
  * - 根据题型渲染不同输入组件
  */
 import { Button, Card, CardContent } from "@/components/ui";
+import { Loader2 } from "lucide-react";
+import { useMemo, useRef } from "react";
+import { usePageModel } from "../models/page";
+import { QuestionType } from "../types";
+import { AudioInput } from "./AnswerForm/AudioInput";
 import { ChoiceInput } from "./AnswerForm/ChoiceInput";
 import { JudgeInput } from "./AnswerForm/JudgeInput";
 import { TextInput } from "./AnswerForm/TextInput";
-import { AudioInput } from "./AnswerForm/AudioInput";
-import { usePageModel } from "../models/PageModel";
-import { QuestionType } from "../types";
-import { useMemo, useRef } from "react";
-import { Loader2 } from "lucide-react";
 
 export function AnswerCard() {
   const { question, answer, answers, order, submitting, isComplete, setAnswer, handleSubmit } = usePageModel();

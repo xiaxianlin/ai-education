@@ -2,12 +2,12 @@
  * 单题步骤视图 - 组合进度、题目、答题、导航
  * 直接从 store 读取当前题目与状态，并派发动作
  */
+import { Button, Card, CardContent } from "@/components/ui";
+import { AnswerAnalysis } from "../components/AnswerAnalysis";
+import { AnswerCard } from "../components/AnswerCard";
 import { ProgressIndicator } from "../components/ProgressIndicator";
 import { QuestionCard } from "../components/QuestionCard";
-import { Button, Card, CardContent } from "@/components/ui";
-import { AnswerCard } from "../components/AnswerCard";
-import { usePageModel } from "../models/PageModel";
-import { AnswerAnalysis } from "../components/AnswerAnalysis";
+import { usePageModel } from "../models/page";
 
 export function ProcessingView() {
   const { question, isComplete, complete } = usePageModel();

@@ -1,8 +1,8 @@
 /**
  * 练习会话页面级状态管理
  */
-import { studentApi } from "@/common/api";
-import { useOnce } from "@/hooks";
+import { useOnce } from "@/common/hooks";
+import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { findLastIndex } from "lodash-es";
 import { useMemo, useState } from "react";
@@ -10,7 +10,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { createContainer } from "unstated-next";
 import { PanelType, QuestionType } from "../types";
-import { getPanelType, getPracticeTypeName } from "../utils";
+import { getPanelType } from "../utils";
 
 function useContainer() {
   const param = useParams<{ sessionId: string }>();
@@ -20,7 +20,7 @@ function useContainer() {
   const [order, setOrder] = useState(0);
   const [answer, setAnswer] = useState<PracticeSessionAnswer>();
 
-  const { data, refresh } = useRequest(() => studentApi.getSessionDetail(sessionId), {
+  const { data, refresh } = useRequest(() => studentApi.getPracticeSessionData(sessionId), {
     ready: !!sessionId,
     onError: () => setPanel(PanelType.EMPTY),
   });
@@ -90,13 +90,8 @@ function useContainer() {
     }
   );
 
-  const { session, report, questions = [], answers = [] } = data || {};
+  const { practice, session, report, questions = [], answers = [] } = data || {};
   const question = questions[order];
-
-  // 练习标题
-  const title = useMemo(() => {
-    return getPracticeTypeName(session?.session_type);
-  }, [session?.session_type]);
 
   // 是否全部答完
   const isComplete = useMemo(() => {
@@ -135,7 +130,7 @@ function useContainer() {
   );
 
   return {
-    title,
+    title: practice?.name,
     panel,
     session,
     report,

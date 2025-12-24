@@ -2,31 +2,14 @@
  * 练习记录详情页面
  * 显示单个练习会话的详细信息，包括题目、答案和报告
  */
-import { studentApi } from "@/common/api";
 import { Badge, Button, Card, CardContent, Skeleton } from "@/components/ui";
+import { studentApi } from "@/lib/api";
 import { formatDateTime } from "@ai-education/shared-web";
 import { useRequest } from "ahooks";
 import { ArrowLeft, Play } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { QuestionAnswerCard } from "./components/QuestionAnswerCard";
 import { ReportSummary } from "./components/ReportSummary";
-
-/**
- * 获取练习类型名称
- */
-function getPracticeTypeName(type?: string): string {
-  if (!type) return "练习";
-  switch (type) {
-    case "daily_practice":
-      return "日常练习";
-    case "unit_practice":
-      return "单元练习";
-    case "assessment":
-      return "能力评测";
-    default:
-      return "练习";
-  }
-}
 
 /**
  * 获取状态文本和样式
@@ -54,7 +37,7 @@ export default function PracticeSessionData() {
     data: detail,
     loading,
     error,
-  } = useRequest(() => studentApi.getSessionDetail(sessionIdNum), {
+  } = useRequest(() => studentApi.getPracticeSessionData(sessionIdNum), {
     ready: !!sessionIdNum,
     refreshDeps: [sessionIdNum],
   });
@@ -95,7 +78,7 @@ export default function PracticeSessionData() {
     );
   }
 
-  const { session, questions, answers, report } = detail;
+  const { practice, session, questions, answers, report } = detail;
   const statusInfo = getStatusInfo(session.status);
   const isCompleted = session.status === 2;
   const isInProgress = session.status === 1;
@@ -130,7 +113,7 @@ export default function PracticeSessionData() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{getPracticeTypeName(session.session_type)}</h1>
+                <h1 className="text-2xl font-bold text-foreground">{practice.name}</h1>
                 <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
               </div>
               {!isCompleted && (
@@ -152,7 +135,7 @@ export default function PracticeSessionData() {
               </div>
               <div>
                 <div className="text-muted-foreground">正确数</div>
-                <div className="text-lg font-semibold text-green-600 dark:text-green-400">{session.correct_count}</div>
+                <div className="text-lg font-semibold text-green-600">{session.correct_count}</div>
               </div>
               <div>
                 <div className="text-muted-foreground">
@@ -168,7 +151,7 @@ export default function PracticeSessionData() {
       </Card>
 
       {/* 报告摘要（如果已完成） */}
-      {isCompleted && report && <ReportSummary report={report} sessionType={session.session_type} />}
+      {isCompleted && report && <ReportSummary report={report} slug={practice.slug} />}
 
       {/* 题目列表 */}
       <div className="space-y-4">

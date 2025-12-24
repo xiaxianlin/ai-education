@@ -3,7 +3,7 @@
  * 根据会话状态选择渲染哪个视图
  */
 import { LoadingPage } from "@/components/biz";
-import { usePageModel } from "../models/PageModel";
+import { usePageModel } from "../models/page";
 import { PanelType } from "../types";
 import { EmptyView } from "./EmptyView";
 import { ProcessingView } from "./ProcessingView";

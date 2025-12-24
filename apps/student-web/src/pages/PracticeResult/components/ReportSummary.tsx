@@ -8,10 +8,10 @@ import { FC } from "react";
 
 interface ReportSummaryProps {
   report: PracticeSessionReport;
-  sessionType?: string;
+  slug?: string;
 }
 
-export const ReportSummary: FC<ReportSummaryProps> = ({ report, sessionType }) => {
+export const ReportSummary: FC<ReportSummaryProps> = ({ report, slug }) => {
   const { total_questions, correct_questions, total_time, overall_score, current_ability, ability_level, percentile } =
     report;
 
@@ -31,11 +31,9 @@ export const ReportSummary: FC<ReportSummaryProps> = ({ report, sessionType }) =
           {/* 统计信息网格 */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-500/10 rounded-2xl p-4 border-2 border-green-500/20">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-700 dark:text-green-300 text-center">
-                {correct_questions}
-              </div>
-              <div className="text-xs text-green-600 dark:text-green-400 text-center mt-1">正确题数</div>
+              <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-green-700 text-center">{correct_questions}</div>
+              <div className="text-xs text-green-600 text-center mt-1">正确题数</div>
             </div>
             <div className="bg-destructive/10 rounded-2xl p-4 border-2 border-destructive/20">
               <XCircle className="h-6 w-6 text-destructive mx-auto mb-2" />
@@ -59,13 +57,13 @@ export const ReportSummary: FC<ReportSummaryProps> = ({ report, sessionType }) =
           {/* 正确率 */}
           <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl p-6 border-2 border-green-500/20">
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-700 dark:text-green-300 mb-2">{accuracy}%</div>
-              <div className="text-lg text-green-600 dark:text-green-400">正确率</div>
+              <div className="text-4xl font-bold text-green-700 mb-2">{accuracy}%</div>
+              <div className="text-lg text-green-600">正确率</div>
             </div>
           </div>
 
           {/* 综合评估（仅能力评测显示） */}
-          {sessionType === "assessment" && current_ability !== undefined && (
+          {slug === "assessment" && current_ability !== undefined && (
             <div className="bg-primary/10 rounded-2xl p-6 border-2 border-primary/20">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <TrendingUp className="h-5 w-5 text-primary" />

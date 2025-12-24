@@ -43,10 +43,10 @@ export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelP
 
           {/* 标签区域 */}
           <div className="flex flex-wrap justify-center gap-3">
-            <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm transition-all hover:scale-105">
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-xs md:text-sm font-medium text-emerald-700 shadow-sm transition-all hover:scale-105">
               ✅ 做完会有小表扬
             </span>
-            <span className="inline-flex items-center rounded-full bg-sky-100 dark:bg-sky-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-sky-700 dark:text-sky-300 shadow-sm transition-all hover:scale-105">
+            <span className="inline-flex items-center rounded-full bg-sky-100 px-4 py-1.5 text-xs md:text-sm font-medium text-sky-700 shadow-sm transition-all hover:scale-105">
               🐻 小熊老师陪你
             </span>
           </div>

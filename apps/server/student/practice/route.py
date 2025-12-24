@@ -12,23 +12,10 @@ from .schema import (
     AnswerQuestionSchema,
     CreatePracticeSchema,
     PracticeSubmitParams,
-    PracticeType,
 )
 from .services import answer, practice_generate, practice_session
 
 practice_router = APIRouter(prefix="/practice_session")
-
-
-@practice_router.get(
-    "/{id}",
-    tags=["练习会话"],
-    summary="获取练习会话详情",
-    description="获取练习会话的详细内容，包括题目和历史回答",
-)
-async def get_session_detail(session_id: int, request: Request, db: AsyncSession = Database):
-    # 获取当前学生信息
-    student = request.state.student
-    return await get_practice_session_data(db, student.id, session_id)
 
 
 @practice_router.get(
@@ -64,6 +51,29 @@ async def get_assessments(request: Request, db: AsyncSession = Database):
     return await practice_session.get_assessments(db, student.id)
 
 
+@practice_router.get(
+    "/records/{practice_id}",
+    tags=["练习会话"],
+    summary="查询练习历史",
+    description="根据练习类型（日常、单元、评估）查询最近的练习记录",
+)
+async def get_practice_history(practice_id: int, request: Request, db: AsyncSession = Database):
+    student = request.state.student
+    return await practice_session.get_practice_sessions(db, student.id, practice_id, limit=30)
+
+
+@practice_router.get(
+    "/{id}",
+    tags=["练习会话"],
+    summary="获取练习会话详情",
+    description="获取练习会话的详细内容，包括题目和历史回答",
+)
+async def get_session_detail(session_id: int, request: Request, db: AsyncSession = Database):
+    # 获取当前学生信息
+    student = request.state.student
+    return await get_practice_session_data(db, student.id, session_id)
+
+
 @practice_router.post(
     "/create",
     tags=["练习会话"],
@@ -82,17 +92,6 @@ async def create_practice(request: Request, params: CreatePracticeSchema):
 
     # 提交任务到队列
     return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
-
-
-@practice_router.get(
-    "/records/{type}",
-    tags=["练习会话"],
-    summary="查询练习历史",
-    description="根据练习类型（日常、单元、评估）查询最近的练习记录",
-)
-async def get_practice_history(type: PracticeType, request: Request, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_session.get_practice_history(db, student.id, type.value, limit=30)
 
 
 @practice_router.post(

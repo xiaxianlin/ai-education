@@ -1,10 +1,10 @@
 /**
  * 选择题输入组件
  */
-import { cn } from "@/common/utils";
+import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { usePageModel } from "../../models/PageModel";
+import { usePageModel } from "../../models/page";
 
 export function ChoiceInput({ value, disabled, onChange }: AnswerFormProps) {
   const { question } = usePageModel();

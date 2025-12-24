@@ -1,5 +1,5 @@
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
-import { useProfileModel } from "@/models/ProfileModel";
 
 interface SubjectTabsProps {
   className?: string;

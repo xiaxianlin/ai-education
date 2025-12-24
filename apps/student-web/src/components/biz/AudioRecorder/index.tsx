@@ -2,8 +2,8 @@
  * 录音组件
  * 支持开始/停止录音，并返回录音文件
  */
-import { cn } from "@/common/utils";
 import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { Loader2, Mic, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

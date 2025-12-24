@@ -1,4 +1,4 @@
-import { cn } from "@/common/utils";
+import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -6,11 +6,7 @@ interface LoadingSpinnerProps {
   text?: string;
 }
 
-export function LoadingSpinner({
-  size = "md",
-  className,
-  text,
-}: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: "h-8 w-8 border-2",
     md: "h-16 w-16 border-4",
@@ -20,11 +16,7 @@ export function LoadingSpinner({
   return (
     <div className="flex flex-col items-center justify-center min-h-[200px]">
       <div
-        className={cn(
-          "animate-spin rounded-full border-primary border-t-transparent",
-          sizeClasses[size],
-          className
-        )}
+        className={cn("animate-spin rounded-full border-primary border-t-transparent", sizeClasses[size], className)}
       />
       {text && <p className="mt-4 text-muted-foreground">{text}</p>}
     </div>

@@ -1,4 +1,4 @@
-import { studentApi } from "@/common/api";
+import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { orderBy, uniq } from "lodash-es";
 import { useMemo } from "react";

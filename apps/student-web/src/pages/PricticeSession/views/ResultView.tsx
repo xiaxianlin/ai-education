@@ -2,11 +2,11 @@
  * 结果面板 - 展示练习结果
  * 参考单元练习卡片风格设计
  */
+import { Button, Card, CardContent } from "@/components/ui";
+import { CheckCircle, Clock, FileText, Home, Trophy, XCircle } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, CardContent } from "@/components/ui";
-import { Trophy, CheckCircle, XCircle, Clock, Home, FileText } from "lucide-react";
-import { usePageModel } from "../models/PageModel";
+import { usePageModel } from "../models/page";
 
 export function ResultView() {
   const navigate = useNavigate();

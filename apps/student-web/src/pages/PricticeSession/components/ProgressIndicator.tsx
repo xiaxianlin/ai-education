@@ -1,8 +1,8 @@
 /**
  * 进度指示器组件 - 显示所有题目状态的圆圈网格
  */
-import { cn } from "@/common/utils";
-import { usePageModel } from "../models/PageModel";
+import { cn } from "@/lib/utils";
+import { usePageModel } from "../models/page";
 
 export function ProgressIndicator() {
   const { questions, answers, order, jumpTo } = usePageModel();
@@ -25,7 +25,7 @@ export function ProgressIndicator() {
                 "relative aspect-square rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-200",
                 "hover:scale-110 active:scale-95",
                 // 背景颜色 - 根据状态
-                isUnanswered && "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
+                isUnanswered && "bg-gray-200 text-gray-600",
                 isCorrect && "bg-gradient-to-br from-green-300 to-green-500 text-white",
                 isIncorrect && "bg-gradient-to-br from-red-300 to-red-500 text-white",
                 // 当前题目高亮

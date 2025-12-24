@@ -1,5 +1,5 @@
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { Card, CardContent, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
-import { useProfileModel } from "@/models/ProfileModel";
 import { PageModel } from "./models/page";
 import { UnitPracticeModel } from "./models/unit_practice";
 import { KnowledgeModal } from "./views/KnowledgeModal";

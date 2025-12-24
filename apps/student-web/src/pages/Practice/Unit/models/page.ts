@@ -1,4 +1,4 @@
-import { studentApi } from "@/common/api";
+import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { useState } from "react";
 import { createContainer } from "unstated-next";

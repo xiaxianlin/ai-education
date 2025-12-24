@@ -3,11 +3,11 @@
  * 直接从 store 读取数据并派发动作
  * 根据年级展示不同风格的开始界面，并展示当前步骤提示
  */
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { memo } from "react";
-import { useProfileModel } from "@/models/ProfileModel";
-import { usePageModel } from "../models/PageModel";
 import { LowerGradeReadyPanel } from "../components/LowerGradeReadyPanel";
 import { UpperGradeReadyPanel } from "../components/UpperGradeReadyPanel";
+import { usePageModel } from "../models/page";
 
 export const ReadyView = memo(() => {
   const { student } = useProfileModel();
@@ -17,10 +17,10 @@ export const ReadyView = memo(() => {
 
   return (
     <div className="bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div 
+      <div
         className="w-full max-w-2xl mx-auto space-y-6"
         style={{
-          animation: 'fadeIn 0.5s ease-out 0.1s forwards, slideUp 0.5s ease-out 0.1s forwards',
+          animation: "fadeIn 0.5s ease-out 0.1s forwards, slideUp 0.5s ease-out 0.1s forwards",
           opacity: 0,
         }}
       >

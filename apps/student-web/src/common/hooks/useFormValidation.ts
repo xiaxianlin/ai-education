@@ -1,15 +1,11 @@
 import { useCallback, useState } from "react";
-import { ValidationResult } from "../common/validators";
+import { ValidationResult } from "../lib/validators";
 
 export function useFormValidation<T extends Record<string, any>>() {
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
 
   const validate = useCallback(
-    (
-      field: keyof T,
-      value: string,
-      validator: (val: string) => ValidationResult
-    ): boolean => {
+    (field: keyof T, value: string, validator: (val: string) => ValidationResult): boolean => {
       const result = validator(value);
       if (!result.valid) {
         setErrors((prev) => ({ ...prev, [field]: result.error }));

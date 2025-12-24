@@ -1,7 +1,7 @@
 /**
  * 判断题输入组件
  */
-import { cn } from "@/common/utils";
+import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 
 export function JudgeInput({ value, disabled, onChange }: AnswerFormProps) {

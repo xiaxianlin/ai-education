@@ -3,21 +3,12 @@
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
 import logo from "@/assets/logo.png";
-import { studentApi } from "@/common/api";
-import { cn } from "@/common/utils";
-import { validators } from "@/common/validators";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  toast,
-} from "@/components/ui";
-import { useFormValidation } from "@/hooks/useFormValidation";
-import { useAuthModel } from "@/models/AuthModel";
+import { useFormValidation } from "@/common/hooks/useFormValidation";
+import { useAuthModel } from "@/common/models/AuthModel";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, toast } from "@/components/ui";
+import { studentApi } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { validators } from "@/lib/validators";
 import { useRequest } from "ahooks";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -71,16 +62,10 @@ export default function Login() {
       <Card className="relative z-10 w-full max-w-md border-border bg-card/80 shadow-xl backdrop-blur-xl">
         <CardHeader className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
-            <img
-              src={logo}
-              alt="AI 学习助手 Logo"
-              className="h-12 w-12 object-contain"
-            />
+            <img src={logo} alt="AI 学习助手 Logo" className="h-12 w-12 object-contain" />
           </div>
           <div className="space-y-2">
-            <CardTitle className="text-3xl font-bold text-foreground">
-              欢迎回来！
-            </CardTitle>
+            <CardTitle className="text-3xl font-bold text-foreground">欢迎回来！</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               登录你的 AI 学习空间，继续专属的练习旅程
             </CardDescription>
@@ -90,10 +75,7 @@ export default function Login() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label
-                htmlFor="phone"
-                className="text-sm font-medium text-foreground"
-              >
+              <label htmlFor="phone" className="text-sm font-medium text-foreground">
                 手机号
               </label>
               <Input
@@ -112,20 +94,14 @@ export default function Login() {
                 disabled={loading}
                 className={cn(
                   "h-12 rounded-xl border-input bg-background text-base shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-ring",
-                  errors.phone &&
-                    "border-destructive focus-visible:ring-destructive"
+                  errors.phone && "border-destructive focus-visible:ring-destructive"
                 )}
               />
-              {errors.phone && (
-                <div className="text-sm text-destructive">{errors.phone}</div>
-              )}
+              {errors.phone && <div className="text-sm text-destructive">{errors.phone}</div>}
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-foreground"
-              >
+              <label htmlFor="password" className="text-sm font-medium text-foreground">
                 密码
               </label>
               <Input
@@ -138,22 +114,15 @@ export default function Login() {
                   setPassword(e.target.value);
                   clearError("password");
                 }}
-                onBlur={() =>
-                  validate("password", password, validators.password)
-                }
+                onBlur={() => validate("password", password, validators.password)}
                 required
                 disabled={loading}
                 className={cn(
                   "h-12 rounded-xl border-input bg-background text-base shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-ring",
-                  errors.password &&
-                    "border-destructive focus-visible:ring-destructive"
+                  errors.password && "border-destructive focus-visible:ring-destructive"
                 )}
               />
-              {errors.password && (
-                <div className="text-sm text-destructive">
-                  {errors.password}
-                </div>
-              )}
+              {errors.password && <div className="text-sm text-destructive">{errors.password}</div>}
             </div>
 
             <Button

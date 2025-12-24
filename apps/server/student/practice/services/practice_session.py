@@ -16,9 +16,7 @@ from sqlalchemy.orm import noload
 from .report import generate_practice_report
 
 
-async def get_practice_sessions(
-    db: AsyncSession, student_id: str, practice_id: int, limit: int = 30
-):
+async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: int, limit: int = 30):
     """获取指定练习的练习会话记录"""
     # 查询最近的练习记录（按创建时间倒序）
     sessions = await db.scalars(
@@ -66,9 +64,7 @@ async def get_assessments(db: AsyncSession, student_id: str):
     thirty_days_ago = pendulum.now().subtract(days=30)
 
     result = await db.scalars(
-        select(PracticeSession)
-        .options(noload(PracticeSession.textbook))
-        .where(
+        select(PracticeSession).where(
             PracticeSession.student_id == student_id,
             PracticeSession.practice_slug == "assessment",
             PracticeSession.create_time >= thirty_days_ago.int_timestamp,

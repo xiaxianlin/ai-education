@@ -2,8 +2,8 @@ import { BookOpen, LogOut, Phone, User } from "lucide-react";
 
 import { Button, Card, CardContent, Skeleton } from "@/components/ui";
 
-import { useAuthModel } from "@/models/AuthModel";
-import { useProfileModel } from "@/models/ProfileModel";
+import { useAuthModel } from "@/common/models/AuthModel";
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { GRADES } from "@ai-education/shared-web";
 
 export default function Profile() {

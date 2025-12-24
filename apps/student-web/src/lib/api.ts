@@ -144,10 +144,10 @@ export const studentApi = {
 
   /**
    * 获取练习历史记录
-   * GET /practice_session/history/{type}
+   * GET /practice_session/records/{practice_id}
    */
-  async getPracticeRecords(type: string): Promise<PracticeSession[]> {
-    return apiClient.get<PracticeSession[]>(`/practice_session/records/${type}`);
+  async getPracticeRecords(practiceId: number): Promise<PracticeSession[]> {
+    return apiClient.get<PracticeSession[]>(`/practice_session/records/${practiceId}`);
   },
 
   /**

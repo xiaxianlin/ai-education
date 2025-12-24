@@ -1,9 +1,9 @@
-import { cn } from '@/common/utils';
-import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react';
-import React, { createContext, useCallback, useContext, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { cn } from "@/lib/utils";
+import { AlertTriangle, CheckCircle, Info, X, XCircle } from "lucide-react";
+import React, { createContext, useCallback, useContext, useState } from "react";
+import { createPortal } from "react-dom";
 
-type ToastType = 'success' | 'error' | 'info' | 'warning';
+type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
   id: string;
@@ -14,7 +14,7 @@ interface Toast {
 
 interface ToastContextType {
   toasts: Toast[];
-  addToast: (toast: Omit<Toast, 'id'>) => void;
+  addToast: (toast: Omit<Toast, "id">) => void;
   removeToast: (id: string) => void;
 }
 
@@ -23,7 +23,7 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    throw new Error("useToast must be used within ToastProvider");
   }
   return context;
 };
@@ -31,7 +31,7 @@ export const useToast = () => {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
+  const addToast = useCallback((toast: Omit<Toast, "id">) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { ...toast, id }]);
 
@@ -80,25 +80,22 @@ const ToastItem: React.FC<{
   };
 
   const styles = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    success: "bg-green-50 border-green-200 text-green-800",
+    error: "bg-red-50 border-red-200 text-red-800",
+    info: "bg-blue-50 border-blue-200 text-blue-800",
+    warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
   };
 
   return (
     <div
       className={cn(
-        'flex items-center gap-3 p-4 rounded-lg border shadow-lg min-w-[300px] max-w-[500px] animate-in slide-in-from-right-full duration-300',
+        "flex items-center gap-3 p-4 rounded-lg border shadow-lg min-w-[300px] max-w-[500px] animate-in slide-in-from-right-full duration-300",
         styles[toast.type]
       )}
     >
       {icons[toast.type]}
       <p className="flex-1 text-sm font-medium">{toast.message}</p>
-      <button
-        onClick={() => onRemove(toast.id)}
-        className="text-gray-500 hover:text-gray-700"
-      >
+      <button onClick={() => onRemove(toast.id)} className="text-gray-500 hover:text-gray-700">
         <X className="h-4 w-4" />
       </button>
     </div>
@@ -107,19 +104,19 @@ const ToastItem: React.FC<{
 
 export const toast = {
   success: (message: string) => {
-    const event = new CustomEvent('toast', { detail: { type: 'success', message } });
+    const event = new CustomEvent("toast", { detail: { type: "success", message } });
     window.dispatchEvent(event);
   },
   error: (message: string) => {
-    const event = new CustomEvent('toast', { detail: { type: 'error', message } });
+    const event = new CustomEvent("toast", { detail: { type: "error", message } });
     window.dispatchEvent(event);
   },
   info: (message: string) => {
-    const event = new CustomEvent('toast', { detail: { type: 'info', message } });
+    const event = new CustomEvent("toast", { detail: { type: "info", message } });
     window.dispatchEvent(event);
   },
   warning: (message: string) => {
-    const event = new CustomEvent('toast', { detail: { type: 'warning', message } });
+    const event = new CustomEvent("toast", { detail: { type: "warning", message } });
     window.dispatchEvent(event);
   },
 };

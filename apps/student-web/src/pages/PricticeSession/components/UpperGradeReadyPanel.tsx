@@ -18,7 +18,7 @@ export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelP
 
         {/* 左侧信息 */}
         <div className="flex-1 text-center md:text-left space-y-4 md:space-y-5 relative z-10">
-          <div className="inline-flex items-center justify-center md:justify-start gap-2 px-4 py-1.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-xs md:text-sm font-medium text-sky-700 dark:text-sky-300 shadow-sm">
+          <div className="inline-flex items-center justify-center md:justify-start gap-2 px-4 py-1.5 rounded-full bg-sky-100 text-xs md:text-sm font-medium text-sky-700 shadow-sm">
             <span className="text-base md:text-lg">🎯</span>
             <span>巩固练习</span>
           </div>
@@ -33,10 +33,10 @@ export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelP
           </p>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
-            <span className="inline-flex items-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm transition-all hover:scale-105">
+            <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-xs md:text-sm font-medium text-emerald-700 shadow-sm transition-all hover:scale-105">
               ✅ 做完可以查看知识点掌握情况
             </span>
-            <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-4 py-1.5 text-xs md:text-sm font-medium text-amber-700 dark:text-amber-300 shadow-sm transition-all hover:scale-105">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-4 py-1.5 text-xs md:text-sm font-medium text-amber-700 shadow-sm transition-all hover:scale-105">
               ⭐ 错题会进入错题本
             </span>
           </div>
@@ -45,7 +45,7 @@ export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelP
         {/* 右侧插画区域 */}
         <div className="w-full md:w-56 lg:w-64 flex justify-center relative z-10">
           <div
-            className="relative w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-3xl bg-gradient-to-br from-sky-100 via-sky-50 to-amber-100 dark:from-sky-900/30 dark:via-sky-800/20 dark:to-amber-900/30 shadow-inner flex flex-col items-center justify-center border border-primary/10"
+            className="relative w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-3xl bg-gradient-to-br from-sky-100 via-sky-50 to-amber-100 shadow-inner flex flex-col items-center justify-center border border-primary/10"
             style={{ animation: "pulse-glow 3s ease-in-out infinite" }}
           >
             <div
@@ -54,9 +54,7 @@ export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelP
             >
               🧠
             </div>
-            <p className="text-xs md:text-sm font-medium text-sky-800 dark:text-sky-200 px-2 text-center">
-              动动大脑，检查看看学得怎么样
-            </p>
+            <p className="text-xs md:text-sm font-medium text-sky-800 px-2 text-center">动动大脑，检查看看学得怎么样</p>
           </div>
         </div>
       </div>

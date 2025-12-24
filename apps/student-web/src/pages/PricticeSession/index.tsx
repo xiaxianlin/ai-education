@@ -1,4 +1,4 @@
-import { PageModel } from "./models/PageModel";
+import { PageModel } from "./models/page";
 import { MainView } from "./views/Main";
 
 export default function PracticeSession() {

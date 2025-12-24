@@ -281,6 +281,7 @@ declare global {
     id: number;
     student_id: string;
     practice_id?: number; // 练习ID
+    practice_slug?: string; // 练习slug
     parameters?: Record<string, any>; // 练习参数
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
@@ -361,6 +362,7 @@ declare global {
    * 练习会话数据
    */
   interface PracticeSessionData {
+    practice: Practice;
     session: PracticeSession;
     answers: PracticeSessionAnswer[];
     questions: Question[];
@@ -414,5 +416,4 @@ declare global {
     update_time?: number;
   }
 }
-export { };
-
+export {};

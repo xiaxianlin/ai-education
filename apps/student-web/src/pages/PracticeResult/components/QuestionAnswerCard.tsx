@@ -2,8 +2,8 @@
  * 题目答案展示卡片组件
  * 参考单元练习页面的卡片设计风格
  */
-import { cn } from "@/common/utils";
 import { Badge, Card, CardContent } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { formatDuration } from "@ai-education/shared-web";
 import { CheckCircle, ChevronDown, ChevronUp, Clock, XCircle } from "lucide-react";
 import { FC, useState } from "react";
@@ -32,9 +32,9 @@ function getAnswerStatusInfo(status?: number) {
     return {
       text: "正确",
       icon: CheckCircle,
-      color: "text-green-700 dark:text-green-400",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      borderColor: "border-green-500/50 dark:border-green-400/50",
+      color: "text-green-700",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500/50",
       iconBg: "bg-green-500",
       iconColor: "text-white",
     };
@@ -42,9 +42,9 @@ function getAnswerStatusInfo(status?: number) {
     return {
       text: "错误",
       icon: XCircle,
-      color: "text-red-700 dark:text-red-400",
-      bgColor: "bg-red-50 dark:bg-red-950/20",
-      borderColor: "border-red-500/50 dark:border-red-400/50",
+      color: "text-red-700",
+      bgColor: "bg-red-50",
+      borderColor: "border-red-500/50",
       iconBg: "bg-red-500",
       iconColor: "text-white",
     };
@@ -70,8 +70,8 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
         "relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg rounded-2xl bg-card h-full flex flex-col",
         hasAnswer
           ? isCorrect
-            ? "border-green-500/50 dark:border-green-400/50 hover:border-green-500/70 dark:hover:border-green-400/70 bg-green-50/30 dark:bg-green-950/10"
-            : "border-red-500/50 dark:border-red-400/50 hover:border-red-500/70 dark:hover:border-red-400/70 bg-red-50/30 dark:bg-red-950/10"
+            ? "border-green-500/50 hover:border-green-500/70 bg-green-50/30"
+            : "border-red-500/50 hover:border-red-500/70 bg-red-50/30"
           : "border-border hover:border-primary/40 hover:bg-primary/5"
       )}
     >
@@ -96,9 +96,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                   <div
                     className={cn(
                       "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm",
-                      isCorrect
-                        ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
-                        : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
+                      isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                     )}
                   >
                     <StatusIcon className="h-4 w-4" />
@@ -155,9 +153,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                   <div
                     className={cn(
                       "rounded-xl p-4 border-2 shadow-sm",
-                      isCorrect
-                        ? "bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700"
-                        : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700"
+                      isCorrect ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300"
                     )}
                   >
                     <div className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
@@ -169,21 +165,19 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
 
                   {/* 正确答案 */}
                   {!isCorrect && (
-                    <div className="rounded-xl p-4 bg-green-50 dark:bg-green-950/20 border-2 border-green-400 dark:border-green-600 shadow-sm">
-                      <div className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2 flex items-center gap-2">
+                    <div className="rounded-xl p-4 bg-green-50 border-2 border-green-400 shadow-sm">
+                      <div className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
                         <span>正确答案</span>
                       </div>
-                      <div className="text-base text-green-800 dark:text-green-200 leading-relaxed">
-                        {correctAnswer}
-                      </div>
+                      <div className="text-base text-green-800 leading-relaxed">{correctAnswer}</div>
                     </div>
                   )}
 
                   {/* 错题分析 */}
                   {status === 2 && answer?.analysis && (
-                    <div className="rounded-xl p-4 bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-400 dark:border-orange-600 shadow-sm">
-                      <div className="text-sm font-semibold text-orange-700 dark:text-orange-300 mb-2 flex items-center gap-2">
+                    <div className="rounded-xl p-4 bg-orange-50 border-2 border-orange-400 shadow-sm">
+                      <div className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
                         <span>💡</span>
                         <span>错题分析</span>
                       </div>
@@ -206,8 +200,8 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
 
               {/* 知识点 */}
               {question.knowledge && (
-                <div className="rounded-xl p-4 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-800 shadow-sm">
-                  <div className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-2">
+                <div className="rounded-xl p-4 bg-blue-50 border-2 border-blue-200 shadow-sm">
+                  <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
                     <span>📚</span>
                     <span>知识点</span>
                   </div>

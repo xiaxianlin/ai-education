@@ -2,12 +2,12 @@
  * 题目卡片组件 - 组合题目头部、内容、资源
  */
 
-import { cn } from "@/common/utils";
 import AudioPlayer from "@/components/biz/AudioPlayer";
 import { Badge } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { getResourceUrl } from "@ai-education/shared-web";
 import { useMemo } from "react";
-import { usePageModel } from "../models/PageModel";
+import { usePageModel } from "../models/page";
 
 export function QuestionCard() {
   const { question, answer } = usePageModel();
@@ -60,13 +60,11 @@ export function QuestionCard() {
   return (
     <div className="flex flex-col gap-4 relative">
       <div className="flex items-center gap-2 flex-wrap">
-        <Badge className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
-          {question?.type}
-        </Badge>
-        <Badge className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800">
+        <Badge className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-200">{question?.type}</Badge>
+        <Badge className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 border-purple-200">
           {question?.difficulty}
         </Badge>
-        <Badge className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+        <Badge className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 border-amber-200">
           {question?.knowledge}
         </Badge>
       </div>

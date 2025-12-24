@@ -1,6 +1,6 @@
+import { useProfileModel } from "@/common/models/ProfileModel";
 import { SubjectTabs } from "@/components/biz";
 import { Card, CardContent } from "@/components/ui";
-import { useProfileModel } from "@/models/ProfileModel";
 import { PageModel } from "./models/page";
 import { PracticeCard } from "./views/PracticeCard";
 
