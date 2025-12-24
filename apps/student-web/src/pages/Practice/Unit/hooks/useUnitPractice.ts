@@ -1,13 +1,13 @@
+import { useCreatePractice } from "@/hooks/useCreatePractice";
 import { studentApi } from "@/lib/api";
 import { useBoolean, useRequest } from "ahooks";
-import { useCreatePractice } from "@/hooks/useCreatePractice";
 
 export const useUnitPractice = (unit: Unit, textbook: Textbook) => {
   const [visible, { setTrue: showConfirmModal, setFalse: hideConfirmModal }] = useBoolean(false);
 
   /** 获取单元练习 */
-  const { data: practice, refresh } = useRequest(() => studentApi.getUnitPractice(unit.id), {
-    ready: !!unit.id,
+  const { data: practice, refresh } = useRequest(() => studentApi.getUnitPractice(textbook.id), {
+    ready: !!textbook.id,
     onSuccess: (res) => {
       if (res.generate_status === 0) {
         setTimeout(() => {

@@ -1,12 +1,12 @@
+import { useCreatePractice } from "@/hooks/useCreatePractice";
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
-import { useMemo } from "react";
 import dayjs from "dayjs";
-import { useCreatePractice } from "@/hooks/useCreatePractice";
+import { useMemo } from "react";
 
 export const useAssessmentPractice = (textbookId: number) => {
   /** 获取综合评估 */
-  const { data: practice, refresh } = useRequest(() => studentApi.getAssessment(textbookId), {
+  const { data: practice, refresh } = useRequest(() => studentApi.getAssessment(), {
     onSuccess: (res) => {
       if (res.generate_status === 0) {
         setTimeout(() => {

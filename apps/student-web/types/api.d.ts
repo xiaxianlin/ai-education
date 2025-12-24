@@ -6,6 +6,11 @@ declare global {
 
   type AnswerStatus = 0 | 1 | 2;
 
+  /**
+   * 练习会话类型（对应后端 PracticeType 枚举）
+   */
+  type PracticeSessionType = "daily_practice" | "unit_practice" | "assessment";
+
   interface LoginRequest {
     phone: string;
     password: string;
@@ -17,7 +22,7 @@ declare global {
   }
 
   interface CreatePracticeRequest {
-    type?: PracticeType;  // 兼容旧逻辑
+    type?: PracticeSessionType;  // 兼容旧逻辑
     practice_id?: number;  // 优先使用
     textbook_id: number;
     unit_id?: number;
@@ -45,7 +50,6 @@ declare global {
     answer: string;
     time_spent: number;
     is_audio_answer: boolean;
-    audio_data?: string;
     audio_match?: boolean;
     audio_analysis?: string;
   }
@@ -54,8 +58,8 @@ declare global {
     text: string;
     match: boolean;
     analysis: string;
-    audio_url: string;
   }
 }
 
-export {};
+export { };
+

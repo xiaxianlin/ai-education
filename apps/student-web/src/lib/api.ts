@@ -1,6 +1,6 @@
 import { go } from "@ai-education/shared-web";
-import { toast } from "sonner";
 import { ApiClient } from "@ai-education/shared-web/api";
+import { toast } from "sonner";
 
 export const apiClient = new ApiClient("/api/student");
 
@@ -68,106 +68,103 @@ export const studentApi = {
 
   /**
    * 获取日常练习
-   * GET /practice/daily
+   * GET /practice_session/daily
    */
-  async getDailyPractice(textbookId: number) {
-    return apiClient.get<PracticeSession>(`/practice/daily/${textbookId}`);
+  async getDailyPractice() {
+    return apiClient.get<PracticeSession>("/practice_session/daily");
   },
 
   /**
    * 获取单元练习
-   * GET /practice/unit
+   * GET /practice_session/unit/{textbook_id}
    */
-  async getUnitPractice(unitId: number) {
-    return apiClient.get<PracticeSession>(`/practice/unit/${unitId}`);
+  async getUnitPractice(textbookId: number) {
+    return apiClient.get<PracticeSession>(`/practice_session/unit/${textbookId}`);
   },
 
   /**
    * 获取能力评测
-   * GET /practice/assessment
+   * GET /practice_session/assessment
    */
-  async getAssessment(textbookId: number) {
-    return apiClient.get<PracticeSession>(`/practice/assessment/${textbookId}`);
-  },
-
-  /**
-   * 获取可用的练习列表（系统+自定义）
-   * GET /practice/list
-   */
-  async listPractices() {
-    return apiClient.get<Practice[]>("/practice/list");
+  async getAssessment() {
+    return apiClient.get<PracticeSession>("/practice_session/assessment");
   },
 
   /**
    * 创建练习（异步任务）
-   * POST /practice/create
+   * POST /practice_session/create
    * @returns 任务ID
    */
   async createPractice(params: CreatePracticeRequest) {
-    return apiClient.post<string>("/practice/create", params);
+    return apiClient.post<string>("/practice_session/create", params);
+  },
+
+  /**
+   * 立即创建练习会话（同步）
+   * POST /practice_session/immediately_create
+   */
+  async immediatelyCreatePractice(params: CreatePracticeRequest) {
+    return apiClient.post<PracticeData>("/practice_session/immediately_create", params);
   },
 
   /**
    * 查询练习生成任务状态
-   * GET /practice/task/{task_id}/status
+   * GET /practice_session/task/{task_id}/status
    * @returns Celery 任务状态字符串
    */
   async getPracticeTaskStatus(taskId: string) {
-    return apiClient.get<TaskStatus>(`/practice/task/${taskId}/status`);
+    return apiClient.get<TaskStatus>(`/practice_session/task/${taskId}/status`);
   },
 
   /**
    * 开始练习
-   * POST /practice/{session_id}/begin
+   * POST /practice_session/{session_id}/begin
    */
   async beginPractice(sessionId: number) {
-    return apiClient.post(`/practice/${sessionId}/begin`);
+    return apiClient.post(`/practice_session/${sessionId}/begin`);
   },
 
   /**
    * 提交答案
-   * POST /practice/answer
+   * POST /practice_session/answer
    */
   async submitAnswer(params: AnswerRequest) {
-    return apiClient.post<PracticeAnswer>("/practice/answer", params);
+    return apiClient.post<PracticeAnswer>("/practice_session/answer", params);
   },
 
   /**
    * 上传口语题录音并进行语音识别
-   * POST /practice/answer/audio/analyze
+   * POST /practice_session/answer/audio/asr
    */
-  async audioAnswerAnalyze(sessionId: number, questionId: string, audioBlob: Blob) {
+  async audioAnswerAnalyze(audioBlob: Blob) {
     const formData = new FormData();
-    formData.append("session_id", sessionId.toString());
-    formData.append("question_id", questionId);
-    formData.append("audio_type", "webm");
     formData.append("audio_file", audioBlob, "audio.webm");
-    return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/audio/analyze", formData);
+    return apiClient.form<AudioAnswerAnalysisResponse>("/practice_session/answer/audio/asr", formData);
   },
 
   /**
    * 完成练习
-   * POST /practice/{session_id}/complete
+   * POST /practice_session/{session_id}/complete
    * @returns 报告 ID
    */
   async completePractice(sessionId: number) {
-    return apiClient.post<number>(`/practice/${sessionId}/complete`);
+    return apiClient.post<number>(`/practice_session/${sessionId}/complete`);
   },
 
   /**
    * 获取练习会话详情
-   * GET /practice/detail/{session_id}
+   * GET /practice_session/{session_id}
    */
   async getSessionDetail(sessionId: number) {
-    return apiClient.get<PracticeData>(`/practice/detail/${sessionId}`);
+    return apiClient.get<PracticeData>(`/practice_session/${sessionId}`);
   },
 
   /**
    * 获取练习历史记录
-   * GET /practice/history/{type}
+   * GET /practice_session/history/{type}
    */
   async getPracticeHistory(type: PracticeType): Promise<PracticeSession[]> {
-    return apiClient.get<PracticeSession[]>(`/practice/history/${type}`);
+    return apiClient.get<PracticeSession[]>(`/practice_session/history/${type}`);
   },
 
   // ========== 教材相关 ==========

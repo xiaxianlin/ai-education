@@ -51,20 +51,13 @@ class SearchQuestionSchema(SearchSchema):
 
 
 class CreateQuestionTypeSchema(BaseModel):
-    title: str = Field(
-        ..., min_length=1, max_length=100, description="题型标题，如：看图选词、根据首字母填空"
-    )
-    scene: str = Field(
-        ...,
-        min_length=1,
-        max_length=50,
-        description="类型，如：选择题、填空题、判断题、口语题、应用题",
-    )
-    subject: str = Field(..., min_length=1, max_length=50)
-    grade: int
-    description: Optional[str] = Field(None, max_length=500, description="题型描述")
-    resource_type: Optional[str] = Field(None, max_length=50)
-    prompt: Optional[str] = Field(None, max_length=2000, description="生成该题型的 AI 指令")
+    title: str = Field(..., description="题型标题，如：看图选词、根据首字母填空")
+    scene: str = Field(..., description="类型，如：选择题、填空题、判断题、口语题、应用题")
+    subject: str = Field(..., description="科目")
+    grade: int = Field(..., description="年级")
+    description: Optional[str] = Field(None, description="题型描述")
+    resource_type: Optional[str] = Field(None, description="资源类型: image/audio")
+    prompt: Optional[str] = Field(None, description="生成该题型的 AI 指令")
 
     @field_validator("subject")
     @classmethod

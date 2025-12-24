@@ -1,10 +1,10 @@
+import { useCreatePractice } from "@/hooks/useCreatePractice";
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
-import { useCreatePractice } from "@/hooks/useCreatePractice";
 
 export const useDailyPractice = (textbookId: number) => {
   /** 获取日常练习 */
-  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(textbookId), {
+  const { data: practice, refresh } = useRequest(() => studentApi.getDailyPractice(), {
     onSuccess: (res) => {
       if (res.generate_status === 0) {
         setTimeout(() => {

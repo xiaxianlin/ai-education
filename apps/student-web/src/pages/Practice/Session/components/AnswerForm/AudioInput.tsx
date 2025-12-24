@@ -1,18 +1,16 @@
 /**
  * 口语题录音输入组件
  */
-import { useState, useRef } from "react";
-import { useRequest } from "ahooks";
-import { Mic, RotateCcw, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui";
-import { cn } from "@/lib/utils";
 import { studentApi } from "@/lib/api";
-import { usePageModel } from "../../models/PageModel";
+import { cn } from "@/lib/utils";
+import { useRequest } from "ahooks";
+import { CheckCircle, Loader2, Mic, RotateCcw, XCircle } from "lucide-react";
+import { useRef, useState } from "react";
 
 type RecordingState = "idle" | "recording" | "parsing" | "success" | "failure";
 
 export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
-  const { session, question } = usePageModel();
   const [state, setState] = useState<RecordingState>("idle");
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string>("");
@@ -24,7 +22,7 @@ export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const { run: analyze } = useRequest(
-    (data: Blob) => studentApi.audioAnswerAnalyze(session?.id || 0, question?.id || 0, data),
+    (data: Blob) => studentApi.audioAnswerAnalyze(data),
     {
       manual: true,
       onBefore: () => setState("parsing"),
