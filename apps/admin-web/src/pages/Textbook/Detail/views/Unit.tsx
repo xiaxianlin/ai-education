@@ -15,8 +15,8 @@ export const UnitView: React.FC = () => {
   } = useTextbookUnitModel();
 
   const columns: ProColumns<Unit>[] = [
-    { title: 'ID', dataIndex: 'id' },
-    { title: '单元名称', dataIndex: 'name' },
+    { title: 'ID', dataIndex: 'id', width: 60 },
+    { title: '单元名称', dataIndex: 'name', width: 200 },
     { title: '单元内容', dataIndex: 'content', ellipsis: true },
     createActionColumn<Unit>(
       (record) => (
@@ -62,7 +62,6 @@ export const UnitView: React.FC = () => {
         modalProps={{ destroyOnClose: true, onCancel }}
         size="large"
       >
-        <div className="pt-3" />
         <ProFormText
           name="name"
           label="单元名称"

@@ -1,6 +1,6 @@
-import { ProColumns } from '@ant-design/pro-components';
-import { formatDateTime } from '@ai-education/shared-web';
 import { StatusTag } from '@/components';
+import { formatDateTime } from '@ai-education/shared-web';
+import { ProColumns } from '@ant-design/pro-components';
 import { Flex } from 'antd';
 
 /**

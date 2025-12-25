@@ -1,15 +1,16 @@
 """阿里云百炼AI Provider 实现"""
 
 from typing import Any, Optional
+
 import dashscope
+from dashscope import MultiModalConversation
+from langchain_core.output_parsers import BaseOutputParser
+from langchain_core.prompts import BasePromptTemplate
+from langchain_openai import ChatOpenAI
 from loguru import logger
 from openai import OpenAI
-from dashscope import MultiModalConversation
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import BasePromptTemplate
-from langchain_core.output_parsers import BaseOutputParser
-
 from shared.core.settings import envs
+
 from .base import BaseProvider
 
 
@@ -23,7 +24,7 @@ class AliyunProvider(BaseProvider):
         """初始化阿里云 Provider"""
         self.api_key = envs.AI_PLATFORM_KEY
         self.api_base = envs.AI_PLATFORM_URL
-        self.default_model = "qwen3-max"
+        self.default_model = "qwen-flash"
         self.default_tts_voice = getattr(envs, "AI_TTS_VOICE", "Elias")
         dashscope.api_key = self.api_key
 

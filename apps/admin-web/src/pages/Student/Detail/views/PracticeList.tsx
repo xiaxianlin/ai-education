@@ -1,9 +1,9 @@
+import { CheckCard } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Button, Card, Checkbox, Empty, message, Modal, Space } from 'antd';
-import { useMemo, useState } from 'react';
+import { Avatar, Button, Card, Checkbox, Empty, Flex, message, Modal, Space } from 'antd';
+import { useState } from 'react';
 import { StudentApi } from '../../api';
 import { AddPracticeForm } from '../components/AddPracticeForm';
-import { PracticeCard } from '../components/PracticeCard';
 import { useStudentDetailModel } from '../models/page';
 
 export function PracticeList() {
@@ -11,7 +11,6 @@ export function PracticeList() {
 
   const { data, loading, refresh } = practiceService;
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [isManaging, setIsManaging] = useState(false);
 
   const { runAsync: removePractice } = useRequest(
     (practiceIds: number[]) => StudentApi.removeStudentPractice(student?.id || '', practiceIds),
@@ -25,14 +24,6 @@ export function PracticeList() {
       },
     },
   );
-
-  const handleSelect = (practiceId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, practiceId]);
-    } else {
-      setSelectedIds(selectedIds.filter((id) => id !== practiceId));
-    }
-  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -52,75 +43,52 @@ export function PracticeList() {
     });
   };
 
-  const handleSingleDelete = (practiceId: number) => {
-    removePractice([practiceId]);
-  };
-
-  const handleEnterManage = () => {
-    setIsManaging(true);
-  };
-
-  const handleExitManage = () => {
-    setIsManaging(false);
-    setSelectedIds([]);
-  };
-
-  const allSelected = useMemo(() => {
-    return data && data.length > 0 && selectedIds.length === data.length;
-  }, [data, selectedIds]);
-
-  const someSelected = useMemo(() => {
-    return selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
-  }, [data, selectedIds]);
+  const allSelected = data && data.length > 0 && selectedIds.length === data.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
 
   return (
     <Card
-      title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>关联练习</span>
-          {data && data.length > 0 && (
-            <Space>
-              {!isManaging ? (
-                <Button size="small" onClick={handleEnterManage}>
-                  管理
-                </Button>
-              ) : (
-                <>
-                  <Checkbox
-                    indeterminate={someSelected}
-                    checked={allSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  >
-                    全选
-                  </Checkbox>
-                  {selectedIds.length > 0 && (
-                    <Button danger size="small" onClick={handleBatchDelete}>
-                      批量删除 ({selectedIds.length})
-                    </Button>
-                  )}
-                  <Button size="small" onClick={handleExitManage}>
-                    退出
-                  </Button>
-                </>
-              )}
-            </Space>
-          )}
-        </div>
-      }
+      title="关联练习"
       loading={loading}
+      extra={
+        <Space>
+          <Checkbox
+            indeterminate={someSelected}
+            checked={allSelected}
+            onChange={(e) => handleSelectAll(e.target.checked)}
+          >
+            全选
+          </Checkbox>
+          <Button danger size="small" onClick={handleBatchDelete}>
+            批量删除 ({selectedIds.length})
+          </Button>
+        </Space>
+      }
     >
       {data?.length && data.length > 0 ? (
-        <div className="grid grid-cols-4 gap-3">
-          {data.map((practice) => (
-            <PracticeCard
-              key={practice.id}
-              practice={practice}
-              selected={isManaging ? selectedIds.includes(practice.id) : undefined}
-              onSelect={isManaging ? (checked) => handleSelect(practice.id, checked) : undefined}
-              onDelete={() => handleSingleDelete(practice.id)}
-            />
-          ))}
-        </div>
+        <CheckCard.Group
+          multiple
+          value={selectedIds}
+          onChange={(value) => setSelectedIds(value as number[])}
+          style={{ width: '100%' }}
+        >
+          <div className="grid grid-cols-4 gap-3">
+            {data?.map((practice) => (
+              <CheckCard
+                key={practice.id}
+                value={practice.id}
+                style={{ width: '100%' }}
+                avatar={<Avatar shape="square" size={48} icon={practice.icon} />}
+                title={
+                  <Flex align="center" gap={8}>
+                    <span>{practice.name}</span>
+                  </Flex>
+                }
+                description={practice.description || '暂无描述'}
+              />
+            ))}
+          </div>
+        </CheckCard.Group>
       ) : (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
