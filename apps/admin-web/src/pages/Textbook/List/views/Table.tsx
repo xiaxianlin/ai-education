@@ -1,13 +1,12 @@
+import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
-import { useTextbookListModel } from '../models/page';
-import { useConfigs } from '@/hooks';
-import { createActionColumn } from '@/hooks';
+import { createActionColumn, useConfigs } from '@/hooks';
 import { TextbookApi } from '../../api';
+import { useTextbookListModel } from '../models/page';
 
 export default function TableView() {
   const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();

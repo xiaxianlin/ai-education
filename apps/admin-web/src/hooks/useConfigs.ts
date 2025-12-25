@@ -2,7 +2,7 @@ import { GRADES } from '@/constants/course';
 import { useInitialStateModel } from '@/models/initialState';
 
 export const useConfigs = () => {
-  const initialState = useInitialStateModel();
+  const { configs } = useInitialStateModel();
   const {
     semesters = [],
     subjects = [],
@@ -10,7 +10,7 @@ export const useConfigs = () => {
     question_types = [],
     difficulty_levels = [],
     providers = [],
-  } = (initialState?.configs || {}) as Configs;
+  } = configs || {};
 
   const subjectEnum = subjects.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 

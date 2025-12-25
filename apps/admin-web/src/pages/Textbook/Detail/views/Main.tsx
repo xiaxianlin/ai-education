@@ -1,19 +1,15 @@
-import { PageContainer } from '@ant-design/pro-components';
-import { useTextbookDetailModel } from '../models/page';
-import { BasicInfo } from './BasicInfo';
-import { Space, Spin, Tabs } from 'antd';
-import { UnitView } from './Unit';
-import { KnowledgeView } from './Knowledge';
-import { TextbookUnitModel } from '../models/unit';
-import { TextbookKnowledgeModel } from '../models/knowledge';
+import { PageHeader, UploadButton } from '@/components';
+import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
+import { Button, Space, Spin, Tabs } from 'antd';
 import { useMemo } from 'react';
-import { Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { UploadButton } from '@/components';
+import { TextbookKnowledgeModel } from '../models/knowledge';
+import { useTextbookDetailModel } from '../models/page';
+import { TextbookUnitModel } from '../models/unit';
+import { BasicInfo } from './BasicInfo';
+import { KnowledgeView } from './Knowledge';
+import { UnitView } from './Unit';
 
 export default function MainView() {
-  const navigate = useNavigate();
   const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete } = useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
@@ -25,34 +21,7 @@ export default function MainView() {
     }
   }, [parsing, uploading]);
   return (
-    <PageContainer
-      loading={loading}
-      header={{
-        title: (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Button
-              type="text"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => navigate(-1)}
-              style={{ padding: 0, height: 'auto' }}
-            />
-            <span>教材详情</span>
-          </div>
-        ),
-        breadcrumb: {},
-        extra: [
-          <Button key="parse" type="primary" disabled={!textbook?.file} loading={parsing} onClick={handleParse}>
-            解析
-          </Button>,
-          <UploadButton key="upload" type="primary" disabled={!textbook} action={upload}>
-            上传
-          </UploadButton>,
-          <Button key="delete" danger onClick={handleDelete}>
-            删除
-          </Button>,
-        ],
-      }}
-    >
+    <PageContainer loading={loading} title={<PageHeader title="教材详情" />}>
       <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <BasicInfo />
         <Tabs
@@ -80,6 +49,24 @@ export default function MainView() {
           ]}
         />
       </Space>
+      <FooterToolbar className="page-footer">
+        <Button
+          key="parse"
+          size="large"
+          type="primary"
+          disabled={!textbook?.file}
+          loading={parsing}
+          onClick={handleParse}
+        >
+          解析
+        </Button>
+        <UploadButton key="upload" size="large" type="primary" disabled={!textbook} action={upload}>
+          上传
+        </UploadButton>
+        <Button key="delete" size="large" danger onClick={handleDelete}>
+          删除
+        </Button>
+      </FooterToolbar>
       <Spin fullscreen size="large" spinning={parsing || uploading} tip={spinTip} />
     </PageContainer>
   );

@@ -1,25 +1,13 @@
-import { useConfigs } from '@/hooks';
-import { Tabs, Radio } from 'antd';
 import { GRADES } from '@/constants/course';
+import { useConfigs } from '@/hooks';
+import { useInitialStateModel } from '@/models/initialState';
+import { Radio, Tabs } from 'antd';
 
-interface SubjectGradeTabsProps {
-  subject: string;
-  grade: number;
-  setSubject: (subject: string) => void;
-  setGrade: (grade: number) => void;
-}
-
-export function SubjectGradeTabs({ subject, grade, setSubject, setGrade }: SubjectGradeTabsProps) {
+export function SubjectGradeTabs() {
+  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
   const { subjects } = useConfigs();
   return (
     <>
-      <Tabs
-        type="card"
-        onChange={setSubject}
-        activeKey={subject}
-        items={subjects.map((subject) => ({ label: subject, key: subject }))}
-        classNames={{ item: 'large-tab-item' }}
-      />
       <Radio.Group
         block
         size="large"
@@ -29,6 +17,13 @@ export function SubjectGradeTabs({ subject, grade, setSubject, setGrade }: Subje
         value={grade}
         onChange={(e) => setGrade(e.target.value)}
         options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
+      />
+      <Tabs
+        type="card"
+        onChange={setSubject}
+        activeKey={subject}
+        items={subjects.map((subject) => ({ label: subject, key: subject }))}
+        classNames={{ item: 'large-tab-item' }}
       />
     </>
   );

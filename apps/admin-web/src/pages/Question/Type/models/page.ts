@@ -1,12 +1,12 @@
+import { useDelete, useSimpleForm } from '@/hooks';
+import { useInitialStateModel } from '@/models/initialState';
+import { useRequest } from 'ahooks';
 import { useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { useDelete, useSimpleForm } from '@/hooks';
-import { useRequest } from 'ahooks';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const [subject, setSubject] = useState('英语');
-  const [grade, setGrade] = useState(1);
+  const { subject, grade } = useInitialStateModel();
   const [scene, setScene] = useState<string>();
 
   const { data, refresh } = useRequest(() => QuestionApi.searchQuestionTypes({ subject, grade, scene }), {
@@ -34,8 +34,6 @@ const useContainer = () => {
     grade,
     subject,
     scene,
-    setGrade,
-    setSubject,
     setScene,
     handleDelete,
   };

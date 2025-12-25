@@ -1,4 +1,4 @@
-SUBJECTS = ["英语", "数学"]
+SUBJECTS = ["英语", "数学", "语文"]
 TEXTBOOK_VERSIONS = ["人教版"]
 SEMESTERS = ["上学期", "下学期", "整学期"]
 DIFFICULTY_LEVELS = ["简单", "普通", "困难"]

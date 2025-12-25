@@ -56,7 +56,6 @@ export const KnowledgeView: React.FC = () => {
         columns={columns}
         search={false}
         scroll={{ x: 'max-content' }}
-        toolbar={{ settings: [] }}
         request={async (params) => {
           const data = await TextbookApi.getTextbookKnowledges(id, { page: params.current, size: params.pageSize });
           return { data: data.data ?? [], success: true, total: data.total };

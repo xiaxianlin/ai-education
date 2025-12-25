@@ -38,14 +38,22 @@ const routes = {
       icon: <UserOutlined />,
       children: [{ path: '/student', name: '学生管理' }],
     },
-
+    {
+      key: 'textbook',
+      name: '知识库',
+      icon: <BookOutlined />,
+      children: [
+        { path: '/textbook', name: '教材管理' },
+        { path: '/teacher_book', name: '教辅管理' },
+      ],
+    },
     {
       name: '题目',
       key: 'question',
       icon: <QuestionCircleOutlined />,
       children: [
         { path: '/question', name: '题目管理' },
-        { path: '/question_type', name: '类型管理' },
+        { path: '/question_type', name: '题目类型管理' },
       ],
     },
 
@@ -59,15 +67,6 @@ const routes = {
       ],
     },
 
-    {
-      key: 'textbook',
-      name: '知识库',
-      icon: <BookOutlined />,
-      children: [
-        { path: '/textbook', name: '教材管理' },
-        { path: '/teacher_book', name: '教辅管理' },
-      ],
-    },
     {
       key: 'prompt',
       name: '提示词',

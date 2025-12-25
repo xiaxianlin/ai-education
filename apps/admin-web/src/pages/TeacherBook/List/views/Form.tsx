@@ -1,10 +1,10 @@
 import { ModalForm, ProFormSelect } from '@ant-design/pro-components';
 
-import { useTeacherBookListModel } from '../models/page';
 import { useConfigs } from '@/hooks';
+import { useTeacherBookListModel } from '../models/page';
 
 export default function FormView() {
-  const { semesters, textbook_versions, subjectEnum, gradeEnum } = useConfigs();
+  const { semesters, textbook_versions } = useConfigs();
   const {
     formProps: { form, visible, item, onCancel, handleSubmit },
   } = useTeacherBookListModel();
@@ -23,7 +23,6 @@ export default function FormView() {
       labelCol={{ span: 3 }}
     >
       <div className="pt-3" />
-      <ProFormSelect name="subject" label="科目" placeholder="请选择科目" rules={[{ required: true }]} valueEnum={subjectEnum} />
       <ProFormSelect
         name="version"
         label="版本"
@@ -31,7 +30,6 @@ export default function FormView() {
         rules={[{ required: true }]}
         valueEnum={textbook_versions?.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {})}
       />
-      <ProFormSelect name="grade" label="年级" placeholder="请选择年级" rules={[{ required: true }]} valueEnum={gradeEnum} />
       <ProFormSelect
         name="semester"
         label="学期"
@@ -42,5 +40,3 @@ export default function FormView() {
     </ModalForm>
   );
 }
-
-

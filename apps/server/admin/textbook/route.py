@@ -51,7 +51,12 @@ async def delete_knowledge(id: int, db: AsyncSession = Database):
 
 
 # ======================== 课程单元管理 ======================== #
-@textbook_router.post("/unit", tags=["课程单元管理"], summary="创建课程单元", description="为教材创建新的教学单元")
+@textbook_router.post(
+    "/unit",
+    tags=["课程单元管理"],
+    summary="创建课程单元",
+    description="为教材创建新的教学单元",
+)
 async def create_unit(params: CreateUnitSchema, db: AsyncSession = Database):
     return await unit.create_unit(db, params)
 
@@ -66,7 +71,12 @@ async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession =
     await unit.update_unit(db, id, unit_update)
 
 
-@textbook_router.delete("/unit/{id}", tags=["课程单元管理"], summary="删除课程单元", description="删除指定的课程单元")
+@textbook_router.delete(
+    "/unit/{id}",
+    tags=["课程单元管理"],
+    summary="删除课程单元",
+    description="删除指定的课程单元",
+)
 async def delete_unit(id: int, db: AsyncSession = Database):
     await unit.delete_unit(db=db, id=id)
 
@@ -84,12 +94,22 @@ async def query_knowledges(id: int, db: AsyncSession = Database):
 # ======================== 教材管理 ======================== #
 
 
-@textbook_router.post("", tags=["教材管理"], summary="创建教材", description="创建一本新的教材基本信息")
+@textbook_router.post(
+    "",
+    tags=["教材管理"],
+    summary="创建教材",
+    description="创建一本新的教材基本信息",
+)
 async def create_textbook(params: SaveTextbookSchema, db: AsyncSession = Database):
     return await textbook.create_textbook(db, params)
 
 
-@textbook_router.post("/{id}/upload", tags=["教材管理"], summary="上传教材文件", description="上传教材对应的资源文件")
+@textbook_router.post(
+    "/{id}/upload",
+    tags=["教材管理"],
+    summary="上传教材文件",
+    description="上传教材对应的资源文件",
+)
 async def upload_textbook(id: int, file: UploadFile, db: AsyncSession = Database):
     await textbook.upload_textbook(db, id, file)
 
@@ -104,22 +124,42 @@ async def parse_textbook(id: int, db: AsyncSession = Database):
     return await textbook.parse_textbook(db, id)
 
 
-@textbook_router.patch("/{id}", tags=["教材管理"], summary="修改教材信息", description="更新教材的元数据信息")
+@textbook_router.patch(
+    "/{id}",
+    tags=["教材管理"],
+    summary="修改教材信息",
+    description="更新教材的元数据信息",
+)
 async def modify_textbook(id: int, params: SaveTextbookSchema, db: AsyncSession = Database):
     await textbook.modify_textbook(db, id, params)
 
 
-@textbook_router.delete("/{id}", tags=["教材管理"], summary="删除教材", description="删除指定的教材及其关联数据")
+@textbook_router.delete(
+    "/{id}",
+    tags=["教材管理"],
+    summary="删除教材",
+    description="删除指定的教材及其关联数据",
+)
 async def delete_textbook(id: int, db: AsyncSession = Database):
     await textbook.delete_textbook(db, id)
 
 
-@textbook_router.get("/search", tags=["教材管理"], summary="搜索教材", description="根据条件查询教材列表（无分页）")
+@textbook_router.get(
+    "/search",
+    tags=["教材管理"],
+    summary="搜索教材",
+    description="根据条件查询教材列表（无分页）",
+)
 async def search(params: SearchTextbookSchema = Depends(), db: AsyncSession = Database):
     return await textbook.search_textbook(db, params)
 
 
-@textbook_router.get("/{id}", tags=["教材管理"], summary="获取教材详情", description="获取指定教材的详细信息")
+@textbook_router.get(
+    "/{id}",
+    tags=["教材管理"],
+    summary="获取教材详情",
+    description="获取指定教材的详细信息",
+)
 async def get_textbook(id: int, db: AsyncSession = Database):
     return await textbook.get_textbook(db, id)
 

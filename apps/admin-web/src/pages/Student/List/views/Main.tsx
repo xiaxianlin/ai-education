@@ -4,7 +4,7 @@ import TableView from './Table';
 
 export default function MainView() {
   return (
-    <PageContainer title="学生管理" header={{ breadcrumb: {} }}>
+    <PageContainer title="学生管理">
       <TableView />
       <FormView />
     </PageContainer>

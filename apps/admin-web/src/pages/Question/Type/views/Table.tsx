@@ -1,18 +1,17 @@
-import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { useQuestionTypeListModel } from '../models/page';
-import { Button, Tag, Flex } from 'antd';
-import { useMemo } from 'react';
-import { useConfigs } from '@/hooks';
-import { DeleteButton, SubjectGradeTabs } from '@/components';
+import { DeleteButton } from '@/components';
 import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
+import { useConfigs } from '@/hooks';
 import { PlusOutlined } from '@ant-design/icons';
+import { ProColumns, ProTable } from '@ant-design/pro-components';
+import { Button, Flex, Tag } from 'antd';
+import { useMemo } from 'react';
+import { useQuestionTypeListModel } from '../models/page';
 
 import { createActionColumn } from '@/hooks/useTableColumns';
 
 export default function TableView() {
   const { question_types } = useConfigs();
-  const { data, grade, subject, scene, setGrade, setSubject, setScene, showForm, showCopyForm, handleDelete } =
-    useQuestionTypeListModel();
+  const { data, scene, setScene, showForm, showCopyForm, handleDelete } = useQuestionTypeListModel();
 
   const columns = useMemo<ProColumns<QuestionType>[]>(
     () => [
@@ -52,41 +51,38 @@ export default function TableView() {
   );
 
   return (
-    <PageContainer title="题型管理" header={{ breadcrumb: {} }}>
-      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
-      <ProTable<QuestionType>
-        bordered
-        rowKey="id"
-        search={false}
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-        headerTitle={
-          <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
-            新增题型
-          </Button>
-        }
-        toolbar={{
-          settings: [
-            <Flex gap={8}>
-              {question_types.map((item) => {
-                const isActive = scene === item;
-                return (
-                  <Tag
-                    key={item}
-                    variant="filled"
-                    style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
-                    color={isActive ? 'volcano' : 'blue'}
-                    onClick={() => setScene(isActive ? undefined : item)}
-                  >
-                    {item}
-                  </Tag>
-                );
-              })}
-            </Flex>,
-          ],
-        }}
-      />
-    </PageContainer>
+    <ProTable<QuestionType>
+      bordered
+      rowKey="id"
+      search={false}
+      columns={columns}
+      dataSource={data}
+      pagination={false}
+      headerTitle={
+        <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
+          新增题型
+        </Button>
+      }
+      toolbar={{
+        settings: [
+          <Flex gap={8}>
+            {question_types.map((item) => {
+              const isActive = scene === item;
+              return (
+                <Tag
+                  key={item}
+                  variant="filled"
+                  style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
+                  color={isActive ? 'volcano' : 'blue'}
+                  onClick={() => setScene(isActive ? undefined : item)}
+                >
+                  {item}
+                </Tag>
+              );
+            })}
+          </Flex>,
+        ],
+      }}
+    />
   );
 }
