@@ -2,17 +2,18 @@ import os
 from pathlib import Path
 
 from fastapi import UploadFile
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import Knowledge, Question, Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
-from shared.services.textbook_parser import parse_textbook_units
+from shared.provider import get_provider
 from shared.utils import rag
-from shared.utils.file_validation import validate_file_upload
 from sqlalchemy import asc, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..schema import SaveTextbookSchema, SearchTextbookSchema
+from ..schema import SaveTextbookSchema, SearchTextbookSchema, UnitExtractionResult
 
 
 async def _clean_textbook(db: AsyncSession, id: int):
@@ -122,6 +123,35 @@ async def search_textbook(db: AsyncSession, params: SearchTextbookSchema):
     return [TextbookSchema.model_validate(item) for item in results.unique().all()]
 
 
+async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
+    textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
+    if not textbook:
+        raise ValueError("教材不存在")
+
+    # 验证文件并获取安全文件名
+    textbook.file = file.filename
+
+    try:
+        tmp_dir = f"{envs.TMP_DIR}/textbook"
+        os.makedirs(tmp_dir, exist_ok=True)
+        tmp_file_path = Path(tmp_dir) / file.filename
+
+        with open(tmp_file_path, "wb") as buffer:
+            buffer.write(file.file.read())
+
+        textbook.index_file_id = rag.upload(
+            file_name=file.filename,
+            file_path=str(tmp_file_path),
+            old_file_id=textbook.index_file_id if textbook.index_file_id else None,
+        )
+        await db.commit()
+    except ValueError as e:
+        raise e
+    finally:
+        if tmp_file_path.exists():
+            os.remove(tmp_file_path)
+
+
 async def parse_textbook(db: AsyncSession, id: int):
     """
     解析教材，使用RAG知识库解析：
@@ -140,7 +170,55 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     logger.info(f"开始解析教材: {textbook.file}，file_id: {textbook.index_file_id}")
 
-    parsed_units = await parse_textbook_units(textbook.index_file_id)
+    # parsed_units = await parse_textbook_units(textbook.index_file_id)
+    chunks = rag.get_all_chunks(file_id=textbook.index_file_id)
+    if not chunks:
+        raise ValueError(f"未找到文件索引ID为 {textbook.index_file_id} 的切片数据")
+
+    full_content = "\n\n".join(chunks)
+
+    parser = JsonOutputParser(pydantic_object=UnitExtractionResult)
+    format_instructions = parser.get_format_instructions()
+
+    # 构建prompt
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "你是一名专业的教材分析专家，擅长从教材内容中提取单元信息和知识点。"
+                "请仔细分析每个单元的内容，提取出单元名称、单元内容摘要，以及该单元包含的知识点。"
+                "每个知识点应包含知识点名称（topic_name）和知识点内容（topic_content）。"
+                "请严格按照 {format_instructions} 生成 JSON 输出。",
+            ),
+            (
+                "human",
+                "请分析以下教材单元内容，提取单元信息和知识点：\n\n{units_content}",
+            ),
+        ]
+    )
+
+    prompt_input = {
+        "units_content": full_content,
+        "format_instructions": format_instructions,
+    }
+
+    provider = get_provider()
+
+    result = provider.invoke_chain(
+        prompt=prompt,
+        parser=parser,
+        prompt_input=prompt_input,
+    )
+    logger.info("AI解析单元信息成功")
+
+    # 验证结果
+    if not isinstance(result, dict) or "units" not in result:
+        raise ValueError("AI返回结果格式错误")
+
+    validated_result = UnitExtractionResult.model_validate(result)
+
+    parsed_units = validated_result.units
+
     logger.info(f"AI解析完成，共{len(parsed_units)}个单元")
 
     # 保存单元和知识点到数据库
@@ -174,33 +252,3 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     textbook.is_parsed = 1
     await db.commit()
-
-
-async def upload_textbook(db: AsyncSession, id: int, file: UploadFile):
-    textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
-    if not textbook:
-        raise ValueError("教材不存在")
-
-    # 验证文件并获取安全文件名
-    data, safe_filename = validate_file_upload(file)
-    textbook.file = safe_filename
-
-    try:
-        tmp_dir = f"{envs.TMP_DIR}/textbook"
-        os.makedirs(tmp_dir, exist_ok=True)
-        tmp_file_path = Path(tmp_dir) / safe_filename
-
-        with open(tmp_file_path, "wb") as buffer:
-            buffer.write(data)
-
-        textbook.index_file_id = rag.upload(
-            file_name=safe_filename,
-            file_path=str(tmp_file_path),
-            old_file_id=textbook.index_file_id if textbook.index_file_id else None,
-        )
-        await db.commit()
-    except ValueError as e:
-        raise e
-    finally:
-        if tmp_file_path.exists():
-            os.remove(tmp_file_path)

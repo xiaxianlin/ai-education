@@ -1,11 +1,10 @@
-from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 class CreatePracticeSchema(BaseModel):
-    practice_id: Optional[int] = None  # 优先使用
+    slug: str
     textbook_id: int
     unit_id: Optional[int] = None
 

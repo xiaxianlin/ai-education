@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, Request, UploadFile
 from shared.core.database import Database
-from shared.services.practice_session import get_practice_session_data
+from shared.practice import practice_answer, practice_generate, practice_session
 from shared.worker import Executor, submit_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,6 @@ from .schema import (
     CreatePracticeSchema,
     PracticeSubmitParams,
 )
-from .services import answer, practice_generate, practice_session
 
 practice_router = APIRouter(prefix="/practice_session")
 
@@ -41,7 +40,7 @@ async def get_unit_practices(textbook_id: int, request: Request, db: AsyncSessio
 
 
 @practice_router.get(
-    "/assessment",
+    "/assess",
     tags=["练习会话"],
     summary="获取综合评估信息",
     description="获取综合能力评估进度和相关信息",
@@ -71,7 +70,7 @@ async def get_practice_history(practice_id: int, request: Request, db: AsyncSess
 async def get_session_detail(session_id: int, request: Request, db: AsyncSession = Database):
     # 获取当前学生信息
     student = request.state.student
-    return await get_practice_session_data(db, student.id, session_id)
+    return await practice_session.get_practice_session_data(db, student.id, session_id)
 
 
 @practice_router.post(
@@ -104,11 +103,10 @@ async def create_practice_immediately(request: Request, params: CreatePracticeSc
     student = request.state.student
     return await practice_generate.generate_practice_session(
         db=db,
-        type=params.type.value if params.type else None,
+        slug=params.slug,
         student_id=student.id,
         textbook_id=params.textbook_id,
         unit_id=params.unit_id,
-        practice_id=params.practice_id,
     )
 
 
@@ -149,7 +147,7 @@ async def complete_practice_session(id: int, request: Request, db: AsyncSession 
 async def answer_question(params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database):
     # 获取当前学生信息
     student = request.state.student
-    return await answer.submit_answer(db, student.id, params)
+    return await practice_answer.submit_answer(db, student.id, params)
 
 
 @practice_router.post(
@@ -159,4 +157,4 @@ async def answer_question(params: AnswerQuestionSchema, request: Request, db: As
     description="上传口语练习音频并利用 AI 进行语音转文字及内容分析",
 )
 async def asr_audio_answer(audio_file: UploadFile = File(...), db: AsyncSession = Database):
-    return await answer.asr_audio_answer(db, await audio_file.read())
+    return await practice_answer.asr_audio_answer(db, await audio_file.read())

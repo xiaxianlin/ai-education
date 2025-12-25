@@ -1,9 +1,23 @@
-from __future__ import annotations
+from typing import Dict, List, Optional
 
-from typing import Optional
-
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from shared.core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
+
+
+class UnitInfo(BaseModel):
+    """单元信息模型"""
+
+    unit_name: str = Field(description="单元名称")
+    unit_content: str = Field(description="单元内容摘要")
+    topics: List[Dict[str, str]] = Field(
+        description="知识点列表，每个知识点包含 topic_name 和 topic_content", default=[]
+    )
+
+
+class UnitExtractionResult(BaseModel):
+    """单元提取结果模型 - LLM 返回的 JSON 结构"""
+
+    units: List[UnitInfo] = Field(description="提取的单元列表")
 
 
 class SaveTextbookSchema(BaseModel):

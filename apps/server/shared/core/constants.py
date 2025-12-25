@@ -1,20 +1,22 @@
 SUBJECTS = ["英语", "数学", "语文"]
 TEXTBOOK_VERSIONS = ["人教版"]
-SEMESTERS = ["上学期", "下学期", "整学期"]
+SEMESTERS = ["上学期", "下学期"]
 DIFFICULTY_LEVELS = ["简单", "普通", "困难"]
 QUESTION_TYPES = ["选择题", "拼写题", "口语题", "判断题", "匹配题", "简答题", "应用题"]
-
-# 生成题目数量
-GENERATE_QUESTION_COUNT = {
-    1: {
-        "daily_practice": 15,
-        "unit_practice": 15,
-        "assessment": 25,
-    }
+GRADE_NAME_MAP = {
+    1: "一年级",
+    2: "二年级",
+    3: "三年级",
+    4: "四年级",
+    5: "五年级",
+    6: "六年级",
+    7: "七年级",
+    8: "八年级",
+    9: "九年级",
+    10: "高一",
+    11: "高二",
+    12: "高三",
 }
-
-# 题目召回数量
-QUESTION_RECALL_COUNT = 0
 
 # Token 配置
 TOKEN_EXPIRES_HOURS = 168  # Token 过期时间（小时），默认7天

@@ -1,12 +1,16 @@
-from __future__  import annotations
+from __future__ import annotations
 
-from sqlalchemy import select, func, delete
+from admin.data.practice import INIT_SYSTEM_PRACTICES
+from shared.core.database import AsyncSessionLocal, Practice, PracticePrompt
+from shared.core.schema import (
+    PracticeParameterSchema,
+    PracticeSchema,
+    SearchResultSchema,
+)
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..schema import SavePracticeSchema, SearchPracticeSchema, PracticeParameterSchema
-from admin.data.practice import INIT_SYSTEM_PRACTICES
-from shared.core.database import Practice, AsyncSessionLocal, PracticePrompt
-from shared.core.schema import PracticeSchema, SearchResultSchema
+from ..schema import SavePracticeSchema, SearchPracticeSchema
 
 
 async def init_system_practices():

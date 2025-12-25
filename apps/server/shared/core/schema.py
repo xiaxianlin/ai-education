@@ -1,6 +1,6 @@
-from typing import Generic, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 T = TypeVar("T")
 
@@ -178,6 +178,56 @@ class PracticeSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PracticeParameterSchema(BaseModel):
+    """练习参数配置 Schema"""
+
+    key: str = Field(..., description="参数标识")
+    type: str = Field(..., description="参数类型：system/input")
+    description: str = Field(default="", description="参数描述")
+    value: Any = Field(default=None, description="参数值（字符串格式）")
+    required: bool = Field(default=False, description="是否必填")
+    value_type: str = Field(..., description="值类型：string/number/object/array")
+
+    @field_validator("type")
+    @classmethod
+    def valid_type(cls, v):
+        if v not in ["system", "input"]:
+            raise ValueError("参数类型只能是 system 或 input")
+        return v
+
+    @field_validator("value_type")
+    @classmethod
+    def valid_value_type(cls, v):
+        if v not in ["string", "number", "object", "array"]:
+            raise ValueError("值类型只能是 string、number、object 或 array")
+        return v
+
+    @field_validator("value")
+    @classmethod
+    def valid_value(cls, v, info):
+        """验证 value 格式"""
+        value_type = info.data.get("value_type")
+        if not value_type:
+            return v
+
+        if value_type == "array" and not isinstance(v, list):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是列表")
+
+        if value_type == "object" and not isinstance(v, dict):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是对象")
+
+        if value_type == "number" and not isinstance(v, (int, float)):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是数字")
+
+        if value_type == "string" and not isinstance(v, str):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是字符串")
+
+        if value_type == "boolean" and not isinstance(v, bool):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是布尔值")
+
+        return v
+
+
 class PracticePromptSchema(BaseModel):
     """练习提示词关联 Schema"""
 
@@ -214,8 +264,6 @@ class PracticeSessionSchema(BaseModel):
     textbook_id: Optional[int] = None
     unit_id: Optional[int] = None
 
-    practice: Optional["PracticeSchema"] = None
-
     model_config = {"from_attributes": True}
 
 
@@ -248,8 +296,6 @@ class PracticeSessionAnswerSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
 
-    question: Optional["QuestionSchema"] = None
-
     model_config = {"from_attributes": True}
 
 
@@ -277,21 +323,15 @@ class PracticeSessionReportSchema(BaseModel):
 
 
 class PracticeSessionDataSchema(BaseModel):
+    """练习会话数据"""
+
+    practice: PracticeSchema
     session: PracticeSessionSchema
     questions: list[QuestionSchema]
     answers: list[PracticeSessionAnswerSchema]
     report: Optional[PracticeSessionReportSchema] = None
 
     model_config = {"from_attributes": True}
-
-
-class AnswerAnalysisSchema(BaseModel):
-    """答题分析响应"""
-
-    text: str
-    match: bool
-    analysis: str
-    audio_url: Optional[str] = None
 
 
 # ======================== Prompt 管理 ======================== #

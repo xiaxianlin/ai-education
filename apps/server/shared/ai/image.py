@@ -1,18 +1,3 @@
-import requests
-from typing import Optional
-from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
-from langchain_core.output_parsers import JsonOutputParser
-
-from shared.core.database import Question
-from shared.core.schema import AnswerAnalysisSchema
-from shared.core.constants import AI_FALLBACK_CONTENT_MAX_LENGTH
-from shared.utils import oss
-from shared.utils.question import build_full_question_text
-from shared.provider import get_provider
-from shared.services.prompt import PromptService
-
-
 async def _optimize_image_prompt(text: str, db: Optional[AsyncSession] = None) -> str:
     """使用 LLM 优化图片生成提示词
 
@@ -66,8 +51,10 @@ async def _optimize_image_prompt(text: str, db: Optional[AsyncSession] = None) -
         logger.error(f"优化图片提示词失败（网络/系统错误）: {e}")
         logger.warning("LLM 调用失败，使用降级方案")
         # 清理用户输入，只保留安全的字符，避免提示词注入
-        safe_content = "".join(c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、")
-        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生"
+        safe_content = "".join(
+            c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、"
+        )
+        fallback_prompt = "卡通风格，简单背景，明亮色彩，适合小学生"
         if safe_content:
             fallback_prompt += f"，主题：{safe_content}"
         return fallback_prompt
@@ -76,8 +63,10 @@ async def _optimize_image_prompt(text: str, db: Optional[AsyncSession] = None) -
         logger.error(f"优化图片提示词失败（未知错误）: {e}", exc_info=True)
         logger.warning("LLM 调用失败，使用降级方案")
         # 清理用户输入，只保留安全的字符，避免提示词注入
-        safe_content = "".join(c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、")
-        fallback_prompt = f"卡通风格，简单背景，明亮色彩，适合小学生"
+        safe_content = "".join(
+            c for c in question_content[:AI_FALLBACK_CONTENT_MAX_LENGTH] if c.isalnum() or c in "，。！？、"
+        )
+        fallback_prompt = "卡通风格，简单背景，明亮色彩，适合小学生"
         if safe_content:
             fallback_prompt += f"，主题：{safe_content}"
         return fallback_prompt
@@ -124,92 +113,3 @@ async def generate_question_image(
 
     logger.info(f"题目 {question.id} 图片生成并更新成功")
     return oss_path
-
-
-async def generate_question_audio(question: Question, language: str = "English") -> str:
-    """为指定题目生成语音
-
-    Args:
-        question: 题目对象
-        language: 语言类型，默认 "English"
-    """
-    if not question.resource_content:
-        raise ValueError(f"题目语音语料不存在: {question.id}")
-
-    text = question.resource_content
-    logger.info(f"开始文本转语音，文本长度: {len(text)}, 语言: {language}")
-    logger.debug(f"文本内容: {text[:200]}...")
-
-    # 使用 provider 生成语音
-    provider = get_provider()
-    audio_url = provider.invoke_tts(
-        text=text,
-        voice=provider.default_tts_voice,
-        language=language,
-        model="qwen3-tts-flash",
-    )
-
-    # 下载音频
-    response = requests.get(audio_url, stream=True)
-    response.raise_for_status()
-    oss_path = f"questions/{question.textbook_id}/audio/{question.id}.mp3"
-    oss.upload(oss_path, response.content)
-
-    logger.info(f"题目 {question.id} 语音生成并更新成功")
-    return oss_path
-
-
-async def analyze_text_answer(
-    question: Question, text_answer: str, db: Optional[AsyncSession] = None
-) -> AnswerAnalysisSchema:
-    """分析题目文本答案是否正确
-
-    Args:
-        question: 题目对象
-        text_answer: 学生答案
-        db: 数据库会话，用于动态加载提示词
-    """
-    logger.info(f"开始分析答题情况: content_length={len(question.content)}, text_answer={text_answer}")
-
-    # 创建 JSON 输出解析器
-    parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
-
-    # 使用 PromptService 获取 prompt
-    prompt = await PromptService.get_answer_analyze_prompt(db=db, format_instructions=parser.get_format_instructions())
-
-    # 使用 provider 调用
-    provider = get_provider()
-    result = provider.invoke_chain(
-        prompt=prompt,
-        parser=parser,
-        prompt_input={
-            "content": question.content,
-            "options": question.options if question.options else "无",
-            "knowledge": question.knowledge if question.knowledge else "无",
-            "question_answer": question.answer,
-            "student_answer": text_answer,
-        },
-    )
-
-    # 验证结果
-    if not isinstance(result, dict):
-        raise ValueError(f"LLM 返回结果格式错误，期望字典类型，实际为: {type(result).__name__}")
-
-    # 解析结果
-    return AnswerAnalysisSchema.model_validate(result)
-
-
-async def recognize_audio_answer(audio_url: str) -> str:
-    """识别题目音频答案
-
-    Args:
-        audio_url: 音频 URL
-
-    Returns:
-        识别出的文本内容
-    """
-    logger.info(f"开始识别音频答案: audio_url={audio_url}")
-
-    # 使用 provider 识别音频答案
-    provider = get_provider()
-    result = provider.invoke_asr(audio_url)

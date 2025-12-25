@@ -1,20 +1,19 @@
 """任务执行器 - Celery Worker 使用"""
 
 import asyncio
-from typing import Dict, Any
-from loguru import logger
-import json
+from typing import Any, Dict
 
-from shared.worker.celery import Executor, celery_app
+from loguru import logger
 from shared.core.database import AsyncSessionLocal
-from student.services.practice_generate import generate_practice_session
+from shared.practice.generate import execute_generate_practice_session
+from shared.worker.celery import Executor, celery_app
 
 
 @celery_app.task(
     bind=True,
     name=Executor.generate_practice_task.value,
 )
-def execute_generate_practice_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+def execute_generate_practice_task(self, session_id: int) -> Dict[str, Any]:
     """
     执行任务 - Celery Worker 调用的函数
 
@@ -22,28 +21,19 @@ def execute_generate_practice_task(self, payload: Dict[str, Any]) -> Dict[str, A
     在 Celery worker 中，每个任务都在独立的进程中运行，需要创建新的事件循环。
 
     Args:
-        payload: 练习提交请求（字典格式，已从 JSON 反序列化）
+        session_id: 练习会话ID
 
     Returns:
         Dict: 任务执行结果
     """
-    # 使用 JSON 序列化 payload 避免日志格式化问题（payload 中的 'type' 会被误解析为格式化占位符）
-    payload_str = json.dumps(payload, ensure_ascii=False)
-    logger.info(f"开始执行练习生成任务: payload={payload_str}")
+    logger.info(f"开始执行练习生成任务: session_id={session_id}")
 
     async def _execute():
         """内部异步执行函数"""
         # 创建新的数据库会话（Celery Worker 中不能共享主应用的会话）
         # 使用 context manager 确保会话正确关闭
         async with AsyncSessionLocal() as db:
-            await generate_practice_session(
-                db=db,
-                type=payload.get("type"),
-                student_id=payload.get("student_id"),
-                textbook_id=payload.get("textbook_id"),
-                unit_id=payload.get("unit_id", None),
-                practice_id=payload.get("practice_id", None),
-            )
+            await execute_generate_practice_session(db, session_id)
 
     try:
         # 在 Celery worker 中，使用 asyncio.run() 创建新的事件循环

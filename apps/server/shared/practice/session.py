@@ -1,24 +1,28 @@
-"""通用练习服务"""
-
 import pendulum
 from loguru import logger
 from shared.core.database import (
     PracticeSession,
+    PracticeSessionAnswer,
+    PracticeSessionReport,
 )
 from shared.core.schema import (
+    PracticeSchema,
+    PracticeSessionAnswerSchema,
+    PracticeSessionDataSchema,
+    PracticeSessionReportSchema,
     PracticeSessionSchema,
+    QuestionSchema,
 )
 from shared.utils.time import now
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import noload
+from sqlalchemy.orm import joinedload
 
 from .report import generate_practice_report
 
 
 async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: int, limit: int = 30):
     """获取指定练习的练习会话记录"""
-    # 查询最近的练习记录（按创建时间倒序）
     sessions = await db.scalars(
         select(PracticeSession)
         .where(
@@ -32,44 +36,90 @@ async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: 
     return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
 
 
-async def get_daily_practices(db: AsyncSession, student_id: str):
+async def get_practice_session_data(db: AsyncSession, student_id: str, session_id: int):
+    """根据练习会话ID查询会话详情"""
+    session = await db.scalar(
+        select(PracticeSession)
+        .options(joinedload(PracticeSession.practice))
+        .where(PracticeSession.id == session_id, PracticeSession.student_id == student_id)
+    )
+    if not session:
+        raise ValueError("练习会话不存在")
+
+    practice = session.practice
+    if not practice:
+        raise ValueError("练习不存在")
+
+    results = await db.scalars(
+        select(PracticeSessionAnswer)
+        .options(joinedload(PracticeSessionAnswer.question))
+        .where(PracticeSessionAnswer.session_id == session_id)
+        .order_by(PracticeSessionAnswer.question_order)
+    )
+
+    # 获取所有答题记录
+    answers = results.all()
+    questions = [answer.question for answer in answers]
+
+    # 查询报告
+    report = None
+    if session.status == 2:
+        report = await db.scalar(select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id))
+
+    return PracticeSessionDataSchema(
+        practice=PracticeSchema.model_validate(practice),
+        session=PracticeSessionSchema.model_validate(session),
+        questions=[QuestionSchema.model_validate(question) for question in questions],
+        answers=[PracticeSessionAnswerSchema.model_validate(answer) for answer in answers],
+        report=PracticeSessionReportSchema.model_validate(report) if report else None,
+    )
+
+
+async def get_daily_practices(db: AsyncSession, student_id: str, textbook_id: int | None = None):
     """获取当天的日常练习记录"""
     start = pendulum.today()
-    result = await db.scalars(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.practice_slug == "daily_practice",
-            PracticeSession.create_time >= start.int_timestamp,
-        )
+    query = select(PracticeSession).where(
+        PracticeSession.student_id == student_id,
+        PracticeSession.practice_slug == "daily_practice",
+        PracticeSession.create_time >= start.int_timestamp,
     )
+    if textbook_id:
+        query = query.where(PracticeSession.textbook_id == textbook_id)
+    result = await db.scalars(query)
     return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
-async def get_unit_practices(db: AsyncSession, student_id: str, textbook_id: int):
+async def get_unit_practices(db: AsyncSession, student_id: str, textbook_id: int, unit_id: int | None = None):
     """获取所有单元练习记录"""
-    result = await db.scalars(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.practice_slug == "unit_practice",
-            PracticeSession.textbook_id == textbook_id,
-            PracticeSession.status != 2,
-        )
+    query = select(PracticeSession).where(
+        PracticeSession.student_id == student_id,
+        PracticeSession.practice_slug == "unit_practice",
+        PracticeSession.textbook_id == textbook_id,
+        PracticeSession.status != 2,
     )
+
+    if unit_id:
+        query = query.where(PracticeSession.unit_id == unit_id)
+
+    result = await db.scalars(query)
 
     return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
-async def get_assessments(db: AsyncSession, student_id: str):
+async def get_assess_practices(db: AsyncSession, student_id: str, textbook_id: int | None = None):
     """获取 30 天内的综合评估记录"""
     thirty_days_ago = pendulum.now().subtract(days=30)
 
-    result = await db.scalars(
-        select(PracticeSession).where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.practice_slug == "assessment",
-            PracticeSession.create_time >= thirty_days_ago.int_timestamp,
-        )
+    query = select(PracticeSession).where(
+        PracticeSession.student_id == student_id,
+        PracticeSession.practice_slug == "assess_practice",
+        PracticeSession.create_time >= thirty_days_ago.int_timestamp,
     )
+
+    if textbook_id:
+        query = query.where(PracticeSession.textbook_id == textbook_id)
+
+    result = await db.scalars(query)
 
     return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 

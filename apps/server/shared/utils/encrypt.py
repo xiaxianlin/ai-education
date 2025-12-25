@@ -1,9 +1,14 @@
-import jwt, json, hashlib, string, secrets
-import bcrypt
-from loguru import logger
-from shared.core.settings import envs
-from shared.core.constants import TOKEN_EXPIRES_HOURS, PASSWORD_LENGTH
+import hashlib
+import json
+import secrets
+import string
 from datetime import datetime, timedelta, timezone
+
+import bcrypt
+import jwt
+from loguru import logger
+from shared.core.constants import PASSWORD_LENGTH, TOKEN_EXPIRES_HOURS
+from shared.core.settings import envs
 
 
 def encode(data: dict, expires_hours: int = TOKEN_EXPIRES_HOURS) -> str:
@@ -16,10 +21,10 @@ def encode(data: dict, expires_hours: int = TOKEN_EXPIRES_HOURS) -> str:
 def decode(token: str) -> dict | None:
     """
     解码 JWT Token
-    
+
     Args:
         token: JWT Token 字符串
-        
+
     Returns:
         Token payload 字典，如果 Token 无效或过期则返回 None
     """
@@ -37,10 +42,10 @@ def decode(token: str) -> dict | None:
 def hash(data: str | dict) -> str:
     """
     使用bcrypt对密码进行安全哈希
-    
+
     Args:
         data: 密码字符串或字典（字典会转为JSON字符串）
-        
+
     Returns:
         bcrypt哈希后的密码字符串
     """
@@ -48,26 +53,23 @@ def hash(data: str | dict) -> str:
         data = json.dumps(data)
     # 使用bcrypt进行密码哈希
     salt = bcrypt.gensalt(rounds=12)  # 12轮，平衡安全性和性能
-    hashed = bcrypt.hashpw(data.encode('utf-8'), salt)
-    return hashed.decode('utf-8')
+    hashed = bcrypt.hashpw(data.encode("utf-8"), salt)
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     验证密码是否匹配
-    
+
     Args:
         plain_password: 明文密码
         hashed_password: 哈希后的密码
-        
+
     Returns:
         是否匹配
     """
     try:
-        return bcrypt.checkpw(
-            plain_password.encode('utf-8'), 
-            hashed_password.encode('utf-8')
-        )
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
     except Exception:
         return False
 
@@ -75,10 +77,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def hash_legacy(data: str | dict) -> str:
     """
     旧的SHA256哈希方法（用于兼容旧数据或非密码场景）
-    
+
     Args:
         data: 要哈希的数据
-        
+
     Returns:
         SHA256哈希值
     """
