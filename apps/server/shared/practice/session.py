@@ -21,7 +21,9 @@ from sqlalchemy.orm import joinedload
 from .report import generate_practice_report
 
 
-async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: int, limit: int = 30):
+async def get_practice_sessions(
+    db: AsyncSession, student_id: str, practice_id: int, limit: int = 30
+):
     """获取指定练习的练习会话记录"""
     sessions = await db.scalars(
         select(PracticeSession)
@@ -64,7 +66,9 @@ async def get_practice_session_data(db: AsyncSession, student_id: str, session_i
     # 查询报告
     report = None
     if session.status == 2:
-        report = await db.scalar(select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id))
+        report = await db.scalar(
+            select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id)
+        )
 
     return PracticeSessionDataSchema(
         practice=PracticeSchema.model_validate(practice),
@@ -89,7 +93,9 @@ async def get_daily_practices(db: AsyncSession, student_id: str, textbook_id: in
     return [PracticeSessionSchema.model_validate(session) for session in result.all()]
 
 
-async def get_unit_practices(db: AsyncSession, student_id: str, textbook_id: int, unit_id: int | None = None):
+async def get_unit_practices(
+    db: AsyncSession, student_id: str, textbook_id: int, unit_id: int | None = None
+):
     """获取所有单元练习记录"""
     query = select(PracticeSession).where(
         PracticeSession.student_id == student_id,

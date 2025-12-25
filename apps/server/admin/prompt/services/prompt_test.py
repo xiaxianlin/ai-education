@@ -5,19 +5,19 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
-from shared.core.database import PromptVersion
+from shared.core.database import Prompt
 from shared.provider import get_provider
 
 from ..schema import TestPromptSchema
 
 
 async def _test_text_generation(
-    version: PromptVersion, rendered_prompt: str, params: TestPromptSchema
+    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
 ) -> dict:
     """文本生成测试（单一职责）"""
     start_time = time.time()
 
-    model_params = {**(version.model_params or {}), **(params.model_params or {})}
+    model_params = {**(prompt.model_params or {}), **(params.model_params or {})}
     model_provider = params.model_provider or "aliyun"
     model_name = params.model_name or model_params.get("model_name") or "qwen-plus"
 
@@ -63,12 +63,12 @@ async def _test_text_generation(
 
 
 async def _test_image_generation(
-    version: PromptVersion, rendered_prompt: str, params: TestPromptSchema
+    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
 ) -> dict:
     """图片生成测试（单一职责）"""
     start_time = time.time()
 
-    model_params = {**(version.model_params or {}), **(params.model_params or {})}
+    model_params = {**(prompt.model_params or {}), **(params.model_params or {})}
     model_provider = params.model_provider or "aliyun"
     model_name = model_params.get("model_name") or "qwen-image-plus"
 
@@ -76,7 +76,7 @@ async def _test_image_generation(
 
     width = model_params.get("width", 1328)
     height = model_params.get("height", 1328)
-    negative_prompt = version.negative_content or ""
+    negative_prompt = prompt.negative_content or ""
 
     image_url = provider.invoke_image_generate(
         prompt=rendered_prompt,
@@ -102,12 +102,12 @@ async def _test_image_generation(
 
 
 async def _test_audio_generation(
-    version: PromptVersion, rendered_prompt: str, params: TestPromptSchema
+    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
 ) -> dict:
     """语音生成测试（单一职责）"""
     start_time = time.time()
 
-    model_params = {**(version.model_params or {}), **(params.model_params or {})}
+    model_params = {**(prompt.model_params or {}), **(params.model_params or {})}
     model_provider = params.model_provider or "aliyun"
     model_name = model_params.get("model_name") or "qwen3-tts-flash"
 
@@ -139,22 +139,22 @@ async def _test_audio_generation(
 
 
 async def _test_video_generation(
-    version: PromptVersion, rendered_prompt: str, params: TestPromptSchema
+    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
 ) -> dict:
     """视频生成测试（单一职责）"""
     # 阿里云暂不支持视频生成
     raise NotImplementedError("视频生成功能暂不支持")
 
 
-async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchema) -> dict:
-    """根据版本 ID 测试 Prompt（主控制器）"""
-    version = await db.scalar(select(PromptVersion).where(PromptVersion.id == version_id))
-    if not version:
-        raise ValueError("版本不存在")
+async def test_prompt(db: AsyncSession, id: int, params: TestPromptSchema) -> dict:
+    """根据 Prompt ID 测试 Prompt（主控制器）"""
+    prompt = await db.scalar(select(Prompt).where(Prompt.id == id))
+    if not prompt:
+        raise ValueError("Prompt 不存在")
 
     # 渲染模板（使用 Python 的 format 方法）
     try:
-        rendered_prompt = version.template_content.format(**(params.input_payload or {}))
+        rendered_prompt = prompt.template_content.format(**(params.input_payload or {}))
     except KeyError as e:
         raise ValueError(f"缺少变量: {e.args[0]}")
 
@@ -162,22 +162,18 @@ async def test_prompt(db: AsyncSession, version_id: int, params: TestPromptSchem
 
     try:
         if generation_type == "text":
-            result = await _test_text_generation(version, rendered_prompt, params)
+            result = await _test_text_generation(prompt, rendered_prompt, params)
         elif generation_type == "image":
-            result = await _test_image_generation(version, rendered_prompt, params)
+            result = await _test_image_generation(prompt, rendered_prompt, params)
         elif generation_type == "audio":
-            result = await _test_audio_generation(version, rendered_prompt, params)
+            result = await _test_audio_generation(prompt, rendered_prompt, params)
         elif generation_type == "video":
-            result = await _test_video_generation(version, rendered_prompt, params)
+            result = await _test_video_generation(prompt, rendered_prompt, params)
         else:
             raise ValueError(f"不支持的生成类型: {generation_type}")
 
-        logger.info(f"Prompt 测试成功: version_id={version_id}, type={generation_type}")
+        logger.info(f"Prompt 测试成功: id={id}, type={generation_type}")
         return result
     except Exception as error:
-        logger.error(
-            f"Prompt 测试失败: version_id={version_id}, type={generation_type}, error={error}"
-        )
-        raise ValueError(
-            f"Prompt 测试失败: version_id={version_id}, type={generation_type}, error={error}"
-        )
+        logger.error(f"Prompt 测试失败: id={id}, type={generation_type}, error={error}")
+        raise ValueError(f"Prompt 测试失败: id={id}, type={generation_type}, error={error}")

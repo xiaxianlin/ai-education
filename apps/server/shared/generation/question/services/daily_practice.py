@@ -8,20 +8,22 @@
 
 from typing import Any, Dict
 
-from generation.question.schema import QuestionGenerationResult, QuestionGenerationState
-from generation.question.services.prompt import (
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from shared.core.constants import GRADE_NAME_MAP
+from shared.core.database import PracticePrompt
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
+from ..schema import QuestionGenerationResult, QuestionGenerationState
+from ..services.prompt import (
     build_avoid_duplicate_prompt,
     build_knowledges_prompt,
     build_question_types_prompt,
     build_units_prompt,
 )
-from generation.question.services.question import get_question_distribution
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from shared.core.constants import GRADE_NAME_MAP
-from shared.core.database import PracticePrompt
-from sqlalchemy import joinedload, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from ..services.question import get_question_distribution
 
 
 async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:

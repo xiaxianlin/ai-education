@@ -2,7 +2,7 @@ import json
 from shared.core.database import Question
 
 
-def build_full_question_text(question: Question) -> str:
+def build_question_prompt(question: Question) -> str:
     """构建完整的问题内容，包含题目、选项、答案"""
     parts = []
 
@@ -36,4 +36,3 @@ def build_full_question_text(question: Question) -> str:
         parts.append(f"答案：{question.answer}")
 
     return "\n\n".join(parts) if parts else question.content or ""
-

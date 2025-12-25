@@ -8,19 +8,21 @@
 
 from typing import Any, Dict
 
-from generation.question.schema import QuestionGenerationResult, QuestionGenerationState
-from generation.question.services.prompt import (
-    build_avoid_duplicate_prompt,
-    build_knowledges_prompt,
-    build_question_types_prompt,
-)
-from generation.question.services.question import get_difficulty_distribution
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.core.constants import GRADE_NAME_MAP
 from shared.core.database import Knowledge, PracticePrompt
-from sqlalchemy import joinedload, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
+from ..schema import QuestionGenerationResult, QuestionGenerationState
+from ..services.prompt import (
+    build_avoid_duplicate_prompt,
+    build_knowledges_prompt,
+    build_question_types_prompt,
+)
+from ..services.question import get_difficulty_distribution
 
 
 async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -29,7 +31,9 @@ async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
     textbook = state["textbook"]
 
     # 加载教材的所有知识点
-    knowledges = (await db.scalars(select(Knowledge).where(Knowledge.textbook_id == textbook.id))).all()
+    knowledges = (
+        await db.scalars(select(Knowledge).where(Knowledge.textbook_id == textbook.id))
+    ).all()
     return {"knowledges": knowledges}
 
 
@@ -51,7 +55,7 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
         .where(
             PracticePrompt.subject == subject,
             PracticePrompt.grade == grade,
-            PracticePrompt.practice_slug == "assessment",
+            PracticePrompt.practice_slug == "assess_practice",
         )
         .options(joinedload(PracticePrompt.prompt))
     )

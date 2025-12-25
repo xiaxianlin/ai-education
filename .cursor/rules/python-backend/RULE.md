@@ -214,6 +214,147 @@ app.mount("/api/student", student_app)
 - 独立的认证中间件和异常处理
 - 便于未来拆分为微服务
 
+## LangGraph 工作流规范
+
+复杂业务逻辑使用 LangGraph 构建工作流，特别是 AI 生成类任务。
+
+### 工作流结构
+
+工作流定义在 `shared/generation/[type]/graph.py`，遵循以下结构：
+
+```python
+"""问题生成流程图 - 使用LangGraph构建题目生成工作流"""
+
+from typing import Any, Dict, List
+from langgraph.graph import END, StateGraph
+from langgraph.graph.state import CompiledStateGraph
+from loguru import logger
+from shared.core.database import AsyncSession
+
+# 1. 定义状态 Schema（使用 TypedDict）
+class WorkflowState(TypedDict, total=False):
+    """工作流状态定义"""
+    # 外部传入状态
+    db: AsyncSession
+    input_data: str
+    
+    # 内部构建状态
+    processed_data: NotRequired[Any]
+    result: NotRequired[Any]
+
+# 2. 定义节点函数
+async def entry_node(state: WorkflowState) -> Dict[str, Any]:
+    """入口节点，负责基础校验"""
+    if state.get("db") is None:
+        raise ValueError("数据库会话（db）不能为空")
+    
+    logger.info("工作流开始")
+    return {}
+
+async def process_node(state: WorkflowState) -> Dict[str, Any]:
+    """处理节点"""
+    # 处理逻辑
+    return {"processed_data": result}
+
+# 3. 创建并编译图
+def create_workflow_graph() -> CompiledStateGraph:
+    """创建工作流图"""
+    workflow = StateGraph(WorkflowState)
+    
+    # 添加节点
+    workflow.add_node("entry", entry_node)
+    workflow.add_node("process", process_node)
+    
+    # 设置入口点和边
+    workflow.set_entry_point("entry")
+    workflow.add_edge("entry", "process")
+    workflow.add_edge("process", END)
+    
+    return workflow.compile()
+
+# 4. 创建全局图实例
+workflow_graph = create_workflow_graph()
+
+# 5. 定义调用函数
+async def invoke_workflow(
+    *,
+    db: AsyncSession,
+    input_data: str,
+) -> Any:
+    """调用工作流"""
+    state = WorkflowState(
+        db=db,
+        input_data=input_data,
+    )
+    result = await workflow_graph.ainvoke(state)
+    return result.get("result")
+```
+
+### 状态定义规范
+
+- 使用 `TypedDict` 定义状态 Schema
+- 外部传入的状态字段不使用 `NotRequired`
+- 内部构建的状态字段使用 `NotRequired[Type]`
+- 状态字段必须有清晰的注释说明用途
+
+### 节点函数规范
+
+- 节点函数必须是异步函数：`async def node_name(state: State) -> Dict[str, Any]`
+- 返回值是字典，包含要更新的状态字段
+- 入口节点负责参数校验，使用 `ValueError` 抛出错误
+- 每个节点使用 `logger` 记录关键操作
+- 节点函数应该职责单一，便于测试和维护
+
+### 服务路由模式
+
+对于需要根据条件路由到不同服务的场景，使用服务字典模式：
+
+```python
+SERVICES = {
+    "type_a": service_a,
+    "type_b": service_b,
+}
+
+async def route_node(state: WorkflowState) -> Dict[str, Any]:
+    """路由节点，根据条件调用不同服务"""
+    service_type = state["type"]
+    if service_type not in SERVICES:
+        raise ValueError(f"服务类型 {service_type} 暂不支持")
+    
+    return await SERVICES[service_type].handle(state)
+```
+
+### 错误处理
+
+- 工作流中的错误使用 `ValueError` 抛出
+- 关键节点记录错误日志
+- 考虑错误恢复机制（如重试、降级）
+
+### 工作流调用
+
+- 工作流在服务层调用，不在路由层直接调用
+- 传入必要的数据库会话和参数
+- 处理工作流返回的结果
+
+```python
+# 服务层调用示例
+async def generate_questions(
+    db: AsyncSession,
+    session: PracticeSession,
+    textbook: Textbook,
+    units: list[Unit],
+    question_types: dict[str, list[str]],
+) -> List[Question]:
+    """生成题目"""
+    return await invoke_question_generation_workflow(
+        db=db,
+        session=session,
+        textbook=textbook,
+        units=units,
+        question_types=question_types,
+    )
+```
+
 ## 注意事项
 
 1. **异步优先**: 所有数据库操作使用异步 SQLAlchemy
@@ -221,5 +362,5 @@ app.mount("/api/student", student_app)
 3. **错误处理**: 统一的异常处理机制
 4. **日志记录**: 使用 Loguru 记录日志
 5. **任务队列**: 长时间任务使用 Celery 异步处理
-6. **工作流**: 复杂业务逻辑使用 LangGraph 工作流
+6. **工作流**: 复杂业务逻辑使用 LangGraph 工作流，遵循工作流规范
 7. **API 文档**: 访问子应用的 `/docs` 路径查看 OpenAPI 文档，而非根路径

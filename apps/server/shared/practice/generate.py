@@ -9,7 +9,7 @@ from shared.core.database import (
     Textbook,
     Unit,
 )
-from shared.generation.question import QuestionGenerationState, graph
+from shared.generation import invoke_question_generation_workflow
 from shared.worker import Executor, submit_task
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -160,15 +160,14 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: int):
 
     units = (await db.scalars(select(Unit).where(Unit.textbook_id == textbook.id))).all()
     question_types = await _get_question_types(db, textbook.subject, textbook.grade)
-    state = QuestionGenerationState(
+
+    questions = await invoke_question_generation_workflow(
         db=db,
         session=session,
         textbook=textbook,
         units=units,
         question_types=question_types,
     )
-    result = await graph.ainvoke(state)
-    questions = result.get("all_questions", [])
 
     await _prepare_answer_records(db, session, questions)
 

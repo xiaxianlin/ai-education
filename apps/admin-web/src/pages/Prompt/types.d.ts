@@ -5,10 +5,6 @@ declare global {
     slug?: string;
   }
 
-  interface SearchPromptVersionRequest extends SearchRequest {
-    prompt_id?: number;
-  }
-
   interface SavePromptRequest {
     name?: string;
     slug?: string;

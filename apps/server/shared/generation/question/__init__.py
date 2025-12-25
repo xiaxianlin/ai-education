@@ -1,6 +1,4 @@
-from .graph import create_question_generation_graph
-from .schema import QuestionGenerationState
+from .graph import invoke_question_generation_workflow, question_generation_graph
 
-graph = create_question_generation_graph()
 
-__all__ = ["graph", "QuestionGenerationState"]
+__all__ = ["invoke_question_generation_workflow", "question_generation_graph"]

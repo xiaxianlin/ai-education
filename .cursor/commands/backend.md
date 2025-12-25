@@ -49,11 +49,14 @@ apps/server/
 │   ├── routes/        # 路由层
 │   ├── services/      # 业务逻辑层
 │   └── schema.py      # 数据模型
-├── ai/                # AI 功能模块
-│   ├── question/      # 题目相关 AI
-│   ├── question_generate/  # 题目生成（LangGraph）
-│   ├── practice/      # 练习分析
-│   └── utils/         # AI 工具
+├── shared/generation/ # AI 生成模块（LangGraph 工作流）
+│   ├── question/      # 题目生成工作流
+│   │   ├── graph.py   # 工作流图定义
+│   │   ├── schema.py  # 状态 Schema
+│   │   └── services/  # 生成服务（daily_practice, unit_practice, assess_practice）
+│   ├── image/         # 图片生成工作流
+│   ├── audio/         # 语音生成工作流
+│   └── video/         # 视频生成工作流
 ├── shared/            # 共享模块
 │   ├── core/          # 核心功能（数据库、配置、中间件）
 │   ├── worker/         # 任务处理模块（Celery Worker）
@@ -134,6 +137,28 @@ async def create(db: AsyncSession, params: SomeSchema):
     return instance
 ```
 
+### LangGraph 工作流
+```python
+from shared.generation.question import invoke_question_generation_workflow
+from shared.core.database import AsyncSession, PracticeSession, Textbook, Unit
+
+async def generate_questions(
+    db: AsyncSession,
+    session: PracticeSession,
+    textbook: Textbook,
+    units: list[Unit],
+    question_types: dict[str, list[str]],
+) -> List[Question]:
+    """生成题目 - 使用 LangGraph 工作流"""
+    return await invoke_question_generation_workflow(
+        db=db,
+        session=session,
+        textbook=textbook,
+        units=units,
+        question_types=question_types,
+    )
+```
+
 ### 数据模型
 ```python
 from sqlalchemy.orm import Mapped, mapped_column
@@ -160,7 +185,7 @@ class SomeModel(BaseModel):
 - `.cursor/rules/api-design/` - API 设计规范（智能应用）
 
 ### 编码规范
-详细的后端编码规范（路由层、服务层、数据库操作、错误处理）请参考：
+详细的后端编码规范（路由层、服务层、数据库操作、错误处理、LangGraph 工作流）请参考：
 - `.cursor/rules/python-backend/` - Python/FastAPI 后端编码规范（自动应用）
 
 ### 命名规范

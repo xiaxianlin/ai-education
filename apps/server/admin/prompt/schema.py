@@ -14,14 +14,9 @@ class PromptDetailSchema(BaseModel):
     slug: str
     type: str
     description: Optional[str] = None
-
-    last_version_id: int
-    version_id: int
     template_content: str
     negative_content: Optional[str] = None
     model_params: Optional[dict] = None
-    changelog: Optional[str] = None
-    is_published: int = 0
 
     create_time: int
     update_time: Optional[int] = None
@@ -39,12 +34,6 @@ class SavePromptSchema(BaseModel):
     negative_content: Optional[str] = Field(None, max_length=2000, description="用于图像生成类")
     model_params: dict = {}
     timeout: Optional[int] = None
-
-
-class PublishPromptSchema(BaseModel):
-    """提示词发布表单"""
-
-    changelog: str
 
 
 class TestPromptSchema(BaseModel):
@@ -69,7 +58,3 @@ class SearchPromptSchema(SearchSchema):
     name: Optional[str] = None
     slug: Optional[str] = None
     type: Optional[str] = None
-
-
-class SearchPromptVersionSchema(SearchSchema):
-    prompt_id: int

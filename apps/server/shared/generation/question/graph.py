@@ -5,17 +5,19 @@ from typing import Any, Dict, List
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
-from shared.core.database import Question
 from shared.provider import get_provider
+from shared.core.database import AsyncSession, PracticeSession, Textbook, Unit, Question
+from shared.generation.image import invoke_question_image_workflow
+from shared.generation.audio import invoke_question_audio_workflow
+from shared.utils.prompt import build_question_prompt
 
-from generation.question.schema import QuestionGenerationState
-from generation.question.services import (
+from .schema import QuestionGenerationState
+from .services import (
     assess_practice,
     daily_practice,
     question,
     unit_practice,
 )
-from generation.question.utils import generate_audios, generate_images
 
 PRACTICE_SERVICES = {
     "daily_practice": daily_practice,
@@ -46,7 +48,9 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     if session.practice_slug not in PRACTICE_SERVICES:
         raise ValueError(f"练习类型: slug={session.practice_slug} 暂不支持")
 
-    logger.info(f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}")
+    logger.info(
+        f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}"
+    )
 
     return {}
 
@@ -84,67 +88,60 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
         raise ValueError("LLM 返回结果中没有 questions 字段")
 
     if not isinstance(result["questions"], list):
-        raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
+        raise ValueError(
+            f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
+        )
 
     logger.info(f"大模型生成题目完成，共 {len(result['questions'])} 道题目")
 
-    return {"generate_questions": question.handle_llm_questions(result["questions"])}
+    return {"generated_questions": question.handle_llm_questions(result["questions"])}
 
 
-async def handle_image_node(state: QuestionGenerationState) -> Dict[str, Any]:
+async def handle_resource_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """根据 resource_type 标识生成图片"""
-    try:
-        result = await generate_images(state)
-        logger.info("图片生成完成")
-        return result
-    except Exception as e:
-        logger.error(f"图片生成失败: {e}")
-        # 图片生成失败不应阻断整个流程，可以记录错误并继续
-        return {"image_generation_error": str(e)}
+    db = state["db"]
+    textbook = state["textbook"]
+    generated_questions = state["generated_questions"]
 
+    for question in generated_questions:
 
-async def handle_audio_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """根据 resource_type 标识生成语音"""
-    try:
-        result = await generate_audios(state)
-        logger.info("语音生成完成")
-        return result
-    except Exception as e:
-        logger.error(f"语音生成失败: {e}")
-        # 语音生成失败不应阻断整个流程
-        return {"audio_generation_error": str(e)}
+        if question.resource_type == "image":
+            prompt = build_question_prompt(question)
+            question.resource = f"textbook/{textbook.id}/question_image/{question.id}.png"
+            await invoke_question_image_workflow(
+                db=db,
+                prompt=prompt,
+                oss_path=question.resource,
+            )
 
+        if question.resource_type == "audio":
+            question.resource = f"textbook/{textbook.id}/question_audio/{question.id}.mp3"
+            language = "Chinese" if textbook.subject == "英语" else "English"
+            await invoke_question_audio_workflow(
+                text=question.resource_content,
+                language=language,
+                oss_path=question.resource,
+            )
 
-async def handle_text_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """处理文本题"""
-    text_questions = state.get("text_questions", [])
-    if not text_questions:
-        logger.info("跳过文本处理（没有文本题）")
-        return {}
-
-    logger.info(
-        f"文本题目处理完成，共 {len(text_questions)} 道题目",
-    )
-    return {}
+    return {"generated_questions": generated_questions}
 
 
 async def update_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """汇总数据节点 - 合并召回题目和生成题目"""
 
     db = state["db"]
-    await db.commit()
 
-    generated_questions: List[Question] = state.get("questions", [])
     recall_questions: List[Question] = state.get("recall_questions", [])
+    generated_questions: List[Question] = state.get("generated_questions", [])
 
     # 合并召回题目和生成题目
-    all_questions = list(recall_questions) + list(generated_questions)
+    questions = list(recall_questions) + list(generated_questions)
 
     logger.info(
-        f"题目汇总完成: 召回题目={len(recall_questions)}道, 生成题目={len(generated_questions)}道, 总计={len(all_questions)}道",
+        f"题目汇总完成: 召回题目={len(recall_questions)}道, 生成题目={len(generated_questions)}道, 总计={len(questions)}道",
     )
-
-    return {"all_questions": all_questions}
+    await db.commit()
+    return {"questions": questions}
 
 
 # ==================== 图构建 ====================
@@ -159,30 +156,38 @@ def create_question_generation_graph() -> CompiledStateGraph:
     workflow.add_node("load_data", load_data_node)
     workflow.add_node("build_prompt", build_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
-    workflow.add_node("handle_image", handle_image_node)
-    workflow.add_node("handle_audio", handle_audio_node)
-    workflow.add_node("handle_text", handle_text_node)
+    workflow.add_node("handle_resource", handle_resource_node)
     workflow.add_node("update_questions", update_questions_node)
 
     # 设置入口点
     workflow.set_entry_point("entry")
-
-    # 添加边：entry -> load_data -> build_prompt -> call_llm
     workflow.add_edge("entry", "load_data")
     workflow.add_edge("load_data", "build_prompt")
     workflow.add_edge("build_prompt", "call_llm")
-
-    # 添加边：LLM调用 -> 资源处理（并行）
-    workflow.add_edge("call_llm", "handle_image")
-    workflow.add_edge("call_llm", "handle_audio")
-    workflow.add_edge("call_llm", "handle_text")
-
-    # 添加边：资源处理 -> 保存题目
-    workflow.add_edge("handle_image", "update_questions")
-    workflow.add_edge("handle_audio", "update_questions")
-    workflow.add_edge("handle_text", "update_questions")
-
-    # 添加边：保存题目 -> 结束
+    workflow.add_edge("call_llm", "handle_resource")
+    workflow.add_edge("handle_resource", "update_questions")
     workflow.add_edge("update_questions", END)
 
     return workflow.compile()
+
+
+question_generation_graph = create_question_generation_graph()
+
+
+async def invoke_question_generation_workflow(
+    *,
+    db: AsyncSession,
+    session: PracticeSession,
+    textbook: Textbook,
+    units: list[Unit],
+    question_types: dict[str, list[str]],
+) -> List[Question]:
+    state = QuestionGenerationState(
+        db=db,
+        session=session,
+        textbook=textbook,
+        units=units,
+        question_types=question_types,
+    )
+    result = await question_generation_graph.ainvoke(state)
+    return result.get("questions", [])

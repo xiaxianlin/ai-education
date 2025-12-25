@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { Form, message } from 'antd';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
-import { Form, message } from 'antd';
 import { PromptApi } from '../../api';
 import { extractTemplateParameters, TemplateParameter } from '../utils/templateParser';
 import { ModelConfig } from '../views/ModelDrawer';
 
 const useContainer = () => {
   const [searchParams] = useSearchParams();
-  const version_id = searchParams.get('version_id');
+  const id = searchParams.get('id');
   const [prompt, setPrompt] = useState<PromptDetail>();
   const [loading, setLoading] = useState(false);
   const [testResult, setTestResult] = useState<any>();
@@ -17,7 +17,7 @@ const useContainer = () => {
   // 新增状态
   const [parameters, setParameters] = useState<TemplateParameter[]>([]);
   const [parameterValues, setParameterValues] = useState<Record<string, any>>({});
-  const [generationType, setGenerationType] = useState<GenerateType>('text');
+  const [generationType, setGenerationType] = useState<GenerateType>(GenerateType.TEXT);
   const [modelConfig, setModelConfig] = useState<ModelConfig>({
     model_provider: 'aliyun',
     model_name: 'qwen-plus',
@@ -27,15 +27,15 @@ const useContainer = () => {
   });
 
   useEffect(() => {
-    if (version_id) {
-      loadPrompt(Number(version_id));
+    if (id) {
+      loadPrompt(Number(id));
     }
-  }, [version_id]);
+  }, [id]);
 
-  const loadPrompt = async (versionId: number) => {
+  const loadPrompt = async (promptId: number) => {
     setLoading(true);
     try {
-      const data = await PromptApi.getPromptDetail(versionId);
+      const data = await PromptApi.getPromptDetail(promptId);
       setPrompt(data);
 
       // 解析模板参数
@@ -94,14 +94,14 @@ const useContainer = () => {
   };
 
   const handleTest = async (_values: TestPromptRequest) => {
-    if (!prompt || !version_id) return;
+    if (!prompt || !id) return;
 
     setLoading(true);
     setTestResult(null);
 
     try {
       // 使用参数值和模型配置进行测试
-      const result = await PromptApi.testPrompt(Number(version_id), {
+      const result = await PromptApi.testPrompt(Number(id), {
         variables: parameterValues,
         model_provider: modelConfig.model_provider,
         model_name: modelConfig.model_name,

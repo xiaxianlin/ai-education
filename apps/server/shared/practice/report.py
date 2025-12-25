@@ -77,7 +77,9 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     )
 
     # 10. 综合评估（主要用于assessment类型）
-    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(overall_score, consistency)
+    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
+        overall_score, consistency
+    )
 
     # 11. 创建报告
     report = PracticeSessionReport(
@@ -148,7 +150,9 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessi
     return result
 
 
-async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
+async def analyze_question_distribution(
+    db: AsyncSession, answers: List[PracticeSessionAnswer]
+) -> Dict:
     """分析题目来源分布（按题型）"""
     if not answers:
         return {}
@@ -299,14 +303,16 @@ async def generate_recommendations(
 
     # 针对薄弱点的建议
     if weaknesses:
-        recommendations.append(f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}")
+        recommendations.append(
+            f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}"
+        )
 
     # 根据练习类型给建议
     if session_type == "daily_practice":
         recommendations.append("建议每天坚持练习，巩固学习成果。")
     elif session_type == "unit_practice":
         recommendations.append("单元练习结束后，可以进行综合评估检验学习效果。")
-    elif session_type == "assessment":
+    elif session_type == "assess_practice":
         recommendations.append("根据综合评估结果，制定针对性的学习计划。")
 
     return strengths, weaknesses, recommendations

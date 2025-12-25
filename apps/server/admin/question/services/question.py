@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
 from ..schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
-from shared.services.ai import generate_question_audio as ai_generate_audio
-from shared.services.ai import generate_question_image as ai_generate_image
 from shared.core.database import Question, Unit
 from shared.core.schema import QuestionSchema, SearchResultSchema
+from shared.generation import invoke_question_image_workflow, invoke_question_audio_workflow
+from shared.utils.prompt import build_question_prompt
 
 
 async def create_question(db: AsyncSession, data: CreateQuestionSchema):
@@ -184,11 +184,15 @@ async def generate_question_image(db: AsyncSession, id: str):
     if not question:
         raise ValueError("问题不存在")
 
-    # 调用 AI 服务生成图片
-    resource_path = await ai_generate_image(question, db=db)
+    prompt = build_question_prompt(question)
+    question.resource = f"textbook/{question.textbook_id}/question_image/{question.id}.png"
 
-    # 更新数据库
-    question.resource = resource_path
+    # 调用 AI 服务生成图片
+    await invoke_question_image_workflow(
+        db=db,
+        prompt=prompt,
+        oss_path=question.resource,
+    )
     await db.commit()
 
 
@@ -198,9 +202,13 @@ async def generate_question_audio(db: AsyncSession, id: str):
     if not question:
         raise ValueError("问题不存在")
 
+    question.resource = f"textbook/{question.textbook_id}/question_audio/{question.id}.mp3"
+    language = "English" if question.subject == "英语" else "Chinese"
     # 调用 AI 服务生成语音
-    resource_path = await ai_generate_audio(question)
+    await invoke_question_audio_workflow(
+        text=question.resource_content,
+        language=language,
+        oss_path=question.resource,
+    )
 
-    # 更新数据库
-    question.resource = resource_path
     await db.commit()

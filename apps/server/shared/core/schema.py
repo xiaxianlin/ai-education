@@ -337,29 +337,16 @@ class PracticeSessionDataSchema(BaseModel):
 # ======================== Prompt 管理 ======================== #
 
 
-class PromptVersionSchema(BaseModel):
-    id: int
-    prompt_id: int
-    template_content: str
-    negative_content: Optional[str] = None
-    model_params: dict = {}
-    changelog: Optional[str] = None
-    is_published: int = 0
-
-    create_time: int
-    update_time: Optional[int] = None
-
-    model_config = {"from_attributes": True}
-
-
 class PromptSchema(BaseModel):
     id: int
     name: str
     slug: str
     type: str
     description: Optional[str] = None
-    current_version_id: Optional[int] = None
-
-    version: Optional["PromptVersionSchema"] = None
+    template_content: str
+    negative_content: Optional[str] = None
+    model_params: dict = {}
+    create_time: int
+    update_time: Optional[int] = None
 
     model_config = {"from_attributes": True}

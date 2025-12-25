@@ -32,13 +32,6 @@ class QuestionGenerationResult(BaseModel):
     questions: List[GeneratedQuestion] = Field(description="生成的题目列表")
 
 
-class QuestionGenerateRequest(BaseModel):
-    """题目生成请求"""
-
-    student_id: Optional[str] = Field(None, description="学生ID（日常练习时需要）")
-    slug: str = Field(description="练习唯一标识")
-
-
 class QuestionGenerationState(TypedDict, total=False):
     """问题生成流程的状态"""
 
@@ -66,6 +59,6 @@ class QuestionGenerationState(TypedDict, total=False):
     # 召回的题目列表
     recall_questions: NotRequired[List[Question]]
     # 生成的题目列表
-    generate_questions: NotRequired[List[Question]]
+    generated_questions: NotRequired[List[Question]]
     # 题目对象列表
     questions: NotRequired[List[Question]]

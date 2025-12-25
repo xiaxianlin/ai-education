@@ -1,6 +1,6 @@
 from shared.core.database import PracticeSession
 from shared.core.schema import PracticeSessionSchema, StudentSchema
-from shared.services import practice_session
+from shared.practice import practice_session
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload

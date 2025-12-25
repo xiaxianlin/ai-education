@@ -10,7 +10,6 @@ from ..schema import SaveTeacherBookSchema
 from shared.core.database import TeacherBook
 from shared.core.schema import TeacherBookSchema
 from shared.core.settings import envs
-from shared.utils.file_validation import validate_file_upload
 
 
 async def create_teacher_book(db: AsyncSession, data: SaveTeacherBookSchema):
@@ -76,7 +75,9 @@ async def get_teacher_book(db: AsyncSession, teacher_book_id: int):
 
 
 async def search_teacher_book(db: AsyncSession, subject: str, grade: int):
-    results = await db.scalars(select(TeacherBook).where(TeacherBook.subject == subject, TeacherBook.grade == grade))
+    results = await db.scalars(
+        select(TeacherBook).where(TeacherBook.subject == subject, TeacherBook.grade == grade)
+    )
 
     return [TeacherBookSchema.model_validate(item) for item in results.unique().all()]
 

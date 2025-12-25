@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components';
 import {
   PageContainer,
   ProCard,
@@ -6,26 +7,25 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { usePromptFormModel } from '../models/page';
-import { PageHeader } from '@/components';
-import { PromptApi } from '../../api';
 import { Flex } from 'antd';
+import { PromptApi } from '../../api';
+import { usePromptFormModel } from '../models/page';
 
 export default function MainView() {
-  const { versionId, handleSubmit } = usePromptFormModel();
+  const { id, handleSubmit } = usePromptFormModel();
 
   return (
-    <PageContainer title={<PageHeader title={!versionId ? '新建提示词' : `编辑提示词`} />}>
+    <PageContainer title={<PageHeader title={!id ? '新建提示词' : `编辑提示词`} />}>
       <ProCard>
         <ProForm<SavePromptRequest>
           size="large"
           labelCol={{ span: 4 }}
           onFinish={handleSubmit}
           request={async () => {
-            if (!versionId) {
+            if (!id) {
               return {};
             }
-            const { model_params, ...data } = await PromptApi.getPromptDetail(versionId);
+            const { model_params, ...data } = await PromptApi.getPromptDetail(id);
             return {
               ...data,
               model_params: model_params ? JSON.stringify(model_params) : undefined,

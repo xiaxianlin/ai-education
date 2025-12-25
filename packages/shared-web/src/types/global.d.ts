@@ -378,20 +378,9 @@ declare global {
     slug: string;
     type: string;
     description?: string;
-    version?: PromptVersion;
-  }
-
-  /**
-   * 提示词版本实体
-   */
-  interface PromptVersion {
-    id: number;
-    prompt_id: number;
     template_content: string;
     negative_content?: string;
     model_params?: Record<string, any>;
-    changelog?: string;
-    is_published: number;
     create_time: number;
     update_time?: number;
   }
@@ -405,13 +394,9 @@ declare global {
     slug: string;
     type: string;
     description?: string;
-    last_version_id: number;
-    version_id: number;
     template_content: string;
     negative_content?: string;
     model_params: Record<string, any>;
-    changelog?: string;
-    is_published: number;
     create_time: number;
     update_time?: number;
   }

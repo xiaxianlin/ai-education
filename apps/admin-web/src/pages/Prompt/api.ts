@@ -19,34 +19,18 @@ export const PromptApi = {
 
   /**
    * 更新 Prompt
-   * PUT /api/admin/prompt/{version_id}
+   * PUT /api/admin/prompt/{id}
    */
-  async updatePrompt(versionId: number, data: SavePromptRequest) {
-    return apiClient.put(`/prompt/${versionId}`, data);
-  },
-
-  /**
-   * 发布 Prompt 版本
-   * POST /api/admin/prompt/{version_id}/publish
-   */
-  async publishPromptVersion(versionId: number, changelog: string) {
-    return apiClient.post(`/prompt/${versionId}/publish`, { changelog });
-  },
-
-  /**
-   * 获取 Prompt 版本列表
-   * GET /api/admin/prompt/versions
-   */
-  async listPromptVersions(params?: SearchPromptVersionRequest) {
-    return apiClient.get<SearchResponse<PromptVersion>>('/prompt/versions', params);
+  async updatePrompt(id: number, data: SavePromptRequest) {
+    return apiClient.put(`/prompt/${id}`, data);
   },
 
   /**
    * 获取 Prompt 详情
-   * GET /api/admin/prompt/{version_id}
+   * GET /api/admin/prompt/{id}
    */
-  async getPromptDetail(versionId: number): Promise<PromptDetail> {
-    return apiClient.get<PromptDetail>(`/prompt/${versionId}`);
+  async getPromptDetail(id: number): Promise<PromptDetail> {
+    return apiClient.get<PromptDetail>(`/prompt/${id}`);
   },
 
   /**
@@ -58,11 +42,11 @@ export const PromptApi = {
   },
 
   /**
-   * 测试 Prompt 版本
-   * POST /api/admin/prompt/{version_id}/test
+   * 测试 Prompt
+   * POST /api/admin/prompt/{id}/test
    */
-  async testPrompt(versionId: number, data: TestPromptRequest) {
-    return apiClient.post<any>(`/prompt/${versionId}/test`, {
+  async testPrompt(id: number, data: TestPromptRequest) {
+    return apiClient.post<any>(`/prompt/${id}/test`, {
       input_payload: data.variables || {},
       model_provider: data.model_provider,
       model_name: data.model_name,

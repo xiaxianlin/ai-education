@@ -11,7 +11,6 @@ import PromptDetail from '@/pages/Prompt/Detail';
 import PromptForm from '@/pages/Prompt/Form';
 import PromptList from '@/pages/Prompt/List';
 import PromptTest from '@/pages/Prompt/Test';
-import PromptVersionList from '@/pages/Prompt/VersionList';
 import QuestionDetail from '@/pages/Question/Detail';
 import QuestionForm from '@/pages/Question/Form';
 import QuestionList from '@/pages/Question/List';
@@ -53,7 +52,6 @@ export function Router() {
         { path: 'prompt', element: <PromptList /> },
         { path: 'prompt/form', element: <PromptForm /> },
         { path: 'prompt/detail', element: <PromptDetail /> },
-        { path: 'prompt/versions', element: <PromptVersionList /> },
         { path: 'prompt/test', element: <PromptTest /> },
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/config', element: <PracticeConfig /> },
