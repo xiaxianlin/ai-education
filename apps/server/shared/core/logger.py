@@ -1,9 +1,10 @@
 import logging
 import os
+
 from loguru import logger
 from shared.core.settings import envs
-from sqlalchemy.sql import Select
 from sqlalchemy.orm import Query
+from sqlalchemy.sql import Select
 
 
 class InterceptHandler(logging.Handler):

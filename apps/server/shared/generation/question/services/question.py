@@ -65,9 +65,7 @@ def get_question_distribution(
     }
 
 
-def handle_llm_questions(
-    state: QuestionGenerationState, llm_questions: list[dict]
-) -> list[Question]:
+def handle_llm_questions(state: QuestionGenerationState, llm_questions: list[dict]) -> list[Question]:
     """验证大模型返回的结果"""
     db: AsyncSession = state["db"]
     textbook = state["textbook"]

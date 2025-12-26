@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+from shared.core.database import Question, Unit
+from shared.core.schema import QuestionSchema, SearchResultSchema
+from shared.generation import (
+    invoke_question_audio_workflow,
+    invoke_question_image_workflow,
+)
+from shared.utils.prompt import build_question_prompt
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, noload
 
 from ..schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
-from shared.core.database import Question, Unit
-from shared.core.schema import QuestionSchema, SearchResultSchema
-from shared.generation import invoke_question_image_workflow, invoke_question_audio_workflow
-from shared.utils.prompt import build_question_prompt
 
 
 async def create_question(db: AsyncSession, data: CreateQuestionSchema):
@@ -163,12 +166,7 @@ async def search_question(db: AsyncSession, params: SearchQuestionSchema):
 
     # 分页查询
     offset = (params.page - 1) * params.size
-    query = (
-        query.where(and_(*conditions))
-        .order_by(Question.id.desc())
-        .offset(offset)
-        .limit(params.size)
-    )
+    query = query.where(and_(*conditions)).order_by(Question.id.desc()).offset(offset).limit(params.size)
 
     result = await db.scalars(query)
 

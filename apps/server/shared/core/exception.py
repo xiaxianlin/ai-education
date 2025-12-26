@@ -1,7 +1,7 @@
-from loguru import logger
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from loguru import logger
 from shared.core.settings import envs
 
 
@@ -14,11 +14,11 @@ def print_exception(request: Request, exc: any):
 def get_error_message(exc: Exception, default_message: str) -> str:
     """
     根据环境返回错误信息
-    
+
     Args:
         exc: 异常对象
         default_message: 默认错误信息
-        
+
     Returns:
         错误信息字符串
     """

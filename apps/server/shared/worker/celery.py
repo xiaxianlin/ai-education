@@ -4,7 +4,6 @@ from typing import Any, List
 from celery import Celery, states
 from celery.result import AsyncResult
 from loguru import logger
-
 from shared.core.settings import envs
 
 
@@ -70,9 +69,7 @@ def submit_task(task_id: str, executor: Executor, args: List[Any]) -> str:
     Returns:
         str: Celery 任务ID
     """
-    logger.info(
-        f"提交任务到 Celery 队列: task_id={task_id}, task_name={executor.value}, args={args}"
-    )
+    logger.info(f"提交任务到 Celery 队列: task_id={task_id}, task_name={executor.value}, args={args}")
 
     task = celery_app.send_task(
         name=executor.value,

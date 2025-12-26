@@ -1,19 +1,17 @@
 """Prompt 测试服务 - Admin端"""
 
 import time
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from loguru import logger
 
+from loguru import logger
 from shared.core.database import Prompt
 from shared.provider import get_provider
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import TestPromptSchema
 
 
-async def _test_text_generation(
-    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
-) -> dict:
+async def _test_text_generation(prompt: Prompt, rendered_prompt: str, params: TestPromptSchema) -> dict:
     """文本生成测试（单一职责）"""
     start_time = time.time()
 
@@ -62,9 +60,7 @@ async def _test_text_generation(
     }
 
 
-async def _test_image_generation(
-    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
-) -> dict:
+async def _test_image_generation(prompt: Prompt, rendered_prompt: str, params: TestPromptSchema) -> dict:
     """图片生成测试（单一职责）"""
     start_time = time.time()
 
@@ -101,9 +97,7 @@ async def _test_image_generation(
     }
 
 
-async def _test_audio_generation(
-    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
-) -> dict:
+async def _test_audio_generation(prompt: Prompt, rendered_prompt: str, params: TestPromptSchema) -> dict:
     """语音生成测试（单一职责）"""
     start_time = time.time()
 
@@ -138,9 +132,7 @@ async def _test_audio_generation(
     }
 
 
-async def _test_video_generation(
-    prompt: Prompt, rendered_prompt: str, params: TestPromptSchema
-) -> dict:
+async def _test_video_generation(prompt: Prompt, rendered_prompt: str, params: TestPromptSchema) -> dict:
     """视频生成测试（单一职责）"""
     # 阿里云暂不支持视频生成
     raise NotImplementedError("视频生成功能暂不支持")

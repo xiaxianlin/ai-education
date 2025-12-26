@@ -1,7 +1,8 @@
 import multiprocessing
 import sys
-from pydantic_settings import BaseSettings
+
 from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -66,9 +67,9 @@ class Settings(BaseSettings):
             )
         if len(v) < 32:
             import warnings
+
             warnings.warn(
-                f"APP_SECRET_KEY 长度仅为 {len(v)} 个字符，建议使用至少32个字符的强密钥以提高安全性。",
-                UserWarning
+                f"APP_SECRET_KEY 长度仅为 {len(v)} 个字符，建议使用至少32个字符的强密钥以提高安全性。", UserWarning
             )
         return v
 

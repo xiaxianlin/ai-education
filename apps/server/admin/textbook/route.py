@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from fastapi import APIRouter, Depends, UploadFile
 from shared.core.database import Database
 from shared.core.schema import SearchSchema

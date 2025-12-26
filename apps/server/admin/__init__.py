@@ -13,9 +13,9 @@ from .auth.route import auth_router
 from .practice.route import practice_router
 from .prompt.route import prompt_router
 from .question.route import question_router
+from .student.route import student_router
 from .teacher_book.route import teacher_book_router
 from .textbook.route import textbook_router
-from .student.route import student_router
 
 admin_app = FastAPI(
     default_response_class=WrappedResponse,

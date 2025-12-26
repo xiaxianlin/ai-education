@@ -1,5 +1,4 @@
-from .celery import submit_task, get_task_status, cancel_task, Executor
-from .celery import celery_app
+from .celery import Executor, cancel_task, celery_app, get_task_status, submit_task
 
 __all__ = [
     "Executor",

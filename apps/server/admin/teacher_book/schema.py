@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from pydantic import BaseModel, field_validator
 from shared.core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
 

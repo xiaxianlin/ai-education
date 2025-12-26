@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from sqlalchemy import select, func, delete
+from shared.core.database import Practice, PracticePrompt, Prompt
+from shared.core.schema import PracticePromptSchema, SearchResultSchema
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from ..schema import SavePracticePromptSchema, SearchPracticePromptSchema
-from shared.core.database import PracticePrompt, Prompt, Practice
-from shared.core.schema import SearchResultSchema, PracticePromptSchema
 
 
 async def list_practice_prompts(db: AsyncSession, params: SearchPracticePromptSchema):

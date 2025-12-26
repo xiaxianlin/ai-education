@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from shared.core.database import Knowledge, Unit
 from shared.core.schema import KnowledgeSchema, SearchResultSchema, SearchSchema
 from sqlalchemy import func, select

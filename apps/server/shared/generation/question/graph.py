@@ -5,10 +5,10 @@ from typing import Any, Dict, List
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
-from shared.provider import get_provider
-from shared.core.database import AsyncSession, PracticeSession, Textbook, Unit, Question
-from shared.generation.image import invoke_question_image_workflow
+from shared.core.database import AsyncSession, PracticeSession, Question, Textbook, Unit
 from shared.generation.audio import invoke_question_audio_workflow
+from shared.generation.image import invoke_question_image_workflow
+from shared.provider import get_provider
 from shared.utils.prompt import build_question_prompt
 
 from .schema import QuestionGenerationState
@@ -48,9 +48,7 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     if session.practice_slug not in PRACTICE_SERVICES:
         raise ValueError(f"练习类型: slug={session.practice_slug} 暂不支持")
 
-    logger.info(
-        f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}"
-    )
+    logger.info(f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}")
 
     return {}
 
@@ -88,9 +86,7 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
         raise ValueError("LLM 返回结果中没有 questions 字段")
 
     if not isinstance(result["questions"], list):
-        raise ValueError(
-            f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
-        )
+        raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
 
     logger.info(f"大模型生成题目完成，共 {len(result['questions'])} 道题目")
 

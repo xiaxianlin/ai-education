@@ -1,15 +1,14 @@
-from __future__ import annotations
-
 import os
 from pathlib import Path
+
 from fastapi import UploadFile
+from shared.core.database import TeacherBook
+from shared.core.schema import TeacherBookSchema
+from shared.core.settings import envs
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import SaveTeacherBookSchema
-from shared.core.database import TeacherBook
-from shared.core.schema import TeacherBookSchema
-from shared.core.settings import envs
 
 
 async def create_teacher_book(db: AsyncSession, data: SaveTeacherBookSchema):
@@ -58,11 +57,6 @@ async def delete_teacher_book(db: AsyncSession, id: int):
     if not teacher_book:
         raise ValueError("教师用书不存在")
 
-        # NOTE: RAG index deletion implementation planned for future release
-    # if teacher_book.index_file_id:
-    #     rag = AliyunRag()
-    #     rag.delete_index_document(teacher_book.index_file_id)
-
     await db.delete(teacher_book)
     await db.commit()
 
@@ -75,9 +69,7 @@ async def get_teacher_book(db: AsyncSession, teacher_book_id: int):
 
 
 async def search_teacher_book(db: AsyncSession, subject: str, grade: int):
-    results = await db.scalars(
-        select(TeacherBook).where(TeacherBook.subject == subject, TeacherBook.grade == grade)
-    )
+    results = await db.scalars(select(TeacherBook).where(TeacherBook.subject == subject, TeacherBook.grade == grade))
 
     return [TeacherBookSchema.model_validate(item) for item in results.unique().all()]
 
@@ -89,16 +81,15 @@ async def upload_teacher_book(db: AsyncSession, id: int, file: UploadFile):
         raise ValueError("教师用书不存在")
 
     # 验证文件并获取安全文件名
-    data, safe_filename = validate_file_upload(file)
-    teacher_book.file = safe_filename
+    teacher_book.file = file.filename
 
     try:
         tmp_dir = f"{envs.TMP_DIR}/teacher_book"
         os.makedirs(tmp_dir, exist_ok=True)
-        tmp_file_path = Path(tmp_dir) / safe_filename
+        tmp_file_path = Path(tmp_dir) / file.filename
 
         with open(tmp_file_path, "wb") as buffer:
-            buffer.write(data)
+            buffer.write(file.file.read())
 
         # NOTE: RAG index upload implementation planned for future release
         # rag = AliyunRag()

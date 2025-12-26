@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Database
 from .schema import SavePromptSchema, SearchPromptSchema, TestPromptSchema
 from .services import prompt, prompt_test
 

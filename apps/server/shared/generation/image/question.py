@@ -3,15 +3,16 @@
 LangGraph workflow definition for image generation.
 """
 
+from typing import NotRequired, TypedDict
+
 import requests
-from typing import Any, Dict, NotRequired, TypedDict
-from loguru import logger
-from langgraph.graph import END, StateGraph
-from sqlalchemy import select
-from shared.core.database import AsyncSession, Prompt
 from langchain_core.prompts import ChatPromptTemplate
-from shared.provider import get_provider, BaseProvider
+from langgraph.graph import END, StateGraph
+from loguru import logger
+from shared.core.database import AsyncSession, Prompt
+from shared.provider import BaseProvider, get_provider
 from shared.utils import oss
+from sqlalchemy import select
 
 
 class QuestionImageGenerationState(TypedDict, total=False):
@@ -121,7 +122,7 @@ async def upload_oss_node(state: QuestionImageGenerationState):
     response = requests.get(image_url, stream=True)
     response.raise_for_status()
     oss.upload(oss_path, response.content)
-    logger.info(f"图片上传成功")
+    logger.info("图片上传成功")
     return {}
 
 

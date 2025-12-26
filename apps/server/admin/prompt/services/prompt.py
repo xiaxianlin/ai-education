@@ -1,23 +1,21 @@
 from __future__ import annotations
 
-from sqlalchemy import select, func, delete
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from ..schema import (
-    SavePromptSchema,
-    PromptDetailSchema,
-    SearchPromptSchema,
-)
-from shared.core.database import Prompt, PracticePrompt
+from shared.core.database import PracticePrompt, Prompt
 from shared.core.schema import (
     PromptSchema,
     SearchResultSchema,
 )
+from sqlalchemy import delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..schema import (
+    PromptDetailSchema,
+    SavePromptSchema,
+    SearchPromptSchema,
+)
 
 
-async def list_prompts(
-    db: AsyncSession, params: SearchPromptSchema
-) -> SearchResultSchema[PromptSchema]:
+async def list_prompts(db: AsyncSession, params: SearchPromptSchema) -> SearchResultSchema[PromptSchema]:
     """列表查询 Prompt"""
 
     query = select(Prompt)
@@ -119,9 +117,7 @@ async def delete_prompt(db: AsyncSession, id: int) -> None:
     if not prompt:
         raise ValueError("提示词不存在")
     # 检查是否有关联的练习提示词
-    practice_prompt = await db.scalar(
-        select(PracticePrompt).where(PracticePrompt.prompt_slug == prompt.slug)
-    )
+    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.prompt_slug == prompt.slug))
     if practice_prompt:
         raise ValueError("提示词有关联的练习提示词，无法删除")
 

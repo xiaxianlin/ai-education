@@ -1,4 +1,4 @@
-from typing import Any, List, NotRequired, Optional, TypedDict
+from typing import Any, List, NotRequired, TypedDict
 
 from pydantic import BaseModel, Field
 from shared.core.database import Knowledge, PracticeSession, Question, Textbook, Unit

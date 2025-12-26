@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from ..schema import (
-    CreateQuestionTypeSchema,
-    UpdateQuestionTypeSchema,
-    SearchQuestionTypeSchema,
-)
 from shared.core.database import QuestionType
 from shared.core.schema import QuestionTypeSchema
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..schema import (
+    CreateQuestionTypeSchema,
+    SearchQuestionTypeSchema,
+    UpdateQuestionTypeSchema,
+)
 
 
 async def create_question_type(db: AsyncSession, params: CreateQuestionTypeSchema):

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import List
 
 from shared.core.database import Knowledge, Textbook, Unit

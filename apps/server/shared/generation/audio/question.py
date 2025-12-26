@@ -3,12 +3,13 @@
 LangGraph workflow definition for audio generation.
 """
 
+from typing import NotRequired, TypedDict
+
 import requests
-from typing import Any, Dict, NotRequired, TypedDict
-from loguru import logger
 from langgraph.graph import END, StateGraph
-from shared.utils import oss
+from loguru import logger
 from shared.provider import BaseProvider, get_provider
+from shared.utils import oss
 
 
 class AudioGenerationState(TypedDict, total=False):
@@ -40,10 +41,7 @@ def entry_node(state: AudioGenerationState):
     if not state.get("oss_path"):
         raise ValueError("OSS 存储路径 (oss_path) 不能为空")
 
-    logger.info(
-        f"进入音频生成工作流: text_length={len(state.get('text'))}, "
-        f"language={state.get('language')}"
-    )
+    logger.info(f"进入音频生成工作流: text_length={len(state.get('text'))}, " f"language={state.get('language')}")
 
     return {"provider": get_provider()}
 
@@ -74,7 +72,7 @@ async def upload_oss_node(state: AudioGenerationState):
     response.raise_for_status()
     oss.upload(oss_path, response.content)
 
-    logger.info(f"音频上传成功")
+    logger.info("音频上传成功")
     return {}
 
 

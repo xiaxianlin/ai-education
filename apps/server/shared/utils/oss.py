@@ -1,9 +1,9 @@
 """OSS 服务"""
 
-import alibabacloud_oss_v2 as oss
-from loguru import logger
 from datetime import timedelta
 
+import alibabacloud_oss_v2 as oss
+from loguru import logger
 from shared.core.settings import envs
 
 credentials_provider = oss.credentials.StaticCredentialsProvider(
@@ -87,4 +87,3 @@ def get_access_url(filepath: str, days: int = 7):
     req = oss.GetObjectRequest(bucket=envs.ALIYUN_OSS_BUCKET, key=filepath)
     res = client.presign(req, expires=timedelta(days=days))
     return res.url
-

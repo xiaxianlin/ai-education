@@ -31,9 +31,7 @@ async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
     textbook = state["textbook"]
 
     # 加载教材的所有知识点
-    knowledges = (
-        await db.scalars(select(Knowledge).where(Knowledge.textbook_id == textbook.id))
-    ).all()
+    knowledges = (await db.scalars(select(Knowledge).where(Knowledge.textbook_id == textbook.id))).all()
     return {"knowledges": knowledges}
 
 

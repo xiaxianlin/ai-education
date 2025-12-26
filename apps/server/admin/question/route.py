@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Database
 from .schema import (
     CreateQuestionSchema,
-    SearchQuestionSchema,
-    UpdateQuestionSchema,
     CreateQuestionTypeSchema,
-    UpdateQuestionTypeSchema,
+    SearchQuestionSchema,
     SearchQuestionTypeSchema,
+    UpdateQuestionSchema,
+    UpdateQuestionTypeSchema,
 )
 from .services import question, question_type
 
@@ -35,9 +35,7 @@ async def create_question_type(params: CreateQuestionTypeSchema, db: AsyncSessio
     summary="更新题型",
     description="更新指定题型的信息",
 )
-async def update_question_type(
-    id: int, params: UpdateQuestionTypeSchema, db: AsyncSession = Database
-):
+async def update_question_type(id: int, params: UpdateQuestionTypeSchema, db: AsyncSession = Database):
     return await question_type.update_question_type(db, id, params)
 
 
@@ -57,9 +55,7 @@ async def delete_question_type(id: int, db: AsyncSession = Database):
     summary="搜索题型",
     description="根据条件搜索题型列表",
 )
-async def search_question_types(
-    params: SearchQuestionTypeSchema = Depends(), db: AsyncSession = Database
-):
+async def search_question_types(params: SearchQuestionTypeSchema = Depends(), db: AsyncSession = Database):
     return await question_type.search_question_types(db, params)
 
 
@@ -136,8 +132,6 @@ async def search_question(params: SearchQuestionSchema = Depends(), db: AsyncSes
     return await question.search_question(db, params)
 
 
-@question_router.get(
-    "/{id}", tags=["题目管理"], summary="获取单个题目详情", description="获取指定题目的详细信息"
-)
+@question_router.get("/{id}", tags=["题目管理"], summary="获取单个题目详情", description="获取指定题目的详细信息")
 async def get_question(id: str, db: AsyncSession = Database):
     return await question.get_question(db, id)
