@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { GenerateType } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
-import { Spin, Flex } from 'antd';
+import { Flex, Spin } from 'antd';
+import { useMemo } from 'react';
 import { usePromptTestModel } from '../models/page';
-import TemplateContent from './TemplateContent';
-import ParameterInfo from './ParameterInfo';
 import ModelInfo from './ModelInfo';
+import ParameterInfo from './ParameterInfo';
+import TemplateContent from './TemplateContent';
 import { TestForm } from './TestForm';
 
 export default function MainView() {

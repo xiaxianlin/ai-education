@@ -1,3 +1,86 @@
+/**
+ * 生成类型
+ */
+export enum GenerateType {
+  /** 文本 */
+  TEXT = "text",
+  /** 图片 */
+  IMAGE = "image",
+  /** 视频 */
+  VIDEO = "video",
+  /** 音频 */
+  AUDIO = "audio",
+}
+
+/**
+ * 管理员类型
+ */
+export enum ManagerType {
+  /** 系统管理员 */
+  SYSTEM = 0,
+  /** 超级管理员 */
+  ADMIN = 1,
+  /** 普通管理员 */
+  NORMAL = 2,
+}
+/**
+ * 练习参数类型
+ */
+export enum PracticeParameterType {
+  /** 内置参数 */
+  SYSTEM = "system",
+  /** 输入参数 */
+  INPUT = "input",
+}
+
+/**
+ * 练习参数值类型
+ */
+export enum PracticeParameterValueType {
+  /** 字符串 */
+  STRING = "string",
+  /** 数字 */
+  NUMBER = "number",
+  /** 对象 */
+  OBJECT = "object",
+  /** 数组 */
+  ARRAY = "array",
+}
+
+/**
+ * 练习会话状态
+ */
+export enum PracticeSessionStatus {
+  /** 等待练习 */
+  READY = 0,
+  /** 正在生成中 */
+  PRACTICING = 1,
+  /** 已完成 */
+  COMPLETED = 2,
+}
+
+/**
+ * 练习生成状态
+ */
+export enum PracticeGenerateStatus {
+  /** 生成失败 */
+  FAILED = 0,
+  /** 生成中 */
+  GENERATING = 1,
+  /** 生成成功 */
+  SUCCESS = 2,
+}
+
+/**
+ * 练习类型
+ */
+export enum PracticeType {
+  /** 系统练习 */
+  SYSTEM = "system",
+  /** 自定义练习 */
+  CUSTOM = "custom",
+}
+
 export const PRACTICE_TYPE_MAP: Record<PracticeType, string> = {
   system: "系统练习",
   custom: "自定义练习",

@@ -1,3 +1,4 @@
+import { GenerateType } from '@ai-education/shared-web';
 import { Form, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';

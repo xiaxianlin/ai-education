@@ -1,3 +1,11 @@
+import {
+  ManagerType,
+  PracticeGenerateStatus,
+  PracticeParameterType,
+  PracticeParameterValueType,
+  PracticeSessionStatus,
+  PracticeType
+} from "../constants";
 declare global {
   // ================ API 响应类型 ================
 
@@ -26,32 +34,7 @@ declare global {
     total?: number;
   }
 
-  /**
-   * 生成类型
-   */
-  enum GenerateType {
-    /** 文本 */
-    TEXT = "text",
-    /** 图片 */
-    IMAGE = "image",
-    /** 视频 */
-    VIDEO = "video",
-    /** 音频 */
-    AUDIO = "audio",
-  }
-
   // ================ 基础类型 ================
-  /**
-   * 管理员类型
-   */
-  enum ManagerType {
-    /** 系统管理员 */
-    SYSTEM = 0,
-    /** 超级管理员 */
-    ADMIN = 1,
-    /** 普通管理员 */
-    NORMAL = 2,
-  }
 
   /**
    * 管理员信息（对应 ManagerSchema）
@@ -175,16 +158,6 @@ declare global {
   }
 
   /**
-   * 练习类型
-   */
-  enum PracticeType {
-    /** 系统练习 */
-    SYSTEM = "system",
-    /** 自定义练习 */
-    CUSTOM = "custom",
-  }
-
-  /**
    * 练习实体
    */
   interface Practice {
@@ -216,30 +189,6 @@ declare global {
   }
 
   /**
-   * 练习参数类型
-   */
-  enum PracticeParameterType {
-    /** 内置参数 */
-    SYSTEM = "system",
-    /** 输入参数 */
-    INPUT = "input",
-  }
-
-  /**
-   * 练习参数值类型
-   */
-  enum PracticeParameterValueType {
-    /** 字符串 */
-    STRING = "string",
-    /** 数字 */
-    NUMBER = "number",
-    /** 对象 */
-    OBJECT = "object",
-    /** 数组 */
-    ARRAY = "array",
-  }
-
-  /**
    * 练习参数配置
    */
   interface PracticeParameter {
@@ -251,29 +200,6 @@ declare global {
     value?: any;
   }
 
-  /**
-   * 练习会话状态
-   */
-  enum PracticeSessionStatus {
-    /** 等待练习 */
-    READY = 0,
-    /** 正在生成中 */
-    PRACTICING = 1,
-    /** 已完成 */
-    COMPLETED = 2,
-  }
-
-  /**
-   * 练习生成状态
-   */
-  enum PracticeGenerateStatus {
-    /** 生成失败 */
-    FAILED = 0,
-    /** 生成中 */
-    GENERATING = 1,
-    /** 生成成功 */
-    SUCCESS = 2,
-  }
   /**
    * 练习会话
    */
@@ -401,4 +327,5 @@ declare global {
     update_time?: number;
   }
 }
-export {};
+export { };
+

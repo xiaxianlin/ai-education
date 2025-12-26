@@ -1,3 +1,5 @@
+import type { GenerateType } from '@ai-education/shared-web';
+
 declare global {
   interface SearchPromptRequest extends SearchRequest {
     name?: string;
@@ -28,4 +30,5 @@ declare global {
   }
 }
 
-export {};
+export { };
+
