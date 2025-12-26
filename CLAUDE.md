@@ -74,7 +74,8 @@ pnpm keep-all "feat: add feature" # With custom message
 ### Mobile Architecture
 - **Riverpod** for state management
 - **GoRouter** for routing
-- Code generation with json_serializable and freezed
+- Code generation: json_serializable + freezed + build_runner
+- **After model changes: always run `./build.sh`**
 
 ## Key Conventions
 
@@ -86,10 +87,12 @@ pnpm keep-all "feat: add feature" # With custom message
   - `mapped_column()` instead of `Column()`
   - `select()` instead of `session.query()`
   - `AsyncSession` with async/await throughout
+  - Use `selectinload` for one-to-many, `joinedload` for many-to-one
 - API routes use **single form** for resources (e.g., `/unit`, `/student`)
 - Use Pydantic schemas in `schema.py` for validation
 - Authentication: JWT via `x-access-token` header
 - Error handling: `ValueError` for business errors, `HTTPException` for HTTP errors
+- **Python import order**: stdlib → third-party → local (absolute imports)
 
 ### Frontend (React)
 - Page structure: `pages/[Feature]/[PageName]/`
@@ -118,10 +121,11 @@ pnpm keep-all "feat: add feature" # With custom message
 Web APIs use unified `ApiResponse<T>` wrapper. The ApiClient automatically extracts `response.data.data`.
 
 ### LangGraph Workflows
-Complex AI workflows defined in `shared/generation/[type]/graph.py`:
+Complex AI workflows defined in `apps/server/app/generation/[type]/graph.py`:
 - Use `TypedDict` for state schema
 - Node functions are `async def node_name(state: State) -> Dict[str, Any]`
 - State fields without `NotRequired` are external inputs; with `NotRequired[Type]` are internal
+- AI platform: 阿里云百炼AI, logging: Loguru, object storage: 阿里云 OSS
 
 ### Database Operations
 - Use `selectinload` for one-to-many relationships
@@ -149,9 +153,10 @@ The project has extensive Cursor rules in `.cursor/rules/` that auto-apply based
 1. **Cross-platform consistency**: Mobile app should reference student-web implementation for business logic
 2. **Type safety**: All code must use type systems (TypeScript/Python type hints)
 3. **Error handling**: All API calls and async operations require error handling
-4. **Code generation**: Flutter models need rebuild.sh after changes
+4. **Code generation**: Flutter models need `./build.sh` after changes
 5. **Environment**: All config via environment variables, no hardcoding
 6. **Sub-app docs**: Backend API docs at `/api/admin/docs` and `/api/student/docs` (not root `/docs`)
+7. **Package managers**: Node.js (pnpm >= 9.0), Python (uv), Flutter (flutter pub get)
 
 ## Quick Reference
 
