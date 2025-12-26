@@ -3,15 +3,22 @@ import { RESOURCE_TYPE_OPTIONS } from '@/constants/question';
 import { useConfigs } from '@/hooks';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Flex, Tag } from 'antd';
-import { useMemo } from 'react';
+import { Button, Flex, Modal, Tag } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuestionTypeListModel } from '../models/page';
 
 import { createActionColumn } from '@/hooks/useTableColumns';
 
 export default function TableView() {
   const { question_types } = useConfigs();
-  const { data, scene, setScene, showForm, showCopyForm, handleDelete } = useQuestionTypeListModel();
+  const { data, scene, setScene, showForm, showCopyForm, handleDelete, handleBatchDelete, batchDeleteLoading } =
+    useQuestionTypeListModel();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  // 当场景改变时，清空选中的行
+  useEffect(() => {
+    setSelectedRowKeys([]);
+  }, [scene]);
 
   const columns = useMemo<ProColumns<QuestionType>[]>(
     () => [
@@ -50,6 +57,22 @@ export default function TableView() {
     [showForm, showCopyForm, handleDelete],
   );
 
+  const handleBatchDeleteClick = () => {
+    if (selectedRowKeys.length === 0) return;
+
+    Modal.confirm({
+      title: '批量删除题型',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 个题型吗？删除后无法恢复，请谨慎操作。`,
+      okText: '确定',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        await handleBatchDelete(selectedRowKeys as number[]);
+        setSelectedRowKeys([]);
+      },
+    });
+  };
+
   return (
     <ProTable<QuestionType>
       bordered
@@ -58,10 +81,26 @@ export default function TableView() {
       columns={columns}
       dataSource={data}
       pagination={false}
+      rowSelection={{
+        selectedRowKeys,
+        onChange: setSelectedRowKeys,
+      }}
       headerTitle={
-        <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
-          新增题型
-        </Button>
+        <Flex gap={8}>
+          <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
+            新增题型
+          </Button>
+          {selectedRowKeys.length > 0 && (
+            <Button
+              danger
+              size="large"
+              onClick={handleBatchDeleteClick}
+              loading={batchDeleteLoading}
+            >
+              批量删除 ({selectedRowKeys.length})
+            </Button>
+          )}
+        </Flex>
       }
       toolbar={{
         settings: [
@@ -74,7 +113,10 @@ export default function TableView() {
                   variant="filled"
                   style={{ padding: '8px 16px', cursor: 'pointer', fontSize: 14, fontWeight: 400 }}
                   color={isActive ? 'volcano' : 'blue'}
-                  onClick={() => setScene(isActive ? undefined : item)}
+                  onClick={() => {
+                    setScene(isActive ? undefined : item);
+                    setSelectedRowKeys([]);
+                  }}
                 >
                   {item}
                 </Tag>

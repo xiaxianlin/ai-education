@@ -90,6 +90,14 @@ export const QuestionApi = {
   },
 
   /**
+   * 批量删除题型
+   * DELETE /question/type/batch
+   */
+  async batchDeleteQuestionTypes(ids: number[]) {
+    return apiClient.delete('/question/type/batch', { ids });
+  },
+
+  /**
    * 获取题型详情
    * GET /question/type/{id}
    */

@@ -1,8 +1,8 @@
-SUBJECTS = ["英语", "数学", "语文"]
+SUBJECTS = ["语文", "数学", "英语"]
 TEXTBOOK_VERSIONS = ["人教版"]
 SEMESTERS = ["上学期", "下学期"]
 DIFFICULTY_LEVELS = ["简单", "普通", "困难"]
-QUESTION_TYPES = ["选择题", "拼写题", "口语题", "判断题", "匹配题", "简答题", "应用题"]
+QUESTION_TYPES = ["选择题", "拼写题", "口语题", "判断题", "匹配题", "简答题", "应用题", "操作题"]
 GRADE_NAME_MAP = {
     1: "一年级",
     2: "二年级",

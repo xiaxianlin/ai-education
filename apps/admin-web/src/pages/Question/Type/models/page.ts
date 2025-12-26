@@ -1,6 +1,7 @@
 import { useDelete, useSimpleForm } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { useRequest } from 'ahooks';
+import { message } from 'antd';
 import { useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
@@ -28,6 +29,22 @@ const useContainer = () => {
     onSuccess: () => refresh(),
   });
 
+  const { runAsync: handleBatchDelete, loading: batchDeleteLoading } = useRequest(
+    async (ids: number[]) => {
+      await QuestionApi.batchDeleteQuestionTypes(ids);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('批量删除成功');
+        refresh();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '批量删除失败');
+      },
+    },
+  );
+
   return {
     ...form,
     data,
@@ -36,6 +53,8 @@ const useContainer = () => {
     scene,
     setScene,
     handleDelete,
+    handleBatchDelete,
+    batchDeleteLoading,
   };
 };
 

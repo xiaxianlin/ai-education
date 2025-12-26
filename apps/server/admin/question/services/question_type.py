@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from shared.core.database import QuestionType
 from shared.core.schema import QuestionTypeSchema
-from sqlalchemy import and_, select
+from sqlalchemy import and_, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
@@ -111,6 +111,25 @@ async def delete_question_type(db: AsyncSession, id: int):
         raise ValueError("题型不存在")
 
     await db.delete(question_type)
+    await db.commit()
+
+
+async def batch_delete_question_types(db: AsyncSession, ids: list[int]):
+    """批量删除题型"""
+    if not ids:
+        raise ValueError("ID列表不能为空")
+
+    # 检查所有题型是否存在
+    question_types = await db.scalars(select(QuestionType).where(QuestionType.id.in_(ids)))
+    existing_ids = {question_type.id for question_type in question_types.all()}
+
+    # 检查是否有不存在的题型
+    missing_ids = set(ids) - existing_ids
+    if missing_ids:
+        raise ValueError(f"题型不存在: {sorted(missing_ids)}")
+
+    # 批量删除
+    await db.execute(delete(QuestionType).where(QuestionType.id.in_(ids)))
     await db.commit()
 
 

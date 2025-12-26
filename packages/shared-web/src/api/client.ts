@@ -89,8 +89,8 @@ export class ApiClient {
   /**
    * DELETE 请求
    */
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<ApiResponse<T>>(url, config);
+  async delete<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.client.delete<ApiResponse<T>>(url, { data, ...config });
     return response.data?.data as T;
   }
 

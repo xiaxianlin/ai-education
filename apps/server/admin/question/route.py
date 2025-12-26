@@ -5,6 +5,7 @@ from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
+    BatchDeleteQuestionTypeSchema,
     CreateQuestionSchema,
     CreateQuestionTypeSchema,
     SearchQuestionSchema,
@@ -47,6 +48,16 @@ async def update_question_type(id: int, params: UpdateQuestionTypeSchema, db: As
 )
 async def delete_question_type(id: int, db: AsyncSession = Database):
     await question_type.delete_question_type(db, id)
+
+
+@question_router.delete(
+    "/type/batch",
+    tags=["题型管理"],
+    summary="批量删除题型",
+    description="批量删除指定的题型",
+)
+async def batch_delete_question_types(params: BatchDeleteQuestionTypeSchema, db: AsyncSession = Database):
+    await question_type.batch_delete_question_types(db, params.ids)
 
 
 @question_router.get(
