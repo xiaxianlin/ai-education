@@ -161,44 +161,117 @@ class Prompt(BaseModel):
 
 
 class Practice(BaseModel):
-    """练习表"""
+    """练习表（重构后）"""
 
     __tablename__ = "ah_practice"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # 基础信息
     name: Mapped[str] = mapped_column(String(100), comment="练习名称")
     slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
     type: Mapped[str] = mapped_column(String(20), index=True, comment="类型：system/custom")
     icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
     description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
-    parameters: Mapped[list] = mapped_column(JSON, default=list, comment="配置参数")
 
+    # 场景类型（新增）
+    scene_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=True,
+        index=True,
+        comment="场景类型：daily_training/unit_test/comprehensive_assessment",
+    )
+
+    # 适用范围（新增）
+    subject: Mapped[str] = mapped_column(String(50), nullable=True, index=True, comment="科目")
+    stages: Mapped[list] = mapped_column(JSON, default=list, comment="适用学段列表")
+    grades: Mapped[list] = mapped_column(JSON, default=list, comment="适用年级列表")
+
+    # 题量配置（新增）
+    question_count_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="题量配置")
+
+    # 难度配置（新增）
+    difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
+
+    # 能力维度（新增）
+    ability_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="能力维度配置")
+
+    # 反馈配置（新增）
+    feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
+
+    # 运行时配置参数
+    parameters: Mapped[list] = mapped_column(JSON, default=list, comment="运行时配置参数")
+
+    # 元数据
+    sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
 
 class PracticePrompt(BaseModel):
-    """练习提示词关联表"""
+    """练习提示词配置表（重构后）"""
 
     __tablename__ = "ah_practice_prompt"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    subject: Mapped[str] = mapped_column(String(50), comment="科目")
-    grade: Mapped[int] = mapped_column(comment="年级")
-    practice_slug: Mapped[str] = mapped_column(String(50), comment="练习标识")
-    prompt_slug: Mapped[str] = mapped_column(String(50), comment="提示词标识")
 
+    # 基础信息（新增）
+    name: Mapped[str] = mapped_column(String(100), nullable=True, comment="配置名称")
+    code: Mapped[str] = mapped_column(String(100), nullable=True, index=True, comment="配置编码")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="配置描述")
+
+    # 场景分类（新增）
+    scene_type: Mapped[str] = mapped_column(
+        String(50), nullable=True, index=True, comment="场景类型"
+    )
+    specialty_type: Mapped[str] = mapped_column(
+        String(50), nullable=True, index=True, comment="专项类型"
+    )
+
+    # 适用范围
+    subject: Mapped[str] = mapped_column(String(50), comment="科目")
+    stages: Mapped[list] = mapped_column(JSON, default=list, comment="适用学段列表")
+    grades: Mapped[list] = mapped_column(JSON, default=list, comment="适用年级列表")
+    semesters: Mapped[list] = mapped_column(JSON, nullable=True, comment="适用学期列表")
+
+    # 关联（保留旧字段兼容 + 新增ID关联）
+    practice_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="关联练习ID")
+    practice_slug: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="练习标识（兼容旧数据）"
+    )
+    prompt_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="关联提示词ID")
+    prompt_slug: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="提示词标识（兼容旧数据）"
+    )
+
+    # 题型组合配置（新增）
+    question_type_configs: Mapped[list] = mapped_column(JSON, default=list, comment="题型组合配置")
+
+    # 难度配置（新增）
+    difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
+
+    # 题量配置（新增）
+    question_count_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="题量配置")
+
+    # 模板变量（新增）
+    template_variables: Mapped[list] = mapped_column(JSON, nullable=True, comment="模板变量定义")
+
+    # 元数据
+    sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
+    # 关联关系
     practice: Mapped["Practice"] = relationship(
         "Practice",
-        primaryjoin="foreign(PracticePrompt.practice_slug) == Practice.slug",
+        primaryjoin="foreign(PracticePrompt.practice_id) == Practice.id",
         lazy="joined",
     )
     prompt: Mapped["Prompt"] = relationship(
         "Prompt",
-        primaryjoin="foreign(PracticePrompt.prompt_slug) == Prompt.slug",
+        primaryjoin="foreign(PracticePrompt.prompt_id) == Prompt.id",
         lazy="joined",
     )
 

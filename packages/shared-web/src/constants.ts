@@ -256,6 +256,12 @@ export const STAGE_LABELS: Record<Stage, string> = {
   senior: "高中",
 };
 
+/** 学段选项 */
+export const STAGE_OPTIONS = Object.entries(STAGE_LABELS).map(([value, label]) => ({
+  label,
+  value,
+}));
+
 /** 难度标签 */
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   easy: "简单",
@@ -308,4 +314,131 @@ export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
   rubric: "评分标准",
   ai: "AI评分",
   composite: "复合题",
+};
+
+// ============ 练习场景与专项类型常量 ============
+
+/** 场景类型枚举 */
+export enum SceneType {
+  DAILY_TRAINING = "daily_training",
+  UNIT_TEST = "unit_test",
+  COMPREHENSIVE_ASSESSMENT = "comprehensive_assessment",
+}
+
+/** 场景类型标签 */
+export const SCENE_TYPE_LABELS: Record<SceneType, string> = {
+  daily_training: "日常训练",
+  unit_test: "单元测试",
+  comprehensive_assessment: "综合评估",
+};
+
+/** 场景类型选项 */
+export const SCENE_TYPE_OPTIONS = Object.entries(SCENE_TYPE_LABELS).map(([value, label]) => ({
+  label,
+  value,
+}));
+
+/** 专项类型枚举 */
+export enum SpecialtyType {
+  // 语文专项
+  PINYIN = "pinyin",
+  LITERACY = "literacy",
+  VOCABULARY = "vocabulary",
+  SENTENCE = "sentence",
+  PARAGRAPH = "paragraph",
+  READING = "reading",
+  WRITING = "writing",
+  COMPREHENSIVE_CHINESE = "comprehensive_chinese",
+  // 数学专项
+  COUNTING = "counting",
+  CALCULATION = "calculation",
+  SHAPE = "shape",
+  POSITION = "position",
+  MEASUREMENT = "measurement",
+  STATISTICS = "statistics",
+  PROBLEM_SOLVING = "problem_solving",
+  COMPREHENSIVE_MATH = "comprehensive_math",
+  // 英语专项
+  ALPHABET = "alphabet",
+  WORDS = "words",
+  SENTENCE_PATTERN = "sentence_pattern",
+  GRAMMAR = "grammar",
+  LISTENING = "listening",
+  SPEAKING = "speaking",
+  ENGLISH_READING = "english_reading",
+  COMPREHENSIVE_ENGLISH = "comprehensive_english",
+}
+
+/** 专项类型标签 */
+export const SPECIALTY_TYPE_LABELS: Record<SpecialtyType, string> = {
+  // 语文
+  pinyin: "拼音专项",
+  literacy: "识字专项",
+  vocabulary: "词语专项",
+  sentence: "句子专项",
+  paragraph: "段落专项",
+  reading: "阅读专项",
+  writing: "写话/习作专项",
+  comprehensive_chinese: "语文综合",
+  // 数学
+  counting: "数数专项",
+  calculation: "计算专项",
+  shape: "图形专项",
+  position: "位置专项",
+  measurement: "测量专项",
+  statistics: "统计专项",
+  problem_solving: "解决问题专项",
+  comprehensive_math: "数学综合",
+  // 英语
+  alphabet: "字母专项",
+  words: "单词专项",
+  sentence_pattern: "句型专项",
+  grammar: "语法专项",
+  listening: "听力专项",
+  speaking: "口语专项",
+  english_reading: "英语阅读专项",
+  comprehensive_english: "英语综合",
+};
+
+/** 按科目分组的专项类型 */
+export const SPECIALTY_TYPES_BY_SUBJECT: Record<string, SpecialtyType[]> = {
+  语文: [
+    SpecialtyType.PINYIN,
+    SpecialtyType.LITERACY,
+    SpecialtyType.VOCABULARY,
+    SpecialtyType.SENTENCE,
+    SpecialtyType.PARAGRAPH,
+    SpecialtyType.READING,
+    SpecialtyType.WRITING,
+    SpecialtyType.COMPREHENSIVE_CHINESE,
+  ],
+  数学: [
+    SpecialtyType.COUNTING,
+    SpecialtyType.CALCULATION,
+    SpecialtyType.SHAPE,
+    SpecialtyType.POSITION,
+    SpecialtyType.MEASUREMENT,
+    SpecialtyType.STATISTICS,
+    SpecialtyType.PROBLEM_SOLVING,
+    SpecialtyType.COMPREHENSIVE_MATH,
+  ],
+  英语: [
+    SpecialtyType.ALPHABET,
+    SpecialtyType.WORDS,
+    SpecialtyType.SENTENCE_PATTERN,
+    SpecialtyType.GRAMMAR,
+    SpecialtyType.LISTENING,
+    SpecialtyType.SPEAKING,
+    SpecialtyType.ENGLISH_READING,
+    SpecialtyType.COMPREHENSIVE_ENGLISH,
+  ],
+};
+
+/** 获取科目专项选项 */
+export const getSpecialtyOptions = (subject: string) => {
+  const types = SPECIALTY_TYPES_BY_SUBJECT[subject] || [];
+  return types.map((type) => ({
+    label: SPECIALTY_TYPE_LABELS[type],
+    value: type,
+  }));
 };

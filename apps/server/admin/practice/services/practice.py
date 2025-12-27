@@ -19,21 +19,29 @@ async def init_system_practices():
     async with AsyncSessionLocal() as db:
         for practice_data in INIT_SYSTEM_PRACTICES:
             # 检查是否已存在
-            practice = await db.scalar(select(Practice).where(Practice.slug == practice_data["slug"]))
+            practice = await db.scalar(
+                select(Practice).where(Practice.slug == practice_data["slug"])
+            )
             if not practice:
                 practice = Practice(
                     name=practice_data["name"],
                     slug=practice_data["slug"],
-                    icon=practice_data["icon"],
-                    description=practice_data["description"],
+                    icon=practice_data.get("icon"),
+                    description=practice_data.get("description"),
                     type=practice_data["type"],
-                    parameters=practice_data["parameters"],
+                    scene_type=practice_data.get("scene_type"),
+                    subject=practice_data.get("subject"),
+                    stages=practice_data.get("stages", []),
+                    grades=practice_data.get("grades", []),
+                    parameters=practice_data.get("parameters", []),
                 )
                 db.add(practice)
         await db.commit()
 
 
-async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> SearchResultSchema[PracticeSchema]:
+async def list_practices(
+    db: AsyncSession, params: SearchPracticeSchema
+) -> SearchResultSchema[PracticeSchema]:
     """列表查询练习"""
     query = select(Practice)
 
@@ -43,14 +51,22 @@ async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> Sear
         query = query.where(Practice.slug == params.slug)
     if params.type:
         query = query.where(Practice.type == params.type)
+    if params.scene_type:
+        query = query.where(Practice.scene_type == params.scene_type)
+    if params.subject:
+        query = query.where(Practice.subject == params.subject)
+    if params.is_active is not None:
+        query = query.where(Practice.is_active == params.is_active)
 
     # 总数查询
     count_query = select(func.count()).select_from(query.subquery())
     total = await db.scalar(count_query)
 
-    # 分页查询
+    # 分页查询（按排序和ID排序）
     result = await db.scalars(
-        query.order_by(Practice.id.desc()).offset((params.page - 1) * params.size).limit(params.size)
+        query.order_by(Practice.sort_order.asc(), Practice.id.desc())
+        .offset((params.page - 1) * params.size)
+        .limit(params.size)
     )
 
     return SearchResultSchema(
@@ -81,7 +97,17 @@ async def create_practice(db: AsyncSession, params: SavePracticeSchema) -> int:
         icon=params.icon,
         description=params.description,
         type=params.type,
-        parameters=[],  # 初始化为空列表
+        scene_type=params.scene_type,
+        subject=params.subject,
+        stages=params.stages,
+        grades=params.grades,
+        question_count_config=params.question_count_config,
+        difficulty_config=params.difficulty_config,
+        ability_config=params.ability_config,
+        feedback_config=params.feedback_config,
+        sort_order=params.sort_order,
+        is_active=params.is_active,
+        parameters=[],
     )
     db.add(practice)
     await db.commit()
@@ -96,7 +122,9 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
         raise ValueError("练习不存在")
 
     # 检查标识是否与其他记录冲突
-    existed = await db.scalar(select(Practice).where(Practice.slug == params.slug, Practice.id != id))
+    existed = await db.scalar(
+        select(Practice).where(Practice.slug == params.slug, Practice.id != id)
+    )
     if existed:
         raise ValueError("练习标识已存在")
 
@@ -106,6 +134,16 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.icon = params.icon
     practice.description = params.description
     practice.type = params.type
+    practice.scene_type = params.scene_type
+    practice.subject = params.subject
+    practice.stages = params.stages
+    practice.grades = params.grades
+    practice.question_count_config = params.question_count_config
+    practice.difficulty_config = params.difficulty_config
+    practice.ability_config = params.ability_config
+    practice.feedback_config = params.feedback_config
+    practice.sort_order = params.sort_order
+    practice.is_active = params.is_active
 
     await db.commit()
 
@@ -120,8 +158,13 @@ async def delete_practice(db: AsyncSession, id: int):
     if practice.type == "system":
         raise ValueError("系统练习不允许删除")
 
-    # 检查是否有关联的练习提示词
-    practice_prompt = await db.scalar(select(PracticePrompt).where(PracticePrompt.practice_slug == practice.slug))
+    # 检查是否有关联的练习提示词（通过 ID 或 slug）
+    practice_prompt = await db.scalar(
+        select(PracticePrompt).where(
+            (PracticePrompt.practice_id == practice.id)
+            | (PracticePrompt.practice_slug == practice.slug)
+        )
+    )
     if practice_prompt:
         raise ValueError("练习有关联的练习提示词，无法删除")
 
@@ -144,5 +187,5 @@ async def save_practice_parameters(db: AsyncSession, id: int, parameters: list[d
     if not practice:
         raise ValueError("练习不存在")
 
-    practice.parameters = [PracticeParameterSchema(**param) for param in parameters]
+    practice.parameters = [PracticeParameterSchema(**param).model_dump() for param in parameters]
     await db.commit()

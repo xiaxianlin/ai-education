@@ -10,6 +10,8 @@ import {
   PracticeSessionStatus as _PracticeSessionStatus,
   PracticeType as _PracticeType,
   ResourceType as _ResourceType,
+  SceneType as _SceneType,
+  SpecialtyType as _SpecialtyType,
   Stage as _Stage,
 } from "../constants";
 
@@ -25,6 +27,8 @@ declare global {
   type PracticeSessionStatus = _PracticeSessionStatus;
   type PracticeType = _PracticeType;
   type ResourceType = _ResourceType;
+  type SceneType = _SceneType;
+  type SpecialtyType = _SpecialtyType;
   type Stage = _Stage;
 
   // ================ API 响应类型 ================
@@ -314,25 +318,130 @@ declare global {
     icon?: string;
     description?: string;
     type: PracticeType;
+    // 场景类型
+    scene_type?: SceneType;
+    // 适用范围
+    subject?: string;
+    stages?: Stage[];
+    grades?: number[];
+    // 配置
+    question_count_config?: QuestionCountConfig;
+    difficulty_config?: DifficultyConfig;
+    ability_config?: AbilityConfig;
+    feedback_config?: PracticeFeedbackConfig;
+    // 运行时参数
     parameters?: PracticeParameter[];
+    // 元数据
+    sort_order?: number;
+    is_active?: boolean;
     create_time: number;
     update_time: number;
   }
 
   /**
-   * 练习提示词关联实体
+   * 题量配置
+   */
+  interface QuestionCountConfig {
+    total?: number;
+    per_group?: number;
+    max_groups?: number;
+    time_limit_minutes?: number;
+  }
+
+  /**
+   * 难度配置
+   */
+  interface DifficultyConfig {
+    level?: string;
+    target_accuracy?: number;
+    distribution?: {
+      easy?: number;
+      medium?: number;
+      hard?: number;
+    };
+  }
+
+  /**
+   * 能力配置
+   */
+  interface AbilityConfig {
+    cognitive_levels?: CognitiveLevel[];
+    distribution?: Record<string, number>;
+  }
+
+  /**
+   * 反馈配置（练习）
+   */
+  interface PracticeFeedbackConfig {
+    instant_feedback?: boolean;
+    show_explanation?: boolean;
+    gamification?: {
+      enable_points?: boolean;
+      enable_badges?: boolean;
+      enable_progress?: boolean;
+    };
+    encouragement_messages?: string[];
+  }
+
+  /**
+   * 练习提示词配置实体
    */
   interface PracticePrompt {
     id: number;
+    // 基础信息
+    name?: string;
+    code?: string;
+    description?: string;
+    // 场景分类
+    scene_type?: SceneType;
+    specialty_type?: SpecialtyType;
+    // 适用范围
     subject: string;
-    grade: number;
-    practice_slug: string;
-    prompt_slug: string;
+    stages?: Stage[];
+    grades?: number[];
+    semesters?: string[];
+    // 关联
+    practice_id?: number;
+    practice_slug?: string;
+    prompt_id?: number;
+    prompt_slug?: string;
+    // 配置
+    question_type_configs?: QuestionTypeConfigItem[];
+    difficulty_config?: DifficultyConfig;
+    question_count_config?: QuestionCountConfig;
+    template_variables?: TemplateVariable[];
+    // 元数据
+    sort_order?: number;
+    is_active?: boolean;
     create_time: number;
     update_time: number;
-
+    // 关联对象
     practice?: Practice;
     prompt?: Prompt;
+  }
+
+  /**
+   * 题型配置项
+   */
+  interface QuestionTypeConfigItem {
+    question_type_id?: number;
+    question_type_code: string;
+    count: number;
+    difficulty?: string;
+    description?: string;
+  }
+
+  /**
+   * 模板变量
+   */
+  interface TemplateVariable {
+    key: string;
+    name: string;
+    type: "input" | "select" | "range" | "multiselect";
+    required?: boolean;
+    default_value?: any;
+    options?: Array<{ value: string; label: string }>;
+    options_source?: "units" | "textbooks" | "knowledge_points" | "custom";
   }
 
   /**

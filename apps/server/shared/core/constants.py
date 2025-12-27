@@ -198,3 +198,148 @@ DIFFICULTY_LEVEL_LABELS = {
     "medium": "中等",
     "hard": "困难",
 }
+
+
+# ============ 练习场景与专项类型常量 ============
+
+
+# 场景类型枚举
+class SceneType(str, Enum):
+    """练习场景类型枚举"""
+
+    DAILY_TRAINING = "daily_training"  # 日常训练
+    UNIT_TEST = "unit_test"  # 单元测试
+    COMPREHENSIVE_ASSESSMENT = "comprehensive_assessment"  # 综合评估
+
+
+# 场景类型（保持向后兼容）
+SCENE_TYPES = ["daily_training", "unit_test", "comprehensive_assessment"]
+
+SCENE_TYPE_LABELS = {
+    "daily_training": "日常训练",
+    "unit_test": "单元测试",
+    "comprehensive_assessment": "综合评估",
+}
+
+# 场景类型配置（默认题量和时长）
+SCENE_TYPE_CONFIG = {
+    "daily_training": {
+        "description": "单一知识点强化，快速掌握",
+        "question_count": {"min": 10, "max": 15, "default": 12},
+        "time_limit_minutes": {"min": 5, "max": 10, "default": 8},
+        "difficulty_distribution": {"easy": 1.0, "medium": 0.0, "hard": 0.0},
+    },
+    "unit_test": {
+        "description": "单元知识点全面检测",
+        "question_count": {"min": 10, "max": 15, "default": 12},
+        "time_limit_minutes": {"min": 15, "max": 20, "default": 18},
+        "difficulty_distribution": {"easy": 0.6, "medium": 0.3, "hard": 0.1},
+    },
+    "comprehensive_assessment": {
+        "description": "跨单元知识整合与能力考查",
+        "question_count": {"min": 15, "max": 20, "default": 18},
+        "time_limit_minutes": {"min": 25, "max": 40, "default": 30},
+        "difficulty_distribution": {"easy": 0.3, "medium": 0.4, "hard": 0.3},
+    },
+}
+
+
+# 专项类型枚举
+class SpecialtyType(str, Enum):
+    """练习专项类型枚举"""
+
+    # 语文专项
+    PINYIN = "pinyin"  # 拼音
+    LITERACY = "literacy"  # 识字
+    VOCABULARY = "vocabulary"  # 词语
+    SENTENCE = "sentence"  # 句子
+    PARAGRAPH = "paragraph"  # 段落
+    READING = "reading"  # 阅读
+    WRITING = "writing"  # 写话/习作
+    COMPREHENSIVE_CHINESE = "comprehensive_chinese"  # 语文综合
+
+    # 数学专项
+    COUNTING = "counting"  # 数数
+    CALCULATION = "calculation"  # 计算
+    SHAPE = "shape"  # 图形
+    POSITION = "position"  # 位置
+    MEASUREMENT = "measurement"  # 测量
+    STATISTICS = "statistics"  # 统计
+    PROBLEM_SOLVING = "problem_solving"  # 解决问题
+    COMPREHENSIVE_MATH = "comprehensive_math"  # 数学综合
+
+    # 英语专项
+    ALPHABET = "alphabet"  # 字母
+    WORDS = "words"  # 单词
+    SENTENCE_PATTERN = "sentence_pattern"  # 句型
+    GRAMMAR = "grammar"  # 语法
+    LISTENING = "listening"  # 听力
+    SPEAKING = "speaking"  # 口语
+    ENGLISH_READING = "english_reading"  # 英语阅读
+    COMPREHENSIVE_ENGLISH = "comprehensive_english"  # 英语综合
+
+
+# 专项类型标签
+SPECIALTY_TYPE_LABELS = {
+    # 语文
+    "pinyin": "拼音专项",
+    "literacy": "识字专项",
+    "vocabulary": "词语专项",
+    "sentence": "句子专项",
+    "paragraph": "段落专项",
+    "reading": "阅读专项",
+    "writing": "写话/习作专项",
+    "comprehensive_chinese": "语文综合",
+    # 数学
+    "counting": "数数专项",
+    "calculation": "计算专项",
+    "shape": "图形专项",
+    "position": "位置专项",
+    "measurement": "测量专项",
+    "statistics": "统计专项",
+    "problem_solving": "解决问题专项",
+    "comprehensive_math": "数学综合",
+    # 英语
+    "alphabet": "字母专项",
+    "words": "单词专项",
+    "sentence_pattern": "句型专项",
+    "grammar": "语法专项",
+    "listening": "听力专项",
+    "speaking": "口语专项",
+    "english_reading": "英语阅读专项",
+    "comprehensive_english": "英语综合",
+}
+
+# 按科目分组的专项类型
+SPECIALTY_TYPES_BY_SUBJECT = {
+    "语文": [
+        "pinyin",
+        "literacy",
+        "vocabulary",
+        "sentence",
+        "paragraph",
+        "reading",
+        "writing",
+        "comprehensive_chinese",
+    ],
+    "数学": [
+        "counting",
+        "calculation",
+        "shape",
+        "position",
+        "measurement",
+        "statistics",
+        "problem_solving",
+        "comprehensive_math",
+    ],
+    "英语": [
+        "alphabet",
+        "words",
+        "sentence_pattern",
+        "grammar",
+        "listening",
+        "speaking",
+        "english_reading",
+        "comprehensive_english",
+    ],
+}
