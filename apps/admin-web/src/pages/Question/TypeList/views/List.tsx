@@ -2,18 +2,23 @@ import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks/useTableColumns';
 import {
   ANSWER_TYPE_LABELS,
+  GRADES,
   INTERACTION_TYPE_LABELS,
   RESOURCE_TYPE_LABELS,
-  STAGE_LABELS,
+  Stage,
+  STAGE_LABELS as STAGE_LABEL_MAP,
 } from '@ai-education/shared-web';
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Flex, Space, Tag } from 'antd';
+import { Button, Space, Tag } from 'antd';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuestionTypeModel } from '../models/page';
+import { QuestionApi } from '../../api';
 
-export default function TableView() {
-  const { data, loading, refresh, showForm, handleDelete } = useQuestionTypeModel();
+export default function ListView() {
+  const navigate = useNavigate();
+  const { actionRef, subject, grade, handleDelete } = useQuestionTypeModel();
 
   const columns = useMemo<ProColumns<QuestionType>[]>(
     () => [
@@ -28,6 +33,7 @@ export default function TableView() {
         title: '名称',
         dataIndex: 'name',
         width: 200,
+        render: (text, record) => <a onClick={() => navigate(`/question_type/detail/${record.id}`)}>{text}</a>,
       },
       {
         title: '科目',
@@ -43,7 +49,7 @@ export default function TableView() {
           <Space size={4} wrap>
             {record.stages.map((s: Stage) => (
               <Tag key={s} color="green">
-                {STAGE_LABELS[s as keyof typeof STAGE_LABELS] || s}
+                {STAGE_LABEL_MAP[s as keyof typeof STAGE_LABEL_MAP] || s}
               </Tag>
             ))}
           </Space>
@@ -53,58 +59,61 @@ export default function TableView() {
         title: '年级',
         dataIndex: 'grades',
         width: 120,
-        render: (_, record) => record.grades.join(', '),
+        render: (_, record) => record.grades.map((grade) => GRADES[grade]).join(', '),
       },
       {
         title: '交互类型',
-        dataIndex: 'interactionType',
+        dataIndex: 'interaction_type',
         width: 100,
         render: (_, record) => (
           <Tag color="purple">
-            {INTERACTION_TYPE_LABELS[record.interactionType as keyof typeof INTERACTION_TYPE_LABELS] ||
-              record.interactionType}
+            {INTERACTION_TYPE_LABELS[record.interaction_type as keyof typeof INTERACTION_TYPE_LABELS] ||
+              record.interaction_type}
           </Tag>
         ),
       },
       {
         title: '资源类型',
-        dataIndex: 'resourceType',
+        dataIndex: 'resource_type',
         width: 80,
         render: (_, record) => (
           <Tag>
-            {RESOURCE_TYPE_LABELS[record.resourceType as keyof typeof RESOURCE_TYPE_LABELS] || record.resourceType}
+            {RESOURCE_TYPE_LABELS[record.resource_type as keyof typeof RESOURCE_TYPE_LABELS] || record.resource_type}
           </Tag>
         ),
       },
       {
         title: '答案类型',
-        dataIndex: 'answerType',
+        dataIndex: 'answer_type',
         width: 100,
         render: (_, record) => (
           <Tag color="orange">
-            {ANSWER_TYPE_LABELS[record.answerType as keyof typeof ANSWER_TYPE_LABELS] || record.answerType}
+            {ANSWER_TYPE_LABELS[record.answer_type as keyof typeof ANSWER_TYPE_LABELS] || record.answer_type}
           </Tag>
         ),
       },
       {
         title: '状态',
-        dataIndex: 'isActive',
+        dataIndex: 'is_active',
         width: 80,
-        render: (_, record) => (record.isActive ? <Tag color="success">启用</Tag> : <Tag color="error">禁用</Tag>),
+        render: (_, record) => (record.is_active ? <Tag color="success">启用</Tag> : <Tag color="error">禁用</Tag>),
       },
       createActionColumn<QuestionType>(
         (record) => (
           <>
-            <Button key="edit" type="link" onClick={() => showForm(record)}>
+            <Button key="detail" type="link" onClick={() => navigate(`/question_type/detail/${record.id}`)}>
+              详情
+            </Button>
+            <Button key="edit" type="link" onClick={() => navigate(`/question_type/form/${record.id}`)}>
               编辑
             </Button>
             <DeleteButton buttonProps={{ type: 'link' }} onConfirm={() => handleDelete(record.id)} />
           </>
         ),
-        { width: 150 },
+        { width: 120 },
       ),
     ],
-    [showForm, handleDelete],
+    [navigate, handleDelete],
   );
 
   return (
@@ -112,24 +121,29 @@ export default function TableView() {
       bordered
       rowKey="id"
       search={false}
-      loading={loading}
       columns={columns}
-      dataSource={data}
+      actionRef={actionRef}
       pagination={{
-        showSizeChanger: true,
-        showQuickJumper: true,
         defaultPageSize: 20,
       }}
       headerTitle={
-        <Flex gap={8}>
-          <Button type="primary" size="large" onClick={() => showForm()} icon={<PlusOutlined />}>
-            新增题型
-          </Button>
-          <Button size="large" onClick={refresh} icon={<ReloadOutlined />}>
-            刷新
-          </Button>
-        </Flex>
+        <Button type="primary" size="large" onClick={() => navigate('/question_type/form')} icon={<PlusOutlined />}>
+          新增题型
+        </Button>
       }
+      request={async ({ current, pageSize }) => {
+        const res = await QuestionApi.searchQuestionTypes({
+          page: current,
+          size: pageSize,
+          subject,
+          grade,
+        });
+        return {
+          data: res?.data || [],
+          total: res?.total || 0,
+          success: true,
+        };
+      }}
     />
   );
 }

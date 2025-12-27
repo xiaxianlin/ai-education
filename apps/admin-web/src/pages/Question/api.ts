@@ -9,22 +9,24 @@ export const QuestionApi = {
    */
   async searchQuestionTypes(params?: {
     subject?: string;
-    stages?: string[];
-    grades?: number[];
-    interactionType?: string;
-    isActive?: boolean;
+    grade?: number;
+    interaction_type?: string;
+    page?: number;
+    size?: number;
   }) {
-    const res = await apiClient.get<{ items: QuestionType[]; total: number }>('/question/type/search', params);
-    return res.items;
+    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search', params);
+    return res;
   },
 
   /**
-   * 获取所有题型
-   * GET /question/type/all
+   * 获取所有题型（通过搜索接口获取所有数据）
+   * GET /question/type/search
    */
   async listAllQuestionTypes() {
-    const res = await apiClient.get<{ items: QuestionType[]; total: number }>('/question/type/all');
-    return res.items;
+    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search', {
+      size: 1000, // 获取足够多的数据
+    });
+    return res.data || [];
   },
 
   /**
@@ -65,8 +67,14 @@ export const QuestionApi = {
    * 获取题目模板列表
    * GET /question/template
    */
-  async listQuestionTemplates(params?: { questionTypeId?: number; isActive?: boolean }) {
-    return apiClient.get<QuestionTemplate[]>('/question/template', params);
+  async listQuestionTemplates(params?: {
+    question_type_id?: number;
+    is_active?: boolean;
+    page?: number;
+    size?: number;
+  }) {
+    const res = await apiClient.get<{ data: QuestionTemplate[]; total: number }>('/question/template', params);
+    return res;
   },
 
   /**
@@ -116,12 +124,8 @@ export const QuestionApi = {
    * GET /question/search
    */
   async searchQuestions(params?: SearchQuestionRequest) {
-    return apiClient.get<{
-      items: Question[];
-      total: number;
-      page: number;
-      pageSize: number;
-    }>('/question/search', params);
+    const res = await apiClient.get<{ data: Question[]; total: number }>('/question/search', params);
+    return res;
   },
 
   /**

@@ -2,13 +2,14 @@
 题目模板管理服务
 """
 
-from typing import List, Optional
-from sqlalchemy import select
+from typing import List, Optional, Tuple
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from shared.core.database import QuestionTemplate, QuestionType
 from admin.question.schema import (
     QuestionTemplateCreateSchema,
     QuestionTemplateUpdateSchema,
+    QuestionTemplateSearchSchema,
 )
 
 
@@ -59,23 +60,41 @@ async def get_template(db: AsyncSession, template_id: int) -> Optional[QuestionT
 
 
 async def list_templates(
-    db: AsyncSession,
-    question_type_id: Optional[int] = None,
-    is_active: Optional[bool] = None,
-) -> List[QuestionTemplate]:
-    """获取题目模板列表"""
-    query = select(QuestionTemplate)
+    db: AsyncSession, params: QuestionTemplateSearchSchema
+) -> Tuple[List[QuestionTemplate], int]:
+    """获取题目模板列表，返回列表和总数"""
+    conditions = []
 
-    if question_type_id is not None:
-        query = query.where(QuestionTemplate.question_type_id == question_type_id)
+    if params.question_type_id is not None:
+        conditions.append(QuestionTemplate.question_type_id == params.question_type_id)
 
-    if is_active is not None:
-        query = query.where(QuestionTemplate.is_active == is_active)
+    if params.is_active is not None:
+        conditions.append(QuestionTemplate.is_active == params.is_active)
 
-    query = query.order_by(QuestionTemplate.create_time.desc())
+    # 构建基础查询
+    base_query = select(QuestionTemplate)
+    count_query = select(func.count(QuestionTemplate.id))
+
+    if conditions:
+        from sqlalchemy import and_
+
+        base_query = base_query.where(and_(*conditions))
+        count_query = count_query.where(and_(*conditions))
+
+    # 获取总数
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # 分页查询
+    page = params.page or 1
+    size = params.size or 10
+    offset = (page - 1) * size
+    query = base_query.order_by(QuestionTemplate.create_time.desc()).offset(offset).limit(size)
 
     result = await db.execute(query)
-    return list(result.scalars().all())
+    templates = list(result.scalars().all())
+
+    return templates, total
 
 
 async def validate_template(template: QuestionTemplate) -> List[str]:

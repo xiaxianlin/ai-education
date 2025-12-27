@@ -159,38 +159,67 @@ export const GRADE_OPTIONS = Object.entries(GRADES).map(([value, label]) => ({
 
 // ============ 题型系统常量 ============
 
-/** 学段 */
-export type Stage = "primary_low" | "primary_high" | "junior" | "senior";
+/** 学段枚举 */
+export enum Stage {
+  PRIMARY_LOW = "primary_low",
+  PRIMARY_HIGH = "primary_high",
+  JUNIOR = "junior",
+  SENIOR = "senior",
+}
 
-/** 交互类型 */
-export type InteractionType =
-  | "single_choice"
-  | "multi_choice"
-  | "image_choice"
-  | "text_input"
-  | "handwriting"
-  | "voice_input"
-  | "drag_drop"
-  | "connect_line"
-  | "sort_order"
-  | "true_false"
-  | "correct_wrong"
-  | "follow_read"
-  | "free_speak"
-  | "fill_blank"
-  | "multi_step";
+/** 交互类型枚举 */
+export enum InteractionType {
+  SINGLE_CHOICE = "single_choice",
+  MULTI_CHOICE = "multi_choice",
+  IMAGE_CHOICE = "image_choice",
+  TEXT_INPUT = "text_input",
+  HANDWRITING = "handwriting",
+  VOICE_INPUT = "voice_input",
+  DRAG_DROP = "drag_drop",
+  CONNECT_LINE = "connect_line",
+  SORT_ORDER = "sort_order",
+  TRUE_FALSE = "true_false",
+  CORRECT_WRONG = "correct_wrong",
+  FOLLOW_READ = "follow_read",
+  FREE_SPEAK = "free_speak",
+  FILL_BLANK = "fill_blank",
+  MULTI_STEP = "multi_step",
+}
 
-/** 认知层次 */
-export type CognitiveLevel = "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create";
+/** 认知层次枚举 */
+export enum CognitiveLevel {
+  REMEMBER = "remember",
+  UNDERSTAND = "understand",
+  APPLY = "apply",
+  ANALYZE = "analyze",
+  EVALUATE = "evaluate",
+  CREATE = "create",
+}
 
-/** 难度 */
-export type Difficulty = "easy" | "medium" | "hard";
+/** 难度枚举 */
+export enum Difficulty {
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
+}
 
-/** 资源类型 */
-export type ResourceType = "none" | "image" | "audio" | "video" | "animation";
+/** 资源类型枚举 */
+export enum ResourceType {
+  NONE = "none",
+  IMAGE = "image",
+  AUDIO = "audio",
+  VIDEO = "video",
+  ANIMATION = "animation",
+}
 
-/** 答案类型 */
-export type AnswerType = "exact" | "fuzzy" | "rubric" | "ai" | "composite";
+/** 答案类型枚举 */
+export enum AnswerType {
+  EXACT = "exact",
+  FUZZY = "fuzzy",
+  RUBRIC = "rubric",
+  AI = "ai",
+  COMPOSITE = "composite",
+}
 
 /** 交互类型与组件映射 */
 export const INTERACTION_COMPONENT_MAP: Record<InteractionType, string> = {

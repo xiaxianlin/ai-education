@@ -41,7 +41,7 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
           {question.id}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="题型" valueType="text">
-          {question.questionTypeCode || '未知题型'}
+          {question.question_type_code || '未知题型'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="难度" valueType="text">
           {question.difficulty || '-'}
@@ -56,13 +56,13 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
             return (
               <div key={index} style={{ marginBottom: 4 }}>
                 <Tag style={{ margin: 0 }}>{optionLabel}</Tag> {option.text}
-                {option.imageUrl && <Image width={100} src={buildResourceUrl(option.imageUrl) || ''} />}
+                {option.image_url && <Image width={100} src={buildResourceUrl(option.image_url) || ''} />}
               </div>
             );
           })}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="知识点" valueType="text">
-          {question.knowledgePoints?.join(', ') || '-'}
+          {question.knowledge_points?.join(', ') || '-'}
         </ProDescriptions.Item>
 
         <ProDescriptions.Item label="题目资源" valueType="text">
@@ -81,7 +81,7 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
           )}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="正确答案" valueType="text">
-          {answer?.correct_answer || question.answer.correctAnswers?.join(', ') || '-'}
+          {answer?.correct_answer || question.answer.correct_answers?.join(', ') || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="学生答案" valueType="text">
           {answer?.text_answer || '未作答'}

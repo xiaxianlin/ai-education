@@ -143,8 +143,10 @@ async def search_questions(
     total = total_result.scalar() or 0
 
     # 分页查询
-    offset = (params.page - 1) * params.page_size
-    query = base_query.order_by(Question.create_time.desc()).offset(offset).limit(params.page_size)
+    page = params.page or 1
+    size = params.size or 10
+    offset = (page - 1) * size
+    query = base_query.order_by(Question.create_time.desc()).offset(offset).limit(size)
 
     result = await db.execute(query)
     questions = list(result.scalars().all())

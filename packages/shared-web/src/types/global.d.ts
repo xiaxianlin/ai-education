@@ -123,7 +123,7 @@ declare global {
   }
 
   /**
-   * 题型实体
+   * 题型实体（对应 QuestionTypeSchema）
    */
   interface QuestionType {
     id: number;
@@ -133,120 +133,116 @@ declare global {
     subject: string;
     stages: Stage[];
     grades: number[];
-    interactionType: InteractionType;
-    interactionConfig?: Record<string, unknown>;
-    resourceType: ResourceType;
-    resourceConfig?: Record<string, unknown>;
-    answerType: AnswerType;
-    answerConfig?: Record<string, unknown>;
-    feedbackConfig?: FeedbackConfig;
-    cognitiveLevels?: CognitiveLevel[];
-    abilityDimensions?: string[];
-    aiPrompt?: string;
-    sortOrder: number;
-    isActive: boolean;
-    createTime: number;
-    updateTime: number;
+    interaction_type: InteractionType;
+    interaction_config?: Record<string, unknown>;
+    resource_type: ResourceType;
+    resource_config?: Record<string, unknown>;
+    answer_type: AnswerType;
+    answer_config?: Record<string, unknown>;
+    feedback_config?: FeedbackConfig;
+    cognitive_levels?: CognitiveLevel[];
+    ability_dimensions?: string[];
+    ai_prompt?: string;
+    output_schema?: Record<string, unknown>;
+    sort_order: number;
+    is_active: boolean;
+    create_time: number;
+    update_time: number;
   }
 
   // ================ 基础结构 ================
 
-  /** 答案 */
+  /** 答案（对应 AnswerSchema） */
   interface Answer {
     type: AnswerType;
-    correctAnswers?: string[];
-    acceptAnswers?: string[];
-    scoring?: {
-      fullScore: number;
-      partialScores?: Record<string, number>;
-      partialStrategy?: "sum" | "all_or_nothing";
-      subScores?: Record<string, number>;
-    };
-    rubric?: Record<string, { weight: number; criteria: string }>;
+    correct_answers?: string[];
+    accept_answers?: string[];
+    scoring?: Record<string, unknown>;
+    rubric?: Record<string, unknown>;
   }
 
-  /** 选项 */
+  /** 选项（对应 OptionSchema） */
   interface QuestionOption {
     id: string;
     text?: string;
-    imageUrl?: string;
-    audioUrl?: string;
-    isCorrect: boolean;
+    image_url?: string;
+    audio_url?: string;
+    is_correct: boolean;
     feedback?: string;
   }
 
-  /** 资源 */
+  /** 资源（对应 ResourceSchema） */
   interface QuestionResource {
     id: string;
-    type: ResourceType;
+    type: string; // 资源类型：none/image/audio/video/animation
     url: string;
     alt?: string;
     position: "stem" | "option" | "background";
-    size?: { width: number; height: number };
+    size?: Record<string, number>; // 尺寸，如 { width: number, height: number }
     style?: Record<string, unknown>;
     duration?: number;
     transcript?: string;
   }
 
-  /** 子题题干（简化版） */
+  /** 子题题干（简化版，对应 SubStemSchema） */
   interface SubStem {
     text: string;
-    richText?: string;
+    rich_text?: string;
     hints?: string[];
   }
 
-  /** 子题结构 - 用于复合题/应用题 */
+  /** 子题结构 - 用于复合题/应用题（对应 SubQuestionSchema） */
   interface SubQuestion {
     id: string;
     order: number;
-    stem: SubStem;
-    interactionType: InteractionType;
-    interactionConfig?: Record<string, unknown>;
-    options?: QuestionOption[];
-    resources?: QuestionResource[];
-    answer: Answer;
+    stem: Record<string, unknown>; // 对应 SubStemSchema，但后端使用 Dict[str, Any]
+    interaction_type: InteractionType;
+    interaction_config?: Record<string, unknown>;
+    options?: Array<Record<string, unknown>>; // 对应 OptionSchema[]，但后端使用 List[Dict[str, Any]]
+    resources?: Array<Record<string, unknown>>; // 对应 ResourceSchema[]，但后端使用 List[Dict[str, Any]]
+    answer: Record<string, unknown>; // 对应 AnswerSchema，但后端使用 Dict[str, Any]
     explanation?: string;
   }
 
-  /** 题干 */
+  /** 题干（对应 StemSchema） */
   interface Stem {
     text: string;
-    richText?: string;
-    audioUrl?: string;
-    highlightWords?: string[];
+    rich_text?: string;
+    audio_url?: string;
+    highlight_words?: string[];
     hints?: string[];
-    subQuestions?: SubQuestion[];
+    sub_questions?: Array<Record<string, unknown>>; // 对应 SubQuestionSchema[]，但后端使用 List[Dict[str, Any]]
   }
 
-  /** 反馈项 */
+  /** 反馈项（对应 FeedbackItemSchema） */
   interface FeedbackItem {
     sound?: string;
     animation?: string;
     messages?: string[];
     points?: number;
-    showHint?: boolean;
-    maxAttempts?: number;
+    show_hint?: boolean;
+    max_attempts?: number;
   }
 
-  /** 反馈配置 */
+  /** 反馈配置（对应 FeedbackConfigSchema） */
   interface FeedbackConfig {
-    correct?: FeedbackItem;
-    incorrect?: FeedbackItem;
-    partial?: FeedbackItem;
+    correct?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
+    incorrect?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
+    partial?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
   }
 
   /**
-   * 题目信息
+   * 题目信息（对应 QuestionSchema）
    */
   interface Question {
     id: string;
-    questionTypeId: number;
-    questionTypeCode: string;
+    question_type_id: number;
+    question_type_code: string;
     subject: string;
     grade: number;
     stage: Stage;
-    textbookId?: number;
-    unitId?: number;
+    textbook_id?: number;
+    unit_id?: number;
     stem: Stem;
     options?: QuestionOption[];
     blanks?: Array<Record<string, unknown>>;
@@ -254,38 +250,45 @@ declare global {
     answer: Answer;
     explanation?: string;
     difficulty: Difficulty;
-    cognitiveLevel?: CognitiveLevel;
-    knowledgePoints?: string[];
-    abilityTags?: string[];
+    cognitive_level?: CognitiveLevel;
+    knowledge_points?: string[];
+    ability_tags?: string[];
     source: string;
-    usageCount: number;
-    correctRate?: string;
-    avgTimeSpent?: number;
-    isActive: boolean;
-    createTime: number;
-    updateTime: number;
+    prompt_id?: number;
+    usage_count: number;
+    correct_rate?: string;
+    avg_time_spent?: number;
+    is_active: boolean;
+    create_time: number;
+    update_time: number;
+    // 关联关系
+    question_type?: QuestionType;
+    textbook?: Textbook;
+    unit?: Unit;
     // 前端扩展字段
     is_correct?: boolean; // 是否答对（答题后）
     order?: number; // 题目顺序（练习会话中）
-    textbook?: Textbook;
-    unit?: Unit;
   }
 
   // ============ 题目模板 ============
 
-  /** 题目模板 */
+  /** 题目模板（对应 QuestionTemplateSchema） */
   interface QuestionTemplate {
     id: number;
     name: string;
-    questionTypeId: number;
+    question_type_id: number;
     description?: string;
-    systemPrompt?: string;
-    userPromptTemplate?: string;
+    system_prompt?: string;
+    user_prompt_template?: string;
     variables?: Record<string, unknown>;
-    outputSchema?: Record<string, unknown>;
-    isActive: boolean;
-    createTime: number;
-    updateTime: number;
+    constraints?: Record<string, unknown>;
+    examples?: Array<Record<string, unknown>>;
+    output_schema?: Record<string, unknown>;
+    quality_rules?: Record<string, unknown>;
+    is_active: boolean;
+    create_time: number;
+    update_time: number;
+    question_type?: QuestionType;
   }
 
   /**
@@ -345,7 +348,7 @@ declare global {
   }
 
   /**
-   * 练习会话
+   * 练习会话（对应 PracticeSessionSchema）
    */
   interface PracticeSession {
     id: number;
@@ -356,8 +359,9 @@ declare global {
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
     correct_count: number; // 正确数
-    status: PracticeSessionStatus; // 会话状态: 0-未开始, 1-进行中, 2-已完成
-    generate_status: PracticeGenerateStatus; // 生成状态: 0-失败, 1-生成中, 2-成功
+    status: PracticeSessionStatus; // 会话状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
+    generate_status: PracticeGenerateStatus; // 生成状态: 0-未生成, 1-生成中, 2-已生成
+    generate_time?: number; // 生成时间（Unix时间戳，秒）
     start_time: number; // 开始时间（Unix时间戳，秒）
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
@@ -368,7 +372,7 @@ declare global {
   }
 
   /**
-   * 答题记录
+   * 答题记录（对应 PracticeSessionAnswerSchema）
    */
   interface PracticeSessionAnswer {
     id: number;
@@ -384,7 +388,6 @@ declare global {
 
     // 答题信息
     text_answer?: string; // 文本答案/用户答案
-    audio_answer?: string; // 音频答案（OSS 存储路径）
     status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number; // 耗时（秒）
     submit_time?: number; // 提交时间

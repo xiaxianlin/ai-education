@@ -2,8 +2,8 @@
 题型服务层
 """
 
-from typing import List, Optional
-from sqlalchemy import select, and_
+from typing import List, Optional, Tuple
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import QuestionType
@@ -23,9 +23,7 @@ async def create_question_type(db: AsyncSession, params: QuestionTypeCreateSchem
     return question_type
 
 
-async def update_question_type(
-    db: AsyncSession, id: int, params: QuestionTypeUpdateSchema
-) -> QuestionType:
+async def update_question_type(db: AsyncSession, id: int, params: QuestionTypeUpdateSchema) -> QuestionType:
     """更新题型"""
     result = await db.execute(select(QuestionType).where(QuestionType.id == id))
     question_type = result.scalar_one_or_none()
@@ -66,18 +64,12 @@ async def get_question_type_by_code(db: AsyncSession, code: str) -> Optional[Que
     return result.scalar_one_or_none()
 
 
-async def search_question_types(
-    db: AsyncSession, params: QuestionTypeSearchSchema
-) -> List[QuestionType]:
-    """搜索题型"""
+async def search_question_types(db: AsyncSession, params: QuestionTypeSearchSchema) -> Tuple[List[QuestionType], int]:
+    """搜索题型，返回列表和总数"""
     conditions = []
 
     if params.subject:
         conditions.append(QuestionType.subject == params.subject)
-
-    if params.stage:
-        # JSON 数组包含查询
-        conditions.append(QuestionType.stages.contains([params.stage]))
 
     if params.grade:
         # JSON 数组包含查询
@@ -86,25 +78,25 @@ async def search_question_types(
     if params.interaction_type:
         conditions.append(QuestionType.interaction_type == params.interaction_type)
 
-    if params.is_active is not None:
-        conditions.append(QuestionType.is_active == params.is_active)
-
-    query = select(QuestionType)
+    # 构建基础查询
+    base_query = select(QuestionType)
+    count_query = select(func.count(QuestionType.id))
 
     if conditions:
-        query = query.where(and_(*conditions))
+        base_query = base_query.where(and_(*conditions))
+        count_query = count_query.where(and_(*conditions))
 
-    query = query.order_by(QuestionType.sort_order, QuestionType.id)
+    # 获取总数
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # 分页查询
+    page = params.page or 1
+    size = params.size or 10
+    offset = (page - 1) * size
+    query = base_query.order_by(QuestionType.sort_order, QuestionType.id).offset(offset).limit(size)
 
     result = await db.execute(query)
-    return list(result.scalars().all())
+    types = list(result.scalars().all())
 
-
-async def list_all_question_types(db: AsyncSession) -> List[QuestionType]:
-    """获取所有启用的题型"""
-    result = await db.execute(
-        select(QuestionType)
-        .where(QuestionType.is_active == True)
-        .order_by(QuestionType.sort_order, QuestionType.id)
-    )
-    return list(result.scalars().all())
+    return types, total

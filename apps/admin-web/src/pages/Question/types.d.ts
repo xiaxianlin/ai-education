@@ -1,21 +1,52 @@
 declare global {
   /**
+   * 搜索题型请求
+   * 字段名称与后端 QuestionTypeSearchSchema 对齐（使用下划线命名）
+   */
+  interface QuestionTypeSearchRequest extends SearchRequest {
+    subject?: string;
+    grade?: number; // 后端使用 grade (单数，匹配适用年级列表)
+    interaction_type?: InteractionType; // 后端使用 interaction_type
+    page?: number;
+    size?: number; // 后端使用 size
+  }
+
+  /**
    * 搜索题目请求
+   * 字段名称与后端 QuestionSearchSchema 对齐（使用下划线命名）
    */
   interface SearchQuestionRequest extends SearchRequest {
+    question_type_id?: number; // 后端使用 question_type_id
+    question_type_code?: string; // 后端使用 question_type_code
     subject?: string;
     grade?: number;
     stage?: Stage;
-    questionTypeCode?: string;
+    textbook_id?: number; // 后端使用 textbook_id
+    unit_id?: number; // 后端使用 unit_id
     difficulty?: Difficulty;
-    textbookId?: number;
-    unitId?: number;
-    isActive?: boolean;
-    keyword?: string;
-    pageSize?: number;
+    cognitive_level?: CognitiveLevel; // 后端使用 cognitive_level
+    source?: string;
+    is_active?: boolean; // 后端使用 is_active
+    keyword?: string; // 前端特有的关键词搜索（不在后端 schema 中）
+    page?: number;
+    size?: number; // 后端使用 size
   }
 
-  /** 创建题型请求 */
+  /**
+   * 搜索题目模板请求
+   * 字段名称与后端 QuestionTemplateSearchSchema 对齐（使用下划线命名）
+   */
+  interface QuestionTemplateSearchRequest extends SearchRequest {
+    question_type_id?: number; // 后端使用 question_type_id
+    is_active?: boolean; // 后端使用 is_active
+    page?: number;
+    size?: number; // 后端使用 size
+  }
+
+  /**
+   * 创建题型请求
+   * 字段名称与后端 QuestionTypeCreateSchema 对齐（使用下划线命名）
+   */
   interface QuestionTypeCreateRequest {
     code: string;
     name: string;
@@ -23,47 +54,55 @@ declare global {
     subject: string;
     stages: Stage[];
     grades: number[];
-    interactionType: InteractionType;
-    interactionConfig?: Record<string, unknown>;
-    resourceType?: ResourceType;
-    resourceConfig?: Record<string, unknown>;
-    answerType: AnswerType;
-    answerConfig?: Record<string, unknown>;
-    feedbackConfig?: FeedbackConfig;
-    cognitiveLevels?: CognitiveLevel[];
-    abilityDimensions?: string[];
-    aiPrompt?: string;
-    sortOrder?: number;
+    interaction_type: InteractionType; // 后端使用 interaction_type
+    interaction_config?: Record<string, unknown>; // 后端使用 interaction_config
+    resource_type?: ResourceType; // 后端使用 resource_type，默认值为 "none"
+    resource_config?: Record<string, unknown>; // 后端使用 resource_config
+    answer_type: AnswerType; // 后端使用 answer_type
+    answer_config?: Record<string, unknown>; // 后端使用 answer_config
+    feedback_config?: FeedbackConfig; // 后端使用 feedback_config
+    cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
+    ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    ai_prompt?: string; // 后端使用 ai_prompt
+    output_schema?: Record<string, unknown>; // 后端使用 output_schema
+    sort_order?: number; // 后端使用 sort_order，默认值为 0
   }
 
-  /** 更新题型请求 */
+  /**
+   * 更新题型请求
+   * 字段名称与后端 QuestionTypeUpdateSchema 对齐（使用下划线命名）
+   */
   interface QuestionTypeUpdateRequest {
     name?: string;
     description?: string;
     stages?: Stage[];
     grades?: number[];
-    interactionConfig?: Record<string, unknown>;
-    resourceType?: ResourceType;
-    resourceConfig?: Record<string, unknown>;
-    answerConfig?: Record<string, unknown>;
-    feedbackConfig?: FeedbackConfig;
-    cognitiveLevels?: CognitiveLevel[];
-    abilityDimensions?: string[];
-    aiPrompt?: string;
-    sortOrder?: number;
-    isActive?: boolean;
+    interaction_config?: Record<string, unknown>; // 后端使用 interaction_config
+    resource_type?: ResourceType; // 后端使用 resource_type
+    resource_config?: Record<string, unknown>; // 后端使用 resource_config
+    answer_config?: Record<string, unknown>; // 后端使用 answer_config
+    feedback_config?: FeedbackConfig; // 后端使用 feedback_config
+    cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
+    ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    ai_prompt?: string; // 后端使用 ai_prompt
+    output_schema?: Record<string, unknown>; // 后端使用 output_schema
+    sort_order?: number; // 后端使用 sort_order
+    is_active?: boolean; // 后端使用 is_active
   }
 
-  /** 创建题目请求 */
+  /**
+   * 创建题目请求
+   * 字段名称与后端 QuestionCreateSchema 对齐（使用下划线命名）
+   */
   interface QuestionCreateRequest {
     id?: string;
-    questionTypeId: number;
-    questionTypeCode: string;
+    question_type_id: number; // 后端使用 question_type_id
+    question_type_code: string; // 后端使用 question_type_code
     subject: string;
     grade: number;
     stage: Stage;
-    textbookId?: number;
-    unitId?: number;
+    textbook_id?: number; // 后端使用 textbook_id
+    unit_id?: number; // 后端使用 unit_id
     stem: Stem;
     options?: QuestionOption[];
     blanks?: Array<Record<string, unknown>>;
@@ -71,14 +110,17 @@ declare global {
     answer: Answer;
     explanation?: string;
     difficulty: Difficulty;
-    cognitiveLevel?: CognitiveLevel;
-    knowledgePoints?: string[];
-    abilityTags?: string[];
-    source?: string;
-    promptId?: number;
+    cognitive_level?: CognitiveLevel; // 后端使用 cognitive_level
+    knowledge_points?: string[]; // 后端使用 knowledge_points
+    ability_tags?: string[]; // 后端使用 ability_tags
+    source?: string; // 后端使用 source，默认值为 "ai"
+    prompt_id?: number; // 后端使用 prompt_id
   }
 
-  /** 更新题目请求 */
+  /**
+   * 更新题目请求
+   * 字段名称与后端 QuestionUpdateSchema 对齐（使用下划线命名）
+   */
   interface QuestionUpdateRequest {
     stem?: Stem;
     options?: QuestionOption[];
@@ -87,33 +129,45 @@ declare global {
     answer?: Answer;
     explanation?: string;
     difficulty?: Difficulty;
-    cognitiveLevel?: CognitiveLevel;
-    knowledgePoints?: string[];
-    abilityTags?: string[];
-    isActive?: boolean;
+    cognitive_level?: CognitiveLevel; // 后端使用 cognitive_level
+    knowledge_points?: string[]; // 后端使用 knowledge_points
+    ability_tags?: string[]; // 后端使用 ability_tags
+    is_active?: boolean; // 后端使用 is_active
   }
 
-  /** 创建题目模板请求 */
+  /**
+   * 创建题目模板请求
+   * 字段名称与后端 QuestionTemplateCreateSchema 对齐（使用下划线命名）
+   */
   interface QuestionTemplateCreateRequest {
     name: string;
-    questionTypeId: number;
+    question_type_id: number; // 后端使用 question_type_id
     description?: string;
-    systemPrompt?: string;
-    userPromptTemplate?: string;
+    system_prompt?: string; // 后端使用 system_prompt
+    user_prompt_template?: string; // 后端使用 user_prompt_template
     variables?: Record<string, unknown>;
-    outputSchema?: Record<string, unknown>;
-    isActive?: boolean;
+    constraints?: Record<string, unknown>;
+    examples?: Array<Record<string, unknown>>;
+    output_schema?: Record<string, unknown>; // 后端使用 output_schema
+    quality_rules?: Record<string, unknown>; // 后端使用 quality_rules
+    is_active?: boolean; // 后端使用 is_active，默认值为 true
   }
 
-  /** 更新题目模板请求 */
+  /**
+   * 更新题目模板请求
+   * 字段名称与后端 QuestionTemplateUpdateSchema 对齐（使用下划线命名）
+   */
   interface QuestionTemplateUpdateRequest {
     name?: string;
     description?: string;
-    systemPrompt?: string;
-    userPromptTemplate?: string;
+    system_prompt?: string; // 后端使用 system_prompt
+    user_prompt_template?: string; // 后端使用 user_prompt_template
     variables?: Record<string, unknown>;
-    outputSchema?: Record<string, unknown>;
-    isActive?: boolean;
+    constraints?: Record<string, unknown>;
+    examples?: Array<Record<string, unknown>>;
+    output_schema?: Record<string, unknown>; // 后端使用 output_schema
+    quality_rules?: Record<string, unknown>; // 后端使用 quality_rules
+    is_active?: boolean; // 后端使用 is_active
   }
 }
 

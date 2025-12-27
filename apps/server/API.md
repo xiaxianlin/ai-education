@@ -561,6 +561,83 @@ GET /api/admin/knowledge/search?keyword=数字&page=1&size=10
 
 ### 题目管理
 
+#### 创建题目
+
+```
+POST /api/admin/question/
+```
+
+**请求参数**:
+
+```json
+{
+  "id": "question_uuid_123",
+  "question_type_id": 1,
+  "question_type_code": "pinyin_choice",
+  "subject": "语文",
+  "grade": 1,
+  "stage": "小学",
+  "textbook_id": 1,
+  "unit_id": 1,
+  "stem": {
+    "text": "看图选择正确的拼音",
+    "rich_text": "<p>看图选择正确的拼音</p>"
+  },
+  "options": [
+    {
+      "id": "A",
+      "text": "mā",
+      "is_correct": true
+    },
+    {
+      "id": "B",
+      "text": "má",
+      "is_correct": false
+    }
+  ],
+  "resources": [
+    {
+      "id": "img_1",
+      "type": "image",
+      "url": "https://oss.example.com/image.png",
+      "position": "stem"
+    }
+  ],
+  "answer": {
+    "type": "exact",
+    "correct_answers": ["A"]
+  },
+  "explanation": "正确答案是 A，因为图片显示的是'妈'字",
+  "difficulty": "简单",
+  "cognitive_level": "记忆",
+  "knowledge_points": ["拼音", "看图识字"],
+  "ability_tags": ["识记能力"],
+  "source": "ai",
+  "prompt_id": 1
+}
+```
+
+**参数说明**:
+
+- `id`: 题目ID（可选，不传则自动生成UUID）
+- `question_type_id`: 题型ID（必填）
+- `question_type_code`: 题型编码（必填）
+- `subject`: 科目（必填，数学/英语/语文）
+- `grade`: 年级（必填，1-12）
+- `stage`: 学段（必填，小学/初中/高中）
+- `stem`: 题干（必填，JSON对象）
+- `options`: 选项列表（可选，JSON数组）
+- `blanks`: 填空位置配置（可选，JSON数组）
+- `resources`: 资源列表（可选，JSON数组）
+- `answer`: 答案配置（必填，JSON对象）
+- `explanation`: 解析（可选）
+- `difficulty`: 难度（必填，简单/普通/困难）
+- `cognitive_level`: 认知层次（可选）
+- `knowledge_points`: 知识点列表（可选）
+- `ability_tags`: 能力标签（可选）
+- `source`: 来源（默认"ai"）
+- `prompt_id`: 生成此题的Prompt ID（可选）
+
 #### 更新题目
 
 ```
@@ -571,27 +648,51 @@ PATCH /api/admin/question/{id}
 
 ```json
 {
-  "content": "更新后的题目内容",
-  "options": "A. 选项1\nB. 选项2\nC. 选项3",
-  "answer": "A",
+  "stem": {
+    "text": "更新后的题干"
+  },
+  "options": [
+    {
+      "id": "A",
+      "text": "选项A",
+      "is_correct": true
+    }
+  ],
+  "answer": {
+    "type": "exact",
+    "correct_answers": ["A"]
+  },
+  "explanation": "更新后的解析",
   "difficulty": "普通",
-  "subject": "数学",
-  "grade": 1,
-  "type": "选择题",
-  "subtype": "快速口算",
-  "resource": "https://oss.example.com/image.png",
-  "resource_type": "image",
-  "knowledge": "10以内数的加法",
-  "unit_id": 1,
-  "textbook_id": 1
+  "cognitive_level": "理解",
+  "knowledge_points": ["知识点1", "知识点2"],
+  "ability_tags": ["能力1"],
+  "is_active": true
 }
 ```
+
+**参数说明**:
+
+- 所有字段均为可选
+- `stem`: 题干（JSON对象）
+- `options`: 选项列表（JSON数组）
+- `blanks`: 填空位置配置（JSON数组）
+- `resources`: 资源列表（JSON数组）
+- `answer`: 答案配置（JSON对象）
+- `explanation`: 解析
+- `difficulty`: 难度
+- `cognitive_level`: 认知层次
+- `knowledge_points`: 知识点列表
+- `ability_tags`: 能力标签
+- `is_active`: 是否启用
 
 #### 删除题目
 
 ```
 DELETE /api/admin/question/{id}
 ```
+
+**功能说明**: 删除指定的题目（硬删除）。
 
 #### 搜索题目
 
@@ -601,15 +702,17 @@ GET /api/admin/question/search
 
 **查询参数**:
 
-- `keyword`: 搜索关键词（可选）
-- `question_id`: 题目ID（可选）
-- `textbook_id`: 教材ID（可选）
-- `unit_id`: 单元ID（可选）
+- `question_type_id`: 题型ID（可选）
+- `question_type_code`: 题型编码（可选）
 - `subject`: 科目（可选）
 - `grade`: 年级（可选）
-- `type`: 题目类型（可选）
-- `resource_type`: 资源类型（可选）
-- `resource_generated`: 资源是否已生成（可选）
+- `stage`: 学段（可选）
+- `textbook_id`: 教材ID（可选）
+- `unit_id`: 单元ID（可选）
+- `difficulty`: 难度（可选）
+- `cognitive_level`: 认知层次（可选）
+- `source`: 来源（可选）
+- `is_active`: 是否启用（可选，true/false）
 - `page`: 页码，默认1
 - `size`: 每页数量，默认10
 
@@ -617,40 +720,42 @@ GET /api/admin/question/search
 
 ```json
 {
-  "code": 0,
-  "data": {
-    "items": [
-      {
-        "id": 1,
-        "subject": "数学",
-        "grade": 1,
-        "type": "选择题",
-        "subtype": "快速口算",
-        "content": "1 + 1 = ?",
-        "options": "A. 1\nB. 2\nC. 3",
-        "answer": "B",
-        "difficulty": "简单",
-        "resource": "https://oss.example.com/image.png",
-        "resource_type": "image",
-        "textbook_id": 1,
-        "unit_id": 1,
-        "knowledge": "10以内数的加法"
-      }
-    ],
-    "total": 500,
-    "page": 1,
-    "size": 10
-  }
+  "total": 500,
+  "data": [
+    {
+      "id": "question_uuid_123",
+      "question_type_id": 1,
+      "question_type_code": "pinyin_choice",
+      "subject": "语文",
+      "grade": 1,
+      "stage": "小学",
+      "textbook_id": 1,
+      "unit_id": 1,
+      "stem": {
+        "text": "看图选择正确的拼音"
+      },
+      "options": [
+        {
+          "id": "A",
+          "text": "mā",
+          "is_correct": true
+        }
+      ],
+      "answer": {
+        "type": "exact",
+        "correct_answers": ["A"]
+      },
+      "difficulty": "简单",
+      "cognitive_level": "记忆",
+      "knowledge_points": ["拼音"],
+      "source": "ai",
+      "is_active": true,
+      "create_time": 1234567890,
+      "update_time": 1234567890
+    }
+  ]
 }
 ```
-
-#### 搜索资源题目
-
-```
-GET /api/admin/question/resource/search
-```
-
-**功能说明**: 搜索带有资源（图片/语音）的题目。查询参数同搜索题目接口。
 
 #### 获取题目详情
 
@@ -658,21 +763,40 @@ GET /api/admin/question/resource/search
 GET /api/admin/question/{id}
 ```
 
-#### 生成题目图片
+**响应示例**:
 
+```json
+{
+  "code": 0,
+  "data": {
+    "id": "question_uuid_123",
+    "question_type_id": 1,
+    "question_type_code": "pinyin_choice",
+    "subject": "语文",
+    "grade": 1,
+    "stage": "小学",
+    "stem": {
+      "text": "看图选择正确的拼音"
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "mā",
+        "is_correct": true
+      }
+    ],
+    "answer": {
+      "type": "exact",
+      "correct_answers": ["A"]
+    },
+    "explanation": "正确答案是 A",
+    "difficulty": "简单",
+    "is_active": true,
+    "create_time": 1234567890,
+    "update_time": 1234567890
+  }
+}
 ```
-POST /api/admin/question/{id}/image_generate
-```
-
-**功能说明**: 为题目自动生成配图。
-
-#### 生成题目语音
-
-```
-POST /api/admin/question/{id}/audio_generate
-```
-
-**功能说明**: 为题目自动生成语音朗读。
 
 ---
 
@@ -681,80 +805,121 @@ POST /api/admin/question/{id}/audio_generate
 #### 创建题型
 
 ```
-POST /api/admin/question_type/
+POST /api/admin/question/type
 ```
 
 **请求参数**:
 
 ```json
 {
-  "title": "看图选词",
-  "scene": "选择题",
-  "subject": "英语",
-  "grade": 1,
-  "description": "根据图片选择正确的单词",
+  "code": "pinyin_choice",
+  "name": "看图选拼音",
+  "description": "根据图片选择正确的拼音",
+  "subject": "语文",
+  "stages": ["小学"],
+  "grades": [1, 2],
+  "interaction_type": "choice",
+  "interaction_config": {
+    "multiple": false,
+    "shuffle": true
+  },
   "resource_type": "image",
-  "prompt": "请生成一道看图选词题，要求：1. 图片清晰易懂；2. 选项包含正确答案和2-3个干扰项；3. 适合小学一年级学生；4. 单词难度适中"
+  "resource_config": {
+    "required": true,
+    "max_count": 1
+  },
+  "answer_type": "exact",
+  "answer_config": {
+    "case_sensitive": false
+  },
+  "feedback_config": {
+    "correct": {
+      "sound": "correct.mp3",
+      "messages": ["答对了！"]
+    },
+    "incorrect": {
+      "sound": "wrong.mp3",
+      "messages": ["再想想"]
+    }
+  },
+  "cognitive_levels": ["记忆", "理解"],
+  "ability_dimensions": ["识记能力"],
+  "ai_prompt": "请生成一道看图选拼音题...",
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "stem": {"type": "object"},
+      "options": {"type": "array"},
+      "answer": {"type": "object"}
+    }
+  },
+  "sort_order": 0
 }
 ```
 
 **参数说明**:
 
-- `title`: 题型标题（必填，如：看图选词、根据首字母填空）
-- `scene`: 类型（必填，如：选择题、填空题、判断题、口语题、应用题）
-- `subject`: 科目（必填，数学/英语）
-- `grade`: 年级（必填，1-6）
+- `code`: 题型编码（必填，如：pinyin_choice）
+- `name`: 题型名称（必填，如：看图选拼音）
 - `description`: 题型描述（可选）
-- `resource_type`: 资源类型（可选，image/audio）
-- `prompt`: 生成该题型的 AI 指令（可选）
-
-**响应示例**:
-
-```json
-{
-  "code": 0,
-  "data": {
-    "id": 1,
-    "title": "看图选词",
-    "scene": "选择题",
-    "subject": "英语",
-    "grade": 1,
-    "description": "根据图片选择正确的单词",
-    "resource_type": "image",
-    "prompt": "请生成一道看图选词题...",
-    "create_time": 1234567890,
-    "update_time": 1234567890
-  }
-}
-```
+- `subject`: 科目（必填，数学/英语/语文）
+- `stages`: 适用学段列表（必填，如：["小学", "初中"]）
+- `grades`: 适用年级列表（必填，如：[1, 2, 3]）
+- `interaction_type`: 交互类型（必填，如：choice/fill/match）
+- `interaction_config`: 交互配置（可选，JSON对象）
+- `resource_type`: 资源类型（默认"none"，可选：none/image/audio/video）
+- `resource_config`: 资源配置（可选，JSON对象）
+- `answer_type`: 答案类型（必填，如：exact/fuzzy/rubric）
+- `answer_config`: 答案配置（可选，JSON对象）
+- `feedback_config`: 反馈配置（可选，JSON对象）
+- `cognitive_levels`: 认知层次列表（可选）
+- `ability_dimensions`: 能力维度列表（可选）
+- `ai_prompt`: AI生成指令（可选）
+- `output_schema`: AI输出Schema（可选，JSON对象）
+- `sort_order`: 排序（默认0）
 
 #### 更新题型
 
 ```
-PATCH /api/admin/question_type/{id}
+PATCH /api/admin/question/type/{id}
 ```
 
 **请求参数**:
 
 ```json
 {
-  "title": "看图选词（修改）",
-  "scene": "选择题",
+  "name": "看图选拼音（修改）",
   "description": "更新后的描述",
+  "stages": ["小学", "初中"],
+  "grades": [1, 2, 3],
+  "interaction_config": {
+    "multiple": true
+  },
   "resource_type": "image",
-  "prompt": "更新后的 AI 指令"
+  "answer_config": {
+    "case_sensitive": true
+  },
+  "feedback_config": {
+    "correct": {
+      "messages": ["很棒！"]
+    }
+  },
+  "cognitive_levels": ["记忆", "理解", "应用"],
+  "ai_prompt": "更新后的 AI 指令",
+  "sort_order": 10,
+  "is_active": true
 }
 ```
 
 **参数说明**:
 
 - 所有字段均为可选
-- 更新时会检查同一 scene、subject、grade 下 title 是否重复
+- `is_active`: 是否启用（可选）
 
 #### 删除题型
 
 ```
-DELETE /api/admin/question_type/{id}
+DELETE /api/admin/question/type/{id}
 ```
 
 **功能说明**: 删除指定题型（硬删除）。
@@ -762,7 +927,7 @@ DELETE /api/admin/question_type/{id}
 #### 获取题型详情
 
 ```
-GET /api/admin/question_type/{id}
+GET /api/admin/question/type/{id}
 ```
 
 **响应示例**:
@@ -772,13 +937,19 @@ GET /api/admin/question_type/{id}
   "code": 0,
   "data": {
     "id": 1,
-    "title": "看图选词",
-    "scene": "选择题",
-    "subject": "英语",
-    "grade": 1,
-    "description": "根据图片选择正确的单词",
+    "code": "pinyin_choice",
+    "name": "看图选拼音",
+    "description": "根据图片选择正确的拼音",
+    "subject": "语文",
+    "stages": ["小学"],
+    "grades": [1, 2],
+    "interaction_type": "choice",
+    "interaction_config": {
+      "multiple": false
+    },
     "resource_type": "image",
-    "prompt": "请生成一道看图选词题...",
+    "answer_type": "exact",
+    "is_active": true,
     "create_time": 1234567890,
     "update_time": 1234567890
   }
@@ -788,19 +959,171 @@ GET /api/admin/question_type/{id}
 #### 搜索题型
 
 ```
-GET /api/admin/question_type/search
+GET /api/admin/question/type/search
 ```
 
 **查询参数**:
 
-- `keyword`: 搜索关键词（可选，匹配题型标题）
-- `scene`: 类型筛选（可选，如：选择题、填空题）
 - `subject`: 科目筛选（可选）
-- `grade`: 年级筛选（可选）
+- `grade`: 年级筛选（可选，匹配适用年级列表）
+- `interaction_type`: 交互类型筛选（可选）
 - `page`: 页码，默认1
 - `size`: 每页数量，默认10
-- `sort`: 排序字段，默认id
-- `order`: 排序方式，默认desc（asc/desc）
+
+**响应示例**:
+
+```json
+{
+  "total": 50,
+  "data": [
+    {
+      "id": 1,
+      "code": "pinyin_choice",
+      "name": "看图选拼音",
+      "subject": "语文",
+      "stages": ["小学"],
+      "grades": [1, 2],
+      "interaction_type": "choice",
+      "resource_type": "image",
+      "answer_type": "exact",
+      "is_active": true,
+      "sort_order": 0,
+      "create_time": 1234567890,
+      "update_time": 1234567890
+    }
+  ]
+}
+```
+
+---
+
+### 题目模板管理
+
+#### 创建题目模板
+
+```
+POST /api/admin/question/template
+```
+
+**请求参数**:
+
+```json
+{
+  "name": "看图选拼音模板",
+  "question_type_id": 1,
+  "description": "用于生成看图选拼音题目的模板",
+  "system_prompt": "你是一个专业的题目生成助手",
+  "user_prompt_template": "请根据以下要求生成一道题目：\n{requirements}",
+  "variables": {
+    "difficulty": {
+      "type": "string",
+      "description": "难度等级",
+      "default": "简单"
+    },
+    "knowledge_point": {
+      "type": "string",
+      "description": "知识点",
+      "required": true
+    }
+  },
+  "constraints": {
+    "min_options": 3,
+    "max_options": 5,
+    "require_image": true
+  },
+  "examples": [
+    {
+      "stem": {"text": "看图选择正确的拼音"},
+      "options": [
+        {"id": "A", "text": "mā", "is_correct": true}
+      ],
+      "answer": {"type": "exact", "correct_answers": ["A"]}
+    }
+  ],
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "stem": {"type": "object"},
+      "options": {"type": "array"},
+      "answer": {"type": "object"}
+    }
+  },
+  "quality_rules": {
+    "check_grammar": true,
+    "check_length": true,
+    "max_stem_length": 200
+  },
+  "is_active": true
+}
+```
+
+**参数说明**:
+
+- `name`: 模板名称（必填）
+- `question_type_id`: 题型ID（必填）
+- `description`: 模板描述（可选）
+- `system_prompt`: 系统提示词（可选）
+- `user_prompt_template`: 用户提示词模板（可选，支持变量占位符）
+- `variables`: 变量定义（可选，JSON对象）
+- `constraints`: 约束条件（可选，JSON对象）
+- `examples`: 示例题目（可选，JSON数组）
+- `output_schema`: 输出Schema（可选，JSON对象）
+- `quality_rules`: 质量检查规则（可选，JSON对象）
+- `is_active`: 是否启用（默认true）
+
+#### 更新题目模板
+
+```
+PATCH /api/admin/question/template/{template_id}
+```
+
+**请求参数**: 同创建题目模板，所有字段可选。
+
+#### 删除题目模板
+
+```
+DELETE /api/admin/question/template/{template_id}
+```
+
+**功能说明**: 删除指定的题目模板（硬删除）。
+
+#### 获取题目模板列表
+
+```
+GET /api/admin/question/template
+```
+
+**查询参数**:
+
+- `question_type_id`: 题型ID筛选（可选）
+- `is_active`: 是否启用筛选（可选，true/false）
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+
+**响应示例**:
+
+```json
+{
+  "total": 20,
+  "data": [
+    {
+      "id": 1,
+      "question_type_id": 1,
+      "name": "看图选拼音模板",
+      "description": "用于生成看图选拼音题目的模板",
+      "is_active": true,
+      "create_time": 1234567890,
+      "update_time": 1234567890
+    }
+  ]
+}
+```
+
+#### 获取题目模板详情
+
+```
+GET /api/admin/question/template/{template_id}
+```
 
 **响应示例**:
 
@@ -808,36 +1131,55 @@ GET /api/admin/question_type/search
 {
   "code": 0,
   "data": {
-    "total": 50,
-    "data": [
-      {
-        "id": 1,
-        "title": "看图选词",
-        "scene": "选择题",
-        "subject": "英语",
-        "grade": 1,
-        "description": "根据图片选择正确的单词",
-        "resource_type": "image",
-        "prompt": "请生成一道看图选词题...",
-        "create_time": 1234567890,
-        "update_time": 1234567890
-      },
-      {
-        "id": 2,
-        "title": "根据首字母填空",
-        "scene": "填空题",
-        "subject": "英语",
-        "grade": 2,
-        "description": "根据首字母提示填写单词",
-        "resource_type": null,
-        "prompt": "请生成一道根据首字母填空题...",
-        "create_time": 1234567891,
-        "update_time": 1234567891
+    "id": 1,
+    "question_type_id": 1,
+    "name": "看图选拼音模板",
+    "description": "用于生成看图选拼音题目的模板",
+    "system_prompt": "你是一个专业的题目生成助手",
+    "user_prompt_template": "请根据以下要求生成一道题目：\n{requirements}",
+    "variables": {
+      "difficulty": {
+        "type": "string",
+        "default": "简单"
       }
-    ]
+    },
+    "constraints": {
+      "min_options": 3
+    },
+    "examples": [],
+    "output_schema": {},
+    "quality_rules": {},
+    "is_active": true,
+    "create_time": 1234567890,
+    "update_time": 1234567890
   }
 }
 ```
+
+#### 验证题目模板
+
+```
+POST /api/admin/question/template/{template_id}/validate
+```
+
+**功能说明**: 验证指定的题目模板配置是否正确。
+
+**响应示例**:
+
+```json
+{
+  "code": 0,
+  "data": {
+    "valid": true,
+    "issues": []
+  }
+}
+```
+
+**响应说明**:
+
+- `valid`: 是否有效
+- `issues`: 问题列表（如果存在配置问题）
 
 ---
 
@@ -1967,6 +2309,24 @@ POST /api/student/practice/{session_id}/complete
 ---
 
 ## 更新日志
+
+### v0.2.4 (2024-12-21)
+
+- 更新题目管理接口文档：
+  - 添加创建题目接口 `POST /api/admin/question/`
+  - 更新搜索题目接口查询参数，添加 `question_type_id`、`question_type_code`、`stage`、`difficulty`、`cognitive_level`、`source`、`is_active` 等字段
+  - 更新更新题目接口请求参数，使用新的 V2 题型系统数据结构
+- 更新题型管理接口文档：
+  - 更新创建题型接口，使用新的 V2 题型系统字段（`code`、`name`、`stages`、`grades`、`interaction_type`、`answer_type` 等）
+  - 更新搜索题型接口查询参数，使用 `subject`、`grade`、`interaction_type` 字段
+- 新增题目模板管理接口文档：
+  - 创建题目模板 `POST /api/admin/question/template`
+  - 更新题目模板 `PATCH /api/admin/question/template/{template_id}`
+  - 删除题目模板 `DELETE /api/admin/question/template/{template_id}`
+  - 获取题目模板列表 `GET /api/admin/question/template`
+  - 获取题目模板详情 `GET /api/admin/question/template/{template_id}`
+  - 验证题目模板 `POST /api/admin/question/template/{template_id}/validate`
+- 统一分页参数：所有分页接口统一使用 `page` 和 `size` 参数
 
 ### v0.2.3 (2024-12-21)
 

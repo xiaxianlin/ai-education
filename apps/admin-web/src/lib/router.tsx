@@ -14,8 +14,12 @@ import PromptTest from '@/pages/Prompt/Test';
 import QuestionDetail from '@/pages/Question/Detail';
 import QuestionForm from '@/pages/Question/Form';
 import QuestionList from '@/pages/Question/List';
-import QuestionTemplateList from '@/pages/Question/Template';
-import QuestionTypeList from '@/pages/Question/Type';
+import QuestionTemplateDetail from '@/pages/Question/TemplateDetail';
+import QuestionTemplateForm from '@/pages/Question/TemplateForm';
+import QuestionTemplateList from '@/pages/Question/TemplateList';
+import QuestionTypeDetail from '@/pages/Question/TypeDetail';
+import QuestionTypeForm from '@/pages/Question/TypeForm';
+import QuestionTypeList from '@/pages/Question/TypeList';
 import StudentDetail from '@/pages/Student/Detail';
 import StudentList from '@/pages/Student/List';
 import PracticeSessionList from '@/pages/Student/PracticeSessionList';
@@ -50,7 +54,13 @@ export function Router() {
         { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
+        { path: 'question_type/form', element: <QuestionTypeForm /> },
+        { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
+        { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_template', element: <QuestionTemplateList /> },
+        { path: 'question_template/form', element: <QuestionTemplateForm /> },
+        { path: 'question_template/form/:id', element: <QuestionTemplateForm /> },
+        { path: 'question_template/detail/:id', element: <QuestionTemplateDetail /> },
         { path: 'prompt', element: <PromptList /> },
         { path: 'prompt/form', element: <PromptForm /> },
         { path: 'prompt/detail', element: <PromptDetail /> },

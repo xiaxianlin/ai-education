@@ -35,6 +35,7 @@ export function SubjectGradeTabs(props: SubjectGradeTabsProps) {
         type="card"
         onChange={onSubjectChange}
         activeKey={activeSubject}
+        classNames={{ item: 'large-tab-item' }}
         items={subjects.map((subject) => ({ label: subject, key: subject }))}
       />
     </>

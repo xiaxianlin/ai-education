@@ -110,7 +110,7 @@ export default function MainView() {
   });
 
   const { data: questionData, loading: questionLoading } = useRequest(async () => {
-    const res = await QuestionApi.searchQuestions({ page: 1, pageSize: 1000 });
+    const res = await QuestionApi.searchQuestions({ page: 1, page_size: 1000 });
     return res;
   });
 

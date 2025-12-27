@@ -48,7 +48,7 @@ export default function PracticeDetailPage() {
       },
       {
         title: '题型',
-        dataIndex: 'questionTypeCode',
+        dataIndex: 'question_type_code',
         width: 120,
       },
       {
@@ -64,10 +64,10 @@ export default function PracticeDetailPage() {
       },
       {
         title: '知识点',
-        dataIndex: 'knowledgePoints',
+        dataIndex: 'knowledge_points',
         width: 150,
         ellipsis: true,
-        render: (_, record) => record.knowledgePoints?.join(', ') || '-',
+        render: (_, record) => record.knowledge_points?.join(', ') || '-',
       },
       {
         title: '是否作答',
