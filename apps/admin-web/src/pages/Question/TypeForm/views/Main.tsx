@@ -60,13 +60,17 @@ export default function MainView() {
                       name="code"
                       label="编码"
                       placeholder="唯一标识，如 pinyin_choice"
-                      rules={[
-                        { required: true, message: '请输入编码' },
-                        {
-                          pattern: /^[a-z][a-z0-9_]*$/,
-                          message: '编码格式：小写字母开头，只能包含小写字母、数字、下划线',
-                        },
-                      ]}
+                      rules={
+                        isEdit
+                          ? [] // 编辑模式下不校验编码
+                          : [
+                              { required: true, message: '请输入编码' },
+                              {
+                                pattern: /^[a-z][a-z0-9_]*$/,
+                                message: '编码格式：小写字母开头，只能包含小写字母、数字、下划线',
+                              },
+                            ]
+                      }
                       disabled={isEdit}
                     />
                     <ProFormText

@@ -5,8 +5,8 @@ import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Select, Tag } from 'antd';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuestionTemplateModel } from '../models/page';
 import { QuestionApi } from '../../api';
+import { useQuestionTemplateModel } from '../models/page';
 
 export default function ListView() {
   const navigate = useNavigate();
@@ -59,9 +59,8 @@ export default function ListView() {
       search={false}
       columns={columns}
       actionRef={actionRef}
-      pagination={{
-        defaultPageSize: 20,
-      }}
+      pagination={{ defaultPageSize: 20 }}
+      scroll={{ x: 'max-content' }}
       toolBarRender={() => [
         <Select
           allowClear

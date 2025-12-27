@@ -1,7 +1,7 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks';
 import { DIFFICULTY_LABELS, INTERACTION_TYPE_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
-import { PlusOutlined } from '@ant-design/icons';
+import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
 import { useEffect } from 'react';
@@ -11,16 +11,9 @@ import { useQuestionListModel } from '../models/page';
 
 export function ListView() {
   const navigate = useNavigate();
-  const { actionRef, subject, grade, handleDelete } = useQuestionListModel();
+  const { actionRef, subject, grade, handleDelete, handlePreview } = useQuestionListModel();
 
   const columns: ProColumns<Question>[] = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 100,
-      ellipsis: true,
-      copyable: true,
-    },
     {
       title: '题干',
       dataIndex: ['stem', 'text'],
@@ -74,6 +67,9 @@ export function ListView() {
     createActionColumn<Question>(
       (record) => (
         <>
+          <Button key="preview" type="link" icon={<EyeOutlined />} onClick={() => handlePreview(record)}>
+            预览
+          </Button>
           <Button key="detail" type="link" onClick={() => navigate(`/question/detail/${record.id}`)}>
             详情
           </Button>
@@ -88,7 +84,7 @@ export function ListView() {
           />
         </>
       ),
-      { width: 120 },
+      { width: 180 },
     ),
   ];
 
@@ -104,7 +100,8 @@ export function ListView() {
       rowKey="id"
       search={false}
       columns={columns}
-      pagination={{ pageSize: 20 }}
+      pagination={{ defaultPageSize: 20 }}
+      scroll={{ x: 'max-content' }}
       request={async ({ current, pageSize }) => {
         const res = await QuestionApi.searchQuestions({
           page: current,

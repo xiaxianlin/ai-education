@@ -33,11 +33,32 @@ const useContainer = () => {
         if (res) {
           setSelectedStages(res.stages || []);
           form.setFieldsValue({
-            ...res,
+            // 基础字段
+            code: res.code,
+            name: res.name,
+            description: res.description,
+            subject: res.subject,
+            stages: res.stages,
+            grades: res.grades,
+            // 交互配置
+            interactionType: res.interaction_type,
             interactionConfig: res.interaction_config ? JSON.stringify(res.interaction_config, null, 2) : undefined,
+            // 资源配置
+            resourceType: res.resource_type,
             resourceConfig: res.resource_config ? JSON.stringify(res.resource_config, null, 2) : undefined,
+            // 答案配置
+            answerType: res.answer_type,
             answerConfig: res.answer_config ? JSON.stringify(res.answer_config, null, 2) : undefined,
+            // 反馈配置
             feedbackConfig: res.feedback_config ? JSON.stringify(res.feedback_config, null, 2) : undefined,
+            // 认知配置
+            cognitiveLevels: res.cognitive_levels,
+            abilityDimensions: res.ability_dimensions,
+            // AI 配置
+            aiPrompt: res.ai_prompt,
+            // 其他设置
+            sortOrder: res.sort_order,
+            isActive: res.is_active,
           });
         }
       },
@@ -58,13 +79,45 @@ const useContainer = () => {
   // 提交表单
   const { run: handleSubmit, loading: submitting } = useRequest(
     async (values: any) => {
-      const payload = {
-        ...values,
+      const payload: any = {
+        // 基础字段
+        name: values.name,
+        description: values.description,
+        subject: values.subject,
+        stages: values.stages,
+        grades: values.grades,
+        // 交互配置
+        interaction_type: values.interactionType,
         interaction_config: values.interactionConfig ? JSON.parse(values.interactionConfig) : undefined,
+        // 资源配置
+        resource_type: values.resourceType || 'none',
         resource_config: values.resourceConfig ? JSON.parse(values.resourceConfig) : undefined,
+        // 答案配置
+        answer_type: values.answerType,
         answer_config: values.answerConfig ? JSON.parse(values.answerConfig) : undefined,
+        // 反馈配置
         feedback_config: values.feedbackConfig ? JSON.parse(values.feedbackConfig) : undefined,
+        // 认知配置
+        cognitive_levels: values.cognitiveLevels,
+        ability_dimensions: values.abilityDimensions,
+        // AI 配置
+        ai_prompt: values.aiPrompt,
+        // 其他设置
+        sort_order: values.sortOrder ?? 0,
+        is_active: values.isActive ?? true,
       };
+
+      // 新建模式下才包含编码字段
+      if (!isEdit) {
+        payload.code = values.code;
+      }
+
+      // 移除 undefined 字段
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === undefined) {
+          delete payload[key];
+        }
+      });
 
       if (isEdit) {
         await QuestionApi.updateQuestionType(Number(id!), payload);
