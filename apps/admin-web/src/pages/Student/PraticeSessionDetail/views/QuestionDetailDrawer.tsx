@@ -27,30 +27,11 @@ function buildResourceUrl(resource?: string): string | null {
   return `${OSS_BASE_URL}/${resource}`;
 }
 
-/**
- * 解析选项
- */
-function parseOptions(options?: string): string[] {
-  if (!options) return [];
-
-  try {
-    const parsed = JSON.parse(options);
-    if (Array.isArray(parsed)) {
-      return parsed.map((opt: any) => (typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt)));
-    }
-  } catch {
-    // 解析失败，尝试按换行符分割
-  }
-
-  // 按换行符分割
-  return options.split('\n').filter((line) => line.trim());
-}
-
 export function QuestionDetailDrawer({ open, question, answer, onClose }: QuestionDetailDrawerProps) {
   if (!question) return null;
 
-  const resourceUrl = buildResourceUrl(question.resource);
-  const optionsList = parseOptions(question.options);
+  const imageResources = question.resources?.filter((r) => r.type === 'image') || [];
+  const audioResource = question.resources?.find((r) => r.type === 'audio');
   const isWrongAnswer = answer?.status === 2; // 答错的题目
 
   return (
@@ -60,40 +41,47 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
           {question.id}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="题型" valueType="text">
-          {question.type || '未知题型'} ({question.subtype})
+          {question.questionTypeCode || '未知题型'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="难度" valueType="text">
           {question.difficulty || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="题目内容" valueType="text">
-          {question.content}
+          {question.stem.text}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="选项" valueType="text">
-          {optionsList.length === 0 && '-'}
-          {optionsList.map((option, index) => {
+          {(!question.options || question.options.length === 0) && '-'}
+          {question.options?.map((option, index) => {
             const optionLabel = String.fromCharCode(65 + index); // A, B, C, D...
             return (
-              <Tag key={index} style={{ margin: 0 }}>
-                {optionLabel}. {option}
-              </Tag>
+              <div key={index} style={{ marginBottom: 4 }}>
+                <Tag style={{ margin: 0 }}>{optionLabel}</Tag> {option.text}
+                {option.imageUrl && <Image width={100} src={buildResourceUrl(option.imageUrl) || ''} />}
+              </div>
             );
           })}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="知识点" valueType="text">
-          {question.knowledge || '-'}
+          {question.knowledgePoints?.join(', ') || '-'}
         </ProDescriptions.Item>
 
         <ProDescriptions.Item label="题目资源" valueType="text">
-          {!resourceUrl && '-'}
-          {question.resource_type === 'image' && resourceUrl && (
-            <Image width={120} src={resourceUrl} alt="题目资源" preview={{ mask: '预览' }} />
-          )}
-          {question.resource_type === 'audio' && resourceUrl && (
-            <AudioPlayer src={resourceUrl} resourceContent={question.resource_content} />
+          {(!question.resources || question.resources.length === 0) && '-'}
+          {imageResources.map((res, index) => (
+            <Image
+              key={index}
+              width={120}
+              src={buildResourceUrl(res.url) || ''}
+              alt="题目图片"
+              preview={{ mask: '预览' }}
+            />
+          ))}
+          {audioResource && (
+            <AudioPlayer src={buildResourceUrl(audioResource.url) || ''} resourceContent={audioResource.transcript} />
           )}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="正确答案" valueType="text">
-          {answer?.correct_answer || question.answer}
+          {answer?.correct_answer || question.answer.correctAnswers?.join(', ') || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="学生答案" valueType="text">
           {answer?.text_answer || '未作答'}

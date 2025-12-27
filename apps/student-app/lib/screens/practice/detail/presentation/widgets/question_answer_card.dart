@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/core/models/practice_answer.dart';
 import 'package:student_app/core/utils/practice_utils.dart';
 import 'package:student_app/core/utils/formatters.dart';
@@ -8,7 +8,7 @@ import 'package:student_app/core/theme/app_colors.dart';
 
 /// 题目答案卡片组件
 class QuestionAnswerCard extends StatefulWidget {
-  final Question question;
+  final QuestionV2 question;
   final PracticeAnswer? answer;
   final int index;
 
@@ -36,7 +36,9 @@ class _QuestionAnswerCardState extends State<QuestionAnswerCard> {
         ? (isCorrect ? AppColors.success : AppColors.error)
         : AppColors.textSecondary;
     final userAnswer = widget.answer?.textAnswer ?? '未作答';
-    final correctAnswer = widget.question.answer ?? '';
+    // V2: answer is a map with correct_answers
+    final answerData = widget.question.answer;
+    final correctAnswer = (answerData['correct_answers'] as List<dynamic>?)?.join(', ') ?? '';
     final timeSpent = widget.answer?.timeSpent ?? 0;
 
     return Container(
@@ -156,7 +158,7 @@ class _QuestionAnswerCardState extends State<QuestionAnswerCard> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  widget.question.type,
+                                  interactionTypeLabels[widget.question.questionTypeCode] ?? widget.question.questionTypeCode,
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.primary,
@@ -169,7 +171,7 @@ class _QuestionAnswerCardState extends State<QuestionAnswerCard> {
                           const SizedBox(height: 12),
                           // 题目内容
                           Text(
-                            _stripHtml(widget.question.content),
+                            _stripHtml(widget.question.stem.text),
                             style: const TextStyle(
                               fontSize: 15,
                               color: AppColors.textPrimary,
@@ -261,11 +263,11 @@ class _QuestionAnswerCardState extends State<QuestionAnswerCard> {
                         ),
                       ),
                     // 知识点
-                    if (widget.question.knowledge != null &&
-                        widget.question.knowledge!.isNotEmpty) ...[
+                    if (widget.question.knowledgePoints != null &&
+                        widget.question.knowledgePoints!.isNotEmpty) ...[
                       _buildInfoSection(
                         title: '知识点',
-                        content: widget.question.knowledge!,
+                        content: widget.question.knowledgePoints!.join(', '),
                         color: AppColors.primary,
                         icon: '📚',
                       ),

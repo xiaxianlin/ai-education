@@ -1,7 +1,8 @@
 from typing import Any, List, NotRequired, TypedDict
 
 from pydantic import BaseModel, Field
-from shared.core.database import Knowledge, PracticeSession, Question, Textbook, Unit
+from shared.core.database import Knowledge, PracticeSession, Textbook, Unit
+from shared.core.database import Question
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -18,7 +19,9 @@ class GeneratedQuestion(BaseModel):
     question_type: str = Field(description="大题型")
     question_subtype: str = Field(description="小题型")
     question: str = Field(description="题干内容")
-    options: List[QuestionOption] = Field(description="题目选项列表，非选择题时可为空数组", default=[])
+    options: List[QuestionOption] = Field(
+        description="题目选项列表，非选择题时可为空数组", default=[]
+    )
     resource_type: str = Field(description="资源类型：image/audio", default="")
     resource_content: str = Field(description="生成资源需要的描述和文案", default="")
     answer: str = Field(description="标准答案", default="")

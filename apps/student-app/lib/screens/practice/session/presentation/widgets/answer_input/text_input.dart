@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/core/models/question.dart';
 
 /// 文本输入组件（填空题）
 class TextInputWidget extends StatelessWidget {
-  final Question question;
+  final dynamic question;
   final String? value;
   final bool disabled;
   final ValueChanged<String> onChanged;

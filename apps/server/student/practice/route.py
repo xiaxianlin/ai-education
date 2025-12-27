@@ -1,160 +1,261 @@
-"""练习路由（日常练习 + 单元练习 + 能力评测）"""
+# -*- coding: utf-8 -*-
+"""
+练习路由
 
-from uuid import uuid4
+支持题型系统的练习功能：
+- 获取题目
+- 提交答案（支持复合题）
+"""
 
-from fastapi import APIRouter, File, Request, UploadFile
-from shared.core.database import Database
-from shared.practice import practice_answer, practice_generate, practice_session
-from shared.worker import Executor, submit_task
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
+from typing import Optional, Any
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schema import (
-    AnswerQuestionSchema,
-    CreatePracticeSchema,
-    PracticeSubmitParams,
-)
+from shared.core.database import Database
+from shared.core.database import Question
 
-practice_router = APIRouter(prefix="/practice_session")
+practice_router = APIRouter(prefix="/practice")
 
 
-@practice_router.get(
-    "/daily",
-    tags=["练习会话"],
-    summary="获取日常练习信息",
-    description="获取当日练习进度和相关信息",
-)
-async def get_daily_practices(request: Request, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_session.get_daily_practices(db, student.id)
+# ============ 请求/响应模型 ============
 
 
-@practice_router.get(
-    "/unit/{textbook_id}",
-    tags=["练习会话"],
-    summary="获取单元练习信息",
-    description="获取单元练习进度和相关信息",
-)
-async def get_unit_practices(textbook_id: int, request: Request, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_session.get_unit_practices(db, student.id, textbook_id)
+class SubAnswerSchema(BaseModel):
+    """子题答案"""
+
+    sub_question_id: str = Field(..., description="子题ID")
+    answer: Any = Field(..., description="答案内容")
+    time_spent: Optional[int] = Field(None, description="答题耗时(秒)")
 
 
-@practice_router.get(
-    "/assess",
-    tags=["练习会话"],
-    summary="获取综合评估信息",
-    description="获取综合能力评估进度和相关信息",
-)
-async def get_assessments(request: Request, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_session.get_assessments(db, student.id)
+class AnswerSchema(BaseModel):
+    """答案提交"""
+
+    session_id: int = Field(..., description="练习会话ID")
+    question_id: str = Field(..., description="题目ID")
+    answer: Any = Field(..., description="主答案内容")
+    sub_answers: Optional[list[SubAnswerSchema]] = Field(None, description="子题答案列表")
+    time_spent: Optional[int] = Field(None, description="总答题耗时(秒)")
 
 
-@practice_router.get(
-    "/records/{practice_id}",
-    tags=["练习会话"],
-    summary="查询练习历史",
-    description="根据练习类型（日常、单元、评估）查询最近的练习记录",
-)
-async def get_practice_history(practice_id: int, request: Request, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_session.get_practice_sessions(db, student.id, practice_id, limit=30)
+class AnswerResultSchema(BaseModel):
+    """答案评判结果"""
+
+    is_correct: bool = Field(..., description="是否正确")
+    score: float = Field(..., description="得分")
+    full_score: float = Field(..., description="满分")
+    feedback: Optional[str] = Field(None, description="反馈信息")
+    correct_answer: Optional[Any] = Field(None, description="正确答案")
+    sub_results: Optional[list[dict]] = Field(None, description="子题评判结果")
+
+
+# ============ 路由 ============
 
 
 @practice_router.get(
-    "/{id}",
-    tags=["练习会话"],
-    summary="获取练习会话详情",
-    description="获取练习会话的详细内容，包括题目和历史回答",
+    "/question/{question_id}",
+    tags=["练习"],
+    summary="获取题目详情",
+    description="获取题目内容",
 )
-async def get_session_detail(session_id: int, request: Request, db: AsyncSession = Database):
-    # 获取当前学生信息
-    student = request.state.student
-    return await practice_session.get_practice_session_data(db, student.id, session_id)
+async def get_question(
+    question_id: str,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取题目详情"""
+    question = await db.scalar(select(Question).where(Question.id == question_id))
 
+    if not question:
+        raise HTTPException(status_code=404, detail=f"题目 {question_id} 不存在")
 
-@practice_router.post(
-    "/create",
-    tags=["练习会话"],
-    summary="创建练习会话（异步）",
-    description="提交练习生成请求，由后台异步处理并生成题目",
-)
-async def create_practice(request: Request, params: CreatePracticeSchema):
-    task_id = f"practice_{uuid4().hex[:16]}"
-    payload = PracticeSubmitParams(
-        type=params.type.value if params.type else None,
-        student_id=request.state.student.id,
-        textbook_id=params.textbook_id,
-        unit_id=params.unit_id,
-        practice_id=params.practice_id,
-    )
-
-    # 提交任务到队列
-    return submit_task(task_id, Executor.generate_practice_task, [payload.model_dump()])
-
-
-@practice_router.post(
-    "/immediately_create",
-    tags=["练习会话"],
-    summary="立即创建练习会话",
-    description="同步创建练习会话并获取题目内容",
-)
-async def create_practice_immediately(request: Request, params: CreatePracticeSchema, db: AsyncSession = Database):
-    student = request.state.student
-    return await practice_generate.generate_practice_session(
-        db=db,
-        slug=params.slug,
-        student_id=student.id,
-        textbook_id=params.textbook_id,
-        unit_id=params.unit_id,
-    )
-
-
-@practice_router.post(
-    "/{id}/begin",
-    tags=["练习会话"],
-    summary="开始练习",
-    description="标记练习会话为开始状态",
-)
-async def begin_practice_session(id: int, request: Request, db: AsyncSession = Database):
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 开始练习
-    await practice_session.begin_practice(db, student.id, id)
-
-
-@practice_router.post(
-    "/{id}/complete",
-    tags=["练习会话"],
-    summary="完成练习",
-    description="结束练习会话并生成本次练习的分析报告",
-)
-async def complete_practice_session(id: int, request: Request, db: AsyncSession = Database):
-    # 获取当前学生信息
-    student = request.state.student
-
-    # 完成练习并生成报告
-    return await practice_session.complete_practice(db, student.id, id)
+    # 转换为前端格式
+    return {
+        "id": question.id,
+        "questionTypeId": question.question_type_id,
+        "questionTypeCode": question.question_type_code,
+        "subject": question.subject,
+        "grade": question.grade,
+        "stage": question.stage,
+        "stem": question.stem,
+        "options": question.options,
+        "blanks": question.blanks,
+        "resources": question.resources,
+        "difficulty": question.difficulty,
+        "cognitiveLevel": question.cognitive_level,
+        # 不返回答案，仅用于学生答题
+    }
 
 
 @practice_router.post(
     "/answer",
-    tags=["练习会话"],
-    summary="提交练习答案",
-    description="学生提交单道题目的回答并获取即时反馈",
+    tags=["练习"],
+    summary="提交答案",
+    description="提交答案，支持复合题",
+    response_model=AnswerResultSchema,
 )
-async def answer_question(params: AnswerQuestionSchema, request: Request, db: AsyncSession = Database):
-    # 获取当前学生信息
+async def submit_answer(
+    params: AnswerSchema,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """提交答案"""
     student = request.state.student
-    return await practice_answer.submit_answer(db, student.id, params)
+
+    # 获取题目
+    question = await db.scalar(select(Question).where(Question.id == params.question_id))
+
+    if not question:
+        raise HTTPException(status_code=404, detail=f"题目 {params.question_id} 不存在")
+
+    # 评判答案
+    result = evaluate_answer(question, params)
+
+    # TODO: 保存答题记录到数据库
+
+    return result
 
 
-@practice_router.post(
-    "/answer/audio/asr",
-    tags=["练习会话"],
-    summary="音频答案解析",
-    description="上传口语练习音频并利用 AI 进行语音转文字及内容分析",
-)
-async def asr_audio_answer(audio_file: UploadFile = File(...), db: AsyncSession = Database):
-    return await practice_answer.asr_audio_answer(db, await audio_file.read())
+def evaluate_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
+    """
+    评判答案
+
+    支持：
+    - 精确匹配 (exact)
+    - 模糊匹配 (fuzzy)
+    - 复合题 (composite)
+    """
+    answer_config = question.answer or {}
+    answer_type = answer_config.get("type", "exact")
+
+    if answer_type == "composite":
+        # 复合题评判
+        return evaluate_composite_answer(question, params)
+    elif answer_type == "exact":
+        return evaluate_exact_answer(question, params)
+    elif answer_type == "fuzzy":
+        return evaluate_fuzzy_answer(question, params)
+    else:
+        # AI 评分等其他类型暂时返回待评判
+        return AnswerResultSchema(
+            is_correct=False,
+            score=0,
+            full_score=answer_config.get("scoring", {}).get("full_score", 10),
+            feedback="此题型暂不支持自动评判",
+        )
+
+
+def evaluate_exact_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
+    """精确匹配评判"""
+    answer_config = question.answer or {}
+    correct_answers = answer_config.get("correct_answers", [])
+    scoring = answer_config.get("scoring", {})
+    full_score = scoring.get("full_score", 10)
+
+    user_answer = str(params.answer).strip()
+    is_correct = user_answer in [str(a).strip() for a in correct_answers]
+
+    return AnswerResultSchema(
+        is_correct=is_correct,
+        score=full_score if is_correct else 0,
+        full_score=full_score,
+        feedback="回答正确！" if is_correct else "回答错误，请再试一次。",
+        correct_answer=correct_answers[0] if correct_answers and not is_correct else None,
+    )
+
+
+def evaluate_fuzzy_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
+    """模糊匹配评判"""
+    answer_config = question.answer or {}
+    correct_answers = answer_config.get("correct_answers", [])
+    accept_values = answer_config.get("accept_values", [])
+    scoring = answer_config.get("scoring", {})
+    full_score = scoring.get("full_score", 10)
+
+    user_answer = str(params.answer).strip().lower()
+    all_acceptable = [str(a).strip().lower() for a in correct_answers + accept_values]
+
+    is_correct = user_answer in all_acceptable
+
+    return AnswerResultSchema(
+        is_correct=is_correct,
+        score=full_score if is_correct else 0,
+        full_score=full_score,
+        feedback="回答正确！" if is_correct else "回答错误，请再试一次。",
+        correct_answer=correct_answers[0] if correct_answers and not is_correct else None,
+    )
+
+
+def evaluate_composite_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
+    """复合题评判"""
+    stem = question.stem or {}
+    sub_questions = stem.get("sub_questions", [])
+    answer_config = question.answer or {}
+    scoring = answer_config.get("scoring", {})
+    partial_strategy = scoring.get("partial_strategy", "sum")
+
+    if not sub_questions or not params.sub_answers:
+        return AnswerResultSchema(
+            is_correct=False,
+            score=0,
+            full_score=scoring.get("full_score", 10),
+            feedback="请完成所有小题",
+        )
+
+    # 构建子答案映射
+    sub_answer_map = {sa.sub_question_id: sa.answer for sa in params.sub_answers}
+
+    total_score = 0
+    full_score = 0
+    sub_results = []
+    all_correct = True
+
+    for sub_q in sub_questions:
+        sub_id = sub_q.get("id")
+        sub_answer_config = sub_q.get("answer", {})
+        sub_full_score = sub_answer_config.get("scoring", {}).get("full_score", 10)
+        full_score += sub_full_score
+
+        user_sub_answer = sub_answer_map.get(sub_id)
+        correct_answers = sub_answer_config.get("correct_answers", [])
+
+        if user_sub_answer is None:
+            is_sub_correct = False
+            sub_score = 0
+        else:
+            is_sub_correct = str(user_sub_answer).strip() in [
+                str(a).strip() for a in correct_answers
+            ]
+            sub_score = sub_full_score if is_sub_correct else 0
+
+        total_score += sub_score
+        all_correct = all_correct and is_sub_correct
+
+        sub_results.append(
+            {
+                "sub_question_id": sub_id,
+                "is_correct": is_sub_correct,
+                "score": sub_score,
+                "full_score": sub_full_score,
+            }
+        )
+
+    # 根据策略计算最终得分
+    if partial_strategy == "all_or_nothing":
+        final_score = full_score if all_correct else 0
+    else:  # sum
+        final_score = total_score
+
+    return AnswerResultSchema(
+        is_correct=all_correct,
+        score=final_score,
+        full_score=full_score,
+        feedback=(
+            "全部正确！"
+            if all_correct
+            else f"正确 {sum(1 for r in sub_results if r['is_correct'])}/{len(sub_results)} 题"
+        ),
+        sub_results=sub_results,
+    )

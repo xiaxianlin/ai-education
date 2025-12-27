@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/core/models/question.dart';
 
 /// 判断题输入组件
 class JudgeInputWidget extends StatelessWidget {
-  final Question question;
+  final dynamic question;
   final String? value;
   final bool disabled;
   final bool hasAnswered;

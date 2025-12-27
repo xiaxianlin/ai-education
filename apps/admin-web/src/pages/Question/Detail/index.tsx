@@ -1,12 +1,11 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
-import { QuestionApi } from '../api';
-import { useRequest } from 'ahooks';
-import { message, Button, Card, Tag, Image, Flex, Typography } from 'antd';
+import { AudioPlayer, DeleteButton, PageHeader } from '@/components';
 import { GRADES } from '@/constants/course';
-import { AudioPlayer, DeleteButton } from '@/components';
 import { getResourceUrl } from '@ai-education/shared-web';
-import { PageHeader } from '@/components';
+import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { Button, Card, Flex, Image, message, Tag, Typography } from 'antd';
+import { useNavigate, useParams } from 'react-router-dom';
+import { QuestionApi } from '../api';
 
 export default function QuestionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -88,30 +87,8 @@ export default function QuestionDetailPage() {
 
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
 
-  // 根据 resource_type 判断资源类型
-  const isImageQuestion = question.resource_type === 'image';
-  const isAudioQuestion = question.resource_type === 'audio';
-
-  const resourceUrl = getResourceUrl(question.resource);
-
-  // 解析选项
-  let optionsList: string[] = [];
-  if (question.options) {
-    try {
-      const parsed = JSON.parse(question.options);
-      if (Array.isArray(parsed)) {
-        optionsList = parsed.map((opt: any) =>
-          typeof opt === 'string' ? opt : opt.text || opt.label || JSON.stringify(opt),
-        );
-      } else {
-        // 如果不是数组，尝试按换行符分割
-        optionsList = question.options.split('\n').filter((line) => line.trim());
-      }
-    } catch {
-      // 如果解析失败，尝试按换行符分割
-      optionsList = question.options.split('\n').filter((line) => line.trim());
-    }
-  }
+  const imageResources = question.resources?.filter((r) => r.type === 'image') || [];
+  const audioResources = question.resources?.filter((r) => r.type === 'audio') || [];
 
   return (
     <PageContainer
@@ -134,12 +111,12 @@ export default function QuestionDetailPage() {
           title="基本信息"
           extra={
             <>
-              {isImageQuestion && (
+              {question.questionTypeCode.includes('image') && (
                 <Button type="primary" onClick={handleGenerateImage} loading={generatingImage}>
                   生成图片
                 </Button>
               )}
-              {isAudioQuestion && (
+              {question.questionTypeCode.includes('audio') && (
                 <Button type="primary" onClick={handleGenerateAudio} loading={generatingAudio}>
                   生成语音
                 </Button>
@@ -151,35 +128,13 @@ export default function QuestionDetailPage() {
             <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
             <ProDescriptions.Item label="科目">{question.subject}</ProDescriptions.Item>
             <ProDescriptions.Item label="年级">{gradeInfo || '-'}</ProDescriptions.Item>
-            <ProDescriptions.Item label="题型">{String(question.type)}</ProDescriptions.Item>
-            {question.subtype && <ProDescriptions.Item label="子类型">{question.subtype}</ProDescriptions.Item>}
+            <ProDescriptions.Item label="题型">{question.questionTypeCode}</ProDescriptions.Item>
             <ProDescriptions.Item label="难度">
               {question.difficulty ? <Tag>{question.difficulty}</Tag> : '-'}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="资源类型">
-              {question.resource_type ? (
-                <Tag color={question.resource_type === 'image' ? 'blue' : 'green'}>
-                  {question.resource_type === 'image' ? '图片' : '音频'}
-                </Tag>
-              ) : (
-                '-'
-              )}
+            <ProDescriptions.Item label="知识点" span={2}>
+              {question.knowledgePoints?.join(', ') || '-'}
             </ProDescriptions.Item>
-            <ProDescriptions.Item label="资源状态">
-              {question.resource_type ? (
-                <Tag color={question.resource && question.resource.trim() !== '' ? 'success' : 'warning'}>
-                  {question.resource && question.resource.trim() !== '' ? '已生成' : '未生成'}
-                </Tag>
-              ) : (
-                '-'
-              )}
-            </ProDescriptions.Item>
-            <ProDescriptions.Item label="资源路径">{question.resource || '-'}</ProDescriptions.Item>
-            {question.resource_content && (
-              <ProDescriptions.Item label="录音文本" span={2}>
-                {question.resource_content}
-              </ProDescriptions.Item>
-            )}
             {question.textbook && (
               <ProDescriptions.Item label="教材" span={1}>
                 {question.textbook.version}
@@ -190,100 +145,75 @@ export default function QuestionDetailPage() {
                 {question.unit.name}
               </ProDescriptions.Item>
             )}
-            {question.knowledge && (
-              <ProDescriptions.Item label="知识点" span={2}>
-                {String(question.knowledge)}
-              </ProDescriptions.Item>
-            )}
           </ProDescriptions>
         </Card>
 
         <ProCard title="题目内容" bordered={false}>
-          <Typography.Paragraph>{question.content}</Typography.Paragraph>
+          <Typography.Paragraph>{question.stem.text}</Typography.Paragraph>
 
-          {/* 图片组件 */}
-          {isImageQuestion && resourceUrl && (
-            <div style={{ marginTop: '20px' }}>
-              <Image
-                src={resourceUrl}
-                alt="题目图片"
-                width={96}
-                height={96}
-                style={{ objectFit: 'contain' }}
-                preview={{
-                  mask: '预览',
-                }}
-              />
-              {question.resource_content && (
-                <div
-                  style={{
-                    marginTop: '12px',
-                    padding: '8px',
-                    background: '#f5f5f5',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                  }}
-                >
-                  <strong>资源文本：</strong>
-                  {question.resource_content}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 音频组件 */}
-          {isAudioQuestion && resourceUrl && (
-            <div style={{ marginTop: '20px' }}>
-              <AudioPlayer src={resourceUrl} resourceContent={question.resource_content} />
-            </div>
-          )}
-
-          {/* 资源未生成提示 */}
-          {!resourceUrl && (isImageQuestion || isAudioQuestion) && (
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                background: '#fffbe6',
-                borderRadius: '4px',
-                border: '1px solid #ffe58f',
-              }}
-            >
-              <div style={{ marginBottom: '8px', color: '#666' }}>
-                {isImageQuestion && '该题目需要图片资源，但尚未生成。'}
-                {isAudioQuestion && '该题目需要音频资源，但尚未生成。'}
+          {/* 资源组件 */}
+          <Flex gap={16} wrap="wrap" style={{ marginTop: '20px' }}>
+            {imageResources.map((res, index) => (
+              <div key={index}>
+                <Image
+                  src={getResourceUrl(res.url) ?? undefined}
+                  alt="题目图片"
+                  width={120}
+                  style={{ objectFit: 'contain' }}
+                  preview={{ mask: '预览' }}
+                />
+                {res.transcript && (
+                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>{res.transcript}</div>
+                )}
               </div>
-              {question.resource_content && (
-                <div
-                  style={{
-                    marginTop: '8px',
-                    padding: '8px',
-                    background: '#f5f5f5',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                  }}
-                >
-                  <strong>资源文本：</strong>
-                  {question.resource_content}
-                </div>
-              )}
+            ))}
+          </Flex>
+
+          {audioResources.map((res, index) => (
+            <div key={index} style={{ marginTop: '16px' }}>
+              <AudioPlayer src={getResourceUrl(res.url) ?? ''} resourceContent={res.transcript} />
             </div>
-          )}
+          ))}
+
+          {(!question.resources || question.resources.length === 0) &&
+            (question.questionTypeCode.includes('image') || question.questionTypeCode.includes('audio')) && (
+              <div
+                style={{
+                  marginTop: '20px',
+                  padding: '12px',
+                  background: '#fffbe6',
+                  borderRadius: '4px',
+                  border: '1px solid #ffe58f',
+                  color: '#666',
+                }}
+              >
+                该题目需要多媒体资源，但尚未生成。
+              </div>
+            )}
         </ProCard>
 
         <ProCard title="选项">
-          <Flex gap={10}>
-            {optionsList.map((option, index) => (
+          <Flex gap={10} wrap="wrap">
+            {question.options?.map((option, index) => (
               <Tag key={index} style={{ padding: '8px 12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                <strong>{String.fromCharCode(65 + index)}.</strong> {option}
+                <strong style={{ marginRight: 8 }}>{String.fromCharCode(65 + index)}.</strong>
+                {option.text}
+                {option.imageUrl && (
+                  <Image src={getResourceUrl(option.imageUrl) ?? undefined} width={40} style={{ marginLeft: 8 }} />
+                )}
               </Tag>
             ))}
-            {optionsList.length === 0 && '此题没有选项'}
+            {(!question.options || question.options.length === 0) && '此题没有选项'}
           </Flex>
         </ProCard>
 
         <ProCard title="答案">
-          <Tag color="blue">{question.answer}</Tag>
+          <Tag color="blue">{question.answer.correctAnswers?.join(', ') || '-'}</Tag>
+          {question.explanation && (
+            <div style={{ marginTop: 12, color: '#666' }}>
+              <strong>解析：</strong> {question.explanation}
+            </div>
+          )}
         </ProCard>
       </Flex>
     </PageContainer>

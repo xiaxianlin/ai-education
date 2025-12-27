@@ -9,7 +9,7 @@ part of 'submit_answer_params.dart';
 SubmitAnswerParams _$SubmitAnswerParamsFromJson(Map<String, dynamic> json) =>
     SubmitAnswerParams(
       sessionId: (json['session_id'] as num).toInt(),
-      questionId: (json['question_id'] as num).toInt(),
+      questionId: json['question_id'] as String,
       answer: json['answer'] as String,
       timeSpent: (json['time_spent'] as num).toInt(),
       isAudioAnswer: json['is_audio_answer'] as bool?,

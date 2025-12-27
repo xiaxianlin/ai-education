@@ -1,70 +1,119 @@
 declare global {
   /**
-   * 搜索学生请求
+   * 搜索题目请求
    */
   interface SearchQuestionRequest extends SearchRequest {
-    question_id?: string;
+    subject?: string;
+    grade?: number;
+    stage?: Stage;
+    questionTypeCode?: string;
+    difficulty?: Difficulty;
+    textbookId?: number;
+    unitId?: number;
+    isActive?: boolean;
     keyword?: string;
-    textbook_id?: number;
-    unit_id?: number;
-    type?: string;
-    subtype?: string;
-    difficulty?: string;
-    subject?: string;
-    grade?: number;
+    pageSize?: number;
   }
 
-  /**
-   * 更新题目请求
-   */
-  interface UpdateQuestionRequest {
-    subject?: string;
-    grade?: number;
-    type?: string;
-    subtype?: string;
-    content?: string;
-    options?: string | string[];
-    answer?: string;
-    resource?: string;
-    resource_type?: string;
-    resource_content?: string;
-    difficulty?: string;
-    knowledge?: string;
-    unit_id?: number;
-    textbook_id?: number;
+  /** 创建题型请求 */
+  interface QuestionTypeCreateRequest {
+    code: string;
+    name: string;
+    description?: string;
+    subject: string;
+    stages: Stage[];
+    grades: number[];
+    interactionType: InteractionType;
+    interactionConfig?: Record<string, unknown>;
+    resourceType?: ResourceType;
+    resourceConfig?: Record<string, unknown>;
+    answerType: AnswerType;
+    answerConfig?: Record<string, unknown>;
+    feedbackConfig?: FeedbackConfig;
+    cognitiveLevels?: CognitiveLevel[];
+    abilityDimensions?: string[];
+    aiPrompt?: string;
+    sortOrder?: number;
   }
 
-  /**
-   * 搜索题型请求
-   */
-  interface SearchQuestionTypeRequest {
-    scene?: string;
-    subject?: string;
-    grade?: number;
+  /** 更新题型请求 */
+  interface QuestionTypeUpdateRequest {
+    name?: string;
+    description?: string;
+    stages?: Stage[];
+    grades?: number[];
+    interactionConfig?: Record<string, unknown>;
+    resourceType?: ResourceType;
+    resourceConfig?: Record<string, unknown>;
+    answerConfig?: Record<string, unknown>;
+    feedbackConfig?: FeedbackConfig;
+    cognitiveLevels?: CognitiveLevel[];
+    abilityDimensions?: string[];
+    aiPrompt?: string;
+    sortOrder?: number;
+    isActive?: boolean;
   }
 
-  /**
-   * 创建题型请求
-   */
-  interface CreateQuestionTypeRequest {
-    title: string;
-    scene: string;
+  /** 创建题目请求 */
+  interface QuestionCreateRequest {
+    id?: string;
+    questionTypeId: number;
+    questionTypeCode: string;
     subject: string;
     grade: number;
-    description?: string;
-    resource_type?: string;
-    prompt?: string;
+    stage: Stage;
+    textbookId?: number;
+    unitId?: number;
+    stem: Stem;
+    options?: QuestionOption[];
+    blanks?: Array<Record<string, unknown>>;
+    resources?: QuestionResource[];
+    answer: Answer;
+    explanation?: string;
+    difficulty: Difficulty;
+    cognitiveLevel?: CognitiveLevel;
+    knowledgePoints?: string[];
+    abilityTags?: string[];
+    source?: string;
+    promptId?: number;
   }
 
-  /**
-   * 更新题型请求
-   */
-  interface UpdateQuestionTypeRequest {
-    title?: string;
-    scene?: string;
+  /** 更新题目请求 */
+  interface QuestionUpdateRequest {
+    stem?: Stem;
+    options?: QuestionOption[];
+    blanks?: Array<Record<string, unknown>>;
+    resources?: QuestionResource[];
+    answer?: Answer;
+    explanation?: string;
+    difficulty?: Difficulty;
+    cognitiveLevel?: CognitiveLevel;
+    knowledgePoints?: string[];
+    abilityTags?: string[];
+    isActive?: boolean;
+  }
+
+  /** 创建题目模板请求 */
+  interface QuestionTemplateCreateRequest {
+    name: string;
+    questionTypeId: number;
     description?: string;
-    resource_type?: string;
-    prompt?: string;
+    systemPrompt?: string;
+    userPromptTemplate?: string;
+    variables?: Record<string, unknown>;
+    outputSchema?: Record<string, unknown>;
+    isActive?: boolean;
+  }
+
+  /** 更新题目模板请求 */
+  interface QuestionTemplateUpdateRequest {
+    name?: string;
+    description?: string;
+    systemPrompt?: string;
+    userPromptTemplate?: string;
+    variables?: Record<string, unknown>;
+    outputSchema?: Record<string, unknown>;
+    isActive?: boolean;
   }
 }
 

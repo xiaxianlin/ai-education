@@ -156,3 +156,127 @@ export const GRADE_OPTIONS = Object.entries(GRADES).map(([value, label]) => ({
   label,
   value,
 }));
+
+// ============ 题型系统常量 ============
+
+/** 学段 */
+export type Stage = "primary_low" | "primary_high" | "junior" | "senior";
+
+/** 交互类型 */
+export type InteractionType =
+  | "single_choice"
+  | "multi_choice"
+  | "image_choice"
+  | "text_input"
+  | "handwriting"
+  | "voice_input"
+  | "drag_drop"
+  | "connect_line"
+  | "sort_order"
+  | "true_false"
+  | "correct_wrong"
+  | "follow_read"
+  | "free_speak"
+  | "fill_blank"
+  | "multi_step";
+
+/** 认知层次 */
+export type CognitiveLevel = "remember" | "understand" | "apply" | "analyze" | "evaluate" | "create";
+
+/** 难度 */
+export type Difficulty = "easy" | "medium" | "hard";
+
+/** 资源类型 */
+export type ResourceType = "none" | "image" | "audio" | "video" | "animation";
+
+/** 答案类型 */
+export type AnswerType = "exact" | "fuzzy" | "rubric" | "ai" | "composite";
+
+/** 交互类型与组件映射 */
+export const INTERACTION_COMPONENT_MAP: Record<InteractionType, string> = {
+  single_choice: "RadioGroup",
+  multi_choice: "CheckboxGroup",
+  image_choice: "ImageRadioGroup",
+  text_input: "TextField",
+  handwriting: "HandwritingCanvas",
+  voice_input: "VoiceRecorder",
+  drag_drop: "DragDropZone",
+  connect_line: "ConnectionLine",
+  sort_order: "SortableList",
+  true_false: "TrueFalseToggle",
+  correct_wrong: "CorrectWrongToggle",
+  follow_read: "FollowReadPlayer",
+  free_speak: "FreeSpeakRecorder",
+  fill_blank: "FillBlankInput",
+  multi_step: "MultiStepForm",
+};
+
+/** 学段与年级映射 */
+export const STAGE_GRADES: Record<Stage, number[]> = {
+  primary_low: [1, 2, 3],
+  primary_high: [4, 5, 6],
+  junior: [7, 8, 9],
+  senior: [10, 11, 12],
+};
+
+/** 学段标签 */
+export const STAGE_LABELS: Record<Stage, string> = {
+  primary_low: "小学低段",
+  primary_high: "小学高段",
+  junior: "初中",
+  senior: "高中",
+};
+
+/** 难度标签 */
+export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
+  easy: "简单",
+  medium: "中等",
+  hard: "困难",
+};
+
+/** 认知层次标签 */
+export const COGNITIVE_LEVEL_LABELS: Record<CognitiveLevel, string> = {
+  remember: "识记",
+  understand: "理解",
+  apply: "应用",
+  analyze: "分析",
+  evaluate: "评价",
+  create: "创造",
+};
+
+/** 交互类型标签 */
+export const INTERACTION_TYPE_LABELS: Record<InteractionType, string> = {
+  single_choice: "单选题",
+  multi_choice: "多选题",
+  image_choice: "图片选择",
+  text_input: "文本输入",
+  handwriting: "手写输入",
+  voice_input: "语音输入",
+  drag_drop: "拖拽放置",
+  connect_line: "连线匹配",
+  sort_order: "排序排列",
+  true_false: "是非判断",
+  correct_wrong: "对错判断",
+  follow_read: "跟读",
+  free_speak: "自由表达",
+  fill_blank: "填空",
+  multi_step: "多步骤",
+};
+
+/** 资源类型标签 */
+export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
+  none: "无",
+  image: "图片",
+  audio: "音频",
+  video: "视频",
+  animation: "动画",
+};
+
+/** 答案类型标签 */
+export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
+  exact: "精确匹配",
+  fuzzy: "模糊匹配",
+  rubric: "评分标准",
+  ai: "AI评分",
+  composite: "复合题",
+};

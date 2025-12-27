@@ -8,7 +8,7 @@ import 'package:student_app/core/models/practice_report.dart';
 import 'package:student_app/core/models/submit_answer_params.dart';
 import 'package:student_app/core/models/submit_answer_response.dart';
 import 'package:student_app/core/models/upload_recording_result.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 
 /// 练习相关 API 端点
 class PracticeEndpoints {
@@ -145,7 +145,7 @@ class PracticeEndpoints {
 /// 练习会话详情
 class PracticeSessionDetail {
   final PracticeSession session;
-  final List<Question> questions;
+  final List<QuestionV2> questions;
   final List<PracticeAnswer> answers;
   final PracticeReport? report;
 
@@ -160,7 +160,7 @@ class PracticeSessionDetail {
     return PracticeSessionDetail(
       session: PracticeSession.fromJson(json['session']),
       questions: (json['questions'] as List)
-          .map((q) => Question.fromJson(q))
+          .map((q) => QuestionV2.fromJson(q as Map<String, dynamic>))
           .toList(),
       answers: (json['answers'] as List)
           .map((a) => PracticeAnswer.fromJson(a))
@@ -171,4 +171,5 @@ class PracticeSessionDetail {
     );
   }
 }
+
 

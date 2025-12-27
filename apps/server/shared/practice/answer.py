@@ -7,8 +7,8 @@ from shared.core.database import (
     PracticeSession,
     PracticeSessionAnswer,
     Prompt,
-    Question,
 )
+from shared.core.database import Question
 from shared.core.schema import PracticeSessionAnswerSchema
 from shared.provider import get_provider
 from shared.utils.prompt import build_question_prompt
@@ -23,14 +23,16 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
     """检查答案是否正确并生成分析
 
     Args:
-        question: 题目对象
+        question: 题目对象 (V2)
         answer_content: 答题内容
         db: 数据库会话
 
     Returns:
         tuple: (is_correct, analysis) - 是否正确和错题分析（如果错误）
     """
-    is_correct = question.answer.strip() == answer_content.strip()
+    # V2: answer is a dict with correct_answers list
+    correct_answers = question.answer.get("correct_answers", [])
+    is_correct = answer_content.strip() in [str(a).strip() for a in correct_answers]
     if is_correct:
         return is_correct, None
 
@@ -53,14 +55,16 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
 async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerSchema):
     """提交答题答案"""
     # 1. 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == params.session_id))
+    session = await db.scalar(
+        select(PracticeSession).where(PracticeSession.id == params.session_id)
+    )
     if not session:
         raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
     if session.student_id != student_id:
         raise ValueError("无权操作此练习")
 
-    # 2. 查询题目信息
+    # 2. 查询题目信息 (V2)
     question = await db.scalar(select(Question).where(Question.id == params.question_id))
     if not question:
         raise ValueError(f"题目不存在: question_id={params.question_id}")
@@ -73,10 +77,14 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
         )
     )
     if not answer_record:
-        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
     if answer_record.status != 0:
-        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
     # 4. 检查答案并生成分析
     is_correct, analysis = await _analyze_answer(db, question, params.answer)
@@ -86,7 +94,9 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
     answer_record.text_answer = params.answer
     answer_record.status = 1 if is_correct else 2
     answer_record.time_spent = params.time_spent
-    answer_record.correct_answer = question.answer
+    # V2: correct_answer is extracted from answer dict
+    correct_answers = question.answer.get("correct_answers", [])
+    answer_record.correct_answer = ", ".join(str(a) for a in correct_answers)
     answer_record.analysis = analysis
 
     # 6. 更新练习会话统计

@@ -1,212 +1,189 @@
-from __future__ import annotations
+"""
+题目服务层
+"""
 
-from shared.core.database import Question, Unit
-from shared.core.schema import QuestionSchema, SearchResultSchema
-from shared.generation import (
-    invoke_question_audio_workflow,
-    invoke_question_image_workflow,
-)
-from shared.utils.prompt import build_question_prompt
-from sqlalchemy import and_, func, or_, select
+import uuid
+from typing import List, Optional, Tuple
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, noload
 
-from ..schema import CreateQuestionSchema, SearchQuestionSchema, UpdateQuestionSchema
+from shared.core.database import Question
+from admin.question.schema import (
+    QuestionCreateSchema,
+    QuestionUpdateSchema,
+    QuestionSearchSchema,
+)
 
 
-async def create_question(db: AsyncSession, data: CreateQuestionSchema):
-    """创建问题"""
-    question = Question(
-        subject=data.subject,
-        grade=data.grade,
-        type=data.type,
-        subtype=data.subtype,
-        content=data.content,
-        options=data.options,
-        answer=data.answer,
-        difficulty=data.difficulty,
-        resource_type=data.resource_type,
-        resource_content=data.resource_content,
-        knowledge=data.knowledge,
-        unit_id=data.unit_id,
-        textbook_id=data.textbook_id,
-    )
+def generate_question_id() -> str:
+    """生成题目ID"""
+    return str(uuid.uuid4())
+
+
+async def create_question(db: AsyncSession, params: QuestionCreateSchema) -> Question:
+    """创建题目"""
+    data = params.model_dump()
+
+    # 如果没有传ID，自动生成
+    if not data.get("id"):
+        data["id"] = generate_question_id()
+
+    question = Question(**data)
     db.add(question)
     await db.commit()
     await db.refresh(question)
     return question
 
 
-async def update_question(db: AsyncSession, id: str, update: UpdateQuestionSchema):
-    """更新问题"""
-    question = await db.scalar(select(Question).where(Question.id == id))
-    if not question:
-        raise ValueError("问题不存在")
-
-    if update.subject is not None:
-        question.subject = update.subject
-    if update.grade is not None:
-        question.grade = update.grade
-    if update.type is not None:
-        question.type = update.type
-    if update.subtype is not None:
-        question.subtype = update.subtype
-    if update.content is not None:
-        question.content = update.content
-    if update.options is not None:
-        question.options = update.options
-    if update.answer is not None:
-        question.answer = update.answer
-    if update.difficulty is not None:
-        question.difficulty = update.difficulty
-    if update.resource_type is not None:
-        question.resource_type = update.resource_type
-    if update.resource_content is not None:
-        question.resource_content = update.resource_content
-    if update.knowledge is not None:
-        question.knowledge = update.knowledge
-    if update.unit_id is not None:
-        question.unit_id = update.unit_id
-    if update.textbook_id is not None:
-        question.textbook_id = update.textbook_id
+async def create_questions_batch(
+    db: AsyncSession, questions: List[QuestionCreateSchema]
+) -> List[Question]:
+    """批量创建题目"""
+    created = []
+    for params in questions:
+        data = params.model_dump()
+        if not data.get("id"):
+            data["id"] = generate_question_id()
+        question = Question(**data)
+        db.add(question)
+        created.append(question)
 
     await db.commit()
 
+    for q in created:
+        await db.refresh(q)
 
-async def delete_question(db: AsyncSession, id: str):
-    """删除问题"""
-    question = await db.scalar(select(Question).where(Question.id == id))
+    return created
+
+
+async def update_question(db: AsyncSession, id: str, params: QuestionUpdateSchema) -> Question:
+    """更新题目"""
+    result = await db.execute(select(Question).where(Question.id == id))
+    question = result.scalar_one_or_none()
+
     if not question:
-        raise ValueError("问题不存在")
+        raise ValueError(f"题目 {id} 不存在")
+
+    update_data = params.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(question, key, value)
+
+    await db.commit()
+    await db.refresh(question)
+    return question
+
+
+async def delete_question(db: AsyncSession, id: str) -> None:
+    """删除题目"""
+    result = await db.execute(select(Question).where(Question.id == id))
+    question = result.scalar_one_or_none()
+
+    if not question:
+        raise ValueError(f"题目 {id} 不存在")
 
     await db.delete(question)
     await db.commit()
 
 
-async def get_question(db: AsyncSession, id: str):
-    """根据ID获取问题"""
-    result = await db.execute(
-        select(Question)
-        .options(
-            joinedload(Question.unit).noload(Unit.textbook),
-            joinedload(Question.textbook),
-        )
-        .where(Question.id == id)
-    )
-    question = result.scalar_one_or_none()
-    if not question:
-        raise ValueError("问题不存在")
-    return QuestionSchema.model_validate(question)
+async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
+    """获取题目详情"""
+    result = await db.execute(select(Question).where(Question.id == id))
+    return result.scalar_one_or_none()
 
 
-async def query_question_by_knowledge(db: AsyncSession, knowledge: str, page: int, size: int):
-    """根据知识点获取问题列表"""
-    query = (
-        select(Question)
-        .options(
-            noload(Question.textbook),
-            noload(Question.unit),
-        )
-        .where(Question.knowledge == knowledge)
-    )
-
-    # 获取总数
-    count_query = select(func.count(Question.id)).where(Question.knowledge == knowledge)
-
-    total = await db.scalar(count_query) or 0
-
-    # 分页查询
-    offset = (page - 1) * size
-    query = query.order_by(Question.id.desc()).offset(offset).limit(size)
-
-    result = await db.scalars(query)
-
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionSchema.model_validate(question) for question in result.all()],
-    )
-
-
-async def search_question(db: AsyncSession, params: SearchQuestionSchema):
-    """搜索问题"""
-    query = select(Question).options(
-        joinedload(Question.textbook),
-        joinedload(Question.unit).noload(Unit.textbook),
-    )
-
+async def search_questions(
+    db: AsyncSession, params: QuestionSearchSchema
+) -> Tuple[List[Question], int]:
+    """搜索题目，返回列表和总数"""
     conditions = []
-    if params.question_id is not None:
-        conditions.append(Question.id == params.question_id)
-    if params.content:
-        conditions.append(Question.content.contains(params.content))
-    if params.type:
-        conditions.append(Question.type == params.type)
-    if params.grade is not None:
-        conditions.append(Question.grade == params.grade)
+
+    if params.question_type_id:
+        conditions.append(Question.question_type_id == params.question_type_id)
+
+    if params.question_type_code:
+        conditions.append(Question.question_type_code == params.question_type_code)
+
     if params.subject:
         conditions.append(Question.subject == params.subject)
-    if params.resource_type is not None:
-        if params.resource_type == "":
-            # 筛选无资源类型的题目（resource_type 为 None 或空字符串）
-            conditions.append(or_(Question.resource_type.is_(None), Question.resource_type == ""))
-        else:
-            conditions.append(Question.resource_type == params.resource_type)
-    if params.resource_generated is not None:
-        if params.resource_generated:
-            # 资源已生成：resource 不为空且不为空字符串
-            conditions.append(and_(Question.resource.isnot(None), Question.resource != ""))
-        else:
-            # 资源未生成：resource 为空或空字符串
-            conditions.append(or_(Question.resource.is_(None), Question.resource == ""))
+
+    if params.grade:
+        conditions.append(Question.grade == params.grade)
+
+    if params.stage:
+        conditions.append(Question.stage == params.stage)
+
+    if params.textbook_id:
+        conditions.append(Question.textbook_id == params.textbook_id)
+
+    if params.unit_id:
+        conditions.append(Question.unit_id == params.unit_id)
+
+    if params.difficulty:
+        conditions.append(Question.difficulty == params.difficulty)
+
+    if params.cognitive_level:
+        conditions.append(Question.cognitive_level == params.cognitive_level)
+
+    if params.source:
+        conditions.append(Question.source == params.source)
+
+    if params.is_active is not None:
+        conditions.append(Question.is_active == params.is_active)
+
+    # 构建基础查询
+    base_query = select(Question)
+    count_query = select(func.count(Question.id))
+
+    if conditions:
+        base_query = base_query.where(and_(*conditions))
+        count_query = count_query.where(and_(*conditions))
 
     # 获取总数
-    count_query = select(func.count(Question.id)).where(and_(*conditions))
-
-    total = await db.scalar(count_query) or 0
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
 
     # 分页查询
-    offset = (params.page - 1) * params.size
-    query = query.where(and_(*conditions)).order_by(Question.id.desc()).offset(offset).limit(params.size)
+    offset = (params.page - 1) * params.page_size
+    query = base_query.order_by(Question.create_time.desc()).offset(offset).limit(params.page_size)
 
-    result = await db.scalars(query)
+    result = await db.execute(query)
+    questions = list(result.scalars().all())
 
-    return SearchResultSchema(
-        total=total,
-        data=[QuestionSchema.model_validate(question) for question in result.all()],
+    return questions, total
+
+
+async def get_questions_by_ids(db: AsyncSession, ids: List[str]) -> List[Question]:
+    """根据ID列表获取题目"""
+    if not ids:
+        return []
+
+    result = await db.execute(select(Question).where(Question.id.in_(ids)))
+    return list(result.scalars().all())
+
+
+async def count_questions_by_type(db: AsyncSession, question_type_id: int) -> int:
+    """统计题型下的题目数量"""
+    result = await db.execute(
+        select(func.count(Question.id)).where(Question.question_type_id == question_type_id)
     )
+    return result.scalar() or 0
 
 
-async def generate_question_image(db: AsyncSession, id: str):
-    """为题目生成图片"""
-    question = await db.scalar(select(Question).where(Question.id == id))
-    if not question:
-        raise ValueError("问题不存在")
+async def increment_usage_count(db: AsyncSession, id: str) -> None:
+    """增加题目使用次数"""
+    result = await db.execute(select(Question).where(Question.id == id))
+    question = result.scalar_one_or_none()
 
-    prompt = build_question_prompt(question)
-    question.resource = f"textbook/{question.textbook_id}/question_image/{question.id}.png"
-
-    # 调用 AI 服务生成图片
-    await invoke_question_image_workflow(
-        db=db,
-        prompt=prompt,
-        oss_path=question.resource,
-    )
-    await db.commit()
+    if question:
+        question.usage_count = (question.usage_count or 0) + 1
+        await db.commit()
 
 
-async def generate_question_audio(db: AsyncSession, id: str):
-    """为题目生成语音"""
-    question = await db.scalar(select(Question).where(Question.id == id))
-    if not question:
-        raise ValueError("问题不存在")
+async def update_correct_rate(db: AsyncSession, id: str, correct_rate: str) -> None:
+    """更新题目正确率"""
+    result = await db.execute(select(Question).where(Question.id == id))
+    question = result.scalar_one_or_none()
 
-    question.resource = f"textbook/{question.textbook_id}/question_audio/{question.id}.mp3"
-    language = "English" if question.subject == "英语" else "Chinese"
-    # 调用 AI 服务生成语音
-    await invoke_question_audio_workflow(
-        text=question.resource_content,
-        language=language,
-        oss_path=question.resource,
-    )
-
-    await db.commit()
+    if question:
+        question.correct_rate = correct_rate
+        await db.commit()

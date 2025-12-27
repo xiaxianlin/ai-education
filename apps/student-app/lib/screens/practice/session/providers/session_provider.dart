@@ -2,10 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:state_notifier/state_notifier.dart' show StateNotifier;
 import 'package:student_app/screens/practice/session/data/practice_repository.dart';
 import 'package:student_app/core/models/practice_session.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/core/models/practice_report.dart';
 import 'package:student_app/core/models/submit_answer_params.dart';
 import 'package:student_app/core/models/submit_answer_response.dart';
+import 'package:student_app/core/models/practice_answer.dart';
 
 /// 答题状态：0-未答, 1-正确, 2-错误
 enum AnswerStatus {
@@ -28,12 +29,12 @@ enum AnswerStatus {
 class SessionState {
   final bool loading;
   final PracticeSession? session;
-  final List<Question> questions;
+  final List<QuestionV2> questions;
   final int currentQuestionIndex;
-  final Map<String, String> userAnswers; // questionId -> answer
+  final Map<String, dynamic> userAnswers; // questionId -> answer (String or Map)
   final Map<String, String> audioAnswers; // questionId -> audioPath
   final Map<String, String> audioAnalysis; // questionId -> audio recognition analysis
-  final Map<String, String> correctAnswers; // questionId -> correct answer
+  final Map<String, dynamic> correctAnswers; // questionId -> correct answer
   final Map<String, String> analyses; // questionId -> wrong answer analysis
   final Map<String, AnswerStatus> answerStatus; // questionId -> status
   final bool submitting;
@@ -53,18 +54,17 @@ class SessionState {
     this.answerStatus = const {},
     this.submitting = false,
     this.report,
-    this.startTime,
   });
 
   SessionState copyWith({
     bool? loading,
     PracticeSession? session,
-    List<Question>? questions,
+    List<QuestionV2>? questions,
     int? currentQuestionIndex,
-    Map<String, String>? userAnswers,
+    Map<String, dynamic>? userAnswers,
     Map<String, String>? audioAnswers,
     Map<String, String>? audioAnalysis,
-    Map<String, String>? correctAnswers,
+    Map<String, dynamic>? correctAnswers,
     Map<String, String>? analyses,
     Map<String, AnswerStatus>? answerStatus,
     bool? submitting,
@@ -90,7 +90,7 @@ class SessionState {
   }
 
   /// 获取当前题目
-  Question? get currentQuestion {
+  dynamic get currentQuestion {
     if (currentQuestionIndex >= 0 && currentQuestionIndex < questions.length) {
       return questions[currentQuestionIndex];
     }
@@ -98,7 +98,7 @@ class SessionState {
   }
 
   /// 获取当前题目的答案
-  String? get currentAnswer {
+  dynamic get currentAnswer {
     final question = currentQuestion;
     if (question == null) return null;
     return userAnswers[question.id];
@@ -119,7 +119,7 @@ class SessionState {
   }
 
   /// 获取当前题目的正确答案
-  String? get currentCorrectAnswer {
+  dynamic get currentCorrectAnswer {
     final question = currentQuestion;
     if (question == null) return null;
     return correctAnswers[question.id];
@@ -176,10 +176,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
       final report = detail.report;
 
       // 恢复已提交的答案
-      final restoredAnswers = <String, String>{};
+      final restoredAnswers = <String, dynamic>{};
       final restoredAudioAnswers = <String, String>{};
       final restoredStatus = <String, AnswerStatus>{};
-      final restoredCorrectAnswers = <String, String>{};
+      final restoredCorrectAnswers = <String, dynamic>{};
       final restoredAnalyses = <String, String>{};
 
       if (answers.isNotEmpty) {
@@ -269,7 +269,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 
   /// 设置当前题目的答案
-  void setCurrentAnswer(String answer) {
+  void setCurrentAnswer(dynamic answer) {
     final question = state.currentQuestion;
     if (question == null) return;
 
@@ -321,12 +321,14 @@ class SessionNotifier extends StateNotifier<SessionState> {
     final answer = state.userAnswers[question.id];
     final audioAnswer = state.audioAnswers[question.id];
 
-    if (question.type == '口语题' || question.type == 'oral') {
+    final bool isOral = question.questionTypeCode == 'voice_input';
+
+    if (isOral) {
       if (audioAnswer == null || audioAnswer.isEmpty) {
         throw Exception('请先录制语音答案');
       }
     } else {
-      if (answer == null || answer.isEmpty) {
+      if (answer == null || (answer is String && answer.isEmpty)) {
         throw Exception('请先填写答案');
       }
     }
@@ -348,9 +350,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
       final params = SubmitAnswerParams(
         sessionId: session.id,
         questionId: question.id,
-        answer: answer ?? '',
+        answer: answer is String ? answer : (answer != null ? answer.toString() : ''),
         timeSpent: timeSpent,
-        isAudioAnswer: question.type == '口语题' || question.type == 'oral',
+        isAudioAnswer: isOral,
         audioData: audioAnswer,
         audioMatch: audioMatch,
         audioAnalysis: audioAnalysis,

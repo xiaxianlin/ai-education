@@ -8,8 +8,8 @@ from shared.core.database import (
     PracticeSession,
     PracticeSessionAnswer,
     PracticeSessionReport,
-    Question,
 )
+from shared.core.database import Question
 from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,7 +77,9 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     )
 
     # 10. 综合评估（主要用于assessment类型）
-    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(overall_score, consistency)
+    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
+        overall_score, consistency
+    )
 
     # 11. 创建报告
     report = PracticeSessionReport(
@@ -116,7 +118,7 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessi
     if not answers:
         return {}
 
-    # 批量查询所有题目
+    # 批量查询所有题目 (V2)
     question_ids = [answer.question_id for answer in answers]
     questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
@@ -124,10 +126,15 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessi
     knowledge_stats = {}
     for answer in answers:
         question = questions.get(answer.question_id)
-        if not question or not question.knowledge:
+        # V2: knowledge_points is a list
+        if not question or not question.knowledge_points:
             continue
 
-        knowledge = question.knowledge
+        # Use first knowledge point
+        knowledge = question.knowledge_points[0] if question.knowledge_points else None
+        if not knowledge:
+            continue
+
         if knowledge not in knowledge_stats:
             knowledge_stats[knowledge] = {"total": 0, "correct": 0}
 
@@ -148,12 +155,14 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessi
     return result
 
 
-async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
+async def analyze_question_distribution(
+    db: AsyncSession, answers: List[PracticeSessionAnswer]
+) -> Dict:
     """分析题目来源分布（按题型）"""
     if not answers:
         return {}
 
-    # 批量查询所有题目
+    # 批量查询所有题目 (V2)
     question_ids = [answer.question_id for answer in answers]
     questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
@@ -164,7 +173,8 @@ async def analyze_question_distribution(db: AsyncSession, answers: List[Practice
         if not question:
             continue
 
-        q_type = question.type
+        # V2: question_type_code instead of type
+        q_type = question.question_type_code
         if q_type not in type_stats:
             type_stats[q_type] = {"total": 0, "correct": 0}
 
@@ -190,7 +200,7 @@ async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeSess
     if not answers:
         return {}
 
-    # 批量查询所有题目
+    # 批量查询所有题目 (V2)
     question_ids = [answer.question_id for answer in answers]
     questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
     questions = {q.id: q for q in questions_result.all()}
@@ -299,7 +309,9 @@ async def generate_recommendations(
 
     # 针对薄弱点的建议
     if weaknesses:
-        recommendations.append(f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}")
+        recommendations.append(
+            f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}"
+        )
 
     # 根据练习类型给建议
     if session_type == "daily_practice":

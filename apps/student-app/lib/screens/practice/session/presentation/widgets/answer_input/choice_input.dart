@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 
 /// 选择题输入组件
 class ChoiceInputWidget extends StatelessWidget {
-  final Question question;
+  final QuestionV2 question;
   final String? value;
   final bool disabled;
   final bool hasAnswered;
@@ -21,25 +21,18 @@ class ChoiceInputWidget extends StatelessWidget {
   });
 
   /// 解析选项
-  List<String> _parseOptions() {
-    if (question.options == null || question.options!.isEmpty) {
-      return [];
-    }
-
-    try {
-      // 尝试解析为 JSON 数组
-      // 如果失败，按换行符分割
-      final options = question.options!.split('\n')
-          .where((o) => o.trim().isNotEmpty)
-          .map((o) => o.trim())
-          .toList();
-      return options;
-    } catch (e) {
-      return question.options!.split('\n')
-          .where((o) => o.trim().isNotEmpty)
-          .map((o) => o.trim())
-          .toList();
-    }
+  List<Map<String, String>> _parseOptions() {
+    if (question.options == null) return [];
+    return question.options!.asMap().entries.map((entry) {
+      final index = entry.key;
+      final option = entry.value;
+      final label = String.fromCharCode(65 + index);
+      return {
+        'label': label,
+        'text': option.text ?? '',
+        'id': option.id,
+      };
+    }).toList();
   }
 
   @override
@@ -52,11 +45,14 @@ class ChoiceInputWidget extends StatelessWidget {
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: options.asMap().entries.map((entry) {
-        final index = entry.key;
-        final optionText = entry.value;
-        final optionLabel = String.fromCharCode(65 + index); // A, B, C, D...
-        final isSelected = value == optionLabel;
+      children: options.map((option) {
+        final optionLabel = option['label']!;
+        final optionText = option['text']!;
+        // For V1, value is label. For V2, value is currently also label (letter) or could be ID.
+        // Let's stick to label for consistent UI mapping if possible, or use ID.
+        // The backend expects ID for V2 single_choice.
+        final identifyValue = (question is QuestionV2) ? option['id']! : optionLabel;
+        final isSelected = value == identifyValue;
 
         Color? borderColor;
         Color? backgroundColor;
@@ -87,7 +83,7 @@ class ChoiceInputWidget extends StatelessWidget {
         }
 
         return GestureDetector(
-          onTap: disabled || hasAnswered ? null : () => onChanged(optionLabel),
+          onTap: disabled || hasAnswered ? null : () => onChanged(identifyValue),
           child: Container(
             width: (MediaQuery.of(context).size.width - 48) / 2,
             padding: const EdgeInsets.all(16),

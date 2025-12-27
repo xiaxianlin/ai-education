@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     TASK_CONCURRENCY: int = multiprocessing.cpu_count()  # 任务并发数，自动检测（CPU核心数）
     TASK_LOGLEVEL: str = "info"  # 任务日志级别
 
+    # V2 迁移配置
+    USE_QUESTION_V2_SYNC: bool = False  # 是否启用 V1->V2 双写同步
+    USE_QUESTION_V2: bool = False  # 是否使用 V2 题型系统读取
+
     @field_validator("RUN_ENV")
     @classmethod
     def validate_run_env(cls, v):

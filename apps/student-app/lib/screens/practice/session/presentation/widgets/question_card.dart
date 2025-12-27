@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/core/utils/image_cache_config.dart';
 import 'package:student_app/core/utils/resource.dart';
 import 'package:student_app/screens/practice/session/providers/session_provider.dart';
@@ -8,7 +8,7 @@ import 'package:student_app/core/theme/app_colors.dart';
 
 /// 题目卡片组件
 class QuestionCard extends StatelessWidget {
-  final Question question;
+  final QuestionV2 question;
   final int index;
   final AnswerStatus? answerStatus;
 
@@ -20,19 +20,8 @@ class QuestionCard extends StatelessWidget {
   });
 
   /// 获取题目类型显示名称
-  String _getQuestionTypeName(String type) {
-    switch (type) {
-      case 'choice':
-        return '选择题';
-      case 'judge':
-        return '判断题';
-      case 'fill':
-        return '填空题';
-      case 'oral':
-        return '口语题';
-      default:
-        return type;
-    }
+  String _getQuestionTypeName() {
+    return interactionTypeLabels[question.questionTypeCode] ?? question.questionTypeCode;
   }
 
   @override
@@ -67,32 +56,40 @@ class QuestionCard extends StatelessWidget {
             const SizedBox(height: 16),
             
             // 题目内容
-            Text(
-              question.content,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    height: 1.6,
-                    color: AppColors.textPrimary,
-                  ),
-            ),
+            _buildContent(context),
             
             // 题目资源（图片/音频）
-            if (question.resource != null && question.resource!.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              _buildResource(context),
-            ],
+            _buildResources(context),
             
             // 选项（如果是选择题）
-            if (question.type == 'choice' &&
-                question.options != null &&
-                question.options!.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              _buildOptions(context),
-            ],
+            _buildOptions(context),
+            
+            // 提示（V2）
+            if (question.stem.hints != null)
+              _buildHints(context, question.stem.hints!),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Text(
+      question.stem.text,
+      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            height: 1.6,
+            color: AppColors.textPrimary,
+          ),
+    );
+  }
+
+  Widget _buildResources(BuildContext context) {
+    if (question.resources == null || question.resources!.isEmpty) return const SizedBox.shrink();
+    
+    return Column(
+      children: question.resources!.map((r) => _buildV2Resource(context, r)).toList(),
     );
   }
 
@@ -118,47 +115,56 @@ class QuestionCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.muted,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                _getQuestionTypeName(question.type),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.muted,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  _getQuestionTypeName(),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        if (question.difficulty != null || question.knowledge != null) ...[
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (question.difficulty != null)
-                _buildTag(
-                  question.difficulty!,
-                  AppColors.primary.withValues(alpha: 0.1),
-                  AppColors.primary,
-                ),
-              if (question.knowledge != null)
-                _buildTag(
-                  question.knowledge!,
-                  const Color(0xFFF59E0B).withValues(alpha: 0.1),
-                  const Color(0xFFD97706),
-                ),
             ],
           ),
+          _buildTagsList(context),
         ],
-      ],
-    );
-  }
+      );
+    }
+
+    Widget _buildTagsList(BuildContext context) {
+      final difficulty = difficultyLabels[question.difficulty] ?? question.difficulty;
+      final knowledge = question.knowledgePoints?.isNotEmpty == true ? question.knowledgePoints!.first : null;
+
+      if (knowledge == null) return const SizedBox.shrink();
+
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (difficulty != null)
+              _buildTag(
+                difficulty,
+                AppColors.primary.withValues(alpha: 0.1),
+                AppColors.primary,
+              ),
+            if (knowledge != null)
+              _buildTag(
+                knowledge,
+                const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                const Color(0xFFD97706),
+              ),
+          ],
+        ),
+      );
+    }
 
   Widget _buildTag(String label, Color bgColor, Color textColor) {
     return Container(
@@ -299,12 +305,16 @@ class QuestionCard extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
-  /// 构建选项（选择题）
   Widget _buildOptions(BuildContext context) {
-    final options = question.options!.split('\n').where((o) => o.isNotEmpty).toList();
+    final isChoice = question.questionTypeCode == 'single_choice' || question.questionTypeCode == 'multi_choice';
+    if (!isChoice || question.options == null || question.options!.isEmpty) return const SizedBox.shrink();
+    
+    final options = question.options!.map((o) => o.text ?? '').toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 20),
         const Text(
           '选项：',
           style: TextStyle(
@@ -334,6 +344,129 @@ class QuestionCard extends StatelessWidget {
               ),
             ),),
       ],
+    );
+  }
+
+  Widget _buildV2Resource(BuildContext context, QuestionResourceV2 resource) {
+    if (resource.type == 'image') {
+      return Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: CachedNetworkImage(
+            imageUrl: resource.url,
+            cacheManager: ImageCacheConfig.defaultCacheManager,
+            placeholder: (context, url) => ImageCacheConfig.getPlaceholder(
+              height: 250,
+              fit: BoxFit.contain,
+            ),
+            errorWidget: (context, url, error) => ImageCacheConfig.getErrorWidget(
+              height: 250,
+              onRetry: () {},
+            ),
+            fit: BoxFit.contain,
+            fadeInDuration: const Duration(milliseconds: 300),
+          ),
+        ),
+      );
+    } else if (resource.type == 'audio') {
+      return Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: AppColors.primary,
+                child: Icon(Icons.audiotrack, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '音频资源',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (resource.transcript != null)
+                      Text(
+                        resource.transcript!,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.play_circle_filled, color: AppColors.primary, size: 36),
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildHints(BuildContext context, List<String> hints) {
+    if (hints.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline, color: AppColors.warning, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                '提示',
+                style: TextStyle(
+                  color: AppColors.warning.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...hints.map((hint) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• $hint',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),),
+        ],
+      ),
     );
   }
 }

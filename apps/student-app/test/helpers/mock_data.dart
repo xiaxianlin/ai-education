@@ -1,6 +1,6 @@
 import 'package:student_app/core/models/student.dart';
 import 'package:student_app/core/models/textbook.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/core/models/practice_session.dart';
 
 /// 模拟数据
@@ -31,20 +31,28 @@ class MockData {
     );
   }
 
-  /// 模拟题目数据
-  static Question mockQuestion({
-    int? id,
-    String? type,
+  /// 模拟题目数据 (V2)
+  static QuestionV2 mockQuestion({
+    String? id,
+    String? questionTypeCode,
     String? content,
   }) {
-    return Question(
-      id: id ?? 1,
-      type: type ?? 'choice',
+    return QuestionV2(
+      id: id ?? '1',
+      questionTypeId: 1,
+      questionTypeCode: questionTypeCode ?? 'single_choice',
       subject: '数学',
       grade: 3,
-      content: content ?? '1 + 1 = ?',
-      options: 'A. 1\nB. 2\nC. 3\nD. 4',
-      answer: 'B',
+      stage: 'primary_low',
+      stem: QuestionStemV2(text: content ?? '1 + 1 = ?'),
+      options: [
+        QuestionOptionV2(id: 'A', text: '1'),
+        QuestionOptionV2(id: 'B', text: '2', isCorrect: true),
+        QuestionOptionV2(id: 'C', text: '3'),
+        QuestionOptionV2(id: 'D', text: '4'),
+      ],
+      answer: {'type': 'exact', 'correct_answers': ['B']},
+      difficulty: 'easy',
       textbookId: 1,
     );
   }
@@ -73,4 +81,5 @@ class MockData {
     );
   }
 }
+
 

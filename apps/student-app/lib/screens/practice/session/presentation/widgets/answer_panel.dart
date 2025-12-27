@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:student_app/screens/practice/session/providers/session_provider.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/text_input.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/choice_input.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/judge_input.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/audio_input.dart';
+import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/drag_drop_widget.dart';
+import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/connect_line_widget.dart';
+import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/sort_order_widget.dart';
+import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/handwriting_widget.dart';
+import 'package:student_app/core/theme/app_colors.dart';
 
 /// 答案输入面板（统一入口）
 class AnswerPanel extends ConsumerWidget {
@@ -73,28 +78,24 @@ class AnswerPanel extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             // 根据题目类型显示不同的输入组件
-            _buildInputByType(
+            _buildV2Input(
               context,
-              question: question,
-              currentAnswer: currentAnswer,
-              currentAudioAnswer: currentAudioAnswer,
-              transcription: transcription,
-              match: match,
-              analysis: analysis,
-              hasAnswered: hasAnswered,
-              isCorrect: answerStatus == AnswerStatus.correct,
-              onAnswerChanged: (answer) {
-                sessionNotifier.setCurrentAnswer(answer);
-              },
-              onAudioRecorded: (audioPath) {
-                sessionNotifier.setCurrentAudioAnswer(audioPath);
-              },
-              onAudioAnalysisReceived: (analysisData) {
-                sessionNotifier.setCurrentAudioAnalysis(
-                  analysisData['reason'] ?? analysisData['transcription'] ?? '',
-                );
-              },
-              sessionId: sessionId,
+              question as QuestionV2,
+              hasAnswered,
+              answerStatus == AnswerStatus.correct,
+              (answer) => sessionNotifier.setCurrentAnswer(answer),
+              (audioPath) => sessionNotifier.setAudioAnswer(question.id, audioPath),
+              (analysisData) => sessionNotifier.setAudioAnalysis(
+                question.id,
+                analysisData['reason'] ?? analysisData['transcription'] ?? '',
+              ),
+              sessionId,
+              sessionNotifier,
+              currentAnswer,
+              currentAudioAnswer,
+              transcription,
+              match,
+              analysis,
             ),
             
             // 答案解析部分 (仅在已答且错误时显示)
@@ -113,48 +114,62 @@ class AnswerPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildInputByType(
-    BuildContext context, {
-    required Question question,
-    String? currentAnswer,
+  Widget _buildV2Input(
+    BuildContext context,
+    QuestionV2 question,
+    bool hasAnswered,
+    bool? isCorrect,
+    ValueChanged<dynamic> onAnswerChanged,
+    ValueChanged<String> onAudioRecorded,
+    ValueChanged<Map<String, dynamic>> onAudioAnalysisReceived,
+    int sessionId,
+    SessionNotifier notifier,
+    dynamic currentAnswer,
     String? currentAudioAnswer,
     String? transcription,
     bool? match,
     String? analysis,
-    required bool hasAnswered,
-    bool? isCorrect,
-    required ValueChanged<String> onAnswerChanged,
-    required ValueChanged<String> onAudioRecorded,
-    required ValueChanged<Map<String, dynamic>> onAudioAnalysisReceived,
-    required int sessionId,
-  }) {
-    switch (question.type) {
-      case 'fill':
-        return TextInputWidget(
-          question: question,
-          value: currentAnswer,
-          disabled: hasAnswered,
-          onChanged: onAnswerChanged,
-        );
-      case 'choice':
+  ) {
+    switch (question.questionTypeCode) {
+      case 'single_choice':
+      case 'multi_choice':
         return ChoiceInputWidget(
           question: question,
-          value: currentAnswer,
+          value: currentAnswer is String ? currentAnswer : null,
           disabled: hasAnswered,
           hasAnswered: hasAnswered,
           isCorrect: isCorrect,
           onChanged: onAnswerChanged,
         );
-      case 'judge':
-        return JudgeInputWidget(
+      case 'drag_drop':
+        return DragDropWidget(
           question: question,
           value: currentAnswer,
           disabled: hasAnswered,
-          hasAnswered: hasAnswered,
-          isCorrect: isCorrect,
           onChanged: onAnswerChanged,
         );
-      case 'oral':
+      case 'connect_line':
+        return ConnectLineWidget(
+          question: question,
+          value: currentAnswer,
+          disabled: hasAnswered,
+          onChanged: onAnswerChanged,
+        );
+      case 'sort_order':
+        return SortOrderWidget(
+          question: question,
+          value: currentAnswer,
+          disabled: hasAnswered,
+          onChanged: onAnswerChanged,
+        );
+      case 'handwriting':
+        return HandwritingWidget(
+          question: question,
+          value: currentAnswer,
+          disabled: hasAnswered,
+          onChanged: onAnswerChanged,
+        );
+      case 'voice_input':
         return AudioInputWidget(
           question: question,
           sessionId: sessionId,
@@ -167,19 +182,14 @@ class AnswerPanel extends ConsumerWidget {
           onAnalysisReceived: onAudioAnalysisReceived,
         );
       default:
-        return TextInputWidget(
-          question: question,
-          value: currentAnswer,
-          disabled: hasAnswered,
-          onChanged: onAnswerChanged,
-        );
+        return const Center(child: Text('暂不支持此题型 (V2)'));
     }
   }
 }
 
 /// 答案解析组件
 class AnswerAnalysisWidget extends StatelessWidget {
-  final String? correctAnswer;
+  final dynamic correctAnswer;
   final String? analysis;
 
   const AnswerAnalysisWidget({
@@ -221,7 +231,7 @@ class AnswerAnalysisWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  correctAnswer!,
+                  correctAnswer is String ? correctAnswer! : correctAnswer.toString(),
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 15,

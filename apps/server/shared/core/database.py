@@ -1,7 +1,7 @@
 from fastapi import Depends
 from shared.core.settings import envs
 from shared.utils.time import now
-from sqlalchemy import JSON, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -108,7 +108,9 @@ class Knowledge(BaseModel):
     content: Mapped[str] = mapped_column(Text, default="")
 
     # 知识点属性（简化）
-    difficulty: Mapped[str] = mapped_column(String(50), nullable=True, comment="知识点难度（简单/普通/困难）")
+    difficulty: Mapped[str] = mapped_column(
+        String(50), nullable=True, comment="知识点难度（简单/普通/困难）"
+    )
     importance: Mapped[int] = mapped_column(default=5, comment="重要性（1-10，10最重要）")
     order: Mapped[int] = mapped_column(default=0, comment="同级知识点排序")
 
@@ -135,57 +137,6 @@ class TeacherBook(BaseModel):
     semester: Mapped[str] = mapped_column(String(255), nullable=False)
     file: Mapped[str] = mapped_column(String(255), nullable=True)
     index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
-
-
-class Question(BaseModel):
-    __tablename__ = "ah_question"
-    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
-    subject: Mapped[str] = mapped_column(Text, comment="科目")
-    grade: Mapped[int] = mapped_column(comment="年级")
-    type: Mapped[str] = mapped_column(String(255), comment="题目类型（主类型）")
-    subtype: Mapped[str] = mapped_column(String(255), comment="题目子类型", nullable=True)
-    content: Mapped[str] = mapped_column(Text, comment="题目内容")
-    options: Mapped[list[dict]] = mapped_column(JSON, comment="选项")
-    answer: Mapped[str] = mapped_column(Text, comment="问题答案")
-    difficulty: Mapped[str] = mapped_column(String(255), comment="问题难度")
-    resource: Mapped[str] = mapped_column(String(255), nullable=True, comment="资源路径")
-    resource_type: Mapped[str] = mapped_column(String(50), comment="资源类型：image/audio", nullable=True)
-    resource_content: Mapped[str] = mapped_column(Text, comment="资源内容（录音文本等）", nullable=True)
-    textbook_id: Mapped[int] = mapped_column(comment="教材ID")
-    unit_id: Mapped[int] = mapped_column(nullable=True, comment="单元ID")
-    prompt_id: Mapped[int] = mapped_column(nullable=True, comment="提示词ID")
-    knowledge: Mapped[str] = mapped_column(String(255), comment="知识点")
-
-    unit: Mapped["Unit"] = relationship(
-        "Unit",
-        primaryjoin="foreign(Question.unit_id) == Unit.id",
-        lazy="joined",  # 推荐 eager load，性能好
-    )
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(Question.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
-
-class QuestionType(BaseModel):
-    """题型表"""
-
-    __tablename__ = "ah_question_type"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String(100), comment="题型标题（如：看图选词、根据首字母填空）")
-    scene: Mapped[str] = mapped_column(String(50), comment="题型类型")
-    subject: Mapped[str] = mapped_column(String(50), comment="科目")
-    grade: Mapped[int] = mapped_column(comment="年级（1-6）")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")
-    resource_type: Mapped[str] = mapped_column(
-        String(50), nullable=True, comment="资源类型：image-图片，audio-语音，空-无资源"
-    )
-    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="生成该题型的 AI 指令（Prompt）")
-    create_time: Mapped[int] = mapped_column(default=now)
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
 # ================ Prompt 相关表 ================
@@ -266,8 +217,12 @@ class PracticeSession(BaseModel):
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="未生成: 0, 生成中: 1, 已生成: 2")
+    status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3"
+    )
+    generate_status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="未生成: 0, 生成中: 1, 已生成: 2"
+    )
     generate_time: Mapped[int] = mapped_column(nullable=True, comment="生成时间")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
@@ -403,5 +358,171 @@ class StudentPractice(BaseModel):
     practice: Mapped["Practice"] = relationship(
         "Practice",
         primaryjoin="foreign(StudentPractice.practice_id) == Practice.id",
+        lazy="joined",
+    )
+
+
+# ================ 题型与题目相关表 ================
+
+
+class QuestionType(BaseModel):
+    """题型配置表"""
+
+    __tablename__ = "ah_question_type"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # 基础信息
+    code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, comment="题型编码")
+    name: Mapped[str] = mapped_column(String(100), nullable=False, comment="题型名称")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="题型描述")
+
+    # 适用范围
+    subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
+    stages: Mapped[list] = mapped_column(JSON, nullable=False, comment="适用学段列表")
+    grades: Mapped[list] = mapped_column(JSON, nullable=False, comment="适用年级列表")
+
+    # 交互配置
+    interaction_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="交互类型")
+    interaction_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="交互配置")
+
+    # 资源配置
+    resource_type: Mapped[str] = mapped_column(String(50), default="none", comment="资源类型")
+    resource_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="资源配置")
+
+    # 答案配置
+    answer_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="答案类型")
+    answer_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="答案配置")
+
+    # 反馈配置
+    feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
+
+    # 认知与能力
+    cognitive_levels: Mapped[list] = mapped_column(JSON, nullable=True, comment="认知层次列表")
+    ability_dimensions: Mapped[list] = mapped_column(JSON, nullable=True, comment="能力维度列表")
+
+    # AI生成
+    ai_prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="AI生成指令")
+    output_schema: Mapped[dict] = mapped_column(JSON, nullable=True, comment="AI输出JSON Schema")
+
+    # 元数据
+    sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
+    is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+
+class Question(BaseModel):
+    """题目表"""
+
+    __tablename__ = "ah_question"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, comment="UUID")
+
+    # 题型关联
+    question_type_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题型ID")
+    question_type_code: Mapped[str] = mapped_column(String(50), nullable=False, comment="题型编码")
+
+    # 基础信息
+    subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
+    grade: Mapped[int] = mapped_column(nullable=False, comment="年级 1-12")
+    stage: Mapped[str] = mapped_column(String(20), nullable=False, comment="学段")
+
+    # 教材关联
+    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
+    unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
+
+    # 题目内容
+    stem: Mapped[dict] = mapped_column(JSON, nullable=False, comment="题干")
+    options: Mapped[list] = mapped_column(JSON, nullable=True, comment="选项列表")
+    blanks: Mapped[list] = mapped_column(JSON, nullable=True, comment="填空位置配置")
+
+    # 资源
+    resources: Mapped[list] = mapped_column(JSON, nullable=True, comment="资源列表")
+
+    # 答案
+    answer: Mapped[dict] = mapped_column(JSON, nullable=False, comment="答案配置")
+    explanation: Mapped[str] = mapped_column(Text, nullable=True, comment="解析")
+
+    # 难度与认知
+    difficulty: Mapped[str] = mapped_column(String(20), nullable=False, comment="难度")
+    cognitive_level: Mapped[str] = mapped_column(String(20), nullable=True, comment="认知层次")
+
+    # 知识点
+    knowledge_points: Mapped[list] = mapped_column(JSON, nullable=True, comment="知识点列表")
+    ability_tags: Mapped[list] = mapped_column(JSON, nullable=True, comment="能力标签")
+
+    # 来源
+    source: Mapped[str] = mapped_column(String(50), default="ai", comment="来源")
+    prompt_id: Mapped[int] = mapped_column(nullable=True, comment="生成此题的Prompt ID")
+
+    # 统计
+    usage_count: Mapped[int] = mapped_column(default=0, comment="使用次数")
+    correct_rate: Mapped[str] = mapped_column(String(10), nullable=True, comment="正确率")
+    avg_time_spent: Mapped[int] = mapped_column(nullable=True, comment="平均用时(秒)")
+
+    # 元数据
+    is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    # 关联关系
+    question_type: Mapped["QuestionType"] = relationship(
+        "QuestionType",
+        primaryjoin="foreign(Question.question_type_id) == QuestionType.id",
+        lazy="joined",
+    )
+
+    textbook: Mapped["Textbook"] = relationship(
+        "Textbook",
+        primaryjoin="foreign(Question.textbook_id) == Textbook.id",
+        lazy="joined",
+    )
+
+    unit: Mapped["Unit"] = relationship(
+        "Unit",
+        primaryjoin="foreign(Question.unit_id) == Unit.id",
+        lazy="joined",
+    )
+
+
+class QuestionTemplate(BaseModel):
+    """题目模板表 - 用于AI批量生成"""
+
+    __tablename__ = "ah_question_template"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # 关联
+    question_type_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题型ID")
+
+    # 模板内容
+    name: Mapped[str] = mapped_column(String(100), nullable=False, comment="模板名称")
+    description: Mapped[str] = mapped_column(Text, nullable=True, comment="模板描述")
+
+    # 生成配置
+    variables: Mapped[dict] = mapped_column(JSON, nullable=True, comment="可变参数定义")
+    constraints: Mapped[dict] = mapped_column(JSON, nullable=True, comment="约束条件")
+    examples: Mapped[list] = mapped_column(JSON, nullable=True, comment="示例题目")
+
+    # AI配置
+    system_prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="System Prompt")
+    user_prompt_template: Mapped[str] = mapped_column(
+        Text, nullable=True, comment="User Prompt模板"
+    )
+    output_schema: Mapped[dict] = mapped_column(JSON, nullable=True, comment="输出Schema")
+
+    # 质量控制
+    quality_rules: Mapped[dict] = mapped_column(JSON, nullable=True, comment="质量检查规则")
+
+    # 元数据
+    is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    # 关联关系
+    question_type: Mapped["QuestionType"] = relationship(
+        "QuestionType",
+        primaryjoin="foreign(QuestionTemplate.question_type_id) == QuestionType.id",
         lazy="joined",
     )

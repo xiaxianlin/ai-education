@@ -1,11 +1,10 @@
-import { QuestionTypeListModel } from './models/page';
+import { QuestionTypeModel } from './models/page';
 import MainView from './views/Main';
 
-export default function QuestionTypeListPage() {
+export default function QuestionTypePage() {
   return (
-    <QuestionTypeListModel.Provider>
+    <QuestionTypeModel.Provider>
       <MainView />
-    </QuestionTypeListModel.Provider>
+    </QuestionTypeModel.Provider>
   );
 }
-

@@ -5,6 +5,8 @@ declare global {
   interface SearchStudentRequest extends SearchRequest {
     phone?: string;
     status?: number;
+    keywords?: string;
+    name?: string;
   }
 
   /**

@@ -4,11 +4,10 @@ from shared.core.database import (
     Practice,
     PracticeSession,
     PracticeSessionAnswer,
-    Question,
-    QuestionType,
     Textbook,
     Unit,
 )
+from shared.core.database import Question, QuestionType
 from shared.generation import invoke_question_generation_workflow
 from shared.worker import Executor, submit_task
 from sqlalchemy import delete, select, update
@@ -17,7 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .session import get_assess_practices, get_daily_practices, get_unit_practices
 
 
-def _compose_parameters(practice: Practice, textbook: Textbook, student_id: str, unit_id: int | None = None):
+def _compose_parameters(
+    practice: Practice, textbook: Textbook, student_id: str, unit_id: int | None = None
+):
     """组合练习参数"""
 
     generate_count = 15
@@ -100,15 +101,21 @@ async def _check_assess_practice(db: AsyncSession, student_id: str, textbook_id:
     await db.commit()
 
 
-async def _prepare_answer_records(db: AsyncSession, session: PracticeSession, questions: list[Question]):
+async def _prepare_answer_records(
+    db: AsyncSession, session: PracticeSession, questions: list[Question]
+):
     """为练习会话创建答题记录"""
 
-    await db.execute(delete(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session.id))
+    await db.execute(
+        delete(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session.id)
+    )
     await db.flush()  # 确保删除操作完成
 
     # 批量创建答题记录
     answer_records = []
     for index, question in enumerate(questions):
+        # V2: get knowledge from knowledgePoints list
+        knowledge = question.knowledge_points[0] if question.knowledge_points else None
         answer_record = PracticeSessionAnswer(
             session_id=session.id,
             question_id=question.id,
@@ -116,7 +123,7 @@ async def _prepare_answer_records(db: AsyncSession, session: PracticeSession, qu
             question_order=index + 1,
             # 题目相关信息（冗余存储）
             unit_id=question.unit_id,
-            knowledge=question.knowledge,
+            knowledge=knowledge,
             textbook_id=question.textbook_id,
             status=0,
             time_spent=0,
@@ -129,19 +136,21 @@ async def _prepare_answer_records(db: AsyncSession, session: PracticeSession, qu
 
 
 async def _get_question_types(db: AsyncSession, subject: str, grade: int):
-    """获取题型列表"""
-    result = await db.scalars(select(QuestionType).where(QuestionType.subject == subject, QuestionType.grade == grade))
+    """获取题型列表 (V2)"""
+    result = await db.scalars(select(QuestionType).where(QuestionType.subject == subject))
     data = {}
     for item in result.all():
-        types = data.get(item.scene, [])
+        # V2: scene is replaced by interaction_type
+        scene = item.interaction_type or "default"
+        types = data.get(scene, [])
         types.append(
             {
-                "name": item.title,
+                "name": item.name,
                 "description": item.description,
-                "resource_type": item.resource_type,
+                "resource_type": None,  # V2 uses resources differently
             }
         )
-        data[item.scene] = types
+        data[scene] = types
     return data
 
 
@@ -231,7 +240,9 @@ async def create_practice_session(
     try:
         if immediately:
             await execute_generate_practice_session(db, session.id)
-            logger.info(f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}")
+            logger.info(
+                f"练习会话生成完成: session_id={session.id}, question_count={session.question_count}"
+            )
         else:
             await submit_task(Executor.generate_practice_task, [session.id])
             logger.info(f"练习会话生成任务提交完成: session_id={session.id}")

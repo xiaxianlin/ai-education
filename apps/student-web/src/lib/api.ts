@@ -165,4 +165,22 @@ export const studentApi = {
   async getTextbookUnits(textbookId: number) {
     return apiClient.get<Unit[]>(`/textbook/${textbookId}/units`);
   },
+
+  // ========== 练习题目相关 ==========
+
+  /**
+   * 获取题目详情
+   * GET /practice/question/{question_id}
+   */
+  async getQuestion(questionId: string) {
+    return apiClient.get<any>(`/practice/question/${questionId}`);
+  },
+
+  /**
+   * 提交答案
+   * POST /practice/answer
+   */
+  async submitPracticeAnswer(params: any) {
+    return apiClient.post<any>("/practice/answer", params);
+  },
 };

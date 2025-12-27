@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:student_app/core/models/question.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/audio_recorder.dart';
 
 /// 语音输入组件（口语题）
 class AudioInputWidget extends StatelessWidget {
-  final Question question;
+  final dynamic question;
   final int sessionId;
   final String? audioPath;
   final String? transcription;

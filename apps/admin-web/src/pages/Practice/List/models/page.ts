@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
-import { createContainer } from 'unstated-next';
+import { useDelete } from '@/hooks/useDelete';
 import { ActionType } from '@ant-design/pro-components';
 import { message } from 'antd';
-import { useDelete } from '@/hooks/useDelete';
+import { useRef, useState } from 'react';
+import { createContainer } from 'unstated-next';
 import { PracticeApi } from '../../api';
 
 const useContainer = () => {
@@ -13,24 +13,20 @@ const useContainer = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [initialValues, setInitialValues] = useState<Partial<Practice>>();
 
-  const { handleDelete, loading: deleteLoading } = useDelete(
-    PracticeApi.deletePractice,
-    {
-      onSuccess: () => actionRef.current?.reload(),
-    }
-  );
+  const { handleDelete, loading: deleteLoading } = useDelete(PracticeApi.deletePractice, {
+    onSuccess: () => actionRef.current?.reload(),
+  });
 
   const handleCreate = () => {
     setEditingId(null);
-    setInitialValues({ type: 'custom' });
+    setInitialValues({ type: 'custom' as any });
     setDrawerOpen(true);
   };
 
   const handleEdit = (id: number) => {
     setEditingId(id);
     setDataLoading(true);
-    PracticeApi
-      .getPractice(id)
+    PracticeApi.getPractice(id)
       .then((data) => {
         setInitialValues({
           name: data.name,

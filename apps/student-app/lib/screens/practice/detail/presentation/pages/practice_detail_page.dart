@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:student_app/screens/practice/detail/providers/detail_provider.dart';
-import 'package:student_app/core/models/question.dart';
+import 'package:student_app/core/models/question_v2.dart';
 import 'package:student_app/core/models/practice_answer.dart';
 import 'package:student_app/core/utils/practice_utils.dart';
 import 'package:student_app/core/utils/formatters.dart';
@@ -38,19 +38,14 @@ class PracticeDetailPage extends ConsumerWidget {
           final answers = detail.answers;
           final report = detail.report;
 
-          // 创建答案映射
-          final answerMap = <int, PracticeAnswer>{};
+          // 创建答案映射 - Note: V2 questions use String id
+          final answerMap = <String, PracticeAnswer>{};
           for (final answer in answers) {
-            answerMap[answer.questionId] = answer;
+            answerMap[answer.questionId.toString()] = answer;
           }
 
-          // 按题目顺序排序（如果有 order 字段）
-          final sortedQuestions = List<Question>.from(questions);
-          sortedQuestions.sort((a, b) {
-            final aOrder = a.order ?? 0;
-            final bOrder = b.order ?? 0;
-            return aOrder.compareTo(bOrder);
-          });
+          // 按题目顺序排序（V2没有order字段，保持原顺序）
+          final sortedQuestions = List<QuestionV2>.from(questions);
 
           final isCompleted = session.status == PracticeConstants.statusCompleted;
           final isInProgress = session.status == PracticeConstants.statusInProgress;

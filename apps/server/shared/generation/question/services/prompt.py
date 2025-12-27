@@ -5,7 +5,8 @@
 
 from typing import List
 
-from shared.core.database import Question, Unit
+from shared.core.database import Unit
+from shared.core.database import Question
 
 
 def build_units_prompt(units: List[Unit]) -> str:
@@ -40,7 +41,7 @@ def build_avoid_duplicate_prompt(recall_questions: List[Question]) -> str:
 
     prompt_lines = []
     for recall_question in recall_questions:
-        prompt_lines.append(f"- **{recall_question.content}**")
+        prompt_lines.append(f"- **{recall_question.stem.get('text', '')}**")
         prompt_lines.append(f"- **{recall_question.options}**")
 
     recalled_questions_info = "\n".join(prompt_lines) or "（无）"
@@ -59,7 +60,11 @@ def build_question_types_prompt(question_types: dict[str, list[dict]]) -> str:
 
     for scene, type_list in question_types.items():
         # 提取每个题型的名称
-        type_names = [item.get("name", "") for item in type_list if isinstance(item, dict) and item.get("name")]
+        type_names = [
+            item.get("name", "")
+            for item in type_list
+            if isinstance(item, dict) and item.get("name")
+        ]
         if type_names:
             prompt_lines.append(f"- **{scene}**：{'、'.join(type_names)}")
         else:

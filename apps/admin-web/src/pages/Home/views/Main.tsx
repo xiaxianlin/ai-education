@@ -110,7 +110,7 @@ export default function MainView() {
   });
 
   const { data: questionData, loading: questionLoading } = useRequest(async () => {
-    const res = await QuestionApi.searchQuestions({ page: 1, size: 1000 });
+    const res = await QuestionApi.searchQuestions({ page: 1, pageSize: 1000 });
     return res;
   });
 
@@ -118,7 +118,7 @@ export default function MainView() {
   const totalStudents = studentData?.data?.length || 0;
   const activeStudents = studentData?.data?.filter((s: any) => s.status === 1).length || 0;
   const totalTextbooks = textbookData?.length || 0;
-  const totalQuestions = questionData?.data?.length || 0;
+  const totalQuestions = questionData?.items?.length || 0;
 
   // 问候语
   const getGreeting = () => {

@@ -14,6 +14,7 @@ import PromptTest from '@/pages/Prompt/Test';
 import QuestionDetail from '@/pages/Question/Detail';
 import QuestionForm from '@/pages/Question/Form';
 import QuestionList from '@/pages/Question/List';
+import QuestionTemplateList from '@/pages/Question/Template';
 import QuestionTypeList from '@/pages/Question/Type';
 import StudentDetail from '@/pages/Student/Detail';
 import StudentList from '@/pages/Student/List';
@@ -49,6 +50,7 @@ export function Router() {
         { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
+        { path: 'question_template', element: <QuestionTemplateList /> },
         { path: 'prompt', element: <PromptList /> },
         { path: 'prompt/form', element: <PromptForm /> },
         { path: 'prompt/detail', element: <PromptDetail /> },

@@ -1,12 +1,32 @@
 import {
-  ManagerType,
-  PracticeGenerateStatus,
-  PracticeParameterType,
-  PracticeParameterValueType,
-  PracticeSessionStatus,
-  PracticeType
+  AnswerType as _AnswerType,
+  CognitiveLevel as _CognitiveLevel,
+  Difficulty as _Difficulty,
+  InteractionType as _InteractionType,
+  ManagerType as _ManagerType,
+  PracticeGenerateStatus as _PracticeGenerateStatus,
+  PracticeParameterType as _PracticeParameterType,
+  PracticeParameterValueType as _PracticeParameterValueType,
+  PracticeSessionStatus as _PracticeSessionStatus,
+  PracticeType as _PracticeType,
+  ResourceType as _ResourceType,
+  Stage as _Stage,
 } from "../constants";
+
 declare global {
+  type AnswerType = _AnswerType;
+  type CognitiveLevel = _CognitiveLevel;
+  type Difficulty = _Difficulty;
+  type InteractionType = _InteractionType;
+  type ManagerType = _ManagerType;
+  type PracticeGenerateStatus = _PracticeGenerateStatus;
+  type PracticeParameterType = _PracticeParameterType;
+  type PracticeParameterValueType = _PracticeParameterValueType;
+  type PracticeSessionStatus = _PracticeSessionStatus;
+  type PracticeType = _PracticeType;
+  type ResourceType = _ResourceType;
+  type Stage = _Stage;
+
   // ================ API 响应类型 ================
 
   /**
@@ -103,24 +123,147 @@ declare global {
   }
 
   /**
-   * 题目信息（对应 QuestionSchema）
+   * 题型实体
+   */
+  interface QuestionType {
+    id: number;
+    code: string;
+    name: string;
+    description?: string;
+    subject: string;
+    stages: Stage[];
+    grades: number[];
+    interactionType: InteractionType;
+    interactionConfig?: Record<string, unknown>;
+    resourceType: ResourceType;
+    resourceConfig?: Record<string, unknown>;
+    answerType: AnswerType;
+    answerConfig?: Record<string, unknown>;
+    feedbackConfig?: FeedbackConfig;
+    cognitiveLevels?: CognitiveLevel[];
+    abilityDimensions?: string[];
+    aiPrompt?: string;
+    sortOrder: number;
+    isActive: boolean;
+    createTime: number;
+    updateTime: number;
+  }
+
+  // ================ 基础结构 ================
+
+  /** 答案 */
+  interface Answer {
+    type: AnswerType;
+    correctAnswers?: string[];
+    acceptAnswers?: string[];
+    scoring?: {
+      fullScore: number;
+      partialScores?: Record<string, number>;
+      partialStrategy?: "sum" | "all_or_nothing";
+      subScores?: Record<string, number>;
+    };
+    rubric?: Record<string, { weight: number; criteria: string }>;
+  }
+
+  /** 选项 */
+  interface QuestionOption {
+    id: string;
+    text?: string;
+    imageUrl?: string;
+    audioUrl?: string;
+    isCorrect: boolean;
+    feedback?: string;
+  }
+
+  /** 资源 */
+  interface QuestionResource {
+    id: string;
+    type: ResourceType;
+    url: string;
+    alt?: string;
+    position: "stem" | "option" | "background";
+    size?: { width: number; height: number };
+    style?: Record<string, unknown>;
+    duration?: number;
+    transcript?: string;
+  }
+
+  /** 子题题干（简化版） */
+  interface SubStem {
+    text: string;
+    richText?: string;
+    hints?: string[];
+  }
+
+  /** 子题结构 - 用于复合题/应用题 */
+  interface SubQuestion {
+    id: string;
+    order: number;
+    stem: SubStem;
+    interactionType: InteractionType;
+    interactionConfig?: Record<string, unknown>;
+    options?: QuestionOption[];
+    resources?: QuestionResource[];
+    answer: Answer;
+    explanation?: string;
+  }
+
+  /** 题干 */
+  interface Stem {
+    text: string;
+    richText?: string;
+    audioUrl?: string;
+    highlightWords?: string[];
+    hints?: string[];
+    subQuestions?: SubQuestion[];
+  }
+
+  /** 反馈项 */
+  interface FeedbackItem {
+    sound?: string;
+    animation?: string;
+    messages?: string[];
+    points?: number;
+    showHint?: boolean;
+    maxAttempts?: number;
+  }
+
+  /** 反馈配置 */
+  interface FeedbackConfig {
+    correct?: FeedbackItem;
+    incorrect?: FeedbackItem;
+    partial?: FeedbackItem;
+  }
+
+  /**
+   * 题目信息
    */
   interface Question {
     id: string;
-    type: string; // 题目类型（主类型）
-    subtype?: string; // 题目子类型
-    subject: string; // 科目
-    grade: number; // 年级
-    content: string; // 题目内容
-    options?: string; // 选项（多行文本）
-    answer?: string; // 答案
-    resource?: string; // 资源路径（图片/音频URL）
-    difficulty?: string; // 难度
-    resource_type?: "image" | "audio"; // 资源类型
-    resource_content?: string; // 资源内容（录音文本等）
-    textbook_id?: number;
-    unit_id?: number; // 单元ID
-    knowledge?: string; // 知识点
+    questionTypeId: number;
+    questionTypeCode: string;
+    subject: string;
+    grade: number;
+    stage: Stage;
+    textbookId?: number;
+    unitId?: number;
+    stem: Stem;
+    options?: QuestionOption[];
+    blanks?: Array<Record<string, unknown>>;
+    resources?: QuestionResource[];
+    answer: Answer;
+    explanation?: string;
+    difficulty: Difficulty;
+    cognitiveLevel?: CognitiveLevel;
+    knowledgePoints?: string[];
+    abilityTags?: string[];
+    source: string;
+    usageCount: number;
+    correctRate?: string;
+    avgTimeSpent?: number;
+    isActive: boolean;
+    createTime: number;
+    updateTime: number;
     // 前端扩展字段
     is_correct?: boolean; // 是否答对（答题后）
     order?: number; // 题目顺序（练习会话中）
@@ -128,20 +271,21 @@ declare global {
     unit?: Unit;
   }
 
-  /**
-   * 题型实体
-   */
-  interface QuestionType {
+  // ============ 题目模板 ============
+
+  /** 题目模板 */
+  interface QuestionTemplate {
     id: number;
-    title: string;
-    scene: string;
-    subject: string;
-    grade: number;
+    name: string;
+    questionTypeId: number;
     description?: string;
-    resource_type?: string;
-    prompt?: string;
-    create_time: number;
-    update_time: number;
+    systemPrompt?: string;
+    userPromptTemplate?: string;
+    variables?: Record<string, unknown>;
+    outputSchema?: Record<string, unknown>;
+    isActive: boolean;
+    createTime: number;
+    updateTime: number;
   }
 
   /**
@@ -327,5 +471,5 @@ declare global {
     update_time?: number;
   }
 }
-export { };
 
+export {};

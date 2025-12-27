@@ -1,11 +1,23 @@
 import secrets
 
 from loguru import logger
-from shared.core.database import PracticeSession, Question
+from shared.core.database import PracticeSession
+from shared.core.database import Question
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import GeneratedQuestion, QuestionGenerationState
+
+
+def grade_to_stage(grade: int) -> str:
+    """根据年级计算学段"""
+    if grade <= 3:
+        return "primary_low"
+    elif grade <= 6:
+        return "primary_high"
+    elif grade <= 9:
+        return "junior"
+    return "senior"
 
 
 async def recall_questions(db: AsyncSession, session: PracticeSession):
@@ -65,11 +77,25 @@ def get_question_distribution(
     }
 
 
-def handle_llm_questions(state: QuestionGenerationState, llm_questions: list[dict]) -> list[Question]:
-    """验证大模型返回的结果"""
+# 难度映射
+DIFFICULTY_MAP = {
+    "简单": "easy",
+    "普通": "medium",
+    "困难": "hard",
+    "easy": "easy",
+    "medium": "medium",
+    "hard": "hard",
+}
+
+
+def handle_llm_questions(
+    state: QuestionGenerationState, llm_questions: list[dict]
+) -> list[Question]:
+    """验证大模型返回的结果并创建 Question 实例"""
     db: AsyncSession = state["db"]
     textbook = state["textbook"]
-    unit = state.get("units", [])
+    units = state.get("units", [])
+    unit = units[0] if units else None
 
     questions = []
     for question in llm_questions:
@@ -77,22 +103,39 @@ def handle_llm_questions(state: QuestionGenerationState, llm_questions: list[dic
             logger.warning(f"题目项类型错误: {type(question)}, 跳过处理")
             continue
         item = GeneratedQuestion.model_validate(question)
+
+        # 构建 V2 格式的选项
+        v2_options = []
+        for i, opt in enumerate(item.options):
+            v2_options.append(
+                {
+                    "id": chr(65 + i),  # A, B, C, D...
+                    "text": opt.text,
+                    "is_correct": opt.text == item.answer or chr(65 + i) == item.answer,
+                }
+            )
+
+        # 映射难度
+        difficulty = DIFFICULTY_MAP.get(item.difficulty, "medium")
+
         questions.append(
             Question(
                 id=secrets.token_hex(16),
+                question_type_id=1,  # 需要根据 question_type 查找
+                question_type_code=f"{item.question_type}_{item.question_subtype}".lower().replace(
+                    " ", "_"
+                ),
                 subject=textbook.subject,
                 grade=textbook.grade,
-                type=item.question_type,
-                subtype=item.question_subtype,
-                content=item.question,
-                resource_type=item.resource_type,
-                resource_content=item.resource_content,
-                options=item.options,
-                answer=item.answer,
-                difficulty=item.difficulty,
+                stage=grade_to_stage(textbook.grade),
+                stem={"text": item.question},
+                options=v2_options if v2_options else None,
+                answer={"type": "exact", "correct_answers": [item.answer]},
+                difficulty=difficulty,
                 textbook_id=textbook.id,
                 unit_id=unit.id if unit else None,
-                knowledge="、".join(item.knowledge),
+                knowledge_points=item.knowledge,
+                source="ai",
             )
         )
 

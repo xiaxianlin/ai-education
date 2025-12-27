@@ -1,5 +1,4 @@
 import { useDelete, useSimpleForm } from '@/hooks';
-import { useInitialStateModel } from '@/models/initialState';
 import { useRequest } from 'ahooks';
 import { message } from 'antd';
 import { useState } from 'react';
@@ -7,56 +6,60 @@ import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const { subject, grade } = useInitialStateModel();
-  const [scene, setScene] = useState<string>();
+  // 筛选条件
+  const [subject, setSubject] = useState<string>();
+  const [interactionType, setInteractionType] = useState<InteractionType>();
+  const [stage, setStage] = useState<Stage>();
 
-  const { data, refresh } = useRequest(() => QuestionApi.searchQuestionTypes({ subject, grade, scene }), {
-    refreshDeps: [subject, grade, scene],
+  // 获取所有题型
+  const { data, refresh, loading } = useRequest(() => QuestionApi.listAllQuestionTypes(), {
+    refreshDeps: [],
   });
 
-  const form = useSimpleForm<CreateQuestionTypeRequest, QuestionType>({
+  // 根据筛选条件过滤数据
+  const filteredData = data?.filter((item) => {
+    if (subject && item.subject !== subject) return false;
+    if (interactionType && item.interactionType !== interactionType) return false;
+    if (stage && !item.stages.includes(stage)) return false;
+    return true;
+  });
+
+  // 表单
+  const form = useSimpleForm<QuestionTypeCreateRequest, QuestionType>({
     service: async (values, item) => {
       if (item) {
         await QuestionApi.updateQuestionType(item.id, values);
       } else {
-        await QuestionApi.createQuestionType({ ...values, subject, grade });
+        await QuestionApi.createQuestionType(values);
       }
     },
-    onSubmit: refresh,
+    onSubmit: () => {
+      message.success('保存成功');
+      refresh();
+    },
   });
 
+  // 删除
   const { handleDelete } = useDelete(QuestionApi.deleteQuestionType, {
     onSuccess: () => refresh(),
   });
 
-  const { runAsync: handleBatchDelete, loading: batchDeleteLoading } = useRequest(
-    async (ids: number[]) => {
-      await QuestionApi.batchDeleteQuestionTypes(ids);
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('批量删除成功');
-        refresh();
-      },
-      onError: (error: any) => {
-        message.error(error?.message || '批量删除失败');
-      },
-    },
-  );
-
   return {
     ...form,
-    data,
-    grade,
+    data: filteredData,
+    loading,
+    refresh,
+    // 筛选
     subject,
-    scene,
-    setScene,
+    setSubject,
+    interactionType,
+    setInteractionType,
+    stage,
+    setStage,
+    // 操作
     handleDelete,
-    handleBatchDelete,
-    batchDeleteLoading,
   };
 };
 
-export const QuestionTypeListModel = createContainer(useContainer);
-export const useQuestionTypeListModel = QuestionTypeListModel.useContainer;
+export const QuestionTypeModel = createContainer(useContainer);
+export const useQuestionTypeModel = QuestionTypeModel.useContainer;

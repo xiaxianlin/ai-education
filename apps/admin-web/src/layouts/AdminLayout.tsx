@@ -53,7 +53,8 @@ const routes = {
       icon: <QuestionCircleOutlined />,
       children: [
         { path: '/question', name: '题目管理' },
-        { path: '/question_type', name: '题目类型管理' },
+        { path: '/question_type', name: '题型管理' },
+        { path: '/question_template', name: '题型模板' },
       ],
     },
 

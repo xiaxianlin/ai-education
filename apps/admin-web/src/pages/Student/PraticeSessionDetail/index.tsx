@@ -19,7 +19,7 @@ export default function PracticeDetailPage() {
     ready: !!session_id,
   });
 
-  const { session, answers = [] } = data || {};
+  const { session, answers = [] } = (data as any) || {};
 
   const answersMap = useMemo(() => {
     return answers.reduce(
@@ -36,8 +36,9 @@ export default function PracticeDetailPage() {
       {
         title: '题目ID',
         dataIndex: 'id',
-        width: 100,
-        renderText: (id: number) => {
+        width: 150,
+        ellipsis: true,
+        render: (id: any) => {
           return (
             <Link className="umi-link" to={`/question/detail/${id}`}>
               {id}
@@ -47,12 +48,12 @@ export default function PracticeDetailPage() {
       },
       {
         title: '题型',
-        dataIndex: 'type',
-        width: 100,
+        dataIndex: 'questionTypeCode',
+        width: 120,
       },
       {
         title: '题目内容',
-        dataIndex: 'content',
+        dataIndex: ['stem', 'text'],
         width: 300,
         ellipsis: true,
       },
@@ -63,15 +64,16 @@ export default function PracticeDetailPage() {
       },
       {
         title: '知识点',
-        dataIndex: 'knowledge',
+        dataIndex: 'knowledgePoints',
         width: 150,
         ellipsis: true,
+        render: (_, record) => record.knowledgePoints?.join(', ') || '-',
       },
       {
         title: '是否作答',
         dataIndex: 'id',
         width: 100,
-        renderText: (questionId: string) => {
+        render: (questionId: any) => {
           const answer = answersMap[questionId];
           return (
             <Tag color={answer?.status !== 0 ? 'success' : 'default'}>{answer?.status !== 0 ? '已作答' : '未作答'}</Tag>
@@ -82,9 +84,9 @@ export default function PracticeDetailPage() {
         title: '答题结果',
         dataIndex: 'id',
         width: 100,
-        renderText: (questionId: string) => {
+        render: (questionId: any) => {
           const answer = answersMap[questionId];
-          if (answer.status === 0) {
+          if (!answer || answer.status === 0) {
             return <span style={{ color: '#999' }}>-</span>;
           }
           const isCorrect = answer.status === 1;
@@ -95,7 +97,7 @@ export default function PracticeDetailPage() {
         title: '答题耗时',
         dataIndex: 'id',
         width: 120,
-        renderText: (questionId: string) => {
+        render: (questionId: any) => {
           const answer = answersMap[questionId];
           if (!answer || !answer.time_spent) {
             return <span style={{ color: '#999' }}>-</span>;
@@ -116,7 +118,7 @@ export default function PracticeDetailPage() {
         { width: 100 },
       ),
     ],
-    [answers],
+    [answersMap],
   );
 
   if (!data && !error) {
@@ -156,15 +158,15 @@ export default function PracticeDetailPage() {
 
   return (
     <PageContainer title={<PageHeader title="练习详情" />}>
-      <Space orientation="vertical" style={{ width: '100%' }} size="large">
+      <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">
-              <Tag color="blue">{PRACTICE_TYPE_LABELS[session.session_type]}</Tag>
+              <Tag color="blue">{(PRACTICE_TYPE_LABELS as any)[session.practice_slug] || session.practice_slug}</Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
               <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
-                {PRACTICE_STATUS_LABELS[session.status]}
+                {PRACTICE_STATUS_LABELS[session.status as PracticeSessionStatus]}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="开始时间" valueType="dateTime">
@@ -199,7 +201,7 @@ export default function PracticeDetailPage() {
         </Card>
 
         <Card title={`题目列表（共 ${session.question_count} 题）`}>
-          <ProTable
+          <ProTable<Question>
             rowKey="id"
             columns={columns}
             search={false}
@@ -216,7 +218,7 @@ export default function PracticeDetailPage() {
           open={!!selectedQuestion}
           onClose={() => setSelectedQuestion(undefined)}
           question={selectedQuestion}
-          answer={selectedQuestion ? answersMap[Number(selectedQuestion.id)] : undefined}
+          answer={selectedQuestion ? answersMap[selectedQuestion.id] : undefined}
         />
       </Space>
     </PageContainer>
