@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { getResourceUrl } from "@ai-education/shared-web";
 import { useMemo } from "react";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 export function QuestionCard() {
-  const { question, answer } = usePageModel();
+  const { question, answer } = usePracticeSessionModel();
   const resourceUrl = getResourceUrl(question?.resource);
 
   const resultBadge = useMemo(() => {

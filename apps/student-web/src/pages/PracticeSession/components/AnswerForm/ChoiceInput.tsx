@@ -4,10 +4,10 @@
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { usePageModel } from "../../models/page";
+import { usePracticeSessionModel } from "../../models/page";
 
 export function ChoiceInput({ value, disabled, onChange }: AnswerFormProps) {
-  const { question } = usePageModel();
+  const { question } = usePracticeSessionModel();
 
   let options: Array<{ label: string; text: string }> = [];
   try {

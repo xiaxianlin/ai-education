@@ -151,5 +151,5 @@ function useContainer() {
   };
 }
 
-export const PageModel = createContainer(useContainer);
-export const usePageModel = PageModel.useContainer;
+export const PracticeSessionModel = createContainer(useContainer);
+export const usePracticeSessionModel = PracticeSessionModel.useContainer;

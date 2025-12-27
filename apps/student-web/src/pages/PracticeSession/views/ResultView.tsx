@@ -6,11 +6,11 @@ import { Button, Card, CardContent } from "@/components/ui";
 import { CheckCircle, Clock, FileText, Home, Trophy, XCircle } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 export function ResultView() {
   const navigate = useNavigate();
-  const { session, report } = usePageModel();
+  const { session, report } = usePracticeSessionModel();
 
   const score = report?.overall_score || 0;
   const totalTime = report?.total_time || 0;

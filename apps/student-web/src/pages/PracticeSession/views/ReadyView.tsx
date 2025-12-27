@@ -7,11 +7,11 @@ import { useProfileModel } from "@/common/models/ProfileModel";
 import { memo } from "react";
 import { LowerGradeReadyPanel } from "../components/LowerGradeReadyPanel";
 import { UpperGradeReadyPanel } from "../components/UpperGradeReadyPanel";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 export const ReadyView = memo(() => {
   const { student } = useProfileModel();
-  const { title, questions, begin } = usePageModel();
+  const { title, questions, begin } = usePracticeSessionModel();
 
   const isLowerGrade = (student?.grade || 3) < 2;
 

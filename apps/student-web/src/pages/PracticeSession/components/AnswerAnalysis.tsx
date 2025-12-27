@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui";
 import { CheckCircle, Lightbulb } from "lucide-react";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 /**
  * 答案解析组件
@@ -8,7 +8,7 @@ import { usePageModel } from "../models/page";
  * - 展示分析结果（如果有）
  */
 export function AnswerAnalysis() {
-  const { answer } = usePageModel();
+  const { answer } = usePracticeSessionModel();
 
   // 如果答案记录不存在或答案正确，则不显示
   if (!answer || answer.status !== 2) return null;

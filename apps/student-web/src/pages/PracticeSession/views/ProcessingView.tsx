@@ -7,10 +7,10 @@ import { AnswerAnalysis } from "../components/AnswerAnalysis";
 import { AnswerCard } from "../components/AnswerCard";
 import { ProgressIndicator } from "../components/ProgressIndicator";
 import { QuestionCard } from "../components/QuestionCard";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 export function ProcessingView() {
-  const { question, isComplete, complete } = usePageModel();
+  const { question, isComplete, complete } = usePracticeSessionModel();
 
   return (
     <div className="p-4">

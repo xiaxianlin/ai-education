@@ -13,18 +13,7 @@ from shared.provider import get_provider
 from shared.utils.prompt import build_question_prompt
 
 from .schema import QuestionGenerationState
-from .services import (
-    assess_practice,
-    daily_practice,
-    question,
-    unit_practice,
-)
-
-PRACTICE_SERVICES = {
-    "daily_practice": daily_practice,
-    "unit_practice": unit_practice,
-    "assess_practice": assess_practice,
-}
+from .services import question
 
 
 async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -46,8 +35,14 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     if state.get("question_types") is None:
         raise ValueError("题型列表 (question_types) 不能为空")
 
-    if session.practice_slug not in PRACTICE_SERVICES:
-        raise ValueError(f"练习类型: slug={session.practice_slug} 暂不支持")
+    # 延迟导入避免循环依赖
+    from shared.practice.strategies import get_strategy
+
+    # 验证策略是否存在（get_strategy 会抛出异常如果不存在）
+    try:
+        get_strategy(session.practice_slug)
+    except ValueError as e:
+        raise ValueError(f"练习类型: slug={session.practice_slug} 暂不支持") from e
 
     logger.info(
         f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}"
@@ -63,7 +58,11 @@ async def load_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
     logger.info(f"开始加载练习数据: slug={session.practice_slug}")
 
     recall_questions = await question.recall_questions(state["db"], session)
-    data = await PRACTICE_SERVICES[session.practice_slug].load_data(state)
+    # 延迟导入避免循环依赖
+    from shared.practice.strategies import get_strategy
+
+    strategy = get_strategy(session.practice_slug)
+    data = await strategy.load_context(state)
 
     return {"recall_questions": recall_questions, **data}
 
@@ -72,7 +71,11 @@ async def build_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     """统一的 prompt 构建节点，根据 practice.slug 路由到对应服务"""
     session = state["session"]
     logger.info(f"开始构建练习 prompt: slug={session.practice_slug}")
-    return await PRACTICE_SERVICES[session.practice_slug].build_prompt(state)
+    # 延迟导入避免循环依赖
+    from shared.practice.strategies import get_strategy
+
+    strategy = get_strategy(session.practice_slug)
+    return await strategy.build_prompt(state)
 
 
 async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -99,30 +102,48 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
 
 async def handle_resource_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """根据 resource_type 标识生成图片"""
-    db = state["db"]
+    """根据 resource_type 标识并行生成图片/音频资源
+
+    使用 asyncio.gather 实现并行生成，提高多资源题目的处理效率。
+    """
+    import asyncio
+
     textbook = state["textbook"]
     generated_questions = state["generated_questions"]
 
-    for question in generated_questions:
+    async def generate_image_resource(q):
+        """生成图片资源"""
+        prompt = build_question_prompt(q)
+        q.resource = f"textbook/{textbook.id}/question_image/{q.id}.png"
+        await invoke_question_image_workflow(
+            db=state["db"],
+            prompt=prompt,
+            oss_path=q.resource,
+        )
 
-        if question.resource_type == "image":
-            prompt = build_question_prompt(question)
-            question.resource = f"textbook/{textbook.id}/question_image/{question.id}.png"
-            await invoke_question_image_workflow(
-                db=db,
-                prompt=prompt,
-                oss_path=question.resource,
-            )
+    async def generate_audio_resource(q):
+        """生成音频资源"""
+        q.resource = f"textbook/{textbook.id}/question_audio/{q.id}.mp3"
+        language = "Chinese" if textbook.subject == "英语" else "English"
+        await invoke_question_audio_workflow(
+            text=q.resource_content,
+            language=language,
+            oss_path=q.resource,
+        )
 
-        if question.resource_type == "audio":
-            question.resource = f"textbook/{textbook.id}/question_audio/{question.id}.mp3"
-            language = "Chinese" if textbook.subject == "英语" else "English"
-            await invoke_question_audio_workflow(
-                text=question.resource_content,
-                language=language,
-                oss_path=question.resource,
-            )
+    # 收集所有需要生成资源的任务
+    tasks = []
+    for q in generated_questions:
+        if q.resource_type == "image":
+            tasks.append(generate_image_resource(q))
+        elif q.resource_type == "audio":
+            tasks.append(generate_audio_resource(q))
+
+    # 并行执行所有资源生成任务
+    if tasks:
+        logger.info(f"开始并行生成 {len(tasks)} 个资源")
+        await asyncio.gather(*tasks)
+        logger.info("资源生成完成")
 
     return {"generated_questions": generated_questions}
 

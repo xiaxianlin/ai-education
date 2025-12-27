@@ -2,10 +2,10 @@
  * 进度指示器组件 - 显示所有题目状态的圆圈网格
  */
 import { cn } from "@/lib/utils";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 
 export function ProgressIndicator() {
-  const { questions, answers, order, jumpTo } = usePageModel();
+  const { questions, answers, order, jumpTo } = usePracticeSessionModel();
 
   return (
     <div className="w-full">

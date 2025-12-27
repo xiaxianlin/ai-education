@@ -7,7 +7,7 @@ import DailyPractice from "@/pages/Practice/Daily";
 import UnitPractice from "@/pages/Practice/Unit";
 import PracticeHistory from "@/pages/PracticeRecord";
 import PracticeSessionData from "@/pages/PracticeResult";
-import PracticeSession from "@/pages/PricticeSession";
+import PracticeSession from "@/pages/PracticeSession";
 import Profile from "@/pages/Profile";
 import { Navigate, useRoutes } from "react-router-dom";
 

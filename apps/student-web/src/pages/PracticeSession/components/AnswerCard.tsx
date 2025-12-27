@@ -5,7 +5,7 @@
 import { Button, Card, CardContent } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import { useMemo, useRef } from "react";
-import { usePageModel } from "../models/page";
+import { usePracticeSessionModel } from "../models/page";
 import { QuestionType } from "../types";
 import { AudioInput } from "./AnswerForm/AudioInput";
 import { ChoiceInput } from "./AnswerForm/ChoiceInput";
@@ -13,7 +13,8 @@ import { JudgeInput } from "./AnswerForm/JudgeInput";
 import { TextInput } from "./AnswerForm/TextInput";
 
 export function AnswerCard() {
-  const { question, answer, answers, order, submitting, isComplete, setAnswer, handleSubmit } = usePageModel();
+  const { question, answer, answers, order, submitting, isComplete, setAnswer, handleSubmit } =
+    usePracticeSessionModel();
 
   const startTime = useRef(Date.now());
   const orderAnswer = answers[order];
