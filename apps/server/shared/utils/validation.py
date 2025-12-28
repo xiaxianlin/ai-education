@@ -4,7 +4,7 @@ from shared.core.constants import SUBJECTS
 
 
 def username(v):
-    if not re.match(r"^\w+$", v):  # 等价于 [a-zA-Z0-9_]
+    if not re.match(r"^[a-zA-Z0-9_]+$", v):  # 仅允许 ASCII 字母、数字和下划线
         raise ValueError("用户名只能包含字母、数字和下划线")
     return v
 
@@ -31,7 +31,7 @@ def phone(v):
 
 
 def grade(v):
-    if v and v not in range(1, 13):
+    if v is not None and v not in range(1, 13):
         raise ValueError("年级只能为1-12年级")
     return v
 
@@ -43,6 +43,6 @@ def subject(v):
 
 
 def status(v, options: list[int] = [0, 1]):
-    if v and v not in options:
-        raise ValueError(f"状态只能为{'、'.join(options)}")
+    if v is not None and v not in options:
+        raise ValueError(f"状态只能为{'、'.join(map(str, options))}")
     return v

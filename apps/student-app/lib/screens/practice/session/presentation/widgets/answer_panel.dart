@@ -10,6 +10,7 @@ import 'package:student_app/screens/practice/session/presentation/widgets/answer
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/connect_line_widget.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/sort_order_widget.dart';
 import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/v2/handwriting_widget.dart';
+import 'package:student_app/screens/practice/session/presentation/widgets/answer_input/fill_blank_input.dart';
 import 'package:student_app/core/theme/app_colors.dart';
 
 /// 答案输入面板（统一入口）
@@ -180,6 +181,28 @@ class AnswerPanel extends ConsumerWidget {
           disabled: hasAnswered,
           onAudioRecorded: onAudioRecorded,
           onAnalysisReceived: onAudioAnalysisReceived,
+        );
+      case 'fill_blank':
+        // 获取填空数量（从题目的 blanks 字段或默认为1）
+        final blanksCount = question.blanks?.length ?? 1;
+        final values = currentAnswer is List<String>
+            ? currentAnswer
+            : currentAnswer is String
+                ? [currentAnswer]
+                : null;
+        return FillBlankInput(
+          question: question,
+          values: values,
+          blanksCount: blanksCount,
+          disabled: hasAnswered,
+          onChanged: onAnswerChanged,
+        );
+      case 'text_input':
+        return TextInputWidget(
+          question: question,
+          value: currentAnswer is String ? currentAnswer : null,
+          disabled: hasAnswered,
+          onChanged: onAnswerChanged,
         );
       default:
         return const Center(child: Text('暂不支持此题型 (V2)'));
