@@ -1,20 +1,10 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined, RedoOutlined } from '@ant-design/icons';
-import { FooterToolbar } from '@ant-design/pro-components';
-import { Button, Modal } from 'antd';
+import { DeleteOutlined, EditOutlined, RedoOutlined } from '@ant-design/icons';
+import { Button, Flex, Modal } from 'antd';
 import { useStudentDetailModel } from '../models/page';
 
 export function Footer() {
-  const {
-    student,
-    deleting,
-    resetting,
-    editForm,
-    handleDelete,
-    handleResetPassword,
-    setEditFormVisible,
-    setAddTextbookVisible,
-    setAddPracticeVisible,
-  } = useStudentDetailModel();
+  const { student, deleting, resetting, editForm, handleDelete, handleResetPassword, setEditFormVisible } =
+    useStudentDetailModel();
 
   const handleEdit = () => {
     if (student) {
@@ -43,15 +33,9 @@ export function Footer() {
   };
 
   return (
-    <FooterToolbar className="page-footer">
+    <Flex align="center" gap={16} className='absolute top-[-64px] right-0'>
       <Button type="primary" icon={<EditOutlined />} onClick={handleEdit} disabled={!student}>
         编辑
-      </Button>
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddTextbookVisible(true)}>
-        添加教材
-      </Button>
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddPracticeVisible(true)}>
-        添加练习
       </Button>
       <Button loading={deleting} danger icon={<DeleteOutlined />} onClick={onDelete} disabled={!student}>
         删除
@@ -59,6 +43,6 @@ export function Footer() {
       <Button loading={resetting} danger icon={<RedoOutlined />} onClick={onResetPassword} disabled={!student}>
         重置密码
       </Button>
-    </FooterToolbar>
+    </Flex>
   );
 }

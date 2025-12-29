@@ -1,18 +1,16 @@
 import { GRADES } from '@ai-education/shared-web';
-import { BookOutlined } from '@ant-design/icons';
+import { BookOutlined, PlusOutlined } from '@ant-design/icons';
 import { CheckCard } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Checkbox, Empty, Flex, message, Modal, Space, Tag } from 'antd';
+import { Avatar, Button, Checkbox, Empty, Flex, message, Modal, Tag } from 'antd';
 import { useState } from 'react';
 import { StudentApi } from '../../api';
 import { AddTextbookForm } from '../components/AddTextbookForm';
 import { useStudentDetailModel } from '../models/page';
-;
-
 export function TextbookList() {
   const { student, textbookService, addTextbookVisible, setAddTextbookVisible } = useStudentDetailModel();
 
-  const { data, loading, refresh } = textbookService;
+  const { data, refresh } = textbookService;
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { runAsync: removeTextbook } = useRequest(
@@ -50,24 +48,24 @@ export function TextbookList() {
   const someSelected = selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
 
   return (
-    <Card
-      title="关联教材"
-      loading={loading}
-      extra={
-        <Space>
-          <Checkbox
-            indeterminate={someSelected}
-            checked={allSelected}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-          >
-            全选
-          </Checkbox>
-          <Button danger size="small" onClick={handleBatchDelete}>
+    <Flex vertical gap={16}>
+      <Flex align="center" justify="space-between">
+        <Checkbox
+          indeterminate={someSelected}
+          checked={allSelected}
+          onChange={(e) => handleSelectAll(e.target.checked)}
+        >
+          全选
+        </Checkbox>
+        <Flex align="center" gap={16}>
+          <Button danger onClick={handleBatchDelete}>
             批量删除 ({selectedIds.length})
           </Button>
-        </Space>
-      }
-    >
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddTextbookVisible(true)}>
+            添加教材
+          </Button>
+        </Flex>
+      </Flex>
       {data?.length && data.length > 0 ? (
         <CheckCard.Group
           multiple
@@ -112,6 +110,6 @@ export function TextbookList() {
           setAddTextbookVisible(false);
         }}
       />
-    </Card>
+    </Flex>
   );
 }

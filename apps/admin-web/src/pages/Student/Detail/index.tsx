@@ -1,10 +1,11 @@
+import './index.less';
 import { StudentDetailModel } from './models/page';
-import { Entry } from './views/Entry';
+import { Main } from './views/Main';
 
 export default function StudentDetailPage() {
   return (
     <StudentDetailModel.Provider>
-      <Entry />
+      <Main />
     </StudentDetailModel.Provider>
   );
 }

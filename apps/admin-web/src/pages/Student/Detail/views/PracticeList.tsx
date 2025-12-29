@@ -1,8 +1,8 @@
-import { createTimeColumn } from '@/hooks';
 import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
+import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Button, Card, message, Modal, Space, Tag } from 'antd';
+import { Button, message, Modal, Tag } from 'antd';
 import { useMemo, useState } from 'react';
 import { StudentApi } from '../../api';
 import { AddPracticeForm } from '../components/AddPracticeForm';
@@ -106,23 +106,14 @@ export function PracticeList() {
         ellipsis: true,
         render: (text) => text || '暂无描述',
       },
-      createTimeColumn<Practice>('创建时间', 'create_time', { width: 160, hideInSearch: true }),
     ],
     [],
   );
 
   return (
-    <Card
-      title="关联练习"
-      extra={
-        <Space>
-          <Button danger size="small" onClick={handleBatchDelete} disabled={selectedRowKeys.length === 0}>
-            批量删除 ({selectedRowKeys.length})
-          </Button>
-        </Space>
-      }
-    >
+    <>
       <ProTable<Practice>
+        className='practice-list'
         rowKey="id"
         columns={columns}
         dataSource={data || []}
@@ -135,8 +126,17 @@ export function PracticeList() {
           onChange: (keys) => setSelectedRowKeys(keys),
         }}
         toolbar={{
-          actions: [],
+          actions: [
+            <Button danger onClick={handleBatchDelete} disabled={selectedRowKeys.length === 0}>
+              批量删除 ({selectedRowKeys.length})
+            </Button>,
+          ],
         }}
+        headerTitle={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddPracticeVisible(true)}>
+            添加练习
+          </Button>
+        }
         options={false}
       />
       <AddPracticeForm
@@ -148,6 +148,6 @@ export function PracticeList() {
           setAddPracticeVisible(false);
         }}
       />
-    </Card>
+    </>
   );
 }
