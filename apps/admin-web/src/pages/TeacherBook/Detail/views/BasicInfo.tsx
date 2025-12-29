@@ -1,6 +1,7 @@
+import { GRADES } from '@ai-education/shared-web';
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { useTeacherBookDetailModel } from '../models/page';
-import { GRADES } from '@/constants/course';
+;
 
 export const BasicInfo = () => {
   const { teacherBook } = useTeacherBookDetailModel();

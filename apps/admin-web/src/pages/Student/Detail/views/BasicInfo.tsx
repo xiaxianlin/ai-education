@@ -1,8 +1,9 @@
-import { Card } from 'antd';
-import { ProDescriptions } from '@ant-design/pro-components';
 import { StatusTag } from '@/components';
+import { GRADES } from '@ai-education/shared-web';
+import { ProDescriptions } from '@ant-design/pro-components';
+import { Card } from 'antd';
 import { useStudentDetailModel } from '../models/page';
-import { GRADES } from '@/constants/course';
+;
 
 export function BasicInfo() {
   const { student, loading } = useStudentDetailModel();

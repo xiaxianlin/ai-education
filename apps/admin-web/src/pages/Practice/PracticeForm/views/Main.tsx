@@ -1,4 +1,4 @@
-import { getSpecialtyOptions, STAGE_OPTIONS } from '@ai-education/shared-web';
+import { getSpecialtyOptions, GRADES, STAGE_OPTIONS } from '@ai-education/shared-web';
 import { PageContainer, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Card, Collapse, Flex, Form } from 'antd';
 import { AbilityConfigForm, DifficultyConfigForm, FeedbackConfigForm, QuestionCountConfigForm } from '../components';
@@ -90,7 +90,7 @@ export default function MainView() {
                       placeholder="请选择适用年级"
                       options={availableGrades.map((g) => ({
                         value: g,
-                        label: `${g}年级`,
+                        label: GRADES[g],
                       }))}
                       rules={[{ required: true, message: '请选择年级' }]}
                     />

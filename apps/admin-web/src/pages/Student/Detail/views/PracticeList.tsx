@@ -1,7 +1,9 @@
-import { CheckCard } from '@ant-design/pro-components';
+import { createTimeColumn } from '@/hooks';
+import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
+import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Avatar, Button, Card, Checkbox, Empty, Flex, message, Modal, Space } from 'antd';
-import { useState } from 'react';
+import { Button, Card, message, Modal, Space, Tag } from 'antd';
+import { useMemo, useState } from 'react';
 import { StudentApi } from '../../api';
 import { AddPracticeForm } from '../components/AddPracticeForm';
 import { useStudentDetailModel } from '../models/page';
@@ -10,7 +12,7 @@ export function PracticeList() {
   const { student, practiceService, addPracticeVisible, setAddPracticeVisible } = useStudentDetailModel();
 
   const { data, loading, refresh } = practiceService;
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const { runAsync: removePractice } = useRequest(
     (practiceIds: number[]) => StudentApi.removeStudentPractice(student?.id || '', practiceIds),
@@ -19,83 +21,124 @@ export function PracticeList() {
       ready: !!student?.id,
       onSuccess: () => {
         message.success('移除成功');
-        setSelectedIds([]);
+        setSelectedRowKeys([]);
         refresh();
       },
     },
   );
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(data?.map((practice) => practice.id) || []);
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
   const handleBatchDelete = () => {
-    if (selectedIds.length === 0) return;
+    if (selectedRowKeys.length === 0) return;
 
     Modal.confirm({
       title: '批量移除练习',
-      content: `确定要移除选中的 ${selectedIds.length} 个练习吗？`,
-      onOk: () => removePractice(selectedIds),
+      content: `确定要移除选中的 ${selectedRowKeys.length} 个练习吗？`,
+      onOk: () => removePractice(selectedRowKeys as number[]),
     });
   };
 
-  const allSelected = data && data.length > 0 && selectedIds.length === data.length;
-  const someSelected = selectedIds.length > 0 && selectedIds.length < (data?.length || 0);
+  const columns = useMemo<ProColumns<Practice>[]>(
+    () => [
+      {
+        title: '科目',
+        dataIndex: 'subject',
+        width: 80,
+        render: (text) => text || '-',
+      },
+
+      {
+        title: '名称',
+        dataIndex: 'name',
+        width: 150,
+      },
+
+      {
+        title: '学段',
+        dataIndex: 'stages',
+        width: 120,
+        hideInSearch: true,
+        render: (_, record) =>
+          record.stages?.length ? (
+            <>
+              {record.stages.map((stage) => (
+                <Tag key={stage} color="purple">
+                  {STAGE_LABELS[stage as Stage] || stage}
+                </Tag>
+              ))}
+            </>
+          ) : (
+            '-'
+          ),
+      },
+      {
+        title: '年级',
+        dataIndex: 'grades',
+        width: 200,
+        hideInSearch: true,
+        render: (_, record) =>
+          record.grades?.length ? (
+            <>
+              {record.grades.map((g) => (
+                <Tag key={g}>{GRADES[g]}</Tag>
+              ))}
+            </>
+          ) : (
+            '-'
+          ),
+      },
+      {
+        title: '专项类型',
+        dataIndex: 'specialty_type',
+        width: 120,
+        hideInSearch: true,
+        render: (_, record) =>
+          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
+      },
+      {
+        title: '图标',
+        dataIndex: 'icon',
+        width: 80,
+        hideInSearch: true,
+      },
+      {
+        title: '描述',
+        dataIndex: 'description',
+        ellipsis: true,
+        render: (text) => text || '暂无描述',
+      },
+      createTimeColumn<Practice>('创建时间', 'create_time', { width: 160, hideInSearch: true }),
+    ],
+    [],
+  );
 
   return (
     <Card
       title="关联练习"
-      loading={loading}
       extra={
         <Space>
-          <Checkbox
-            indeterminate={someSelected}
-            checked={allSelected}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-          >
-            全选
-          </Checkbox>
-          <Button danger size="small" onClick={handleBatchDelete}>
-            批量删除 ({selectedIds.length})
+          <Button danger size="small" onClick={handleBatchDelete} disabled={selectedRowKeys.length === 0}>
+            批量删除 ({selectedRowKeys.length})
           </Button>
         </Space>
       }
     >
-      {data?.length && data.length > 0 ? (
-        <CheckCard.Group
-          multiple
-          value={selectedIds}
-          onChange={(value) => setSelectedIds(value as number[])}
-          style={{ width: '100%' }}
-        >
-          <div className="grid grid-cols-4 gap-3">
-            {data?.map((practice) => (
-              <CheckCard
-                key={practice.id}
-                value={practice.id}
-                style={{ width: '100%' }}
-                avatar={<Avatar shape="square" size={48} icon={practice.icon} />}
-                title={
-                  <Flex align="center" gap={8}>
-                    <span>{practice.name}</span>
-                  </Flex>
-                }
-                description={practice.description || '暂无描述'}
-              />
-            ))}
-          </div>
-        </CheckCard.Group>
-      ) : (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={<span style={{ color: '#bfbfbf', fontSize: '14px' }}>暂无关联练习</span>}
-          style={{ padding: '40px 0' }}
-        />
-      )}
+      <ProTable<Practice>
+        rowKey="id"
+        columns={columns}
+        dataSource={data || []}
+        loading={loading}
+        search={false}
+        pagination={false}
+        scroll={{ x: 'max-content' }}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
+        toolbar={{
+          actions: [],
+        }}
+        options={false}
+      />
       <AddPracticeForm
         studentId={student?.id || ''}
         open={addPracticeVisible}

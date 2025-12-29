@@ -1,6 +1,7 @@
+import { GRADES } from '@ai-education/shared-web';
 import { ModalForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
-import { GRADES } from '@/constants/course';
 import { useStudentListModel } from '../models/page';
+;
 
 export default function FormView() {
   const {

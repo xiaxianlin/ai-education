@@ -1,9 +1,9 @@
 import { AudioPlayer, DeleteButton, PageHeader } from '@/components';
-import { GRADES } from '@/constants/course';
-import { getResourceUrl } from '@ai-education/shared-web';
+import { getResourceUrl, GRADES } from '@ai-education/shared-web';
 import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { Button, Flex, Image, Tag, Typography } from 'antd';
 import { useQuestionDetailModel } from '../models/page';
+;
 
 export default function MainView() {
   const {

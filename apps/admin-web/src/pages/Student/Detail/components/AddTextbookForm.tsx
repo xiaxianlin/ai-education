@@ -1,8 +1,9 @@
+import { GRADES } from '@ai-education/shared-web';
 import { ModalForm, ProForm, ProFormSelect } from '@ant-design/pro-components';
-import { StudentApi } from '../../api';
 import { useRequest } from 'ahooks';
 import { message } from 'antd';
-import { GRADES } from '@/constants/course';
+import { StudentApi } from '../../api';
+;
 
 interface AddTextbookFormProps {
   studentId: string;

@@ -1,9 +1,10 @@
-import { useRequest } from 'ahooks';
+import { GRADES } from '@ai-education/shared-web';
 import { ModalForm, ProFormRadio, ProFormSelect, ProFormText } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { message } from 'antd';
 import { StudentApi } from '../../api';
 import { useStudentDetailModel } from '../models/page';
-import { message } from 'antd';
-import { GRADES } from '@/constants/course';
+;
 
 export function BasicInfoForm() {
   const { student, editForm, editFormVisible, refresh, setEditFormVisible } =

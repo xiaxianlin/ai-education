@@ -1,5 +1,6 @@
-import { GRADES } from '@/constants/course';
 import { useInitialStateModel } from '@/models/initialState';
+import { GRADES } from '@ai-education/shared-web';
+;
 
 export const useConfigs = () => {
   const { configs } = useInitialStateModel();

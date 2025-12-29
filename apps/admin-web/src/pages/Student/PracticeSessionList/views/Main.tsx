@@ -1,12 +1,13 @@
 import { PageHeader } from '@/components';
-import { GRADES } from '@/constants/course';
 import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
+import { GRADES } from '@ai-education/shared-web';
 import { ActionType, PageContainer, ProColumns, ProSkeleton, ProTable } from '@ant-design/pro-components';
 import { Button, Card, Empty, Tag } from 'antd';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { StudentApi } from '../../api';
 import { usePracticeSessionListModel } from '../models/PageModel';
+;
 
 export function Main() {
   const { student, studentId, studentLoading, studentError, practiceService, practiceId, setPracticeId } =

@@ -1,4 +1,4 @@
-import { GRADES } from '@/constants/course';
+import { GRADES } from '@ai-education/shared-web';
 import { BookOutlined } from '@ant-design/icons';
 import { CheckCard } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { StudentApi } from '../../api';
 import { AddTextbookForm } from '../components/AddTextbookForm';
 import { useStudentDetailModel } from '../models/page';
+;
 
 export function TextbookList() {
   const { student, textbookService, addTextbookVisible, setAddTextbookVisible } = useStudentDetailModel();

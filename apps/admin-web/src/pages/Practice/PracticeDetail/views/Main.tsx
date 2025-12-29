@@ -1,14 +1,14 @@
-import { GRADES } from '@/constants/course';
 import {
-  SPECIALTY_TYPE_LABELS,
-  STAGE_LABELS,
-  SpecialtyType,
-  Stage,
+    GRADES, SPECIALTY_TYPE_LABELS,
+    STAGE_LABELS,
+    SpecialtyType,
+    Stage
 } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Descriptions, Empty, Flex, Space, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { usePracticeDetailModel } from '../models/page';
+;
 
 // 参数配置 Table 列定义（用于显示 dict 类型的 parameter_config）
 const parameterConfigColumns: ColumnsType<{ key: string; value: any }> = [

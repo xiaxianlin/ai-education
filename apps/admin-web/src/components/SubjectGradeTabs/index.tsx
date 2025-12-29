@@ -1,6 +1,6 @@
-import { GRADES } from '@/constants/course';
 import { useConfigs } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
+import { GRADES } from '@ai-education/shared-web';
 import { Radio, Tabs } from 'antd';
 
 interface SubjectGradeTabsProps {

@@ -1,7 +1,8 @@
+import { StatusTag } from '@/components';
+import { GRADES } from '@ai-education/shared-web';
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { useTextbookDetailModel } from '../models/page';
-import { StatusTag } from '@/components';
-import { GRADES } from '@/constants/course';
+;
 
 export const BasicInfo = () => {
   const { textbook } = useTextbookDetailModel();

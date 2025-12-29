@@ -1,6 +1,7 @@
+import { GRADES } from '@ai-education/shared-web';
 import { BookOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Avatar, Button, Card, Checkbox, Flex, Modal, Tag } from 'antd';
-import { GRADES } from '@/constants/course';
+;
 
 export function TextbookCard({
   textbook,
