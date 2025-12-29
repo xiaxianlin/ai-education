@@ -12,25 +12,34 @@ alwaysApply: true
 ### 前端应用
 - **apps/admin-web**: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
   - TypeScript 5, Less + Tailwind CSS
-  - 状态管理: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助），HTTP 客户端: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
+  - UI 库: Ant Design 5 + Ant Design Pro Components
+  - 状态管理: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助）
+  - HTTP 客户端: 基于 `@ai-education/shared-web` 的 `ApiClient`，业务 API 按模块拆分到各业务目录下的 `api.ts`
+  - 路由: react-router-dom
 
 - **apps/student-web**: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
   - TypeScript 5, Tailwind CSS
-  - 状态管理: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助），路由: react-router-dom, HTTP 客户端: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
+  - UI 组件: shadcn/ui (基于 Radix UI)
+  - 状态管理: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
+  - HTTP 客户端: 基于 `@ai-education/shared-web` 的 `ApiClient`，API 统一封装在 `src/lib/api.ts` 的 `studentApi`
+  - 路由: react-router-dom
 
 ### 后端服务
 - **apps/server**: 服务端单体 (Python 3.12 + FastAPI)
-  - FastAPI 0.115+, SQLAlchemy 2.0 异步 ORM
+  - FastAPI 0.115+, SQLAlchemy 2.0 异步 ORM（强制使用 2.0 风格）
   - MySQL 数据库, Redis + Celery 任务队列
-  - AI 工作流: LangChain + LangGraph
-  - 认证: JWT, AI 平台: 阿里云百炼AI, 对象存储: 阿里云 OSS
+  - AI 工作流: LangChain + LangGraph（用于复杂业务逻辑）
+  - 认证: JWT (PyJWT), AI 平台: 阿里云百炼AI (DashScope SDK), 对象存储: 阿里云 OSS
   - 日志: Loguru, 包管理器: uv
+  - 应用架构: 子应用挂载架构（`admin_app` 和 `student_app` 挂载到主应用）
 
 ### 移动应用
 - **apps/student-app**: 移动应用 (Flutter 3.0+)
-  - Dart 3.8+, 状态管理: Riverpod
+  - Dart 3.8+, 状态管理: Riverpod 3.0.3 (flutter_riverpod, hooks_riverpod)
   - 路由: GoRouter 17.0, 网络请求: Dio 5.4.0
-  - UI: Material Design, 代码生成: json_serializable, freezed
+  - UI: Material Design + 自定义组件
+  - 代码生成: json_serializable, freezed, build_runner（修改模型后必须运行 `./build.sh`）
+  - 本地存储: SharedPreferences 2.2.2
 
 ## 开发工作流
 
@@ -66,10 +75,19 @@ pnpm keep-all "feat: 重构代码结构"
 - **Python**: 使用 uv 进行依赖管理
 - **Flutter**: 使用 `flutter pub get` 进行依赖管理，使用 `build_runner` 生成代码
 
+## 共享包
+
+- **packages/shared-web**: Web 端共享包
+  - API 客户端基类 (`ApiClient`)
+  - 类型定义（API 响应、数据模型等）
+  - 工具函数（路由跳转等）
+  - 导出路径: `@ai-education/shared-web`
+
 ## 数据库
 
 - 使用 MySQL 数据库
-- 初始化脚本位于 `infra/mysql/00-init.sql`
+- 初始化脚本位于 `infra/mysql/ai_education.sql`
+- 数据库模型定义在 `apps/server/shared/core/database/` 目录
 
 ## 架构原则
 

@@ -199,6 +199,8 @@ async def create(db: AsyncSession, params: SomeSchema):
 - **管理端 OpenAPI JSON**: `http://localhost:7890/api/admin/openapi.json`
 - **学生端 OpenAPI JSON**: `http://localhost:7890/api/student/openapi.json`
 
+**注意**: 根应用的 `/docs` 和 `/openapi.json` 不会包含子应用的路由（这是 FastAPI 的设计行为），需要访问子应用的独立文档路径。
+
 ## 注意事项
 
 1. **异步优先**: 所有数据库操作使用异步 SQLAlchemy

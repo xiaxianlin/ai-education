@@ -136,14 +136,23 @@ export const usePageNameHook = (params) => {
 
 项目 Web 端统一通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）进行请求。
 
-约定：
+**API 响应格式**：
+- 后端返回统一格式：`{ status: 0, message: "ok", data: T }`
+- `ApiClient` 会自动提取 `response.data.data` 作为业务返回值
+- 错误响应：`status !== 0` 时会抛出错误，错误信息在 `message` 字段
+
+**API 客户端约定**：
 - **admin-web**：
-  - 基础 API 客户端：`apps/admin-web/src/lib/api.ts` 中的 `apiClient` 和 `CommonApi`（通用接口如 `check`、`getConfigs`）
+  - 基础 API 客户端：`apps/admin-web/src/lib/api.ts` 中的 `apiClient`（基于 `ApiClient`）和 `CommonApi`（通用接口如 `check`、`getConfigs`）
   - 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `StudentApi`、`PracticeApi`、`TextbookApi`、`QuestionApi`、`TeacherBookApi`、`PromptApi`、`AuthApi`）
   - 新增/修改接口优先在对应模块的 `api.ts` 中维护
+  - 认证 Token 存储在 `localStorage`，key 为 `token`
+  - 认证错误（status === 401）会自动跳转到登录页
 - **student-web**：
   - API 统一封装在 `apps/student-web/src/lib/api.ts` 中的 `studentApi`
   - 新增/修改接口优先在这里集中维护
+  - 认证 Token 存储在 `localStorage`，key 为 `_t`
+  - 认证错误（status === 401）会自动跳转到登录页
 
 ```typescript
 // admin-web 示例：调用业务模块 API

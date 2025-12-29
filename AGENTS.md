@@ -9,10 +9,13 @@ K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace 和 Turborepo 
 ## 技术栈
 
 - **前端**: React 18 + TypeScript 5 + Rsbuild
-  - admin-web: Ant Design 5 + ahooks
+  - admin-web: Ant Design 5 + Ant Design Pro + unstated-next + ahooks
   - student-web: shadcn/ui + unstated-next + ahooks
-- **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0
-- **移动端**: Flutter 3.0+ + Dart 3.8+ + Riverpod
+  - 共享包: `@ai-education/shared-web` (API 客户端、类型定义、工具函数)
+- **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0 (强制使用 2.0 ORM 风格)
+  - AI 工作流: LangChain + LangGraph
+  - 任务队列: Celery + Redis
+- **移动端**: Flutter 3.0+ + Dart 3.8+ + Riverpod 3.0.3 + GoRouter 17.0
 
 ## 快速命令
 
@@ -54,7 +57,7 @@ pages/[Feature]/[PageName]/
 
 ### 后端路由结构
 ```python
-# routes/[resource].py
+# route.py (单数形式)
 router = APIRouter(prefix="/resource")
 @router.post("/")
 async def create(params: Schema, db: AsyncSession = Database):

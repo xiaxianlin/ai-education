@@ -15,10 +15,12 @@ alwaysApply: true
 
 ### TypeScript/React 文件
 - 组件文件: 使用 `PascalCase` (例如: `UserProfile.tsx`, `WaitCard.tsx`)
-- Hook 文件: 使用 `camelCase`，以 `use` 开头 (例如: `useDailyPractice.ts`)
+- Hook 文件: 使用 `camelCase`，以 `use` 开头 (例如: `useDailyPractice.ts`, `usePageNameHook.ts`)
 - 工具函数: 使用 `camelCase` (例如: `formatDate.ts`)
-- 常量文件: 使用 `UPPER_SNAKE_CASE` (例如: `API_CONSTANTS.ts`)
+- 常量文件: 使用 `camelCase.ts` 或 `constants.ts` (例如: `constants.ts`)
 - 类型文件: 使用 `types.ts` 或 `[Name].types.ts`
+- API 文件: 使用 `api.ts` (例如: `api.ts`, `StudentApi.ts`)
+- Model 文件: 使用 `PageModel.ts` 或 `[Name]Model.ts` (例如: `PageModel.ts`)
 
 ### Flutter/Dart 文件
 - 类文件: 使用 `snake_case.dart` (例如: `practice_session.dart`)
@@ -50,20 +52,25 @@ alwaysApply: true
 
 ### 前端 (React)
 - 页面目录: `pages/[Feature]/[PageName]/`
+  - 子目录: `models/`, `views/`, `hooks/`, `components/`
 - 组件目录: `components/[ComponentName]/`
-- Hook 目录: `hooks/`
-- 服务目录: `services/` 或 `lib/api/`
+- Hook 目录: `hooks/`（页面级）或 `src/hooks/`（全局）
+- API 目录: `lib/api.ts`（student-web）或 `pages/[Feature]/api.ts`（admin-web）
+- Model 目录: `models/`（页面级）或 `src/models/`（全局）
 
 ### 后端 (Python)
-- 路由目录: `routes/`
-- 服务目录: `services/`
-- Schema 文件: `schema.py`
+- 路由文件: `route.py`（单数形式，例如: `auth/route.py`, `textbook/route.py`）
+- 服务目录: `services/`（例如: `services/auth.py`, `services/textbook.py`）
+- Schema 文件: `schema.py`（例如: `auth/schema.py`）
+- 模块目录: `admin/`, `student/`, `shared/`
 
 ### 移动端 (Flutter)
 - 功能模块: `screens/[feature]/`
-- 数据层: `data/` 或 `repository/`
+  - 子目录: `data/`（repository）, `presentation/`（pages, widgets）, `providers/`
+- 数据层: `data/` 或 `screens/[feature]/data/`
 - UI 层: `presentation/` (包含 `pages/` 和 `widgets/`)
-- 状态管理: `providers/`
+- 状态管理: `providers/`（例如: `practice_provider.dart`）
+- API 端点: `core/api/endpoints/`（例如: `auth_endpoints.dart`）
 
 ## 导入顺序规范
 

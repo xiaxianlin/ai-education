@@ -112,7 +112,7 @@ class PracticeSession with _$PracticeSession {
 
 ## API 调用
 
-使用 Dio 进行网络请求：
+使用 Dio 进行网络请求，API 客户端封装在 `core/api/` 目录：
 
 ```dart
 // 使用 ApiClient
@@ -121,24 +121,46 @@ import 'package:student_app/core/api/api_client.dart';
 final response = await ApiClient.instance.get('/api/student/practice/list');
 final data = PracticeSession.fromJson(response.data);
 
-// 或使用 Repository
+// 或使用 Repository（推荐）
 final repository = ref.read(practiceRepositoryProvider);
 final data = await repository.fetchPracticeList();
 ```
+
+**API 端点定义**: `core/api/endpoints/` 目录
+- `auth_endpoints.dart`: 认证 API
+- `practice_endpoints.dart`: 练习 API
+- `textbook_endpoints.dart`: 教材 API
+- `profile_endpoints.dart`: 个人信息 API
+- `wrong_records_endpoints.dart`: 错题 API
+
+**与 Web 端对齐**:
+- 使用相同的 API 端点路径
+- 保持 API 响应结构一致
+- 确保数据模型与后端 Schema 一致
 
 ## 项目结构
 
 ```
 lib/
+├── app/                  # 应用配置
+│   └── router.dart      # GoRouter 路由配置
 ├── screens/              # 功能模块
+│   ├── auth/            # 认证模块
+│   ├── home/            # 首页
 │   ├── practice/        # 练习模块
 │   │   ├── data/        # 数据层（repository）
 │   │   ├── presentation/ # UI 层（pages, widgets）
 │   │   └── providers/   # 状态管理
-│   └── ...
+│   ├── profile/         # 个人中心
+│   ├── textbook/        # 教材模块
+│   └── wrong_records/   # 错题记录
 ├── core/                 # 核心功能
 │   ├── api/             # API 客户端
-│   ├── models/          # 数据模型
+│   │   ├── api_client.dart      # Dio 客户端封装
+│   │   ├── endpoints/           # API 端点定义
+│   │   └── interceptors/         # 请求拦截器
+│   ├── constants/       # 常量定义
+│   ├── models/          # 数据模型（需要代码生成）
 │   ├── theme/           # 主题配置
 │   └── utils/           # 工具类
 └── shared/              # 共享组件
@@ -148,10 +170,15 @@ lib/
 ## 开发流程
 
 1. **安装依赖**: `flutter pub get`
-2. **生成代码**: `./build.sh` 或使用 build_runner
+2. **生成代码**: `./build.sh`（修改模型后必须运行）
+   - 或手动运行: `flutter pub run build_runner build --delete-conflicting-outputs`
 3. **运行应用**: `flutter run`
+   - Android: `flutter run -d android`
+   - iOS: `flutter run -d ios`
 4. **代码检查**: `flutter analyze`
-5. **格式化代码**: `flutter format .`
+5. **格式化代码**: `dart format .`
+
+**重要**: 修改模型后必须运行 `./build.sh` 生成代码，否则会出现编译错误。
 
 ## 与 Web 端对齐
 

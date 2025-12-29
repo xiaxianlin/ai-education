@@ -63,8 +63,10 @@ alwaysApply: false
 
 ### 跨平台一致性
 - ✅ 移动端与 Web 端功能一致
-- ✅ 用户体验保持一致
-- ✅ 业务逻辑保持一致
+- ✅ 用户体验保持一致（移动端使用 Material Design 适配）
+- ✅ 业务逻辑保持一致（移动端参考 student-web 的实现）
+- ✅ API 接口一致（使用相同的 endpoints）
+- ✅ 数据模型保持一致（确保 API 响应结构一致）
 
 ## 测试
 
@@ -87,7 +89,9 @@ alwaysApply: false
 
 ## 架构遵循
 
-- ✅ 遵循项目的分层架构
-- ✅ 遵循项目的目录结构
-- ✅ 遵循项目的状态管理模式
-- ✅ 遵循项目的路由规范
+- ✅ 遵循项目的分层架构（路由层 → 服务层 → 数据层）
+- ✅ 遵循项目的目录结构（页面结构、组件组织等）
+- ✅ 遵循项目的状态管理模式（unstated-next + ahooks / Riverpod）
+- ✅ 遵循项目的路由规范（react-router-dom / GoRouter）
+- ✅ 遵循 SQLAlchemy 2.0 ORM 风格（后端）
+- ✅ 遵循代码生成规范（Flutter 模型修改后必须运行 `./build.sh`）

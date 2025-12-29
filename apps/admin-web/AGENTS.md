@@ -125,8 +125,11 @@ pages/[Feature]/[PageName]/
 
 ### API 调用
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
-- 管理端 API 按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi` 等）
-- 通用 API 封装在 `src/lib/api.ts` 的 `CommonApi` 中
+- 基础 API 客户端：`src/lib/api.ts` 中的 `apiClient`（基于 `ApiClient`）和 `CommonApi`（通用接口如 `check`、`getConfigs`）
+- 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi`、`QuestionApi`、`TeacherBookApi`、`PromptApi`、`AuthApi`）
+- 新增/修改接口优先在对应模块的 `api.ts` 中维护
+- 认证 Token 存储在 `localStorage`，key 为 `token`
+- API 响应格式：`{ status: 0, message: "ok", data: T }`，`ApiClient` 会自动提取 `data` 字段
 
 ## 注意事项
 

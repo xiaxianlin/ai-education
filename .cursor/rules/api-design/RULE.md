@@ -56,7 +56,7 @@ async def create_unit(
 - 错误响应使用 HTTP 状态码和错误详情
 
 ```python
-# 成功响应
+# 成功响应（后端返回）
 {
   "status": 0,
   "message": "ok",
@@ -67,11 +67,23 @@ async def create_unit(
   }
 }
 
+# 前端实际获取到的值（ApiClient 自动提取）
+{
+  "id": 1,
+  "name": "单元名称",
+  "textbook_id": 1
+}
+
 # 错误响应（由异常处理器自动生成）
 {
   "detail": "资源不存在"
 }
 ```
+
+**注意**: 
+- 后端返回格式统一为 `{ status: 0, message: "ok", data: T }`
+- 前端 `ApiClient` 会自动提取 `data` 字段，业务代码直接使用数据对象
+- `status !== 0` 时会抛出错误，错误信息在 `message` 字段
 
 ## 错误处理
 
@@ -110,6 +122,10 @@ if not resource:
 - 使用 JWT Token 进行认证
 - Token 通过请求头 `x-access-token` 传递
 - 管理端和学生端使用不同的认证中间件
+- Token 存储位置：
+  - 管理端（admin-web）: `localStorage.getItem('token')`
+  - 学生端（student-web）: `localStorage.getItem('_t')`
+  - 移动端（student-app）: `SharedPreferences`，key 为 `_t`
 
 ```python
 # 管理端认证

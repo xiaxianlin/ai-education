@@ -1,6 +1,6 @@
 # AI Education Platform - API接口文档
 
-> 本文档基于后端实际代码生成，最后更新时间：2024-12-21
+> 本文档基于后端实际代码生成，最后更新时间：2025-01-XX
 
 ## 目录
 
@@ -49,27 +49,40 @@ FastAPI 自动生成的 OpenAPI 文档可通过以下地址访问：
 所有接口（除登录接口外）都需要在请求头中携带JWT Token：
 
 ```
-Authorization: Bearer {token}
+x-access-token: {token}
 ```
+
+**注意**: 
+- Token 通过 `x-access-token` 请求头传递，而非标准的 `Authorization` 头
+- 管理端 Token 存储在 `localStorage`，key 为 `token`
+- 学生端 Token 存储在 `localStorage`，key 为 `_t`
 
 ### 统一响应格式
 
 ```json
 {
-  "code": 0,
+  "status": 0,
   "message": "success",
   "data": {}
 }
 ```
 
+**注意**: 
+- 响应格式使用 `status` 字段而非 `code` 字段
+- `status: 0` 表示成功，非 0 表示错误
+- 所有响应都通过 `WrappedResponse` 中间件统一包装
+
 ### 错误码说明
 
-- `0`: 成功
-- `400`: 请求参数错误
-- `401`: 未授权（未登录或token失效）
-- `403`: 权限不足
-- `404`: 资源不存在
-- `500`: 服务器内部错误
+- `status: 0`: 成功
+- `status: 400`: 请求参数错误
+- `status: 401`: 未授权（未登录或token失效）
+- `status: 403`: 权限不足
+- `status: 404`: 资源不存在
+- `status: 422`: 参数校验失败
+- `status: 500`: 服务器内部错误
+
+**HTTP 状态码**: 所有业务错误都返回 HTTP 200，错误信息在响应体的 `status` 字段中
 
 ---
 
@@ -87,7 +100,8 @@ GET /api/admin/check
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": "manager_xxx",
     "username": "admin",
@@ -117,7 +131,8 @@ POST /api/admin/login
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "manager": {
@@ -158,7 +173,8 @@ GET /api/admin/manager/all
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "id": "manager_xxx",
@@ -200,7 +216,8 @@ POST /api/admin/manager/{id}/reset
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "password": "new_random_password"
   }
@@ -325,7 +342,8 @@ GET /api/admin/textbook/search?subject=数学&grade=3&version=人教版
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "items": [
       {
@@ -363,7 +381,8 @@ GET /api/admin/textbook/{id}/units
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "id": 1,
@@ -459,10 +478,12 @@ GET /api/admin/teacher_book/{id}
 
 ### 单元管理
 
+**注意**: 单元管理接口位于 `/api/admin/textbook/unit` 路径下。
+
 #### 创建课程单元
 
 ```
-POST /api/admin/unit/
+POST /api/admin/textbook/unit
 ```
 
 **请求参数**:
@@ -478,7 +499,7 @@ POST /api/admin/unit/
 #### 更新课程单元
 
 ```
-PATCH /api/admin/unit/{id}
+PATCH /api/admin/textbook/unit/{id}
 ```
 
 **请求参数**:
@@ -494,23 +515,25 @@ PATCH /api/admin/unit/{id}
 #### 删除课程单元
 
 ```
-DELETE /api/admin/unit/{id}
+DELETE /api/admin/textbook/unit/{id}
 ```
 
 #### 查询单元知识点
 
 ```
-GET /api/admin/unit/{id}/knowledges
+GET /api/admin/textbook/unit/{id}/knowledges
 ```
 
 ---
 
 ### 知识点管理
 
+**注意**: 知识点管理接口位于 `/api/admin/textbook/knowledge` 路径下。
+
 #### 创建知识点
 
 ```
-POST /api/admin/knowledge/
+POST /api/admin/textbook/knowledge
 ```
 
 **请求参数**:
@@ -767,7 +790,8 @@ GET /api/admin/question/{id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": "question_uuid_123",
     "question_type_id": 1,
@@ -934,7 +958,8 @@ GET /api/admin/question/type/{id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": 1,
     "code": "pinyin_choice",
@@ -1129,7 +1154,8 @@ GET /api/admin/question/template/{template_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": 1,
     "question_type_id": 1,
@@ -1168,7 +1194,8 @@ POST /api/admin/question/template/{template_id}/validate
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "valid": true,
     "issues": []
@@ -1203,8 +1230,10 @@ POST /api/admin/student/
 #### 更新学生信息
 
 ```
-PATCH /api/admin/student/{id}
+PUT /api/admin/student/{id}
 ```
+
+**注意**: 使用 `PUT` 方法而非 `PATCH`。
 
 **请求参数**:
 
@@ -1247,7 +1276,8 @@ POST /api/admin/student/{id}/reset_password
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "password": "new_random_password"
   }
@@ -1264,7 +1294,8 @@ GET /api/admin/student/{id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": "student_xxx",
     "name": "张三",
@@ -1287,18 +1318,34 @@ GET /api/admin/student/{id}
 #### 添加学生教材
 
 ```
-POST /api/admin/student/{id}/textbook/{textbook_id}
+POST /api/admin/student/{id}/textbook
 ```
 
-**功能说明**: 为学生绑定单个教材。
+**请求参数**:
+
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+**功能说明**: 为学生绑定多个教材（支持批量操作）。
 
 #### 删除学生教材
 
 ```
-DELETE /api/admin/student/{id}/textbook/{textbook_id}
+DELETE /api/admin/student/{id}/textbook
 ```
 
-**功能说明**: 删除学生的某个教材。
+**请求参数**:
+
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+**功能说明**: 删除学生的多个教材（支持批量操作）。
 
 #### 查询学生教材
 
@@ -1316,14 +1363,189 @@ GET /api/admin/student/{id}/unused_textbooks
 
 **功能说明**: 获取学生尚未绑定的教材列表。
 
+#### 添加学生练习
+
+```
+POST /api/admin/student/{id}/practice
+```
+
+**请求参数**:
+
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+**功能说明**: 为学生关联多个练习（支持批量操作）。
+
+#### 删除学生练习
+
+```
+DELETE /api/admin/student/{id}/practice
+```
+
+**请求参数**:
+
+```json
+{
+  "ids": [1, 2, 3]
+}
+```
+
+**功能说明**: 取消学生与多个练习的关联（支持批量操作）。
+
+#### 查询学生练习
+
+```
+GET /api/admin/student/{id}/practices
+```
+
+**功能说明**: 获取学生已关联的所有练习列表。
+
+#### 查询学生未选练习
+
+```
+GET /api/admin/student/{id}/unused_practices
+```
+
+**功能说明**: 获取系统中学生尚未关联的练习列表。
+
 ---
 
 ### 练习管理
 
+#### 获取练习列表
+
+```
+GET /api/admin/practice/list
+```
+
+**查询参数**:
+- `page`: 页码，默认1
+- `size`: 每页数量，默认10
+- 其他筛选参数（根据 `SearchPracticeSchema` 定义）
+
+**响应示例**:
+
+```json
+{
+  "status": 0,
+  "message": "success",
+  "data": {
+    "total": 100,
+    "data": [
+      {
+        "id": 1,
+        "name": "日常练习",
+        "type": "daily_practice",
+        "description": "每日练习",
+        "create_time": 1234567890
+      }
+    ]
+  }
+}
+```
+
+#### 获取练习详情
+
+```
+GET /api/admin/practice/{id}
+```
+
+**响应示例**:
+
+```json
+{
+  "status": 0,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "name": "日常练习",
+    "type": "daily_practice",
+    "description": "每日练习",
+    "create_time": 1234567890
+  }
+}
+```
+
+#### 创建练习
+
+```
+POST /api/admin/practice
+```
+
+**请求参数**:
+
+```json
+{
+  "name": "日常练习",
+  "type": "daily_practice",
+  "description": "每日练习"
+}
+```
+
+#### 更新练习
+
+```
+PUT /api/admin/practice/{id}
+```
+
+**请求参数**: 同创建练习，所有字段可选。
+
+#### 删除练习
+
+```
+DELETE /api/admin/practice/{id}
+```
+
+#### 获取练习参数配置
+
+```
+GET /api/admin/practice/parameters/{id}
+```
+
+**功能说明**: 根据练习 ID 获取其关联的参数配置列表。
+
+**响应示例**:
+
+```json
+{
+  "status": 0,
+  "message": "success",
+  "data": [
+    {
+      "key": "difficulty_config",
+      "value": {...}
+    }
+  ]
+}
+```
+
+#### 保存练习参数配置
+
+```
+POST /api/admin/practice/parameters/{id}/
+```
+
+**请求参数**:
+
+```json
+{
+  "parameter_config": {
+    "difficulty_config": {...},
+    "ability_config": {...},
+    "feedback_config": {...}
+  }
+}
+```
+
+**功能说明**: 保存指定练习的参数配置信息（JSON 格式）。
+
 #### 获取学生练习历史
 
 ```
-GET /api/admin/practice/{student_id}/history/{practice_type}
+GET /api/admin/student/{id}/practice_sessions/{practice_id}
 ```
 
 **路径参数**:
@@ -1335,7 +1557,8 @@ GET /api/admin/practice/{student_id}/history/{practice_type}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "session_id": 123,
@@ -1356,14 +1579,17 @@ GET /api/admin/practice/{student_id}/history/{practice_type}
 #### 获取练习会话详情
 
 ```
-GET /api/admin/practice/session/{session_id}
+GET /api/admin/student/{id}/practice_session/{session_id}
 ```
+
+**功能说明**: 获取指定学生的练习会话详情。
 
 **响应示例**:
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session": {
       "id": 123,
@@ -1403,6 +1629,8 @@ DELETE /api/admin/practice/session/{session_id}
 
 **功能说明**: 删除指定练习会话及其所有答题记录与报告，可用于清理异常数据。
 
+**注意**: 此接口可能已废弃，请使用学生练习会话管理相关接口。
+
 ---
 
 ### 配置管理
@@ -1412,6 +1640,29 @@ DELETE /api/admin/practice/session/{session_id}
 ```
 GET /api/admin/configs
 ```
+
+**功能说明**: 获取系统支持的学科、版本、学期、题型等全局配置信息。
+
+**响应示例**:
+
+```json
+{
+  "status": 0,
+  "message": "success",
+  "data": {
+    "subjects": ["英语", "数学"],
+    "textbook_versions": ["人教版"],
+    "semesters": ["上学期", "下学期", "整学期"],
+    "question_types": ["选择题", "拼写题", "口语题", "判断题", "匹配题", "应用题"],
+    "difficulty_levels": ["简单", "普通", "困难"],
+    "providers": ["aliyun"]
+  }
+}
+```
+
+**功能说明**:
+- 配置的权威来源位于 `apps/server/shared/core/constants.py`
+- 接口实现位于 `apps/server/admin/auth/route.py`
 
 **查询参数**（当前后端实现会忽略这些参数，预留扩展用）:
 
@@ -1487,7 +1738,8 @@ POST /api/admin/prompt/
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": 1
 }
 ```
@@ -1516,7 +1768,8 @@ POST /api/admin/prompt/{version_id}/publish
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": 1,
     "is_published": 1
@@ -1543,7 +1796,8 @@ GET /api/admin/prompt/list?name=题目&scene=question_generate&page=1&size=10
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "total": 50,
     "data": [
@@ -1581,7 +1835,8 @@ GET /api/admin/prompt/versions?prompt_id=1&page=1&size=10
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "total": 10,
     "data": [
@@ -1608,7 +1863,8 @@ GET /api/admin/prompt/{version_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "id": 1,
     "name": "题目生成提示词",
@@ -1649,7 +1905,8 @@ GET /api/student/check
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": "student_xxx"
 }
 ```
@@ -1675,7 +1932,8 @@ POST /api/student/login
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "student": {
@@ -1701,7 +1959,8 @@ GET /api/student/profile
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "student": {
       "id": "student_xxx",
@@ -1742,7 +2001,8 @@ GET /api/student/textbook/{textbook_id}/units
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "id": 1,
@@ -1769,7 +2029,8 @@ GET /api/student/textbook/{unit_id}/knowledges
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "id": 1,
@@ -1802,7 +2063,8 @@ GET /api/student/practice/daily/{textbook_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session_id": 123,
     "session_type": "daily_practice",
@@ -1835,7 +2097,8 @@ GET /api/student/practice/unit/{unit_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session_id": 123,
     "session_type": "unit_practice",
@@ -1868,7 +2131,8 @@ GET /api/student/practice/assessment/{textbook_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session_id": 123,
     "session_type": "assessment",
@@ -1913,7 +2177,8 @@ POST /api/student/practice/create
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "task_id": "practice_abc123def456"
   }
@@ -1954,7 +2219,8 @@ POST /api/student/practice/immediately_create
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session_id": 123,
     "session_type": "daily_practice",
@@ -1988,7 +2254,8 @@ GET /api/student/practice/task/{task_id}/status
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "status": "completed",
     "result": {
@@ -2019,7 +2286,8 @@ GET /api/student/practice/history/{type}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": [
     {
       "session_id": 123,
@@ -2050,7 +2318,8 @@ GET /api/student/practice/detail/{session_id}
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "session": {
       "id": 123,
@@ -2096,6 +2365,41 @@ POST /api/student/practice/{session_id}/begin
 
 **功能说明**: 标记练习会话为进行中状态，记录开始时间。
 
+#### 获取题目详情
+
+```
+GET /api/student/practice/question/{question_id}
+```
+
+**功能说明**: 获取题目内容（不包含答案信息）。
+
+**响应示例**:
+
+```json
+{
+  "status": 0,
+  "message": "success",
+  "data": {
+    "id": "question_123",
+    "questionTypeId": 1,
+    "questionTypeCode": "choice",
+    "subject": "数学",
+    "grade": 1,
+    "stage": "小学",
+    "stem": {
+      "text": "1 + 1 = ?"
+    },
+    "options": [
+      {"id": "A", "text": "1"},
+      {"id": "B", "text": "2"},
+      {"id": "C", "text": "3"}
+    ],
+    "resources": [],
+    "difficulty": "简单"
+  }
+}
+```
+
 #### 提交答案
 
 ```
@@ -2107,93 +2411,66 @@ POST /api/student/practice/answer
 ```json
 {
   "session_id": 123,
-  "question_id": 1,
+  "question_id": "question_123",
   "answer": "B",
-  "time_spent": 5,
-  "is_audio_answer": false,
-  "audio_match": null,
-  "audio_analysis": null
+  "sub_answers": [
+    {
+      "sub_question_id": "sub_1",
+      "answer": "A",
+      "time_spent": 5
+    }
+  ],
+  "time_spent": 10
 }
 ```
 
 **参数说明**:
 
-- `session_id`: 练习会话ID
-- `question_id`: 题目ID
-- `answer`: 文本答案（口语题为 ASR 识别后的文本）
-- `time_spent`: 答题耗时（秒）
-- `is_audio_answer`: 是否为音频答案
-- `audio_match`: 音频理解结果：是否匹配题目要求（仅口语题）
-- `audio_analysis`: 音频理解结果：综合分析（包含原因和改进建议，仅口语题）
+- `session_id`: 练习会话ID（必填）
+- `question_id`: 题目ID（必填）
+- `answer`: 主答案内容（必填，支持多种类型）
+- `sub_answers`: 子题答案列表（可选，用于复合题）
+  - `sub_question_id`: 子题ID
+  - `answer`: 子题答案
+  - `time_spent`: 子题答题耗时（秒）
+- `time_spent`: 总答题耗时（秒，可选）
 
 **响应示例**:
 
 ```json
 {
-  "code": 0,
+  "status": 0,
+  "message": "success",
   "data": {
     "is_correct": true,
+    "score": 10.0,
+    "full_score": 10.0,
+    "feedback": "回答正确！",
     "correct_answer": "B",
-    "user_answer": "B",
-    "analysis": "答案正确！1 + 1 = 2",
-    "session_progress": {
-      "answer_count": 1,
-      "correct_count": 1,
-      "question_count": 10
-    }
+    "sub_results": [
+      {
+        "sub_question_id": "sub_1",
+        "is_correct": true,
+        "score": 5.0,
+        "full_score": 5.0
+      }
+    ]
   }
 }
 ```
 
-#### 上传录音并进行语音识别
+**功能说明**:
+- 支持精确匹配（exact）、模糊匹配（fuzzy）、复合题（composite）等多种答案类型
+- 复合题支持部分得分策略（sum 或 all_or_nothing）
+- 答案评判逻辑根据题目的 `answer` 配置自动选择
 
-```
-POST /api/student/practice/answer/audio/analyze
-```
+**注意**: 
+- 音频答题功能可能在其他接口中实现，当前代码中暂未看到 `/answer/audio/analyze` 接口
+- 如需音频答题，请参考实际代码实现或联系开发团队
 
-**请求类型**: `multipart/form-data`
-
-**请求参数**:
-
-- `session_id`: 练习会话ID（Form字段）
-- `question_id`: 题目ID（Form字段）
-- `audio_type`: 音频类型（Form字段）
-- `audio_file`: 音频文件（File字段）
-
-**响应示例**:
-
-```json
-{
-  "code": 0,
-  "data": {
-    "text": "识别的文本内容",
-    "audio_url": "https://oss.example.com/audio.mp3",
-    "match": true,
-    "analysis": "综合分析..."
-  }
-}
-```
-
-**功能说明**: 上传录音并进行语音识别，返回识别结果和音频理解结果。
-
-#### 完成练习
-
-```
-POST /api/student/practice/{session_id}/complete
-```
-
-**响应示例**:
-
-```json
-{
-  "code": 0,
-  "data": {
-    "report_id": 456
-  }
-}
-```
-
-**功能说明**: 完成练习，生成练习报告。
+**注意**: 
+- 完成练习接口可能在其他模块中实现，当前代码中暂未看到 `/complete` 接口
+- 如需完成练习功能，请参考实际代码实现或联系开发团队
 
 ---
 
@@ -2264,7 +2541,9 @@ POST /api/student/practice/{session_id}/complete
 
 ### 4. 错误处理
 
-客户端应根据响应的 `code` 字段判断请求是否成功，`message` 字段包含错误详情。
+客户端应根据响应的 `status` 字段判断请求是否成功：
+- `status: 0` 表示成功
+- `status !== 0` 表示错误，`message` 字段包含错误详情
 
 ### 5. 权限说明
 
@@ -2309,6 +2588,25 @@ POST /api/student/practice/{session_id}/complete
 ---
 
 ## 更新日志
+
+### v0.2.5 (2025-01-XX)
+
+- 修正认证方式：从 `Authorization: Bearer {token}` 更正为 `x-access-token: {token}`
+- 修正响应格式：从 `{ "code": 0, ... }` 更正为 `{ "status": 0, ... }`
+- 更新练习管理接口：
+  - 添加练习列表、详情、创建、更新、删除接口
+  - 添加练习参数配置接口（`GET /parameters/{id}` 和 `POST /parameters/{id}/`）
+- 更新学生管理接口：
+  - 修正更新学生接口为 `PUT` 方法
+  - 更新学生教材管理接口，支持批量操作
+  - 添加学生练习管理接口（添加、删除、查询）
+- 更新单元和知识点管理接口路径：
+  - 单元管理接口路径更正为 `/api/admin/textbook/unit`
+  - 知识点管理接口路径更正为 `/api/admin/textbook/knowledge`
+- 更新学生端练习接口：
+  - 添加获取题目详情接口 `GET /practice/question/{question_id}`
+  - 更新提交答案接口，支持复合题和多种答案类型
+  - 移除可能不存在的音频分析和完成练习接口说明
 
 ### v0.2.4 (2024-12-21)
 

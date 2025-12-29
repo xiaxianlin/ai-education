@@ -154,7 +154,10 @@ pages/[Feature]/[PageName]/
 
 ### API 调用
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
-- 学生端 API 统一封装在 `src/lib/api.ts`（`studentApi`），新增/修改接口优先在这里集中维护
+- API 统一封装在 `src/lib/api.ts` 中的 `studentApi`
+- 新增/修改接口优先在这里集中维护
+- 认证 Token 存储在 `localStorage`，key 为 `_t`
+- API 响应格式：`{ status: 0, message: "ok", data: T }`，`ApiClient` 会自动提取 `data` 字段
 
 ## 注意事项
 

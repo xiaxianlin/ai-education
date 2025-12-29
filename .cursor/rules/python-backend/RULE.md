@@ -87,17 +87,27 @@ async def update(db: AsyncSession, id: int, update: UpdateSchema):
 
 **重要**: 所有 SQLAlchemy 代码必须严格遵循 2.0 版本 ORM 风格，详细规范请参考 [SQLAlchemy 2.0 ORM 风格规范](./sqlalchemy-2.0.md)
 
-核心要求：
+**数据库模型位置**: `apps/server/shared/core/database/` 目录
+- `base.py`: 数据库连接和基类
+- `auth.py`: 认证相关模型（Manager）
+- `textbook.py`: 教材相关模型（Textbook, Unit, Knowledge, TeacherBook）
+- `practice.py`: 练习相关模型（Practice, PracticeSession, PracticeSessionAnswer, PracticeSessionReport）
+- `student.py`: 学生相关模型（Student, StudentTextbook, StudentPractice）
+- `question.py`: 题目相关模型（QuestionType, Question）
+
+**核心要求**：
 - 使用异步 SQLAlchemy (`AsyncSession`)
 - 使用 `select` 进行查询（禁止使用 `session.query()`）
 - 使用 `Mapped[Type]` 类型注解和 `mapped_column()` 定义模型字段
 - 使用 `joinedload` / `selectinload` / `noload` 优化关联查询
 - 所有数据库操作必须使用 `async/await`
+- 模型导入统一从 `shared.core.database` 导入
 
 ```python
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped, mapped_column, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
+from shared.core.database import Base, Student, Database
 
 # 模型定义（2.0 风格）
 class Model(Base):
@@ -208,6 +218,11 @@ app.mount("/api/student", student_app)
 - 子应用可以有自己的中间件、异常处理器、依赖注入等
 - 子应用的 OpenAPI 文档独立生成，访问路径为 `/api/admin/docs` 和 `/api/student/docs`
 - 根应用的 `/docs` 和 `/openapi.json` 不会包含子应用的路由（这是 FastAPI 的设计行为）
+
+**认证中间件**:
+- 管理端使用 `admin_route_filter` 中间件（定义在 `admin/services/auth.py`）
+- 学生端使用 `student_router_filter` 中间件（定义在 `student/services/auth.py`）
+- 认证信息通过 `request.state` 传递（`request.state.manager` 或 `request.state.student`）
 
 **优势**:
 - 模块化设计，管理端和学生端完全隔离

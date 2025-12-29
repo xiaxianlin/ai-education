@@ -162,12 +162,27 @@ class ExampleNotifier extends StateNotifier<ExampleState> {
 ### API 调用
 ```dart
 // 使用 ApiClient
-final response = await ApiClient.instance.get('/endpoint');
+import 'package:student_app/core/api/api_client.dart';
 
-// 或使用 Repository
-final repository = ref.read(exampleRepositoryProvider);
-final data = await repository.fetchData();
+final response = await ApiClient.instance.get('/api/student/practice/list');
+final data = PracticeSession.fromJson(response.data);
+
+// 或使用 Repository（推荐）
+final repository = ref.read(practiceRepositoryProvider);
+final data = await repository.fetchPracticeList();
 ```
+
+**API 端点定义**: `core/api/endpoints/` 目录
+- `auth_endpoints.dart`: 认证 API
+- `practice_endpoints.dart`: 练习 API
+- `textbook_endpoints.dart`: 教材 API
+- `profile_endpoints.dart`: 个人信息 API
+- `wrong_records_endpoints.dart`: 错题 API
+
+**与 Web 端对齐**:
+- 使用相同的 API 端点路径
+- 保持 API 响应结构一致
+- 确保数据模型与后端 Schema 一致
 
 ### 路由导航
 ```dart
@@ -189,10 +204,11 @@ flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ### 与 Web 端对齐
-1. 保持 API 接口一致（使用相同的 endpoints）
-2. 保持业务逻辑一致（参考 student-web 的实现）
-3. 保持用户体验一致（在移动端适配，使用 Material Design）
-4. 数据模型保持一致（确保 API 响应结构一致）
+1. **API 接口一致**: 使用相同的 endpoints，确保路径和参数一致
+2. **业务逻辑一致**: 参考 student-web 的实现，保持功能逻辑一致
+3. **用户体验一致**: 在移动端适配，使用 Material Design，但保持交互流程一致
+4. **数据模型一致**: 确保 API 响应结构一致，模型字段与后端 Schema 对应
+5. **错误处理一致**: 使用相同的错误处理机制和提示信息
 
 ## 开发流程
 
