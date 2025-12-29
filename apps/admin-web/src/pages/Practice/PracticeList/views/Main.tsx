@@ -1,7 +1,7 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn, createTimeColumn, useConfigs } from '@/hooks';
-import { SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
-import { CheckCircleOutlined, CloseCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
+import { PlusOutlined } from '@ant-design/icons';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Select, Tag } from 'antd';
 import { useMemo } from 'react';
@@ -13,14 +13,6 @@ const SPECIALTY_TYPE_OPTIONS = Object.entries(SPECIALTY_TYPE_LABELS).map(([value
   value,
 }));
 
-// 系统练习的 slug 列表
-const SYSTEM_SLUGS = ['daily_practice', 'unit_practice', 'assess_practice'];
-
-const STATUS_OPTIONS = [
-  { label: '启用', value: true },
-  { label: '禁用', value: false },
-];
-
 export default function MainView() {
   const { actionRef, handleDelete, handleCreate, handleEdit, handleDetail, navigate } = usePracticeListModel();
   const { subjects } = useConfigs();
@@ -29,15 +21,7 @@ export default function MainView() {
     () => [
       { title: '名称', dataIndex: 'name', width: 150 },
       { title: '标识', dataIndex: 'slug', width: 120, hideInSearch: true },
-      {
-        title: '专项类型',
-        dataIndex: 'specialty_type',
-        width: 120,
-        valueEnum: Object.entries(SPECIALTY_TYPE_LABELS).reduce((acc, [key, label]) => ({ ...acc, [key]: label }), {}),
-        render: (_, record) =>
-          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
-        renderFormItem: () => <Select placeholder="请选择专项类型" options={SPECIALTY_TYPE_OPTIONS} allowClear />,
-      },
+
       {
         title: '科目',
         dataIndex: 'subject',
@@ -77,7 +61,7 @@ export default function MainView() {
           record.grades?.length ? (
             <>
               {record.grades.map((g) => (
-                <Tag key={g}>{g}年级</Tag>
+                <Tag key={g}>{GRADES[g]}</Tag>
               ))}
             </>
           ) : (
@@ -85,20 +69,13 @@ export default function MainView() {
           ),
       },
       {
-        title: '状态',
-        dataIndex: 'is_active',
-        width: 80,
+        title: '专项类型',
+        dataIndex: 'specialty_type',
+        width: 120,
+        valueEnum: Object.entries(SPECIALTY_TYPE_LABELS).reduce((acc, [key, label]) => ({ ...acc, [key]: label }), {}),
         render: (_, record) =>
-          record.is_active ? (
-            <Tag icon={<CheckCircleOutlined />} color="success">
-              启用
-            </Tag>
-          ) : (
-            <Tag icon={<CloseCircleOutlined />} color="default">
-              禁用
-            </Tag>
-          ),
-        renderFormItem: () => <Select placeholder="请选择状态" options={STATUS_OPTIONS} allowClear />,
+          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
+        renderFormItem: () => <Select placeholder="请选择专项类型" options={SPECIALTY_TYPE_OPTIONS} allowClear />,
       },
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 160, hideInSearch: true }),
       createActionColumn<Practice>(
@@ -110,13 +87,13 @@ export default function MainView() {
             <Button type="link" size="small" onClick={() => handleEdit(record.id)}>
               编辑
             </Button>
-            {!SYSTEM_SLUGS.includes(record.slug) && <DeleteButton onConfirm={() => handleDelete(record.id)} />}
+            <DeleteButton onConfirm={() => handleDelete(record.id)} />
           </>
         ),
-        { width: 180 },
+        { width: 100 },
       ),
     ],
-    [handleEdit, handleDelete, handleDetail, navigate, subjects],
+    [handleDelete, handleDetail, handleEdit, navigate],
   );
 
   return (
@@ -146,7 +123,6 @@ export default function MainView() {
             name: filter.name,
             specialty_type: filter.specialty_type as SpecialtyType,
             subject: filter.subject,
-            is_active: filter.is_active,
           });
           return {
             data: data?.data || [],

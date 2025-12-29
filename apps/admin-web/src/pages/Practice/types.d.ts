@@ -27,11 +27,10 @@ declare global {
   interface SearchPracticeRequest extends SearchRequest {
     name?: string;
     slug?: string;
-    type?: PracticeType;
-    scene_type?: SceneType;
+    specialty_type?: SpecialtyType;
     subject?: string;
-    is_active?: boolean;
   }
 }
 
-export {};
+export { };
+

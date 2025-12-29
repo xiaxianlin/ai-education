@@ -1,12 +1,5 @@
 import { getSpecialtyOptions, STAGE_OPTIONS } from '@ai-education/shared-web';
-import {
-  PageContainer,
-  ProFormDigit,
-  ProFormSelect,
-  ProFormSwitch,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { PageContainer, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Card, Collapse, Flex, Form, Input } from 'antd';
 import { usePracticeFormModel } from '../models/page';
 
@@ -16,7 +9,6 @@ export default function MainView() {
     isEdit,
     navigate,
     subjects,
-    selectedStages,
     availableGrades,
     fetchingDetails,
     submitting,
@@ -42,7 +34,7 @@ export default function MainView() {
           onFinish={handleSubmit}
         >
           <Collapse
-            defaultActiveKey={['basic', 'scope', 'config']}
+            defaultActiveKey={['basic', 'prompt']}
             items={[
               {
                 key: 'basic',
@@ -59,40 +51,19 @@ export default function MainView() {
                       name="slug"
                       label="标识"
                       placeholder="唯一标识，如 daily_practice"
-                      rules={
-                        isEdit
-                          ? []
-                          : [
-                              { required: true, message: '请输入标识' },
-                              {
-                                pattern: /^[a-z][a-z0-9_]*$/,
-                                message: '标识格式：小写字母开头，只能包含小写字母、数字、下划线',
-                              },
-                            ]
-                      }
-                      disabled={isEdit}
+                      rules={[
+                        { required: true, message: '请输入标识' },
+                        {
+                          pattern: /^[a-z][a-z0-9_]*$/,
+                          message: '标识格式：小写字母开头，只能包含小写字母、数字、下划线',
+                        },
+                      ]}
                     />
-                    <ProFormSelect
-                      name="specialty_type"
-                      label="专项类型"
-                      placeholder="请先选择科目，再选择专项类型"
-                      options={form.getFieldValue('subject') ? getSpecialtyOptions(form.getFieldValue('subject')) : []}
-                      disabled={!form.getFieldValue('subject')}
-                    />
-                    <ProFormText name="icon" label="图标" placeholder="图标 emoji 或 URL" />
-                    <ProFormTextArea name="description" label="描述" placeholder="练习描述" fieldProps={{ rows: 2 }} />
-                  </>
-                ),
-              },
-              {
-                key: 'scope',
-                label: '适用范围',
-                children: (
-                  <>
                     <ProFormSelect
                       name="subject"
                       label="科目"
                       placeholder="请选择科目"
+                      rules={[{ required: true, message: '请选择科目' }]}
                       options={subjects?.map((s: string) => ({ value: s, label: s }))}
                     />
                     <ProFormSelect
@@ -101,9 +72,8 @@ export default function MainView() {
                       mode="multiple"
                       placeholder="请选择适用学段"
                       options={STAGE_OPTIONS}
-                      fieldProps={{
-                        onChange: handleStagesChange,
-                      }}
+                      fieldProps={{ onChange: handleStagesChange }}
+                      rules={[{ required: true, message: '请选择学段' }]}
                     />
                     <ProFormSelect
                       name="grades"
@@ -114,7 +84,41 @@ export default function MainView() {
                         value: g,
                         label: `${g}年级`,
                       }))}
-                      disabled={selectedStages.length === 0}
+                      rules={[{ required: true, message: '请选择年级' }]}
+                    />
+                    <ProFormSelect
+                      name="specialty_type"
+                      label="专项类型"
+                      placeholder="请先选择科目，再选择专项类型"
+                      options={form.getFieldValue('subject') ? getSpecialtyOptions(form.getFieldValue('subject')) : []}
+                    />
+                    <ProFormText
+                      name="icon"
+                      label="图标"
+                      placeholder="图标 emoji 或 URL"
+                      rules={[{ required: true, message: '请输入图标' }]}
+                    />
+                    <ProFormTextArea
+                      name="description"
+                      label="描述"
+                      placeholder="练习描述"
+                      fieldProps={{ rows: 2 }}
+                      rules={[{ required: true, message: '请输入描述' }]}
+                    />
+                  </>
+                ),
+              },
+              {
+                key: 'prompt',
+                label: '提示词',
+                children: (
+                  <>
+                    <ProFormTextArea
+                      name="prompt"
+                      label="提示词模板"
+                      placeholder="请输入提示词模板内容"
+                      fieldProps={{ rows: 26 }}
+                      rules={[{ required: true, message: '请输入提示词模板内容' }]}
                     />
                   </>
                 ),
@@ -209,21 +213,6 @@ export default function MainView() {
                         placeholder='{"instant_feedback": true, "show_explanation": true, "gamification": {"enable_points": true}}'
                       />
                     </Form.Item>
-                    <ProFormTextArea
-                      name="prompt"
-                      label="提示词模板"
-                      placeholder="请输入提示词模板内容"
-                      fieldProps={{ rows: 8 }}
-                    />
-                  </>
-                ),
-              },
-              {
-                key: 'other',
-                label: '其他设置',
-                children: (
-                  <>
-                    <ProFormSwitch name="is_active" label="启用状态" initialValue={true} />
                   </>
                 ),
               },
