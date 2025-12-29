@@ -7,10 +7,9 @@ class WidgetTestHelpers {
   WidgetTestHelpers._();
 
   /// 创建测试用的 MaterialApp
-  /// 在 Riverpod 3.x 中，overrides 参数类型由 ProviderScope 自动推断
   static Widget createTestApp({
     required Widget child,
-    overrides,
+    List<Override> overrides = const [],
   }) {
     return ProviderScope(
       overrides: overrides,
@@ -42,4 +41,3 @@ class WidgetTestHelpers {
     await Future.delayed(const Duration(milliseconds: 500));
   }
 }
-

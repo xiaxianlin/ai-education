@@ -6,6 +6,7 @@ import 'package:student_app/screens/home/presentation/widgets/practice_card.dart
 import 'package:student_app/screens/home/presentation/widgets/quick_actions.dart';
 import 'package:student_app/screens/home/providers/practice_list_provider.dart';
 import 'package:student_app/core/theme/app_colors.dart';
+import 'package:student_app/shared/widgets/responsive_layout.dart';
 
 // 练习类型到路径的映射
 const _practiceTypePathMap = {
@@ -37,111 +38,133 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: MaxWidthContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: CustomScrollView(
+            slivers: [
               // 欢迎卡片
-              const WelcomeCard(),
-              const SizedBox(height: 24),
+              const SliverToBoxAdapter(
+                child: WelcomeCard(),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
               
               // 开始练习标题
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  '🚀 开始练习',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '🚀',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '发现新挑战',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SliverToBoxAdapter(child: SizedBox(height: 20)),
               
-              // 练习卡片列表（动态加载）
+              // 练习卡片列表
               ref.watch(practiceListProvider).when(
                 data: (practices) {
-                  // 如果没有练习数据，使用默认的3个系统练习（兼容旧逻辑）
-                  final displayPractices = practices.isNotEmpty 
-                      ? practices 
-                      : null;
-
+                  final displayPractices = practices.isNotEmpty ? practices : null;
+                  
                   if (displayPractices == null) {
-                    // 使用默认练习列表
-                    return Column(
-                      children: [
-                        for (var i = 0; i < _defaultPractices.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 12),
-                          PracticeCard(
-                            title: _defaultPractices[i]['name'] as String,
-                            description: _defaultPractices[i]['description'] as String,
-                            icon: _defaultIcons[_defaultPractices[i]['practice_type'] as String] ?? '📝',
-                            onTap: () => context.push(_practiceTypePathMap[_defaultPractices[i]['practice_type'] as String] ?? '/practice/daily'),
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                      ],
-                    );
+                    return _buildPracticeGrid(context, _defaultPractices.map((p) => _PracticeAdapter(
+                      title: p['name'] as String,
+                      description: p['description'] as String,
+                      icon: _defaultIcons[p['practice_type']] ?? '📝',
+                      path: _practiceTypePathMap[p['practice_type']] ?? '/practice/daily',
+                    )).toList());
                   }
 
-                  return Column(
-                    children: [
-                      for (var i = 0; i < displayPractices.length; i++) ...[
-                        if (i > 0) const SizedBox(height: 12),
-                        Builder(
-                          builder: (context) {
-                            final practice = displayPractices[i];
-                            final practiceType = practice.practiceType ?? '';
-                            final path = _practiceTypePathMap[practiceType] ?? '/practice/${practice.slug}';
-                            
-                            return PracticeCard(
-                              title: practice.name,
-                              description: practice.description ?? '开始练习，提升你的学习能力！✨',
-                              icon: practice.icon ?? _defaultIcons[practiceType] ?? '📝',
-                              onTap: () => context.push(path),
-                            );
-                          },
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                    ],
-                  );
+                  return _buildPracticeGrid(context, displayPractices.map((p) => _PracticeAdapter(
+                    title: p.name,
+                    description: p.description ?? '开始练习，提升你的学习能力！✨',
+                    icon: p.icon ?? _defaultIcons[p.practiceType] ?? '📝',
+                    path: _practiceTypePathMap[p.practiceType] ?? '/practice/${p.slug}',
+                  )).toList());
                 },
-                loading: () => const Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 24),
-                  ],
+                loading: () => const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
                 ),
-                error: (error, stack) => Column(
-                  children: [
-                    Text('加载练习列表失败: $error'),
-                    const SizedBox(height: 24),
-                    // 降级到默认练习列表
-                    for (var i = 0; i < _defaultPractices.length; i++) ...[
-                      if (i > 0) const SizedBox(height: 12),
-                      PracticeCard(
-                        title: _defaultPractices[i]['name'] as String,
-                        description: _defaultPractices[i]['description'] as String,
-                        icon: _defaultIcons[_defaultPractices[i]['practice_type'] as String] ?? '📝',
-                        onTap: () => context.push(_practiceTypePathMap[_defaultPractices[i]['practice_type'] as String] ?? '/practice/daily'),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                  ],
-                ),
+                error: (error, stack) => _buildPracticeGrid(context, _defaultPractices.map((p) => _PracticeAdapter(
+                  title: p['name'] as String,
+                  description: p['description'] as String,
+                  icon: _defaultIcons[p['practice_type']] ?? '📝',
+                  path: _practiceTypePathMap[p['practice_type']] ?? '/practice/daily',
+                )).toList()),
               ),
               
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              
               // 快速操作
-              const QuickActions(),
-              const SizedBox(height: 24),
+              const SliverToBoxAdapter(
+                child: QuickActions(),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildPracticeGrid(BuildContext context, List<_PracticeAdapter> practices) {
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.crossAxisExtent > 600 ? 2 : 1;
+        
+        return SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            mainAxisExtent: 180, // 固定高度
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final practice = practices[index];
+              return PracticeCard(
+                title: practice.title,
+                description: practice.description,
+                icon: practice.icon,
+                onTap: () => context.push(practice.path),
+              );
+            },
+            childCount: practices.length,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PracticeAdapter {
+  final String title;
+  final String description;
+  final String icon;
+  final String path;
+
+  _PracticeAdapter({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.path,
+  });
 }
 
