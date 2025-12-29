@@ -34,16 +34,15 @@ class Practice(BaseModel):
     # 基础信息
     name: Mapped[str] = mapped_column(String(100), comment="练习名称")
     slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
-    type: Mapped[str] = mapped_column(String(20), index=True, comment="类型：system/custom")
     icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
     description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
 
-    # 场景类型
-    scene_type: Mapped[str] = mapped_column(
+    # 专项类型
+    specialty_type: Mapped[str] = mapped_column(
         String(50),
         nullable=True,
         index=True,
-        comment="场景类型：daily_training/unit_test/comprehensive_assessment",
+        comment="专项训练类型：pinyin/literacy/calculation 等",
     )
 
     # 适用范围
@@ -56,11 +55,10 @@ class Practice(BaseModel):
     difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
     ability_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="能力维度配置")
     feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
-    parameters: Mapped[list] = mapped_column(JSON, default=list, comment="运行时配置参数")
+    parameter_config: Mapped[dict] = mapped_column(JSON, default=dict, comment="参数配置")
     prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="提示词模板内容")
 
     # 元数据
-    sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")

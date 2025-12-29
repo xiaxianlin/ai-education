@@ -6,11 +6,11 @@
 
 from typing import TYPE_CHECKING
 
-from .base import BaseModel, Mapped, mapped_column, relationship, String, now
+from .base import BaseModel, Integer, Mapped, String, mapped_column, now, relationship
 
 if TYPE_CHECKING:
-    from .textbook import Textbook
     from .practice import Practice
+    from .textbook import Textbook
 
 
 class Student(BaseModel):
@@ -53,6 +53,7 @@ class StudentPractice(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)
     practice_id: Mapped[int] = mapped_column(index=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, comment="排序")
 
     practice: Mapped["Practice"] = relationship(
         "Practice",

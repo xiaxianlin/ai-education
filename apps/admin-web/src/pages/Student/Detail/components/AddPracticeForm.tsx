@@ -60,7 +60,7 @@ export function AddPracticeForm({ studentId, open, onCancel, onSuccess }: AddPra
         placeholder="请选择练习（可多选）"
         rules={[{ required: true, message: '请至少选择一个练习' }]}
         options={unusedPractices?.map((practice) => ({
-          label: `${practice.name} (${practice.type})`,
+          label: practice.name,
           value: practice.id,
         }))}
       />

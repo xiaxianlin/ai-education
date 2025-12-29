@@ -5,11 +5,10 @@ import {
   BookOutlined,
   ClusterOutlined,
   DashboardOutlined,
-  EditOutlined,
   LogoutOutlined,
   ProfileOutlined,
   QuestionCircleOutlined,
-  UserOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown } from 'antd';
@@ -47,20 +46,14 @@ const routes = {
       ],
     },
     {
-      name: '题目',
-      key: 'question',
+      name: '学习',
+      key: 'learning',
       icon: <QuestionCircleOutlined />,
       children: [
-        { path: '/question', name: '题目管理' },
         { path: '/question_type', name: '题型管理' },
+        { path: '/question', name: '题目管理' },
+        { path: '/practice', name: '练习管理' },
       ],
-    },
-
-    {
-      key: 'practice',
-      name: '练习',
-      icon: <EditOutlined />,
-      children: [{ path: '/practice', name: '练习管理' }],
     },
   ],
 };

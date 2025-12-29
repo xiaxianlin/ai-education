@@ -1,8 +1,8 @@
 import { GRADES } from '@/constants/course';
 import {
-  SCENE_TYPE_LABELS,
+  SPECIALTY_TYPE_LABELS,
   STAGE_LABELS,
-  SceneType,
+  SpecialtyType,
   Stage,
 } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
@@ -10,64 +10,23 @@ import { Button, Card, Descriptions, Empty, Flex, Space, Table, Tag } from 'antd
 import type { ColumnsType } from 'antd/es/table';
 import { usePracticeDetailModel } from '../models/page';
 
-// 运行时参数 Table 列定义
-const parameterColumns: ColumnsType<PracticeParameter> = [
+// 参数配置 Table 列定义（用于显示 dict 类型的 parameter_config）
+const parameterConfigColumns: ColumnsType<{ key: string; value: any }> = [
   {
     title: '参数键',
     dataIndex: 'key',
     key: 'key',
-    width: 120,
+    width: 150,
   },
   {
-    title: '类型',
-    dataIndex: 'type',
-    key: 'type',
-    width: 100,
-    render: (type: string) => {
-      const typeMap: Record<string, string> = {
-        fixed: '固定参数',
-        dynamic: '动态参数',
-        optional: '可选参数',
-      };
-      return typeMap[type] || type;
-    },
-  },
-  {
-    title: '值类型',
-    dataIndex: 'value_type',
-    key: 'value_type',
-    width: 100,
-    render: (vt: string) => {
-      const vtMap: Record<string, string> = {
-        string: '字符串',
-        number: '数字',
-        boolean: '布尔',
-        array: '数组',
-        object: '对象',
-      };
-      return vtMap[vt] || vt;
-    },
-  },
-  {
-    title: '是否必填',
-    dataIndex: 'required',
-    key: 'required',
-    width: 80,
-    render: (required: boolean) => (required ? <Tag color="red">必填</Tag> : <Tag>可选</Tag>),
-  },
-  {
-    title: '描述',
-    dataIndex: 'description',
-    key: 'description',
-  },
-  {
-    title: '默认值',
+    title: '参数值',
     dataIndex: 'value',
     key: 'value',
-    width: 120,
     render: (value: any) => {
       if (value === undefined || value === null) return '-';
-      if (typeof value === 'object') return JSON.stringify(value);
+      if (typeof value === 'object') {
+        return <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{JSON.stringify(value, null, 2)}</pre>;
+      }
       return String(value);
     },
   },
@@ -174,19 +133,17 @@ export default function MainView() {
               <Descriptions column={2}>
                 <Descriptions.Item label="名称">{detail.name}</Descriptions.Item>
                 <Descriptions.Item label="标识">{detail.slug}</Descriptions.Item>
-                <Descriptions.Item label="类型">
-                  <Tag color={detail.type === 'system' ? 'blue' : 'green'}>
-                    {detail.type === 'system' ? '系统' : '自定义'}
-                  </Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="场景类型">
-                  {detail.scene_type ? SCENE_TYPE_LABELS[detail.scene_type as SceneType] : '-'}
+                <Descriptions.Item label="专项类型">
+                  {detail.specialty_type ? (
+                    <Tag>{SPECIALTY_TYPE_LABELS[detail.specialty_type as SpecialtyType]}</Tag>
+                  ) : (
+                    '-'
+                  )}
                 </Descriptions.Item>
                 <Descriptions.Item label="图标">{detail.icon || '-'}</Descriptions.Item>
                 <Descriptions.Item label="状态">
                   <Tag color={detail.is_active ? 'green' : 'default'}>{detail.is_active ? '启用' : '禁用'}</Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="排序">{detail.sort_order ?? 0}</Descriptions.Item>
                 <Descriptions.Item label="创建时间">
                   {detail.create_time ? new Date(detail.create_time * 1000).toLocaleString() : '-'}
                 </Descriptions.Item>
@@ -251,9 +208,9 @@ export default function MainView() {
               </Descriptions>
             </Card>
 
-            {/* 运行时参数 */}
+            {/* 参数配置 */}
             <Card
-              title="运行时参数"
+              title="参数配置"
               size="small"
               extra={
                 <Button size="small" onClick={handleConfigParams}>
@@ -261,16 +218,16 @@ export default function MainView() {
                 </Button>
               }
             >
-              {detail.parameters && detail.parameters.length > 0 ? (
+              {detail.parameter_config && Object.keys(detail.parameter_config).length > 0 ? (
                 <Table
-                  dataSource={detail.parameters}
-                  columns={parameterColumns}
+                  dataSource={Object.entries(detail.parameter_config).map(([key, value]) => ({ key, value }))}
+                  columns={parameterConfigColumns}
                   rowKey="key"
                   size="small"
                   pagination={false}
                 />
               ) : (
-                <Empty description="暂无运行时参数" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                <Empty description="暂无参数配置" image={Empty.PRESENTED_IMAGE_SIMPLE} />
               )}
             </Card>
 

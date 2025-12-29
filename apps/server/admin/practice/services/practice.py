@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from shared.core.database import Practice
 from shared.core.schema import (
-    PracticeParameterSchema,
     PracticeSchema,
     SearchResultSchema,
 )
@@ -20,10 +19,8 @@ async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> Sear
         query = query.where(Practice.name.like(f"%{params.name}%"))
     if params.slug:
         query = query.where(Practice.slug == params.slug)
-    if params.type:
-        query = query.where(Practice.type == params.type)
-    if params.scene_type:
-        query = query.where(Practice.scene_type == params.scene_type)
+    if params.specialty_type:
+        query = query.where(Practice.specialty_type == params.specialty_type)
     if params.subject:
         query = query.where(Practice.subject == params.subject)
     if params.is_active is not None:
@@ -33,11 +30,9 @@ async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> Sear
     count_query = select(func.count()).select_from(query.subquery())
     total = await db.scalar(count_query)
 
-    # 分页查询（按排序和ID排序）
+    # 分页查询（按ID排序）
     result = await db.scalars(
-        query.order_by(Practice.sort_order.asc(), Practice.id.desc())
-        .offset((params.page - 1) * params.size)
-        .limit(params.size)
+        query.order_by(Practice.id.desc()).offset((params.page - 1) * params.size).limit(params.size)
     )
 
     return SearchResultSchema(
@@ -67,8 +62,7 @@ async def create_practice(db: AsyncSession, params: SavePracticeSchema) -> int:
         slug=params.slug,
         icon=params.icon,
         description=params.description,
-        type=params.type,
-        scene_type=params.scene_type,
+        specialty_type=params.specialty_type,
         subject=params.subject,
         stages=params.stages,
         grades=params.grades,
@@ -77,9 +71,8 @@ async def create_practice(db: AsyncSession, params: SavePracticeSchema) -> int:
         ability_config=params.ability_config,
         feedback_config=params.feedback_config,
         prompt=params.prompt,
-        sort_order=params.sort_order,
         is_active=params.is_active,
-        parameters=[],
+        parameter_config={},
     )
     db.add(practice)
     await db.commit()
@@ -103,8 +96,7 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.slug = params.slug
     practice.icon = params.icon
     practice.description = params.description
-    practice.type = params.type
-    practice.scene_type = params.scene_type
+    practice.specialty_type = params.specialty_type
     practice.subject = params.subject
     practice.stages = params.stages
     practice.grades = params.grades
@@ -113,7 +105,6 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.ability_config = params.ability_config
     practice.feedback_config = params.feedback_config
     practice.prompt = params.prompt
-    practice.sort_order = params.sort_order
     practice.is_active = params.is_active
 
     await db.commit()
@@ -125,28 +116,29 @@ async def delete_practice(db: AsyncSession, id: int):
     if not practice:
         raise ValueError("练习不存在")
 
-    # 系统练习不允许删除
-    if practice.type == "system":
+    # 系统练习不允许删除（通过 slug 判断，如 daily_practice, unit_practice, assess_practice）
+    system_slugs = ["daily_practice", "unit_practice", "assess_practice"]
+    if practice.slug in system_slugs:
         raise ValueError("系统练习不允许删除")
 
     await db.execute(delete(Practice).where(Practice.id == id))
     await db.commit()
 
 
-async def get_practice_parameters(db: AsyncSession, id: int) -> list[PracticeParameterSchema]:
-    """获取练习参数列表"""
+async def get_practice_parameters(db: AsyncSession, id: int) -> dict:
+    """获取练习参数配置"""
     practice = await db.scalar(select(Practice).where(Practice.id == id))
     if not practice:
         raise ValueError("练习不存在")
 
-    return [PracticeParameterSchema(**param) for param in practice.parameters]
+    return practice.parameter_config or {}
 
 
-async def save_practice_parameters(db: AsyncSession, id: int, parameters: list[dict]):
-    """创建练习参数"""
+async def save_practice_parameters(db: AsyncSession, id: int, parameter_config: dict):
+    """保存练习参数配置"""
     practice = await db.scalar(select(Practice).where(Practice.id == id))
     if not practice:
         raise ValueError("练习不存在")
 
-    practice.parameters = [PracticeParameterSchema(**param).model_dump() for param in parameters]
+    practice.parameter_config = parameter_config
     await db.commit()

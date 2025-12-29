@@ -1,6 +1,6 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn, createTimeColumn, useConfigs } from '@/hooks';
-import { SCENE_TYPE_LABELS, SceneType, STAGE_LABELS } from '@ai-education/shared-web';
+import { SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
 import { CheckCircleOutlined, CloseCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Select, Tag } from 'antd';
@@ -8,15 +8,13 @@ import { useMemo } from 'react';
 import { PracticeApi } from '../../api';
 import { usePracticeListModel } from '../models/page';
 
-const TYPE_OPTIONS = [
-  { label: '系统', value: 'system' },
-  { label: '自定义', value: 'custom' },
-];
-
-const SCENE_TYPE_OPTIONS = Object.entries(SCENE_TYPE_LABELS).map(([value, label]) => ({
+const SPECIALTY_TYPE_OPTIONS = Object.entries(SPECIALTY_TYPE_LABELS).map(([value, label]) => ({
   label,
   value,
 }));
+
+// 系统练习的 slug 列表
+const SYSTEM_SLUGS = ['daily_practice', 'unit_practice', 'assess_practice'];
 
 const STATUS_OPTIONS = [
   { label: '启用', value: true },
@@ -32,23 +30,13 @@ export default function MainView() {
       { title: '名称', dataIndex: 'name', width: 150 },
       { title: '标识', dataIndex: 'slug', width: 120, hideInSearch: true },
       {
-        title: '类型',
-        dataIndex: 'type',
-        width: 90,
-        valueEnum: { system: '系统', custom: '自定义' },
-        render: (_, record) => (
-          <Tag color={record.type === 'system' ? 'blue' : 'green'}>{record.type === 'system' ? '系统' : '自定义'}</Tag>
-        ),
-        renderFormItem: () => <Select placeholder="请选择类型" options={TYPE_OPTIONS} allowClear />,
-      },
-      {
-        title: '场景类型',
-        dataIndex: 'scene_type',
-        width: 100,
-        valueEnum: Object.entries(SCENE_TYPE_LABELS).reduce((acc, [key, label]) => ({ ...acc, [key]: label }), {}),
+        title: '专项类型',
+        dataIndex: 'specialty_type',
+        width: 120,
+        valueEnum: Object.entries(SPECIALTY_TYPE_LABELS).reduce((acc, [key, label]) => ({ ...acc, [key]: label }), {}),
         render: (_, record) =>
-          record.scene_type ? <Tag>{SCENE_TYPE_LABELS[record.scene_type as SceneType]}</Tag> : '-',
-        renderFormItem: () => <Select placeholder="请选择场景" options={SCENE_TYPE_OPTIONS} allowClear />,
+          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
+        renderFormItem: () => <Select placeholder="请选择专项类型" options={SPECIALTY_TYPE_OPTIONS} allowClear />,
       },
       {
         title: '科目',
@@ -97,12 +85,6 @@ export default function MainView() {
           ),
       },
       {
-        title: '排序',
-        dataIndex: 'sort_order',
-        width: 70,
-        hideInSearch: true,
-      },
-      {
         title: '状态',
         dataIndex: 'is_active',
         width: 80,
@@ -128,7 +110,7 @@ export default function MainView() {
             <Button type="link" size="small" onClick={() => handleEdit(record.id)}>
               编辑
             </Button>
-            {record.type === 'custom' && <DeleteButton onConfirm={() => handleDelete(record.id)} />}
+            {!SYSTEM_SLUGS.includes(record.slug) && <DeleteButton onConfirm={() => handleDelete(record.id)} />}
           </>
         ),
         { width: 180 },
@@ -162,8 +144,7 @@ export default function MainView() {
             page: current || 1,
             size: pageSize || 10,
             name: filter.name,
-            type: filter.type,
-            scene_type: filter.scene_type as SceneType,
+            specialty_type: filter.specialty_type as SpecialtyType,
             subject: filter.subject,
             is_active: filter.is_active,
           });

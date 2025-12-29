@@ -1,6 +1,6 @@
 from shared.core.database import Practice, StudentPractice
 from shared.core.schema import PracticeSchema, StudentSchema
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -28,7 +28,21 @@ async def add_student_practice(db: AsyncSession, student: StudentSchema, practic
 
     # 批量添加未添加的练习
     if new_practice_ids:
-        records = [StudentPractice(student_id=student.id, practice_id=practice_id) for practice_id in new_practice_ids]
+        # 获取当前最大的 sort_order
+        max_sort_order_result = await db.scalar(
+            select(func.max(StudentPractice.sort_order))
+            .where(StudentPractice.student_id == student.id)
+        )
+        max_sort_order = max_sort_order_result if max_sort_order_result is not None else -1
+        
+        records = [
+            StudentPractice(
+                student_id=student.id,
+                practice_id=practice_id,
+                sort_order=max_sort_order + 1 + idx
+            )
+            for idx, practice_id in enumerate(new_practice_ids)
+        ]
         db.add_all(records)
         await db.commit()
 
@@ -49,6 +63,7 @@ async def get_student_practices(db: AsyncSession, student: StudentSchema):
         select(Practice)
         .join(StudentPractice, StudentPractice.practice_id == Practice.id)
         .where(StudentPractice.student_id == student.id)
+        .order_by(StudentPractice.sort_order.asc(), StudentPractice.id.asc())
     )
     return [PracticeSchema.model_validate(item) for item in result.all()]
 

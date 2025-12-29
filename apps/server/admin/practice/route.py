@@ -21,9 +21,9 @@ async def get_practice_parameters(id: int, db: AsyncSession = Database):
     return await practice.get_practice_parameters(db, id)
 
 
-@practice_router.post("/parameters/{id}/", summary="保存练习参数", description="保存指定练习的参数配置信息")
-async def save_practice_parameters(id: int, parameters: list[dict], db: AsyncSession = Database):
-    return await practice.save_practice_parameters(db, id, parameters)
+@practice_router.post("/parameters/{id}/", summary="保存练习参数配置", description="保存指定练习的参数配置信息")
+async def save_practice_parameters(id: int, parameter_config: dict, db: AsyncSession = Database):
+    return await practice.save_practice_parameters(db, id, parameter_config)
 
 
 # ======================== 练习管理 ======================== #

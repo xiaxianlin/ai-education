@@ -24,12 +24,23 @@ def _compose_parameters(
     generate_count = 15
     recall_count = 0
 
-    for parameter in practice.parameters:
-        value = parameter.get("value", {})
-        if parameter["key"] == "generate_count":
-            generate_count = value.get(textbook.grade, 15)
-        if parameter["key"] == "recall_count":
-            recall_count = value.get(textbook.grade, 0)
+    # parameter_config 现在是 dict 类型
+    parameter_config = practice.parameter_config or {}
+    
+    # 从 dict 中读取配置
+    if "generate_count" in parameter_config:
+        generate_count_value = parameter_config["generate_count"]
+        if isinstance(generate_count_value, dict):
+            generate_count = generate_count_value.get(textbook.grade, 15)
+        else:
+            generate_count = generate_count_value
+    
+    if "recall_count" in parameter_config:
+        recall_count_value = parameter_config["recall_count"]
+        if isinstance(recall_count_value, dict):
+            recall_count = recall_count_value.get(textbook.grade, 0)
+        else:
+            recall_count = recall_count_value
 
     return {
         "student_id": student_id,

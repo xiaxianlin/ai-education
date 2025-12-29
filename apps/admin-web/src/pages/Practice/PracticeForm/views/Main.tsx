@@ -1,4 +1,4 @@
-import { SCENE_TYPE_OPTIONS, STAGE_OPTIONS } from '@ai-education/shared-web';
+import { getSpecialtyOptions, STAGE_OPTIONS } from '@ai-education/shared-web';
 import {
   PageContainer,
   ProFormDigit,
@@ -9,11 +9,6 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Card, Collapse, Flex, Form, Input } from 'antd';
 import { usePracticeFormModel } from '../models/page';
-
-const TYPE_OPTIONS = [
-  { label: '系统', value: 'system' },
-  { label: '自定义', value: 'custom' },
-];
 
 export default function MainView() {
   const {
@@ -78,18 +73,11 @@ export default function MainView() {
                       disabled={isEdit}
                     />
                     <ProFormSelect
-                      name="type"
-                      label="类型"
-                      placeholder="请选择类型"
-                      rules={[{ required: true, message: '请选择类型' }]}
-                      options={TYPE_OPTIONS}
-                      disabled={isEdit}
-                    />
-                    <ProFormSelect
-                      name="scene_type"
-                      label="场景类型"
-                      placeholder="请选择场景类型"
-                      options={SCENE_TYPE_OPTIONS}
+                      name="specialty_type"
+                      label="专项类型"
+                      placeholder="请先选择科目，再选择专项类型"
+                      options={form.getFieldValue('subject') ? getSpecialtyOptions(form.getFieldValue('subject')) : []}
+                      disabled={!form.getFieldValue('subject')}
                     />
                     <ProFormText name="icon" label="图标" placeholder="图标 emoji 或 URL" />
                     <ProFormTextArea name="description" label="描述" placeholder="练习描述" fieldProps={{ rows: 2 }} />
@@ -235,7 +223,6 @@ export default function MainView() {
                 label: '其他设置',
                 children: (
                   <>
-                    <ProFormDigit name="sort_order" label="排序" placeholder="排序值" initialValue={0} min={0} />
                     <ProFormSwitch name="is_active" label="启用状态" initialValue={true} />
                   </>
                 ),

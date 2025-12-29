@@ -296,9 +296,8 @@ declare global {
     slug: string;
     icon?: string;
     description?: string;
-    type: PracticeType;
-    // 场景类型
-    scene_type?: SceneType;
+    // 专项类型
+    specialty_type?: SpecialtyType;
     // 适用范围
     subject?: string;
     stages?: Stage[];
@@ -309,10 +308,9 @@ declare global {
     ability_config?: AbilityConfig;
     feedback_config?: PracticeFeedbackConfig;
     prompt?: string;
-    // 运行时参数
-    parameters?: PracticeParameter[];
+    // 参数配置
+    parameter_config?: Record<string, any>;
     // 元数据
-    sort_order?: number;
     is_active?: boolean;
     create_time: number;
     update_time: number;

@@ -6,8 +6,11 @@ from sqlalchemy.orm import joinedload
 
 
 async def get_student_practices(db: AsyncSession, id: str):
-    """查询学生的教材"""
+    """查询学生的练习"""
     result = await db.scalars(
-        select(StudentPractice).options(joinedload(StudentPractice.practice)).where(StudentPractice.student_id == id)
+        select(StudentPractice)
+        .options(joinedload(StudentPractice.practice))
+        .where(StudentPractice.student_id == id)
+        .order_by(StudentPractice.sort_order.asc(), StudentPractice.id.asc())
     )
     return [PracticeSchema.model_validate(item.practice) for item in result.all()]

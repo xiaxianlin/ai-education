@@ -44,19 +44,19 @@ export const PracticeApi = {
   // ========== 练习参数配置 ==========
 
   /**
-   * 获取练习参数列表
+   * 获取练习参数配置
    * GET /api/admin/practice/parameters/{id}
    */
-  async getPracticeParameters(id: number): Promise<PracticeParameter[]> {
-    return apiClient.get<PracticeParameter[]>(`/practice/parameters/${id}`);
+  async getPracticeParameters(id: number): Promise<Record<string, any>> {
+    return apiClient.get<Record<string, any>>(`/practice/parameters/${id}`);
   },
 
   /**
-   * 保存练习参数
+   * 保存练习参数配置
    * POST /api/admin/practice/parameters/{id}/
    */
-  async savePracticeParameters(id: number, parameters: PracticeParameter[]) {
-    return apiClient.post(`/practice/parameters/${id}/`, parameters);
+  async savePracticeParameters(id: number, parameterConfig: Record<string, any>) {
+    return apiClient.post(`/practice/parameters/${id}/`, parameterConfig);
   },
 
   // ========== 练习会话 ==========

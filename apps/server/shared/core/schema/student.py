@@ -43,6 +43,7 @@ class StudentPracticeSchema(BaseModel):
     id: int
     student_id: str
     practice_id: int
+    sort_order: int = 0
 
     practice: Optional["PracticeSchema"] = None
 

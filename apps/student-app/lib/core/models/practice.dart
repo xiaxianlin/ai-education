@@ -10,10 +10,10 @@ class Practice {
   final String slug;
   final String? icon;
   final String? description;
-  final String type; // "system" | "custom"
-  @JsonKey(name: 'practice_type')
-  final String? practiceType; // "daily_practice" | "unit_practice" | "assessment"
-  final Map<String, dynamic>? config;
+  @JsonKey(name: 'specialty_type')
+  final String? specialtyType;
+  @JsonKey(name: 'parameter_config')
+  final Map<String, dynamic>? parameterConfig;
   @JsonKey(name: 'create_time')
   final int createTime;
   @JsonKey(name: 'update_time')
@@ -25,9 +25,8 @@ class Practice {
     required this.slug,
     this.icon,
     this.description,
-    required this.type,
-    this.practiceType,
-    this.config,
+    this.specialtyType,
+    this.parameterConfig,
     required this.createTime,
     required this.updateTime,
   });
