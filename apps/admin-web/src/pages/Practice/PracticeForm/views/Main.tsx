@@ -1,12 +1,14 @@
 import { getSpecialtyOptions, STAGE_OPTIONS } from '@ai-education/shared-web';
 import { PageContainer, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
-import { Button, Card, Collapse, Flex, Form, Input } from 'antd';
+import { Button, Card, Collapse, Flex, Form } from 'antd';
+import { AbilityConfigForm, DifficultyConfigForm, FeedbackConfigForm, QuestionCountConfigForm } from '../components';
 import { usePracticeFormModel } from '../models/page';
 
 export default function MainView() {
   const {
     form,
     isEdit,
+    isClone,
     navigate,
     subjects,
     availableGrades,
@@ -16,9 +18,15 @@ export default function MainView() {
     handleSubmit,
   } = usePracticeFormModel();
 
+  const getTitle = () => {
+    if (isClone) return '复制练习';
+    if (isEdit) return '编辑练习';
+    return '新建练习';
+  };
+
   return (
     <PageContainer
-      title={isEdit ? '编辑练习' : '新建练习'}
+      title={getTitle()}
       header={{
         onBack: () => navigate('/practice'),
         breadcrumb: {},
@@ -127,93 +135,20 @@ export default function MainView() {
                 key: 'config',
                 label: '配置',
                 children: (
-                  <>
-                    <Form.Item
-                      name="question_count_config"
-                      label="题量配置"
-                      rules={[
-                        {
-                          validator: (_, value) => {
-                            if (!value) return Promise.resolve();
-                            try {
-                              JSON.parse(value);
-                              return Promise.resolve();
-                            } catch (e) {
-                              return Promise.reject('请输入有效的 JSON');
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      <Input.TextArea
-                        rows={3}
-                        placeholder='{"total": 10, "per_group": 5, "max_groups": 3, "time_limit_minutes": 15}'
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="difficulty_config"
-                      label="难度配置"
-                      rules={[
-                        {
-                          validator: (_, value) => {
-                            if (!value) return Promise.resolve();
-                            try {
-                              JSON.parse(value);
-                              return Promise.resolve();
-                            } catch (e) {
-                              return Promise.reject('请输入有效的 JSON');
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      <Input.TextArea
-                        rows={3}
-                        placeholder='{"level": "basic", "target_accuracy": 0.8, "distribution": {"easy": 6, "medium": 3, "hard": 1}}'
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="ability_config"
-                      label="能力配置"
-                      rules={[
-                        {
-                          validator: (_, value) => {
-                            if (!value) return Promise.resolve();
-                            try {
-                              JSON.parse(value);
-                              return Promise.resolve();
-                            } catch (e) {
-                              return Promise.reject('请输入有效的 JSON');
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      <Input.TextArea rows={3} placeholder='{"cognitive_levels": ["remember", "understand"]}' />
-                    </Form.Item>
-                    <Form.Item
-                      name="feedback_config"
-                      label="反馈配置"
-                      rules={[
-                        {
-                          validator: (_, value) => {
-                            if (!value) return Promise.resolve();
-                            try {
-                              JSON.parse(value);
-                              return Promise.resolve();
-                            } catch (e) {
-                              return Promise.reject('请输入有效的 JSON');
-                            }
-                          },
-                        },
-                      ]}
-                    >
-                      <Input.TextArea
-                        rows={3}
-                        placeholder='{"instant_feedback": true, "show_explanation": true, "gamification": {"enable_points": true}}'
-                      />
-                    </Form.Item>
-                  </>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card title="题量配置">
+                      <QuestionCountConfigForm name="question_count_config" />
+                    </Card>
+                    <Card title="难度配置">
+                      <DifficultyConfigForm name="difficulty_config" />
+                    </Card>
+                    <Card title="能力配置">
+                      <AbilityConfigForm name="ability_config" />
+                    </Card>
+                    <Card title="反馈配置">
+                      <FeedbackConfigForm name="feedback_config" />
+                    </Card>
+                  </div>
                 ),
               },
             ]}

@@ -14,18 +14,16 @@ const SPECIALTY_TYPE_OPTIONS = Object.entries(SPECIALTY_TYPE_LABELS).map(([value
 }));
 
 export default function MainView() {
-  const { actionRef, handleDelete, handleCreate, handleEdit, handleDetail, navigate } = usePracticeListModel();
+  const { actionRef, handleDelete, handleCreate, handleEdit, handleDetail, handleClone, navigate } =
+    usePracticeListModel();
   const { subjects } = useConfigs();
 
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
-      { title: '名称', dataIndex: 'name', width: 150 },
-      { title: '标识', dataIndex: 'slug', width: 120, hideInSearch: true },
-
       {
         title: '科目',
         dataIndex: 'subject',
-        width: 80,
+        width: 50,
         renderFormItem: () => (
           <Select
             placeholder="请选择科目"
@@ -34,6 +32,8 @@ export default function MainView() {
           />
         ),
       },
+      { title: '名称', dataIndex: 'name', width: 120 },
+      { title: '标识', dataIndex: 'slug', width: 120, hideInSearch: true },
       {
         title: '学段',
         dataIndex: 'stages',
@@ -87,13 +87,16 @@ export default function MainView() {
             <Button type="link" size="small" onClick={() => handleEdit(record.id)}>
               编辑
             </Button>
+            <Button type="link" size="small" onClick={() => handleClone(record.id)}>
+              复制
+            </Button>
             <DeleteButton onConfirm={() => handleDelete(record.id)} />
           </>
         ),
-        { width: 100 },
+        { width: 150 },
       ),
     ],
-    [handleDelete, handleDetail, handleEdit, navigate],
+    [handleDelete, handleDetail, handleEdit, handleClone, navigate],
   );
 
   return (

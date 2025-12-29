@@ -25,6 +25,10 @@ const useContainer = () => {
     navigate(`/practice/detail/${id}`);
   };
 
+  const handleClone = (id: number) => {
+    navigate(`/practice/clone/${id}`);
+  };
+
   return {
     actionRef,
     navigate,
@@ -33,6 +37,7 @@ const useContainer = () => {
     handleCreate,
     handleEdit,
     handleDetail,
+    handleClone,
   };
 };
 

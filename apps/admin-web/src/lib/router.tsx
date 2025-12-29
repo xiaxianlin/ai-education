@@ -54,6 +54,7 @@ export function Router() {
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/form', element: <PracticeForm /> },
         { path: 'practice/form/:id', element: <PracticeForm /> },
+        { path: 'practice/clone/:id', element: <PracticeForm /> },
         { path: 'practice/detail/:id', element: <PracticeDetail /> },
         // Student routes
         { path: 'student', element: <StudentList /> },
