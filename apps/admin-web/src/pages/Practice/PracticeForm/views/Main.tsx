@@ -221,6 +221,12 @@ export default function MainView() {
                         placeholder='{"instant_feedback": true, "show_explanation": true, "gamification": {"enable_points": true}}'
                       />
                     </Form.Item>
+                    <ProFormTextArea
+                      name="prompt"
+                      label="提示词模板"
+                      placeholder="请输入提示词模板内容"
+                      fieldProps={{ rows: 8 }}
+                    />
                   </>
                 ),
               },

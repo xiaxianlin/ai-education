@@ -1,27 +1,26 @@
 """
 练习相关模型
 
-包含 Practice、PracticePrompt、PracticeSession、PracticeSessionAnswer、PracticeSessionReport
+包含 Practice、PracticeSession、PracticeSessionAnswer、PracticeSessionReport
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .base import (
-    BaseModel,
-    Mapped,
-    mapped_column,
-    relationship,
-    column_property,
-    String,
-    Text,
     JSON,
+    BaseModel,
     Boolean,
     Integer,
+    Mapped,
+    String,
+    Text,
+    column_property,
+    mapped_column,
     now,
+    relationship,
 )
 
 if TYPE_CHECKING:
-    from .prompt import Prompt
     from .question import Question
 
 
@@ -58,69 +57,13 @@ class Practice(BaseModel):
     ability_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="能力维度配置")
     feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
     parameters: Mapped[list] = mapped_column(JSON, default=list, comment="运行时配置参数")
+    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="提示词模板内容")
 
     # 元数据
     sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-
-class PracticePrompt(BaseModel):
-    """练习提示词配置表"""
-
-    __tablename__ = "ah_practice_prompt"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    # 基础信息
-    name: Mapped[str] = mapped_column(String(100), nullable=True, comment="配置名称")
-    code: Mapped[str] = mapped_column(String(100), nullable=True, index=True, comment="配置编码")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="配置描述")
-
-    # 场景分类
-    scene_type: Mapped[str] = mapped_column(
-        String(50), nullable=True, index=True, comment="场景类型"
-    )
-    specialty_type: Mapped[str] = mapped_column(
-        String(50), nullable=True, index=True, comment="专项类型"
-    )
-
-    # 适用范围
-    subject: Mapped[str] = mapped_column(String(50), comment="科目")
-    stages: Mapped[list] = mapped_column(JSON, default=list, comment="适用学段列表")
-    grades: Mapped[list] = mapped_column(JSON, default=list, comment="适用年级列表")
-    semesters: Mapped[list] = mapped_column(JSON, nullable=True, comment="适用学期列表")
-
-    # 关联
-    practice_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="关联练习ID")
-    practice_slug: Mapped[str] = mapped_column(String(50), nullable=True, comment="练习标识")
-    prompt_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="关联提示词ID")
-    prompt_slug: Mapped[str] = mapped_column(String(50), nullable=True, comment="提示词标识")
-
-    # 配置
-    question_type_configs: Mapped[list] = mapped_column(JSON, default=list, comment="题型组合配置")
-    difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
-    question_count_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="题量配置")
-    template_variables: Mapped[list] = mapped_column(JSON, nullable=True, comment="模板变量定义")
-
-    # 元数据
-    sort_order: Mapped[int] = mapped_column(default=0, comment="排序")
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-    # 关联关系
-    practice: Mapped["Practice"] = relationship(
-        "Practice",
-        primaryjoin="foreign(PracticePrompt.practice_id) == Practice.id",
-        lazy="joined",
-    )
-    prompt: Mapped["Prompt"] = relationship(
-        "Prompt",
-        primaryjoin="foreign(PracticePrompt.prompt_id) == Prompt.id",
-        lazy="joined",
-    )
 
 
 class PracticeSession(BaseModel):
@@ -138,12 +81,8 @@ class PracticeSession(BaseModel):
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
-    status: Mapped[int] = mapped_column(
-        default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3"
-    )
-    generate_status: Mapped[int] = mapped_column(
-        default=0, index=True, comment="未生成: 0, 生成中: 1, 已生成: 2"
-    )
+    status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3")
+    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="未生成: 0, 生成中: 1, 已生成: 2")
     generate_time: Mapped[int] = mapped_column(nullable=True, comment="生成时间")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
@@ -241,7 +180,6 @@ class PracticeSessionReport(BaseModel):
 
 __all__ = [
     "Practice",
-    "PracticePrompt",
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",

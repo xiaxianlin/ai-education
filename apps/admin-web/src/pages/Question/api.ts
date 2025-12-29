@@ -61,62 +61,6 @@ export const QuestionApi = {
     return apiClient.delete(`/question/type/${id}`);
   },
 
-  // ======================== 题目模板 API ======================== //
-
-  /**
-   * 获取题目模板列表
-   * GET /question/template
-   */
-  async listQuestionTemplates(params?: {
-    question_type_id?: number;
-    is_active?: boolean;
-    page?: number;
-    size?: number;
-  }) {
-    const res = await apiClient.get<{ data: QuestionTemplate[]; total: number }>('/question/template', params);
-    return res;
-  },
-
-  /**
-   * 获取题目模板详情
-   * GET /question/template/{id}
-   */
-  async getQuestionTemplate(id: number) {
-    return apiClient.get<QuestionTemplate>(`/question/template/${id}`);
-  },
-
-  /**
-   * 创建题目模板
-   * POST /question/template
-   */
-  async createQuestionTemplate(data: QuestionTemplateCreateRequest) {
-    return apiClient.post<QuestionTemplate>('/question/template', data);
-  },
-
-  /**
-   * 更新题目模板
-   * PATCH /question/template/{id}
-   */
-  async updateQuestionTemplate(id: number, data: QuestionTemplateUpdateRequest) {
-    return apiClient.patch<QuestionTemplate>(`/question/template/${id}`, data);
-  },
-
-  /**
-   * 删除题目模板
-   * DELETE /question/template/{id}
-   */
-  async deleteQuestionTemplate(id: number) {
-    return apiClient.delete(`/question/template/${id}`);
-  },
-
-  /**
-   * 验证题目模板
-   * POST /question/template/{id}/validate
-   */
-  async validateQuestionTemplate(id: number) {
-    return apiClient.post<{ valid: boolean; issues: string[] }>(`/question/template/${id}/validate`);
-  },
-
   // ======================== 题目 API ======================== //
 
   /**

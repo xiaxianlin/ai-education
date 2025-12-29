@@ -33,17 +33,6 @@ declare global {
   }
 
   /**
-   * 搜索题目模板请求
-   * 字段名称与后端 QuestionTemplateSearchSchema 对齐（使用下划线命名）
-   */
-  interface QuestionTemplateSearchRequest extends SearchRequest {
-    question_type_id?: number; // 后端使用 question_type_id
-    is_active?: boolean; // 后端使用 is_active
-    page?: number;
-    size?: number; // 后端使用 size
-  }
-
-  /**
    * 创建题型请求
    * 字段名称与后端 QuestionTypeCreateSchema 对齐（使用下划线命名）
    */
@@ -135,40 +124,6 @@ declare global {
     is_active?: boolean; // 后端使用 is_active
   }
 
-  /**
-   * 创建题目模板请求
-   * 字段名称与后端 QuestionTemplateCreateSchema 对齐（使用下划线命名）
-   */
-  interface QuestionTemplateCreateRequest {
-    name: string;
-    question_type_id: number; // 后端使用 question_type_id
-    description?: string;
-    system_prompt?: string; // 后端使用 system_prompt
-    user_prompt_template?: string; // 后端使用 user_prompt_template
-    variables?: Record<string, unknown>;
-    constraints?: Record<string, unknown>;
-    examples?: Array<Record<string, unknown>>;
-    output_schema?: Record<string, unknown>; // 后端使用 output_schema
-    quality_rules?: Record<string, unknown>; // 后端使用 quality_rules
-    is_active?: boolean; // 后端使用 is_active，默认值为 true
-  }
-
-  /**
-   * 更新题目模板请求
-   * 字段名称与后端 QuestionTemplateUpdateSchema 对齐（使用下划线命名）
-   */
-  interface QuestionTemplateUpdateRequest {
-    name?: string;
-    description?: string;
-    system_prompt?: string; // 后端使用 system_prompt
-    user_prompt_template?: string; // 后端使用 user_prompt_template
-    variables?: Record<string, unknown>;
-    constraints?: Record<string, unknown>;
-    examples?: Array<Record<string, unknown>>;
-    output_schema?: Record<string, unknown>; // 后端使用 output_schema
-    quality_rules?: Record<string, unknown>; // 后端使用 quality_rules
-    is_active?: boolean; // 后端使用 is_active
-  }
 }
 
 export {};

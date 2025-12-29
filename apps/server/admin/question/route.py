@@ -8,7 +8,6 @@ from typing import List, Optional
 
 from shared.core.database import Database
 from shared.core.schema import (
-    QuestionTemplateSchema,
     QuestionTypeSchema,
     QuestionSchema,
     SearchResultSchema,
@@ -20,11 +19,8 @@ from admin.question.schema import (
     QuestionCreateSchema,
     QuestionUpdateSchema,
     QuestionSearchSchema,
-    QuestionTemplateCreateSchema,
-    QuestionTemplateUpdateSchema,
-    QuestionTemplateSearchSchema,
 )
-from admin.question.services import question_type, question, template
+from admin.question.services import question_type, question
 
 question_router = APIRouter(prefix="/question")
 
@@ -87,104 +83,6 @@ async def search_question_types(params: QuestionTypeSearchSchema = Depends(), db
 )
 async def get_question_type(id: int, db: AsyncSession = Database):
     return QuestionTypeSchema.model_validate(await question_type.get_question_type(db, id))
-
-
-# ======================== 题目模板管理 ======================== #
-
-
-@question_router.post(
-    "/template",
-    tags=["题目模板"],
-    summary="创建题目模板",
-    response_model=QuestionTemplateSchema,
-)
-async def create_template(
-    data: QuestionTemplateCreateSchema,
-    db: AsyncSession = Database,
-):
-    result = await template.create_template(db, data)
-    return QuestionTemplateSchema.model_validate(result)
-
-
-@question_router.patch(
-    "/template/{template_id}",
-    tags=["题目模板"],
-    summary="更新题目模板",
-    response_model=QuestionTemplateSchema,
-)
-async def update_template(
-    template_id: int,
-    data: QuestionTemplateUpdateSchema,
-    db: AsyncSession = Database,
-):
-    result = await template.update_template(db, template_id, data)
-    return QuestionTemplateSchema.model_validate(result)
-
-
-@question_router.delete(
-    "/template/{template_id}",
-    tags=["题目模板"],
-    summary="删除题目模板",
-    description="删除指定的题目模板",
-)
-async def delete_template(
-    template_id: int,
-    db: AsyncSession = Database,
-):
-    await template.delete_template(db, template_id)
-
-
-@question_router.get(
-    "/template",
-    tags=["题目模板"],
-    summary="获取题目模板列表",
-    description="获取题目模板列表（分页）",
-)
-async def list_templates(
-    params: QuestionTemplateSearchSchema = Depends(),
-    db: AsyncSession = Database,
-):
-    templates, total = await template.list_templates(db, params)
-    return SearchResultSchema(
-        data=[QuestionTemplateSchema.model_validate(t) for t in templates],
-        total=total,
-    )
-
-
-@question_router.get(
-    "/template/{template_id}",
-    tags=["题目模板"],
-    summary="获取题目模板详情",
-    response_model=QuestionTemplateSchema,
-)
-async def get_template(
-    template_id: int,
-    db: AsyncSession = Database,
-):
-    result = await template.get_template(db, template_id)
-    return QuestionTemplateSchema.model_validate(result)
-
-
-@question_router.post(
-    "/template/{template_id}/validate",
-    tags=["题目模板"],
-    summary="验证题目模板",
-    description="验证指定的题目模板",
-)
-async def validate_template(
-    template_id: int,
-    db: AsyncSession = Database,
-):
-    result = await template.get_template(db, template_id)
-    if not result:
-        raise HTTPException(status_code=404, detail=f"模板 {template_id} 不存在")
-
-    issues = await template.validate_template(result)
-
-    return {
-        "valid": len(issues) == 0,
-        "issues": issues,
-    }
 
 
 # ======================== 题目管理 ======================== #

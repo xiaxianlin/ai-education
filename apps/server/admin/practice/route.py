@@ -5,12 +5,10 @@ from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
-    SavePracticePromptSchema,
     SavePracticeSchema,
-    SearchPracticePromptSchema,
     SearchPracticeSchema,
 )
-from .services import practice, practice_prompt
+from .services import practice
 
 practice_router = APIRouter(prefix="/practice", tags=["练习管理"])
 
@@ -26,50 +24,6 @@ async def get_practice_parameters(id: int, db: AsyncSession = Database):
 @practice_router.post("/parameters/{id}/", summary="保存练习参数", description="保存指定练习的参数配置信息")
 async def save_practice_parameters(id: int, parameters: list[dict], db: AsyncSession = Database):
     return await practice.save_practice_parameters(db, id, parameters)
-
-
-# ======================== 练习提示词管理 ======================== #
-
-
-@practice_router.get(
-    "/prompt/list",
-    tags=["练习提示词"],
-    summary="列表查询练习提示词关联",
-    description="分页查询练习与 Prompt 的关联关系列表",
-)
-async def list_practice_prompts(params: SearchPracticePromptSchema = Depends(), db: AsyncSession = Database):
-    return await practice_prompt.list_practice_prompts(db, params)
-
-
-@practice_router.get(
-    "/prompt/{id}",
-    tags=["练习提示词"],
-    summary="获取练习提示词关联详情",
-    description="根据 ID 获取练习与 Prompt 关联的详细信息",
-)
-async def get_practice_prompt(id: int, db: AsyncSession = Database):
-    return await practice_prompt.get_practice_prompt(db, id)
-
-
-@practice_router.post(
-    "/prompt", tags=["练习提示词"], summary="创建练习提示词关联", description="创建练习与 Prompt 的关联关系"
-)
-async def create_practice_prompt(params: SavePracticePromptSchema, db: AsyncSession = Database):
-    return await practice_prompt.create_practice_prompt(db, params)
-
-
-@practice_router.put(
-    "/prompt/{id}", tags=["练习提示词"], summary="更新练习提示词关联", description="更新练习与 Prompt 的关联关系信息"
-)
-async def update_practice_prompt(id: int, params: SavePracticePromptSchema, db: AsyncSession = Database):
-    return await practice_prompt.update_practice_prompt(db, id, params)
-
-
-@practice_router.delete(
-    "/prompt/{id}", tags=["练习提示词"], summary="删除练习提示词关联", description="删除练习与 Prompt 的关联关系"
-)
-async def delete_practice_prompt(id: int, db: AsyncSession = Database):
-    return await practice_prompt.delete_practice_prompt(db, id)
 
 
 # ======================== 练习管理 ======================== #

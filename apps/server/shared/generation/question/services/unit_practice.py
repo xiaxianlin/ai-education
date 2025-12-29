@@ -12,10 +12,9 @@ from typing import Any, Dict
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.core.constants import GRADE_NAME_MAP
-from shared.core.database import Knowledge, PracticePrompt
+from shared.core.database import Knowledge, Practice
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from ..schema import QuestionGenerationResult, QuestionGenerationState
 from ..services.prompt import (
@@ -52,23 +51,16 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     count = session.parameters.get("generate_count", 0)
     question_types = session.parameters.get("question_types", {})
 
-    # 根据年级、学科去查询关联到的 Prompt 实体（数据查询）
-
-    # 异步查询 Prompt 实体，使用 provided db/grade/subject
-    practice_prompt = await db.scalar(
-        select(PracticePrompt)
-        .where(
-            PracticePrompt.subject == subject,
-            PracticePrompt.grade == grade,
-            PracticePrompt.practice_slug == "unit_practice",
-        )
-        .options(joinedload(PracticePrompt.prompt))
-    )
-
-    if not practice_prompt or not practice_prompt.prompt.template_content:
+    # 从 Practice 获取提示词模板
+    practice = state.get("practice")
+    if not practice:
+        # 如果 state 中没有 practice，从 session 查询
+        practice = await db.scalar(select(Practice).where(Practice.id == session.practice_id))
+    
+    if not practice or not practice.prompt:
         raise ValueError("单元练习提示词不存在")
 
-    prompt = ChatPromptTemplate.from_template(practice_prompt.prompt.template_content)
+    prompt = ChatPromptTemplate.from_template(practice.prompt)
 
     # 构建 JSON 输出解析器
     prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)

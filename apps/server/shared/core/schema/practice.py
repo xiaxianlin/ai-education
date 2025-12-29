@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
-    from .prompt import PromptSchema
     from .question import QuestionSchema
 
 
@@ -37,6 +36,9 @@ class PracticeSchema(BaseModel):
 
     # 运行时配置参数
     parameters: list = Field(default_factory=list, description="参数列表")
+
+    # 提示词
+    prompt: Optional[str] = None
 
     # 元数据
     sort_order: int = 0
@@ -117,49 +119,6 @@ class TemplateVariableSchema(BaseModel):
     default_value: Optional[Any] = None
     options: Optional[List[Dict[str, Any]]] = None
     options_source: Optional[str] = None  # units/textbooks/knowledge_points/custom
-
-
-class PracticePromptSchema(BaseModel):
-    """练习提示词配置 Schema"""
-
-    id: int
-    name: Optional[str] = None
-    code: Optional[str] = None
-    description: Optional[str] = None
-
-    # 场景分类
-    scene_type: Optional[str] = None
-    specialty_type: Optional[str] = None
-
-    # 适用范围
-    subject: str
-    stages: List[str] = Field(default_factory=list)
-    grades: List[int] = Field(default_factory=list)
-    semesters: Optional[List[str]] = None
-
-    # 关联
-    practice_id: Optional[int] = None
-    practice_slug: Optional[str] = None
-    prompt_id: Optional[int] = None
-    prompt_slug: Optional[str] = None
-
-    # 配置
-    question_type_configs: List[Dict[str, Any]] = Field(default_factory=list)
-    difficulty_config: Optional[Dict[str, Any]] = None
-    question_count_config: Optional[Dict[str, Any]] = None
-    template_variables: Optional[List[Dict[str, Any]]] = None
-
-    # 元数据
-    sort_order: int = 0
-    is_active: bool = True
-    create_time: int
-    update_time: int
-
-    # 关联对象
-    practice: Optional["PracticeSchema"] = None
-    prompt: Optional["PromptSchema"] = None
-
-    model_config = {"from_attributes": True}
 
 
 class PracticeSessionSchema(BaseModel):
@@ -266,7 +225,6 @@ __all__ = [
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
-    "PracticePromptSchema",
     "PracticeSessionSchema",
     "PracticeSessionAnswerSchema",
     "PracticeSessionReportSchema",

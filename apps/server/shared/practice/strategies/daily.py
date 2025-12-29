@@ -9,12 +9,10 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.constants import GRADE_NAME_MAP
-from shared.core.database import PracticePrompt
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
-
-from shared.generation.question.schema import QuestionGenerationResult, QuestionGenerationState
+from shared.generation.question.schema import (
+    QuestionGenerationResult,
+    QuestionGenerationState,
+)
 from shared.generation.question.services.prompt import (
     build_avoid_duplicate_prompt,
     build_knowledges_prompt,
@@ -22,6 +20,8 @@ from shared.generation.question.services.prompt import (
     build_units_prompt,
 )
 from shared.generation.question.services.question import get_question_distribution
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from .base import BasePracticeStrategy
 from .registry import register_strategy
 
@@ -54,21 +54,12 @@ class DailyPracticeStrategy(BasePracticeStrategy):
         count = session.parameters.get("generate_count", 15)
         question_types = state.get("question_types", {})
 
-        # 查询 Prompt 模板
-        practice_prompt = await db.scalar(
-            select(PracticePrompt)
-            .where(
-                PracticePrompt.subject == subject,
-                PracticePrompt.grade == grade,
-                PracticePrompt.practice_slug == "daily_practice",
-            )
-            .options(joinedload(PracticePrompt.prompt))
-        )
-
-        if not practice_prompt or not practice_prompt.prompt.template_content:
+        # 从 Practice 获取提示词模板
+        practice = state.get("practice")
+        if not practice or not practice.prompt:
             raise ValueError("日常练习提示词不存在")
 
-        prompt = ChatPromptTemplate.from_template(practice_prompt.prompt.template_content)
+        prompt = ChatPromptTemplate.from_template(practice.prompt)
 
         # JSON 输出解析器
         prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)

@@ -123,43 +123,6 @@ CREATE TABLE IF NOT EXISTS `ah_question_v2` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='题目表V2';
 
 
--- ----------------------------
--- Table: ah_question_template (题目模板表)
--- ----------------------------
-CREATE TABLE IF NOT EXISTS `ah_question_template` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  
-  -- 关联
-  `question_type_id` int NOT NULL COMMENT '题型ID',
-  
-  -- 模板内容
-  `name` varchar(100) NOT NULL COMMENT '模板名称',
-  `description` text COMMENT '模板描述',
-  
-  -- 生成配置
-  `variables` json COMMENT '可变参数定义',
-  `constraints` json COMMENT '约束条件',
-  `examples` json COMMENT '示例题目',
-  
-  -- AI配置
-  `system_prompt` text COMMENT 'System Prompt',
-  `user_prompt_template` text COMMENT 'User Prompt模板',
-  `output_schema` json COMMENT '输出Schema',
-  
-  -- 质量控制
-  `quality_rules` json COMMENT '质量检查规则',
-  
-  -- 元数据
-  `is_active` tinyint(1) DEFAULT 1 COMMENT '是否启用',
-  `create_time` bigint NOT NULL COMMENT '创建时间',
-  `update_time` bigint NOT NULL COMMENT '更新时间',
-  
-  PRIMARY KEY (`id`),
-  KEY `idx_question_type_id` (`question_type_id`),
-  KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='题目模板表';
-
-
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
@@ -171,6 +134,5 @@ SELECT
   TABLE_COMMENT 
 FROM information_schema.TABLES 
 WHERE TABLE_SCHEMA = DATABASE() 
-  AND TABLE_NAME LIKE 'ah_question%v2' 
-  OR TABLE_NAME = 'ah_question_template';
+  AND TABLE_NAME LIKE 'ah_question%v2';
 

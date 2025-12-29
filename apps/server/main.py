@@ -6,7 +6,6 @@ import dotenv
 import uvicorn
 from admin import admin_app
 from admin.auth import init_super_manager
-from admin.practice import init_system_practices
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -33,8 +32,6 @@ async def lifespan(_: FastAPI):
     # 初始化超级管理员
     if envs.ADMIN_USERNAME and envs.ADMIN_PASSWORD:
         await init_super_manager()
-    # 初始化系统练习
-    await init_system_practices()
 
     yield
 

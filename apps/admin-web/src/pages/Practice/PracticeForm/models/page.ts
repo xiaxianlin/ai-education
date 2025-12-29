@@ -48,6 +48,7 @@ const useContainer = () => {
             difficulty_config: res.difficulty_config ? JSON.stringify(res.difficulty_config, null, 2) : undefined,
             ability_config: res.ability_config ? JSON.stringify(res.ability_config, null, 2) : undefined,
             feedback_config: res.feedback_config ? JSON.stringify(res.feedback_config, null, 2) : undefined,
+            prompt: res.prompt,
             sort_order: res.sort_order,
             is_active: res.is_active,
           });
@@ -83,6 +84,7 @@ const useContainer = () => {
         difficulty_config: values.difficulty_config ? JSON.parse(values.difficulty_config) : undefined,
         ability_config: values.ability_config ? JSON.parse(values.ability_config) : undefined,
         feedback_config: values.feedback_config ? JSON.parse(values.feedback_config) : undefined,
+        prompt: values.prompt,
         sort_order: values.sort_order ?? 0,
         is_active: values.is_active ?? true,
       };

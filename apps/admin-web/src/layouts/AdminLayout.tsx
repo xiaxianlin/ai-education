@@ -6,7 +6,6 @@ import {
   ClusterOutlined,
   DashboardOutlined,
   EditOutlined,
-  FileTextOutlined,
   LogoutOutlined,
   ProfileOutlined,
   QuestionCircleOutlined,
@@ -54,7 +53,6 @@ const routes = {
       children: [
         { path: '/question', name: '题目管理' },
         { path: '/question_type', name: '题型管理' },
-        { path: '/question_template', name: '题型模板' },
       ],
     },
 
@@ -62,17 +60,7 @@ const routes = {
       key: 'practice',
       name: '练习',
       icon: <EditOutlined />,
-      children: [
-        { path: '/practice', name: '练习管理' },
-        { path: '/practice/prompt', name: '关联提示词' },
-      ],
-    },
-
-    {
-      key: 'prompt',
-      name: '提示词',
-      icon: <FileTextOutlined />,
-      children: [{ path: '/prompt', name: '提示词管理' }],
+      children: [{ path: '/practice', name: '练习管理' }],
     },
   ],
 };
@@ -95,7 +83,6 @@ export function AdminLayout() {
       menu={{ defaultOpenAll: true, ignoreFlatMenu: true }}
       menuProps={{ selectedKeys: [pathname] }}
       menuItemRender={(item, dom) => {
-        console.log(item);
         return (
           <div
             onClick={() => {

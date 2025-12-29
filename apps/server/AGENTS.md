@@ -113,9 +113,7 @@
 | TeacherBook           | ah_teacher_book            | 教师参考书     |
 | Question              | ah_question                | 题目           |
 | QuestionType          | ah_question_type           | 题型           |
-| Prompt                | ah_prompt                  | Prompt 模板    |
 | Practice              | ah_practice                | 练习类型       |
-| PracticePrompt        | ah_practice_prompt         | 练习Prompt关联 |
 | PracticeSession       | ah_practice_session        | 练习会话       |
 | PracticeSessionAnswer | ah_practice_session_answer | 答题记录       |
 | PracticeSessionReport | ah_practice_session_report | 练习报告       |

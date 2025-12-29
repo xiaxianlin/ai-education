@@ -274,27 +274,6 @@ declare global {
     order?: number; // 题目顺序（练习会话中）
   }
 
-  // ============ 题目模板 ============
-
-  /** 题目模板（对应 QuestionTemplateSchema） */
-  interface QuestionTemplate {
-    id: number;
-    name: string;
-    question_type_id: number;
-    description?: string;
-    system_prompt?: string;
-    user_prompt_template?: string;
-    variables?: Record<string, unknown>;
-    constraints?: Record<string, unknown>;
-    examples?: Array<Record<string, unknown>>;
-    output_schema?: Record<string, unknown>;
-    quality_rules?: Record<string, unknown>;
-    is_active: boolean;
-    create_time: number;
-    update_time: number;
-    question_type?: QuestionType;
-  }
-
   /**
    * 学生信息（对应 StudentSchema）
    */
@@ -329,6 +308,7 @@ declare global {
     difficulty_config?: DifficultyConfig;
     ability_config?: AbilityConfig;
     feedback_config?: PracticeFeedbackConfig;
+    prompt?: string;
     // 运行时参数
     parameters?: PracticeParameter[];
     // 元数据
@@ -381,43 +361,6 @@ declare global {
       enable_progress?: boolean;
     };
     encouragement_messages?: string[];
-  }
-
-  /**
-   * 练习提示词配置实体
-   */
-  interface PracticePrompt {
-    id: number;
-    // 基础信息
-    name?: string;
-    code?: string;
-    description?: string;
-    // 场景分类
-    scene_type?: SceneType;
-    specialty_type?: SpecialtyType;
-    // 适用范围
-    subject: string;
-    stages?: Stage[];
-    grades?: number[];
-    semesters?: string[];
-    // 关联
-    practice_id?: number;
-    practice_slug?: string;
-    prompt_id?: number;
-    prompt_slug?: string;
-    // 配置
-    question_type_configs?: QuestionTypeConfigItem[];
-    difficulty_config?: DifficultyConfig;
-    question_count_config?: QuestionCountConfig;
-    template_variables?: TemplateVariable[];
-    // 元数据
-    sort_order?: number;
-    is_active?: boolean;
-    create_time: number;
-    update_time: number;
-    // 关联对象
-    practice?: Practice;
-    prompt?: Prompt;
   }
 
   /**

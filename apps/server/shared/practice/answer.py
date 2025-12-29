@@ -6,9 +6,8 @@ from loguru import logger
 from shared.core.database import (
     PracticeSession,
     PracticeSessionAnswer,
-    Prompt,
+    Question,
 )
-from shared.core.database import Question
 from shared.core.schema import PracticeSessionAnswerSchema
 from shared.provider import get_provider
 from shared.utils.prompt import build_question_prompt
@@ -16,6 +15,7 @@ from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .prompt import ANALYZE_QUESTION_ANSWER_PROMPT
 from .schema import AnswerAnalysisSchema, SubmitAnswerSchema
 
 
@@ -36,13 +36,7 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
     if is_correct:
         return is_correct, None
 
-    prompt = await db.scalar(select(Prompt).where(Prompt.slug == "analyze_question_answer"))
-    prompt_template = ChatMessagePromptTemplate.from_messages(
-        [
-            ("system", prompt.template_content),
-            ("user", answer_content),
-        ]
-    )
+    prompt_template = ChatMessagePromptTemplate.from_messages(ANALYZE_QUESTION_ANSWER_PROMPT)
     prompt_parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
     prompt_input = {"question_content": build_question_prompt(question)}
 
@@ -55,9 +49,7 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
 async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerSchema):
     """提交答题答案"""
     # 1. 查询练习会话
-    session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == params.session_id)
-    )
+    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == params.session_id))
     if not session:
         raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
@@ -77,14 +69,10 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
         )
     )
     if not answer_record:
-        raise ValueError(
-            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
 
     if answer_record.status != 0:
-        raise ValueError(
-            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
 
     # 4. 检查答案并生成分析
     is_correct, analysis = await _analyze_answer(db, question, params.answer)

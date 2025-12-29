@@ -1,3 +1,3 @@
-from . import question, question_type, template
+from . import question, question_type
 
-__all__ = ["question", "question_type", "template"]
+__all__ = ["question", "question_type"]

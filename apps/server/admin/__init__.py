@@ -11,7 +11,6 @@ from shared.core.middleware import WrappedResponse
 from .auth import admin_route_filter
 from .auth.route import auth_router
 from .practice.route import practice_router
-from .prompt.route import prompt_router
 from .question.route import question_router
 from .student.route import student_router
 from .teacher_book.route import teacher_book_router
@@ -35,6 +34,5 @@ admin_app.include_router(student_router)
 admin_app.include_router(textbook_router)
 admin_app.include_router(teacher_book_router)
 admin_app.include_router(practice_router)
-admin_app.include_router(prompt_router)
 
 __all__ = ["admin_app"]

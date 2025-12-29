@@ -20,20 +20,6 @@ const useContainer = () => {
     },
   );
 
-  // 获取关联的练习提示词配置列表
-  const { data: prompts, loading: loadingPrompts } = useRequest(
-    async () => {
-      if (id) {
-        const result = await PracticeApi.listPracticePrompts({ practice_id: Number(id) });
-        return result?.data || [];
-      }
-      return [];
-    },
-    {
-      refreshDeps: [id],
-    },
-  );
-
   const handleEdit = () => {
     navigate(`/practice/form/${id}`);
   };
@@ -46,26 +32,14 @@ const useContainer = () => {
     navigate(`/practice/config/${id}`);
   };
 
-  const handleViewPrompt = (promptId: number) => {
-    navigate(`/practice/prompt/detail/${promptId}`);
-  };
-
-  const handleAddPrompt = () => {
-    navigate(`/practice/prompt/form?practice_id=${id}`);
-  };
-
   return {
     id,
     detail,
     loading,
-    prompts,
-    loadingPrompts,
     navigate,
     handleEdit,
     handleBack,
     handleConfigParams,
-    handleViewPrompt,
-    handleAddPrompt,
   };
 };
 

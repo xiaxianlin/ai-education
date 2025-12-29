@@ -122,9 +122,6 @@ export default function MainView() {
       createActionColumn<Practice>(
         (record) => (
           <>
-            <Button type="link" size="small" onClick={() => navigate(`/practice/config?id=${record.id}`)}>
-              参数
-            </Button>
             <Button type="link" size="small" onClick={() => handleDetail(record.id)}>
               详情
             </Button>

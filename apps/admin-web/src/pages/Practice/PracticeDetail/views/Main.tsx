@@ -1,10 +1,8 @@
 import { GRADES } from '@/constants/course';
 import {
   SCENE_TYPE_LABELS,
-  SPECIALTY_TYPE_LABELS,
   STAGE_LABELS,
   SceneType,
-  SpecialtyType,
   Stage,
 } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
@@ -75,61 +73,13 @@ const parameterColumns: ColumnsType<PracticeParameter> = [
   },
 ];
 
-// 关联提示词配置 Table 列定义
-const promptColumns: ColumnsType<PracticePrompt> = [
-  {
-    title: '名称',
-    dataIndex: 'name',
-    key: 'name',
-    width: 150,
-    render: (name: string, record) => name || record.code || '-',
-  },
-  {
-    title: '编码',
-    dataIndex: 'code',
-    key: 'code',
-    width: 120,
-  },
-  {
-    title: '场景类型',
-    dataIndex: 'scene_type',
-    key: 'scene_type',
-    width: 100,
-    render: (st: SceneType) => (st ? SCENE_TYPE_LABELS[st] : '-'),
-  },
-  {
-    title: '专项类型',
-    dataIndex: 'specialty_type',
-    key: 'specialty_type',
-    width: 100,
-    render: (st: SpecialtyType) => (st ? SPECIALTY_TYPE_LABELS[st] : '-'),
-  },
-  {
-    title: '科目',
-    dataIndex: 'subject',
-    key: 'subject',
-    width: 80,
-  },
-  {
-    title: '状态',
-    dataIndex: 'is_active',
-    key: 'is_active',
-    width: 80,
-    render: (active: boolean) => <Tag color={active ? 'green' : 'default'}>{active ? '启用' : '禁用'}</Tag>,
-  },
-];
-
 export default function MainView() {
   const {
     detail,
     loading,
-    prompts,
-    loadingPrompts,
     handleEdit,
     handleBack,
     handleConfigParams,
-    handleViewPrompt,
-    handleAddPrompt,
   } = usePracticeDetailModel();
 
   // 渲染题量配置
@@ -289,6 +239,15 @@ export default function MainView() {
                 </Descriptions.Item>
                 <Descriptions.Item label="能力配置">{renderAbilityConfig(detail.ability_config)}</Descriptions.Item>
                 <Descriptions.Item label="反馈配置">{renderFeedbackConfig(detail.feedback_config)}</Descriptions.Item>
+                <Descriptions.Item label="提示词模板" span={1}>
+                  {detail.prompt ? (
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: '300px', overflow: 'auto' }}>
+                      {detail.prompt}
+                    </pre>
+                  ) : (
+                    '-'
+                  )}
+                </Descriptions.Item>
               </Descriptions>
             </Card>
 
@@ -315,41 +274,6 @@ export default function MainView() {
               )}
             </Card>
 
-            {/* 关联提示词配置 */}
-            <Card
-              title="关联提示词配置"
-              size="small"
-              loading={loadingPrompts}
-              extra={
-                <Button size="small" type="primary" onClick={handleAddPrompt}>
-                  新增配置
-                </Button>
-              }
-            >
-              {prompts && prompts.length > 0 ? (
-                <Table
-                  dataSource={prompts}
-                  columns={[
-                    ...promptColumns,
-                    {
-                      title: '操作',
-                      key: 'action',
-                      width: 80,
-                      render: (_, record) => (
-                        <Button type="link" size="small" onClick={() => handleViewPrompt(record.id)}>
-                          查看
-                        </Button>
-                      ),
-                    },
-                  ]}
-                  rowKey="id"
-                  size="small"
-                  pagination={false}
-                />
-              ) : (
-                <Empty description="暂无关联提示词配置" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-              )}
-            </Card>
           </Flex>
         )}
       </Card>

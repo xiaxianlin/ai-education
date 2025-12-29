@@ -2,45 +2,6 @@ import { apiClient } from '@/lib/api';
 
 export const PracticeApi = {
   /**
-   * 获取练习提示词关联列表
-   * GET /api/admin/practice/prompt/list
-   */
-  async listPracticePrompts(params?: SearchPracticePromptRequest) {
-    return apiClient.get<SearchResponse<PracticePrompt>>('/practice/prompt/list', params);
-  },
-
-  /**
-   * 获取练习提示词关联详情
-   * GET /api/admin/practice/prompt/{id}
-   */
-  async getPracticePromptDetail(id: number): Promise<PracticePrompt> {
-    return apiClient.get<PracticePrompt>(`/practice/prompt/${id}`);
-  },
-
-  /**
-   * 创建练习提示词关联
-   * POST /api/admin/practice/prompt
-   */
-  async createPracticePrompt(data: SavePracticePromptRequest) {
-    return apiClient.post<number>('/practice/prompt', data);
-  },
-
-  /**
-   * 更新练习提示词关联
-   * PUT /api/admin/practice/prompt/{id}
-   */
-  async updatePracticePrompt(id: number, data: SavePracticePromptRequest) {
-    return apiClient.put(`/practice/prompt/${id}`, data);
-  },
-
-  /**
-   * 删除练习提示词关联
-   * DELETE /api/admin/practice/prompt/{id}
-   */
-  async deletePracticePrompt(id: number) {
-    return apiClient.delete(`/practice/prompt/${id}`);
-  },
-  /**
    * 获取练习列表
    * GET /api/admin/practice/list
    */

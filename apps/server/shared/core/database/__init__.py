@@ -25,13 +25,9 @@ from .auth import Manager
 # 教材模块
 from .textbook import Textbook, Unit, Knowledge, TeacherBook
 
-# 提示词模块
-from .prompt import Prompt
-
 # 练习模块
 from .practice import (
     Practice,
-    PracticePrompt,
     PracticeSession,
     PracticeSessionAnswer,
     PracticeSessionReport,
@@ -41,7 +37,7 @@ from .practice import (
 from .student import Student, StudentTextbook, StudentPractice
 
 # 题目模块
-from .question import QuestionType, Question, QuestionTemplate
+from .question import QuestionType, Question
 
 
 __all__ = [
@@ -63,11 +59,8 @@ __all__ = [
     "Unit",
     "Knowledge",
     "TeacherBook",
-    # 提示词
-    "Prompt",
     # 练习
     "Practice",
-    "PracticePrompt",
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",
@@ -78,5 +71,4 @@ __all__ = [
     # 题目
     "QuestionType",
     "Question",
-    "QuestionTemplate",
 ]

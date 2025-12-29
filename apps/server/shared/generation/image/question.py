@@ -9,10 +9,11 @@ import requests
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import END, StateGraph
 from loguru import logger
-from shared.core.database import AsyncSession, Prompt
+from shared.core.database import AsyncSession
 from shared.provider import BaseProvider, get_provider
 from shared.utils import oss
-from sqlalchemy import select
+
+from .prompt import OPTIMIZE_IMAGE_PROMPT
 
 
 class QuestionImageGenerationState(TypedDict, total=False):
@@ -31,8 +32,6 @@ class QuestionImageGenerationState(TypedDict, total=False):
     provider: NotRequired[BaseProvider]
     # 是否优化
     optimize: NotRequired[bool]
-    # 优化提示词
-    optimize_prompt: NotRequired[str]
     # 生成的图片 URL（临时 URL）
     image_url: NotRequired[str]
 
@@ -57,16 +56,9 @@ async def entry_node(state: QuestionImageGenerationState):
         f"size={state.get('width')}x{state.get('height')}"
     )
 
-    optimize_prompt = None
-    if optimize:
-        prompt = await db.scalar(select(Prompt).where(Prompt.slug == "image_prompt_optimize"))
-        if prompt:
-            optimize_prompt = prompt.template_content
-
     return {
         "optimize": optimize,
         "provider": get_provider(),
-        "optimize_prompt": optimize_prompt,
     }
 
 
@@ -80,13 +72,11 @@ async def optimize_prompt_node(state: QuestionImageGenerationState):
 
     prompt = state["prompt"]
     provider = state["provider"]
-    optimize_prompt = state["optimize_prompt"]
-
     logger.info(f"开始优化提示词，原始提示词: {prompt}")
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", optimize_prompt),
+            ("system", OPTIMIZE_IMAGE_PROMPT),
             ("user", prompt),
         ]
     )

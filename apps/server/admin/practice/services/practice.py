@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from admin.data.practice import INIT_SYSTEM_PRACTICES
-from shared.core.database import AsyncSessionLocal, Practice, PracticePrompt
+from shared.core.database import Practice
 from shared.core.schema import (
     PracticeParameterSchema,
     PracticeSchema,
@@ -13,35 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..schema import SavePracticeSchema, SearchPracticeSchema
 
 
-async def init_system_practices():
-    """初始化系统练习"""
-
-    async with AsyncSessionLocal() as db:
-        for practice_data in INIT_SYSTEM_PRACTICES:
-            # 检查是否已存在
-            practice = await db.scalar(
-                select(Practice).where(Practice.slug == practice_data["slug"])
-            )
-            if not practice:
-                practice = Practice(
-                    name=practice_data["name"],
-                    slug=practice_data["slug"],
-                    icon=practice_data.get("icon"),
-                    description=practice_data.get("description"),
-                    type=practice_data["type"],
-                    scene_type=practice_data.get("scene_type"),
-                    subject=practice_data.get("subject"),
-                    stages=practice_data.get("stages", []),
-                    grades=practice_data.get("grades", []),
-                    parameters=practice_data.get("parameters", []),
-                )
-                db.add(practice)
-        await db.commit()
-
-
-async def list_practices(
-    db: AsyncSession, params: SearchPracticeSchema
-) -> SearchResultSchema[PracticeSchema]:
+async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> SearchResultSchema[PracticeSchema]:
     """列表查询练习"""
     query = select(Practice)
 
@@ -105,6 +76,7 @@ async def create_practice(db: AsyncSession, params: SavePracticeSchema) -> int:
         difficulty_config=params.difficulty_config,
         ability_config=params.ability_config,
         feedback_config=params.feedback_config,
+        prompt=params.prompt,
         sort_order=params.sort_order,
         is_active=params.is_active,
         parameters=[],
@@ -122,9 +94,7 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
         raise ValueError("练习不存在")
 
     # 检查标识是否与其他记录冲突
-    existed = await db.scalar(
-        select(Practice).where(Practice.slug == params.slug, Practice.id != id)
-    )
+    existed = await db.scalar(select(Practice).where(Practice.slug == params.slug, Practice.id != id))
     if existed:
         raise ValueError("练习标识已存在")
 
@@ -142,6 +112,7 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.difficulty_config = params.difficulty_config
     practice.ability_config = params.ability_config
     practice.feedback_config = params.feedback_config
+    practice.prompt = params.prompt
     practice.sort_order = params.sort_order
     practice.is_active = params.is_active
 
@@ -157,16 +128,6 @@ async def delete_practice(db: AsyncSession, id: int):
     # 系统练习不允许删除
     if practice.type == "system":
         raise ValueError("系统练习不允许删除")
-
-    # 检查是否有关联的练习提示词（通过 ID 或 slug）
-    practice_prompt = await db.scalar(
-        select(PracticePrompt).where(
-            (PracticePrompt.practice_id == practice.id)
-            | (PracticePrompt.practice_slug == practice.slug)
-        )
-    )
-    if practice_prompt:
-        raise ValueError("练习有关联的练习提示词，无法删除")
 
     await db.execute(delete(Practice).where(Practice.id == id))
     await db.commit()

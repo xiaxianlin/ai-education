@@ -114,40 +114,6 @@ class QuestionSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class QuestionTemplateSchema(BaseModel):
-    """题目模板 Schema - 用于AI批量生成"""
-
-    id: int
-    question_type_id: int
-
-    # 模板内容
-    name: str
-    description: Optional[str] = None
-
-    # 生成配置
-    variables: Optional[dict] = None
-    constraints: Optional[dict] = None
-    examples: Optional[list] = None
-
-    # AI配置
-    system_prompt: Optional[str] = None
-    user_prompt_template: Optional[str] = None
-    output_schema: Optional[dict] = None
-
-    # 质量控制
-    quality_rules: Optional[dict] = None
-
-    # 元数据
-    is_active: bool = True
-    create_time: int
-    update_time: int
-
-    # 关联关系
-    question_type: Optional["QuestionTypeSchema"] = None
-
-    model_config = {"from_attributes": True}
-
-
 # ==================== 题目结构 Schema ====================
 
 
@@ -243,7 +209,6 @@ class FeedbackConfigSchema(BaseModel):
 __all__ = [
     "QuestionTypeSchema",
     "QuestionSchema",
-    "QuestionTemplateSchema",
     "AnswerSchema",
     "SubStemSchema",
     "OptionSchema",

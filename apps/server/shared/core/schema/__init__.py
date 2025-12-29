@@ -5,48 +5,41 @@ Schema 模块
 """
 
 # 通用模块
-from .common import T, ResponseSchema, SearchSchema, SearchResultSchema
-
 # 认证模块
 from .auth import ManagerSchema
-
-# 教材模块
-from .textbook import TextbookSchema, TeacherBookSchema, UnitSchema, KnowledgeSchema
-
-# 提示词模块
-from .prompt import PromptSchema
-
-# 题目模块
-from .question import (
-    QuestionTypeSchema,
-    QuestionSchema,
-    QuestionTemplateSchema,
-    AnswerSchema,
-    SubStemSchema,
-    OptionSchema,
-    ResourceSchema,
-    SubQuestionSchema,
-    StemSchema,
-    FeedbackItemSchema,
-    FeedbackConfigSchema,
-)
+from .common import ResponseSchema, SearchResultSchema, SearchSchema, T
 
 # 练习模块
 from .practice import (
-    PracticeSchema,
     PracticeParameterSchema,
+    PracticeSchema,
+    PracticeSessionAnswerSchema,
+    PracticeSessionDataSchema,
+    PracticeSessionReportSchema,
+    PracticeSessionSchema,
     QuestionTypeConfigItem,
     TemplateVariableSchema,
-    PracticePromptSchema,
-    PracticeSessionSchema,
-    PracticeSessionAnswerSchema,
-    PracticeSessionReportSchema,
-    PracticeSessionDataSchema,
+)
+
+# 题目模块
+from .question import (
+    AnswerSchema,
+    FeedbackConfigSchema,
+    FeedbackItemSchema,
+    OptionSchema,
+    QuestionSchema,
+    QuestionTypeSchema,
+    ResourceSchema,
+    StemSchema,
+    SubQuestionSchema,
+    SubStemSchema,
 )
 
 # 学生模块
-from .student import StudentSchema, StudentTextbookSchema, StudentPracticeSchema
+from .student import StudentPracticeSchema, StudentSchema, StudentTextbookSchema
 
+# 教材模块
+from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
 
 __all__ = [
     # 通用
@@ -61,12 +54,9 @@ __all__ = [
     "TeacherBookSchema",
     "UnitSchema",
     "KnowledgeSchema",
-    # 提示词
-    "PromptSchema",
     # 题目
     "QuestionTypeSchema",
     "QuestionSchema",
-    "QuestionTemplateSchema",
     "AnswerSchema",
     "SubStemSchema",
     "OptionSchema",
@@ -80,7 +70,6 @@ __all__ = [
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
-    "PracticePromptSchema",
     "PracticeSessionSchema",
     "PracticeSessionAnswerSchema",
     "PracticeSessionReportSchema",

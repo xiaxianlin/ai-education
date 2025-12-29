@@ -1,7 +1,7 @@
 """
 题型与题目相关模型
 
-包含 QuestionType、Question、QuestionTemplate
+包含 QuestionType、Question
 """
 
 from typing import TYPE_CHECKING
@@ -143,46 +143,4 @@ class Question(BaseModel):
     )
 
 
-class QuestionTemplate(BaseModel):
-    """题目模板表 - 用于AI批量生成"""
-
-    __tablename__ = "ah_question_template"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    # 关联
-    question_type_id: Mapped[int] = mapped_column(nullable=False, index=True, comment="题型ID")
-
-    # 模板内容
-    name: Mapped[str] = mapped_column(String(100), nullable=False, comment="模板名称")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="模板描述")
-
-    # 生成配置
-    variables: Mapped[dict] = mapped_column(JSON, nullable=True, comment="可变参数定义")
-    constraints: Mapped[dict] = mapped_column(JSON, nullable=True, comment="约束条件")
-    examples: Mapped[list] = mapped_column(JSON, nullable=True, comment="示例题目")
-
-    # AI配置
-    system_prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="System Prompt")
-    user_prompt_template: Mapped[str] = mapped_column(
-        Text, nullable=True, comment="User Prompt模板"
-    )
-    output_schema: Mapped[dict] = mapped_column(JSON, nullable=True, comment="输出Schema")
-
-    # 质量控制
-    quality_rules: Mapped[dict] = mapped_column(JSON, nullable=True, comment="质量检查规则")
-
-    # 元数据
-    is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-    # 关联关系
-    question_type: Mapped["QuestionType"] = relationship(
-        "QuestionType",
-        primaryjoin="foreign(QuestionTemplate.question_type_id) == QuestionType.id",
-        lazy="joined",
-    )
-
-
-__all__ = ["QuestionType", "Question", "QuestionTemplate"]
+__all__ = ["QuestionType", "Question"]
