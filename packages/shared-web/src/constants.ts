@@ -442,3 +442,40 @@ export const getSpecialtyOptions = (subject: string) => {
     value: type,
   }));
 };
+
+export const ABILITY_TYPE_OPTIONS: Record<string, Array<{ label: string; value: string }>> = {
+  语文: [
+    { label: "拼音能力", value: "phonetic" },
+    { label: "识字写字", value: "character" },
+    { label: "词语积累", value: "vocabulary" },
+    { label: "句子运用", value: "sentence" },
+    { label: "阅读理解", value: "reading" },
+    { label: "书面表达", value: "writing" },
+    { label: "口语表达", value: "speaking" },
+  ],
+  数学: [
+    { label: "数感", value: "number_sense" },
+    { label: "运算能力", value: "calculation" },
+    { label: "空间观念", value: "spatial" },
+    { label: "数据分析", value: "data" },
+    { label: "推理能力", value: "reasoning" },
+    { label: "模型思想", value: "modeling" },
+    { label: "应用意识", value: "application" },
+  ],
+  英语: [
+    { label: "听力理解", value: "listening" },
+    { label: "口语表达", value: "speaking" },
+    { label: "阅读理解", value: "reading" },
+    { label: "书面表达", value: "writing" },
+    { label: "词汇知识", value: "vocabulary" },
+    { label: "语法知识", value: "grammar" },
+  ],
+};
+
+export const ABILITY_TYPE_MAP = Object.entries(ABILITY_TYPE_OPTIONS).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key]: value.reduce((acc, { value, label }) => ({ ...acc, [value]: label }), {}),
+  }),
+  {}
+) as Record<string, Record<string, string>>;

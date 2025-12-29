@@ -33,7 +33,7 @@ export function Footer() {
   };
 
   return (
-    <Flex align="center" gap={16} className='absolute top-[-64px] right-0'>
+    <Flex align="center" gap={16}>
       <Button type="primary" icon={<EditOutlined />} onClick={handleEdit} disabled={!student}>
         编辑
       </Button>

@@ -1,7 +1,8 @@
-import { PageHeader, UploadButton } from '@/components';
+import { UploadButton } from '@/components';
 import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
 import { Button, Space, Spin, Tabs } from 'antd';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TextbookKnowledgeModel } from '../models/knowledge';
 import { useTextbookDetailModel } from '../models/page';
 import { TextbookUnitModel } from '../models/unit';
@@ -10,6 +11,7 @@ import { KnowledgeView } from './Knowledge';
 import { UnitView } from './Unit';
 
 export default function MainView() {
+  const navigate = useNavigate();
   const { loading, parsing, uploading, textbook, upload, handleParse, handleDelete } = useTextbookDetailModel();
 
   const spinTip = useMemo(() => {
@@ -21,7 +23,7 @@ export default function MainView() {
     }
   }, [parsing, uploading]);
   return (
-    <PageContainer loading={loading} title={<PageHeader title="教材详情" />}>
+    <PageContainer loading={loading} title="教材详情" header={{ onBack: () => navigate(-1) }}>
       <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <BasicInfo />
         <Tabs

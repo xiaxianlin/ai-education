@@ -28,10 +28,6 @@ const useContainer = () => {
     navigate('/practice');
   };
 
-  const handleConfigParams = () => {
-    navigate(`/practice/config/${id}`);
-  };
-
   return {
     id,
     detail,
@@ -39,7 +35,6 @@ const useContainer = () => {
     navigate,
     handleEdit,
     handleBack,
-    handleConfigParams,
   };
 };
 

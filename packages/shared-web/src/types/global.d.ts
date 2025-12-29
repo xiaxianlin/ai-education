@@ -344,7 +344,7 @@ declare global {
    */
   interface AbilityConfig {
     cognitive_levels?: CognitiveLevel[];
-    distribution?: Record<string, number>;
+    distribution?: { key: string; value: number }[];
   }
 
   /**
@@ -525,4 +525,5 @@ declare global {
   }
 }
 
-export {};
+export { };
+

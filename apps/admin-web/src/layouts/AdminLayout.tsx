@@ -8,7 +8,7 @@ import {
   LogoutOutlined,
   ProfileOutlined,
   QuestionCircleOutlined,
-  UserOutlined
+  UserOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown } from 'antd';
@@ -66,6 +66,7 @@ export function AdminLayout() {
 
   return (
     <ProLayout
+      className="admin-layout"
       logo={logo}
       title="AI 教育"
       layout="mix"

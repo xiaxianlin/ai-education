@@ -4,7 +4,7 @@
 
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
     from .question import QuestionSchema
@@ -32,7 +32,7 @@ class PracticeSchema(BaseModel):
     difficulty_config: Optional[Dict[str, Any]] = None
     ability_config: Optional[Dict[str, Any]] = None
     feedback_config: Optional[Dict[str, Any]] = None
-    parameter_config: Optional[Dict[str, Any]] = Field(default_factory=dict, description="参数配置")
+    parameter_config: Optional[list] = Field(default_factory=list, description="参数配置")
 
     # 提示词
     prompt: Optional[str] = None
@@ -166,6 +166,48 @@ class PracticeSessionDataSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PracticeParameterSchema(BaseModel):
+    """练习参数配置 Schema"""
+
+    key: str = Field(..., description="参数标识")
+    description: str = Field(default="", description="参数描述")
+    required: bool = Field(default=False, description="是否必填")
+    value_type: str = Field(..., description="值类型：string/number/object/array/boolean")
+    value: Optional[Any] = Field(default=None, description="参数值")
+
+    @field_validator("value_type")
+    @classmethod
+    def valid_value_type(cls, v):
+        if v not in ["string", "number", "object", "array", "boolean"]:
+            raise ValueError("值类型只能是 string、number、object、array 或 boolean")
+        return v
+
+    @field_validator("value")
+    @classmethod
+    def valid_value(cls, v, info):
+        """验证 value 格式"""
+        value_type = info.data.get("value_type")
+        if not value_type:
+            return v
+
+        if value_type == "array" and not isinstance(v, list):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是列表")
+
+        if value_type == "object" and not isinstance(v, dict):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是对象")
+
+        if value_type == "number" and not isinstance(v, (int, float)):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是数字")
+
+        if value_type == "string" and not isinstance(v, str):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是字符串")
+
+        if value_type == "boolean" and not isinstance(v, bool):
+            raise ValueError(f"当 value_type 为 {value_type} 时，value 必须是布尔值")
+
+        return v
+
+
 __all__ = [
     "PracticeSchema",
     "QuestionTypeConfigItem",
@@ -174,4 +216,5 @@ __all__ = [
     "PracticeSessionAnswerSchema",
     "PracticeSessionReportSchema",
     "PracticeSessionDataSchema",
+    "PracticeParameterSchema",
 ]

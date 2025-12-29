@@ -11,6 +11,7 @@ from .common import ResponseSchema, SearchResultSchema, SearchSchema, T
 
 # 练习模块
 from .practice import (
+    PracticeParameterSchema,
     PracticeSchema,
     PracticeSessionAnswerSchema,
     PracticeSessionDataSchema,
@@ -66,6 +67,7 @@ __all__ = [
     "FeedbackConfigSchema",
     # 练习
     "PracticeSchema",
+    "PracticeParameterSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
     "PracticeSessionSchema",

@@ -1,15 +1,15 @@
-import { PageHeader } from '@/components';
 import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
 import { GRADES } from '@ai-education/shared-web';
 import { ActionType, PageContainer, ProColumns, ProSkeleton, ProTable } from '@ant-design/pro-components';
 import { Button, Card, Empty, Tag } from 'antd';
 import { useEffect, useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { StudentApi } from '../../api';
 import { usePracticeSessionListModel } from '../models/PageModel';
 ;
 
 export function Main() {
+  const navigate = useNavigate();
   const { student, studentId, studentLoading, studentError, practiceService, practiceId, setPracticeId } =
     usePracticeSessionListModel();
   const tableActionRef = useRef<ActionType>();
@@ -92,7 +92,7 @@ export function Main() {
 
   if (studentLoading) {
     return (
-      <PageContainer title={<PageHeader title="练习会话列表" />}>
+      <PageContainer title="练习会话列表" header={{ onBack: () => navigate(-1) }}>
         <ProSkeleton type="descriptions" />
       </PageContainer>
     );
@@ -100,14 +100,14 @@ export function Main() {
 
   if (studentError || !student) {
     return (
-      <PageContainer title={<PageHeader title="练习会话列表" />}>
+      <PageContainer title="练习会话列表" header={{ onBack: () => navigate(-1) }}>
         <Empty description={studentError ? '加载失败' : '学生不存在'} />
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer title={<PageHeader title={`${student.name} - 练习会话列表`} />}>
+    <PageContainer title={`${student.name} - 练习会话列表`} header={{ onBack: () => navigate(-1) }}>
       <Card
         loading={practicesLoading}
         activeTabKey={practiceId?.toString() || ''}

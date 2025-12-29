@@ -15,16 +15,10 @@ async def list_practices(db: AsyncSession, params: SearchPracticeSchema) -> Sear
     """列表查询练习"""
     query = select(Practice)
 
-    if params.name:
-        query = query.where(Practice.name.like(f"%{params.name}%"))
-    if params.slug:
-        query = query.where(Practice.slug == params.slug)
-    if params.specialty_type:
-        query = query.where(Practice.specialty_type == params.specialty_type)
     if params.subject:
         query = query.where(Practice.subject == params.subject)
-    if params.is_active is not None:
-        query = query.where(Practice.is_active == params.is_active)
+    if params.grade:
+        query = query.where(Practice.grades.contains(params.grade))
 
     # 总数查询
     count_query = select(func.count()).select_from(query.subquery())
@@ -72,7 +66,7 @@ async def create_practice(db: AsyncSession, params: SavePracticeSchema) -> int:
         feedback_config=params.feedback_config,
         prompt=params.prompt,
         is_active=params.is_active,
-        parameter_config={},
+        parameter_config=params.parameter_config,
     )
     db.add(practice)
     await db.commit()
@@ -96,7 +90,7 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.slug = params.slug
     practice.icon = params.icon
     practice.description = params.description
-    practice.specialty_type = params.specialty_type
+    practice.specialty_type = params.specialty_type or None
     practice.subject = params.subject
     practice.stages = params.stages
     practice.grades = params.grades
@@ -106,7 +100,7 @@ async def update_practice(db: AsyncSession, id: int, params: SavePracticeSchema)
     practice.feedback_config = params.feedback_config
     practice.prompt = params.prompt
     practice.is_active = params.is_active
-
+    practice.parameter_config = params.parameter_config
     await db.commit()
 
 

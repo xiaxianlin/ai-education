@@ -35,42 +35,9 @@ const useContainer = () => {
     {
       refreshDeps: [id, cloneId],
       onSuccess: (res) => {
-        if (res) {
-          setSelectedStages((res.stages as Stage[]) || []);
-          
-          // 将能力分布从对象格式转换为数组格式
-          let abilityDistribution = res.ability_config?.distribution;
-          if (abilityDistribution && typeof abilityDistribution === 'object' && !Array.isArray(abilityDistribution)) {
-            abilityDistribution = Object.entries(abilityDistribution).map(([key, value]) => ({
-              key,
-              value,
-            }));
-          }
-          
-          // 克隆模式下，修改名称和标识，添加"副本"后缀
-          const name = isClone ? `${res.name} (副本)` : res.name;
-          const slug = isClone ? `${res.slug}_copy` : res.slug;
-          
-          form.setFieldsValue({
-            name,
-            slug,
-            icon: res.icon,
-            description: res.description,
-            specialty_type: res.specialty_type,
-            subject: res.subject,
-            stages: res.stages,
-            grades: res.grades,
-            question_count_config: res.question_count_config,
-            difficulty_config: res.difficulty_config,
-            ability_config: {
-              ...res.ability_config,
-              distribution: abilityDistribution,
-            },
-            feedback_config: res.feedback_config,
-            prompt: res.prompt,
-            is_active: res.is_active ?? true,
-          });
-        }
+        if (!res) return;
+        setSelectedStages((res.stages as Stage[]) || []);
+        form.setFieldsValue({ ...res });
       },
     },
   );
@@ -88,71 +55,16 @@ const useContainer = () => {
   // 提交表单
   const { run: handleSubmit, loading: submitting } = useRequest(
     async (values: any) => {
-      // 将能力分布从数组格式转换为对象格式
-      let abilityDistribution = values.ability_config?.distribution;
-      if (Array.isArray(abilityDistribution) && abilityDistribution.length > 0) {
-        abilityDistribution = abilityDistribution.reduce((acc: Record<string, number>, item: { key: string; value: number }) => {
-          if (item?.key && item?.value !== undefined) {
-            acc[item.key] = item.value;
-          }
-          return acc;
-        }, {});
-        // 如果转换后为空对象，设为 undefined
-        if (Object.keys(abilityDistribution).length === 0) {
-          abilityDistribution = undefined;
-        }
-      } else {
-        abilityDistribution = undefined;
-      }
-      
-      const payload: any = {
-        name: values.name,
-        slug: values.slug,
-        icon: values.icon,
-        description: values.description,
-        specialty_type: values.specialty_type,
-        subject: values.subject,
-        stages: values.stages,
-        grades: values.grades,
-        question_count_config: values.question_count_config,
-        difficulty_config: values.difficulty_config,
-        ability_config: {
-          ...values.ability_config,
-          distribution: abilityDistribution,
-        },
-        feedback_config: values.feedback_config,
-        prompt: values.prompt,
-        is_active: values.is_active ?? true,
-      };
-
-      // 移除 undefined 字段
-      Object.keys(payload).forEach((key) => {
-        if (payload[key] === undefined) {
-          delete payload[key];
-        }
-      });
-      
-      // 如果能力配置的 distribution 为空，也移除它
-      if (payload.ability_config && !payload.ability_config.distribution) {
-        delete payload.ability_config.distribution;
-      }
-
       // 克隆模式始终创建新记录
       if (isEdit) {
-        await PracticeApi.updatePractice(Number(id!), payload);
+        await PracticeApi.updatePractice(Number(id!), values);
       } else {
-        await PracticeApi.createPractice(payload);
+        await PracticeApi.createPractice(values);
       }
     },
     {
       manual: true,
-      onSuccess: () => {
-        message.success('保存成功');
-        navigate('/practice');
-      },
-      onError: (err: any) => {
-        message.error(err.message || '保存失败');
-      },
+      onSuccess: () => message.success('保存成功'),
     },
   );
 

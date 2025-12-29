@@ -1,7 +1,7 @@
 import { StatusTag } from '@/components';
 import { GRADES } from '@ai-education/shared-web';
 import { ProDescriptions } from '@ant-design/pro-components';
-import { Flex } from 'antd';
+import { Card } from 'antd';
 import { BasicInfoForm } from '../components/BasicInfoForm';
 import { useStudentDetailModel } from '../models/page';
 import { Footer } from './Footer';
@@ -9,9 +9,8 @@ export function BasicInfo() {
   const { student } = useStudentDetailModel();
 
   return (
-    <Flex vertical gap={16} className='relative'>
-      <Footer />
-      <ProDescriptions column={1}>
+    <Card title="基本信息" extra={<Footer />}>
+      <ProDescriptions column={3}>
         <ProDescriptions.Item label="姓名">{(student as any)?.name || ''}</ProDescriptions.Item>
         <ProDescriptions.Item label="手机号">{(student as any)?.phone || ''}</ProDescriptions.Item>
         <ProDescriptions.Item label="年级">
@@ -30,6 +29,6 @@ export function BasicInfo() {
         )}
       </ProDescriptions>
       <BasicInfoForm />
-    </Flex>
+    </Card>
   );
 }

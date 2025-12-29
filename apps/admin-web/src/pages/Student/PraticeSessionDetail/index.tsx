@@ -1,4 +1,3 @@
-import { PageHeader } from '@/components';
 import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
 import { createActionColumn } from '@/hooks';
 import { PracticeApi } from '@/pages/Practice/api';
@@ -157,7 +156,7 @@ export default function PracticeDetailPage() {
   }
 
   return (
-    <PageContainer title={<PageHeader title="练习详情" />}>
+    <PageContainer title="练习详情" header={{ onBack: () => navigate(-1) }}>
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Card title="基本信息">
           <ProDescriptions column={3}>

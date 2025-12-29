@@ -28,9 +28,8 @@ class SavePracticeSchema(BaseModel):
     difficulty_config: Optional[Dict[str, Any]] = Field(None, description="难度配置")
     ability_config: Optional[Dict[str, Any]] = Field(None, description="能力维度配置")
     feedback_config: Optional[Dict[str, Any]] = Field(None, description="反馈配置")
+    parameter_config: Optional[List[Dict[str, Any]]] = Field(None, description="参数配置")
     prompt: Optional[str] = Field(None, description="提示词模板内容")
-
-    # 元数据
     is_active: bool = Field(default=True, description="是否启用")
 
     @field_validator("slug")
@@ -63,10 +62,5 @@ class SavePracticeSchema(BaseModel):
 class SearchPracticeSchema(SearchSchema):
     """搜索练习"""
 
-    name: Optional[str] = None
-    slug: Optional[str] = None
-    specialty_type: Optional[str] = None
     subject: Optional[str] = None
-    is_active: Optional[bool] = None
-
-
+    grade: Optional[int] = None

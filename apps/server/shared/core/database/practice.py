@@ -55,7 +55,7 @@ class Practice(BaseModel):
     difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
     ability_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="能力维度配置")
     feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
-    parameter_config: Mapped[dict] = mapped_column(JSON, default=dict, comment="参数配置")
+    parameter_config: Mapped[list] = mapped_column(JSON, default=list, comment="参数配置")
     prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="提示词模板内容")
 
     # 元数据

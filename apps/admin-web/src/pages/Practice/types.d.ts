@@ -18,6 +18,7 @@ declare global {
     difficulty_config?: DifficultyConfig;
     ability_config?: AbilityConfig;
     feedback_config?: PracticeFeedbackConfig;
+    parameter_config?: PracticeParameter[];
     prompt?: string;
     // 元数据
     sort_order?: number;
@@ -25,10 +26,15 @@ declare global {
   }
 
   interface SearchPracticeRequest extends SearchRequest {
-    name?: string;
-    slug?: string;
-    specialty_type?: SpecialtyType;
     subject?: string;
+    grade?: number;
+  }
+
+  interface PracticeParameter {
+    key: string;
+    description: string;
+    value_type: 'string' | 'number' | 'object' | 'array' | 'boolean';
+    required: boolean;
   }
 }
 

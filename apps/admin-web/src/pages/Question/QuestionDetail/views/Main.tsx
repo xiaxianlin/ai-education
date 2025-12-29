@@ -1,4 +1,4 @@
-import { AudioPlayer, DeleteButton, PageHeader } from '@/components';
+import { AudioPlayer, DeleteButton } from '@/components';
 import { getResourceUrl, GRADES } from '@ai-education/shared-web';
 import { PageContainer, ProCard, ProDescriptions } from '@ant-design/pro-components';
 import { Button, Flex, Image, Tag, Typography } from 'antd';
@@ -33,8 +33,8 @@ export default function MainView() {
 
   return (
     <PageContainer
-      title={<PageHeader title="题目详情" />}
-      header={{ breadcrumb: {} }}
+      title="题目详情"
+      header={{ onBack: () => navigate(-1) }}
       footer={[
         <Button key="edit" type="primary" onClick={() => navigate(`/question/form/${question.id}`)}>
           编辑
