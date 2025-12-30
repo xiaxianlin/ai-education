@@ -9,7 +9,7 @@
 - **UI 组件**: shadcn/ui (基于 Radix UI)
 - **状态管理**: unstated-next + ahooks
 - **路由**: react-router-dom
-- **HTTP 客户端**: Axios
+- **HTTP 客户端**: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 - **样式**: Tailwind CSS
 - **语言**: TypeScript 5
 
@@ -156,7 +156,7 @@ pages/[Feature]/[PageName]/
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
 - API 统一封装在 `src/lib/api.ts` 中的 `studentApi`
 - 新增/修改接口优先在这里集中维护
-- 认证 Token 存储在 `localStorage`，key 为 `_t`
+- 认证 Token 存储在 `localStorage`，key 为 `_token_`（`ApiClient` 默认值）
 - API 响应格式：`{ status: 0, message: "ok", data: T }`，`ApiClient` 会自动提取 `data` 字段
 
 ## 注意事项

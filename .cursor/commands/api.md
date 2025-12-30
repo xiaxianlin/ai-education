@@ -54,7 +54,7 @@ pnpm dev:server
 
 ## 如何与我协作调试 API
 
-- 告诉我你要调的接口路径（例如：`/api/admin/prompt/list`）和请求方式（GET/POST/PATCH/DELETE）
+- 告诉我你要调的接口路径（例如：`/api/admin/textbook/list`）和请求方式（GET/POST/PATCH/DELETE）
 - 告诉我你当前是哪一端：
   - 管理端前端 (`apps/admin-web`)
   - 学生端 Web (`apps/student-web`)

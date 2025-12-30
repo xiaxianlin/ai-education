@@ -40,8 +40,7 @@
 | textbook     | `textbook/route.py`     | `textbook/services/textbook.py`, `unit.py`, `knowledge.py`                         | 教材、单元、知识点管理   |
 | teacher_book | `teacher_book/route.py` | `teacher_book/services/teacher_book.py`                                            | 教师参考书管理           |
 | question     | `question/route.py`     | `question/services/question.py`, `question_type.py`                                | 题目、题型管理           |
-| prompt       | `prompt/route.py`       | `prompt/services/prompt.py`, `prompt_test.py`                                      | Prompt 管理与测试        |
-| practice     | `practice/route.py`     | `practice/services/practice.py`, `practice_prompt.py`                              | 练习类型、练习Prompt管理 |
+| practice     | `practice/route.py`     | `practice/services/practice.py`                                                     | 练习类型管理             |
 | student      | `student/route.py`      | `student/services/student.py`, `textbook.py`, `practice.py`, `practice_session.py` | 学生管理                 |
 | data         | `data/practice.py`      | -                                                                                  | 练习静态数据             |
 
@@ -102,7 +101,7 @@
 
 ## 数据模型
 
-主要数据模型定义在 `shared/core/database.py`：
+主要数据模型定义在 `shared/core/database/` 目录：
 
 | 模型                  | 表名                       | 说明           |
 | --------------------- | -------------------------- | -------------- |

@@ -37,13 +37,6 @@
 - **题目表单**: `pages/Question/Form/` - 题目编辑表单
 - **题型管理**: `pages/Question/Type/` - 题型配置管理（包含AI生成指令）
 
-### Prompt 管理 (Prompt)
-- **Prompt列表**: `pages/Prompt/List/` - Prompt CRUD操作
-- **Prompt表单**: `pages/Prompt/Form/` - Prompt 创建/编辑
-- **Prompt详情**: `pages/Prompt/Detail/` - Prompt 详情与发布
-- **版本列表**: `pages/Prompt/VersionList/` - Prompt 版本历史
-- **Prompt测试**: `pages/Prompt/Test/` - Prompt 模板测试与参数调试
-
 ### 练习管理 (Practice)
 - **练习列表**: `pages/Practice/List/` - 练习类型管理
 - **练习配置**: `pages/Practice/Config/` - 练习参数配置（JSON编辑）
@@ -126,9 +119,9 @@ pages/[Feature]/[PageName]/
 ### API 调用
 - Web 端请求通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）
 - 基础 API 客户端：`src/lib/api.ts` 中的 `apiClient`（基于 `ApiClient`）和 `CommonApi`（通用接口如 `check`、`getConfigs`）
-- 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi`、`QuestionApi`、`TeacherBookApi`、`PromptApi`、`AuthApi`）
+- 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `TextbookApi`、`StudentApi`、`PracticeApi`、`QuestionApi`、`TeacherBookApi`、`AuthApi`）
 - 新增/修改接口优先在对应模块的 `api.ts` 中维护
-- 认证 Token 存储在 `localStorage`，key 为 `token`
+- 认证 Token 存储在 `localStorage`，key 为 `_token_`（`ApiClient` 默认值）
 - API 响应格式：`{ status: 0, message: "ok", data: T }`，`ApiClient` 会自动提取 `data` 字段
 
 ## 注意事项

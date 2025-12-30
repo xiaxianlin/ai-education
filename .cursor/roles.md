@@ -34,8 +34,8 @@
 - **框架**: React 18
 - **构建工具**: Rsbuild
 - **UI 库**: Ant Design 5 + Ant Design Pro Components
-- **状态管理**: ahooks
-- **HTTP 客户端**: Axios
+- **状态管理**: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助）
+- **HTTP 客户端**: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 - **样式**: Less + Tailwind CSS
 - **语言**: TypeScript 5
 
@@ -45,7 +45,7 @@
 - **UI 组件**: shadcn/ui (基于 Radix UI)
 - **状态管理**: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
 - **路由**: react-router-dom
-- **HTTP 客户端**: Axios
+- **HTTP 客户端**: Axios（封装于 `@ai-education/shared-web` 的 `ApiClient`）
 - **样式**: Tailwind CSS
 - **语言**: TypeScript 5
 
@@ -365,7 +365,7 @@ ai-education/
 │   │       └── app/         # 应用配置（路由等）
 │   ├── server/              # 服务端（单体）
 │   │   ├── admin/           # 管理端模块
-│   │   │   ├── routes/      # 路由层（auth, manager, textbook, unit, knowledge, question, question_type, student, practice, config, prompt, teacher_book）
+│   │   │   ├── routes/      # 路由层（auth, manager, textbook, unit, knowledge, question, question_type, student, practice, teacher_book）
 │   │   │   └── services/    # 服务层
 │   │   ├── student/         # 学生端模块
 │   │   │   ├── routes/      # 路由层（auth, profile, textbook, practice）

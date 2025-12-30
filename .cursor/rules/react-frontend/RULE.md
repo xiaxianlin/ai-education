@@ -144,14 +144,14 @@ export const usePageNameHook = (params) => {
 **API 客户端约定**：
 - **admin-web**：
   - 基础 API 客户端：`apps/admin-web/src/lib/api.ts` 中的 `apiClient`（基于 `ApiClient`）和 `CommonApi`（通用接口如 `check`、`getConfigs`）
-  - 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `StudentApi`、`PracticeApi`、`TextbookApi`、`QuestionApi`、`TeacherBookApi`、`PromptApi`、`AuthApi`）
+  - 业务模块 API：按模块拆分到各业务目录下的 `api.ts`（如 `StudentApi`、`PracticeApi`、`TextbookApi`、`QuestionApi`、`TeacherBookApi`、`AuthApi`）
   - 新增/修改接口优先在对应模块的 `api.ts` 中维护
-  - 认证 Token 存储在 `localStorage`，key 为 `token`
+  - 认证 Token 存储在 `localStorage`，key 为 `_token_`（`ApiClient` 默认值）
   - 认证错误（status === 401）会自动跳转到登录页
 - **student-web**：
   - API 统一封装在 `apps/student-web/src/lib/api.ts` 中的 `studentApi`
   - 新增/修改接口优先在这里集中维护
-  - 认证 Token 存储在 `localStorage`，key 为 `_t`
+  - 认证 Token 存储在 `localStorage`，key 为 `_token_`（`ApiClient` 默认值）
   - 认证错误（status === 401）会自动跳转到登录页
 
 ```typescript

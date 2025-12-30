@@ -123,8 +123,8 @@ if not resource:
 - Token 通过请求头 `x-access-token` 传递
 - 管理端和学生端使用不同的认证中间件
 - Token 存储位置：
-  - 管理端（admin-web）: `localStorage.getItem('token')`
-  - 学生端（student-web）: `localStorage.getItem('_t')`
+  - 管理端（admin-web）: `localStorage.getItem('_token_')`（`ApiClient` 默认值）
+  - 学生端（student-web）: `localStorage.getItem('_token_')`（`ApiClient` 默认值）
   - 移动端（student-app）: `SharedPreferences`，key 为 `_t`
 
 ```python
