@@ -124,7 +124,7 @@ student = await db.scalar(
 # Eager loading - 使用 joinedload（推荐用于多对一）
 question = await db.scalar(
     select(Question)
-    .options(joinedload(Question.textbook))
+    .options(joinedload(Question.question_type))
     .where(Question.id == question_id)
 )
 
