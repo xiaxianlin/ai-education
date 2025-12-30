@@ -244,8 +244,6 @@ declare global {
     subject: string;
     grade: number;
     stage: Stage;
-    textbook_id?: number;
-    unit_id?: number;
     stem: Stem;
     options?: QuestionOption[];
     blanks?: Array<Record<string, unknown>>;
@@ -266,8 +264,6 @@ declare global {
     update_time: number;
     // 关联关系
     question_type?: QuestionType;
-    textbook?: Textbook;
-    unit?: Unit;
     // 前端扩展字段
     is_correct?: boolean; // 是否答对（答题后）
     order?: number; // 题目顺序（练习会话中）

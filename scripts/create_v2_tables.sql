@@ -74,10 +74,6 @@ CREATE TABLE IF NOT EXISTS `ah_question_v2` (
   `grade` int NOT NULL COMMENT '年级 1-12',
   `stage` varchar(20) NOT NULL COMMENT '学段',
   
-  -- 教材关联
-  `textbook_id` int COMMENT '教材ID',
-  `unit_id` int COMMENT '单元ID',
-  
   -- 题目内容
   `stem` json NOT NULL COMMENT '题干（支持富文本、子题等）',
   `options` json COMMENT '选项列表',
@@ -116,7 +112,6 @@ CREATE TABLE IF NOT EXISTS `ah_question_v2` (
   KEY `idx_question_type_id` (`question_type_id`),
   KEY `idx_subject_grade` (`subject`, `grade`),
   KEY `idx_stage` (`stage`),
-  KEY `idx_textbook_unit` (`textbook_id`, `unit_id`),
   KEY `idx_difficulty` (`difficulty`),
   KEY `idx_is_active` (`is_active`),
   KEY `idx_create_time` (`create_time`)

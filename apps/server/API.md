@@ -600,8 +600,6 @@ POST /api/admin/question/
   "subject": "语文",
   "grade": 1,
   "stage": "小学",
-  "textbook_id": 1,
-  "unit_id": 1,
   "stem": {
     "text": "看图选择正确的拼音",
     "rich_text": "<p>看图选择正确的拼音</p>"
@@ -730,8 +728,6 @@ GET /api/admin/question/search
 - `subject`: 科目（可选）
 - `grade`: 年级（可选）
 - `stage`: 学段（可选）
-- `textbook_id`: 教材ID（可选）
-- `unit_id`: 单元ID（可选）
 - `difficulty`: 难度（可选）
 - `cognitive_level`: 认知层次（可选）
 - `source`: 来源（可选）
@@ -752,8 +748,6 @@ GET /api/admin/question/search
       "subject": "语文",
       "grade": 1,
       "stage": "小学",
-      "textbook_id": 1,
-      "unit_id": 1,
       "stem": {
         "text": "看图选择正确的拼音"
       },

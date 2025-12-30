@@ -398,10 +398,6 @@ class QuestionV2 {
   final String subject;
   final int grade;
   final String stage;
-  @JsonKey(name: 'textbook_id')
-  final int? textbookId;
-  @JsonKey(name: 'unit_id')
-  final int? unitId;
   final StemV2 stem;
   final List<QuestionOptionV2>? options;
   final List<Map<String, dynamic>>? blanks;
@@ -436,8 +432,6 @@ class QuestionV2 {
     required this.subject,
     required this.grade,
     required this.stage,
-    this.textbookId,
-    this.unitId,
     required this.stem,
     this.options,
     this.blanks,

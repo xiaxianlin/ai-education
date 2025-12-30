@@ -136,8 +136,6 @@ class QuestionCreateSchema(BaseModel):
     subject: str = Field(..., description="科目")
     grade: int = Field(..., description="年级 1-12")
     stage: str = Field(..., description="学段")
-    textbook_id: Optional[int] = Field(default=None, description="教材ID")
-    unit_id: Optional[int] = Field(default=None, description="单元ID")
     stem: Dict[str, Any] = Field(..., description="题干")
     options: Optional[List[Dict[str, Any]]] = Field(default=None, description="选项列表")
     blanks: Optional[List[Dict[str, Any]]] = Field(default=None, description="填空位置配置")
@@ -204,9 +202,13 @@ class QuestionSearchSchema(SearchSchema):
     subject: Optional[str] = None
     grade: Optional[int] = None
     stage: Optional[str] = None
-    textbook_id: Optional[int] = None
-    unit_id: Optional[int] = None
     difficulty: Optional[str] = None
     cognitive_level: Optional[str] = None
     source: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+class QuestionBatchDeleteSchema(BaseModel):
+    """批量删除题目"""
+
+    ids: List[str] = Field(..., description="题目ID列表", min_length=1)

@@ -4,7 +4,7 @@
 
 import uuid
 from typing import List, Optional, Tuple
-from sqlalchemy import select, and_, func
+from sqlalchemy import delete, select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Question
@@ -85,6 +85,19 @@ async def delete_question(db: AsyncSession, id: str) -> None:
     await db.commit()
 
 
+async def delete_questions_batch(db: AsyncSession, ids: List[str]) -> int:
+    """批量删除题目"""
+    if not ids:
+        return 0
+
+    # 使用 SQLAlchemy 2.0 风格的批量删除
+    stmt = delete(Question).where(Question.id.in_(ids))
+    result = await db.execute(stmt)
+    await db.commit()
+
+    return result.rowcount
+
+
 async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
     """获取题目详情"""
     result = await db.execute(select(Question).where(Question.id == id))
@@ -111,12 +124,6 @@ async def search_questions(
 
     if params.stage:
         conditions.append(Question.stage == params.stage)
-
-    if params.textbook_id:
-        conditions.append(Question.textbook_id == params.textbook_id)
-
-    if params.unit_id:
-        conditions.append(Question.unit_id == params.unit_id)
 
     if params.difficulty:
         conditions.append(Question.difficulty == params.difficulty)

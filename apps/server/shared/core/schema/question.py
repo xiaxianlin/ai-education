@@ -6,8 +6,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from .textbook import TextbookSchema, UnitSchema
-
 
 class QuestionTypeSchema(BaseModel):
     """题型配置 Schema"""
@@ -71,10 +69,6 @@ class QuestionSchema(BaseModel):
     grade: int
     stage: str
 
-    # 教材关联
-    textbook_id: Optional[int] = None
-    unit_id: Optional[int] = None
-
     # 题目内容
     stem: dict
     options: Optional[list] = None
@@ -111,8 +105,6 @@ class QuestionSchema(BaseModel):
 
     # 关联关系
     question_type: Optional["QuestionTypeSchema"] = None
-    textbook: Optional["TextbookSchema"] = None
-    unit: Optional["UnitSchema"] = None
 
     model_config = {"from_attributes": True}
 

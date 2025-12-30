@@ -16,6 +16,7 @@ from shared.core.schema import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.question.schema import (
+    QuestionBatchDeleteSchema,
     QuestionCreateSchema,
     QuestionSearchSchema,
     QuestionTypeCreateSchema,
@@ -212,6 +213,17 @@ async def update_question(id: str, params: QuestionUpdateSchema, db: AsyncSessio
 )
 async def delete_question(id: str, db: AsyncSession = Database):
     await question.delete_question(db, id)
+
+
+@question_router.post(
+    "/batch_delete",
+    tags=["题目管理"],
+    summary="批量删除题目",
+    description="批量删除指定的题目",
+)
+async def batch_delete_questions(params: QuestionBatchDeleteSchema, db: AsyncSession = Database):
+    deleted_count = await question.delete_questions_batch(db, params.ids)
+    return {"message": "批量删除成功", "deleted_count": deleted_count}
 
 
 @question_router.get(

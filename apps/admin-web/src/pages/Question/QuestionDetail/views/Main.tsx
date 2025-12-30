@@ -76,16 +76,6 @@ export default function MainView() {
             <ProDescriptions.Item label="知识点" span={2}>
               {question.knowledge_points?.join(', ') || '-'}
             </ProDescriptions.Item>
-            {question.textbook && (
-              <ProDescriptions.Item label="教材" span={1}>
-                {question.textbook.version}
-              </ProDescriptions.Item>
-            )}
-            {question.unit && (
-              <ProDescriptions.Item label="单元" span={1}>
-                {question.unit.name}
-              </ProDescriptions.Item>
-            )}
           </ProDescriptions>
         </ProCard>
 

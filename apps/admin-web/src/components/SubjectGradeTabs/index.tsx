@@ -1,7 +1,7 @@
 import { useConfigs } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { GRADES } from '@ai-education/shared-web';
-import { Radio, Tabs } from 'antd';
+import { Flex, Radio } from 'antd';
 
 interface SubjectGradeTabsProps {
   subject?: string;
@@ -20,24 +20,25 @@ export function SubjectGradeTabs(props: SubjectGradeTabsProps) {
   const onGradeChange = props.setGrade ?? initialState.setGrade;
 
   return (
-    <>
+    <Flex vertical gap={16} className="mb-4">
+      <Radio.Group
+        size="large"
+        buttonStyle="solid"
+        optionType="button"
+        value={activeSubject}
+        className="large-tab-item"
+        onChange={(e) => onSubjectChange(e.target.value)}
+        options={subjects.map((subject) => ({ value: subject, label: subject }))}
+      />
       <Radio.Group
         block
         size="large"
         buttonStyle="solid"
         optionType="button"
-        style={{ marginBottom: 16 }}
         value={activeGrade}
         onChange={(e) => onGradeChange(e.target.value)}
         options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
       />
-      <Tabs
-        type="card"
-        onChange={onSubjectChange}
-        activeKey={activeSubject}
-        classNames={{ item: 'large-tab-item' }}
-        items={subjects.map((subject) => ({ label: subject, key: subject }))}
-      />
-    </>
+    </Flex>
   );
 }

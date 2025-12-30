@@ -240,8 +240,6 @@ async def convert_question(
         "subject": v1_question.subject,
         "grade": v1_question.grade,
         "stage": stage,
-        "textbook_id": v1_question.textbook_id,
-        "unit_id": v1_question.unit_id,
         "stem": stem,
         "options": options if options else None,
         "blanks": None,

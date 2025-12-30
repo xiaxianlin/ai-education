@@ -142,6 +142,14 @@ export const QuestionApi = {
   },
 
   /**
+   * 批量删除题目
+   * POST /question/batch_delete
+   */
+  async batchDeleteQuestions(ids: string[]) {
+    return apiClient.post<{ message: string; deleted_count: number }>('/question/batch_delete', { ids });
+  },
+
+  /**
    * 生成题目图片
    * POST /question/{id}/generate_image
    */

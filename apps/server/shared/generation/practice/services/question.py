@@ -26,12 +26,25 @@ async def recall_questions(db: AsyncSession, session: PracticeSession):
     if recall_count == 0:
         return []
 
-    # 构建查询：从教材随机选择
+    # 构建查询：根据科目和年级查询
+    subject = session.parameters.get("subject")
+    grade = session.parameters.get("grade")
+    
+    conditions = []
+    if subject:
+        conditions.append(Question.subject == subject)
+    if grade:
+        conditions.append(Question.grade == grade)
+    
+    if not conditions:
+        # 如果没有条件，返回空列表
+        return []
+    
     stmt = (
         select(Question)
-        .where(Question.textbook_id == session.textbook_id)
+        .where(*conditions)
         .order_by(func.random())
-        .limit(session.recall_count)
+        .limit(recall_count)
     )
 
     result = await db.scalars(stmt)
@@ -132,8 +145,6 @@ def handle_llm_questions(
                 options=v2_options if v2_options else None,
                 answer={"type": "exact", "correct_answers": [item.answer]},
                 difficulty=difficulty,
-                textbook_id=textbook.id,
-                unit_id=unit.id if unit else None,
                 knowledge_points=item.knowledge,
                 source="ai",
             )

@@ -18,7 +18,7 @@ from .base import (
 )
 
 if TYPE_CHECKING:
-    from .textbook import Textbook, Unit
+    pass
 
 
 class QuestionType(BaseModel):
@@ -87,10 +87,6 @@ class Question(BaseModel):
     grade: Mapped[int] = mapped_column(nullable=False, comment="年级 1-12")
     stage: Mapped[str] = mapped_column(String(20), nullable=False, comment="学段")
 
-    # 教材关联
-    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
-    unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
-
     # 题目内容
     stem: Mapped[dict] = mapped_column(JSON, nullable=False, comment="题干")
     options: Mapped[list] = mapped_column(JSON, nullable=True, comment="选项列表")
@@ -129,18 +125,6 @@ class Question(BaseModel):
     question_type: Mapped["QuestionType"] = relationship(
         "QuestionType",
         primaryjoin="foreign(Question.question_type_id) == QuestionType.id",
-        lazy="joined",
-    )
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(Question.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
-    unit: Mapped["Unit"] = relationship(
-        "Unit",
-        primaryjoin="foreign(Question.unit_id) == Unit.id",
         lazy="joined",
     )
 

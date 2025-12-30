@@ -21,8 +21,6 @@ declare global {
     subject?: string;
     grade?: number;
     stage?: Stage;
-    textbook_id?: number; // 后端使用 textbook_id
-    unit_id?: number; // 后端使用 unit_id
     difficulty?: Difficulty;
     cognitive_level?: CognitiveLevel; // 后端使用 cognitive_level
     source?: string;
@@ -90,8 +88,6 @@ declare global {
     subject: string;
     grade: number;
     stage: Stage;
-    textbook_id?: number; // 后端使用 textbook_id
-    unit_id?: number; // 后端使用 unit_id
     stem: Stem;
     options?: QuestionOption[];
     blanks?: Array<Record<string, unknown>>;

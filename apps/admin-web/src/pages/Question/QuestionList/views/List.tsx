@@ -3,15 +3,34 @@ import { createActionColumn } from '@/hooks';
 import { DIFFICULTY_LABELS, INTERACTION_TYPE_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Tag } from 'antd';
-import { useEffect } from 'react';
+import { Button, Flex, Modal, Tag } from 'antd';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuestionApi } from '../../api';
 import { useQuestionListModel } from '../models/page';
 
 export function ListView() {
   const navigate = useNavigate();
-  const { actionRef, subject, grade, handleDelete, handlePreview } = useQuestionListModel();
+  const { actionRef, subject, grade, handleDelete, handleBatchDelete, batchDeleteLoading, handlePreview } =
+    useQuestionListModel();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  const handleBatchDeleteClick = () => {
+    if (selectedRowKeys.length === 0) return;
+
+    Modal.confirm({
+      title: '批量删除题目',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 道题目吗？`,
+      okText: '确定',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => {
+        handleBatchDelete(selectedRowKeys as string[]).then(() => {
+          setSelectedRowKeys([]);
+        });
+      },
+    });
+  };
 
   const columns: ProColumns<Question>[] = [
     {
@@ -96,6 +115,10 @@ export function ListView() {
       columns={columns}
       pagination={{ defaultPageSize: 20 }}
       scroll={{ x: 'max-content' }}
+      rowSelection={{
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      }}
       request={async ({ current, pageSize }) => {
         const res = await QuestionApi.searchQuestions({
           page: current,
@@ -110,9 +133,20 @@ export function ListView() {
         };
       }}
       headerTitle={
-        <Button type="primary" icon={<PlusOutlined />} size="large" onClick={() => navigate('/question/form')}>
-          新建题目
-        </Button>
+        <Flex gap={16}>
+          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/question/form')}>
+            新建题目
+          </Button>
+          <Button
+            danger
+            size="large"
+            onClick={handleBatchDeleteClick}
+            disabled={selectedRowKeys.length === 0}
+            loading={batchDeleteLoading}
+          >
+            批量删除 ({selectedRowKeys.length})
+          </Button>
+        </Flex>
       }
     />
   );

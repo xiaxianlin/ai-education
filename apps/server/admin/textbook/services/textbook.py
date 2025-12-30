@@ -28,14 +28,6 @@ async def _clean_textbook(db: AsyncSession, id: int):
     stmt = delete(Unit).where(Unit.textbook_id == id)
     await db.execute(stmt)
 
-    # 4. 更新所有问题关联（清理旧的字符串字段）
-    stmt = (
-        update(Question)
-        .where(Question.textbook_id == id)
-        .values({"unit_id": None, "knowledge": None})
-    )
-    await db.execute(stmt)
-
     await db.commit()
 
 
@@ -84,16 +76,6 @@ async def delete_textbook(db: AsyncSession, id: int):
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
         raise ValueError("教材不存在")
-
-    count = (
-        await db.scalar(
-            select(func.count()).select_from(Question).where(Question.textbook_id == id)
-        )
-        or 0
-    )
-
-    if count > 0:
-        raise ValueError("教材已经被使用，不能被删除")
 
     await _clean_textbook(db, id)
 

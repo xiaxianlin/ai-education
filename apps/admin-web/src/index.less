@@ -51,10 +51,11 @@ ol {
 }
 
 .large-tab-item {
-  font-size: 16px;
-  font-weight: 600;
-  min-width: 230px;
-  justify-content: center;
+  display: flex;
+  .ant-radio-button-wrapper {
+    width: calc(100% / 6);
+    text-align: center;
+  }
 }
 
 .ant-table {
