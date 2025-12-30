@@ -1,3 +1,4 @@
+import './index.less';
 import { PracticeFormModel } from './models/page';
 import MainView from './views/Main';
 
