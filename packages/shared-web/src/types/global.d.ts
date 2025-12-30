@@ -308,7 +308,7 @@ declare global {
     feedback_config?: PracticeFeedbackConfig;
     prompt?: string;
     // 参数配置
-    parameter_config?: Record<string, any>;
+    parameter_config?: PracticeParameter[];
     // 元数据
     is_active?: boolean;
     create_time: number;

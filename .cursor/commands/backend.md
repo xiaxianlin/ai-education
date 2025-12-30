@@ -139,7 +139,7 @@ async def create(db: AsyncSession, params: SomeSchema):
 
 ### LangGraph 工作流
 ```python
-from shared.generation.question import invoke_question_generation_workflow
+from shared.generation.question import invoke_practice_generation_workflow
 from shared.core.database import AsyncSession, PracticeSession, Textbook, Unit
 
 async def generate_questions(
@@ -150,7 +150,7 @@ async def generate_questions(
     question_types: dict[str, list[str]],
 ) -> List[Question]:
     """生成题目 - 使用 LangGraph 工作流"""
-    return await invoke_question_generation_workflow(
+    return await invoke_practice_generation_workflow(
         db=db,
         session=session,
         textbook=textbook,

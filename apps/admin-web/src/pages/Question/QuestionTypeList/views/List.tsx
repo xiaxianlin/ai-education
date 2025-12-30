@@ -106,9 +106,7 @@ export default function ListView() {
           const result = await QuestionApi.importQuestionTypes(file);
 
           message.destroy('import');
-          message.success(
-            `导入成功！已删除 ${result.deleted_count} 条旧数据，新增 ${result.created_count} 条数据`
-          );
+          message.success(`导入成功！已删除 ${result.deleted_count} 条旧数据，新增 ${result.created_count} 条数据`);
 
           // 刷新列表
           actionRef.current?.reload();
@@ -138,8 +136,12 @@ export default function ListView() {
       {
         title: '名称',
         dataIndex: 'name',
-        width: 200,
-        render: (text, record) => <a onClick={() => navigate(`/question_type/detail/${record.id}`)}>{text}</a>,
+        width: 150,
+        render: (text, record) => (
+          <Button type="link" onClick={() => navigate(`/question_type/detail/${record.id}`)}>
+            {text}
+          </Button>
+        ),
       },
       {
         title: '科目',
@@ -220,9 +222,6 @@ export default function ListView() {
       createActionColumn<QuestionType>(
         (record) => (
           <>
-            <Button key="detail" type="link" onClick={() => navigate(`/question_type/detail/${record.id}`)}>
-              详情
-            </Button>
             <Button key="edit" type="link" onClick={() => navigate(`/question_type/form/${record.id}`)}>
               编辑
             </Button>

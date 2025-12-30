@@ -361,7 +361,7 @@ async def generate_questions(
     question_types: dict[str, list[str]],
 ) -> List[Question]:
     """生成题目"""
-    return await invoke_question_generation_workflow(
+    return await invoke_practice_generation_workflow(
         db=db,
         session=session,
         textbook=textbook,

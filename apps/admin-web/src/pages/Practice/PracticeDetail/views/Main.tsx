@@ -1,5 +1,5 @@
-import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Collapse, Space } from 'antd';
+import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
+import { Button, Card, Collapse, Flex } from 'antd';
 import { usePracticeDetailModel } from '../models/page';
 import { BaseInfo } from './BaseInfo';
 import { ConfigInfo } from './ConfigInfo';
@@ -7,7 +7,7 @@ import { ParameterInfo } from './ParameterInfo';
 import { PromptInfo } from './PromptInfo';
 
 export default function MainView() {
-  const { detail, loading, handleEdit, handleBack } = usePracticeDetailModel();
+  const { detail, loading, handleEdit, handleBack, deleting, handleDelete } = usePracticeDetailModel();
 
   return (
     <PageContainer
@@ -16,13 +16,6 @@ export default function MainView() {
         onBack: handleBack,
         breadcrumb: {},
       }}
-      extra={
-        <Space>
-          <Button type="primary" onClick={handleEdit}>
-            编辑
-          </Button>
-        </Space>
-      }
     >
       <Card loading={loading}>
         {detail && (
@@ -53,6 +46,19 @@ export default function MainView() {
           />
         )}
       </Card>
+      <FooterToolbar className="page-footer">
+        <Flex justify="center" gap={16}>
+          <Button size="large" onClick={handleBack}>
+            返回
+          </Button>
+          <Button size="large" type="primary" onClick={handleEdit}>
+            编辑
+          </Button>
+          <Button size="large" danger loading={deleting} onClick={handleDelete}>
+            删除
+          </Button>
+        </Flex>
+      </FooterToolbar>
     </PageContainer>
   );
 }

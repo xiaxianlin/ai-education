@@ -1,7 +1,7 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks';
 import { DIFFICULTY_LABELS, INTERACTION_TYPE_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
 import { useEffect } from 'react';
@@ -21,7 +21,7 @@ export function ListView() {
       width: 300,
     },
     {
-      title: '题型',
+      title: '题型标识',
       dataIndex: 'question_type_code',
       width: 120,
       render: (_, record) => (
@@ -50,24 +50,18 @@ export function ListView() {
       title: '使用次数',
       dataIndex: 'usageCount',
       width: 80,
-      sorter: true,
+      valueType: 'digit',
     },
     {
       title: '正确率',
       dataIndex: 'correctRate',
       width: 80,
-      render: (rate) => (rate ? `${rate}%` : '-'),
-    },
-    {
-      title: '状态',
-      dataIndex: 'is_active',
-      width: 80,
-      render: (_, record) => (record.is_active ? <Tag color="success">启用</Tag> : <Tag color="error">禁用</Tag>),
+      valueType: 'percent',
     },
     createActionColumn<Question>(
       (record) => (
         <>
-          <Button key="preview" type="link" icon={<EyeOutlined />} onClick={() => handlePreview(record)}>
+          <Button key="preview" type="link" onClick={() => handlePreview(record)}>
             预览
           </Button>
           <Button key="detail" type="link" onClick={() => navigate(`/question/detail/${record.id}`)}>

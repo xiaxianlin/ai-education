@@ -1,5 +1,5 @@
 import { DeleteButton } from '@/components';
-import { createActionColumn, createTimeColumn, useConfigs } from '@/hooks';
+import { createActionColumn, createTimeColumn } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
@@ -15,7 +15,6 @@ const SPECIALTY_TYPE_OPTIONS = Object.entries(SPECIALTY_TYPE_LABELS).map(([value
 }));
 
 export function ListView() {
-  const { subjects } = useConfigs();
   const { subject, grade } = useInitialStateModel();
   const { actionRef, handleDelete, handleCreate, handleEdit, handleDetail, handleClone, navigate } =
     usePracticeListModel();
@@ -23,19 +22,17 @@ export function ListView() {
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
       {
-        title: '科目',
-        dataIndex: 'subject',
-        width: 50,
-        renderFormItem: () => (
-          <Select
-            placeholder="请选择科目"
-            allowClear
-            options={subjects?.map((s: string) => ({ label: s, value: s }))}
-          />
+        title: '名称',
+        dataIndex: 'name',
+        width: 120,
+        render: (text, record) => (
+          <Button type="link" onClick={() => handleDetail(record.id)}>
+            {text}
+          </Button>
         ),
       },
-      { title: '名称', dataIndex: 'name', width: 120 },
       { title: '标识', dataIndex: 'slug', width: 120, hideInSearch: true },
+      { title: '科目', dataIndex: 'subject', width: 50 },
       {
         title: '学段',
         dataIndex: 'stages',
@@ -83,9 +80,6 @@ export function ListView() {
       createActionColumn<Practice>(
         (record) => (
           <>
-            <Button type="link" size="small" onClick={() => handleDetail(record.id)}>
-              详情
-            </Button>
             <Button type="link" size="small" onClick={() => handleEdit(record.id)}>
               编辑
             </Button>
