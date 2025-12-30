@@ -205,7 +205,6 @@ export enum Difficulty {
 
 /** 资源类型枚举 */
 export enum ResourceType {
-  NONE = "none",
   TEXT = "text",
   IMAGE = "image",
   AUDIO = "audio",
@@ -301,7 +300,6 @@ export const INTERACTION_TYPE_LABELS: Record<InteractionType, string> = {
 
 /** 资源类型标签 */
 export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
-  none: "无",
   text: "文本",
   image: "图片",
   audio: "音频",

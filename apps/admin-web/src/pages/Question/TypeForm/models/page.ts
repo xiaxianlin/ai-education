@@ -127,13 +127,7 @@ const useContainer = () => {
     },
     {
       manual: true,
-      onSuccess: () => {
-        message.success('保存成功');
-        navigate('/question_type');
-      },
-      onError: (err: any) => {
-        message.error(err.message || '保存失败');
-      },
+      onSuccess: () => message.success('保存成功'),
     },
   );
 
@@ -154,4 +148,3 @@ const useContainer = () => {
 
 export const QuestionTypeFormModel = createContainer(useContainer);
 export const useQuestionTypeFormModel = QuestionTypeFormModel.useContainer;
-
