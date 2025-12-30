@@ -75,6 +75,14 @@ export const QuestionApi = {
   },
 
   /**
+   * 根据编码获取题型
+   * GET /question/type/code/{code}
+   */
+  async getQuestionTypeByCode(code: string) {
+    return apiClient.get<QuestionType>(`/question/type/code/${code}`);
+  },
+
+  /**
    * 创建题型
    * POST /question/type
    */
@@ -163,5 +171,29 @@ export const QuestionApi = {
    */
   async generateQuestionAudio(id: string) {
     return apiClient.post(`/question/${id}/audio_generate`);
+  },
+
+  /**
+   * 根据题型编码生成题目
+   * POST /question/type/{code}/generate
+   */
+  async generateQuestions(code: string, count: number) {
+    return apiClient.post<Question[]>(`/question/type/${code}/generate`, { count });
+  },
+
+  /**
+   * 更新题型提示词
+   * PATCH /question/type/{code}/prompt
+   */
+  async updateQuestionTypePrompt(code: string, ai_prompt: string) {
+    return apiClient.patch<QuestionType>(`/question/type/${code}/prompt`, { ai_prompt });
+  },
+
+  /**
+   * 批量更新题目
+   * PATCH /question/batch_update
+   */
+  async batchUpdateQuestions(params: { ids: string[]; is_active: boolean }) {
+    return apiClient.patch<{ message: string; updated_count: number }>('/question/batch_update', params);
   },
 };

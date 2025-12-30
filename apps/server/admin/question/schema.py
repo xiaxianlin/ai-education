@@ -212,3 +212,22 @@ class QuestionBatchDeleteSchema(BaseModel):
     """批量删除题目"""
 
     ids: List[str] = Field(..., description="题目ID列表", min_length=1)
+
+
+class QuestionBatchUpdateSchema(BaseModel):
+    """批量更新题目"""
+
+    ids: List[str] = Field(..., description="题目ID列表", min_length=1)
+    is_active: Optional[bool] = Field(default=None, description="是否启用")
+
+
+class QuestionGenerateSchema(BaseModel):
+    """生成题目请求"""
+
+    count: int = Field(..., description="生成数量", gt=0, le=100)
+
+
+class QuestionTypePromptUpdateSchema(BaseModel):
+    """更新题型提示词请求"""
+
+    ai_prompt: str = Field(..., description="AI生成指令")

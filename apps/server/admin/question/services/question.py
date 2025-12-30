@@ -196,3 +196,21 @@ async def update_correct_rate(db: AsyncSession, id: str, correct_rate: str) -> N
     if question:
         question.correct_rate = correct_rate
         await db.commit()
+
+
+async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bool) -> int:
+    """批量更新题目状态"""
+    if not ids:
+        return 0
+
+    # 批量更新题目状态
+    result = await db.execute(
+        select(Question).where(Question.id.in_(ids))
+    )
+    questions = list(result.scalars().all())
+
+    for q in questions:
+        q.is_active = is_active
+
+    await db.commit()
+    return len(questions)

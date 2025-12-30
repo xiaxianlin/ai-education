@@ -196,7 +196,7 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     provider = get_provider()
 
-    result = provider.invoke_chain(
+    result = await provider.invoke_chain(
         prompt=prompt,
         parser=parser,
         prompt_input=prompt_input,

@@ -81,7 +81,7 @@ async def optimize_prompt_node(state: QuestionImageGenerationState):
         ]
     )
 
-    optimized_prompt = provider.invoke_chain(prompt)
+    optimized_prompt = await provider.invoke_chain(prompt)
 
     logger.info(f"提示词优化完成，优化后提示词: {optimized_prompt}")
     return {"prompt": optimized_prompt}

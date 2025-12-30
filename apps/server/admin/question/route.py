@@ -4,6 +4,7 @@
 
 import json
 from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
@@ -17,9 +18,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.question.schema import (
     QuestionBatchDeleteSchema,
+    QuestionBatchUpdateSchema,
     QuestionCreateSchema,
+    QuestionGenerateSchema,
     QuestionSearchSchema,
     QuestionTypeCreateSchema,
+    QuestionTypePromptUpdateSchema,
     QuestionTypeSearchSchema,
     QuestionTypeUpdateSchema,
     QuestionUpdateSchema,
@@ -180,6 +184,58 @@ async def get_question_type(id: int, db: AsyncSession = Database):
     return QuestionTypeSchema.model_validate(await question_type.get_question_type(db, id))
 
 
+@question_router.get(
+    "/type/code/{code}",
+    tags=["题型管理"],
+    summary="根据编码获取题型",
+    description="根据题型编码获取题型详情",
+    response_model=QuestionTypeSchema,
+)
+async def get_question_type_by_code(code: str, db: AsyncSession = Database):
+    result = await question_type.get_question_type_by_code(db, code)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"题型不存在: code={code}")
+    return QuestionTypeSchema.model_validate(result)
+
+
+@question_router.post(
+    "/type/{code}/generate",
+    tags=["题型管理"],
+    summary="生成题目",
+    description="根据题型编码生成指定数量的题目",
+    response_model=List[QuestionSchema],
+)
+async def generate_questions(code: str, params: QuestionGenerateSchema, db: AsyncSession = Database):
+    """根据题型编码生成题目"""
+    from shared.generation import invoke_question_generation_workflow
+
+    questions = await invoke_question_generation_workflow(
+        db=db,
+        question_type_code=code,
+        count=params.count,
+    )
+
+    return [QuestionSchema.model_validate(q) for q in questions]
+
+
+@question_router.patch(
+    "/type/{code}/prompt",
+    tags=["题型管理"],
+    summary="更新提示词",
+    description="更新题型的 ai_prompt 字段",
+    response_model=QuestionTypeSchema,
+)
+async def update_question_type_prompt(code: str, params: QuestionTypePromptUpdateSchema, db: AsyncSession = Database):
+    """更新题型的提示词"""
+    question_type_obj = await question_type.get_question_type_by_code(db, code)
+    if not question_type_obj:
+        raise HTTPException(status_code=404, detail=f"题型不存在: code={code}")
+
+    update_params = QuestionTypeUpdateSchema(ai_prompt=params.ai_prompt)
+    updated = await question_type.update_question_type(db, question_type_obj.id, update_params)
+    return QuestionTypeSchema.model_validate(updated)
+
+
 # ======================== 题目管理 ======================== #
 
 
@@ -224,6 +280,21 @@ async def delete_question(id: str, db: AsyncSession = Database):
 async def batch_delete_questions(params: QuestionBatchDeleteSchema, db: AsyncSession = Database):
     deleted_count = await question.delete_questions_batch(db, params.ids)
     return {"message": "批量删除成功", "deleted_count": deleted_count}
+
+
+@question_router.patch(
+    "/batch_update",
+    tags=["题目管理"],
+    summary="批量更新题目",
+    description="批量更新题目的状态（启用/禁用）",
+)
+async def batch_update_questions(params: QuestionBatchUpdateSchema, db: AsyncSession = Database):
+    """批量更新题目状态"""
+    if params.is_active is None:
+        raise HTTPException(status_code=400, detail="is_active 参数不能为空")
+
+    updated_count = await question.batch_update_questions(db, params.ids, params.is_active)
+    return {"message": "批量更新成功", "updated_count": updated_count}
 
 
 @question_router.get(

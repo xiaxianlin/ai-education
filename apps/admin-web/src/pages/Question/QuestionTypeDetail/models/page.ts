@@ -43,12 +43,18 @@ const useContainer = () => {
     });
   };
 
+  const handleGenerate = () => {
+    if (!item?.code) return;
+    navigate(`/question_type/generate/${item.code}`);
+  };
+
   return {
     item,
     loading,
     navigate,
     deleting,
     handleDelete,
+    handleGenerate,
   };
 };
 

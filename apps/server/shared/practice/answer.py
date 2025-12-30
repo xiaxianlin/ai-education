@@ -41,7 +41,7 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
     prompt_input = {"question_content": build_question_prompt(question)}
 
     provider = get_provider()
-    result = provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
+    result = await provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
 
     return result["is_correct"], result["analysis"]
 

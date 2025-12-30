@@ -12,6 +12,7 @@ import QuestionForm from '@/pages/Question/QuestionForm';
 import QuestionList from '@/pages/Question/QuestionList';
 import QuestionTypeDetail from '@/pages/Question/QuestionTypeDetail';
 import QuestionTypeForm from '@/pages/Question/QuestionTypeForm';
+import QuestionTypeGenerate from '@/pages/Question/QuestionTypeGenerate';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
 import PracticeSessionList from '@/pages/Student/PracticeSessionList';
 import PracticeSessionDetail from '@/pages/Student/PraticeSessionDetail';
@@ -50,6 +51,7 @@ export function Router() {
         { path: 'question_type/form', element: <QuestionTypeForm /> },
         { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
         { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
+        { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
         // Practice routes
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/form', element: <PracticeForm /> },

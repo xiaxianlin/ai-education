@@ -103,7 +103,7 @@ class AliyunProvider(BaseProvider):
             logger.error(f"文本生成失败: {e}", exc_info=True)
             raise ValueError(f"文本生成失败: {str(e)}")
 
-    def invoke_chain(
+    async def invoke_chain(
         self,
         prompt: BasePromptTemplate,
         parser: Optional[BaseOutputParser] = None,
@@ -127,7 +127,7 @@ class AliyunProvider(BaseProvider):
             else:
                 chain = prompt | client
 
-            result = chain.invoke(prompt_input)
+            result = await chain.ainvoke(prompt_input)
 
             # 如果有 parser，返回解析后的结果（dict）；否则返回 content
             if parser:

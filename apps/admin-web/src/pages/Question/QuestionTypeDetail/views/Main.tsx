@@ -8,7 +8,7 @@ import { PromptDetail } from './PromptDetail';
 
 export default function MainView() {
   const { id } = useParams<{ id: string }>();
-  const { item, loading, navigate, deleting, handleDelete } = useQuestionTypeDetailModel();
+  const { item, loading, navigate, deleting, handleDelete, handleGenerate } = useQuestionTypeDetailModel();
 
   return (
     <PageContainer
@@ -47,6 +47,9 @@ export default function MainView() {
           <Button size="large" onClick={() => navigate('/question_type')}>
             返回
           </Button>
+          <Button size="large" type="primary" onClick={handleGenerate} disabled={!item?.code}>
+            生成
+          </Button>
           <Button size="large" type="primary" onClick={() => navigate(`/question_type/form/${id}`)}>
             编辑
           </Button>
@@ -58,4 +61,3 @@ export default function MainView() {
     </PageContainer>
   );
 }
-

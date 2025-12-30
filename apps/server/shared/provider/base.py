@@ -111,7 +111,7 @@ class BaseProvider(ABC):
         raise NotImplementedError("Subclass must implement invoke_text_generate()")
 
     @abstractmethod
-    def invoke_chain(
+    async def invoke_chain(
         self,
         prompt: BasePromptTemplate,
         parser: Optional[BaseOutputParser] = None,
