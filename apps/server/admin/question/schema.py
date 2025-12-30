@@ -4,19 +4,18 @@
 包含请求/响应的数据验证和序列化定义
 """
 
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, field_validator
+from typing import Any, Dict, List, Optional
 
-from shared.core.schema import SearchSchema
+from pydantic import BaseModel, Field, field_validator
 from shared.core.constants import (
-    SUBJECTS,
-    STAGES,
-    INTERACTION_TYPES,
-    RESOURCE_TYPES_V2,
     ANSWER_TYPES,
     DIFFICULTY_LEVELS,
+    INTERACTION_TYPES,
+    RESOURCE_TYPES,
+    STAGES,
+    SUBJECTS,
 )
-
+from shared.core.schema import SearchSchema
 
 # ============ 题型 Schema ============
 
@@ -32,13 +31,14 @@ class QuestionTypeCreateSchema(BaseModel):
     grades: List[int] = Field(..., description="适用年级列表")
     interaction_type: str = Field(..., description="交互类型")
     interaction_config: Optional[Dict[str, Any]] = Field(default=None, description="交互配置")
-    resource_type: str = Field(default="none", description="资源类型")
+    resource_type: str = Field(default="text", description="资源类型")
     resource_config: Optional[Dict[str, Any]] = Field(default=None, description="资源配置")
     answer_type: str = Field(..., description="答案类型")
     answer_config: Optional[Dict[str, Any]] = Field(default=None, description="答案配置")
     feedback_config: Optional[Dict[str, Any]] = Field(default=None, description="反馈配置")
     cognitive_levels: Optional[List[str]] = Field(default=None, description="认知层次列表")
     ability_dimensions: Optional[List[str]] = Field(default=None, description="能力维度列表")
+    difficulty: Optional[str] = Field(default=None, description="难度：easy/medium/hard")
     ai_prompt: Optional[str] = Field(default=None, description="AI生成指令")
     output_schema: Optional[Dict[str, Any]] = Field(default=None, description="AI输出Schema")
     sort_order: int = Field(default=0, description="排序")
@@ -76,8 +76,8 @@ class QuestionTypeCreateSchema(BaseModel):
     @field_validator("resource_type")
     @classmethod
     def validate_resource_type(cls, v):
-        if v not in RESOURCE_TYPES_V2:
-            raise ValueError(f"资源类型必须是 {RESOURCE_TYPES_V2} 之一")
+        if v not in RESOURCE_TYPES:
+            raise ValueError(f"资源类型必须是 {RESOURCE_TYPES} 之一")
         return v
 
     @field_validator("answer_type")
@@ -85,6 +85,13 @@ class QuestionTypeCreateSchema(BaseModel):
     def validate_answer_type(cls, v):
         if v not in ANSWER_TYPES:
             raise ValueError(f"答案类型必须是 {ANSWER_TYPES} 之一")
+        return v
+
+    @field_validator("difficulty")
+    @classmethod
+    def validate_difficulty(cls, v):
+        if v is not None and v not in DIFFICULTY_LEVELS:
+            raise ValueError(f"难度必须是 {DIFFICULTY_LEVELS} 之一")
         return v
 
 
@@ -102,6 +109,7 @@ class QuestionTypeUpdateSchema(BaseModel):
     feedback_config: Optional[Dict[str, Any]] = None
     cognitive_levels: Optional[List[str]] = None
     ability_dimensions: Optional[List[str]] = None
+    difficulty: Optional[str] = None
     ai_prompt: Optional[str] = None
     output_schema: Optional[Dict[str, Any]] = None
     sort_order: Optional[int] = None
@@ -202,5 +210,3 @@ class QuestionSearchSchema(SearchSchema):
     cognitive_level: Optional[str] = None
     source: Optional[str] = None
     is_active: Optional[bool] = None
-
-

@@ -10,7 +10,6 @@ import {
   PracticeSessionStatus as _PracticeSessionStatus,
   PracticeType as _PracticeType,
   ResourceType as _ResourceType,
-  SceneType as _SceneType,
   SpecialtyType as _SpecialtyType,
   Stage as _Stage,
 } from "../constants";
@@ -27,7 +26,6 @@ declare global {
   type PracticeSessionStatus = _PracticeSessionStatus;
   type PracticeType = _PracticeType;
   type ResourceType = _ResourceType;
-  type SceneType = _SceneType;
   type SpecialtyType = _SpecialtyType;
   type Stage = _Stage;
 
@@ -146,6 +144,7 @@ declare global {
     feedback_config?: FeedbackConfig;
     cognitive_levels?: CognitiveLevel[];
     ability_dimensions?: string[];
+    difficulty?: Difficulty;
     ai_prompt?: string;
     output_schema?: Record<string, unknown>;
     sort_order: number;

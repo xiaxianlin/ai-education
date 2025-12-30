@@ -19,14 +19,51 @@ export const QuestionApi = {
   },
 
   /**
-   * 获取所有题型（通过搜索接口获取所有数据）
-   * GET /question/type/search
+   * 导出题型数据（全量数据）
+   * POST /question/type/export
    */
-  async listAllQuestionTypes() {
-    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search', {
-      size: 1000, // 获取足够多的数据
+  async exportQuestionTypes(): Promise<Blob> {
+    const url = `/api/admin/question/type/export`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-access-token': apiClient.getToken() || '',
+      },
     });
-    return res.data || [];
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`导出失败: ${response.statusText} - ${errorText}`);
+    }
+
+    return await response.blob();
+  },
+
+  /**
+   * 导入题型数据（全量数据）
+   * POST /question/type/import
+   */
+  async importQuestionTypes(file: File): Promise<{ deleted_count: number; created_count: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const url = `/api/admin/question/type/import`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-access-token': apiClient.getToken() || '',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `导入失败: ${response.statusText}`);
+    }
+
+    return await response.json();
   },
 
   /**

@@ -206,6 +206,7 @@ export enum Difficulty {
 /** 资源类型枚举 */
 export enum ResourceType {
   NONE = "none",
+  TEXT = "text",
   IMAGE = "image",
   AUDIO = "audio",
   VIDEO = "video",
@@ -301,6 +302,7 @@ export const INTERACTION_TYPE_LABELS: Record<InteractionType, string> = {
 /** 资源类型标签 */
 export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   none: "无",
+  text: "文本",
   image: "图片",
   audio: "音频",
   video: "视频",
@@ -316,27 +318,7 @@ export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
   composite: "复合题",
 };
 
-// ============ 练习场景与专项类型常量 ============
-
-/** 场景类型枚举 */
-export enum SceneType {
-  DAILY_TRAINING = "daily_training",
-  UNIT_TEST = "unit_test",
-  COMPREHENSIVE_ASSESSMENT = "comprehensive_assessment",
-}
-
-/** 场景类型标签 */
-export const SCENE_TYPE_LABELS: Record<SceneType, string> = {
-  daily_training: "日常训练",
-  unit_test: "单元测试",
-  comprehensive_assessment: "综合评估",
-};
-
-/** 场景类型选项 */
-export const SCENE_TYPE_OPTIONS = Object.entries(SCENE_TYPE_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
+// ============ 专项类型常量 ============
 
 /** 专项类型枚举 */
 export enum SpecialtyType {

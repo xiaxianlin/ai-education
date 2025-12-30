@@ -115,7 +115,7 @@ async def convert_question_type(v1_type: QuestionType) -> dict:
     stage = grade_to_stage(v1_type.grade)
     interaction_type = SCENE_TO_INTERACTION_TYPE.get(v1_type.scene, "single_choice")
     answer_type = scene_to_answer_type(v1_type.scene)
-    resource_type = RESOURCE_TYPE_MAP.get(v1_type.resource_type, "none")
+    resource_type = RESOURCE_TYPE_MAP.get(v1_type.resource_type, "text")
     
     return {
         "code": generate_type_code(v1_type.subject, v1_type.scene, v1_type.grade),

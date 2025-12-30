@@ -366,7 +366,7 @@ class QuestionTypeV2 {
     required this.grades,
     required this.interactionType,
     this.interactionConfig,
-    this.resourceType = 'none',
+    this.resourceType = 'text',
     this.resourceConfig,
     required this.answerType,
     this.answerConfig,

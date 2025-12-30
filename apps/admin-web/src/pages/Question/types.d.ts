@@ -45,7 +45,7 @@ declare global {
     grades: number[];
     interaction_type: InteractionType; // 后端使用 interaction_type
     interaction_config?: Record<string, unknown>; // 后端使用 interaction_config
-    resource_type?: ResourceType; // 后端使用 resource_type，默认值为 "none"
+    resource_type?: ResourceType; // 后端使用 resource_type，默认值为 "text"
     resource_config?: Record<string, unknown>; // 后端使用 resource_config
     answer_type: AnswerType; // 后端使用 answer_type
     answer_config?: Record<string, unknown>; // 后端使用 answer_config

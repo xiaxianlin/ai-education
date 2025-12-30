@@ -2,25 +2,28 @@
 题型和题目管理 API 路由
 """
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+import json
+from datetime import datetime
 
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import Response
 from shared.core.database import Database
 from shared.core.schema import (
-    QuestionTypeSchema,
     QuestionSchema,
+    QuestionTypeSchema,
     SearchResultSchema,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.question.schema import (
-    QuestionTypeCreateSchema,
-    QuestionTypeUpdateSchema,
-    QuestionTypeSearchSchema,
     QuestionCreateSchema,
-    QuestionUpdateSchema,
     QuestionSearchSchema,
+    QuestionTypeCreateSchema,
+    QuestionTypeSearchSchema,
+    QuestionTypeUpdateSchema,
+    QuestionUpdateSchema,
 )
-from admin.question.services import question_type, question
+from admin.question.services import question, question_type
 
 question_router = APIRouter(prefix="/question")
 
@@ -72,6 +75,97 @@ async def search_question_types(params: QuestionTypeSearchSchema = Depends(), db
         data=[QuestionTypeSchema.model_validate(t) for t in types],
         total=total,
     )
+
+
+@question_router.post(
+    "/type/export",
+    tags=["题型管理"],
+    summary="导出题型",
+    description="导出所有题型数据为 JSON 文件（全量数据）",
+    response_class=Response,
+)
+async def export_question_types(db: AsyncSession = Database):
+    """导出题型数据为 JSON 文件（全量数据）"""
+    # 获取所有题型数据
+    types = await question_type.list_all_question_types(db=db)
+
+    # 转换为 Schema 列表，然后转换为字典
+    type_schemas = [QuestionTypeSchema.model_validate(t) for t in types]
+    type_dicts = [schema.model_dump() for schema in type_schemas]
+
+    # 转换为 JSON 字符串（格式化）
+    json_content = json.dumps(
+        type_dicts,
+        ensure_ascii=False,
+        indent=2,
+        default=str,  # 处理日期等特殊类型
+    )
+
+    # 生成文件名（包含时间戳）
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"question-types-{timestamp}.json"
+
+    # 返回文件响应
+    return Response(
+        content=json_content.encode("utf-8"),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Type": "application/json; charset=utf-8",
+        },
+    )
+
+
+@question_router.post(
+    "/type/import",
+    tags=["题型管理"],
+    summary="导入题型",
+    description="导入题型数据（JSON 文件），先删除全部存量数据，然后保存新数据",
+)
+async def import_question_types(file: UploadFile = File(...), db: AsyncSession = Database):
+    """导入题型数据"""
+    # 验证文件类型
+    if not file.filename.endswith(".json"):
+        raise HTTPException(status_code=400, detail="只支持 JSON 格式文件")
+
+    try:
+        # 读取文件内容
+        content = await file.read()
+        json_data = json.loads(content.decode("utf-8"))
+
+        # 验证数据格式
+        if not isinstance(json_data, list):
+            raise HTTPException(status_code=400, detail="JSON 文件必须包含一个数组")
+
+        # 转换为 Schema 列表
+        type_schemas = []
+        for item in json_data:
+            try:
+                schema = QuestionTypeCreateSchema.model_validate(item)
+                type_schemas.append(schema)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"数据验证失败：{str(e)}，请检查 JSON 文件格式",
+                )
+
+        # 删除所有存量数据
+        deleted_count = await question_type.delete_all_question_types(db)
+
+        # 批量创建新数据
+        created_types = await question_type.batch_create_question_types(db, type_schemas)
+
+        return {
+            "message": "导入成功",
+            "deleted_count": deleted_count,
+            "created_count": len(created_types),
+        }
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"JSON 解析失败：{str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"导入失败：{str(e)}")
 
 
 @question_router.get(

@@ -27,7 +27,7 @@ class QuestionTypeSchema(BaseModel):
     interaction_config: Optional[dict] = None
 
     # 资源配置
-    resource_type: str = "none"
+    resource_type: str = "text"
     resource_config: Optional[dict] = None
 
     # 答案配置
@@ -40,6 +40,9 @@ class QuestionTypeSchema(BaseModel):
     # 认知与能力
     cognitive_levels: Optional[list] = None
     ability_dimensions: Optional[list] = None
+
+    # 难度
+    difficulty: Optional[str] = None
 
     # AI生成
     ai_prompt: Optional[str] = None
@@ -182,9 +185,7 @@ class StemSchema(BaseModel):
     audio_url: Optional[str] = Field(default=None, description="题干朗读音频")
     highlight_words: Optional[List[str]] = Field(default=None, description="高亮词汇")
     hints: Optional[List[str]] = Field(default=None, description="提示信息")
-    sub_questions: Optional[List[Dict[str, Any]]] = Field(
-        default=None, description="子题列表（复合题）"
-    )
+    sub_questions: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题列表（复合题）")
 
 
 class FeedbackItemSchema(BaseModel):

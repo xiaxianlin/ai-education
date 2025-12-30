@@ -21,7 +21,9 @@ const useContainer = () => {
 
   // 加载题型列表
   useEffect(() => {
-    QuestionApi.listAllQuestionTypes().then(setQuestionTypes);
+    QuestionApi.searchQuestionTypes({ page: 1, size: 1000 }).then((res) => {
+      setQuestionTypes(res?.data || []);
+    });
   }, []);
 
   // 编辑模式：加载题目数据

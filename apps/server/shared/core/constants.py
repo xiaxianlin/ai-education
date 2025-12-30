@@ -148,14 +148,15 @@ class ResourceType(str, Enum):
     """资源类型枚举"""
 
     NONE = "none"
+    TEXT = "text"
     IMAGE = "image"
     AUDIO = "audio"
     VIDEO = "video"
     ANIMATION = "animation"
 
 
-# 资源类型 V2（保持向后兼容）
-RESOURCE_TYPES_V2 = ["none", "image", "audio", "video", "animation"]
+# 资源类型（保持向后兼容）
+RESOURCE_TYPES = ["none", "text", "image", "audio", "video", "animation"]
 
 
 # 答案类型枚举
@@ -200,48 +201,7 @@ DIFFICULTY_LEVEL_LABELS = {
 }
 
 
-# ============ 练习场景与专项类型常量 ============
-
-
-# 场景类型枚举
-class SceneType(str, Enum):
-    """练习场景类型枚举"""
-
-    DAILY_TRAINING = "daily_training"  # 日常训练
-    UNIT_TEST = "unit_test"  # 单元测试
-    COMPREHENSIVE_ASSESSMENT = "comprehensive_assessment"  # 综合评估
-
-
-# 场景类型（保持向后兼容）
-SCENE_TYPES = ["daily_training", "unit_test", "comprehensive_assessment"]
-
-SCENE_TYPE_LABELS = {
-    "daily_training": "日常训练",
-    "unit_test": "单元测试",
-    "comprehensive_assessment": "综合评估",
-}
-
-# 场景类型配置（默认题量和时长）
-SCENE_TYPE_CONFIG = {
-    "daily_training": {
-        "description": "单一知识点强化，快速掌握",
-        "question_count": {"min": 10, "max": 15, "default": 12},
-        "time_limit_minutes": {"min": 5, "max": 10, "default": 8},
-        "difficulty_distribution": {"easy": 1.0, "medium": 0.0, "hard": 0.0},
-    },
-    "unit_test": {
-        "description": "单元知识点全面检测",
-        "question_count": {"min": 10, "max": 15, "default": 12},
-        "time_limit_minutes": {"min": 15, "max": 20, "default": 18},
-        "difficulty_distribution": {"easy": 0.6, "medium": 0.3, "hard": 0.1},
-    },
-    "comprehensive_assessment": {
-        "description": "跨单元知识整合与能力考查",
-        "question_count": {"min": 15, "max": 20, "default": 18},
-        "time_limit_minutes": {"min": 25, "max": 40, "default": 30},
-        "difficulty_distribution": {"easy": 0.3, "medium": 0.4, "hard": 0.3},
-    },
-}
+# ============ 专项类型常量 ============
 
 
 # 专项类型枚举

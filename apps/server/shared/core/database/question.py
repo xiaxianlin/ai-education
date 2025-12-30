@@ -7,15 +7,14 @@
 from typing import TYPE_CHECKING
 
 from .base import (
+    JSON,
     BaseModel,
     Mapped,
-    mapped_column,
-    relationship,
     String,
     Text,
-    JSON,
-    Boolean,
+    mapped_column,
     now,
+    relationship,
 )
 
 if TYPE_CHECKING:
@@ -44,7 +43,7 @@ class QuestionType(BaseModel):
     interaction_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="交互配置")
 
     # 资源配置
-    resource_type: Mapped[str] = mapped_column(String(50), default="none", comment="资源类型")
+    resource_type: Mapped[str] = mapped_column(String(50), nullable=False, default="text", comment="资源类型")
     resource_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="资源配置")
 
     # 答案配置
@@ -57,6 +56,9 @@ class QuestionType(BaseModel):
     # 认知与能力
     cognitive_levels: Mapped[list] = mapped_column(JSON, nullable=True, comment="认知层次列表")
     ability_dimensions: Mapped[list] = mapped_column(JSON, nullable=True, comment="能力维度列表")
+
+    # 难度
+    difficulty: Mapped[str] = mapped_column(String(20), nullable=True, comment="难度：easy/medium/hard")
 
     # AI生成
     ai_prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="AI生成指令")

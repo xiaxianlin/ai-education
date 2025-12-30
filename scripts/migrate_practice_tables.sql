@@ -43,9 +43,6 @@ DELIMITER ;
 -- 1. 修改 ah_practice 表，添加新字段
 -- ============================================================
 
--- 场景类型字段
-CALL add_column_if_not_exists('ah_practice', 'scene_type', 'varchar(50) DEFAULT NULL COMMENT ''场景类型：daily_training/unit_test/comprehensive_assessment''');
-
 -- 适用范围字段
 CALL add_column_if_not_exists('ah_practice', 'subject', 'varchar(50) DEFAULT NULL COMMENT ''科目''');
 CALL add_column_if_not_exists('ah_practice', 'stages', 'json DEFAULT NULL COMMENT ''适用学段列表''');
@@ -71,8 +68,7 @@ CALL add_column_if_not_exists('ah_practice_prompt', 'name', 'varchar(100) DEFAUL
 CALL add_column_if_not_exists('ah_practice_prompt', 'code', 'varchar(100) DEFAULT NULL COMMENT ''配置编码''');
 CALL add_column_if_not_exists('ah_practice_prompt', 'description', 'text DEFAULT NULL COMMENT ''配置描述''');
 
--- 场景分类字段
-CALL add_column_if_not_exists('ah_practice_prompt', 'scene_type', 'varchar(50) DEFAULT NULL COMMENT ''场景类型''');
+-- 专项分类字段
 CALL add_column_if_not_exists('ah_practice_prompt', 'specialty_type', 'varchar(50) DEFAULT NULL COMMENT ''专项类型''');
 
 -- 适用范围字段
@@ -100,11 +96,6 @@ CALL add_column_if_not_exists('ah_practice_prompt', 'is_active', 'tinyint(1) DEF
 -- ============================================================
 
 -- ah_practice 索引
-SET @sql = 'CREATE INDEX idx_scene_type ON ah_practice(scene_type)';
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
 SET @sql = 'CREATE INDEX idx_subject ON ah_practice(subject)';
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
@@ -117,11 +108,6 @@ DEALLOCATE PREPARE stmt;
 
 -- ah_practice_prompt 索引
 SET @sql = 'CREATE INDEX idx_pp_code ON ah_practice_prompt(code)';
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql = 'CREATE INDEX idx_pp_scene_type ON ah_practice_prompt(scene_type)';
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;

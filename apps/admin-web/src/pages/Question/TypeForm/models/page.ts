@@ -90,7 +90,7 @@ const useContainer = () => {
         interaction_type: values.interactionType,
         interaction_config: values.interactionConfig ? JSON.parse(values.interactionConfig) : undefined,
         // 资源配置
-        resource_type: values.resourceType || 'none',
+        resource_type: values.resourceType || 'text',
         resource_config: values.resourceConfig ? JSON.parse(values.resourceConfig) : undefined,
         // 答案配置
         answer_type: values.answerType,

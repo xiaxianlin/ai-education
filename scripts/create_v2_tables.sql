@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `ah_question_type_v2` (
   `interaction_config` json COMMENT '交互配置（布局、样式等）',
   
   -- 资源配置
-  `resource_type` varchar(50) DEFAULT 'none' COMMENT '资源类型：none/image/audio/video/animation',
+  `resource_type` varchar(50) NOT NULL DEFAULT 'text' COMMENT '资源类型：none/text/image/audio/video/animation',
   `resource_config` json COMMENT '资源配置（尺寸、时长等）',
   
   -- 答案配置

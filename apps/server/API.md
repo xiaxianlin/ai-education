@@ -891,7 +891,7 @@ POST /api/admin/question/type
 - `grades`: 适用年级列表（必填，如：[1, 2, 3]）
 - `interaction_type`: 交互类型（必填，如：choice/fill/match）
 - `interaction_config`: 交互配置（可选，JSON对象）
-- `resource_type`: 资源类型（默认"none"，可选：none/image/audio/video）
+- `resource_type`: 资源类型（默认"text"，可选：none/text/image/audio/video/animation）
 - `resource_config`: 资源配置（可选，JSON对象）
 - `answer_type`: 答案类型（必填，如：exact/fuzzy/rubric）
 - `answer_config`: 答案配置（可选，JSON对象）

@@ -100,3 +100,46 @@ async def search_question_types(db: AsyncSession, params: QuestionTypeSearchSche
     types = list(result.scalars().all())
 
     return types, total
+
+
+async def list_all_question_types(db: AsyncSession) -> List[QuestionType]:
+    """获取所有题型（不分页，用于导出全量数据）"""
+    # 构建查询，获取所有数据
+    query = select(QuestionType).order_by(QuestionType.sort_order, QuestionType.id)
+
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
+async def delete_all_question_types(db: AsyncSession) -> int:
+    """删除所有题型，返回删除的数量"""
+    # 获取所有题型
+    result = await db.execute(select(QuestionType))
+    all_types = list(result.scalars().all())
+    count = len(all_types)
+
+    # 删除所有题型
+    for question_type in all_types:
+        await db.delete(question_type)
+
+    await db.commit()
+    return count
+
+
+async def batch_create_question_types(
+    db: AsyncSession, type_data_list: List[QuestionTypeCreateSchema]
+) -> List[QuestionType]:
+    """批量创建题型"""
+    question_types = []
+    for type_data in type_data_list:
+        question_type = QuestionType(**type_data.model_dump())
+        db.add(question_type)
+        question_types.append(question_type)
+
+    await db.commit()
+
+    # 刷新所有对象以获取 ID
+    for question_type in question_types:
+        await db.refresh(question_type)
+
+    return question_types

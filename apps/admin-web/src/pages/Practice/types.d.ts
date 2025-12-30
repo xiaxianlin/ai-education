@@ -7,8 +7,6 @@ declare global {
     type: PracticeType;
     icon?: string;
     description?: string;
-    // 场景类型
-    scene_type?: SceneType;
     // 适用范围
     subject?: string;
     stages?: Stage[];

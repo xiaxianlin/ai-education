@@ -193,7 +193,7 @@ QuestionTypeV2 _$QuestionTypeV2FromJson(Map<String, dynamic> json) =>
           .toList(),
       interactionType: json['interaction_type'] as String,
       interactionConfig: json['interaction_config'] as Map<String, dynamic>?,
-      resourceType: json['resource_type'] as String? ?? 'none',
+      resourceType: json['resource_type'] as String? ?? 'text',
       resourceConfig: json['resource_config'] as Map<String, dynamic>?,
       answerType: json['answer_type'] as String,
       answerConfig: json['answer_config'] as Map<String, dynamic>?,
