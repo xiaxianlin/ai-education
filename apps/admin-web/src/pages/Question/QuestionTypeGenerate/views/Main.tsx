@@ -3,7 +3,7 @@ import { history } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
 import { Col, Modal, Row } from 'antd';
 import { useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ActionBar } from '../components/ActionBar';
 import { GenerateControl } from '../components/GenerateControl';
 import { GeneratingStatus } from '../components/GeneratingStatus';
@@ -13,7 +13,6 @@ import { useQuestionTypeGenerateModel } from '../models/page';
 
 export default function MainView() {
   const navigate = useNavigate();
-  const { code } = useParams<{ code: string }>();
   const {
     loading,
     questionType,
@@ -79,20 +78,19 @@ export default function MainView() {
       title={`生成题目 - ${questionType?.name || ''}`}
       header={{ onBack: () => navigate(-1) }}
     >
-      <Row gutter={16}>
-        {/* 左侧面板 */}
-        <Col xs={24} lg={8}>
-          <QuestionTypeInfo />
-          <PromptDisplay
-            prompt={prompt}
-            onSave={handleSavePrompt}
-            onOptimize={optimizePrompt}
-          />
-        </Col>
+      <div>
+        {/* 上方区域：题型信息和提示词并排显示 */}
+        <Row gutter={16} align="top" style={{ marginBottom: 24 }}>
+          <Col xs={24} lg={12}>
+            <QuestionTypeInfo />
+            <GenerateControl />
+          </Col>
+          <Col xs={24} lg={12}>
+            <PromptDisplay prompt={prompt} onSave={handleSavePrompt} onOptimize={optimizePrompt} />
+          </Col>
+        </Row>
 
-        {/* 右侧面板 */}
-        <Col xs={24} lg={16}>
-          <GenerateControl />
+        <div>
           {generating && <GeneratingStatus />}
           {!generating && generatedQuestions.length > 0 && (
             <>
@@ -100,8 +98,8 @@ export default function MainView() {
               <ActionBar />
             </>
           )}
-        </Col>
-      </Row>
+        </div>
+      </div>
     </PageContainer>
   );
 }

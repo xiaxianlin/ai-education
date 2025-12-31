@@ -40,26 +40,12 @@ export function PromptDisplayCard({
       }
     >
       {prompt ? (
-        <pre
-          style={{
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            margin: 0,
-            padding: 16,
-            backgroundColor: '#f5f5f5',
-            borderRadius: 4,
-            maxHeight: '400px',
-            overflow: 'auto',
-            fontSize: '13px',
-            lineHeight: '1.6',
-          }}
-        >
+        <pre className="whitespace-pre-wrap break-words m-0 p-4 bg-gray-100 rounded max-h-[406px] overflow-auto text-[13px] leading-[1.6]">
           {prompt}
         </pre>
       ) : (
-        <div style={{ color: '#999', textAlign: 'center', padding: '20px' }}>暂无提示词</div>
+        <div className="text-gray-400 text-center py-5">暂无提示词</div>
       )}
     </Card>
   );
 }
-
