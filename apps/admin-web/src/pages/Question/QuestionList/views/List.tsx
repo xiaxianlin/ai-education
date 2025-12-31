@@ -1,6 +1,6 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks';
-import { DIFFICULTY_LABELS, INTERACTION_TYPE_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
+import { DIFFICULTY_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Flex, Modal, Tag } from 'antd';
@@ -40,15 +40,15 @@ export function ListView() {
       width: 300,
     },
     {
+      title: '题型名称',
+      dataIndex: ['question_type', 'name'],
+      width: 150,
+    },
+    {
       title: '题型标识',
-      dataIndex: 'question_type_code',
+      dataIndex: ['question_type', 'code'],
       width: 120,
-      render: (_, record) => (
-        <Tag color="purple">
-          {INTERACTION_TYPE_LABELS[record.question_type_code as keyof typeof INTERACTION_TYPE_LABELS] ||
-            record.question_type_code}
-        </Tag>
-      ),
+      copyable: true,
     },
     {
       title: '难度',

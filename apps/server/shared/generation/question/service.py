@@ -10,6 +10,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import Question, QuestionType
+from shared.generation.audio import invoke_question_audio_workflow
+from shared.generation.image import invoke_question_image_workflow
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import GeneratedQuestion, QuestionGenerationResult
@@ -176,6 +178,33 @@ def normalize_llm_question(question: dict) -> dict:
         normalized["difficulty"] = "medium"
         logger.debug("已设置默认 difficulty: medium")
 
+    # 5. 处理 resources 字段：确保包含 resource_type，并处理兼容性
+    if "resources" in normalized and normalized["resources"] is not None:
+        resources = normalized["resources"]
+        if isinstance(resources, list):
+            for resource in resources:
+                if isinstance(resource, dict):
+                    # 如果缺少 resource_type，根据 position 字段推断（向后兼容）
+                    if "resource_type" not in resource:
+                        position = resource.get("position", "stem")
+                        if position == "option":
+                            resource["resource_type"] = "option"
+                        else:
+                            resource["resource_type"] = "stem"
+                        logger.debug(f"根据 position={position} 推断 resource_type={resource['resource_type']}")
+
+                    # 验证选项资源包含 option_id
+                    if resource.get("resource_type") == "option":
+                        if "option_id" not in resource or not resource.get("option_id"):
+                            logger.warning(f"选项资源缺少 option_id 字段，资源ID: {resource.get('id', 'unknown')}")
+                            # 尝试从 position 或其他字段推断，如果无法推断则跳过该资源
+                            # 这里可以选择跳过或设置默认值，根据实际需求决定
+
+                    # 确保 position 字段存在（向后兼容）
+                    if "position" not in resource:
+                        resource_type = resource.get("resource_type", "stem")
+                        resource["position"] = "option" if resource_type == "option" else "stem"
+
     return normalized
 
 
@@ -217,6 +246,41 @@ def handle_llm_questions(
         except Exception as e:
             logger.warning(f"题目验证失败: {e}, 规范化后的数据: {normalized_question}, 跳过处理")
             continue
+
+        # 验证和规范化资源
+        if item.resources:
+            validated_resources = []
+            for resource in item.resources:
+                if not isinstance(resource, dict):
+                    logger.warning(f"资源格式错误，跳过: {resource}")
+                    continue
+
+                # 确保 resource_type 存在
+                if "resource_type" not in resource:
+                    # 根据 position 推断（兼容性处理）
+                    position = resource.get("position", "stem")
+                    resource["resource_type"] = "option" if position == "option" else "stem"
+
+                resource_type = resource.get("resource_type")
+
+                # 验证选项资源
+                if resource_type == "option":
+                    if "option_id" not in resource or not resource.get("option_id"):
+                        logger.warning(f"选项资源缺少 option_id，跳过资源: {resource.get('id', 'unknown')}")
+                        continue
+
+                    # 验证选项资源类型限制（只支持 image 和 audio）
+                    resource_type_value = resource.get("type", "")
+                    if resource_type_value not in ["image", "audio"]:
+                        logger.warning(
+                            f"选项资源类型不支持 {resource_type_value}，只支持 image 和 audio，跳过资源: {resource.get('id', 'unknown')}"
+                        )
+                        continue
+
+                validated_resources.append(resource)
+
+            # 更新资源列表
+            item.resources = validated_resources if validated_resources else None
 
         # 直接映射字段到 Question 对象
         question_obj = Question(
@@ -284,3 +348,134 @@ async def build_question_generation_prompt(
         "prompt_input": prompt_input,
         "prompt_parser": prompt_parser,
     }
+
+
+async def process_question_resources(
+    db: AsyncSession,
+    question: Question,
+    subject: str = "语文",
+) -> None:
+    """处理题目资源生成，根据 resource_type 分别处理题干资源和选项资源
+
+    Args:
+        db: 数据库会话
+        question: 题目对象
+        subject: 科目，用于确定音频语言
+    """
+    if not question.resources:
+        return
+
+    import asyncio
+
+    async def generate_stem_resource(resource: dict):
+        """生成题干资源"""
+        resource_type = resource.get("type", "")
+        resource_id = resource.get("id", "unknown")
+
+        if resource_type == "image":
+            image_prompt = resource.get("image_prompt")
+            if not image_prompt:
+                logger.warning(f"题干图片资源缺少 image_prompt，资源ID: {resource_id}")
+                return
+
+            oss_path = f"question/{question.id}/stem/{resource_id}.png"
+            try:
+                await invoke_question_image_workflow(
+                    db=db,
+                    prompt=image_prompt,
+                    oss_path=oss_path,
+                )
+                resource["url"] = oss_path
+                logger.info(f"题干图片资源生成成功: {resource_id}")
+            except Exception as e:
+                logger.error(f"题干图片资源生成失败: {resource_id}, 错误: {e}")
+
+        elif resource_type == "audio":
+            text = resource.get("text")
+            if not text:
+                logger.warning(f"题干音频资源缺少 text，资源ID: {resource_id}")
+                return
+
+            language = "English" if subject == "英语" else "Chinese"
+            oss_path = f"question/{question.id}/stem/{resource_id}.mp3"
+            try:
+                await invoke_question_audio_workflow(
+                    text=text,
+                    language=language,
+                    oss_path=oss_path,
+                )
+                resource["url"] = oss_path
+                logger.info(f"题干音频资源生成成功: {resource_id}")
+            except Exception as e:
+                logger.error(f"题干音频资源生成失败: {resource_id}, 错误: {e}")
+
+        # TODO: 处理 video 和 animation 类型（待实现相应的工作流）
+        elif resource_type in ["video", "animation"]:
+            logger.warning(f"暂不支持题干资源类型: {resource_type}, 资源ID: {resource_id}")
+
+    async def generate_option_resource(resource: dict):
+        """生成选项资源"""
+        resource_type = resource.get("type", "")
+        resource_id = resource.get("id", "unknown")
+        option_id = resource.get("option_id")
+
+        if not option_id:
+            logger.warning(f"选项资源缺少 option_id，资源ID: {resource_id}")
+            return
+
+        if resource_type == "image":
+            image_prompt = resource.get("image_prompt")
+            if not image_prompt:
+                logger.warning(f"选项图片资源缺少 image_prompt，资源ID: {resource_id}, option_id: {option_id}")
+                return
+
+            oss_path = f"question/{question.id}/option/{option_id}/{resource_id}.png"
+            try:
+                await invoke_question_image_workflow(
+                    db=db,
+                    prompt=image_prompt,
+                    oss_path=oss_path,
+                )
+                resource["url"] = oss_path
+                logger.info(f"选项图片资源生成成功: resource_id={resource_id}, option_id={option_id}")
+            except Exception as e:
+                logger.error(f"选项图片资源生成失败: resource_id={resource_id}, option_id={option_id}, 错误: {e}")
+
+        elif resource_type == "audio":
+            text = resource.get("text")
+            if not text:
+                logger.warning(f"选项音频资源缺少 text，资源ID: {resource_id}, option_id: {option_id}")
+                return
+
+            language = "English" if subject == "英语" else "Chinese"
+            oss_path = f"question/{question.id}/option/{option_id}/{resource_id}.mp3"
+            try:
+                await invoke_question_audio_workflow(
+                    text=text,
+                    language=language,
+                    oss_path=oss_path,
+                )
+                resource["url"] = oss_path
+                logger.info(f"选项音频资源生成成功: resource_id={resource_id}, option_id={option_id}")
+            except Exception as e:
+                logger.error(f"选项音频资源生成失败: resource_id={resource_id}, option_id={option_id}, 错误: {e}")
+
+    # 收集所有资源生成任务
+    tasks = []
+    for resource in question.resources:
+        if not isinstance(resource, dict):
+            continue
+
+        resource_type = resource.get("resource_type")
+        if resource_type == "stem":
+            tasks.append(generate_stem_resource(resource))
+        elif resource_type == "option":
+            tasks.append(generate_option_resource(resource))
+        else:
+            logger.warning(f"未知的资源类型: {resource_type}, 资源ID: {resource.get('id', 'unknown')}")
+
+    # 并行执行所有资源生成任务
+    if tasks:
+        logger.info(f"开始并行生成 {len(tasks)} 个资源，题目ID: {question.id}")
+        await asyncio.gather(*tasks)
+        logger.info(f"资源生成完成，题目ID: {question.id}")

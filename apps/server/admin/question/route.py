@@ -250,27 +250,6 @@ async def create_question(params: QuestionCreateSchema, db: AsyncSession = Datab
     return await question.create_question(db, params)
 
 
-@question_router.patch(
-    "/{id}",
-    tags=["题目管理"],
-    summary="更新题目",
-    description="更新指定的题目信息",
-    response_model=QuestionSchema,
-)
-async def update_question(id: str, params: QuestionUpdateSchema, db: AsyncSession = Database):
-    return await question.update_question(db, id, params)
-
-
-@question_router.delete(
-    "/{id}",
-    tags=["题目管理"],
-    summary="删除题目",
-    description="删除指定的题目",
-)
-async def delete_question(id: str, db: AsyncSession = Database):
-    await question.delete_question(db, id)
-
-
 @question_router.post(
     "/batch_delete",
     tags=["题目管理"],
@@ -310,6 +289,27 @@ async def search_questions(params: QuestionSearchSchema = Depends(), db: AsyncSe
         data=[QuestionSchema.model_validate(q) for q in questions],
         total=total,
     )
+
+
+@question_router.patch(
+    "/{id}",
+    tags=["题目管理"],
+    summary="更新题目",
+    description="更新指定的题目信息",
+    response_model=QuestionSchema,
+)
+async def update_question(id: str, params: QuestionUpdateSchema, db: AsyncSession = Database):
+    return await question.update_question(db, id, params)
+
+
+@question_router.delete(
+    "/{id}",
+    tags=["题目管理"],
+    summary="删除题目",
+    description="删除指定的题目",
+)
+async def delete_question(id: str, db: AsyncSession = Database):
+    await question.delete_question(db, id)
 
 
 @question_router.get(

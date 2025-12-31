@@ -7,3 +7,4 @@ export * from './AudioPlayer';
 export * from './UploadButton';
 export * from './SubjectGradeTabs';
 export * from './PromptDisplay';
+export * from './QuestionCard';

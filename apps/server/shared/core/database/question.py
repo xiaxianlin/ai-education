@@ -109,7 +109,6 @@ class Question(BaseModel):
 
     # 来源
     source: Mapped[str] = mapped_column(String(50), default="ai", comment="来源")
-    prompt_id: Mapped[int] = mapped_column(nullable=True, comment="生成此题的Prompt ID")
 
     # 统计
     usage_count: Mapped[int] = mapped_column(default=0, comment="使用次数")

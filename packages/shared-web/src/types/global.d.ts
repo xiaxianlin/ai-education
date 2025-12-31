@@ -180,7 +180,9 @@ declare global {
     type: string; // 资源类型：none/image/audio/video/animation
     url: string;
     alt?: string;
-    position: "stem" | "option" | "background";
+    position: "stem" | "option" | "background"; // 向后兼容字段
+    resource_type?: "stem" | "option"; // 资源归属类型：'stem'（题干资源）/'option'（选项资源），向后兼容时可能不存在
+    option_id?: string; // 关联的选项ID（当 resource_type='option' 时必填）
     size?: Record<string, number>; // 尺寸，如 { width: number, height: number }
     style?: Record<string, unknown>;
     duration?: number;
@@ -255,7 +257,6 @@ declare global {
     knowledge_points?: string[];
     ability_tags?: string[];
     source: string;
-    prompt_id?: number;
     usage_count: number;
     correct_rate?: string;
     avg_time_spent?: number;
