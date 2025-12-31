@@ -50,6 +50,7 @@ declare global {
     feedback_config?: FeedbackConfig; // 后端使用 feedback_config
     cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
     ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    difficulty?: Difficulty; // 后端使用 difficulty
     ai_prompt?: string; // 后端使用 ai_prompt
     output_schema?: Record<string, unknown>; // 后端使用 output_schema
     sort_order?: number; // 后端使用 sort_order，默认值为 0
@@ -71,6 +72,7 @@ declare global {
     feedback_config?: FeedbackConfig; // 后端使用 feedback_config
     cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
     ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    difficulty?: Difficulty; // 后端使用 difficulty
     ai_prompt?: string; // 后端使用 ai_prompt
     output_schema?: Record<string, unknown>; // 后端使用 output_schema
     sort_order?: number; // 后端使用 sort_order

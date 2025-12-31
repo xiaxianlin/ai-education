@@ -6,3 +6,4 @@ export * from './StatusTag';
 export * from './AudioPlayer';
 export * from './UploadButton';
 export * from './SubjectGradeTabs';
+export * from './PromptDisplay';

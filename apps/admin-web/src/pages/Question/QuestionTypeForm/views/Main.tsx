@@ -40,7 +40,7 @@ export default function MainView() {
           />
           <FooterToolbar className="page-footer">
             <Flex justify="center" gap={16}>
-              <Button size="large" onClick={() => navigate('/question_type')}>
+              <Button size="large" onClick={() => navigate(-1)}>
                 取消
               </Button>
               <Button type="primary" size="large" loading={submitting} onClick={() => form.submit()}>

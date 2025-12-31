@@ -1,4 +1,4 @@
-import { GRADES } from '@ai-education/shared-web';
+import { DIFFICULTY_LABELS, GRADES } from '@ai-education/shared-web';
 import { ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Col, Row } from 'antd';
 import { STAGE_OPTIONS } from '../../constants';
@@ -30,6 +30,18 @@ export function BaseForm() {
             label="名称"
             placeholder="题型名称，如 看图选拼音"
             rules={[{ required: true, message: '请输入名称' }]}
+          />
+        </Col>
+        <Col span={8}>
+          <ProFormSelect
+            name="difficulty"
+            label="难度"
+            placeholder="请选择难度"
+            options={Object.entries(DIFFICULTY_LABELS).map(([value, label]) => ({
+              value,
+              label,
+            }))}
+            rules={[{ required: true, message: '请选择难度' }]}
           />
         </Col>
       </Row>

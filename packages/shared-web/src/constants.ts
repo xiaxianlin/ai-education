@@ -269,6 +269,13 @@ export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   hard: "困难",
 };
 
+/** 难度颜色 */
+export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
+  easy: "green",
+  medium: "orange",
+  hard: "red",
+};
+
 /** 认知层次标签 */
 export const COGNITIVE_LEVEL_LABELS: Record<CognitiveLevel, string> = {
   remember: "识记",
@@ -305,6 +312,15 @@ export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   audio: "音频",
   video: "视频",
   animation: "动画",
+};
+
+/** 资源类型颜色 */
+export const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
+  text: "blue",
+  image: "green",
+  audio: "purple",
+  video: "orange",
+  animation: "red",
 };
 
 /** 答案类型标签 */

@@ -37,7 +37,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
                 <div key={opt.id || idx} className="text-sm">
                   <span className="font-medium">{String.fromCharCode(65 + idx)}.</span> {opt.text}
                   {opt.is_correct && (
-                    <Tag color="success" size="small" className="ml-2">
+                    <Tag color="success" className="ml-2">
                       正确
                     </Tag>
                   )}
@@ -59,9 +59,7 @@ export function QuestionCard({ question }: QuestionCardProps) {
             <div className="text-sm font-medium text-gray-600 mb-1">知识点</div>
             <div className="flex gap-1 flex-wrap">
               {question.knowledge_points.map((kp, idx) => (
-                <Tag key={idx} size="small">
-                  {kp}
-                </Tag>
+                <Tag key={idx}>{kp}</Tag>
               ))}
             </div>
           </div>
@@ -70,4 +68,3 @@ export function QuestionCard({ question }: QuestionCardProps) {
     </Card>
   );
 }
-

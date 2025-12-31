@@ -1,4 +1,12 @@
-import { GRADES, STAGE_LABELS, Stage } from '@ai-education/shared-web';
+import {
+  DIFFICULTY_COLORS,
+  DIFFICULTY_LABELS,
+  GRADES,
+  RESOURCE_TYPE_COLORS,
+  RESOURCE_TYPE_LABELS,
+  STAGE_LABELS,
+  Stage,
+} from '@ai-education/shared-web';
 import { Card, Descriptions, Flex, Tag } from 'antd';
 import { useQuestionTypeGenerateModel } from '../models/page';
 
@@ -17,14 +25,15 @@ export function QuestionTypeInfo() {
         <Descriptions.Item label="科目">
           {questionType.subject ? <Tag color="blue">{questionType.subject}</Tag> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="状态">
-          {questionType.is_active !== undefined ? (
-            <Tag color={questionType.is_active ? 'success' : 'error'}>
-              {questionType.is_active ? '启用' : '禁用'}
-            </Tag>
-          ) : (
-            '-'
-          )}
+        <Descriptions.Item label="难度">
+          <Tag color={DIFFICULTY_COLORS[questionType.difficulty as Difficulty]}>
+            {DIFFICULTY_LABELS[questionType.difficulty as Difficulty]}
+          </Tag>
+        </Descriptions.Item>
+        <Descriptions.Item label="资源类型">
+          <Tag color={RESOURCE_TYPE_COLORS[questionType.resource_type as ResourceType]}>
+            {RESOURCE_TYPE_LABELS[questionType.resource_type as ResourceType]}
+          </Tag>
         </Descriptions.Item>
         <Descriptions.Item label="适用学段">
           {questionType.stages?.length ? (
@@ -57,4 +66,3 @@ export function QuestionTypeInfo() {
     </Card>
   );
 }
-

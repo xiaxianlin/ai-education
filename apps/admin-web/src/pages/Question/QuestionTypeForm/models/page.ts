@@ -40,6 +40,7 @@ const useContainer = () => {
             subject: res.subject,
             stages: res.stages,
             grades: res.grades,
+            difficulty: res.difficulty,
             // 交互配置
             interactionType: res.interaction_type,
             interactionConfig: res.interaction_config ? JSON.stringify(res.interaction_config, null, 2) : undefined,
@@ -86,6 +87,7 @@ const useContainer = () => {
         subject: values.subject,
         stages: values.stages,
         grades: values.grades,
+        difficulty: values.difficulty,
         // 交互配置
         interaction_type: values.interactionType,
         interaction_config: values.interactionConfig ? JSON.parse(values.interactionConfig) : undefined,

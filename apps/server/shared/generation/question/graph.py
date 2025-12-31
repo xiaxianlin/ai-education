@@ -13,12 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .schema import QuestionGenerationState
 from .service import (
     build_question_generation_prompt,
-    filter_similar_questions,
+    format_llm_questions,
+    get_llm_temperature,
     handle_llm_questions,
 )
 
 # 最大循环次数，避免无限循环
-MAX_LOOP_COUNT = 10
+MAX_LOOP_COUNT = 3
 
 
 async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -54,25 +55,10 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     if not question_type.ai_prompt:
         raise ValueError(f"题目类型的 ai_prompt 不能为空: code={question_type_code}")
 
-    # 获取科目和年级
-    subject = question_type.subject
-    grade = question_type.grades[0] if question_type.grades else 1
+    logger.info(f"[entry_node] 题目生成开始: type={question_type_code}")
 
-    logger.info(
-        f"[entry_node] 题目生成开始: type={question_type_code}, "
-        f"subject={subject}, grade={grade}, count={state['count']}"
-    )
-
-    output = {
-        "question_type": question_type,
-        "subject": subject,
-        "grade": grade,
-        "unique_questions": [],
-        "loop_count": 0,
-    }
-    logger.debug(f"[entry_node] 输出: subject={subject}, grade={grade}, unique_questions_count=0, loop_count=0")
     logger.info("[entry_node] 入口节点执行完成")
-    return output
+    return {"question_type": question_type, "loop_count": 0}
 
 
 async def build_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
@@ -81,24 +67,24 @@ async def build_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
     logger.info("[build_prompt_node] 开始构建 prompt")
     question_type = state["question_type"]
     count = state["count"]
-    unique_questions = state.get("unique_questions", [])
+    generated_questions = state.get("generated_questions", [])
 
     # 计算还需要生成的数量
-    remaining_count = count - len(unique_questions)
+    remaining_count = count - len(generated_questions)
 
     logger.debug(
         f"[build_prompt_node] 输入 state: question_type_code={question_type.code}, "
-        f"count={count}, unique_questions_count={len(unique_questions)}, remaining_count={remaining_count}"
+        f"count={count}, generated_questions_count={len(generated_questions)}, remaining_count={remaining_count}"
     )
     logger.info(
-        f"[build_prompt_node] 构建 prompt: 已生成={len(unique_questions)}, " f"需要={count}, 还需={remaining_count}"
+        f"[build_prompt_node] 构建 prompt: 已生成={len(generated_questions)}, " f"需要={count}, 还需={remaining_count}"
     )
 
     # 构建 prompt
     prompt_data = await build_question_generation_prompt(
         question_type=question_type,
         count=remaining_count,
-        existing_questions=unique_questions,
+        generated_questions=generated_questions,
     )
 
     logger.debug(
@@ -117,12 +103,12 @@ def should_generate_node(state: QuestionGenerationState) -> str:
     """
     logger.info("[should_generate_node] 开始判断是否需要生成")
     count = state["count"]
-    unique_questions = state.get("unique_questions", [])
-    remaining_count = count - len(unique_questions)
+    generated_questions = state.get("generated_questions", [])
+    remaining_count = count - len(generated_questions)
 
     logger.debug(
         f"[should_generate_node] 输入 state: count={count}, "
-        f"unique_questions_count={len(unique_questions)}, remaining_count={remaining_count}"
+        f"generated_questions_count={len(generated_questions)}, remaining_count={remaining_count}"
     )
 
     if remaining_count <= 0:
@@ -144,11 +130,23 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
         f"prompt_input_keys={list(state.get('prompt_input', {}).keys()) if 'prompt_input' in state else 'N/A'}"
     )
 
+    # 动态调整温度参数以提高多样性
+    loop_count = state.get("loop_count", 0)
+    generated_questions_count = len(state.get("generated_questions", []))
+    count = state.get("count", 1)
+
+    temperature = get_llm_temperature(loop_count, generated_questions_count, count)
+
+    logger.debug(
+        f"[call_llm_node] 使用温度参数: {temperature:.2f} (循环次数={loop_count}, 已有题目={generated_questions_count})"
+    )
+
     provider = get_provider()
     result = await provider.invoke_chain(
         prompt=state["prompt"],
         parser=state["prompt_parser"],
         prompt_input=state["prompt_input"],
+        temperature=temperature,
     )
 
     logger.debug(
@@ -156,45 +154,8 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     )
     logger.debug(f"[call_llm_node] LLM 原始返回内容: {result}")
 
-    # 处理不同的返回格式
-    questions_list = None
-
-    # 情况1: 标准格式，包含 questions 数组
-    if "questions" in result:
-        if isinstance(result["questions"], list):
-            questions_list = result["questions"]
-            logger.debug(f"[call_llm_node] 使用标准格式: questions 数组，数量={len(questions_list)}")
-        else:
-            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
-    # 情况2: 单个题目对象格式（LLM 可能只返回一道题目，字段名可能是 question 而不是 stem）
-    elif isinstance(result, dict) and ("question" in result or "stem" in result or "options" in result):
-        logger.warning("[call_llm_node] LLM 返回的是单个题目对象，将其包装成数组并尝试字段映射")
-        # 检查字段映射：如果返回的是 question 字段，需要映射到 stem
-        single_question = dict(result)
-        if "question" in single_question and "stem" not in single_question:
-            # 将 question 字段映射到 stem（如果 question 是字符串，包装成 dict）
-            question_value = single_question.pop("question")
-            if isinstance(question_value, str):
-                single_question["stem"] = {"text": question_value}
-            elif isinstance(question_value, dict):
-                single_question["stem"] = question_value
-            else:
-                single_question["stem"] = {"text": str(question_value)}
-            logger.debug("[call_llm_node] 已将 question 字段映射到 stem")
-        questions_list = [single_question]
-    else:
-        # 情况3: 可能是解析失败，result 本身就是题目列表
-        if isinstance(result, list):
-            logger.warning("[call_llm_node] LLM 直接返回了题目列表，使用该列表")
-            questions_list = result
-        else:
-            raise ValueError(
-                f"LLM 返回结果格式不正确。期望包含 'questions' 字段的对象，或单个题目对象，或题目列表。"
-                f"实际返回的 keys: {list(result.keys()) if isinstance(result, dict) else type(result).__name__}"
-            )
-
-    if not questions_list:
-        raise ValueError("无法从 LLM 返回结果中提取题目列表")
+    # 格式化 LLM 返回的题目结果
+    questions_list = format_llm_questions(result)
 
     logger.info(f"[call_llm_node] 大模型生成题目完成，共 {len(questions_list)} 道题目")
     logger.debug(f"[call_llm_node] 提取的题目数量: {len(questions_list)}")
@@ -203,66 +164,51 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     question_type = state["question_type"]
     db = state["db"]
 
-    generated_questions = handle_llm_questions(
+    new_generated_questions = handle_llm_questions(
         db=db,
         question_type=question_type,
         llm_questions=questions_list,
     )
 
-    output = {"generated_questions": generated_questions}
-    logger.debug(f"[call_llm_node] 输出: generated_questions_count={len(generated_questions)}")
+    output = {"new_generated_questions": new_generated_questions}
+    logger.debug(f"[call_llm_node] 输出: generated_questions_count={len(new_generated_questions)}")
     logger.info("[call_llm_node] 大模型调用节点执行完成")
     return output
 
 
-async def check_similarity_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """检查相似度并去重节点"""
+async def merge_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
+    """合并题目节点，将新生成的题目合并到唯一题目列表中"""
 
-    logger.info("[check_similarity_node] 开始检查相似度并去重")
+    logger.info("[merge_questions_node] 开始合并题目")
     generated_questions = state.get("generated_questions", [])
-    unique_questions = state.get("unique_questions", [])
+    new_generated_questions = state.get("new_generated_questions", [])
 
     logger.debug(
-        f"[check_similarity_node] 输入 state: generated_questions_count={len(generated_questions)}, "
-        f"unique_questions_count={len(unique_questions)}"
+        f"[merge_questions_node] 输入 state: generated_questions_count={len(generated_questions)}, "
+        f"new_generated_questions_count={len(new_generated_questions)}"
     )
 
-    if not generated_questions:
-        logger.warning("[check_similarity_node] 没有生成的题目需要检查")
-        output = {"unique_questions": unique_questions}
-        logger.debug(f"[check_similarity_node] 输出: unique_questions_count={len(unique_questions)}")
+    if not new_generated_questions:
+        logger.warning("[merge_questions_node] 没有生成的题目需要合并")
+        output = {"generated_questions": generated_questions}
+        logger.debug(f"[merge_questions_node] 输出: generated_questions_count={len(generated_questions)}")
         return output
 
     logger.info(
-        f"[check_similarity_node] 开始相似度检查: 新生成={len(generated_questions)}, " f"已有={len(unique_questions)}"
+        f"[merge_questions_node] 合并题目: 新生成={len(new_generated_questions)}, " f"已有={len(generated_questions)}"
     )
 
-    # 过滤相似题目
-    filtered_questions = filter_similar_questions(
-        questions=generated_questions,
-        existing_questions=unique_questions,
-        threshold=0.8,
+    # 合并所有生成的题目到唯一题目列表
+    new_generated_questions = list(generated_questions) + list(new_generated_questions)
+
+    logger.info(
+        f"[merge_questions_node] 题目合并完成: 新增={len(generated_questions)}道, "
+        f"总计={len(new_generated_questions)}道"
     )
 
-    # 合并到唯一题目列表
-    new_unique_questions = list(unique_questions) + list(filtered_questions)
-
-    filtered_count = len(generated_questions) - len(filtered_questions)
-    if filtered_count > 0:
-        logger.info(
-            f"[check_similarity_node] 相似度检查完成: 过滤={filtered_count}道, "
-            f"保留={len(filtered_questions)}道, "
-            f"总计={len(new_unique_questions)}道"
-        )
-    else:
-        logger.info(f"[check_similarity_node] 相似度检查完成: 全部保留, 总计={len(new_unique_questions)}道")
-
-    output = {"unique_questions": new_unique_questions}
-    logger.debug(
-        f"[check_similarity_node] 输出: unique_questions_count={len(new_unique_questions)}, "
-        f"filtered_count={filtered_count}, kept_count={len(filtered_questions)}"
-    )
-    logger.info("[check_similarity_node] 相似度检查节点执行完成")
+    output = {"generated_questions": new_generated_questions}
+    logger.debug(f"[merge_questions_node] 输出: generated_questions_count={len(new_generated_questions)}")
+    logger.info("[merge_questions_node] 合并节点执行完成")
     return output
 
 
@@ -274,14 +220,14 @@ def loop_condition_node(state: QuestionGenerationState) -> str:
     """
     logger.info("[loop_condition_node] 开始判断循环条件")
     count = state["count"]
-    unique_questions = state.get("unique_questions", [])
+    generated_questions = state.get("generated_questions", [])
     loop_count = state.get("loop_count", 0)
 
-    current_count = len(unique_questions)
+    current_count = len(generated_questions)
 
     logger.debug(
         f"[loop_condition_node] 输入 state: count={count}, "
-        f"unique_questions_count={current_count}, loop_count={loop_count}"
+        f"generated_questions_count={current_count}, loop_count={loop_count}"
     )
 
     # 检查是否达到目标数量
@@ -327,11 +273,11 @@ async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
     logger.info("[save_questions_node] 开始保存题目到数据库")
     db = state["db"]
-    unique_questions = state.get("unique_questions", [])
+    generated_questions = state.get("generated_questions", [])
 
-    logger.debug(f"[save_questions_node] 输入 state: unique_questions_count={len(unique_questions)}")
+    logger.debug(f"[save_questions_node] 输入 state: generated_questions_count={len(generated_questions)}")
 
-    if not unique_questions:
+    if not generated_questions:
         logger.warning("[save_questions_node] 没有题目需要保存")
         await db.commit()
         output = {"questions": []}
@@ -339,14 +285,33 @@ async def save_questions_node(state: QuestionGenerationState) -> Dict[str, Any]:
         logger.info("[save_questions_node] 保存节点执行完成（无题目）")
         return output
 
-    logger.info(f"[save_questions_node] 开始保存题目到数据库: 共 {len(unique_questions)} 道")
+    count = state.get("count", 0)
+    loop_count = state.get("loop_count", 0)
+
+    logger.info(f"[save_questions_node] 开始保存题目到数据库: 共 {len(generated_questions)} 道")
 
     # 题目已经在 handle_llm_questions 中添加到数据库，这里只需要提交
     await db.commit()
 
-    logger.info("[save_questions_node] 题目保存完成")
-    output = {"questions": unique_questions}
-    logger.debug(f"[save_questions_node] 输出: questions_count={len(unique_questions)}")
+    # 刷新所有题目对象以确保它们与数据库同步
+    for question in generated_questions:
+        await db.refresh(question)
+
+    # 检查是否达到目标数量
+    if len(generated_questions) < count:
+        logger.warning(
+            f"[save_questions_node] ⚠️ 警告: 目标生成 {count} 道题目，实际生成 {len(generated_questions)} 道，"
+            f"完成率 {len(generated_questions)/count*100:.1f}%，循环次数={loop_count}"
+        )
+    else:
+        logger.info(
+            f"[save_questions_node] ✓ 成功: 目标生成 {count} 道题目，实际生成 {len(generated_questions)} 道，"
+            f"循环次数={loop_count}"
+        )
+
+    logger.info(f"[save_questions_node] 题目保存完成，共 {len(generated_questions)} 道题目")
+    output = {"questions": generated_questions}
+    logger.debug(f"[save_questions_node] 输出: questions_count={len(generated_questions)}")
     logger.info("[save_questions_node] 保存节点执行完成")
     return output
 
@@ -362,7 +327,7 @@ def create_question_generation_graph() -> CompiledStateGraph:
     workflow.add_node("entry", entry_node)
     workflow.add_node("build_prompt", build_prompt_node)
     workflow.add_node("call_llm", call_llm_node)
-    workflow.add_node("check_similarity", check_similarity_node)
+    workflow.add_node("merge_questions", merge_questions_node)
     workflow.add_node("increment_loop", increment_loop_count_node)
     workflow.add_node("save_questions", save_questions_node)
 
@@ -378,15 +343,15 @@ def create_question_generation_graph() -> CompiledStateGraph:
         should_generate_node,
         {
             "generate": "call_llm",
-            "skip": "check_similarity",
+            "skip": "save_questions",  # 如果不需要生成，直接保存并结束
         },
     )
 
-    workflow.add_edge("call_llm", "check_similarity")
+    workflow.add_edge("call_llm", "merge_questions")
 
     # 循环条件判断
     workflow.add_conditional_edges(
-        "check_similarity",
+        "merge_questions",
         loop_condition_node,
         {
             "continue": "increment_loop",
@@ -437,10 +402,51 @@ async def invoke_question_generation_workflow(
         f"[invoke_question_generation_workflow] 初始 state: question_type_code={question_type_code}, count={count}"
     )
 
-    result = await question_generation_graph.ainvoke(state)
+    # 增加递归限制配置，避免无限循环
+    config = {"recursion_limit": 50}  # 增加递归限制到 50
+    result = await question_generation_graph.ainvoke(state, config=config)
 
+    # 从最终状态中获取保存的题目列表
     questions = result.get("questions", [])
-    logger.info(f"[invoke_question_generation_workflow] 工作流执行完成: 生成题目数量={len(questions)}")
+
+    # 如果 questions 为空但 generated_questions 不为空，使用 generated_questions
+    if not questions:
+        generated_questions = result.get("generated_questions", [])
+        if generated_questions:
+            logger.warning(
+                f"[invoke_question_generation_workflow] questions 字段为空，但 generated_questions 有 {len(generated_questions)} 道题目，使用 generated_questions"
+            )
+            questions = generated_questions
+
+    # 记录最终结果统计
+    loop_count = result.get("loop_count", 0)
+
+    logger.info(
+        f"[invoke_question_generation_workflow] 工作流执行完成: "
+        f"生成题目数量={len(questions)}, 目标数量={count}, "
+        f"循环次数={loop_count}"
+    )
     logger.debug(f"[invoke_question_generation_workflow] 最终结果: questions_count={len(questions)}")
+
+    if len(questions) == 0:
+        if result.get("generated_questions"):
+            logger.error(
+                f"[invoke_question_generation_workflow] ❌ 错误: 最终返回题目数量为 0，"
+                f"但 generated_questions 中有 {len(result.get('generated_questions', []))} 道题目"
+            )
+        else:
+            logger.warning(
+                "[invoke_question_generation_workflow] ⚠️ 警告: 未能生成任何题目。"
+                "可能原因: LLM 生成失败，或 prompt 配置不当。"
+            )
+    elif len(questions) < count:
+        logger.warning(
+            f"[invoke_question_generation_workflow] ⚠️ 部分完成: 目标 {count} 道，实际 {len(questions)} 道，"
+            f"完成率 {len(questions)/count*100:.1f}%"
+        )
+    else:
+        logger.info(
+            f"[invoke_question_generation_workflow] ✓ 成功完成: 生成 {len(questions)} 道题目，" f"达到目标数量 {count}"
+        )
 
     return questions

@@ -38,10 +38,6 @@ class QuestionGenerationState(TypedDict, total=False):
     count: int
     # 题目类型对象
     question_type: NotRequired[QuestionType]
-    # 科目（从 QuestionType 获取）
-    subject: NotRequired[str]
-    # 年级（从 QuestionType 获取，取第一个）
-    grade: NotRequired[int]
 
     # ================= 内部构建状态 ================== #
     # 生成的提示词 (ChatPromptTemplate)
@@ -50,9 +46,9 @@ class QuestionGenerationState(TypedDict, total=False):
     prompt_input: NotRequired[dict[str, Any]]
     # JSON 输出解析器
     prompt_parser: NotRequired[Any]
-    # 本次生成的题目列表
+    # 生成的题目列表
     generated_questions: NotRequired[List[Question]]
-    # 去重后的题目列表（累积）
-    unique_questions: NotRequired[List[Question]]
+    # 本次循环生成的题目列表
+    new_generated_questions: NotRequired[List[Question]]
     # 循环次数
     loop_count: NotRequired[int]

@@ -196,4 +196,15 @@ export const QuestionApi = {
   async batchUpdateQuestions(params: { ids: string[]; is_active: boolean }) {
     return apiClient.patch<{ message: string; updated_count: number }>('/question/batch_update', params);
   },
+
+  /**
+   * 优化题型生成提示词
+   * POST /prompt/optimize/question_type
+   */
+  async optimizePrompt(code: string, suggestion?: string) {
+    return apiClient.post<{ optimized_prompt: string }>('/prompt/optimize/question_type', {
+      code,
+      suggestion,
+    });
+  },
 };

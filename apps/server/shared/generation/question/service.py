@@ -1,6 +1,6 @@
 """题目生成服务函数
 
-包含相似度检查、题目去重、题目处理和 prompt 构建等功能
+包含题目处理和 prompt 构建等功能
 """
 
 import secrets
@@ -27,108 +27,157 @@ def grade_to_stage(grade: int) -> str:
     return "senior"
 
 
-def calculate_jaccard_similarity(text1: str, text2: str) -> float:
-    """计算两个文本的 Jaccard 相似度
+def get_llm_temperature(loop_count: int, unique_questions_count: int, count: int) -> float:
+    """根据循环次数和生成进度动态计算 LLM 温度参数
 
     Args:
-        text1: 第一个文本
-        text2: 第二个文本
+        loop_count: 当前循环次数
+        unique_questions_count: 已生成的唯一题目数量
+        count: 目标生成数量
 
     Returns:
-        float: Jaccard 相似度，范围 [0, 1]
+        float: 温度参数，范围 [0.7, 1.0]
     """
-    if not text1 or not text2:
-        return 0.0
+    # 基础温度
+    base_temperature = 0.7
 
-    # 将文本转换为字符集合
-    set1 = set(text1)
-    set2 = set(text2)
-
-    # 计算交集和并集
-    intersection = len(set1 & set2)
-    union = len(set1 | set2)
-
-    if union == 0:
-        return 0.0
-
-    return intersection / union
-
-
-def extract_question_text(question: Question) -> str:
-    """提取题目的完整文本用于相似度比较
-
-    Args:
-        question: 题目对象
-
-    Returns:
-        str: 题目的完整文本（包含题干和选项）
-    """
-    parts = []
-
-    # 提取题干
-    if isinstance(question.stem, dict):
-        stem_text = question.stem.get("text", "")
+    # 如果循环次数较多，逐步提高温度
+    if loop_count >= 5:
+        temperature = min(1.0, base_temperature + 0.2)  # 最高 1.0
+    elif loop_count >= 3:
+        temperature = base_temperature + 0.15  # 0.85
+    elif loop_count >= 1:
+        temperature = base_temperature + 0.1  # 0.8
     else:
-        stem_text = str(question.stem)
+        temperature = base_temperature  # 0.7
 
-    if stem_text:
-        parts.append(stem_text)
+    # 如果已有题目数量接近目标但仍有差距，进一步提高温度
+    if unique_questions_count > 0 and unique_questions_count < count:
+        progress_ratio = unique_questions_count / count
+        if progress_ratio < 0.5:  # 进度不足 50%
+            temperature = min(1.0, temperature + 0.1)
 
-    # 提取选项
-    if question.options:
-        if isinstance(question.options, list):
-            options_text = " ".join(
-                [opt.get("text", str(opt)) if isinstance(opt, dict) else str(opt) for opt in question.options]
-            )
-        else:
-            options_text = str(question.options)
-
-        if options_text:
-            parts.append(options_text)
-
-    return " ".join(parts)
+    return temperature
 
 
-def filter_similar_questions(
-    questions: List[Question],
-    existing_questions: List[Question],
-    threshold: float = 0.8,
-) -> List[Question]:
-    """过滤掉与已有题目相似度超过阈值的题目
+def format_llm_questions(result: Any) -> List[dict]:
+    """格式化 LLM 返回的题目结果，统一转换为题目列表格式
+
+    支持以下格式：
+    1. 标准格式：{"questions": [...]}
+    2. 单个题目对象：{"question": "...", "options": [...], ...}
+    3. 直接列表：[{...}, {...}]
 
     Args:
-        questions: 待检查的题目列表
-        existing_questions: 已有题目列表
-        threshold: 相似度阈值，默认 0.8
+        result: LLM 返回的原始结果
 
     Returns:
-        List[Question]: 过滤后的题目列表
+        List[dict]: 格式化后的题目列表
+
+    Raises:
+        ValueError: 如果无法从结果中提取题目列表
     """
-    if not existing_questions:
-        return questions
+    questions_list = None
 
-    # 提取已有题目的文本
-    existing_texts = [extract_question_text(q) for q in existing_questions]
-
-    filtered_questions = []
-    for question in questions:
-        question_text = extract_question_text(question)
-
-        # 检查与所有已有题目的相似度
-        is_similar = False
-        for existing_text in existing_texts:
-            similarity = calculate_jaccard_similarity(question_text, existing_text)
-            if similarity >= threshold:
-                is_similar = True
-                logger.debug(f"题目相似度过高: {similarity:.2f} >= {threshold}, " f"题目: {question_text[:50]}...")
-                break
-
-        if not is_similar:
-            filtered_questions.append(question)
+    # 情况1: 标准格式，包含 questions 数组
+    if "questions" in result:
+        if isinstance(result["questions"], list):
+            questions_list = result["questions"]
+            logger.debug(f"使用标准格式: questions 数组，数量={len(questions_list)}")
         else:
-            logger.info(f"过滤掉相似题目: {question_text[:50]}...")
+            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
+    # 情况2: 单个题目对象格式（LLM 可能只返回一道题目，字段名可能是 question 而不是 stem）
+    elif isinstance(result, dict) and ("question" in result or "stem" in result or "options" in result):
+        logger.warning("LLM 返回的是单个题目对象，将其包装成数组并尝试字段映射")
+        # 检查字段映射：如果返回的是 question 字段，需要映射到 stem
+        single_question = dict(result)
+        if "question" in single_question and "stem" not in single_question:
+            # 将 question 字段映射到 stem（如果 question 是字符串，包装成 dict）
+            question_value = single_question.pop("question")
+            if isinstance(question_value, str):
+                single_question["stem"] = {"text": question_value}
+            elif isinstance(question_value, dict):
+                single_question["stem"] = question_value
+            else:
+                single_question["stem"] = {"text": str(question_value)}
+            logger.debug("已将 question 字段映射到 stem")
+        questions_list = [single_question]
+    else:
+        # 情况3: 可能是解析失败，result 本身就是题目列表
+        if isinstance(result, list):
+            logger.warning("LLM 直接返回了题目列表，使用该列表")
+            questions_list = result
+        else:
+            raise ValueError(
+                f"LLM 返回结果格式不正确。期望包含 'questions' 字段的对象，或单个题目对象，或题目列表。"
+                f"实际返回的 keys: {list(result.keys()) if isinstance(result, dict) else type(result).__name__}"
+            )
 
-    return filtered_questions
+    if not questions_list:
+        raise ValueError("无法从 LLM 返回结果中提取题目列表")
+
+    return questions_list
+
+
+def normalize_llm_question(question: dict) -> dict:
+    """规范化 LLM 返回的题目格式，转换为符合 GeneratedQuestion 模型的格式
+
+    Args:
+        question: LLM 返回的原始题目字典
+
+    Returns:
+        dict: 规范化后的题目字典
+    """
+    normalized = dict(question)
+
+    # 1. 处理 stem 字段：如果是字符串，转换为字典格式
+    if "stem" in normalized:
+        if isinstance(normalized["stem"], str):
+            normalized["stem"] = {"text": normalized["stem"]}
+    elif "question" in normalized:
+        # 如果只有 question 字段，映射到 stem
+        question_value = normalized.pop("question")
+        if isinstance(question_value, str):
+            normalized["stem"] = {"text": question_value}
+        elif isinstance(question_value, dict):
+            normalized["stem"] = question_value
+        else:
+            normalized["stem"] = {"text": str(question_value)}
+
+    # 2. 处理 options 字段：如果是字符串列表，转换为字典列表
+    if "options" in normalized and normalized["options"] is not None:
+        options = normalized["options"]
+        if isinstance(options, list) and len(options) > 0:
+            # 检查第一个元素是否是字符串
+            if isinstance(options[0], str):
+                # 转换为字典格式：{"id": "A", "text": "选项内容"}
+                normalized["options"] = [
+                    {"id": chr(65 + i), "text": opt} if isinstance(opt, str) else opt for i, opt in enumerate(options)
+                ]
+                logger.debug(f"已将 options 从字符串列表转换为字典列表: {len(normalized['options'])} 个选项")
+
+    # 3. 处理 answer 字段：如果是字符串，转换为字典格式
+    # 先检查是否有 correct_answer 字段（LLM 可能使用这个字段名）
+    if "correct_answer" in normalized and "answer" not in normalized:
+        normalized["answer"] = normalized.pop("correct_answer")
+        logger.debug("已将 correct_answer 字段映射到 answer")
+
+    if "answer" in normalized:
+        answer = normalized["answer"]
+        if isinstance(answer, str):
+            # 转换为标准答案格式
+            normalized["answer"] = {"type": "exact", "correct_answers": [answer]}
+            logger.debug(f"已将 answer 从字符串转换为字典格式: {answer}")
+        elif isinstance(answer, list):
+            # 如果是列表，转换为字典格式
+            normalized["answer"] = {"type": "exact", "correct_answers": answer}
+
+    # 4. 处理 difficulty 字段：如果缺失，设置默认值
+    if "difficulty" not in normalized or not normalized.get("difficulty"):
+        normalized["difficulty"] = "medium"
+        logger.debug("已设置默认 difficulty: medium")
+
+    return normalized
 
 
 def handle_llm_questions(
@@ -156,10 +205,18 @@ def handle_llm_questions(
             logger.warning(f"题目项类型错误: {type(question)}, 跳过处理")
             continue
 
+        # 先规范化格式
         try:
-            item = GeneratedQuestion.model_validate(question)
+            normalized_question = normalize_llm_question(question)
         except Exception as e:
-            logger.warning(f"题目验证失败: {e}, 跳过处理")
+            logger.warning(f"题目格式规范化失败: {e}, 原始数据: {question}, 跳过处理")
+            continue
+
+        # 再验证格式
+        try:
+            item = GeneratedQuestion.model_validate(normalized_question)
+        except Exception as e:
+            logger.warning(f"题目验证失败: {e}, 规范化后的数据: {normalized_question}, 跳过处理")
             continue
 
         # 直接映射字段到 Question 对象
@@ -195,14 +252,14 @@ def handle_llm_questions(
 async def build_question_generation_prompt(
     question_type: QuestionType,
     count: int,
-    existing_questions: List[Question],
+    generated_questions: List[Question],
 ) -> Dict[str, Any]:
     """构建题目生成的 prompt
 
     Args:
         question_type: 题目类型对象
         count: 需要生成的数量
-        existing_questions: 已生成的题目列表（用于避免重复）
+        generated_questions: 已生成的题目列表（用于避免重复）
 
     Returns:
         Dict[str, Any]: 包含 prompt, prompt_input, prompt_parser 的字典
@@ -220,19 +277,19 @@ async def build_question_generation_prompt(
     prompt = prompt.partial(format_instructions=format_instructions)
 
     # 构建避免重复的提示
-    existing_questions_text = ""
-    if existing_questions:
+    generated_questions_text = ""
+    if generated_questions:
         prompt_lines = []
-        for q in existing_questions:
+        for q in generated_questions:
             question_text = build_question_prompt(q)
             prompt_lines.append(f"- {question_text}")
 
-        existing_questions_text = "\n".join(prompt_lines)
+        generated_questions_text = "\n".join(prompt_lines)
 
     # 构建 prompt 输入参数（最小参数）
     prompt_input = {
         "count": count,
-        "existing_questions": existing_questions_text,
+        "generated_questions_text": generated_questions_text,
         "format_instructions": format_instructions,
     }
 

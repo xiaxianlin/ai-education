@@ -14,6 +14,9 @@ const useContainer = () => {
   const [promptEditVisible, setPromptEditVisible] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState('');
   const [generatedQuestionsState, setGeneratedQuestionsState] = useState<Question[]>([]);
+  const [optimizeSuggestionVisible, setOptimizeSuggestionVisible] = useState(false);
+  const [optimizeSuggestion, setOptimizeSuggestion] = useState('');
+  const [optimizedPrompt, setOptimizedPrompt] = useState('');
 
   // 加载题型信息
   const {
@@ -71,6 +74,21 @@ const useContainer = () => {
       },
       onError: (error: any) => {
         message.error(error?.message || '更新提示词失败');
+      },
+    },
+  );
+
+  // 优化提示词
+  const { runAsync: optimizePrompt, loading: optimizing } = useRequest(
+    async (suggestion?: string) => {
+      if (!code) return { optimized_prompt: '' };
+      return QuestionApi.optimizePrompt(code, suggestion);
+    },
+    {
+      manual: true,
+      // 成功和错误消息由 PromptOptimizeModal 统一处理
+      onSuccess: (data) => {
+        setOptimizedPrompt(data.optimized_prompt);
       },
     },
   );
@@ -143,8 +161,8 @@ const useContainer = () => {
     setPromptEditVisible(true);
   };
 
-  // 处理保存提示词
-  const handleSavePrompt = async () => {
+  // 处理保存提示词（内部使用）
+  const handleSavePromptInternal = async () => {
     if (!editingPrompt.trim()) {
       message.warning('提示词不能为空');
       return;
@@ -152,10 +170,52 @@ const useContainer = () => {
     await updatePrompt(editingPrompt);
   };
 
+  // 处理保存提示词（外部调用，接收提示词参数）
+  const handleSavePrompt = async (ai_prompt: string) => {
+    if (!ai_prompt.trim()) {
+      message.warning('提示词不能为空');
+      return;
+    }
+    await updatePrompt(ai_prompt);
+  };
+
   // 处理取消编辑
   const handleCancelEdit = () => {
     setPromptEditVisible(false);
     setEditingPrompt(questionType?.ai_prompt || '');
+  };
+
+  // 处理优化提示词
+  const handleOptimizePrompt = () => {
+    setOptimizeSuggestion('');
+    setOptimizedPrompt('');
+    setOptimizeSuggestionVisible(true);
+  };
+
+  // 处理确认优化
+  const handleConfirmOptimize = async () => {
+    const suggestion = optimizeSuggestion.trim() || undefined;
+    await optimizePrompt(suggestion);
+  };
+
+  // 处理应用优化后的提示词
+  const handleApplyOptimizedPrompt = () => {
+    if (!optimizedPrompt.trim()) {
+      message.warning('没有可应用的优化结果');
+      return;
+    }
+    setEditingPrompt(optimizedPrompt);
+    setPromptEditVisible(true);
+    setOptimizeSuggestionVisible(false);
+    setOptimizeSuggestion('');
+    setOptimizedPrompt('');
+  };
+
+  // 处理取消优化
+  const handleCancelOptimize = () => {
+    setOptimizeSuggestionVisible(false);
+    setOptimizeSuggestion('');
+    setOptimizedPrompt('');
   };
 
   // 处理保存（启用题目）
@@ -208,19 +268,31 @@ const useContainer = () => {
     saving,
     deleting,
     updatingPrompt,
+    optimizeSuggestionVisible,
+    optimizeSuggestion,
+    optimizedPrompt,
+    optimizing,
 
     // 方法
     setCount,
     handleGenerate,
     handleEditPrompt,
     handleSavePrompt,
+    handleSavePromptInternal,
     handleCancelEdit,
     handleSave,
     handleDelete,
     reset,
     setPromptEditVisible,
     setEditingPrompt,
+    handleOptimizePrompt,
+    handleConfirmOptimize,
+    handleApplyOptimizedPrompt,
+    handleCancelOptimize,
+    setOptimizeSuggestion,
     navigate,
+    // 优化服务函数
+    optimizePrompt,
   };
 };
 

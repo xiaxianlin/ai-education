@@ -1,20 +1,29 @@
+import { PromptDisplay } from '@/components';
 import { history } from '@ai-education/shared-web';
 import { PageContainer } from '@ant-design/pro-components';
 import { Col, Modal, Row } from 'antd';
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ActionBar } from '../components/ActionBar';
 import { GenerateControl } from '../components/GenerateControl';
 import { GeneratingStatus } from '../components/GeneratingStatus';
-import { PromptDisplay } from '../components/PromptDisplay';
-import { PromptEditModal } from '../components/PromptEditModal';
 import { QuestionList } from '../components/QuestionList';
 import { QuestionTypeInfo } from '../components/QuestionTypeInfo';
 import { useQuestionTypeGenerateModel } from '../models/page';
 
 export default function MainView() {
   const navigate = useNavigate();
-  const { loading, questionType, generating, generatedQuestions, hasUnsavedChanges } = useQuestionTypeGenerateModel();
+  const { code } = useParams<{ code: string }>();
+  const {
+    loading,
+    questionType,
+    generating,
+    generatedQuestions,
+    hasUnsavedChanges,
+    prompt,
+    handleSavePrompt,
+    optimizePrompt,
+  } = useQuestionTypeGenerateModel();
   const pendingNavigationRef = useRef<{ location: string; action: string } | null>(null);
 
   // 使用 history.block() 拦截路由导航
@@ -74,7 +83,11 @@ export default function MainView() {
         {/* 左侧面板 */}
         <Col xs={24} lg={8}>
           <QuestionTypeInfo />
-          <PromptDisplay />
+          <PromptDisplay
+            prompt={prompt}
+            onSave={handleSavePrompt}
+            onOptimize={optimizePrompt}
+          />
         </Col>
 
         {/* 右侧面板 */}
@@ -89,8 +102,6 @@ export default function MainView() {
           )}
         </Col>
       </Row>
-
-      <PromptEditModal />
     </PageContainer>
   );
 }
