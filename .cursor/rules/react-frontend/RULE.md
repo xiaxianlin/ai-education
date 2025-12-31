@@ -123,6 +123,21 @@ export const usePageNameHook = (params) => {
 - 子组件负责具体 UI 渲染
 - 类型定义统一放在 `types.ts`
 
+### 共享组件
+
+项目中的共享组件位于 `apps/admin-web/src/components/` 目录，包括：
+- `PromptDisplay`: 提示词展示组件，支持编辑和优化功能
+- `AudioPlayer`: 音频播放器组件
+- `DeleteButton`: 带确认的删除按钮
+- `DescriptionList`: 描述列表组件
+- `DetailCard`: 详情卡片组件
+- `PageHeader`: 页面头部组件
+- `StatusTag`: 状态标签组件
+- `SubjectGradeTabs`: 科目年级选项卡
+- `UploadButton`: 文件上传按钮
+
+共享组件通过 `src/components/index.ts` 统一导出，便于在页面中使用。
+
 ### 导入顺序规范
 
 1. React 相关

@@ -41,6 +41,7 @@
 | teacher_book | `teacher_book/route.py` | `teacher_book/services/teacher_book.py`                                            | 教师参考书管理           |
 | question     | `question/route.py`     | `question/services/question.py`, `question_type.py`                                | 题目、题型管理           |
 | practice     | `practice/route.py`     | `practice/services/practice.py`                                                     | 练习类型管理             |
+| prompt       | `prompt/route.py`       | `prompt/services/question_type.py`, `practice.py`                                 | 提示词优化管理           |
 | student      | `student/route.py`      | `student/services/student.py`, `textbook.py`, `practice.py`, `practice_session.py` | 学生管理                 |
 | data         | `data/practice.py`      | -                                                                                  | 练习静态数据             |
 

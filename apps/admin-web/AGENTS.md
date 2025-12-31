@@ -57,6 +57,7 @@
 | `DescriptionList` | 描述列表组件 |
 | `DetailCard` | 详情卡片组件 |
 | `PageHeader` | 页面头部组件 |
+| `PromptDisplay` | 提示词展示组件（支持编辑、优化功能） |
 | `StatusTag` | 状态标签组件 |
 | `SubjectGradeTabs` | 科目年级选项卡 |
 | `UploadButton` | 文件上传按钮 |

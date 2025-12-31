@@ -50,6 +50,11 @@ async def update_unit(
     await unit.update_unit(db, id, unit_update)
 ```
 
+**路由文件命名规范**：
+- 路由文件统一命名为 `route.py`（单数形式）
+- 路由前缀使用复数形式（如 `/unit`, `/question`, `/prompt`）
+- 每个模块的路由文件位于 `admin/[module]/route.py`
+
 ### 服务层 (services/)
 
 服务层标准模板：
