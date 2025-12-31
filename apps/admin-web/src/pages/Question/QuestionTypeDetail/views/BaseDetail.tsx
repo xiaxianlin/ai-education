@@ -1,4 +1,12 @@
-import { GRADES, STAGE_LABELS, Stage } from '@ai-education/shared-web';
+import {
+  DIFFICULTY_COLORS,
+  DIFFICULTY_LABELS,
+  GRADES,
+  RESOURCE_TYPE_COLORS,
+  RESOURCE_TYPE_LABELS,
+  STAGE_LABELS,
+  Stage,
+} from '@ai-education/shared-web';
 import { Descriptions, Flex, Tag } from 'antd';
 
 interface BaseDetailProps {
@@ -7,15 +15,24 @@ interface BaseDetailProps {
 
 export function BaseDetail({ item }: BaseDetailProps) {
   return (
-    <Descriptions column={2} bordered>
+    <Descriptions column={3} bordered size="small">
       <Descriptions.Item label="编码">{item?.code || '-'}</Descriptions.Item>
       <Descriptions.Item label="名称">{item?.name || '-'}</Descriptions.Item>
-      <Descriptions.Item label="科目">
-        {item?.subject ? <Tag color="blue">{item.subject}</Tag> : '-'}
+      <Descriptions.Item label="科目">{item?.subject ? <Tag color="blue">{item.subject}</Tag> : '-'}</Descriptions.Item>
+      <Descriptions.Item label="难度">
+        {item?.difficulty ? (
+          <Tag color={DIFFICULTY_COLORS[item.difficulty as Difficulty]}>
+            {DIFFICULTY_LABELS[item.difficulty as Difficulty]}
+          </Tag>
+        ) : (
+          '-'
+        )}
       </Descriptions.Item>
-      <Descriptions.Item label="状态">
-        {item?.is_active !== undefined ? (
-          <Tag color={item.is_active ? 'success' : 'error'}>{item.is_active ? '启用' : '禁用'}</Tag>
+      <Descriptions.Item label="资源类型">
+        {item?.resource_type ? (
+          <Tag color={RESOURCE_TYPE_COLORS[item.resource_type as ResourceType]}>
+            {RESOURCE_TYPE_LABELS[item.resource_type as ResourceType]}
+          </Tag>
         ) : (
           '-'
         )}
@@ -57,4 +74,3 @@ export function BaseDetail({ item }: BaseDetailProps) {
     </Descriptions>
   );
 }
-

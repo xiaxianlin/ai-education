@@ -10,30 +10,43 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # 优化提示词模板
-OPTIMIZE_QUESTION_TYPE_PROMPT = """你是一名专业的AI提示词优化工程师，专门优化教育场景下的题目生成提示词。
+OPTIMIZE_QUESTION_TYPE_PROMPT = """
+你是一名专业的AI提示词优化工程师，专门优化教育场景下的题目生成提示词。
 
-请根据以下原始提示词，优化其表达，使其更加清晰、准确、有效。
+## 原始提示词
 
-原始提示词：
-{prompt}
+```markdown
+{original_prompt}
+```
 
-优化要求：
-1. **保持原有意图**：确保优化后的提示词与原始提示词的核心意图完全一致
-2. **提高清晰度**：使用更清晰、更具体的表达方式，避免歧义
-3. **优化结构**：合理组织提示词结构，使其更易理解
-4. **符合教育场景**：确保提示词适合教育场景，能够生成高质量的题目
-5. **保持完整性**：不要遗漏原始提示词中的任何重要信息
+## 用户优化建议
 
 {user_suggestion}
 
-请直接返回优化后的提示词，不要添加任何解释或说明。"""
+请直接返回优化后的提示词，不要添加任何解释或说明。
+"""
 
 
-async def optimize_question_type_prompt(
-    db: AsyncSession,
-    code: str,
-    suggestion: str | None = None,
-) -> str:
+def _format_config(config: dict | None) -> str:
+    """格式化配置信息为可读文本"""
+    if not config:
+        return "无"
+    try:
+        import json
+
+        return json.dumps(config, ensure_ascii=False, indent=2)
+    except Exception:
+        return str(config)
+
+
+def _format_list(items: list | None) -> str:
+    """格式化列表为可读文本"""
+    if not items:
+        return "无"
+    return "、".join(str(item) for item in items)
+
+
+async def optimize_question_type_prompt(db: AsyncSession, code: str, suggestion: str = "无优化建议") -> str:
     """优化题型的提示词
 
     Args:
@@ -51,42 +64,26 @@ async def optimize_question_type_prompt(
     result = await db.execute(select(QuestionType).where(QuestionType.code == code))
     question_type = result.scalar_one_or_none()
 
-    if not question_type:
-        raise ValueError(f"题型不存在: code={code}")
+    if not question_type or not question_type.ai_prompt:
+        raise ValueError(f"题型不存在或提示词为空: code={code}")
 
-    # 获取原始提示词
-    original_prompt = question_type.ai_prompt
-    if not original_prompt:
-        raise ValueError(f"题型的提示词为空: code={code}")
+    logger.info(f"开始优化题型提示词，code={code}, name={question_type.name}")
 
-    logger.info(f"开始优化题型提示词，code={code}")
-
-    # 构建优化提示词
-    user_suggestion_text = ""
-    if suggestion and suggestion.strip():
-        user_suggestion_text = f"\n用户优化建议：\n{suggestion}\n\n请根据以上建议进行优化。"
-    else:
-        user_suggestion_text = "\n请根据上述要求进行优化。"
-
-    optimize_prompt_template = OPTIMIZE_QUESTION_TYPE_PROMPT.format(
-        prompt=original_prompt,
-        user_suggestion=user_suggestion_text,
-    )
-
-    # 构建 LangChain 提示词
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", "你是一名专业的AI提示词优化工程师。"),
-            ("user", optimize_prompt_template),
-        ]
-    )
+    prompt = ChatPromptTemplate.from_template(OPTIMIZE_QUESTION_TYPE_PROMPT)
+    prompt_input = {
+        "original_prompt": question_type.ai_prompt,
+        "user_suggestion": suggestion,
+    }
+    # 打印完整的提示词文本，便于调试核查
+    prompt_text = prompt.format(**prompt_input)
+    logger.info(f"完整提示词文本（用于优化）:\n{prompt_text}")
 
     # 调用 LLM 优化
     provider = get_provider()
-    optimized_prompt = await provider.invoke_chain(prompt)
+    llm = provider.get_langchain_client()
 
-    if not optimized_prompt or not isinstance(optimized_prompt, str):
-        raise ValueError("LLM 返回的优化结果格式错误")
+    client = prompt | llm
+    result = await client.ainvoke(prompt_input)
 
-    logger.info(f"题型提示词优化完成，code={code}")
-    return optimized_prompt.strip()
+    logger.info(f"题型提示词优化完成，code={code}, 优化后长度={len(result.content)}")
+    return result.content

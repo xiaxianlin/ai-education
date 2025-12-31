@@ -10,7 +10,6 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import Question, QuestionType
-from shared.utils.prompt import build_question_prompt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import GeneratedQuestion, QuestionGenerationResult
@@ -252,14 +251,12 @@ def handle_llm_questions(
 async def build_question_generation_prompt(
     question_type: QuestionType,
     count: int,
-    generated_questions: List[Question],
 ) -> Dict[str, Any]:
     """构建题目生成的 prompt
 
     Args:
         question_type: 题目类型对象
         count: 需要生成的数量
-        generated_questions: 已生成的题目列表（用于避免重复）
 
     Returns:
         Dict[str, Any]: 包含 prompt, prompt_input, prompt_parser 的字典
@@ -276,20 +273,9 @@ async def build_question_generation_prompt(
     format_instructions = prompt_parser.get_format_instructions()
     prompt = prompt.partial(format_instructions=format_instructions)
 
-    # 构建避免重复的提示
-    generated_questions_text = ""
-    if generated_questions:
-        prompt_lines = []
-        for q in generated_questions:
-            question_text = build_question_prompt(q)
-            prompt_lines.append(f"- {question_text}")
-
-        generated_questions_text = "\n".join(prompt_lines)
-
-    # 构建 prompt 输入参数（最小参数）
+    # 构建 prompt 输入参数
     prompt_input = {
         "count": count,
-        "generated_questions_text": generated_questions_text,
         "format_instructions": format_instructions,
     }
 

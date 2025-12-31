@@ -18,13 +18,10 @@ prompt_router = APIRouter(prefix="/prompt", tags=["提示词管理"])
 @prompt_router.post(
     "/optimize/question_type",
     summary="优化题型生成提示词",
-    description="根据题型编码优化题型生成提示词",
+    description="根据题型编码优化题型生成提示词，考虑题型的完整配置信息",
     response_model=PromptOptimizeResponseSchema,
 )
-async def optimize_prompt(code: str, params: PromptOptimizeRequestSchema, db: AsyncSession = Database):
+async def optimize_prompt(params: PromptOptimizeRequestSchema, db: AsyncSession = Database):
     """优化题型生成提示词接口"""
-    code = params.code
-    suggestion = params.suggestion
-
-    optimized_prompt = await question_type.optimize_prompt(db, code, suggestion)
+    optimized_prompt = await question_type.optimize_question_type_prompt(db, params.code, params.suggestion)
     return PromptOptimizeResponseSchema(optimized_prompt=optimized_prompt)

@@ -207,4 +207,15 @@ export const QuestionApi = {
       suggestion,
     });
   },
+
+  /**
+   * 生成题型提示词
+   * POST /prompt/generate/question_type
+   */
+  async generatePrompt(code: string, templateType: 'auto' | 'template' = 'auto') {
+    return apiClient.post<{ generated_prompt: string }>('/prompt/generate/question_type', {
+      code,
+      template_type: templateType,
+    });
+  },
 };
