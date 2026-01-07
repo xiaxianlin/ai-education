@@ -4,14 +4,15 @@
 
 import uuid
 from typing import List, Optional, Tuple
-from sqlalchemy import delete, select, and_, func
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Question
+from sqlalchemy import and_, delete, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from admin.question.schema import (
     QuestionCreateSchema,
-    QuestionUpdateSchema,
     QuestionSearchSchema,
+    QuestionUpdateSchema,
 )
 
 
@@ -35,9 +36,7 @@ async def create_question(db: AsyncSession, params: QuestionCreateSchema) -> Que
     return question
 
 
-async def create_questions_batch(
-    db: AsyncSession, questions: List[QuestionCreateSchema]
-) -> List[Question]:
+async def create_questions_batch(db: AsyncSession, questions: List[QuestionCreateSchema]) -> List[Question]:
     """批量创建题目"""
     created = []
     for params in questions:
@@ -104,9 +103,7 @@ async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
     return result.scalar_one_or_none()
 
 
-async def search_questions(
-    db: AsyncSession, params: QuestionSearchSchema
-) -> Tuple[List[Question], int]:
+async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tuple[List[Question], int]:
     """搜索题目，返回列表和总数"""
     conditions = []
 
@@ -172,9 +169,7 @@ async def get_questions_by_ids(db: AsyncSession, ids: List[str]) -> List[Questio
 
 async def count_questions_by_type(db: AsyncSession, question_type_id: int) -> int:
     """统计题型下的题目数量"""
-    result = await db.execute(
-        select(func.count(Question.id)).where(Question.question_type_id == question_type_id)
-    )
+    result = await db.execute(select(func.count(Question.id)).where(Question.question_type_id == question_type_id))
     return result.scalar() or 0
 
 
@@ -204,9 +199,7 @@ async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bo
         return 0
 
     # 批量更新题目状态
-    result = await db.execute(
-        select(Question).where(Question.id.in_(ids))
-    )
+    result = await db.execute(select(Question).where(Question.id.in_(ids)))
     questions = list(result.scalars().all())
 
     for q in questions:
@@ -214,3 +207,45 @@ async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bo
 
     await db.commit()
     return len(questions)
+
+
+async def generate_question_resources(db: AsyncSession, id: str) -> Question:
+    """生成题目资源
+
+    根据题目的 resources 字段定义，生成所有需要的资源（图片、音频等）
+
+    Args:
+        db: 数据库会话
+        id: 题目ID
+
+    Returns:
+        更新后的题目对象
+
+    Raises:
+        ValueError: 题目不存在
+    """
+    from shared.generation.question.service import process_question_resources
+
+    # 获取题目对象
+    result = await db.execute(select(Question).where(Question.id == id))
+    question = result.scalar_one_or_none()
+
+    if not question:
+        raise ValueError(f"题目 {id} 不存在")
+
+    # 如果没有资源定义，直接返回
+    if not question.resources:
+        return question
+
+    # 处理资源生成（会更新 question.resources 中的 url 字段）
+    await process_question_resources(
+        db=db,
+        question=question,
+        subject=question.subject,
+    )
+
+    # 保存更新后的资源数据
+    await db.commit()
+    await db.refresh(question)
+
+    return question

@@ -21,38 +21,20 @@ const useContainer = () => {
     },
   });
 
-  // 生成图片
-  const { runAsync: handleGenerateImage, loading: generatingImage } = useRequest(
+  // 生成资源
+  const { runAsync: handleGenerateResources, loading: generatingResources } = useRequest(
     async () => {
       if (!id) return;
-      await QuestionApi.generateQuestionImage(id);
+      await QuestionApi.generateQuestionResources(id);
     },
     {
       manual: true,
       onSuccess: () => {
-        message.success('图片生成成功');
+        message.success('资源生成成功');
         refresh();
       },
       onError: (error: any) => {
-        message.error(error?.message || '图片生成失败');
-      },
-    },
-  );
-
-  // 生成语音
-  const { runAsync: handleGenerateAudio, loading: generatingAudio } = useRequest(
-    async () => {
-      if (!id) return;
-      await QuestionApi.generateQuestionAudio(id);
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('语音生成成功');
-        refresh();
-      },
-      onError: (error: any) => {
-        message.error(error?.message || '语音生成失败');
+        message.error(error?.message || '资源生成失败');
       },
     },
   );
@@ -79,11 +61,9 @@ const useContainer = () => {
     question,
     loading,
     navigate,
-    generatingImage,
-    generatingAudio,
+    generatingResources,
     deleting,
-    handleGenerateImage,
-    handleGenerateAudio,
+    handleGenerateResources,
     handleDelete,
   };
 };

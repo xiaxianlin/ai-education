@@ -6,45 +6,19 @@ import {
   STAGE_LABELS,
 } from '@ai-education/shared-web';
 import { ProCard, ProDescriptions } from '@ant-design/pro-components';
-import { Button, Space, Tag } from 'antd';
+import { Space, Tag } from 'antd';
 
 interface QuestionBasicInfoProps {
   question: Question;
-  generatingImage: boolean;
-  generatingAudio: boolean;
-  onGenerateImage: () => void;
-  onGenerateAudio: () => void;
 }
 
-export function QuestionBasicInfo({
-  question,
-  generatingImage,
-  generatingAudio,
-  onGenerateImage,
-  onGenerateAudio,
-}: QuestionBasicInfoProps) {
+export function QuestionBasicInfo({ question }: QuestionBasicInfoProps) {
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
   const difficultyColor = DIFFICULTY_COLORS[question.difficulty as Difficulty] || 'default';
   const stageLabel = question.stage ? STAGE_LABELS[question.stage as Stage] : undefined;
 
   return (
-    <ProCard
-      title="基本信息"
-      extra={
-        <>
-          {question.question_type_code.includes('image') && (
-            <Button type="primary" onClick={onGenerateImage} loading={generatingImage}>
-              生成图片
-            </Button>
-          )}
-          {question.question_type_code.includes('audio') && (
-            <Button type="primary" onClick={onGenerateAudio} loading={generatingAudio}>
-              生成语音
-            </Button>
-          )}
-        </>
-      }
-    >
+    <ProCard title="基本信息">
       <ProDescriptions column={3}>
         <ProDescriptions.Item label="题目ID">{question.id}</ProDescriptions.Item>
         <ProDescriptions.Item label="科目">

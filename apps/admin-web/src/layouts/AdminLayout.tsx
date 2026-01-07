@@ -11,7 +11,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
-import { Dropdown } from 'antd';
+import { Dropdown, Spin } from 'antd';
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 const routes = {
@@ -61,8 +61,18 @@ const routes = {
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { manager, clearState } = useInitialStateModel();
+  const { loading, manager, configs, clearState } = useInitialStateModel();
   const [pathname, setPathname] = useState(location.pathname);
+
+  console.log('loading', loading, manager, configs);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" tip="加载中..." />
+      </div>
+    );
+  }
 
   return (
     <ProLayout

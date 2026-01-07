@@ -1,9 +1,8 @@
-import './index.less';
+import { ConfigProvider } from 'antd';
 import ReactDOM from 'react-dom/client';
 import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import './index.less';
 import { Router } from './lib/router';
-import { InitialStateModel } from './models/initialState';
 
 import { history } from '@ai-education/shared-web';
 
@@ -29,10 +28,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       },
     }}
   >
-    <InitialStateModel.Provider>
-      <HistoryRouter history={history as any}>
-        <Router />
-      </HistoryRouter>
-    </InitialStateModel.Provider>
+    <HistoryRouter history={history as any}>
+      <Router />
+    </HistoryRouter>
   </ConfigProvider>,
 );

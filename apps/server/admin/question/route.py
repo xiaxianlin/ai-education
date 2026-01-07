@@ -324,3 +324,21 @@ async def get_question(id: str, db: AsyncSession = Database):
     if not result:
         raise HTTPException(status_code=404, detail=f"题目 {id} 不存在")
     return QuestionSchema.model_validate(result)
+
+
+@question_router.post(
+    "/{id}/generate_resources",
+    tags=["题目管理"],
+    summary="生成题目资源",
+    description="根据题目的 resources 字段定义，生成所有需要的资源（图片、音频等）",
+    response_model=QuestionSchema,
+)
+async def generate_question_resources(id: str, db: AsyncSession = Database):
+    """生成题目资源"""
+    try:
+        result = await question.generate_question_resources(db, id)
+        return QuestionSchema.model_validate(result)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"资源生成失败: {str(e)}")

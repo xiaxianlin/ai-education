@@ -158,19 +158,11 @@ export const QuestionApi = {
   },
 
   /**
-   * 生成题目图片
-   * POST /question/{id}/generate_image
+   * 生成题目资源
+   * POST /question/{id}/generate_resources
    */
-  async generateQuestionImage(id: string) {
-    return apiClient.post(`/question/${id}/image_generate`);
-  },
-
-  /**
-   * 生成题目音频
-   * POST /question/{id}/generate_audio
-   */
-  async generateQuestionAudio(id: string) {
-    return apiClient.post(`/question/${id}/audio_generate`);
+  async generateQuestionResources(id: string) {
+    return apiClient.post<Question>(`/question/${id}/generate_resources`);
   },
 
   /**

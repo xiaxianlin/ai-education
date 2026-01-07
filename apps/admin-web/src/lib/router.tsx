@@ -24,6 +24,7 @@ import TextbookDetail from '@/pages/Textbook/Detail';
 import TextbookList from '@/pages/Textbook/List';
 import { Navigate, useRoutes } from 'react-router-dom';
 
+import { InitialStateModel } from '@/models/initialState';
 import NotFound from '@/pages/404';
 
 export function Router() {
@@ -34,7 +35,11 @@ export function Router() {
     },
     {
       path: '/',
-      element: <AdminLayout />,
+      element: (
+        <InitialStateModel.Provider>
+          <AdminLayout />
+        </InitialStateModel.Provider>
+      ),
       children: [
         { index: true, element: <Navigate to="/home" replace /> },
         { path: 'home', element: <Home /> },

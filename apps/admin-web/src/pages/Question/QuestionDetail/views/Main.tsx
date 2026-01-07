@@ -15,11 +15,9 @@ export default function MainView() {
     question,
     loading,
     navigate,
-    generatingImage,
-    generatingAudio,
+    generatingResources,
     deleting,
-    handleGenerateImage,
-    handleGenerateAudio,
+    handleGenerateResources,
     handleDelete,
   } = useQuestionDetailModel();
   const [showDataDrawer, setShowDataDrawer] = useState(false);
@@ -38,13 +36,7 @@ export default function MainView() {
   return (
     <PageContainer title="题目详情" header={{ onBack: () => navigate(-1) }}>
       <Flex vertical gap={16} style={{ width: '100%' }}>
-        <QuestionBasicInfo
-          question={question}
-          generatingImage={generatingImage}
-          generatingAudio={generatingAudio}
-          onGenerateImage={handleGenerateImage}
-          onGenerateAudio={handleGenerateAudio}
-        />
+        <QuestionBasicInfo question={question} />
 
         <QuestionStatistics question={question} />
 
@@ -62,6 +54,14 @@ export default function MainView() {
         <Flex justify="center" gap={16}>
           <Button size="large" onClick={() => setShowDataDrawer(true)}>
             查看数据
+          </Button>
+          <Button
+            size="large"
+            type="primary"
+            loading={generatingResources}
+            onClick={() => handleGenerateResources()}
+          >
+            生成资源
           </Button>
           <Button size="large" type="primary" onClick={() => navigate(`/question/form/${question.id}`)}>
             编辑
