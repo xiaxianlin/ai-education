@@ -201,105 +201,150 @@ DIFFICULTY_LEVEL_LABELS = {
 }
 
 
-# ============ 专项类型常量 ============
+# ============ 能力维度常量 ============
 
 
-# 专项类型枚举
-class SpecialtyType(str, Enum):
-    """练习专项类型枚举"""
+# 能力维度枚举（按科目分组，使用科目前缀区分）
+class AbilityType(str, Enum):
+    """能力维度枚举"""
 
-    # 语文专项
-    PINYIN = "pinyin"  # 拼音
-    LITERACY = "literacy"  # 识字
-    VOCABULARY = "vocabulary"  # 词语
-    SENTENCE = "sentence"  # 句子
-    PARAGRAPH = "paragraph"  # 段落
-    READING = "reading"  # 阅读
-    WRITING = "writing"  # 写话/习作
-    COMPREHENSIVE_CHINESE = "comprehensive_chinese"  # 语文综合
+    # 语文能力
+    CHINESE_PHONETIC = "phonetic"  # 拼音
+    CHINESE_CHARACTER = "character"  # 识字写字
+    CHINESE_VOCABULARY = "vocabulary"  # 词语积累
+    CHINESE_SENTENCE = "sentence"  # 句子运用
+    CHINESE_PARAGRAPH = "paragraph"  # 段落
+    CHINESE_READING = "reading"  # 阅读理解
+    CHINESE_WRITING = "writing"  # 书面表达
+    CHINESE_SPEAKING = "speaking"  # 口语表达
+    CHINESE_COMPREHENSIVE = "comprehensive_chinese"  # 语文综合
 
-    # 数学专项
-    COUNTING = "counting"  # 数数
-    CALCULATION = "calculation"  # 计算
-    SHAPE = "shape"  # 图形
-    POSITION = "position"  # 位置
-    MEASUREMENT = "measurement"  # 测量
-    STATISTICS = "statistics"  # 统计
-    PROBLEM_SOLVING = "problem_solving"  # 解决问题
-    COMPREHENSIVE_MATH = "comprehensive_math"  # 数学综合
+    # 数学能力
+    MATH_NUMBER_SENSE = "number_sense"  # 数感
+    MATH_COUNTING = "counting"  # 数数
+    MATH_CALCULATION = "calculation"  # 运算能力
+    MATH_SHAPE = "shape"  # 图形
+    MATH_POSITION = "position"  # 位置
+    MATH_MEASUREMENT = "measurement"  # 测量
+    MATH_STATISTICS = "statistics"  # 统计
+    MATH_PROBLEM_SOLVING = "problem_solving"  # 解决问题
+    MATH_SPATIAL = "spatial"  # 空间观念
+    MATH_DATA = "data"  # 数据分析
+    MATH_REASONING = "reasoning"  # 推理能力
+    MATH_MODELING = "modeling"  # 模型思想
+    MATH_APPLICATION = "application"  # 应用意识
+    MATH_COMPREHENSIVE = "comprehensive_math"  # 数学综合
 
-    # 英语专项
-    ALPHABET = "alphabet"  # 字母
-    WORDS = "words"  # 单词
-    SENTENCE_PATTERN = "sentence_pattern"  # 句型
-    GRAMMAR = "grammar"  # 语法
-    LISTENING = "listening"  # 听力
-    SPEAKING = "speaking"  # 口语
-    ENGLISH_READING = "english_reading"  # 英语阅读
-    COMPREHENSIVE_ENGLISH = "comprehensive_english"  # 英语综合
+    # 英语能力
+    ENGLISH_ALPHABET = "alphabet"  # 字母
+    ENGLISH_WORDS = "words"  # 单词
+    ENGLISH_SENTENCE_PATTERN = "sentence_pattern"  # 句型
+    ENGLISH_LISTENING = "listening"  # 听力理解
+    ENGLISH_SPEAKING = "speaking"  # 口语表达
+    ENGLISH_READING = "reading"  # 阅读理解
+    ENGLISH_WRITING = "writing"  # 书面表达
+    ENGLISH_VOCABULARY = "vocabulary"  # 词汇知识
+    ENGLISH_GRAMMAR = "grammar"  # 语法知识
+    ENGLISH_COMPREHENSIVE = "comprehensive_english"  # 英语综合
 
 
-# 专项类型标签
-SPECIALTY_TYPE_LABELS = {
-    # 语文
-    "pinyin": "拼音专项",
-    "literacy": "识字专项",
-    "vocabulary": "词语专项",
-    "sentence": "句子专项",
-    "paragraph": "段落专项",
-    "reading": "阅读专项",
-    "writing": "写话/习作专项",
-    "comprehensive_chinese": "语文综合",
-    # 数学
-    "counting": "数数专项",
-    "calculation": "计算专项",
-    "shape": "图形专项",
-    "position": "位置专项",
-    "measurement": "测量专项",
-    "statistics": "统计专项",
-    "problem_solving": "解决问题专项",
-    "comprehensive_math": "数学综合",
-    # 英语
-    "alphabet": "字母专项",
-    "words": "单词专项",
-    "sentence_pattern": "句型专项",
-    "grammar": "语法专项",
-    "listening": "听力专项",
-    "speaking": "口语专项",
-    "english_reading": "英语阅读专项",
-    "comprehensive_english": "英语综合",
+# 按科目分组的能力维度列表（用于验证，包含原专项类型）
+CHINESE_ABILITY_TYPES = [
+    "phonetic",
+    "pinyin",
+    "literacy",
+    "character",
+    "vocabulary",
+    "sentence",
+    "paragraph",
+    "reading",
+    "writing",
+    "speaking",
+    "comprehensive_chinese",
+]
+MATH_ABILITY_TYPES = [
+    "number_sense",
+    "counting",
+    "calculation",
+    "shape",
+    "position",
+    "measurement",
+    "statistics",
+    "problem_solving",
+    "spatial",
+    "data",
+    "reasoning",
+    "modeling",
+    "application",
+    "comprehensive_math",
+]
+ENGLISH_ABILITY_TYPES = [
+    "alphabet",
+    "words",
+    "sentence_pattern",
+    "listening",
+    "speaking",
+    "reading",
+    "english_reading",
+    "writing",
+    "vocabulary",
+    "grammar",
+    "comprehensive_english",
+]
+
+# 能力维度映射字典（按科目分组）
+ABILITY_TYPE_MAP = {
+    "语文": {
+        "phonetic": "拼音",
+        "pinyin": "拼音",  # 兼容旧值
+        "literacy": "识字",  # 兼容旧值
+        "character": "识字写字",
+        "vocabulary": "词语积累",
+        "sentence": "句子运用",
+        "paragraph": "段落",
+        "reading": "阅读理解",
+        "writing": "书面表达",
+        "speaking": "口语表达",
+        "comprehensive_chinese": "语文综合",
+    },
+    "数学": {
+        "number_sense": "数感",
+        "counting": "数数",
+        "calculation": "运算能力",
+        "shape": "图形",
+        "position": "位置",
+        "measurement": "测量",
+        "statistics": "统计",
+        "problem_solving": "解决问题",
+        "spatial": "空间观念",
+        "data": "数据分析",
+        "reasoning": "推理能力",
+        "modeling": "模型思想",
+        "application": "应用意识",
+        "comprehensive_math": "数学综合",
+    },
+    "英语": {
+        "alphabet": "字母",
+        "words": "单词",
+        "sentence_pattern": "句型",
+        "listening": "听力理解",
+        "speaking": "口语表达",
+        "reading": "阅读理解",
+        "english_reading": "英语阅读",  # 兼容旧值
+        "writing": "书面表达",
+        "vocabulary": "词汇知识",
+        "grammar": "语法知识",
+        "comprehensive_english": "英语综合",
+    },
 }
 
-# 按科目分组的专项类型
-SPECIALTY_TYPES_BY_SUBJECT = {
-    "语文": [
-        "pinyin",
-        "literacy",
-        "vocabulary",
-        "sentence",
-        "paragraph",
-        "reading",
-        "writing",
-        "comprehensive_chinese",
-    ],
-    "数学": [
-        "counting",
-        "calculation",
-        "shape",
-        "position",
-        "measurement",
-        "statistics",
-        "problem_solving",
-        "comprehensive_math",
-    ],
-    "英语": [
-        "alphabet",
-        "words",
-        "sentence_pattern",
-        "grammar",
-        "listening",
-        "speaking",
-        "english_reading",
-        "comprehensive_english",
-    ],
-}
+
+# 按科目获取能力类型列表的辅助函数
+def get_ability_types_by_subject(subject: str) -> list[str]:
+    """根据科目获取对应的能力类型列表"""
+    ability_types_map = {
+        "语文": CHINESE_ABILITY_TYPES,
+        "数学": MATH_ABILITY_TYPES,
+        "英语": ENGLISH_ABILITY_TYPES,
+    }
+    return ability_types_map.get(subject, [])

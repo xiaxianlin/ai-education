@@ -23,6 +23,7 @@ export function ConfigDetail({ item }: ConfigDetailProps) {
       <CognitiveConfigDetail
         cognitiveLevels={item?.cognitive_levels}
         abilityDimensions={item?.ability_dimensions}
+        subject={item?.subject}
       />
     </div>
   );

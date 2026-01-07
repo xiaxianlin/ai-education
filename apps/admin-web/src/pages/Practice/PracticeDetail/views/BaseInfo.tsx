@@ -1,4 +1,4 @@
-import { GRADES, SPECIALTY_TYPE_LABELS, STAGE_LABELS, SpecialtyType, Stage } from '@ai-education/shared-web';
+import { ABILITY_TYPE_MAP, GRADES, STAGE_LABELS, Stage } from '@ai-education/shared-web';
 import { Descriptions, Flex, Tag } from 'antd';
 
 interface BaseInfoProps {
@@ -6,17 +6,16 @@ interface BaseInfoProps {
 }
 
 export function BaseInfo({ detail }: BaseInfoProps) {
+  const subjectMap = detail.subject ? ABILITY_TYPE_MAP[detail.subject] : {};
+  const specialtyLabel = detail.specialty_type ? subjectMap?.[detail.specialty_type] || detail.specialty_type : null;
+
   return (
     <Descriptions column={2} bordered>
       <Descriptions.Item label="名称">{detail.name}</Descriptions.Item>
       <Descriptions.Item label="标识">{detail.slug}</Descriptions.Item>
       <Descriptions.Item label="科目">{detail.subject || '-'}</Descriptions.Item>
       <Descriptions.Item label="专项类型">
-        {detail.specialty_type ? (
-          <Tag>{SPECIALTY_TYPE_LABELS[detail.specialty_type as SpecialtyType]}</Tag>
-        ) : (
-          '-'
-        )}
+        {specialtyLabel ? <Tag>{specialtyLabel}</Tag> : '-'}
       </Descriptions.Item>
       <Descriptions.Item label="学段">
         {detail.stages?.length ? (

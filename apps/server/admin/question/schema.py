@@ -6,14 +6,16 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from shared.core.constants import (
     ANSWER_TYPES,
+    COGNITIVE_LEVELS,
     DIFFICULTY_LEVELS,
     INTERACTION_TYPES,
     RESOURCE_TYPES,
     STAGES,
     SUBJECTS,
+    get_ability_types_by_subject,
 )
 from shared.core.schema import SearchSchema
 
@@ -94,6 +96,30 @@ class QuestionTypeCreateSchema(BaseModel):
             raise ValueError(f"难度必须是 {DIFFICULTY_LEVELS} 之一")
         return v
 
+    @field_validator("cognitive_levels")
+    @classmethod
+    def validate_cognitive_levels(cls, v):
+        if v is not None:
+            for level in v:
+                if level not in COGNITIVE_LEVELS:
+                    raise ValueError(f"认知层次必须是 {COGNITIVE_LEVELS} 之一，当前值: {level}")
+        return v
+
+    @model_validator(mode="after")
+    def validate_ability_dimensions(self):
+        """验证能力维度，需要根据科目动态验证"""
+        if self.ability_dimensions is not None and self.subject:
+            valid_ability_types = get_ability_types_by_subject(self.subject)
+            if not valid_ability_types:
+                # 如果科目没有对应的能力类型列表，跳过验证（向后兼容）
+                return self
+            for ability in self.ability_dimensions:
+                if ability not in valid_ability_types:
+                    raise ValueError(
+                        f"科目 {self.subject} 的能力维度必须是 {valid_ability_types} 之一，当前值: {ability}"
+                    )
+        return self
+
 
 class QuestionTypeUpdateSchema(BaseModel):
     """更新题型"""
@@ -114,6 +140,31 @@ class QuestionTypeUpdateSchema(BaseModel):
     output_schema: Optional[Dict[str, Any]] = None
     sort_order: Optional[int] = None
     is_active: Optional[bool] = None
+    subject: Optional[str] = None  # 添加 subject 字段用于验证能力维度
+
+    @field_validator("cognitive_levels")
+    @classmethod
+    def validate_cognitive_levels(cls, v):
+        if v is not None:
+            for level in v:
+                if level not in COGNITIVE_LEVELS:
+                    raise ValueError(f"认知层次必须是 {COGNITIVE_LEVELS} 之一，当前值: {level}")
+        return v
+
+    @model_validator(mode="after")
+    def validate_ability_dimensions(self):
+        """验证能力维度，需要根据科目动态验证"""
+        if self.ability_dimensions is not None and self.subject:
+            valid_ability_types = get_ability_types_by_subject(self.subject)
+            if not valid_ability_types:
+                # 如果科目没有对应的能力类型列表，跳过验证（向后兼容）
+                return self
+            for ability in self.ability_dimensions:
+                if ability not in valid_ability_types:
+                    raise ValueError(
+                        f"科目 {self.subject} 的能力维度必须是 {valid_ability_types} 之一，当前值: {ability}"
+                    )
+        return self
 
 
 class QuestionTypeSearchSchema(SearchSchema):

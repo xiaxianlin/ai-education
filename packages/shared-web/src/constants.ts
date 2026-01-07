@@ -332,139 +332,97 @@ export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
   composite: "复合题",
 };
 
-// ============ 专项类型常量 ============
-
-/** 专项类型枚举 */
-export enum SpecialtyType {
-  // 语文专项
-  PINYIN = "pinyin",
-  LITERACY = "literacy",
-  VOCABULARY = "vocabulary",
-  SENTENCE = "sentence",
-  PARAGRAPH = "paragraph",
-  READING = "reading",
-  WRITING = "writing",
-  COMPREHENSIVE_CHINESE = "comprehensive_chinese",
-  // 数学专项
-  COUNTING = "counting",
-  CALCULATION = "calculation",
-  SHAPE = "shape",
-  POSITION = "position",
-  MEASUREMENT = "measurement",
-  STATISTICS = "statistics",
-  PROBLEM_SOLVING = "problem_solving",
-  COMPREHENSIVE_MATH = "comprehensive_math",
-  // 英语专项
-  ALPHABET = "alphabet",
-  WORDS = "words",
-  SENTENCE_PATTERN = "sentence_pattern",
-  GRAMMAR = "grammar",
-  LISTENING = "listening",
-  SPEAKING = "speaking",
-  ENGLISH_READING = "english_reading",
-  COMPREHENSIVE_ENGLISH = "comprehensive_english",
-}
-
-/** 专项类型标签 */
-export const SPECIALTY_TYPE_LABELS: Record<SpecialtyType, string> = {
-  // 语文
-  pinyin: "拼音专项",
-  literacy: "识字专项",
-  vocabulary: "词语专项",
-  sentence: "句子专项",
-  paragraph: "段落专项",
-  reading: "阅读专项",
-  writing: "写话/习作专项",
-  comprehensive_chinese: "语文综合",
-  // 数学
-  counting: "数数专项",
-  calculation: "计算专项",
-  shape: "图形专项",
-  position: "位置专项",
-  measurement: "测量专项",
-  statistics: "统计专项",
-  problem_solving: "解决问题专项",
-  comprehensive_math: "数学综合",
-  // 英语
-  alphabet: "字母专项",
-  words: "单词专项",
-  sentence_pattern: "句型专项",
-  grammar: "语法专项",
-  listening: "听力专项",
-  speaking: "口语专项",
-  english_reading: "英语阅读专项",
-  comprehensive_english: "英语综合",
-};
-
-/** 按科目分组的专项类型 */
-export const SPECIALTY_TYPES_BY_SUBJECT: Record<string, SpecialtyType[]> = {
-  语文: [
-    SpecialtyType.PINYIN,
-    SpecialtyType.LITERACY,
-    SpecialtyType.VOCABULARY,
-    SpecialtyType.SENTENCE,
-    SpecialtyType.PARAGRAPH,
-    SpecialtyType.READING,
-    SpecialtyType.WRITING,
-    SpecialtyType.COMPREHENSIVE_CHINESE,
-  ],
-  数学: [
-    SpecialtyType.COUNTING,
-    SpecialtyType.CALCULATION,
-    SpecialtyType.SHAPE,
-    SpecialtyType.POSITION,
-    SpecialtyType.MEASUREMENT,
-    SpecialtyType.STATISTICS,
-    SpecialtyType.PROBLEM_SOLVING,
-    SpecialtyType.COMPREHENSIVE_MATH,
-  ],
-  英语: [
-    SpecialtyType.ALPHABET,
-    SpecialtyType.WORDS,
-    SpecialtyType.SENTENCE_PATTERN,
-    SpecialtyType.GRAMMAR,
-    SpecialtyType.LISTENING,
-    SpecialtyType.SPEAKING,
-    SpecialtyType.ENGLISH_READING,
-    SpecialtyType.COMPREHENSIVE_ENGLISH,
-  ],
-};
-
-/** 获取科目专项选项 */
+/** 获取科目专项选项（兼容性函数，使用能力类型） */
 export const getSpecialtyOptions = (subject: string) => {
-  const types = SPECIALTY_TYPES_BY_SUBJECT[subject] || [];
-  return types.map((type) => ({
-    label: SPECIALTY_TYPE_LABELS[type],
-    value: type,
-  }));
+  return getAbilityOptions(subject);
 };
+
+// ============ 能力维度常量 ============
+
+/** 能力维度枚举（按科目分组，使用科目前缀区分） */
+export enum AbilityType {
+  // 语文能力
+  CHINESE_PHONETIC = "phonetic", // 拼音
+  CHINESE_CHARACTER = "character", // 识字写字
+  CHINESE_VOCABULARY = "vocabulary", // 词语积累
+  CHINESE_SENTENCE = "sentence", // 句子运用
+  CHINESE_PARAGRAPH = "paragraph", // 段落
+  CHINESE_READING = "reading", // 阅读理解
+  CHINESE_WRITING = "writing", // 书面表达
+  CHINESE_SPEAKING = "speaking", // 口语表达
+  CHINESE_COMPREHENSIVE = "comprehensive_chinese", // 语文综合
+
+  // 数学能力
+  MATH_NUMBER_SENSE = "number_sense", // 数感
+  MATH_COUNTING = "counting", // 数数
+  MATH_CALCULATION = "calculation", // 运算能力
+  MATH_SHAPE = "shape", // 图形
+  MATH_POSITION = "position", // 位置
+  MATH_MEASUREMENT = "measurement", // 测量
+  MATH_STATISTICS = "statistics", // 统计
+  MATH_PROBLEM_SOLVING = "problem_solving", // 解决问题
+  MATH_SPATIAL = "spatial", // 空间观念
+  MATH_DATA = "data", // 数据分析
+  MATH_REASONING = "reasoning", // 推理能力
+  MATH_MODELING = "modeling", // 模型思想
+  MATH_APPLICATION = "application", // 应用意识
+  MATH_COMPREHENSIVE = "comprehensive_math", // 数学综合
+
+  // 英语能力
+  ENGLISH_ALPHABET = "alphabet", // 字母
+  ENGLISH_WORDS = "words", // 单词
+  ENGLISH_SENTENCE_PATTERN = "sentence_pattern", // 句型
+  ENGLISH_LISTENING = "listening", // 听力理解
+  ENGLISH_SPEAKING = "speaking", // 口语表达
+  ENGLISH_READING = "reading", // 阅读理解
+  ENGLISH_WRITING = "writing", // 书面表达
+  ENGLISH_VOCABULARY = "vocabulary", // 词汇知识
+  ENGLISH_GRAMMAR = "grammar", // 语法知识
+  ENGLISH_COMPREHENSIVE = "comprehensive_english", // 英语综合
+}
 
 export const ABILITY_TYPE_OPTIONS: Record<string, Array<{ label: string; value: string }>> = {
   语文: [
-    { label: "拼音能力", value: "phonetic" },
+    { label: "拼音", value: "phonetic" },
+    { label: "拼音", value: "pinyin" }, // 兼容旧值
+    { label: "识字", value: "literacy" }, // 兼容旧值
     { label: "识字写字", value: "character" },
     { label: "词语积累", value: "vocabulary" },
     { label: "句子运用", value: "sentence" },
+    { label: "段落", value: "paragraph" },
     { label: "阅读理解", value: "reading" },
     { label: "书面表达", value: "writing" },
     { label: "口语表达", value: "speaking" },
+    { label: "语文综合", value: "comprehensive_chinese" },
   ],
   数学: [
     { label: "数感", value: "number_sense" },
+    { label: "数数", value: "counting" },
     { label: "运算能力", value: "calculation" },
+    { label: "图形", value: "shape" },
+    { label: "位置", value: "position" },
+    { label: "测量", value: "measurement" },
+    { label: "统计", value: "statistics" },
+    { label: "解决问题", value: "problem_solving" },
     { label: "空间观念", value: "spatial" },
     { label: "数据分析", value: "data" },
     { label: "推理能力", value: "reasoning" },
     { label: "模型思想", value: "modeling" },
     { label: "应用意识", value: "application" },
+    { label: "数学综合", value: "comprehensive_math" },
   ],
   英语: [
+    { label: "字母", value: "alphabet" },
+    { label: "单词", value: "words" },
+    { label: "句型", value: "sentence_pattern" },
     { label: "听力理解", value: "listening" },
     { label: "口语表达", value: "speaking" },
     { label: "阅读理解", value: "reading" },
+    { label: "英语阅读", value: "english_reading" }, // 兼容旧值
     { label: "书面表达", value: "writing" },
     { label: "词汇知识", value: "vocabulary" },
     { label: "语法知识", value: "grammar" },
+    { label: "英语综合", value: "comprehensive_english" },
   ],
 };
 
@@ -475,3 +433,8 @@ export const ABILITY_TYPE_MAP = Object.entries(ABILITY_TYPE_OPTIONS).reduce(
   }),
   {}
 ) as Record<string, Record<string, string>>;
+
+/** 根据科目获取能力维度选项 */
+export const getAbilityOptions = (subject: string) => {
+  return ABILITY_TYPE_OPTIONS[subject] || [];
+};

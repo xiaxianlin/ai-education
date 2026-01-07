@@ -1,18 +1,13 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn, createTimeColumn } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
-import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
+import { ABILITY_TYPE_MAP, GRADES, STAGE_LABELS } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Select, Tag } from 'antd';
 import { useEffect, useMemo } from 'react';
 import { PracticeApi } from '../../api';
 import { usePracticeListModel } from '../models/page';
-
-const SPECIALTY_TYPE_OPTIONS = Object.entries(SPECIALTY_TYPE_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
 
 export function ListView() {
   const { subject, grade } = useInitialStateModel();
@@ -71,10 +66,19 @@ export function ListView() {
         title: '专项类型',
         dataIndex: 'specialty_type',
         width: 120,
-        valueEnum: Object.entries(SPECIALTY_TYPE_LABELS).reduce((acc, [key, label]) => ({ ...acc, [key]: label }), {}),
-        render: (_, record) =>
-          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
-        renderFormItem: () => <Select placeholder="请选择专项类型" options={SPECIALTY_TYPE_OPTIONS} allowClear />,
+        render: (_, record) => {
+          if (!record.specialty_type) return '-';
+          const subjectMap = record.subject ? ABILITY_TYPE_MAP[record.subject] : {};
+          const label = subjectMap?.[record.specialty_type] || record.specialty_type;
+          return <Tag>{label}</Tag>;
+        },
+        renderFormItem: () => {
+          // 构建所有科目的能力类型选项
+          const allOptions = Object.entries(ABILITY_TYPE_MAP).flatMap(([subject, types]) =>
+            Object.entries(types).map(([value, label]) => ({ label: `${subject}-${label}`, value }))
+          );
+          return <Select placeholder="请选择专项类型" options={allOptions} allowClear />;
+        },
       },
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 160, hideInSearch: true }),
       createActionColumn<Practice>(

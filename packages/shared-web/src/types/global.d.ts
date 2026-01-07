@@ -1,4 +1,5 @@
 import {
+  AbilityType as _AbilityType,
   AnswerType as _AnswerType,
   CognitiveLevel as _CognitiveLevel,
   Difficulty as _Difficulty,
@@ -10,11 +11,11 @@ import {
   PracticeSessionStatus as _PracticeSessionStatus,
   PracticeType as _PracticeType,
   ResourceType as _ResourceType,
-  SpecialtyType as _SpecialtyType,
   Stage as _Stage,
 } from "../constants";
 
 declare global {
+  type AbilityType = _AbilityType;
   type AnswerType = _AnswerType;
   type CognitiveLevel = _CognitiveLevel;
   type Difficulty = _Difficulty;
@@ -26,7 +27,6 @@ declare global {
   type PracticeSessionStatus = _PracticeSessionStatus;
   type PracticeType = _PracticeType;
   type ResourceType = _ResourceType;
-  type SpecialtyType = _SpecialtyType;
   type Stage = _Stage;
 
   // ================ API 响应类型 ================
@@ -292,8 +292,8 @@ declare global {
     slug: string;
     icon?: string;
     description?: string;
-    // 专项类型
-    specialty_type?: SpecialtyType;
+    // 专项类型（使用能力类型）
+    specialty_type?: AbilityType | string;
     // 适用范围
     subject?: string;
     stages?: Stage[];

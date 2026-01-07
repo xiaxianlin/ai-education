@@ -1,4 +1,4 @@
-import { GRADES, SPECIALTY_TYPE_LABELS, SpecialtyType, STAGE_LABELS } from '@ai-education/shared-web';
+import { ABILITY_TYPE_MAP, GRADES, STAGE_LABELS } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
@@ -91,8 +91,12 @@ export function PracticeList() {
         dataIndex: 'specialty_type',
         width: 120,
         hideInSearch: true,
-        render: (_, record) =>
-          record.specialty_type ? <Tag>{SPECIALTY_TYPE_LABELS[record.specialty_type as SpecialtyType]}</Tag> : '-',
+        render: (_, record) => {
+          if (!record.specialty_type) return '-';
+          const subjectMap = record.subject ? ABILITY_TYPE_MAP[record.subject] : {};
+          const label = subjectMap?.[record.specialty_type] || record.specialty_type;
+          return <Tag>{label}</Tag>;
+        },
       },
       {
         title: '图标',

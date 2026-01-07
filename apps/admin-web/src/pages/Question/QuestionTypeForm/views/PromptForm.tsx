@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPE_MAP,
   ANSWER_TYPE_LABELS,
   COGNITIVE_LEVEL_LABELS,
   DIFFICULTY_LABELS,
@@ -83,7 +84,13 @@ export function PromptForm() {
       (values.cognitiveLevels || [])
         .map((level: string) => COGNITIVE_LEVEL_LABELS[level as keyof typeof COGNITIVE_LEVEL_LABELS] || level)
         .join('、') || '无';
-    const abilityDimensions = (values.abilityDimensions || []).join('、') || '无';
+    const abilityDimensions =
+      (values.abilityDimensions || [])
+        .map((dim: string) => {
+          const subjectMap = ABILITY_TYPE_MAP[subject as keyof typeof ABILITY_TYPE_MAP];
+          return subjectMap?.[dim as keyof typeof subjectMap] || dim;
+        })
+        .join('、') || '无';
     const difficulty = values.difficulty
       ? DIFFICULTY_LABELS[values.difficulty as keyof typeof DIFFICULTY_LABELS] || values.difficulty
       : '无';

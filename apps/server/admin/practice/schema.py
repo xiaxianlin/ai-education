@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
-from shared.core.constants import SPECIALTY_TYPES_BY_SUBJECT, SUBJECTS
+from shared.core.constants import SUBJECTS, get_ability_types_by_subject
 from shared.core.schema import SearchSchema
 
 
@@ -43,12 +43,12 @@ class SavePracticeSchema(BaseModel):
     @classmethod
     def valid_specialty_type(cls, v):
         if v:
-            # 检查是否在所有科目的专项类型中
-            all_specialty_types = []
-            for types in SPECIALTY_TYPES_BY_SUBJECT.values():
-                all_specialty_types.extend(types)
-            if v not in all_specialty_types:
-                raise ValueError(f"专项类型无效，可选值: {', '.join(set(all_specialty_types))}")
+            # 检查是否在所有科目的能力类型中（使用能力类型验证）
+            all_ability_types = []
+            for subject in SUBJECTS:
+                all_ability_types.extend(get_ability_types_by_subject(subject))
+            if v not in all_ability_types:
+                raise ValueError(f"专项类型无效，必须是有效的能力类型")
         return v
 
     @field_validator("subject")
