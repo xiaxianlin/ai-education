@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPE_MAP,
   COGNITIVE_LEVEL_LABELS,
   DIFFICULTY_COLORS,
   DIFFICULTY_LABELS,
@@ -16,6 +17,8 @@ export function QuestionBasicInfo({ question }: QuestionBasicInfoProps) {
   const gradeInfo = question.grade ? GRADES[question.grade] : undefined;
   const difficultyColor = DIFFICULTY_COLORS[question.difficulty as Difficulty] || 'default';
   const stageLabel = question.stage ? STAGE_LABELS[question.stage as Stage] : undefined;
+  // 获取能力类型映射
+  const abilityTypeMap = question.subject ? ABILITY_TYPE_MAP[question.subject] || {} : {};
 
   return (
     <ProCard title="基本信息">
@@ -61,11 +64,14 @@ export function QuestionBasicInfo({ question }: QuestionBasicInfoProps) {
         {question.ability_tags && question.ability_tags.length > 0 && (
           <ProDescriptions.Item label="能力标签" span={3}>
             <Space size={[4, 4]} wrap>
-              {question.ability_tags.map((tag, idx) => (
-                <Tag key={idx} color="cyan">
-                  {tag}
-                </Tag>
-              ))}
+              {question.ability_tags.map((tag, idx) => {
+                const label = abilityTypeMap[tag] || tag;
+                return (
+                  <Tag key={idx} color="cyan">
+                    {label}
+                  </Tag>
+                );
+              })}
             </Space>
           </ProDescriptions.Item>
         )}

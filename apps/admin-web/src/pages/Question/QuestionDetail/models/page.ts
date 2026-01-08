@@ -3,6 +3,7 @@ import { message } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
+import { useGenerateQuestionResources } from '../../hooks/useGenerateQuestionResources';
 
 const useContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,23 +22,15 @@ const useContainer = () => {
     },
   });
 
-  // 生成资源
-  const { runAsync: handleGenerateResources, loading: generatingResources } = useRequest(
-    async () => {
-      if (!id) return;
-      await QuestionApi.generateQuestionResources(id);
-    },
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('资源生成成功');
-        refresh();
-      },
-      onError: (error: any) => {
-        message.error(error?.message || '资源生成失败');
-      },
-    },
-  );
+  // 生成素材
+  const { handleGenerateResources, loading: generatingResources, LoadingModal } = useGenerateQuestionResources(() => {
+    refresh();
+  });
+
+  const handleGenerate = async () => {
+    if (!id) return;
+    await handleGenerateResources(id);
+  };
 
   // 删除题目
   const { runAsync: handleDelete, loading: deleting } = useRequest(
@@ -63,8 +56,9 @@ const useContainer = () => {
     navigate,
     generatingResources,
     deleting,
-    handleGenerateResources,
+    handleGenerateResources: handleGenerate,
     handleDelete,
+    LoadingModal,
   };
 };
 

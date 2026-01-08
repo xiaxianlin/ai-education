@@ -7,13 +7,19 @@ import { Button, Flex, Modal, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuestionApi } from '../../api';
+import { useGenerateQuestionResources } from '../../hooks/useGenerateQuestionResources';
 import { useQuestionListModel } from '../models/page';
+import { getResourceStatus, hasResources, RESOURCE_STATUS_CONFIG } from '../utils';
 
 export function ListView() {
   const navigate = useNavigate();
   const { actionRef, subject, grade, handleDelete, handleBatchDelete, batchDeleteLoading, handlePreview } =
     useQuestionListModel();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  const { handleGenerateResources, generatingResourceId, LoadingModal } = useGenerateQuestionResources(() => {
+    actionRef.current?.reload?.();
+  });
 
   const handleBatchDeleteClick = () => {
     if (selectedRowKeys.length === 0) return;
@@ -66,6 +72,40 @@ export function ListView() {
       render: (_, record) => (isCompositeQuestion(record) ? <Tag color="volcano">复合题</Tag> : <Tag>单题</Tag>),
     },
     {
+      title: '素材',
+      width: 150,
+      render: (_, record) => {
+        const status = getResourceStatus(record);
+        const needsResource = hasResources(record);
+        const showGenerateButton = needsResource && status !== 'complete';
+
+        if (status === 'none') {
+          return <span>-</span>;
+        }
+
+        const config = RESOURCE_STATUS_CONFIG[status];
+
+        return (
+          <Flex gap={8} align="center">
+            <Tag color={config.color}>{config.label}</Tag>
+            {showGenerateButton && (
+              <Button
+                type="link"
+                size="small"
+                loading={generatingResourceId === record.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleGenerateResources(record.id);
+                }}
+              >
+                生成
+              </Button>
+            )}
+          </Flex>
+        );
+      },
+    },
+    {
       title: '使用次数',
       dataIndex: 'usageCount',
       width: 80,
@@ -106,48 +146,51 @@ export function ListView() {
   }, [subject, grade, actionRef]);
 
   return (
-    <ProTable<Question>
-      actionRef={actionRef}
-      bordered
-      cardBordered
-      rowKey="id"
-      search={false}
-      columns={columns}
-      pagination={{ defaultPageSize: 20 }}
-      scroll={{ x: 'max-content' }}
-      rowSelection={{
-        selectedRowKeys,
-        onChange: (keys) => setSelectedRowKeys(keys),
-      }}
-      request={async ({ current, pageSize }) => {
-        const res = await QuestionApi.searchQuestions({
-          page: current,
-          size: pageSize,
-          subject,
-          grade,
-        });
-        return {
-          data: res?.data || [],
-          total: res?.total || 0,
-          success: true,
-        };
-      }}
-      headerTitle={
-        <Flex gap={16}>
-          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/question/form')}>
-            新建题目
-          </Button>
-          <Button
-            danger
-            size="large"
-            onClick={handleBatchDeleteClick}
-            disabled={selectedRowKeys.length === 0}
-            loading={batchDeleteLoading}
-          >
-            批量删除 ({selectedRowKeys.length})
-          </Button>
-        </Flex>
-      }
-    />
+    <>
+      <ProTable<Question>
+        actionRef={actionRef}
+        bordered
+        cardBordered
+        rowKey="id"
+        search={false}
+        columns={columns}
+        pagination={{ defaultPageSize: 20 }}
+        scroll={{ x: 'max-content' }}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
+        request={async ({ current, pageSize }) => {
+          const res = await QuestionApi.searchQuestions({
+            page: current,
+            size: pageSize,
+            subject,
+            grade,
+          });
+          return {
+            data: res?.data || [],
+            total: res?.total || 0,
+            success: true,
+          };
+        }}
+        headerTitle={
+          <Flex gap={16}>
+            <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/question/form')}>
+              新建题目
+            </Button>
+            <Button
+              danger
+              size="large"
+              onClick={handleBatchDeleteClick}
+              disabled={selectedRowKeys.length === 0}
+              loading={batchDeleteLoading}
+            >
+              批量删除 ({selectedRowKeys.length})
+            </Button>
+          </Flex>
+        }
+      />
+      <LoadingModal />
+    </>
   );
 }

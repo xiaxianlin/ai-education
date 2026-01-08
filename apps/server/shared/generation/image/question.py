@@ -9,7 +9,6 @@ import requests
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import END, StateGraph
 from loguru import logger
-from shared.core.database import AsyncSession
 from shared.provider import BaseProvider, get_provider
 from shared.utils import oss
 
@@ -19,7 +18,6 @@ from .prompt import OPTIMIZE_IMAGE_PROMPT
 class QuestionImageGenerationState(TypedDict, total=False):
     """图片生成流程的状态"""
 
-    db: AsyncSession
     # 原始提示词
     prompt: str
     # OSS 路径
@@ -39,11 +37,7 @@ class QuestionImageGenerationState(TypedDict, total=False):
 async def entry_node(state: QuestionImageGenerationState):
     """入口节点，负责基础校验"""
 
-    db: AsyncSession = state.get("db")
     optimize = state.get("optimize", False)
-
-    if not db:
-        raise ValueError("数据库会话 (db) 不能为空")
 
     if not state.get("prompt"):
         raise ValueError("提示词 (prompt) 不能为空")
@@ -143,16 +137,14 @@ question_image_graph = create_image_generation_graph()
 
 async def invoke_question_image_workflow(
     *,
-    db: AsyncSession,
     prompt: str,
     oss_path: str,
     width: int = 1328,
     height: int = 1328,
-    optimize: bool = True,
+    optimize: bool = False,
 ) -> str:
     """执行图片生成流程"""
     state = QuestionImageGenerationState(
-        db=db,
         prompt=prompt,
         oss_path=oss_path,
         width=width,

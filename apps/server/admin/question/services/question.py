@@ -5,9 +5,15 @@
 import uuid
 from typing import List, Optional, Tuple
 
+from loguru import logger
 from shared.core.database import Question
+from shared.generation import (
+    invoke_question_audio_workflow,
+    invoke_question_image_workflow,
+)
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from admin.question.schema import (
     QuestionCreateSchema,
@@ -209,7 +215,7 @@ async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bo
     return len(questions)
 
 
-async def generate_question_resources(db: AsyncSession, id: str) -> Question:
+async def generate_question_resources(db: AsyncSession, id: str):
     """生成题目资源
 
     根据题目的 resources 字段定义，生成所有需要的资源（图片、音频等）
@@ -217,35 +223,39 @@ async def generate_question_resources(db: AsyncSession, id: str) -> Question:
     Args:
         db: 数据库会话
         id: 题目ID
-
-    Returns:
-        更新后的题目对象
-
-    Raises:
-        ValueError: 题目不存在
     """
-    from shared.generation.question.service import process_question_resources
 
     # 获取题目对象
     result = await db.execute(select(Question).where(Question.id == id))
     question = result.scalar_one_or_none()
 
     if not question:
+        logger.error(f"题目 {id} 不存在")
         raise ValueError(f"题目 {id} 不存在")
 
     # 如果没有资源定义，直接返回
     if not question.resources:
-        return question
+        logger.error(f"题目 {id} 没有资源定义")
+        raise ValueError(f"题目 {id} 没有资源定义")
 
-    # 处理资源生成（会更新 question.resources 中的 url 字段）
-    await process_question_resources(
-        db=db,
-        question=question,
-        subject=question.subject,
-    )
+    new_resources = []
+    for resource in question.resources:
+        resource_path = f"question/{question.id}/{resource['resource_type']}"
+        new_resource = dict(resource)  # 创建新字典对象，避免修改原对象
 
-    # 保存更新后的资源数据
+        if resource["type"] == "image" and resource["image_prompt"]:
+            oss_path = f"{resource_path}/{resource['id']}.png"
+            await invoke_question_image_workflow(prompt=resource["image_prompt"], oss_path=oss_path)
+            new_resource["url"] = oss_path
+
+        elif resource["type"] == "audio" and resource["text"]:
+            oss_path = f"{resource_path}/{resource['id']}.mp3"
+            language = "Chinese" if question.subject == "英语" else "English"
+            await invoke_question_audio_workflow(text=resource["text"], language=language, oss_path=oss_path)
+            new_resource["url"] = oss_path
+
+        new_resources.append(new_resource)
+
+    question.resources = new_resources
+    flag_modified(question, "resources")  # 显式标记字段已修改
     await db.commit()
-    await db.refresh(question)
-
-    return question

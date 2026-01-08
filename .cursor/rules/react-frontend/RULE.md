@@ -437,6 +437,135 @@ export function usePageNameHook(params: HookParams) {
 
 3. **返回值**：
    - 返回对象，包含数据、状态和方法
+
+### UI 和逻辑分离规范
+
+**核心原则**：UI 组件只负责渲染，业务逻辑和数据处理应提取到独立的文件或 Hooks 中。
+
+#### 1. 工具函数和常量分离
+
+**规则**：将业务逻辑相关的工具函数、映射常量和类型定义提取到独立的 `utils.tsx` 或 `utils.ts` 文件中。
+
+**示例**：
+
+```typescript
+// pages/Question/QuestionList/utils.tsx
+/**
+ * 素材相关的映射常量和功能函数
+ */
+
+// 常量定义
+export const RESOURCE_STATUS_CONFIG = {
+  none: { label: '-', color: 'default' },
+  not_generated: { label: '未生成', color: 'red' },
+  partial: { label: '生成不足', color: 'orange' },
+  complete: { label: '已生成', color: 'green' },
+} as const;
+
+export type ResourceStatus = keyof typeof RESOURCE_STATUS_CONFIG;
+
+// 工具函数
+export function hasResources(question: Question): boolean {
+  return !!(question.resources && question.resources.length > 0);
+}
+
+export function getResourceStatus(question: Question): ResourceStatus {
+  // 业务逻辑实现
+}
+```
+
+**在组件中使用**：
+
+```typescript
+// views/List.tsx
+import { getResourceStatus, hasResources, RESOURCE_STATUS_CONFIG } from '../utils';
+
+export function ListView() {
+  // UI 渲染逻辑
+  const status = getResourceStatus(record);
+  const config = RESOURCE_STATUS_CONFIG[status];
+  // ...
+}
+```
+
+#### 2. 可复用逻辑提取为 Hooks
+
+**规则**：跨页面或跨组件使用的业务逻辑应提取为独立的 Hooks，放在功能模块的 `hooks/` 目录下。
+
+**示例**：
+
+```typescript
+// pages/Question/hooks/useGenerateQuestionResources.ts
+import { useRequest } from 'ahooks';
+import { message } from 'antd';
+import { QuestionApi } from '../api';
+
+/**
+ * 生成题目素材的 Hook
+ * 供列表页和详情页复用
+ */
+export function useGenerateQuestionResources(onSuccess?: () => void) {
+  const { runAsync: generateResources, loading } = useRequest(
+    async (questionId: string) => {
+      await QuestionApi.generateQuestionResources(questionId);
+    },
+    {
+      manual: true,
+      onSuccess: () => {
+        message.success('素材生成成功');
+        onSuccess?.();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '素材生成失败');
+      },
+    },
+  );
+
+  return {
+    generateResources,
+    loading,
+  };
+}
+```
+
+#### 3. 组件职责划分
+
+**规则**：
+
+1. **视图组件（views/）**：只负责 UI 渲染和用户交互，不包含复杂业务逻辑
+2. **工具文件（utils.tsx）**：存放纯函数、常量映射、类型定义
+3. **Hooks（hooks/）**：存放可复用的业务逻辑、状态管理、副作用处理
+4. **模型（models/）**：存放页面级状态管理和数据流
+
+**目录结构示例**：
+
+```
+pages/Question/QuestionList/
+├── index.tsx                    # 页面入口
+├── models/page.ts               # 页面状态管理
+├── views/
+│   └── List.tsx                 # UI 渲染（导入工具函数和 Hooks）
+├── hooks/                       # 页面级 Hooks（可选）
+├── utils.tsx                    # 工具函数和常量（新建）
+└── components/                  # 页面级组件
+```
+
+#### 4. 分离的好处
+
+1. **可维护性**：逻辑集中管理，易于修改和测试
+2. **可复用性**：工具函数和 Hooks 可在多个组件间复用
+3. **可测试性**：纯函数易于单元测试
+4. **可读性**：组件代码更简洁，专注于 UI 渲染
+
+#### 5. 实施检查清单
+
+在编写代码时，检查以下事项：
+
+- [ ] 常量映射是否提取到 `utils.tsx`？
+- [ ] 工具函数是否提取到 `utils.tsx`？
+- [ ] 跨组件/跨页面的逻辑是否提取为 Hooks？
+- [ ] 组件文件是否只包含 UI 渲染逻辑？
+- [ ] 业务逻辑是否与 UI 完全分离？
    - 保持返回值结构清晰
 
 ## 状态管理规范

@@ -156,6 +156,13 @@ async def create_something(
     return await some_service.create(db, params)
 ```
 
+**重要**: 路由函数**不需要**捕获异常，直接返回 service 层返回的数据即可。异常会被统一异常处理器自动处理：
+- `ValueError` → 400 状态码（业务逻辑错误）
+- `HTTPException` → 对应的 HTTP 状态码
+- 其他异常 → 500 状态码（服务器内部错误）
+
+统一异常处理器已在 `admin_app` 和 `student_app` 中配置（见 `admin/__init__.py` 和 `student/__init__.py`）。
+
 ### 服务层示例
 
 ```python

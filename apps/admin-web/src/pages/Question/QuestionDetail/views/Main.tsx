@@ -19,6 +19,7 @@ export default function MainView() {
     deleting,
     handleGenerateResources,
     handleDelete,
+    LoadingModal,
   } = useQuestionDetailModel();
   const [showDataDrawer, setShowDataDrawer] = useState(false);
 
@@ -61,7 +62,7 @@ export default function MainView() {
             loading={generatingResources}
             onClick={() => handleGenerateResources()}
           >
-            生成资源
+            生成素材
           </Button>
           <Button size="large" type="primary" onClick={() => navigate(`/question/form/${question.id}`)}>
             编辑
@@ -105,6 +106,7 @@ export default function MainView() {
           </pre>
         )}
       </Drawer>
+      <LoadingModal />
     </PageContainer>
   );
 }
