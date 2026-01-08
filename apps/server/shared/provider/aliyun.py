@@ -65,7 +65,13 @@ class AliyunProvider(BaseProvider):
                 prompt_extend=prompt_extend,
             )
 
-            logger.debug(f"图片生成响应: {response}")
+            # 安全记录响应：只记录关键信息，避免格式化错误
+            logger.debug(
+                "图片生成响应",
+                request_id=response.request_id,
+                status_code=response.status_code,
+                message=response.message,
+            )
 
             if response.status_code != 200:
                 logger.error(f"图片生成失败，任务 ID: {response.request_id}, " f"错误信息: {response.message}")
@@ -155,7 +161,13 @@ class AliyunProvider(BaseProvider):
                 stream=False,
             )
 
-            logger.debug(f"语音生成响应: {response}")
+            # 安全记录响应：只记录关键信息，避免格式化错误
+            logger.debug(
+                "语音生成响应",
+                request_id=response.request_id,
+                status_code=response.status_code,
+                message=response.message,
+            )
 
             if response.status_code != 200:
                 logger.error(f"文本转语音失败，任务 ID: {response.request_id}, " f"错误信息: {response.message}")
