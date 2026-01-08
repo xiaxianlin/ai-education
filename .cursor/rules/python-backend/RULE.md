@@ -15,6 +15,55 @@ alwaysApply: false
 - API 路由使用 Pydantic 进行数据验证
 - 使用异步编程 (async/await)
 
+### 导入规范
+
+- **所有导入必须在文件头部**：禁止在函数内部或代码中间进行导入
+- 导入顺序：标准库 → 第三方库 → 项目内部模块
+- 使用绝对导入，避免相对导入（除非在包内部）
+
+```python
+# ✅ 正确：所有导入在文件头部
+import asyncio
+from typing import Any, Dict, List
+
+from langgraph.graph import END, StateGraph
+from loguru import logger
+
+from shared.core.database import Question, QuestionType
+from .service import build_question_generation_prompt
+
+# ❌ 错误：在函数内部导入
+async def some_function():
+    import asyncio  # 禁止
+    from loguru import logger  # 禁止
+```
+
+### 函数定义规范
+
+- **避免在函数内定义函数**：将内部函数提取到模块级别，提高可读性和可复用性
+- 如果必须使用闭包，确保有充分的理由（如回调函数、装饰器等）
+
+```python
+# ✅ 正确：函数定义在模块级别
+async def process_item(item: Item) -> Result:
+    """处理单个项目"""
+    # 处理逻辑
+    return result
+
+async def process_items(items: List[Item]) -> List[Result]:
+    """处理多个项目"""
+    return await asyncio.gather(*[process_item(item) for item in items])
+
+# ❌ 错误：在函数内部定义函数
+async def process_items(items: List[Item]) -> List[Result]:
+    """处理多个项目"""
+    async def process_item(item: Item):  # 禁止
+        # 处理逻辑
+        return result
+    
+    return await asyncio.gather(*[process_item(item) for item in items])
+```
+
 ## 分层架构
 
 遵循项目的分层架构：**路由层 → 服务层 → 数据层**

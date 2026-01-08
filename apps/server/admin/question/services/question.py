@@ -7,9 +7,8 @@ from typing import List, Optional, Tuple
 
 from loguru import logger
 from shared.core.database import Question
-from shared.generation import (
-    invoke_question_audio_workflow,
-    invoke_question_image_workflow,
+from shared.generation.question.service import (
+    generate_question_resources as generate_resources,
 )
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -223,8 +222,10 @@ async def generate_question_resources(db: AsyncSession, id: str):
     Args:
         db: 数据库会话
         id: 题目ID
-    """
 
+    Raises:
+        ValueError: 如果题目不存在或没有资源定义
+    """
     # 获取题目对象
     result = await db.execute(select(Question).where(Question.id == id))
     question = result.scalar_one_or_none()
@@ -235,27 +236,13 @@ async def generate_question_resources(db: AsyncSession, id: str):
 
     # 如果没有资源定义，直接返回
     if not question.resources:
-        logger.error(f"题目 {id} 没有资源定义")
-        raise ValueError(f"题目 {id} 没有资源定义")
+        logger.warning(f"题目 {id} 没有资源定义，跳过资源生成")
+        return
 
-    new_resources = []
-    for resource in question.resources:
-        resource_path = f"question/{question.id}/{resource['resource_type']}"
-        new_resource = dict(resource)  # 创建新字典对象，避免修改原对象
+    # 复用 shared 层的资源生成函数
+    new_resources = await generate_resources(question)
 
-        if resource["type"] == "image" and resource["image_prompt"]:
-            oss_path = f"{resource_path}/{resource['id']}.png"
-            await invoke_question_image_workflow(prompt=resource["image_prompt"], oss_path=oss_path)
-            new_resource["url"] = oss_path
-
-        elif resource["type"] == "audio" and resource["text"]:
-            oss_path = f"{resource_path}/{resource['id']}.mp3"
-            language = "Chinese" if question.subject == "英语" else "English"
-            await invoke_question_audio_workflow(text=resource["text"], language=language, oss_path=oss_path)
-            new_resource["url"] = oss_path
-
-        new_resources.append(new_resource)
-
+    # 更新题目的资源列表
     question.resources = new_resources
     flag_modified(question, "resources")  # 显式标记字段已修改
     await db.commit()

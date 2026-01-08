@@ -10,6 +10,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import Question, QuestionType
+from shared.generation import invoke_question_audio_workflow, invoke_question_image_workflow
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import GeneratedQuestion, QuestionGenerationResult
@@ -346,3 +347,84 @@ async def build_question_generation_prompt(
         "prompt_input": prompt_input,
         "prompt_parser": prompt_parser,
     }
+
+
+async def generate_question_resource(question: Question, resource: dict) -> dict:
+    """生成单个题目资源
+
+    Args:
+        question: 题目对象
+        resource: 资源定义字典
+
+    Returns:
+        dict: 更新后的资源字典（包含 url 字段）
+
+    Raises:
+        ValueError: 如果资源类型不支持或缺少必要字段
+    """
+    if not isinstance(resource, dict):
+        raise ValueError(f"资源格式错误，必须是字典类型: {type(resource)}")
+
+    resource_type = resource.get("type")
+    resource_path = f"question/{question.id}/{resource.get('resource_type', 'stem')}"
+    new_resource = dict(resource)  # 创建新字典对象，避免修改原对象
+
+    # 生成图片资源
+    if resource_type == "image":
+        if not resource.get("image_prompt"):
+            raise ValueError(f"图片资源缺少 image_prompt 字段: resource_id={resource.get('id', 'unknown')}")
+
+        oss_path = f"{resource_path}/{resource['id']}.png"
+        await invoke_question_image_workflow(prompt=resource["image_prompt"], oss_path=oss_path)
+        new_resource["url"] = oss_path
+        logger.debug(f"图片资源生成成功: question_id={question.id}, path={oss_path}")
+
+    # 生成音频资源
+    elif resource_type == "audio":
+        if not resource.get("text"):
+            raise ValueError(f"音频资源缺少 text 字段: resource_id={resource.get('id', 'unknown')}")
+
+        oss_path = f"{resource_path}/{resource['id']}.mp3"
+        # 根据题目科目确定语言
+        language = "Chinese" if question.subject == "英语" else "English"
+        await invoke_question_audio_workflow(text=resource["text"], language=language, oss_path=oss_path)
+        new_resource["url"] = oss_path
+        logger.debug(f"音频资源生成成功: question_id={question.id}, path={oss_path}")
+
+    else:
+        raise ValueError(f"不支持的资源类型: {resource_type}, resource_id={resource.get('id', 'unknown')}")
+
+    return new_resource
+
+
+async def generate_question_resources(question: Question) -> List[dict]:
+    """为单个题目生成所有资源
+
+    Args:
+        question: 题目对象
+
+    Returns:
+        List[dict]: 更新后的资源列表（包含 url 字段）
+
+    Raises:
+        ValueError: 如果题目没有资源定义
+    """
+    if not question.resources:
+        logger.debug(f"题目 {question.id} 没有资源定义，跳过资源生成")
+        return []
+
+    new_resources = []
+    for resource in question.resources:
+        try:
+            updated_resource = await generate_question_resource(question, resource)
+            new_resources.append(updated_resource)
+        except Exception as e:
+            logger.warning(
+                f"资源生成失败: question_id={question.id}, resource_id={resource.get('id', 'unknown')}, "
+                f"error={type(e).__name__}: {str(e)}"
+            )
+            # 资源生成失败不影响其他资源，继续处理
+            # 保留原始资源（不包含 url）
+            new_resources.append(dict(resource))
+
+    return new_resources
