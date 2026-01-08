@@ -1,14 +1,43 @@
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from loguru import logger
+
+from shared.core.logger import log_error
 from shared.core.settings import envs
 
 
-def print_exception(request: Request, exc: any):
-    """记录异常信息到日志"""
-    logger.error(f"Path: {request.url.path} Method: {request.method} ")
-    logger.error(f"Unhandled exception: {type(exc).__name__}: {str(exc)}\n", exc_info=exc)
+def print_exception(request: Request, exc: Exception, exception_type: str = "exception"):
+    """记录异常信息到日志（使用结构化日志）"""
+    # 获取请求上下文信息
+    request_id = getattr(request.state, "request_id", None)
+    user_id = None
+    if hasattr(request.state, "user_id"):
+        user_id = request.state.user_id
+    elif hasattr(request.state, "user") and hasattr(request.state.user, "id"):
+        user_id = str(request.state.user.id)
+
+    # 构建异常信息
+    exception_info = {
+        "exception_type": exception_type,
+        "exception_class": type(exc).__name__,
+        "exception_message": str(exc),
+        "path": request.url.path,
+        "method": request.method,
+        "request_id": request_id,
+        "user_id": user_id,
+        "client_ip": request.client.host if request.client else None,
+    }
+
+    # 对于验证异常，添加验证错误详情
+    if isinstance(exc, RequestValidationError):
+        exception_info["validation_errors"] = exc.errors()
+
+    # 记录错误（带完整堆栈）
+    log_error(
+        message=f"{exception_type}: {type(exc).__name__} - {str(exc)}",
+        exc=exc,
+        **exception_info,
+    )
 
 
 def get_error_message(exc: Exception, default_message: str) -> str:
@@ -31,7 +60,7 @@ def get_error_message(exc: Exception, default_message: str) -> str:
 
 async def http_exception_handler(request: Request, exc: HTTPException):
     """HTTP 异常处理器"""
-    print_exception(request, exc)
+    print_exception(request, exc, exception_type="http_exception")
 
     return JSONResponse(
         status_code=200,
@@ -41,7 +70,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 async def value_error_handler(request: Request, exc: ValueError):
     """业务逻辑错误处理器"""
-    print_exception(request, exc)
+    print_exception(request, exc, exception_type="business_error")
 
     return JSONResponse(
         status_code=200,
@@ -51,7 +80,7 @@ async def value_error_handler(request: Request, exc: ValueError):
 
 async def global_exception_handler(request: Request, exc: Exception):
     """全局异常处理器"""
-    print_exception(request, exc)
+    print_exception(request, exc, exception_type="system_error")
 
     error_message = get_error_message(exc, "服务器内部错误")
     return JSONResponse(status_code=200, content={"status": 500, "message": error_message})
@@ -59,6 +88,6 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """参数验证异常处理器"""
-    print_exception(request, exc)
+    print_exception(request, exc, exception_type="validation_error")
 
     return JSONResponse(status_code=200, content={"status": 422, "message": "参数校验失败"})

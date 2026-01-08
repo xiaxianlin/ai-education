@@ -50,6 +50,14 @@ class Settings(BaseSettings):
     USE_QUESTION_V2_SYNC: bool = False  # 是否启用 V1->V2 双写同步
     USE_QUESTION_V2: bool = False  # 是否使用 V2 题型系统读取
 
+    # 日志配置
+    LOG_LEVEL: str | None = None  # 日志级别（DEBUG/INFO/WARNING/ERROR），None时根据环境自动设置
+    LOG_FORMAT: str | None = None  # 日志格式（text/json），None时根据环境自动设置
+    LOG_SQL_ENABLED: bool = False  # 是否启用SQL日志（默认false，开发环境可开启）
+    LOG_PERFORMANCE_ENABLED: bool = True  # 是否启用性能日志（默认true）
+    LOG_SLOW_QUERY_THRESHOLD: int = 1000  # 慢查询阈值（毫秒，默认1000）
+    LOG_SLOW_REQUEST_THRESHOLD: int = 2000  # 慢请求阈值（毫秒，默认2000）
+
     @field_validator("RUN_ENV")
     @classmethod
     def validate_run_env(cls, v):
@@ -76,6 +84,35 @@ class Settings(BaseSettings):
                 f"APP_SECRET_KEY 长度仅为 {len(v)} 个字符，建议使用至少32个字符的强密钥以提高安全性。", UserWarning
             )
         return v
+
+    @field_validator("LOG_LEVEL", mode="before")
+    @classmethod
+    def validate_log_level(cls, v, info):
+        """根据环境自动设置日志级别"""
+        if v is not None:
+            if v.upper() not in ["DEBUG", "INFO", "WARNING", "ERROR"]:
+                raise ValueError(f"LOG_LEVEL 必须是 DEBUG、INFO、WARNING 或 ERROR，当前值: {v}")
+            return v.upper()
+        # 根据环境自动设置
+        run_env = info.data.get("RUN_ENV", "development")
+        if run_env == "development":
+            return "DEBUG"
+        elif run_env == "production":
+            return "INFO"
+        else:  # test
+            return "WARNING"
+
+    @field_validator("LOG_FORMAT", mode="before")
+    @classmethod
+    def validate_log_format(cls, v, info):
+        """根据环境自动设置日志格式"""
+        if v is not None:
+            if v.lower() not in ["text", "json"]:
+                raise ValueError(f"LOG_FORMAT 必须是 text 或 json，当前值: {v}")
+            return v.lower()
+        # 根据环境自动设置
+        run_env = info.data.get("RUN_ENV", "development")
+        return "text" if run_env == "development" else "json"
 
     class Config:
         env_file = ".env"

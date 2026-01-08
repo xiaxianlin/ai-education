@@ -6,7 +6,9 @@ from shared.core.exception import (
     validation_exception_handler,
     value_error_handler,
 )
-from shared.core.middleware import WrappedResponse
+from shared.core.middleware.logging import LoggingMiddleware
+from shared.core.middleware.performance import PerformanceMiddleware
+from shared.core.response import WrappedResponse
 
 from .auth import auth_router, student_router_filter
 from .practice import practice_router
@@ -23,6 +25,10 @@ student_app = FastAPI(
         Exception: global_exception_handler,
     },
 )
+
+# 注册日志和性能监控中间件
+student_app.add_middleware(PerformanceMiddleware)
+student_app.add_middleware(LoggingMiddleware)
 
 student_app.include_router(auth_router)
 student_app.include_router(textbook_router)
