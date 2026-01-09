@@ -15,14 +15,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def generate_practice_report(db: AsyncSession, student_id: str, session_id: int) -> int:
+async def generate_practice_report(db: AsyncSession, student_id: str, session_id: str) -> int:
     """
     生成练习报告
 
     Args:
         db: 数据库会话
         student_id: 学生ID
-        session_id: 练习会话ID
+        session_id: 练习会话ID (UUID v4)
 
     Returns:
         报告ID
@@ -73,7 +73,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 9. 生成优势、薄弱点和建议
     strengths, weaknesses, recommendations = await generate_recommendations(
-        db, answers, knowledge_scores, overall_score, session.session_type
+        db, answers, knowledge_scores, overall_score, session.practice_type
     )
 
     # 10. 综合评估（主要用于assessment类型）
@@ -282,9 +282,17 @@ async def generate_recommendations(
     answers: List[PracticeSessionAnswer],
     knowledge_scores: Dict,
     overall_score: float,
-    session_type: str,
+    practice_type: str,
 ) -> tuple:
-    """生成优势、薄弱点和学习建议"""
+    """生成优势、薄弱点和学习建议
+    
+    Args:
+        db: 数据库会话
+        answers: 答题记录列表
+        knowledge_scores: 知识点掌握情况
+        overall_score: 总得分
+        practice_type: 练习类型 (ability_practice / unit_practice)
+    """
     strengths = []
     weaknesses = []
     recommendations = []
@@ -314,11 +322,14 @@ async def generate_recommendations(
         )
 
     # 根据练习类型给建议
-    if session_type == "daily_practice":
-        recommendations.append("建议每天坚持练习，巩固学习成果。")
-    elif session_type == "unit_practice":
+    if practice_type == "ability_practice":
+        recommendations.append("建议继续针对薄弱能力进行专项练习。")
+    elif practice_type == "unit_practice":
         recommendations.append("单元练习结束后，可以进行综合评估检验学习效果。")
-    elif session_type == "assess_practice":
+    # 兼容旧版练习类型
+    elif practice_type == "daily_practice":
+        recommendations.append("建议每天坚持练习，巩固学习成果。")
+    elif practice_type == "assess_practice":
         recommendations.append("根据综合评估结果，制定针对性的学习计划。")
 
     return strengths, weaknesses, recommendations

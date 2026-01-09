@@ -13,7 +13,7 @@ from shared.worker.celery import Executor, celery_app
     bind=True,
     name=Executor.generate_practice_task.value,
 )
-def execute_generate_practice_task(self, session_id: int) -> Dict[str, Any]:
+def execute_generate_practice_task(self, session_id: str) -> Dict[str, Any]:
     """
     执行任务 - Celery Worker 调用的函数
 
@@ -21,7 +21,7 @@ def execute_generate_practice_task(self, session_id: int) -> Dict[str, Any]:
     在 Celery worker 中，每个任务都在独立的进程中运行，需要创建新的事件循环。
 
     Args:
-        session_id: 练习会话ID
+        session_id: 练习会话ID (UUID v4)
 
     Returns:
         Dict: 任务执行结果

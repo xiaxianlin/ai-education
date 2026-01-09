@@ -33,7 +33,7 @@ class SubAnswerSchema(BaseModel):
 class AnswerSchema(BaseModel):
     """答案提交"""
 
-    session_id: int = Field(..., description="练习会话ID")
+    session_id: str = Field(..., description="练习会话ID (UUID v4)")
     question_id: str = Field(..., description="题目ID")
     answer: Any = Field(..., description="主答案内容")
     sub_answers: Optional[list[SubAnswerSchema]] = Field(None, description="子题答案列表")

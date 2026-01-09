@@ -39,39 +39,39 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
 
     # 验证策略是否存在（get_strategy 会抛出异常如果不存在）
     try:
-        get_strategy(session.practice_slug)
+        get_strategy(session.practice_type)
     except ValueError as e:
-        raise ValueError(f"练习类型: slug={session.practice_slug} 暂不支持") from e
+        raise ValueError(f"练习类型: type={session.practice_type} 暂不支持") from e
 
-    logger.info(f"练习信息加载完成: slug={session.practice_slug}, " f"parameters={session.parameters}")
+    logger.info(f"练习信息加载完成: type={session.practice_type}, " f"parameters={session.parameters}")
 
     return {}
 
 
 async def load_data_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """统一的数据加载节点，根据 practice.slug 路由到对应服务"""
+    """统一的数据加载节点，根据 practice_type 路由到对应服务"""
     session = state["session"]
 
-    logger.info(f"开始加载练习数据: slug={session.practice_slug}")
+    logger.info(f"开始加载练习数据: type={session.practice_type}")
 
     recall_questions = await question.recall_questions(state["db"], session)
     # 延迟导入避免循环依赖
     from shared.practice.strategies import get_strategy
 
-    strategy = get_strategy(session.practice_slug)
+    strategy = get_strategy(session.practice_type)
     data = await strategy.load_context(state)
 
     return {"recall_questions": recall_questions, **data}
 
 
 async def build_prompt_node(state: QuestionGenerationState) -> Dict[str, Any]:
-    """统一的 prompt 构建节点，根据 practice.slug 路由到对应服务"""
+    """统一的 prompt 构建节点，根据 practice_type 路由到对应服务"""
     session = state["session"]
-    logger.info(f"开始构建练习 prompt: slug={session.practice_slug}")
+    logger.info(f"开始构建练习 prompt: type={session.practice_type}")
     # 延迟导入避免循环依赖
     from shared.practice.strategies import get_strategy
 
-    strategy = get_strategy(session.practice_slug)
+    strategy = get_strategy(session.practice_type)
     return await strategy.build_prompt(state)
 
 

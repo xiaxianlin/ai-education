@@ -30,6 +30,7 @@ from .practice import (
     PracticeSession,
     PracticeSessionAnswer,
     PracticeSessionReport,
+    generate_session_id,
 )
 
 # 学生模块
@@ -65,6 +66,7 @@ __all__ = [
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",
+    "generate_session_id",
     # 学生
     "Student",
     "StudentTextbook",

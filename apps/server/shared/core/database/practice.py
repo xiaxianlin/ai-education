@@ -2,9 +2,14 @@
 练习相关模型
 
 包含 PracticeSession、PracticeSessionAnswer、PracticeSessionReport
+
+练习类型分类：
+- ability_practice: 能力练习 - 基于原子能力 code 生成题目
+- unit_practice: 单元练习 - 基于单元 ID 生成题目
 """
 
-from typing import TYPE_CHECKING
+import uuid
+from typing import TYPE_CHECKING, Optional
 
 from .base import (
     JSON,
@@ -24,30 +29,59 @@ if TYPE_CHECKING:
     from .question import Question
 
 
+def generate_session_id() -> str:
+    """生成练习会话 ID (UUID v4)"""
+    return str(uuid.uuid4())
+
+
 class PracticeSession(BaseModel):
-    """练习会话表"""
+    """练习会话表
+    
+    练习类型 (practice_type):
+    - ability_practice: 能力练习 - 基于原子能力 code 列表生成
+    - unit_practice: 单元练习 - 基于单元 ID 生成
+    
+    生成状态 (generate_status):
+    - 0: 生成中
+    - 1: 已完成
+    - -1: 生成失败
+    """
 
     __tablename__ = "ah_practice_session"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
+    # 使用 UUID v4 作为主键
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_session_id, comment="会话ID (UUID v4)"
+    )
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
-    practice_slug: Mapped[str] = mapped_column(String(50), comment="练习标识")
+    practice_type: Mapped[str] = mapped_column(
+        String(50), index=True, comment="练习类型: ability_practice/unit_practice"
+    )
+    
+    # 练习参数 - 根据练习类型存储不同内容
+    # ability_practice: {"ability_codes": ["code1", "code2"], "subject": "英语", "grade": 1}
+    # unit_practice: {"unit_id": 123, "textbook_id": 456}
     parameters: Mapped[dict] = mapped_column(JSON, default=dict, comment="练习参数")
 
+    # 题目统计
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
     answer_count: Mapped[int] = mapped_column(default=0, comment="回答数量")
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
+    # 状态字段
     status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="未生成: 0, 生成中: 1, 已生成: 2")
-    generate_time: Mapped[int] = mapped_column(nullable=True, comment="生成时间")
+    generate_status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="生成中: 0, 已完成: 1, 生成失败: -1"
+    )
+    generate_time: Mapped[Optional[int]] = mapped_column(nullable=True, comment="生成耗时(秒)")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
-    end_time: Mapped[int] = mapped_column(nullable=True, comment="结束时间")
+    end_time: Mapped[Optional[int]] = mapped_column(nullable=True, comment="结束时间")
 
+    # 时间戳
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
-    # parameters 的生成列字段
+    # 兼容字段 - 从 parameters 中提取
     textbook_id = column_property(mapped_column(Integer), deferred=False)
     unit_id = column_property(mapped_column(Integer), deferred=False)
 
@@ -59,8 +93,8 @@ class PracticeSessionAnswer(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    # 基础关联字段
-    session_id: Mapped[int] = mapped_column(index=True, comment="会话ID")
+    # 基础关联字段 - session_id 改为 str 类型 (UUID v4)
+    session_id: Mapped[str] = mapped_column(String(36), index=True, comment="会话ID (UUID v4)")
     question_id: Mapped[str] = mapped_column(String(255), index=True, comment="题目ID")
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
     question_order: Mapped[int] = mapped_column(comment="题目顺序")
@@ -99,7 +133,7 @@ class PracticeSessionReport(BaseModel):
     __tablename__ = "ah_practice_session_report"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[int] = mapped_column(unique=True, index=True)
+    session_id: Mapped[str] = mapped_column(String(36), unique=True, index=True, comment="会话ID (UUID v4)")
     student_id: Mapped[str] = mapped_column(String(255), comment="学生ID")
 
     # 总体统计
@@ -133,4 +167,5 @@ __all__ = [
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",
+    "generate_session_id",
 ]

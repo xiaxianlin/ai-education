@@ -123,20 +123,20 @@ async def get_student_unused_textbooks(request: Request, db: AsyncSession = Data
 
 
 @student_router.get(
-    "/{id}/practice_sessions/{practice_slug}",
+    "/{id}/practice_sessions/{practice_type}",
     tags=["学生练习会话管理"],
     summary="查询学生练习历史",
-    description="获取指定学生在不同练习模式下的练习记录",
+    description="获取指定学生在不同练习类型下的练习记录 (ability_practice / unit_practice)",
 )
-async def get_student_practice_sessions(request: Request, practice_slug: str, db: AsyncSession = Database):
-    return await practice_session.get_student_practice_sessions(db, request.state.student, practice_slug)
+async def get_student_practice_sessions(request: Request, practice_type: str, db: AsyncSession = Database):
+    return await practice_session.get_student_practice_sessions(db, request.state.student, practice_type)
 
 
 @student_router.get(
     "/{id}/practice_session/{session_id}",
     tags=["学生练习会话管理"],
     summary="查询学生练习会话详情",
-    description="获取指定学生的练习会话详情",
+    description="获取指定学生的练习会话详情（session_id 为 UUID v4 格式）",
 )
-async def get_student_practice_session_data(id: str, session_id: int, db: AsyncSession = Database):
-    return await practice_session.get_student_practice_session_data(db, id, session_id)
+async def get_student_practice_session_data(request: Request, session_id: str, db: AsyncSession = Database):
+    return await practice_session.get_student_practice_session_data(db, request.state.student, session_id)
