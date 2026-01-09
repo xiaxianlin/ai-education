@@ -41,13 +41,16 @@ src/
 ### 练习模块 (Practice)
 | 页面 | 路径 | 说明 |
 |------|------|------|
-| 日常练习 | `Practice/Daily/` | 每日练习入口，生成日常练习题 |
-| 单元练习 | `Practice/Unit/` | 选择教材单元进行练习 |
-| 综合评估 | `Practice/Assessment/` | 能力评估测试 |
-| 练习会话 | `Practice/Session/` | 答题页面，核心交互模块 |
-| 练习详情 | `Practice/Detail/` | 练习完成后的详情查看 |
-| 练习报告 | `Practice/Report/` | 练习报告展示 |
-| 练习历史 | `Practice/History/` | 历史练习记录 |
+| 能力练习 | `PracticeAbility/` | 基于原子能力的能力练习，展示当前设置学科的原子能力列表 |
+| 单元练习 | `PracticeUnit/` | 选择教材单元进行练习 |
+| 练习会话 | `PracticeSession/` | 答题页面，核心交互模块 |
+| 练习结果 | `PracticeResult/` | 练习完成后的结果查看 |
+| 练习记录 | `PracticeRecord/` | 历史练习记录 |
+
+**能力练习 (Ability) 核心组件：**
+| 组件 | 说明 |
+|------|------|
+| `AbilityAtomicCard` | 原子能力卡片，展示能力信息并支持创建练习 |
 
 **练习会话 (Session) 核心组件：**
 | 组件 | 说明 |
@@ -158,6 +161,14 @@ pages/[Feature]/[PageName]/
 - 新增/修改接口优先在这里集中维护
 - 认证 Token 存储在 `localStorage`，key 为 `_token_`（`ApiClient` 默认值）
 - API 响应格式：`{ status: 0, message: "ok", data: T }`，`ApiClient` 会自动提取 `data` 字段
+- **重要**: `ApiClient.get()` 方法的第二个参数是查询参数字典，直接传递对象，不要嵌套在 `params` 字段中
+  ```typescript
+  // ✅ 正确
+  apiClient.get("/ability/atomics", { subject, grade })
+  
+  // ❌ 错误
+  apiClient.get("/ability/atomics", { params: { subject, grade } })
+  ```
 
 ## 注意事项
 

@@ -51,10 +51,11 @@
 
 | 路由文件             | 服务文件                                                                 | 说明                           |
 | -------------------- | ------------------------------------------------------------------------ | ------------------------------ |
-| `routes/auth.py`     | `services/auth.py`                                                       | 学生认证（登录、注册）         |
-| `routes/textbook.py` | `services/textbook.py`                                                   | 教材查询                       |
-| `routes/practice.py` | `services/practice.py`, `practice_generate.py`, `answer.py`, `report.py` | 练习会话、题目生成、答题、报告 |
-| `routes/profile.py`  | -                                                                        | 学生个人信息                   |
+| `auth/route.py`      | `auth/services/auth.py`                                                 | 学生认证（登录、注册）         |
+| `ability/route.py`   | `admin/ability/services/atomic.py`                                      | 原子能力查询（按学科、年级）   |
+| `textbook/route.py`  | `textbook/services/textbook.py`                                         | 教材查询                       |
+| `practice/route.py`  | `shared/practice/practice.py`, `shared/practice/generate.py`           | 练习会话、题目生成、答题、报告 |
+| `profile/route.py`   | -                                                                        | 学生个人信息和设置             |
 
 #### 3. generation/ - AI 生成模块
 

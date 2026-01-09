@@ -669,6 +669,18 @@ const { runAsync: handleAction, loading: actionLoading } = useRequest(
 - `ApiClient` 会自动提取 `response.data.data` 作为业务返回值
 - 错误响应：`status !== 0` 时会抛出错误，错误信息在 `message` 字段
 
+**重要：GET 请求参数传递方式**：
+- `ApiClient.get()` 方法的第二个参数是查询参数字典，直接传递对象，不要嵌套在 `params` 字段中
+- 第三个参数是 Axios 配置对象（可选）
+
+```typescript
+// ✅ 正确：直接传递查询参数字典
+apiClient.get("/ability/atomics", { subject, grade })
+
+// ❌ 错误：不要嵌套在 params 字段中
+apiClient.get("/ability/atomics", { params: { subject, grade } })
+```
+
 ### admin-web API 组织方式
 
 **模块化 API 组织**：按功能模块拆分到各业务目录下的 `api.ts`
