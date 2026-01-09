@@ -2,116 +2,62 @@
  * 练习状态卡片组件
  * 统一能力练习和单元练习的状态展示
  */
-import { useProfileModel } from "@/common/models/ProfileModel";
-import { PracticeGenerateStatus, PracticeStatus } from "@ai-education/shared-web";
-import { useMemo } from "react";
-import { CompleteCard } from "./CompleteCard";
-import { GeneratingCard } from "./GeneratingCard";
-import { PracticingCard } from "./PracticingCard";
+import { memo, useMemo } from "react";
+import { BaseCard } from "./BaseCard";
 import { PracticeStateCardProps } from "./types";
 import { usePractice } from "./usePractice";
-import { WaitCard } from "./WaitCard";
+import { CompletedAction, GeneratingAction, PracticingAction, WaitingAction } from "./actions";
 
-export function PracticeStateCard({
+export const PracticeStateCard = memo(function PracticeStateCard({
   type,
-  abilityCode,
   atomic,
   unit,
-  textbook: propTextbook,
-  showKnowledgeButton,
-  onKnowledgeClick,
+  extra,
 }: PracticeStateCardProps) {
-  const { activeTextbook, profile } = useProfileModel();
-  const { grade, subject } = profile || {};
+  // 从 atomic 或 unit 中提取参数
+  const abilityCode = atomic?.code;
+  const unitId = unit?.id;
 
-  // 使用通用 Hook
-  const { practice, loading, creating, createPractice, canCreate, retryCount } = usePractice({
+  // 使用通用 Hook（包含状态判断逻辑）
+  const { practice, creating, createPractice, state, stats } = usePractice({
     type,
     abilityCode,
-    unitId: unit?.id,
-    subject,
-    grade,
+    unitId,
+    atomic,
   });
 
-  // 确定要使用的 textbook
-  const textbook = useMemo(() => {
-    if (propTextbook) return propTextbook;
-    if (practice?.subject && practice?.grade && activeTextbook) {
-      if (activeTextbook.subject === practice.subject && activeTextbook.grade === practice.grade) {
-        return activeTextbook;
-      }
+  // 卡片基础信息
+  const title = useMemo(
+    () => (type === "ability_practice" ? atomic?.name || "能力练习" : unit?.name || "单元练习"),
+    [type, atomic?.name, unit?.name]
+  );
+
+  const description = useMemo(
+    () => (type === "ability_practice" ? atomic?.description : unit?.content),
+    [type, atomic?.description, unit?.content]
+  );
+
+  // 根据状态渲染对应的 actions
+  const actions = useMemo(() => {
+    switch (state) {
+      case "generating":
+        return <GeneratingAction sessionId={practice?.id} />;
+      case "completed":
+        if (!practice) return null;
+        return <CompletedAction practiceId={practice.id} creating={creating} onCreatePractice={createPractice} />;
+      case "practicing":
+        if (!practice) return null;
+        return <PracticingAction practiceId={practice.id} />;
+      case "waiting":
+        return <WaitingAction creating={creating} onCreatePractice={createPractice} />;
+      default:
+        return null;
     }
-    if (activeTextbook) return activeTextbook;
-    return undefined;
-  }, [propTextbook, practice, activeTextbook]);
+  }, [state, practice, creating, createPractice]);
 
-  // 加载中状态
-  if (loading) {
-    return null;
-  }
+  return <BaseCard title={title} description={description} extra={extra} stats={stats} actions={actions} />;
+});
 
-  // 共享的 props
-  const sharedProps = {
-    type,
-    atomic,
-    unit,
-    textbook,
-    showKnowledgeButton,
-    onKnowledgeClick,
-  };
-
-  // 无练习数据 - 显示等待卡片
-  if (!practice) {
-    return (
-      <WaitCard
-        {...sharedProps}
-        createPractice={createPractice}
-        creating={creating}
-        canCreate={canCreate}
-      />
-    );
-  }
-
-  // 生成中状态
-  if (practice.generate_status === PracticeGenerateStatus.GENERATING) {
-    return <GeneratingCard {...sharedProps} sessionId={practice.id} retryCount={retryCount} />;
-  }
-
-  // 生成失败状态 - 显示等待卡片（允许重新创建）
-  if (practice.generate_status === PracticeGenerateStatus.FAILED) {
-    return (
-      <WaitCard
-        {...sharedProps}
-        createPractice={createPractice}
-        creating={creating}
-        canCreate={canCreate}
-      />
-    );
-  }
-
-  // 根据练习状态显示对应卡片
-  switch (practice.status) {
-    case PracticeStatus.READY:
-    case PracticeStatus.PRACTICING:
-      return <PracticingCard {...sharedProps} practice={practice} />;
-    case PracticeStatus.COMPLETED:
-      return (
-        <CompleteCard
-          {...sharedProps}
-          practice={practice}
-          createPractice={createPractice}
-          creating={creating}
-        />
-      );
-    default:
-      return null;
-  }
-}
-
-// 导出所有组件和类型
-export { CompleteCard } from "./CompleteCard";
-export { GeneratingCard } from "./GeneratingCard";
-export { PracticingCard } from "./PracticingCard";
+// 导出类型和 Hook
 export * from "./types";
-export { usePractice } from "./usePractice";
-export { WaitCard } from "./WaitCard";
+export { usePractice, type PracticeState } from "./usePractice";

@@ -2,26 +2,23 @@
  * 能力练习卡片组件
  * 显示原子能力信息和练习状态
  */
-import { useProfileModel } from "@/common/models/ProfileModel";
 import { PracticeStateCard } from "@/components/biz/PracticeStateCard";
-import { useMemo } from "react";
+import { memo } from "react";
 
 interface AbilityPracticeCardProps {
   atomic: AbilityAtomic;
 }
 
-export function AbilityPracticeCard({ atomic }: AbilityPracticeCardProps) {
-  const { activeTextbook } = useProfileModel();
-
-  // 匹配教材
-  const textbook = useMemo(() => {
-    if (activeTextbook && activeTextbook.subject === atomic.subject && activeTextbook.grade === atomic.grade) {
-      return activeTextbook;
-    }
-    return undefined;
-  }, [activeTextbook, atomic.subject, atomic.grade]);
-
+export const AbilityPracticeCard = memo(function AbilityPracticeCard({ atomic }: AbilityPracticeCardProps) {
   return (
-    <PracticeStateCard type="ability" abilityCode={atomic.code} atomic={atomic} textbook={textbook} />
+    <PracticeStateCard
+      type="ability_practice"
+      atomic={atomic}
+      extra={
+        <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded-full border border-amber-200">
+          {"★".repeat(atomic.difficulty)}
+        </span>
+      }
+    />
   );
-}
+});

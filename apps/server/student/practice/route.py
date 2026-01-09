@@ -31,36 +31,37 @@ practice_router = APIRouter(prefix="/practice")
 
 
 @practice_router.get(
-    "/ability/{ability_code}",
+    "/",
     tags=["练习"],
-    summary="获取指定能力的练习",
-    description="获取当前学生指定能力代码的未开始或进行中的练习",
+    summary="获取练习",
+    description="获取当前学生的练习（根据练习类型判断）",
 )
-async def get_ability_practice_by_code(
-    ability_code: str,
+async def get_practice(
     request: Request,
+    practice_type: str = Query(..., description="练习类型: ability_practice/unit_practice"),
+    ability_code: str | None = Query(None, description="原子能力代码（能力练习必填）"),
+    unit_id: int | None = Query(None, description="单元ID（单元练习必填）"),
     db: AsyncSession = Database,
 ):
-    """获取指定能力的练习（返回最新的未完成练习）"""
-    student = request.state.student
-    practice = await practice_service.get_ability_practice_by_code(db, student.id, ability_code)
-    return practice  # 返回单个 PracticeSchema 或 null
+    """获取练习（返回最新的未完成练习）
 
-
-@practice_router.get(
-    "/unit/{unit_id}",
-    tags=["练习"],
-    summary="获取指定单元的练习",
-    description="获取当前学生指定单元 ID 的未开始或进行中的练习",
-)
-async def get_unit_practice_by_id(
-    unit_id: int,
-    request: Request,
-    db: AsyncSession = Database,
-):
-    """获取指定单元的练习（返回最新的未完成练习）"""
+    根据 practice_type 判断：
+    - ability_practice: 需要 ability_code
+    - unit_practice: 需要 unit_id
+    """
     student = request.state.student
-    practice = await practice_service.get_unit_practice_by_id(db, student.id, unit_id)
+
+    if practice_type == "ability_practice":
+        if not ability_code:
+            raise HTTPException(status_code=400, detail="能力练习需要提供 ability_code")
+        practice = await practice_service.get_ability_practice_by_code(db, student.id, ability_code)
+    elif practice_type == "unit_practice":
+        if not unit_id:
+            raise HTTPException(status_code=400, detail="单元练习需要提供 unit_id")
+        practice = await practice_service.get_unit_practice_by_id(db, student.id, unit_id)
+    else:
+        raise HTTPException(status_code=400, detail=f"无效的练习类型: {practice_type}")
+
     return practice  # 返回单个 PracticeSchema 或 null
 
 

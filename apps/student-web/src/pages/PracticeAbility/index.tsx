@@ -11,7 +11,8 @@ export default function AbilityPractice() {
 }
 
 function AbilityPracticeContent() {
-  const { atomicsBySubject, subjects, loading } = usePageModel();
+  const { atomicsBySubject, loading } = usePageModel();
+  const atomics = Object.values(atomicsBySubject).flat();
 
   return (
     <div className="space-y-8 animate-springy">
@@ -24,35 +25,23 @@ function AbilityPracticeContent() {
         </div>
       </section>
 
-      {/* 主体：按学科分组的能力练习卡片 */}
+      {/* 主体：能力练习卡片 */}
       {loading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-48 rounded-2xl" />
           ))}
         </div>
+      ) : atomics.length > 0 ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {atomics.map((atomic) => (
+            <AbilityPracticeCard key={atomic.id} atomic={atomic} />
+          ))}
+        </div>
       ) : (
-        <div className="space-y-8">
-          {subjects.map((subject) => {
-            const atomics = atomicsBySubject[subject] || [];
-            if (atomics.length === 0) return null;
-
-            return (
-              <div key={subject} className="space-y-4">
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  {atomics.map((atomic) => (
-                    <AbilityPracticeCard key={atomic.id} atomic={atomic} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          {Object.keys(atomicsBySubject).length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg">暂无原子能力数据</p>
-              <p className="text-sm mt-2">请先设置您的年级和学科</p>
-            </div>
-          )}
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg">暂无原子能力数据</p>
+          <p className="text-sm mt-2">请先设置您的年级和学科</p>
         </div>
       )}
     </div>

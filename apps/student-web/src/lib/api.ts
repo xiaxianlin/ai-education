@@ -75,11 +75,27 @@ export const studentApi = {
   // ========== 练习相关 ==========
 
   /**
+   * 获取练习
+   * GET /practice/?practice_type=ability_practice&ability_code=xxx
+   * GET /practice/?practice_type=unit_practice&unit_id=xxx
+   */
+  async getPractice(params: {
+    practice_type: "ability_practice" | "unit_practice";
+    ability_code?: string;
+    unit_id?: number;
+  }) {
+    return apiClient.get<Practice | null>("/practice/", params);
+  },
+
+  /**
    * 获取指定能力的练习
-   * GET /practice/ability/{ability_code}
+   * @deprecated 使用 getPractice 代替
    */
   async getAbilityPracticeByCode(abilityCode: string) {
-    return apiClient.get<Practice | null>(`/practice/ability/${abilityCode}`);
+    return this.getPractice({
+      practice_type: "ability_practice",
+      ability_code: abilityCode,
+    });
   },
 
   /**
@@ -92,10 +108,13 @@ export const studentApi = {
 
   /**
    * 获取指定单元的练习
-   * GET /practice/unit/{unit_id}
+   * @deprecated 使用 getPractice 代替
    */
   async getUnitPracticeById(unitId: number) {
-    return apiClient.get<Practice | null>(`/practice/unit/${unitId}`);
+    return this.getPractice({
+      practice_type: "unit_practice",
+      unit_id: unitId,
+    });
   },
 
   /**

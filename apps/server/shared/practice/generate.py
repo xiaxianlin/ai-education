@@ -17,6 +17,7 @@ from typing import Optional
 
 from loguru import logger
 from shared.core.database import Practice, generate_session_id
+from shared.core.logger import log_error
 from shared.generation.practice.schema import (
     PRACTICE_TYPE_ABILITY,
     PRACTICE_TYPE_UNIT,
@@ -112,13 +113,21 @@ async def create_practice(
             logger.info(f"练习会话生成完成: session_id={session_id}")
         else:
             # 异步模式：提交到任务队列
-            await submit_task(session_id, Executor.generate_practice_task, [session_id, generate_count])
+            submit_task(session_id, Executor.generate_practice_task, [session_id, generate_count])
             logger.info(f"练习会话生成任务提交完成: session_id={session_id}")
 
         return session_id
 
     except Exception as e:
-        logger.error(f"创建练习会话失败: session_id={session_id}, error={e}")
+        log_error(
+            f"创建练习会话失败: session_id={session_id}",
+            exc=e,
+            session_id=session_id,
+            practice_type=practice_type,
+            student_id=student_id,
+            ability_code=ability_code,
+            unit_id=unit_id,
+        )
         # Lazy import to avoid circular dependency
         from shared.generation.practice.service import cleanup_session_data
 

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import traceback
 from contextvars import ContextVar
 from typing import Dict, Optional
 
@@ -63,9 +64,34 @@ def _json_formatter(record):
         log_data["path"] = record["extra"]["path"]
     if record["extra"].get("method"):
         log_data["method"] = record["extra"]["method"]
-    # 添加异常信息
+    # 添加异常信息（包含完整的 traceback）
     if record.get("exception"):
-        log_data["exception"] = str(record["exception"])
+        exception = record["exception"]
+        try:
+            # 获取异常类型、值和 traceback
+            exc_type = exception.type if hasattr(exception, "type") else None
+            exc_value = exception.value if hasattr(exception, "value") else None
+            exc_traceback = exception.traceback if hasattr(exception, "traceback") else None
+            
+            if exc_type and exc_value and exc_traceback:
+                # 使用 traceback.format_exception 格式化异常
+                exception_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                exception_str = "".join(exception_lines)
+                log_data["exception"] = exception_str
+                log_data["exception_type"] = exc_type.__name__
+                log_data["exception_message"] = str(exc_value)
+            else:
+                # 如果无法获取完整信息，至少输出异常字符串
+                exception_str = str(exception)
+                log_data["exception"] = exception_str
+                if exc_type:
+                    log_data["exception_type"] = exc_type.__name__
+                if exc_value:
+                    log_data["exception_message"] = str(exc_value)
+        except Exception:
+            # 如果格式化失败，至少输出异常字符串
+            exception_str = str(record.get("exception", ""))
+            log_data["exception"] = exception_str
     # 添加其他额外字段
     extra = {k: v for k, v in record["extra"].items() if k not in ["request_id", "user_id", "path", "method"]}
     if extra:
@@ -100,7 +126,38 @@ def _text_formatter(record):
     line_str = record["line"]
     message_str = record["message"]
 
-    return f"{time_str} | {level_str} | {request_id_str} | {name_str}:{function_str}:{line_str} - {message_str}\n"
+    # 格式化基本日志行
+    log_line = f"{time_str} | {level_str} | {request_id_str} | {name_str}:{function_str}:{line_str} - {message_str}\n"
+    
+    # 如果有异常信息，添加异常堆栈
+    # Loguru 的 record["exception"] 是一个 TracebackException 对象
+    # 我们需要使用 traceback 模块来格式化它
+    if record.get("exception"):
+        exception = record["exception"]
+        # 使用 Loguru 的默认异常格式化方式
+        # 这会包含完整的 traceback 信息
+        try:
+            # 获取异常类型、值和 traceback
+            exc_type = exception.type if hasattr(exception, "type") else None
+            exc_value = exception.value if hasattr(exception, "value") else None
+            exc_traceback = exception.traceback if hasattr(exception, "traceback") else None
+            
+            if exc_type and exc_value and exc_traceback:
+                # 使用 traceback.format_exception 格式化异常
+                exception_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                exception_str = "".join(exception_lines)
+                log_line += exception_str
+            else:
+                # 如果无法获取完整信息，至少输出异常字符串
+                exception_str = str(exception)
+                log_line += exception_str + "\n"
+        except Exception:
+            # 如果格式化失败，至少输出异常字符串
+            exception_str = str(record.get("exception", ""))
+            if exception_str:
+                log_line += exception_str + "\n"
+    
+    return log_line
 
 
 # 接管标准库 logging（包括 uvicorn）

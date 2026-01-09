@@ -54,15 +54,10 @@ const useContainer = () => {
     }
   );
 
-  // 只返回当前设置的学科
-  const currentSubject = subject || null;
-  const displaySubjects = currentSubject ? [currentSubject] : [];
-
   return {
     loading,
     creating,
     atomicsBySubject,
-    subjects: displaySubjects,
     createPractice,
   };
 };
