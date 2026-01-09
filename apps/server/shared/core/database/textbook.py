@@ -4,9 +4,7 @@
 包含 Textbook、Unit、Knowledge、TeacherBook
 """
 
-from typing import Optional
-
-from .base import BaseModel, Mapped, mapped_column, relationship, String, Text, now
+from .base import BaseModel, Mapped, mapped_column, relationship, String, Text
 
 
 class Textbook(BaseModel):

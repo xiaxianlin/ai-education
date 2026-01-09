@@ -53,3 +53,24 @@ package-dir = {"" = "src"}
 
 [tool.black]
 line-length = 120
+
+[tool.autoflake]
+remove-all-unused-imports = true
+remove-unused-variables = true
+in-place = false
+recursive = true
+exclude = ["__pycache__", "*.pyc", ".git"]
+
+[tool.vulture]
+min_confidence = 80
+exclude = ["__pycache__", "*.pyc", ".git"]
+ignore_decorators = ["@router.get", "@router.post", "@router.put", "@router.delete", "@router.patch", "@app.get", "@app.post", "@app.put", "@app.delete", "@app.patch", "@task", "@app.task"]
+ignore_names = ["admin_app", "student_app", "app", "router", "db", "request", "response", "logger", "envs"]
+make_whitelist = false
+
+[dependency-groups]
+dev = [
+    "autoflake>=2.3.1",
+    "unimport>=1.3.0",
+    "vulture>=2.14",
+]

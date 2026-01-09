@@ -3,9 +3,7 @@
 练习路由
 
 支持题型系统的练习功能：
-- 获取题目
 - 提交答案（支持复合题）
-- 获取能力练习列表
 - 获取单元练习列表
 - 创建练习会话
 - 开始/完成练习
@@ -30,22 +28,6 @@ practice_router = APIRouter(prefix="/practice")
 
 
 # ============ 路由 ============
-
-
-@practice_router.get(
-    "/ability",
-    tags=["练习"],
-    summary="获取能力练习列表",
-    description="获取当前学生的能力练习列表（按教材分组）",
-)
-async def get_ability_practices(
-    request: Request,
-    db: AsyncSession = Database,
-):
-    """获取能力练习列表"""
-    student = request.state.student
-    practices = await practice_service.get_ability_practices(db, student.id)
-    return practices
 
 
 @practice_router.get(
@@ -100,7 +82,7 @@ async def create_practice(
         if not params.ability_code or not params.subject or params.grade is None:
             raise HTTPException(status_code=400, detail="能力练习需要提供 ability_code, subject, grade")
 
-        session_id = await practice_generate.create_practice_session(
+        session_id = await practice_generate.create_practice(
             db=db,
             practice_type="ability_practice",
             student_id=student.id,
@@ -116,7 +98,7 @@ async def create_practice(
         if not params.unit_id:
             raise HTTPException(status_code=400, detail="单元练习需要提供 unit_id")
 
-        session_id = await practice_generate.create_practice_session(
+        session_id = await practice_generate.create_practice(
             db=db,
             practice_type="unit_practice",
             student_id=student.id,
@@ -158,7 +140,7 @@ async def get_practice_records(
     if not practice_type:
         raise HTTPException(status_code=400, detail=f"无效的练习类型ID: {practice_id}")
 
-    result = await practice_service.get_practice_sessions(
+    result = await practice_service.get_practices(
         db, student.id, practice_type, limit=30, page=page, page_size=page_size
     )
     return result
@@ -177,7 +159,7 @@ async def get_practice_detail(
 ):
     """获取练习详情"""
     student = request.state.student
-    return await practice_service.get_practice_session_data(db, student.id, session_id)
+    return await practice_service.get_practice_data(db, student.id, session_id)
 
 
 @practice_router.post(
@@ -212,41 +194,6 @@ async def complete_practice(
     student = request.state.student
     report_id = await practice_service.complete_practice(db, student.id, session_id)
     return {"report_id": report_id}
-
-
-@practice_router.get(
-    "/question/{question_id}",
-    tags=["练习"],
-    summary="获取题目详情",
-    description="获取题目内容",
-)
-async def get_question(
-    question_id: str,
-    request: Request,
-    db: AsyncSession = Database,
-):
-    """获取题目详情"""
-    question = await db.scalar(select(Question).where(Question.id == question_id))
-
-    if not question:
-        raise HTTPException(status_code=404, detail=f"题目 {question_id} 不存在")
-
-    # 转换为前端格式
-    return {
-        "id": question.id,
-        "questionTypeId": question.question_type_id,
-        "questionTypeCode": question.question_type_code,
-        "subject": question.subject,
-        "grade": question.grade,
-        "stage": question.stage,
-        "stem": question.stem,
-        "options": question.options,
-        "blanks": question.blanks,
-        "resources": question.resources,
-        "difficulty": question.difficulty,
-        "cognitiveLevel": question.cognitive_level,
-        # 不返回答案，仅用于学生答题
-    }
 
 
 @practice_router.post(

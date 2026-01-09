@@ -39,4 +39,4 @@ async def get_student_practice_session_data(db: AsyncSession, student: StudentSc
     Returns:
         PracticeDataSchema: 练习详情
     """
-    return await practice.get_practice_session_data(db, student.id, session_id)
+    return await practice.get_practice_data(db, student.id, session_id)

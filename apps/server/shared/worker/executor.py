@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from loguru import logger
 from shared.core.database import AsyncSessionLocal
-from shared.practice.generate import execute_generate_practice_session
+from shared.practice.generate import execute_generate_practice
 from shared.worker.celery import Executor, celery_app
 
 
@@ -34,7 +34,7 @@ def execute_generate_practice_task(self, session_id: str, generate_count: int = 
         # 创建新的数据库会话（Celery Worker 中不能共享主应用的会话）
         # 使用 context manager 确保会话正确关闭
         async with AsyncSessionLocal() as db:
-            await execute_generate_practice_session(db, session_id, generate_count)
+            await execute_generate_practice(db, session_id, generate_count)
 
     try:
         # 在 Celery worker 中，使用 asyncio.run() 创建新的事件循环

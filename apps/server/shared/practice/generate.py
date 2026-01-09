@@ -428,7 +428,7 @@ async def cleanup_session_data(db: AsyncSession, session_id: str) -> None:
 # ==================== 主流程 ====================
 
 
-async def execute_generate_practice_session(db: AsyncSession, session_id: str, generate_count: int = 15) -> None:
+async def execute_generate_practice(db: AsyncSession, session_id: str, generate_count: int = 15) -> None:
     """执行练习会话生成
 
     生成流程：
@@ -536,7 +536,7 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str, g
         raise
 
 
-async def create_practice_session(
+async def create_practice(
     *,
     db: AsyncSession,
     practice_type: str,
@@ -591,7 +591,7 @@ async def create_practice_session(
     try:
         if immediately:
             # 同步模式：立即执行生成
-            await execute_generate_practice_session(db, session_id, generate_count)
+            await execute_generate_practice(db, session_id, generate_count)
             logger.info(f"练习会话生成完成: session_id={session_id}")
         else:
             # 异步模式：提交到任务队列，传递 generate_count

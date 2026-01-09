@@ -25,11 +25,10 @@ from sqlalchemy.orm import joinedload
 from .report import generate_practice_report
 
 
-async def get_practice_sessions(
+async def get_practices(
     db: AsyncSession,
     student_id: str,
     practice_type: str,
-    limit: int = 30,
     page: int = 1,
     page_size: int = 20,
 ):
@@ -74,7 +73,7 @@ async def get_practice_sessions(
     }
 
 
-async def get_practice_session_data(
+async def get_practice_data(
     db: AsyncSession,
     student_id: str,
     session_id: str,
@@ -123,45 +122,6 @@ async def get_practice_session_data(
         answers=[PracticeAnswerSchema.model_validate(answer) for answer in answers],
         report=PracticeReportSchema.model_validate(report) if report else None,
     )
-
-
-async def get_ability_practices(
-    db: AsyncSession,
-    student_id: str,
-    limit: int = 30,
-):
-    """获取能力练习记录（按教材分组）
-
-    Args:
-        db: 数据库会话
-        student_id: 学生 ID
-        limit: 返回数量限制
-
-    Returns:
-        List[PracticeSchema]: 能力练习列表（按教材分组，每个教材返回最新的未完成练习）
-    """
-    # 获取所有能力练习
-    all_practices = await get_practice_sessions(
-        db, student_id, "ability_practice", limit=limit, page=1, page_size=limit
-    )
-
-    # 按教材分组，返回每个教材的最新未完成练习
-    # 注意：Practice 模型中没有 textbook_id，需要通过其他方式获取
-    # 这里先返回所有练习，前端可以根据 subject 和 grade 进行分组
-    practices_by_key = {}
-    for practice in all_practices["data"]:
-        # 使用 subject + grade 作为分组键
-        key = f"{practice.subject}_{practice.grade}"
-        if key not in practices_by_key:
-            # 优先选择未完成的练习
-            if practice.status != 2:
-                practices_by_key[key] = practice
-        elif key in practices_by_key:
-            # 如果已有未完成的，跳过；如果没有，选择最新的
-            if practices_by_key[key].status == 2 and practice.status != 2:
-                practices_by_key[key] = practice
-
-    return list(practices_by_key.values())
 
 
 async def get_ability_practice_by_code(
@@ -329,24 +289,3 @@ async def complete_practice(
     logger.info(f"练习完成: session_id={session_id}, student_id={student_id}")
 
     return await generate_practice_report(db, student_id, session_id)
-
-
-async def get_session_by_id(
-    db: AsyncSession,
-    session_id: str,
-) -> PracticeSchema | None:
-    """根据练习 ID 查询练习
-
-    Args:
-        db: 数据库会话
-        session_id: 练习 ID (UUID v4)
-
-    Returns:
-        PracticeSchema | None: 练习信息
-    """
-    session = await db.scalar(select(Practice).where(Practice.id == session_id))
-
-    if not session:
-        return None
-
-    return PracticeSchema.model_validate(session)

@@ -6,7 +6,7 @@
 
 from typing import TYPE_CHECKING, Optional
 
-from .base import BaseModel, Integer, Mapped, String, mapped_column, now, relationship
+from .base import BaseModel, Mapped, String, mapped_column, now, relationship
 
 if TYPE_CHECKING:
     from .textbook import Textbook

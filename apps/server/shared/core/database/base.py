@@ -63,7 +63,6 @@ def get_async_session() -> AsyncSession:
 class Base(DeclarativeBase):
     """SQLAlchemy 声明式基类"""
 
-    pass
 
 
 class BaseModel(Base):

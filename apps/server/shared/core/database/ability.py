@@ -8,7 +8,7 @@ from typing import Optional
 
 from sqlalchemy import Index, UniqueConstraint
 
-from .base import BaseModel, Integer, Mapped, String, Text, mapped_column, now
+from .base import BaseModel, Mapped, String, Text, mapped_column, now
 
 
 class AbilityDomain(BaseModel):
@@ -26,9 +26,7 @@ class AbilityDomain(BaseModel):
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
-    __table_args__ = (
-        UniqueConstraint("subject", "code", name="uk_subject_code"),
-    )
+    __table_args__ = (UniqueConstraint("subject", "code", name="uk_subject_code"),)
 
 
 class AbilityAtomic(BaseModel):

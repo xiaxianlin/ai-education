@@ -5,7 +5,6 @@ from shared.core.constants import (
     SEMESTERS,
     SUBJECTS,
     TEXTBOOK_VERSIONS,
-    DIFFICULTY_LEVEL_LABELS,
 )
 from shared.core.database import Database
 from shared.core.schema import ManagerSchema

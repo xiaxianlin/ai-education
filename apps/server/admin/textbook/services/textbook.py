@@ -6,12 +6,11 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import Knowledge, Textbook, Unit
-from shared.core.database import Question
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
 from shared.provider import get_provider
 from shared.utils import rag
-from sqlalchemy import asc, delete, func, select, update
+from sqlalchemy import asc, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import SaveTextbookSchema, SearchTextbookSchema, UnitExtractionResult
