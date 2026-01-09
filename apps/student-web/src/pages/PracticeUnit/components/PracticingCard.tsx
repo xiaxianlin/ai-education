@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui";
+import { PracticeStatus } from "@ai-education/shared-web";
 import { Lightbulb, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePageModel } from "../models/page";
 import { PracticeCardProps } from "../types";
-import { PracticeStatus } from "@ai-education/shared-web";
 
-export function PracticingCard({ practice, unit, textbook }: PracticeCardProps) {
+export function PracticingCard({ practice, unit }: PracticeCardProps) {
   const navigate = useNavigate();
   const { setUnit } = usePageModel();
   const isInProgress = practice?.status === PracticeStatus.PRACTICING;
@@ -15,12 +15,21 @@ export function PracticingCard({ practice, unit, textbook }: PracticeCardProps) 
     <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
       <div className="p-6 flex flex-col gap-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl">{isInProgress ? "📝" : "✨"}</div>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
           </div>
-          <div className="px-3 py-1 bg-primary/10 rounded-lg text-[10px] font-black text-primary uppercase tracking-wider">
-            {isInProgress ? "进行中" : "已就绪"}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setUnit(unit)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Lightbulb className="h-5 w-5" />
+            </Button>
+            <div className="px-3 py-1 bg-primary/10 rounded-lg text-[10px] font-black text-primary uppercase tracking-wider">
+              {isInProgress ? "进行中" : "已就绪"}
+            </div>
           </div>
         </div>
 
@@ -37,15 +46,6 @@ export function PracticingCard({ practice, unit, textbook }: PracticeCardProps) 
         </div>
 
         <div className="flex gap-3 mt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUnit(unit)}
-            className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all"
-          >
-            <Lightbulb className="h-4 w-4 mr-2" />
-            知识点
-          </Button>
           <Button
             size="sm"
             onClick={() => navigate(`/practice/session/${practice?.id}`)}

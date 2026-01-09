@@ -14,7 +14,7 @@ interface CompleteCardProps extends PracticeCardProps {
   creating?: boolean;
 }
 
-export function CompleteCard({ practice, unit, textbook, createPractice, creating = false }: CompleteCardProps) {
+export function CompleteCard({ practice, unit, createPractice, creating = false }: CompleteCardProps) {
   const navigate = useNavigate();
   const { setUnit } = usePageModel();
   const [visible, { setTrue, setFalse }] = useBoolean(false);
@@ -33,12 +33,21 @@ export function CompleteCard({ practice, unit, textbook, createPractice, creatin
       <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
         <div className="p-6 flex flex-col gap-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="text-3xl">🎉</div>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
             </div>
-            <div className="px-3 py-1 bg-green-100 rounded-lg text-[10px] font-black text-green-600 uppercase tracking-wider">
-              已完成
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setUnit(unit)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Lightbulb className="h-5 w-5" />
+              </Button>
+              <div className="px-3 py-1 bg-green-100 rounded-lg text-[10px] font-black text-green-600 uppercase tracking-wider">
+                已完成
+              </div>
             </div>
           </div>
 
@@ -66,21 +75,12 @@ export function CompleteCard({ practice, unit, textbook, createPractice, creatin
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setUnit(unit)}
-                className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all text-muted-foreground"
-              >
-                <Lightbulb className="h-4 w-4 mr-2" />
-                知识点
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={handleCreate}
                 disabled={creating}
                 className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all text-muted-foreground"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                重新挑战
+                重新练习
               </Button>
             </div>
           </div>

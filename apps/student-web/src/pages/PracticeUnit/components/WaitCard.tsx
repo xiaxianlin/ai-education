@@ -14,7 +14,7 @@ interface WaitCardProps extends PracticeCardProps {
   canCreate?: boolean;
 }
 
-export function WaitCard({ unit, textbook, createPractice, creating = false, canCreate = true }: WaitCardProps) {
+export function WaitCard({ unit, createPractice, creating = false, canCreate = true }: WaitCardProps) {
   const { setUnit } = usePageModel();
   const [visible, { setTrue, setFalse }] = useBoolean(false);
 
@@ -30,9 +30,18 @@ export function WaitCard({ unit, textbook, createPractice, creating = false, can
     <>
       <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
         <div className="p-6 flex flex-col gap-5">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl">✨</div>
-            <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-foreground truncate">{unit.name}</h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setUnit(unit)}
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              <Lightbulb className="h-5 w-5" />
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground line-clamp-2">
             {unit.content || "本单元包含多个重点知识点，快来挑战吧！"}
@@ -40,19 +49,10 @@ export function WaitCard({ unit, textbook, createPractice, creating = false, can
 
           <div className="flex gap-3 mt-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setUnit(unit)}
-              className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all"
-            >
-              <Lightbulb className="h-4 w-4 mr-2" />
-              知识点
-            </Button>
-            <Button
               size="sm"
               disabled={creating || !canCreate}
               onClick={handleCreate}
-              className="flex-1 h-11 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
+              className="flex-1 h-11 rounded-xl font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
             >
               {creating ? (
                 <>
@@ -62,7 +62,7 @@ export function WaitCard({ unit, textbook, createPractice, creating = false, can
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" fill="currentColor" />
-                  开始挑战
+                  开始练习
                 </>
               )}
             </Button>
