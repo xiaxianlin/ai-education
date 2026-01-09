@@ -1,3 +1,5 @@
+import json
+
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -29,8 +31,10 @@ def print_exception(request: Request, exc: Exception, exception_type: str = "exc
     }
 
     # 对于验证异常，添加验证错误详情
+    # 将 validation_errors 序列化为 JSON 字符串，避免字典键（如 'type'）与 Loguru 格式占位符冲突
     if isinstance(exc, RequestValidationError):
-        exception_info["validation_errors"] = exc.errors()
+        validation_errors = exc.errors()
+        exception_info["validation_errors"] = json.dumps(validation_errors, ensure_ascii=False)
 
     # 记录错误（带完整堆栈）
     log_error(

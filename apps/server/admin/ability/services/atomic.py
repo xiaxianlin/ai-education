@@ -4,11 +4,10 @@
 
 from typing import Optional
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from shared.core.database import AbilityAtomic, AbilityDomain
 from shared.core.schema import AbilityAtomicSchema
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
     CreateAbilityAtomicSchema,
@@ -25,9 +24,7 @@ async def create_ability_atomic(db: AsyncSession, data: CreateAbilityAtomicSchem
     domain_code = data.domain_code.strip()
 
     # 检查能力域是否存在
-    domain_stmt = select(AbilityDomain).where(
-        AbilityDomain.subject == subject, AbilityDomain.code == domain_code
-    )
+    domain_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.code == domain_code)
     domain = await db.scalar(domain_stmt)
     if not domain:
         raise ValueError("能力域不存在")
@@ -59,9 +56,7 @@ async def create_ability_atomic(db: AsyncSession, data: CreateAbilityAtomicSchem
     return atomic.id
 
 
-async def update_ability_atomic(
-    db: AsyncSession, id: int, data: UpdateAbilityAtomicSchema
-):
+async def update_ability_atomic(db: AsyncSession, id: int, data: UpdateAbilityAtomicSchema):
     """更新原子能力"""
     atomic = await db.scalar(select(AbilityAtomic).where(AbilityAtomic.id == id))
     if not atomic:
@@ -92,16 +87,14 @@ async def delete_ability_atomic(db: AsyncSession, id: int):
     await db.commit()
 
 
-async def search_ability_atomic(
-    db: AsyncSession, params: SearchAbilityAtomicSchema
-):
+async def search_ability_atomic(db: AsyncSession, params: SearchAbilityAtomicSchema):
     """搜索原子能力（支持多条件筛选）"""
     stmt = select(AbilityAtomic)
-    if params.subject:
+    if params.subject is not None:
         stmt = stmt.where(AbilityAtomic.subject == params.subject)
     if params.grade is not None:
         stmt = stmt.where(AbilityAtomic.grade == params.grade)
-    if params.domain_code:
+    if params.domain_code is not None:
         stmt = stmt.where(AbilityAtomic.domain_code == params.domain_code)
     stmt = stmt.order_by(AbilityAtomic.sort_order, AbilityAtomic.id)
 
@@ -118,9 +111,7 @@ async def get_ability_atomic(db: AsyncSession, id: int):
     return AbilityAtomicSchema.model_validate(atomic)
 
 
-async def get_ability_atomics_by_domain(
-    db: AsyncSession, domain_code: str, subject: Optional[str] = None
-):
+async def get_ability_atomics_by_domain(db: AsyncSession, domain_code: str, subject: Optional[str] = None):
     """按能力域查询原子能力"""
     stmt = select(AbilityAtomic).where(AbilityAtomic.domain_code == domain_code)
     if subject:

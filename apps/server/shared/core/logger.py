@@ -304,10 +304,13 @@ def log_response(path: str, method: str, status_code: int, duration: float, **kw
 
 def log_error(message: str, exc: Optional[Exception] = None, **kwargs):
     """记录错误（带上下文）"""
+    # 转义消息中的花括号，防止 loguru 将其解析为格式占位符
+    # 将 { 替换为 {{，将 } 替换为 }}
+    escaped_message = message.replace("{", "{{").replace("}", "}}")
     if exc:
-        logger.bind(**kwargs).exception(message)
+        logger.bind(**kwargs).exception(escaped_message)
     else:
-        logger.bind(**kwargs).error(message)
+        logger.bind(**kwargs).error(escaped_message)
 
 
 def log_performance(metric: str, value: float, unit: str = "ms", **kwargs):

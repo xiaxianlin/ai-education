@@ -32,6 +32,9 @@ declare global {
     practice_id?: number; // 优先使用
     textbook_id: number;
     unit_id?: number;
+    ability_codes?: string[]; // 原子能力 code 列表（能力练习必填）
+    subject?: string; // 科目（能力练习必填）
+    grade?: number; // 年级（能力练习必填）
   }
 
 

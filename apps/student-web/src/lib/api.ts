@@ -83,6 +83,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取原子能力列表
+   * GET /ability/atomics
+   */
+  async getAbilityAtomics(subject: string, grade: number) {
+    return apiClient.get<AbilityAtomic[]>("/ability/atomics", { subject, grade });
+  },
+
+  /**
    * 获取单元练习
    * GET /practice/unit/{textbook_id}
    */
@@ -165,7 +173,7 @@ export const studentApi = {
       total: number;
       page: number;
       pageSize: number;
-    }>(`/practice/records/${practiceId}`, { params: { page, page_size: pageSize } });
+    }>(`/practice/records/${practiceId}`, { page, page_size: pageSize });
   },
 
   /**

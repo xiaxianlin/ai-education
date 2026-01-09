@@ -82,7 +82,7 @@ export function Header() {
             className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all"
           >
             <Settings className="w-5 h-5" />
-            <span>设置</span>
+            <span>学习设置</span>
           </button>
           <button
             onClick={logout}
