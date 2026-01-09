@@ -9,6 +9,8 @@ export function PracticingCard({ practice, textbook }: PracticeCardProps) {
   const isInProgress = practice?.status === PracticeStatus.PRACTICING;
   const { question_count = 0, answer_count = 0 } = practice || {};
 
+  if (!textbook) return null;
+
   return (
     <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all">
       <div className="p-6 flex flex-col gap-5">

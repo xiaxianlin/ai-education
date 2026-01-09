@@ -1,5 +1,4 @@
 import { useProfileModel } from "@/common/models/ProfileModel";
-import { useMemo } from "react";
 import { PageModel } from "./models/page";
 import { UnitPracticeModel } from "./models/unit_practice";
 import { KnowledgeModal } from "./views/KnowledgeModal";
@@ -14,15 +13,7 @@ export default function UnitPractice() {
 }
 
 function UnitPracticeContent() {
-  const { activeTextbooks, profile } = useProfileModel();
-  const { grade, subject, semester } = profile || {};
-
-  // 根据年级、学科（当前设置的学科）、学期过滤教材
-  const matchedTextbooks = useMemo(() => {
-    if (!grade || !subject || !semester) return [];
-
-    return activeTextbooks.filter((t) => t.grade === grade && t.subject === subject && t.semester === semester);
-  }, [activeTextbooks, grade, subject, semester]);
+  const { activeTextbook } = useProfileModel();
 
   return (
     <div className="space-y-8 animate-springy">
@@ -36,20 +27,18 @@ function UnitPracticeContent() {
       </section>
 
       {/* 主体：按教材分组的单元列表 */}
-      {matchedTextbooks.length === 0 ? (
+      {!activeTextbook ? (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg">暂无匹配的教材</p>
           <p className="text-sm mt-2">请先设置您的年级、学科和学期</p>
         </div>
       ) : (
         <div className="space-y-8">
-          {matchedTextbooks.map((textbook) => (
-            <div key={textbook.id} className="space-y-4">
-              <UnitPracticeModel.Provider initialState={textbook}>
-                <TextbookUnits />
-              </UnitPracticeModel.Provider>
-            </div>
-          ))}
+          <div key={activeTextbook.id} className="space-y-4">
+            <UnitPracticeModel.Provider initialState={activeTextbook}>
+              <TextbookUnits />
+            </UnitPracticeModel.Provider>
+          </div>
         </div>
       )}
 

@@ -83,6 +83,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取指定能力的练习
+   * GET /practice/ability/{ability_code}
+   */
+  async getAbilityPracticeByCode(abilityCode: string) {
+    return apiClient.get<Practice | null>(`/practice/ability/${abilityCode}`);
+  },
+
+  /**
    * 获取原子能力列表
    * GET /ability/atomics
    */

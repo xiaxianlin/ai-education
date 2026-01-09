@@ -5,6 +5,8 @@ import { Loader2 } from "lucide-react";
 import { PracticeCardProps } from "../types";
 
 export function GeneratingCard({ textbook }: PracticeCardProps) {
+  if (!textbook) return null;
+
   return (
     <div className="bg-white rounded-2xl border shadow-sm transition-all">
       <div className="p-6 flex flex-col gap-5">

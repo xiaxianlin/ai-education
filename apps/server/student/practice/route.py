@@ -13,62 +13,20 @@
 - 获取练习记录（支持分页）
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
-from typing import Optional, Any
+from fastapi import APIRouter, HTTPException, Query, Request
+from shared.core.database import Database, Question
+from shared.practice import practice as practice_service
+from shared.practice import practice_generate
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.core.database import Database
-from shared.core.database import Question
-from shared.practice import practice as practice_service
-from shared.practice import practice_generate
-from .schema import CreateAbilityPracticeSchema, CreateUnitPracticeSchema
+from .schema import (
+    AnswerResultSchema,
+    AnswerSchema,
+    CreatePracticeRequest,
+)
 
 practice_router = APIRouter(prefix="/practice")
-
-
-# ============ 请求/响应模型 ============
-
-
-class SubAnswerSchema(BaseModel):
-    """子题答案"""
-
-    sub_question_id: str = Field(..., description="子题ID")
-    answer: Any = Field(..., description="答案内容")
-    time_spent: Optional[int] = Field(None, description="答题耗时(秒)")
-
-
-class AnswerSchema(BaseModel):
-    """答案提交"""
-
-    session_id: str = Field(..., description="练习会话ID (UUID v4)")
-    question_id: str = Field(..., description="题目ID")
-    answer: Any = Field(..., description="主答案内容")
-    sub_answers: Optional[list[SubAnswerSchema]] = Field(None, description="子题答案列表")
-    time_spent: Optional[int] = Field(None, description="总答题耗时(秒)")
-
-
-class AnswerResultSchema(BaseModel):
-    """答案评判结果"""
-
-    is_correct: bool = Field(..., description="是否正确")
-    score: float = Field(..., description="得分")
-    full_score: float = Field(..., description="满分")
-    feedback: Optional[str] = Field(None, description="反馈信息")
-    correct_answer: Optional[Any] = Field(None, description="正确答案")
-    sub_results: Optional[list[dict]] = Field(None, description="子题评判结果")
-
-
-class CreatePracticeRequest(BaseModel):
-    """创建练习请求"""
-
-    type: str = Field(..., description="练习类型: ability_practice/unit_practice")
-    textbook_id: int = Field(..., description="教材ID")
-    unit_id: Optional[int] = Field(None, description="单元ID（单元练习必填）")
-    ability_codes: Optional[list[str]] = Field(None, description="原子能力code列表（能力练习必填）")
-    subject: Optional[str] = Field(None, description="科目（能力练习必填）")
-    grade: Optional[int] = Field(None, description="年级（能力练习必填）")
 
 
 # ============ 路由 ============
@@ -88,6 +46,23 @@ async def get_ability_practices(
     student = request.state.student
     practices = await practice_service.get_ability_practices(db, student.id)
     return practices
+
+
+@practice_router.get(
+    "/ability/{ability_code}",
+    tags=["练习"],
+    summary="获取指定能力的练习",
+    description="获取当前学生指定能力代码的未开始或进行中的练习",
+)
+async def get_ability_practice_by_code(
+    ability_code: str,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取指定能力的练习（返回最新的未完成练习）"""
+    student = request.state.student
+    practice = await practice_service.get_ability_practice_by_code(db, student.id, ability_code)
+    return practice  # 返回单个 PracticeSchema 或 null
 
 
 @practice_router.get(
@@ -122,15 +97,15 @@ async def create_practice(
     student = request.state.student
 
     if params.type == "ability_practice":
-        if not params.ability_codes or not params.subject or params.grade is None:
-            raise HTTPException(status_code=400, detail="能力练习需要提供 ability_codes, subject, grade")
-        
+        if not params.ability_code or not params.subject or params.grade is None:
+            raise HTTPException(status_code=400, detail="能力练习需要提供 ability_code, subject, grade")
+
         session_id = await practice_generate.create_practice_session(
             db=db,
             practice_type="ability_practice",
             student_id=student.id,
             parameters={
-                "ability_codes": params.ability_codes,
+                "ability_code": params.ability_code,
                 "subject": params.subject,
                 "grade": params.grade,
                 "textbook_id": params.textbook_id,
@@ -140,7 +115,7 @@ async def create_practice(
     elif params.type == "unit_practice":
         if not params.unit_id:
             raise HTTPException(status_code=400, detail="单元练习需要提供 unit_id")
-        
+
         session_id = await practice_generate.create_practice_session(
             db=db,
             practice_type="unit_practice",
@@ -172,17 +147,17 @@ async def get_practice_records(
 ):
     """获取练习记录（支持分页）"""
     student = request.state.student
-    
+
     # practice_id 对应练习类型：1=ability_practice, 2=unit_practice
     practice_type_map = {
         1: "ability_practice",
         2: "unit_practice",
     }
-    
+
     practice_type = practice_type_map.get(practice_id)
     if not practice_type:
         raise HTTPException(status_code=400, detail=f"无效的练习类型ID: {practice_id}")
-    
+
     result = await practice_service.get_practice_sessions(
         db, student.id, practice_type, limit=30, page=page, page_size=page_size
     )
@@ -283,11 +258,9 @@ async def get_question(
 )
 async def submit_answer(
     params: AnswerSchema,
-    request: Request,
     db: AsyncSession = Database,
 ):
     """提交答案"""
-    student = request.state.student
 
     # 获取题目
     question = await db.scalar(select(Question).where(Question.id == params.question_id))
@@ -410,9 +383,7 @@ def evaluate_composite_answer(question: Question, params: AnswerSchema) -> Answe
             is_sub_correct = False
             sub_score = 0
         else:
-            is_sub_correct = str(user_sub_answer).strip() in [
-                str(a).strip() for a in correct_answers
-            ]
+            is_sub_correct = str(user_sub_answer).strip() in [str(a).strip() for a in correct_answers]
             sub_score = sub_full_score if is_sub_correct else 0
 
         total_score += sub_score

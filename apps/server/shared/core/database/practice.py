@@ -12,7 +12,6 @@ import uuid
 from typing import TYPE_CHECKING, Optional
 
 from .base import (
-    JSON,
     BaseModel,
     Integer,
     Mapped,
@@ -59,7 +58,7 @@ class Practice(BaseModel):
     # 练习参数字段
     subject: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True, comment="科目")
     grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="年级")
-    ability_codes: Mapped[Optional[list]] = mapped_column(JSON, nullable=True, comment="原子能力代码列表（JSON数组）")
+    ability_code: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True, comment="原子能力代码")
     unit_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="单元ID")
 
     # 题目统计

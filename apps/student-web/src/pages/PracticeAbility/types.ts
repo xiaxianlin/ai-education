@@ -1,4 +1,4 @@
 export interface PracticeCardProps {
-  textbook: Textbook;
+  textbook?: Textbook;
   practice?: Practice;
 }

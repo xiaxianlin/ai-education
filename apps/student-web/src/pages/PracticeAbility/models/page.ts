@@ -41,11 +41,11 @@ const useContainer = () => {
   }, [subject, grade]);
 
   const { loading: creating, run: createPractice } = useRequest(
-    (params: { abilityCodes: string[]; subject: string; grade: number; textbookId: number }) =>
+    (params: { abilityCode: string; subject: string; grade: number; textbookId: number }) =>
       studentApi.createPractice({
         type: "ability_practice",
         textbook_id: params.textbookId,
-        ability_codes: params.abilityCodes,
+        ability_code: params.abilityCode,
         subject: params.subject,
         grade: params.grade,
       }),

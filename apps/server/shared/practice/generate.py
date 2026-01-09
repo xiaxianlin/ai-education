@@ -51,7 +51,7 @@ VALID_PRACTICE_TYPES = [PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT]
 async def validate_ability_practice_params(
     db: AsyncSession,
     student_id: str,
-    ability_codes: List[str],
+    ability_code: str,
     subject: str,
     grade: int,
 ) -> Dict[str, Any]:
@@ -60,7 +60,7 @@ async def validate_ability_practice_params(
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        ability_codes: 原子能力 code 列表
+        ability_code: 原子能力 code
         subject: 科目
         grade: 年级
 
@@ -73,8 +73,8 @@ async def validate_ability_practice_params(
     if not student_id:
         raise ValueError("学生 ID 不能为空")
 
-    if not ability_codes or len(ability_codes) == 0:
-        raise ValueError("原子能力 code 列表不能为空")
+    if not ability_code:
+        raise ValueError("原子能力 code 不能为空")
 
     if not subject:
         raise ValueError("科目不能为空")
@@ -83,26 +83,20 @@ async def validate_ability_practice_params(
         raise ValueError("年级必须大于 0")
 
     # 验证原子能力是否存在
-    abilities = await db.scalars(
+    ability = await db.scalar(
         select(AbilityAtomic).where(
-            AbilityAtomic.code.in_(ability_codes),
+            AbilityAtomic.code == ability_code,
             AbilityAtomic.subject == subject,
             AbilityAtomic.grade == grade,
             AbilityAtomic.is_active == 1,
         )
     )
-    ability_list = list(abilities.all())
 
-    if len(ability_list) == 0:
-        raise ValueError(f"未找到有效的原子能力: codes={ability_codes}")
-
-    found_codes = {a.code for a in ability_list}
-    missing_codes = set(ability_codes) - found_codes
-    if missing_codes:
-        logger.warning(f"部分原子能力未找到: missing_codes={missing_codes}")
+    if not ability:
+        raise ValueError(f"未找到有效的原子能力: code={ability_code}")
 
     return {
-        "abilities": ability_list,
+        "abilities": [ability],
         "subject": subject,
         "grade": grade,
     }
@@ -462,7 +456,7 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str, g
             f"开始生成练习会话: session_id={session_id}, "
             f"practice_type={session.practice_type}, "
             f"subject={session.subject}, grade={session.grade}, "
-            f"ability_codes={session.ability_codes}, unit_id={session.unit_id}"
+            f"ability_code={session.ability_code}, unit_id={session.unit_id}"
         )
 
         # 2. 验证参数并获取上下文
@@ -470,10 +464,12 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str, g
         context = {}
 
         if practice_type == PRACTICE_TYPE_ABILITY:
+            if not session.ability_code:
+                raise ValueError("能力练习需要提供 ability_code")
             context = await validate_ability_practice_params(
                 db=db,
                 student_id=session.student_id,
-                ability_codes=session.ability_codes or [],
+                ability_code=session.ability_code,
                 subject=session.subject or "",
                 grade=session.grade or 0,
             )
@@ -579,7 +575,7 @@ async def create_practice_session(
         practice_type=practice_type,
         subject=parameters.get("subject"),
         grade=parameters.get("grade"),
-        ability_codes=parameters.get("ability_codes"),
+        ability_code=parameters.get("ability_code"),
         unit_id=parameters.get("unit_id"),
         generate_status=0,  # 生成中
     )

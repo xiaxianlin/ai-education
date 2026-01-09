@@ -2,10 +2,10 @@
  * 原子能力卡片组件
  * 显示原子能力信息，点击可创建对应的能力练习
  */
-import { Button } from "@/components/ui";
-import { Sparkles, Loader2 } from "lucide-react";
-import { usePageModel } from "../models/page";
 import { useProfileModel } from "@/common/models/ProfileModel";
+import { Button } from "@/components/ui";
+import { Loader2, Sparkles } from "lucide-react";
+import { usePageModel } from "../models/page";
 
 interface AbilityAtomicCardProps {
   atomic: AbilityAtomic;
@@ -13,19 +13,20 @@ interface AbilityAtomicCardProps {
 
 export function AbilityAtomicCard({ atomic }: AbilityAtomicCardProps) {
   const { creating, createPractice } = usePageModel();
-  const { profile, activeTextbooks } = useProfileModel();
-  const { grade, subject } = profile || {};
+  const { profile, activeTextbook } = useProfileModel();
+  const { grade } = profile || {};
 
-  // 找到匹配的教材（用于创建练习）
-  const matchedTextbook = activeTextbooks.find(
-    (t) => t.subject === atomic.subject && t.grade === atomic.grade
-  );
+  // 检查 activeTextbook 是否匹配（用于创建练习）
+  const matchedTextbook =
+    activeTextbook && activeTextbook.subject === atomic.subject && activeTextbook.grade === atomic.grade
+      ? activeTextbook
+      : null;
 
   const handleCreatePractice = () => {
     if (!matchedTextbook || !grade || !atomic.subject) return;
-    
+
     createPractice({
-      abilityCodes: [atomic.code],
+      abilityCode: atomic.code,
       subject: atomic.subject,
       grade: grade,
       textbookId: matchedTextbook.id,
@@ -41,9 +42,7 @@ export function AbilityAtomicCard({ atomic }: AbilityAtomicCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-foreground mb-1">{atomic.name}</h3>
-            {atomic.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">{atomic.description}</p>
-            )}
+            {atomic.description && <p className="text-sm text-muted-foreground line-clamp-2">{atomic.description}</p>}
           </div>
         </div>
 

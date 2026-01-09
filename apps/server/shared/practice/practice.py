@@ -35,7 +35,7 @@ async def get_practice_sessions(
     page_size: int = 20,
 ):
     """获取指定练习类型的练习会话记录（支持分页）
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
@@ -43,7 +43,7 @@ async def get_practice_sessions(
         limit: 返回数量限制（兼容旧版，已废弃，使用 page_size）
         page: 页码（从1开始）
         page_size: 每页数量
-        
+
     Returns:
         dict: 包含 data, total, page, pageSize 的分页结果
     """
@@ -53,7 +53,7 @@ async def get_practice_sessions(
         Practice.practice_type == practice_type,
     )
     total = await db.scalar(select(func.count()).select_from(count_query.subquery()))
-    
+
     # 查询分页数据
     offset = (page - 1) * page_size
     sessions = await db.scalars(
@@ -81,15 +81,15 @@ async def get_practice_session_data(
     session_id: str,
 ):
     """根据练习会话 ID 查询会话详情
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
         session_id: 会话 ID (UUID v4)
-        
+
     Returns:
         PracticeDataSchema: 练习详情数据
-        
+
     Raises:
         ValueError: 练习不存在
     """
@@ -116,11 +116,7 @@ async def get_practice_session_data(
     # 查询报告
     report = None
     if session.status == 2:
-        report = await db.scalar(
-            select(PracticeReport).where(
-                PracticeReport.session_id == session_id
-            )
-        )
+        report = await db.scalar(select(PracticeReport).where(PracticeReport.session_id == session_id))
 
     return PracticeDataSchema(
         session=PracticeSchema.model_validate(session),
@@ -136,18 +132,20 @@ async def get_ability_practices(
     limit: int = 30,
 ):
     """获取能力练习记录（按教材分组）
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
         limit: 返回数量限制
-        
+
     Returns:
         List[PracticeSchema]: 能力练习列表（按教材分组，每个教材返回最新的未完成练习）
     """
     # 获取所有能力练习
-    all_practices = await get_practice_sessions(db, student_id, "ability_practice", limit=limit, page=1, page_size=limit)
-    
+    all_practices = await get_practice_sessions(
+        db, student_id, "ability_practice", limit=limit, page=1, page_size=limit
+    )
+
     # 按教材分组，返回每个教材的最新未完成练习
     # 注意：Practice 模型中没有 textbook_id，需要通过其他方式获取
     # 这里先返回所有练习，前端可以根据 subject 和 grade 进行分组
@@ -163,8 +161,42 @@ async def get_ability_practices(
             # 如果已有未完成的，跳过；如果没有，选择最新的
             if practices_by_key[key].status == 2 and practice.status != 2:
                 practices_by_key[key] = practice
-    
+
     return list(practices_by_key.values())
+
+
+async def get_ability_practice_by_code(
+    db: AsyncSession,
+    student_id: str,
+    ability_code: str,
+) -> PracticeSchema | None:
+    """获取指定能力代码的练习（返回最新的未完成练习）
+
+    Args:
+        db: 数据库会话
+        student_id: 学生 ID
+        ability_code: 原子能力代码
+
+    Returns:
+        PracticeSchema | None: 匹配的练习（未开始或进行中），如果没有则返回 None
+    """
+    # 查询匹配该能力代码的能力练习
+    query = (
+        select(Practice)
+        .where(
+            Practice.student_id == student_id,
+            Practice.practice_type == "ability_practice",
+            Practice.ability_code == ability_code,  # 直接匹配字符串
+            Practice.status != 2,  # 排除已完成的练习（status=2）
+        )
+        .order_by(desc(Practice.create_time))
+        .limit(1)
+    )
+
+    result = await db.scalar(query)
+    if result:
+        return PracticeSchema.model_validate(result)
+    return None
 
 
 async def get_unit_practices(
@@ -174,33 +206,38 @@ async def get_unit_practices(
     limit: int = 30,
 ):
     """获取单元练习记录（按教材）
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
         textbook_id: 教材 ID
         limit: 返回数量限制
-        
+
     Returns:
         List[PracticeSchema]: 单元练习列表（按单元分组，每个单元返回最新的未完成练习）
     """
     # 先查询该教材下的所有单元ID
     units = await db.scalars(select(Unit.id).where(Unit.textbook_id == textbook_id))
     unit_ids = [unit for unit in units.all()]
-    
+
     if not unit_ids:
         return []
-    
+
     # 查询该教材下的所有单元练习
-    query = select(Practice).where(
-        Practice.student_id == student_id,
-        Practice.practice_type == "unit_practice",
-        Practice.unit_id.in_(unit_ids),
-    ).order_by(desc(Practice.create_time)).limit(limit)
-    
+    query = (
+        select(Practice)
+        .where(
+            Practice.student_id == student_id,
+            Practice.practice_type == "unit_practice",
+            Practice.unit_id.in_(unit_ids),
+        )
+        .order_by(desc(Practice.create_time))
+        .limit(limit)
+    )
+
     result = await db.scalars(query)
     all_practices = [PracticeSchema.model_validate(session) for session in result.all()]
-    
+
     # 按单元分组，返回每个单元的最新未完成练习
     practices_by_unit = {}
     for practice in all_practices:
@@ -213,7 +250,7 @@ async def get_unit_practices(
             # 如果已有未完成的，跳过；如果没有，选择最新的
             if practices_by_unit[unit_id].status == 2 and practice.status != 2:
                 practices_by_unit[unit_id] = practice
-    
+
     return list(practices_by_unit.values())
 
 
@@ -223,19 +260,17 @@ async def begin_practice(
     session_id: str,
 ) -> None:
     """开始练习会话
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
         session_id: 会话 ID (UUID v4)
-        
+
     Raises:
         ValueError: 会话不存在或状态异常
     """
     # 查询练习
-    session = await db.scalar(
-        select(Practice).where(Practice.id == session_id)
-    )
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
 
     if not session:
         raise ValueError(f"练习会话不存在: session_id={session_id}")
@@ -250,9 +285,7 @@ async def begin_practice(
         if session.generate_status == -1:
             raise ValueError("练习生成失败，请重新生成")
         if session.generate_status != 1:
-            raise ValueError(
-                f"练习状态异常，无法开始（generate_status={session.generate_status}）"
-            )
+            raise ValueError(f"练习状态异常，无法开始（generate_status={session.generate_status}）")
 
         # 更新状态为进行中
         session.status = 1
@@ -273,22 +306,20 @@ async def complete_practice(
     session_id: str,
 ) -> int:
     """完成练习会话，生成报告
-    
+
     Args:
         db: 数据库会话
         student_id: 学生 ID
         session_id: 会话 ID (UUID v4)
-        
+
     Returns:
         int: 报告 ID
-        
+
     Raises:
         ValueError: 会话不存在或状态异常
     """
     # 查询练习
-    session = await db.scalar(
-        select(Practice).where(Practice.id == session_id)
-    )
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
 
     if not session:
         raise ValueError(f"练习会话不存在: session_id={session_id}")
@@ -299,7 +330,7 @@ async def complete_practice(
     # 检查练习会话是否已完成
     if session.status == 2:
         raise ValueError(f"练习已完成: session_id={session_id}")
-        
+
     # 检查题目是否全部作答
     if session.answer_count < session.question_count:
         logger.warning(
@@ -327,21 +358,17 @@ async def get_session_by_id(
     session_id: str,
 ) -> PracticeSchema | None:
     """根据练习 ID 查询练习
-    
+
     Args:
         db: 数据库会话
         session_id: 练习 ID (UUID v4)
-        
+
     Returns:
         PracticeSchema | None: 练习信息
     """
-    session = await db.scalar(
-        select(Practice).where(Practice.id == session_id)
-    )
-    
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
+
     if not session:
         return None
-        
+
     return PracticeSchema.model_validate(session)
-
-

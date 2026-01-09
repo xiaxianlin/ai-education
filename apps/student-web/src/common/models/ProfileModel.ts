@@ -1,6 +1,5 @@
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
-import { orderBy, uniq } from "lodash-es";
 import { useMemo } from "react";
 import { createContainer } from "unstated-next";
 
@@ -11,13 +10,12 @@ const useContainer = () => {
 
   const { name, phone, grade, semester, subject, textbooks = [] } = data || {};
 
-  const activeTextbooks = useMemo(() => {
-    return orderBy(
-      textbooks.filter((t) => t.grade === grade),
-      ["subject", "semester"],
-      ["asc", "asc"]
+  const activeTextbook = useMemo(() => {
+    if (!grade || !semester || !subject) return undefined;
+    return textbooks.find(
+      (t) => t.grade === grade && t.semester === semester && t.subject === subject
     );
-  }, [textbooks, grade]);
+  }, [textbooks, grade, semester, subject]);
 
   const updateSettings = async (params: UpdateStudentSettingsRequest) => {
     await studentApi.updateSettings(params);
@@ -27,9 +25,7 @@ const useContainer = () => {
   return {
     loading,
     profile: { name, phone, grade, semester, subject },
-    textbooks,
-    subjects: uniq(activeTextbooks.map((t) => t.subject)),
-    activeTextbooks,
+    activeTextbook,
     updateSettings,
     refresh,
   };
