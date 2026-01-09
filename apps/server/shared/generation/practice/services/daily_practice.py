@@ -37,8 +37,8 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
 
     subject = textbook.subject
     grade = textbook.grade
-    count = session.parameters.get("generate_count", 0)
-    question_types = session.parameters.get("question_types", {})
+    count = state.get("generate_count", 0)
+    question_types = state.get("question_types", {})
 
     # 使用默认提示词模板（Practice 表已删除）
     # 提示词模板可以根据 practice_type 从配置或 Prompt 表获取

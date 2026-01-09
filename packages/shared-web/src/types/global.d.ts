@@ -5,7 +5,7 @@ import {
   InteractionType as _InteractionType,
   ManagerType as _ManagerType,
   PracticeGenerateStatus as _PracticeGenerateStatus,
-  PracticeSessionStatus as _PracticeSessionStatus,
+  PracticeStatus as _PracticeStatus,
   ResourceType as _ResourceType,
   Stage as _Stage,
 } from "../constants";
@@ -17,7 +17,7 @@ declare global {
   type InteractionType = _InteractionType;
   type ManagerType = _ManagerType;
   type PracticeGenerateStatus = _PracticeGenerateStatus;
-  type PracticeSessionStatus = _PracticeSessionStatus;
+  type PracticeStatus = _PracticeStatus;
   type ResourceType = _ResourceType;
   type Stage = _Stage;
 
@@ -337,34 +337,34 @@ declare global {
   }
 
   /**
-   * 练习会话（对应 PracticeSessionSchema）
+   * 练习（对应 PracticeSchema）
    */
-  interface PracticeSession {
-    id: number;
+  interface Practice {
+    id: string; // UUID v4
     student_id: string;
-    practice_slug: string; // 练习slug
-    parameters?: Record<string, any>; // 练习参数
+    practice_type: string; // 练习类型: ability_practice/unit_practice
+    subject?: string; // 科目
+    grade?: number; // 年级
+    ability_codes?: string[]; // 原子能力代码列表
+    unit_id?: number; // 单元ID
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
     correct_count: number; // 正确数
-    status: PracticeSessionStatus; // 会话状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
-    generate_status: PracticeGenerateStatus; // 生成状态: 0-未生成, 1-生成中, 2-已生成
-    generate_time?: number; // 生成时间（Unix时间戳，秒）
+    status: PracticeStatus; // 练习状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
+    generate_status: PracticeGenerateStatus; // 生成状态: 0-生成中, 1-已完成, -1-生成失败
+    generate_time?: number; // 生成耗时（秒）
     start_time: number; // 开始时间（Unix时间戳，秒）
     end_time?: number; // 结束时间（Unix时间戳，秒）
     create_time: number; // 创建时间（Unix时间戳，秒）
     update_time?: number; // 更新时间（Unix时间戳，秒）
-
-    textbook_id?: number; // 教材ID
-    unit_id?: number; // 单元ID
   }
 
   /**
-   * 答题记录（对应 PracticeSessionAnswerSchema）
+   * 答题记录（对应 PracticeAnswerSchema）
    */
-  interface PracticeSessionAnswer {
+  interface PracticeAnswer {
     id: number;
-    session_id: number;
+    session_id: string; // UUID v4
     question_id: string;
     student_id: string;
     question_order: number; // 题目顺序
@@ -394,11 +394,11 @@ declare global {
   }
 
   /**
-   * 练习会话报告
+   * 练习报告
    */
-  interface PracticeSessionReport {
+  interface PracticeReport {
     id: number;
-    session_id: number;
+    session_id: string; // UUID v4
     student_id: string;
     total_questions: number;
     correct_questions: number;
@@ -420,13 +420,13 @@ declare global {
   }
 
   /**
-   * 练习会话数据
+   * 练习数据
    */
-  interface PracticeSessionData {
-    session: PracticeSession;
-    answers: PracticeSessionAnswer[];
+  interface PracticeData {
+    session: Practice;
+    answers: PracticeAnswer[];
     questions: Question[];
-    report?: PracticeSessionReport;
+    report?: PracticeReport;
   }
 
   /**

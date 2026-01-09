@@ -32,13 +32,13 @@ class TemplateVariableSchema(BaseModel):
     options_source: Optional[str] = None  # units/textbooks/knowledge_points/custom
 
 
-class PracticeSessionSchema(BaseModel):
-    """练习会话 Schema
-    
+class PracticeSchema(BaseModel):
+    """练习 Schema
+
     练习类型 (practice_type):
     - ability_practice: 能力练习 - 基于原子能力 code 列表生成
     - unit_practice: 单元练习 - 基于单元 ID 生成
-    
+
     生成状态 (generate_status):
     - 0: 生成中
     - 1: 已完成
@@ -48,7 +48,10 @@ class PracticeSessionSchema(BaseModel):
     id: str = Field(..., description="会话ID (UUID v4)")
     student_id: str
     practice_type: str = Field(..., description="练习类型: ability_practice/unit_practice")
-    parameters: dict = Field(default_factory=dict, description="练习参数")
+    subject: Optional[str] = Field(None, description="科目")
+    grade: Optional[int] = Field(None, description="年级")
+    ability_codes: Optional[List[str]] = Field(None, description="原子能力代码列表")
+    unit_id: Optional[int] = Field(None, description="单元ID")
     question_count: int = 0
     answer_count: int = 0
     correct_count: int = 0
@@ -60,14 +63,10 @@ class PracticeSessionSchema(BaseModel):
     create_time: int
     update_time: Optional[int] = None
 
-    # 兼容字段
-    textbook_id: Optional[int] = None
-    unit_id: Optional[int] = None
-
     model_config = {"from_attributes": True}
 
 
-class PracticeSessionAnswerSchema(BaseModel):
+class PracticeAnswerSchema(BaseModel):
     """答题记录 Schema"""
 
     id: int
@@ -102,7 +101,7 @@ class PracticeSessionAnswerSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PracticeSessionReportSchema(BaseModel):
+class PracticeReportSchema(BaseModel):
     """练习报告 Schema"""
 
     id: int
@@ -127,13 +126,13 @@ class PracticeSessionReportSchema(BaseModel):
     create_time: int
 
 
-class PracticeSessionDataSchema(BaseModel):
-    """练习会话数据"""
+class PracticeDataSchema(BaseModel):
+    """练习数据"""
 
-    session: PracticeSessionSchema
+    session: PracticeSchema
     questions: list["QuestionSchema"]
-    answers: list[PracticeSessionAnswerSchema]
-    report: Optional[PracticeSessionReportSchema] = None
+    answers: list[PracticeAnswerSchema]
+    report: Optional[PracticeReportSchema] = None
 
     model_config = {"from_attributes": True}
 
@@ -183,9 +182,9 @@ class PracticeParameterSchema(BaseModel):
 __all__ = [
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
-    "PracticeSessionSchema",
-    "PracticeSessionAnswerSchema",
-    "PracticeSessionReportSchema",
-    "PracticeSessionDataSchema",
+    "PracticeSchema",
+    "PracticeAnswerSchema",
+    "PracticeReportSchema",
+    "PracticeDataSchema",
     "PracticeParameterSchema",
 ]

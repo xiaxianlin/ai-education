@@ -1,7 +1,7 @@
 import secrets
 
 from loguru import logger
-from shared.core.database import PracticeSession
+from shared.core.database import Practice
 from shared.core.database import Question
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,15 +20,15 @@ def grade_to_stage(grade: int) -> str:
     return "senior"
 
 
-async def recall_questions(db: AsyncSession, session: PracticeSession):
+async def recall_questions(db: AsyncSession, session: Practice):
     """为日常练习召回题目"""
-    recall_count = session.parameters.get("recall_count", 0)
+    recall_count = 0  # recall_count 不再存储在 session 中，默认值为 0
     if recall_count == 0:
         return []
 
     # 构建查询：根据科目和年级查询
-    subject = session.parameters.get("subject")
-    grade = session.parameters.get("grade")
+    subject = session.subject
+    grade = session.grade
     
     conditions = []
     if subject:

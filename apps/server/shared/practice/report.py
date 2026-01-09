@@ -5,9 +5,9 @@ from typing import Dict, List
 
 from loguru import logger
 from shared.core.database import (
-    PracticeSession,
-    PracticeSessionAnswer,
-    PracticeSessionReport,
+    Practice,
+    PracticeAnswer,
+    PracticeReport,
 )
 from shared.core.database import Question
 from shared.utils.time import now
@@ -27,8 +27,8 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     Returns:
         报告ID
     """
-    # 1. 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == session_id))
+    # 1. 查询练习
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
 
     if not session:
         raise ValueError("练习会话不存在")
@@ -38,7 +38,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 2. 检查是否已存在报告
     existing_report = await db.scalar(
-        select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id)
+        select(PracticeReport).where(PracticeReport.session_id == session_id)
     )
     if existing_report:
         logger.info(f"报告已存在: report_id={existing_report.id}")
@@ -46,7 +46,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
 
     # 3. 查询所有答题记录
     answer_records = await db.scalars(
-        select(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session_id)
+        select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
     )
     answers = answer_records.all()
 
@@ -82,7 +82,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     )
 
     # 11. 创建报告
-    report = PracticeSessionReport(
+    report = PracticeReport(
         session_id=session_id,
         student_id=student_id,
         total_questions=total_questions,
@@ -113,7 +113,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     return report.id
 
 
-async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
+async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析知识点掌握情况"""
     if not answers:
         return {}
@@ -156,7 +156,7 @@ async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeSessi
 
 
 async def analyze_question_distribution(
-    db: AsyncSession, answers: List[PracticeSessionAnswer]
+    db: AsyncSession, answers: List[PracticeAnswer]
 ) -> Dict:
     """分析题目来源分布（按题型）"""
     if not answers:
@@ -195,7 +195,7 @@ async def analyze_question_distribution(
     return result
 
 
-async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeSessionAnswer]) -> Dict:
+async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析能力分解（按难度）"""
     if not answers:
         return {}
@@ -232,7 +232,7 @@ async def analyze_ability_breakdown(db: AsyncSession, answers: List[PracticeSess
     return result
 
 
-def calculate_learning_speed(answers: List[PracticeSessionAnswer]) -> float:
+def calculate_learning_speed(answers: List[PracticeAnswer]) -> float:
     """计算学习速度（平均答题时间）"""
     if not answers:
         return 0.0
@@ -248,7 +248,7 @@ def calculate_learning_speed(answers: List[PracticeSessionAnswer]) -> float:
     return avg_time
 
 
-def calculate_consistency(answers: List[PracticeSessionAnswer]) -> float:
+def calculate_consistency(answers: List[PracticeAnswer]) -> float:
     """计算稳定性（答题正确率的标准差）"""
     if len(answers) < 5:
         return 0.0
@@ -279,7 +279,7 @@ def calculate_consistency(answers: List[PracticeSessionAnswer]) -> float:
 
 async def generate_recommendations(
     db: AsyncSession,
-    answers: List[PracticeSessionAnswer],
+    answers: List[PracticeAnswer],
     knowledge_scores: Dict,
     overall_score: float,
     practice_type: str,

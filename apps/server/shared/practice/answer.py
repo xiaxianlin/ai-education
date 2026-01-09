@@ -4,11 +4,11 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts.chat import ChatMessagePromptTemplate
 from loguru import logger
 from shared.core.database import (
-    PracticeSession,
-    PracticeSessionAnswer,
+    Practice,
+    PracticeAnswer,
     Question,
 )
-from shared.core.schema import PracticeSessionAnswerSchema
+from shared.core.schema import PracticeAnswerSchema
 from shared.provider import get_provider
 from shared.utils.prompt import build_question_prompt
 from shared.utils.time import now
@@ -48,8 +48,8 @@ async def _analyze_answer(db: AsyncSession, question: Question, answer_content: 
 
 async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerSchema):
     """提交答题答案"""
-    # 1. 查询练习会话
-    session = await db.scalar(select(PracticeSession).where(PracticeSession.id == params.session_id))
+    # 1. 查询练习
+    session = await db.scalar(select(Practice).where(Practice.id == params.session_id))
     if not session:
         raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
@@ -63,9 +63,9 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
 
     # 3. 查询答题记录
     answer_record = await db.scalar(
-        select(PracticeSessionAnswer).where(
-            PracticeSessionAnswer.session_id == params.session_id,
-            PracticeSessionAnswer.question_id == params.question_id,
+        select(PracticeAnswer).where(
+            PracticeAnswer.session_id == params.session_id,
+            PracticeAnswer.question_id == params.question_id,
         )
     )
     if not answer_record:
@@ -103,7 +103,7 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
         f"question_id={params.question_id}, is_correct={is_correct}"
     )
 
-    return PracticeSessionAnswerSchema.model_validate(answer_record)
+    return PracticeAnswerSchema.model_validate(answer_record)
 
 
 async def asr_audio_answer(db: AsyncSession, audio_data: bytes):

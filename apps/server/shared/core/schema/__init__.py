@@ -11,11 +11,11 @@ from .common import ResponseSchema, SearchResultSchema, SearchSchema, T
 
 # 练习模块
 from .practice import (
+    PracticeAnswerSchema,
+    PracticeDataSchema,
     PracticeParameterSchema,
-    PracticeSessionAnswerSchema,
-    PracticeSessionDataSchema,
-    PracticeSessionReportSchema,
-    PracticeSessionSchema,
+    PracticeReportSchema,
+    PracticeSchema,
     QuestionTypeConfigItem,
     TemplateVariableSchema,
 )
@@ -74,10 +74,10 @@ __all__ = [
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
-    "PracticeSessionSchema",
-    "PracticeSessionAnswerSchema",
-    "PracticeSessionReportSchema",
-    "PracticeSessionDataSchema",
+    "PracticeSchema",
+    "PracticeAnswerSchema",
+    "PracticeReportSchema",
+    "PracticeDataSchema",
     # 学生
     "StudentSchema",
     "StudentTextbookSchema",

@@ -25,15 +25,17 @@ export enum ManagerType {
 }
 
 /**
- * 练习会话状态
+ * 练习状态
  */
-export enum PracticeSessionStatus {
-  /** 等待练习 */
+export enum PracticeStatus {
+  /** 未开始 */
   READY = 0,
-  /** 正在生成中 */
+  /** 进行中 */
   PRACTICING = 1,
   /** 已完成 */
   COMPLETED = 2,
+  /** 已废弃 */
+  ABANDONED = 3,
 }
 
 /**
@@ -49,13 +51,14 @@ export enum PracticeGenerateStatus {
 }
 
 
-export const PRACTICE_SESSION_STATUS_MAP: Record<PracticeSessionStatus, string> = {
+export const PRACTICE_STATUS_MAP: Record<PracticeStatus, string> = {
   0: "未开始",
   1: "进行中",
   2: "已完成",
+  3: "已废弃",
 };
 
-export const PRACTICE_SESSION_STATUS_OPTIONS = Object.entries(PRACTICE_SESSION_STATUS_MAP).map(([value, label]) => ({
+export const PRACTICE_STATUS_OPTIONS = Object.entries(PRACTICE_STATUS_MAP).map(([value, label]) => ({
   label,
   value,
 }));

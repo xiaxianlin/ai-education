@@ -52,9 +52,9 @@ class AssessPracticeStrategy(BasePracticeStrategy):
         knowledges = state.get("knowledges", [])
         recall_questions = state.get("recall_questions", [])
 
-        subject = session.parameters.get("subject", "")
-        grade = session.parameters.get("grade", 0)
-        count = session.parameters.get("generate_count", 18)
+        subject = session.subject or ""
+        grade = session.grade or 0
+        count = state.get("generate_count", 18)
         question_types = state.get("question_types", {})
 
         # 使用默认提示词模板（Practice 表已删除）

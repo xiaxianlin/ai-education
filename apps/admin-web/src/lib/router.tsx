@@ -62,8 +62,8 @@ export function Router() {
         // Student routes
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
-        { path: 'student/:id/practice_sessions', element: <PracticeSessionList /> },
-        { path: 'student/:id/practice_session/:session_id', element: <PracticeSessionDetail /> },
+        { path: 'student/:id/practices', element: <PracticeSessionList /> },
+        { path: 'student/:id/practice/:session_id', element: <PracticeSessionDetail /> },
         { path: 'password', element: <ModifyPassword /> },
         { path: 'profile', element: <Profile /> },
         { path: '*', element: <NotFound /> },

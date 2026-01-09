@@ -38,9 +38,8 @@ class UnitPracticeStrategy(BasePracticeStrategy):
         """加载单元练习上下文（单元信息、知识点）"""
         db: AsyncSession = state["db"]
         session = state["session"]
-        parameters = session.parameters or {}
 
-        unit_id = parameters.get("unit_id", 0)
+        unit_id = session.unit_id or 0
         if not unit_id:
             raise ValueError("单元 ID 不能为空")
 
@@ -81,8 +80,7 @@ class UnitPracticeStrategy(BasePracticeStrategy):
         recall_questions = state.get("recall_questions", [])
         question_types = state.get("question_types", {})
 
-        parameters = session.parameters or {}
-        count = parameters.get("generate_count", 15)
+        count = state.get("generate_count", 15)
         subject = textbook.subject
         grade = textbook.grade
 

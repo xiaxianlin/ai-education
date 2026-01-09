@@ -51,7 +51,7 @@ class DailyPracticeStrategy(BasePracticeStrategy):
 
         subject = textbook.subject
         grade = textbook.grade
-        count = session.parameters.get("generate_count", 15)
+        count = state.get("generate_count", 15)
         question_types = state.get("question_types", {})
 
         # 使用默认提示词模板（Practice 表已删除）

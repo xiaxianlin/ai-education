@@ -84,17 +84,17 @@ export const StudentApi = {
 
   /**
    * 获取学生练习历史
-   * GET /student/{id}/practice_sessions/{practice_slug}
+   * GET /student/{id}/practices/{practice_type}
    */
-  async getStudentPracticeSessions(id: string, practiceSlug: string) {
-    return apiClient.get<PracticeSession[]>(`/student/${id}/practice_sessions/${practiceSlug}`);
+  async getStudentPractices(id: string, practiceType: string) {
+    return apiClient.get<Practice[]>(`/student/${id}/practices/${practiceType}`);
   },
 
   /**
-   * 获取学生练习会话详情
-   * GET /student/{id}/practice_session/{session_id}
+   * 获取学生练习详情
+   * GET /student/{id}/practice/{session_id}
    */
-  async getStudentPracticeSessionData(id: string, sessionId: number) {
-    return apiClient.get(`/student/${id}/practice_session/${sessionId}`);
+  async getStudentPracticeData(id: string, sessionId: string) {
+    return apiClient.get(`/student/${id}/practice/${sessionId}`);
   },
 };

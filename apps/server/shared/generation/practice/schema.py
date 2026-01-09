@@ -1,7 +1,7 @@
 from typing import Any, List, NotRequired, TypedDict
 
 from pydantic import BaseModel, Field
-from shared.core.database import Knowledge, PracticeSession, Textbook, Unit
+from shared.core.database import Knowledge, Practice, Textbook, Unit
 from shared.core.database import Question
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,8 +41,8 @@ class QuestionGenerationState(TypedDict, total=False):
     # ================= 外部传入状态 ================== #
     # 数据库会话
     db: AsyncSession
-    # 练习会话
-    session: PracticeSession
+    # 练习
+    session: Practice
     # 教材模型
     textbook: Textbook
     # 单元列表

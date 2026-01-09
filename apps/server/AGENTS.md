@@ -114,9 +114,9 @@
 | Question              | ah_question                | 题目           |
 | QuestionType          | ah_question_type           | 题型           |
 | Practice              | ah_practice                | 练习类型       |
-| PracticeSession       | ah_practice_session        | 练习会话       |
-| PracticeSessionAnswer | ah_practice_session_answer | 答题记录       |
-| PracticeSessionReport | ah_practice_session_report | 练习报告       |
+| Practice              | ah_practice                | 练习           |
+| PracticeAnswer        | ah_practice_answer          | 答题记录       |
+| PracticeReport        | ah_practice_report          | 练习报告       |
 | Student               | ah_student                 | 学生           |
 | StudentTextbook       | ah_student_textbook        | 学生教材关联   |
 | StudentPractice       | ah_student_practice        | 学生练习关联   |

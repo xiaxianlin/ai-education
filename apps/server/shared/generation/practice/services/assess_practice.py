@@ -12,6 +12,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.core.constants import GRADE_NAME_MAP
 from shared.core.database import Knowledge
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import QuestionGenerationResult, QuestionGenerationState
@@ -40,10 +41,10 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     knowledges = state.get("knowledges", [])
     recall_questions = state.get("recall_questions", [])
 
-    subject = session.parameters.get("subject", "")
-    grade = session.parameters.get("grade", 0)
-    count = session.parameters.get("generate_count", 0)
-    question_types = session.parameters.get("question_types", {})
+    subject = session.subject or ""
+    grade = session.grade or 0
+    count = state.get("generate_count", 0)
+    question_types = state.get("question_types", {})
 
     # 使用默认提示词模板（Practice 表已删除）
     default_prompt_template = """请为{grade}年级学生生成{count}道{subject}科目的综合评估题目。

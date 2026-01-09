@@ -71,83 +71,83 @@ export const studentApi = {
    * GET /practice_session/daily
    */
   async getDailyPractices() {
-    return apiClient.get<PracticeSession[]>("/practice_session/daily");
+    return apiClient.get<Practice[]>("/practice/daily");
   },
 
   /**
    * 获取单元练习
-   * GET /practice_session/unit/{textbook_id}
+   * GET /practice/unit/{textbook_id}
    */
   async getUnitPractices(textbookId: number) {
-    return apiClient.get<PracticeSession[]>(`/practice_session/unit/${textbookId}`);
+    return apiClient.get<Practice[]>(`/practice/unit/${textbookId}`);
   },
 
   /**
    * 获取能力评测
-   * GET /practice_session/assessment
+   * GET /practice/assessment
    */
   async getAssessments() {
-    return apiClient.get<PracticeSession[]>(`/practice_session/assessment`);
+    return apiClient.get<Practice[]>(`/practice/assessment`);
   },
 
   /**
    * 创建练习
-   * POST /practice_session/create
-   * @returns 练习会话 ID
+   * POST /practice/create
+   * @returns 练习 ID
    */
   async createPractice(params: CreatePracticeRequest) {
-    return apiClient.post<number>("/practice_session/create", params);
+    return apiClient.post<string>("/practice/create", params);
   },
 
   /**
    * 开始练习
-   * POST /practice_session/{session_id}/begin
+   * POST /practice/{session_id}/begin
    */
-  async beginPractice(sessionId: number) {
-    return apiClient.post(`/practice_session/${sessionId}/begin`);
+  async beginPractice(sessionId: string) {
+    return apiClient.post(`/practice/${sessionId}/begin`);
   },
 
   /**
    * 提交答案
-   * POST /practice_session/answer
+   * POST /practice/answer
    */
   async submitAnswer(params: AnswerRequest) {
-    return apiClient.post<PracticeSessionAnswer>("/practice_session/answer", params);
+    return apiClient.post<PracticeAnswer>("/practice/answer", params);
   },
 
   /**
    * 上传口语题录音并进行语音识别
-   * POST /practice_session/answer/audio/asr
+   * POST /practice/answer/audio/asr
    */
   async audioAnswerAnalyze(audioBlob: Blob) {
     const formData = new FormData();
     formData.append("audio_file", audioBlob, "audio.webm");
-    return apiClient.form<AudioAnswerAnalysisResponse>("/practice_session/answer/audio/asr", formData);
+    return apiClient.form<AudioAnswerAnalysisResponse>("/practice/answer/audio/asr", formData);
   },
 
   /**
    * 完成练习
-   * POST /practice_session/{session_id}/complete
+   * POST /practice/{session_id}/complete
    * @returns 报告 ID
    */
-  async completePractice(sessionId: number) {
-    return apiClient.post<number>(`/practice_session/${sessionId}/complete`);
+  async completePractice(sessionId: string) {
+    return apiClient.post<number>(`/practice/${sessionId}/complete`);
   },
 
   /**
-   * 获取练习会话详情
-   * GET /practice_session/{session_id}
+   * 获取练习详情
+   * GET /practice/{session_id}
    */
-  async getPracticeSessionData(sessionId: number) {
-    return apiClient.get<PracticeSessionData>(`/practice_session/${sessionId}`);
+  async getPracticeData(sessionId: string) {
+    return apiClient.get<PracticeData>(`/practice/${sessionId}`);
   },
 
   /**
    * 获取练习历史记录
-   * GET /practice_session/records/{practice_id}
+   * GET /practice/records/{practice_id}
    */
-  async getPracticeRecords(practiceId: number): Promise<PracticeSession[]> {
-    return apiClient.get<PracticeSession[]>(`/practice_session/records/${practiceId}`);
+  async getPracticeRecords(practiceId: number): Promise<Practice[]> {
+    return apiClient.get<Practice[]>(`/practice/records/${practiceId}`);
   },
 
   /**

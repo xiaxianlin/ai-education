@@ -27,9 +27,9 @@ from .textbook import Textbook, Unit, Knowledge, TeacherBook
 
 # 练习模块
 from .practice import (
-    PracticeSession,
-    PracticeSessionAnswer,
-    PracticeSessionReport,
+    Practice,
+    PracticeAnswer,
+    PracticeReport,
     generate_session_id,
 )
 
@@ -63,9 +63,9 @@ __all__ = [
     "Knowledge",
     "TeacherBook",
     # 练习
-    "PracticeSession",
-    "PracticeSessionAnswer",
-    "PracticeSessionReport",
+    "Practice",
+    "PracticeAnswer",
+    "PracticeReport",
     "generate_session_id",
     # 学生
     "Student",

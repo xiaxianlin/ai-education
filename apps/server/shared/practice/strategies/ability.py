@@ -37,11 +37,10 @@ class AbilityPracticeStrategy(BasePracticeStrategy):
         """加载能力练习上下文（原子能力信息）"""
         db: AsyncSession = state["db"]
         session = state["session"]
-        parameters = session.parameters or {}
 
-        ability_codes = parameters.get("ability_codes", [])
-        subject = parameters.get("subject", "")
-        grade = parameters.get("grade", 0)
+        ability_codes = session.ability_codes or []
+        subject = session.subject or ""
+        grade = session.grade or 0
 
         if not ability_codes:
             raise ValueError("原子能力 code 列表不能为空")
@@ -79,10 +78,9 @@ class AbilityPracticeStrategy(BasePracticeStrategy):
         recall_questions = state.get("recall_questions", [])
         question_types = state.get("question_types", {})
 
-        parameters = session.parameters or {}
-        subject = parameters.get("subject", "")
-        grade = parameters.get("grade", 0)
-        count = parameters.get("generate_count", 15)
+        subject = session.subject or ""
+        grade = session.grade or 0
+        count = state.get("generate_count", 15)
 
         # 构建能力信息
         ability_info_list = []

@@ -13,7 +13,7 @@ from shared.worker.celery import Executor, celery_app
     bind=True,
     name=Executor.generate_practice_task.value,
 )
-def execute_generate_practice_task(self, session_id: str) -> Dict[str, Any]:
+def execute_generate_practice_task(self, session_id: str, generate_count: int = 15) -> Dict[str, Any]:
     """
     执行任务 - Celery Worker 调用的函数
 
@@ -22,18 +22,19 @@ def execute_generate_practice_task(self, session_id: str) -> Dict[str, Any]:
 
     Args:
         session_id: 练习会话ID (UUID v4)
+        generate_count: 生成题目数量，默认 15
 
     Returns:
         Dict: 任务执行结果
     """
-    logger.info(f"开始执行练习生成任务: session_id={session_id}")
+    logger.info(f"开始执行练习生成任务: session_id={session_id}, generate_count={generate_count}")
 
     async def _execute():
         """内部异步执行函数"""
         # 创建新的数据库会话（Celery Worker 中不能共享主应用的会话）
         # 使用 context manager 确保会话正确关闭
         async with AsyncSessionLocal() as db:
-            await execute_generate_practice_session(db, session_id)
+            await execute_generate_practice_session(db, session_id, generate_count)
 
     try:
         # 在 Celery worker 中，使用 asyncio.run() 创建新的事件循环

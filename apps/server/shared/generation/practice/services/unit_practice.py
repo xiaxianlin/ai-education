@@ -13,6 +13,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.core.constants import GRADE_NAME_MAP
 from shared.core.database import Knowledge
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import QuestionGenerationResult, QuestionGenerationState
@@ -28,7 +29,7 @@ async def load_data(state: QuestionGenerationState) -> Dict[str, Any]:
     db: AsyncSession = state["db"]
     units = state["units"]
     session = state["session"]
-    unit_id = session.parameters.get("unit_id", 0)
+    unit_id = session.unit_id or 0
     unit = next((u for u in units if u.id == unit_id), None)
     if not unit:
         raise ValueError("单元不存在")
@@ -45,10 +46,10 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     knowledges = state["knowledges"]
     recall_questions = state.get("recall_questions", [])
 
-    subject = session.parameters.get("subject", "")
-    grade = session.parameters.get("grade", 0)
-    count = session.parameters.get("generate_count", 0)
-    question_types = session.parameters.get("question_types", {})
+    subject = session.subject or ""
+    grade = session.grade or 0
+    count = state.get("generate_count", 0)
+    question_types = state.get("question_types", {})
 
     # 使用默认提示词模板（Practice 表已删除）
     default_prompt_template = """请为{grade}年级学生生成{count}道{subject}科目的单元练习题目。

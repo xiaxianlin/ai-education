@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
-from shared.core.database import AsyncSession, PracticeSession, Question, Textbook, Unit
+from shared.core.database import AsyncSession, Practice, Question, Textbook, Unit
 from shared.generation.audio import invoke_question_audio_workflow
 from shared.generation.image import invoke_question_image_workflow
 from shared.provider import get_provider
@@ -43,7 +43,11 @@ async def entry_node(state: QuestionGenerationState) -> Dict[str, Any]:
     except ValueError as e:
         raise ValueError(f"练习类型: type={session.practice_type} 暂不支持") from e
 
-    logger.info(f"练习信息加载完成: type={session.practice_type}, " f"parameters={session.parameters}")
+    logger.info(
+        f"练习信息加载完成: type={session.practice_type}, "
+        f"subject={session.subject}, grade={session.grade}, "
+        f"ability_codes={session.ability_codes}, unit_id={session.unit_id}"
+    )
 
     return {}
 
@@ -194,7 +198,7 @@ practice_generation_graph = create_practice_generation_graph()
 async def invoke_practice_generation_workflow(
     *,
     db: AsyncSession,
-    session: PracticeSession,
+    session: Practice,
     textbook: Textbook,
     units: list[Unit],
     question_types: dict[str, list[str]],

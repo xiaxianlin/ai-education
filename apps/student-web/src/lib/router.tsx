@@ -32,7 +32,7 @@ export function Router() {
             { path: "practice/unit", element: <UnitPractice /> },
             { path: "practice/assessment", element: <Assessment /> },
             { path: "practice/record", element: <PracticeHistory /> },
-            { path: "practice/session/:sessionId", element: <PracticeSession /> },
+            { path: "practice/:sessionId", element: <PracticeSession /> },
             { path: "practice/result/:sessionId", element: <PracticeSessionData /> },
           ],
         },

@@ -23,8 +23,8 @@ import pendulum
 from loguru import logger
 from shared.core.database import (
     AbilityAtomic,
-    PracticeSession,
-    PracticeSessionAnswer,
+    Practice,
+    PracticeAnswer,
     Question,
     QuestionType,
     Textbook,
@@ -363,19 +363,19 @@ async def generate_questions_parallel(
 
 async def prepare_answer_records(
     db: AsyncSession,
-    session: PracticeSession,
+    session: Practice,
     questions: List[Question],
 ) -> None:
-    """为练习会话创建答题记录
+    """为练习创建答题记录
 
     Args:
         db: 数据库会话
-        session: 练习会话
+        session: 练习
         questions: 题目列表
     """
     # 删除已有的答题记录（如果存在）
     await db.execute(
-        delete(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session.id)
+        delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id)
     )
     await db.flush()
 
@@ -383,7 +383,7 @@ async def prepare_answer_records(
     answer_records = []
     for index, question in enumerate(questions):
         knowledge = question.knowledge_points[0] if question.knowledge_points else None
-        answer_record = PracticeSessionAnswer(
+        answer_record = PracticeAnswer(
             session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
@@ -413,12 +413,12 @@ async def cleanup_session_data(db: AsyncSession, session_id: str) -> None:
     try:
         # 删除答题记录
         await db.execute(
-            delete(PracticeSessionAnswer).where(PracticeSessionAnswer.session_id == session_id)
+            delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
         )
 
-        # 删除练习会话
+        # 删除练习
         await db.execute(
-            delete(PracticeSession).where(PracticeSession.id == session_id)
+            delete(Practice).where(Practice.id == session_id)
         )
 
         await db.commit()
@@ -431,7 +431,7 @@ async def cleanup_session_data(db: AsyncSession, session_id: str) -> None:
 # ==================== 主流程 ====================
 
 
-async def execute_generate_practice_session(db: AsyncSession, session_id: str) -> None:
+async def execute_generate_practice_session(db: AsyncSession, session_id: str, generate_count: int = 15) -> None:
     """执行练习会话生成
 
     生成流程：
@@ -450,9 +450,9 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str) -
     session = None
 
     try:
-        # 1. 查询会话信息
+        # 1. 查询练习信息
         session = await db.scalar(
-            select(PracticeSession).where(PracticeSession.id == session_id)
+            select(Practice).where(Practice.id == session_id)
         )
         if not session:
             raise ValueError(f"练习会话不存在: session_id={session_id}")
@@ -460,34 +460,34 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str) -
         logger.info(
             f"开始生成练习会话: session_id={session_id}, "
             f"practice_type={session.practice_type}, "
-            f"parameters={session.parameters}"
+            f"subject={session.subject}, grade={session.grade}, "
+            f"ability_codes={session.ability_codes}, unit_id={session.unit_id}"
         )
 
         # 2. 验证参数并获取上下文
         practice_type = session.practice_type
-        parameters = session.parameters or {}
         context = {}
 
         if practice_type == PRACTICE_TYPE_ABILITY:
             context = await validate_ability_practice_params(
                 db=db,
                 student_id=session.student_id,
-                ability_codes=parameters.get("ability_codes", []),
-                subject=parameters.get("subject", ""),
-                grade=parameters.get("grade", 0),
+                ability_codes=session.ability_codes or [],
+                subject=session.subject or "",
+                grade=session.grade or 0,
             )
         elif practice_type == PRACTICE_TYPE_UNIT:
             context = await validate_unit_practice_params(
                 db=db,
                 student_id=session.student_id,
-                unit_id=parameters.get("unit_id", 0),
+                unit_id=session.unit_id or 0,
             )
         else:
             raise ValueError(f"不支持的练习类型: practice_type={practice_type}")
 
-        subject = context.get("subject", "")
-        grade = context.get("grade", 0)
-        generate_count = parameters.get("generate_count", 15)
+        subject = context.get("subject", "") or session.subject or ""
+        grade = context.get("grade", 0) or session.grade or 0
+        # generate_count 作为函数参数传入
 
         # 3. 选择题型
         selections = await select_question_types(
@@ -569,14 +569,17 @@ async def create_practice_session(
         f"immediately={immediately}"
     )
 
-    # 1. 生成会话 ID，初始化练习会话记录，状态为生成中
+    # 1. 生成练习 ID，初始化练习记录，状态为生成中
     session_id = generate_session_id()
 
-    session = PracticeSession(
+    session = Practice(
         id=session_id,
         student_id=student_id,
         practice_type=practice_type,
-        parameters=parameters,
+        subject=parameters.get("subject"),
+        grade=parameters.get("grade"),
+        ability_codes=parameters.get("ability_codes"),
+        unit_id=parameters.get("unit_id"),
         generate_status=0,  # 生成中
     )
     db.add(session)
@@ -585,14 +588,17 @@ async def create_practice_session(
 
     logger.info(f"练习会话记录创建成功: session_id={session_id}")
 
+    # 从 parameters 中提取 generate_count（用于生成题目数量）
+    generate_count = parameters.get("generate_count", 15)
+    
     try:
         if immediately:
             # 同步模式：立即执行生成
-            await execute_generate_practice_session(db, session_id)
+            await execute_generate_practice_session(db, session_id, generate_count)
             logger.info(f"练习会话生成完成: session_id={session_id}")
         else:
-            # 异步模式：提交到任务队列
-            await submit_task(session_id, Executor.generate_practice_task, [session_id])
+            # 异步模式：提交到任务队列，传递 generate_count
+            await submit_task(session_id, Executor.generate_practice_task, [session_id, generate_count])
             logger.info(f"练习会话生成任务提交完成: session_id={session_id}")
 
         return session_id

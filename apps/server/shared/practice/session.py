@@ -7,15 +7,15 @@
 import pendulum
 from loguru import logger
 from shared.core.database import (
-    PracticeSession,
-    PracticeSessionAnswer,
-    PracticeSessionReport,
+    Practice,
+    PracticeAnswer,
+    PracticeReport,
 )
 from shared.core.schema import (
-    PracticeSessionAnswerSchema,
-    PracticeSessionDataSchema,
-    PracticeSessionReportSchema,
-    PracticeSessionSchema,
+    PracticeAnswerSchema,
+    PracticeDataSchema,
+    PracticeReportSchema,
+    PracticeSchema,
     QuestionSchema,
 )
 from shared.utils.time import now
@@ -41,19 +41,19 @@ async def get_practice_sessions(
         limit: 返回数量限制
         
     Returns:
-        List[PracticeSessionSchema]: 练习会话列表
+        List[PracticeSchema]: 练习列表
     """
     sessions = await db.scalars(
-        select(PracticeSession)
+        select(Practice)
         .where(
-            PracticeSession.student_id == student_id,
-            PracticeSession.practice_type == practice_type,
+            Practice.student_id == student_id,
+            Practice.practice_type == practice_type,
         )
-        .order_by(desc(PracticeSession.create_time))
+        .order_by(desc(Practice.create_time))
         .limit(limit)
     )
 
-    return [PracticeSessionSchema.model_validate(session) for session in sessions.all()]
+    return [PracticeSchema.model_validate(session) for session in sessions.all()]
 
 
 async def get_practice_session_data(
@@ -69,25 +69,25 @@ async def get_practice_session_data(
         session_id: 会话 ID (UUID v4)
         
     Returns:
-        PracticeSessionDataSchema: 会话详情数据
+        PracticeDataSchema: 练习详情数据
         
     Raises:
-        ValueError: 会话不存在
+        ValueError: 练习不存在
     """
     session = await db.scalar(
-        select(PracticeSession).where(
-            PracticeSession.id == session_id,
-            PracticeSession.student_id == student_id,
+        select(Practice).where(
+            Practice.id == session_id,
+            Practice.student_id == student_id,
         )
     )
     if not session:
-        raise ValueError("练习会话不存在")
+        raise ValueError("练习不存在")
 
     results = await db.scalars(
-        select(PracticeSessionAnswer)
-        .options(joinedload(PracticeSessionAnswer.question))
-        .where(PracticeSessionAnswer.session_id == session_id)
-        .order_by(PracticeSessionAnswer.question_order)
+        select(PracticeAnswer)
+        .options(joinedload(PracticeAnswer.question))
+        .where(PracticeAnswer.session_id == session_id)
+        .order_by(PracticeAnswer.question_order)
     )
 
     # 获取所有答题记录
@@ -98,16 +98,16 @@ async def get_practice_session_data(
     report = None
     if session.status == 2:
         report = await db.scalar(
-            select(PracticeSessionReport).where(
-                PracticeSessionReport.session_id == session_id
+            select(PracticeReport).where(
+                PracticeReport.session_id == session_id
             )
         )
 
-    return PracticeSessionDataSchema(
-        session=PracticeSessionSchema.model_validate(session),
+    return PracticeDataSchema(
+        session=PracticeSchema.model_validate(session),
         questions=[QuestionSchema.model_validate(question) for question in questions],
-        answers=[PracticeSessionAnswerSchema.model_validate(answer) for answer in answers],
-        report=PracticeSessionReportSchema.model_validate(report) if report else None,
+        answers=[PracticeAnswerSchema.model_validate(answer) for answer in answers],
+        report=PracticeReportSchema.model_validate(report) if report else None,
     )
 
 
@@ -124,7 +124,7 @@ async def get_ability_practices(
         limit: 返回数量限制
         
     Returns:
-        List[PracticeSessionSchema]: 能力练习列表
+        List[PracticeSchema]: 能力练习列表
     """
     return await get_practice_sessions(db, student_id, "ability_practice", limit)
 
@@ -144,20 +144,20 @@ async def get_unit_practices(
         limit: 返回数量限制
         
     Returns:
-        List[PracticeSessionSchema]: 单元练习列表
+        List[PracticeSchema]: 单元练习列表
     """
-    query = select(PracticeSession).where(
-        PracticeSession.student_id == student_id,
-        PracticeSession.practice_type == "unit_practice",
+    query = select(Practice).where(
+        Practice.student_id == student_id,
+        Practice.practice_type == "unit_practice",
     )
 
     if unit_id:
-        query = query.where(PracticeSession.unit_id == unit_id)
+        query = query.where(Practice.unit_id == unit_id)
 
-    query = query.order_by(desc(PracticeSession.create_time)).limit(limit)
+    query = query.order_by(desc(Practice.create_time)).limit(limit)
     
     result = await db.scalars(query)
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return [PracticeSchema.model_validate(session) for session in result.all()]
 
 
 async def begin_practice(
@@ -175,9 +175,9 @@ async def begin_practice(
     Raises:
         ValueError: 会话不存在或状态异常
     """
-    # 查询练习会话
+    # 查询练习
     session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
+        select(Practice).where(Practice.id == session_id)
     )
 
     if not session:
@@ -228,9 +228,9 @@ async def complete_practice(
     Raises:
         ValueError: 会话不存在或状态异常
     """
-    # 查询练习会话
+    # 查询练习
     session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
+        select(Practice).where(Practice.id == session_id)
     )
 
     if not session:
@@ -268,24 +268,24 @@ async def complete_practice(
 async def get_session_by_id(
     db: AsyncSession,
     session_id: str,
-) -> PracticeSessionSchema | None:
-    """根据会话 ID 查询会话
+) -> PracticeSchema | None:
+    """根据练习 ID 查询练习
     
     Args:
         db: 数据库会话
-        session_id: 会话 ID (UUID v4)
+        session_id: 练习 ID (UUID v4)
         
     Returns:
-        PracticeSessionSchema | None: 会话信息
+        PracticeSchema | None: 练习信息
     """
     session = await db.scalar(
-        select(PracticeSession).where(PracticeSession.id == session_id)
+        select(Practice).where(Practice.id == session_id)
     )
     
     if not session:
         return None
         
-    return PracticeSessionSchema.model_validate(session)
+    return PracticeSchema.model_validate(session)
 
 
 # ==================== 兼容旧版函数（将逐步废弃） ====================
@@ -298,15 +298,15 @@ async def get_daily_practices(
 ):
     """获取当天的日常练习记录（兼容旧版）"""
     start = pendulum.today()
-    query = select(PracticeSession).where(
-        PracticeSession.student_id == student_id,
-        PracticeSession.practice_type == "daily_practice",
-        PracticeSession.create_time >= start.int_timestamp,
+    query = select(Practice).where(
+        Practice.student_id == student_id,
+        Practice.practice_type == "daily_practice",
+        Practice.create_time >= start.int_timestamp,
     )
     if textbook_id:
-        query = query.where(PracticeSession.textbook_id == textbook_id)
+        query = query.where(Practice.textbook_id == textbook_id)
     result = await db.scalars(query)
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return [PracticeSchema.model_validate(session) for session in result.all()]
 
 
 async def get_assess_practices(
@@ -317,14 +317,14 @@ async def get_assess_practices(
     """获取 30 天内的综合评估记录（兼容旧版）"""
     thirty_days_ago = pendulum.now().subtract(days=30)
 
-    query = select(PracticeSession).where(
-        PracticeSession.student_id == student_id,
-        PracticeSession.practice_type == "assess_practice",
-        PracticeSession.create_time >= thirty_days_ago.int_timestamp,
+    query = select(Practice).where(
+        Practice.student_id == student_id,
+        Practice.practice_type == "assess_practice",
+        Practice.create_time >= thirty_days_ago.int_timestamp,
     )
 
     if textbook_id:
-        query = query.where(PracticeSession.textbook_id == textbook_id)
+        query = query.where(Practice.textbook_id == textbook_id)
 
     result = await db.scalars(query)
-    return [PracticeSessionSchema.model_validate(session) for session in result.all()]
+    return [PracticeSchema.model_validate(session) for session in result.all()]
