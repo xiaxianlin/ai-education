@@ -7,22 +7,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class AbilityDomainSchema(BaseModel):
-    """能力域信息"""
-
-    id: int
-    subject: str
-    code: str
-    name: str
-    description: Optional[str] = None
-    sort_order: int = 0
-    is_active: int = 1
-    create_time: int
-    update_time: int
-
-    model_config = {"from_attributes": True}
-
-
 class AbilityAtomicSchema(BaseModel):
     """原子能力信息"""
 
@@ -42,8 +26,8 @@ class AbilityAtomicSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class AbilityDomainWithAtomicsSchema(BaseModel):
-    """能力域信息（包含原子能力列表）"""
+class AbilityDomainSchema(BaseModel):
+    """能力域信息"""
 
     id: int
     subject: str
@@ -54,7 +38,7 @@ class AbilityDomainWithAtomicsSchema(BaseModel):
     is_active: int = 1
     create_time: int
     update_time: int
-    atomics: list[AbilityAtomicSchema] = []
+    atomics: Optional[list[AbilityAtomicSchema]] = None
 
     model_config = {"from_attributes": True}
 
@@ -62,5 +46,4 @@ class AbilityDomainWithAtomicsSchema(BaseModel):
 __all__ = [
     "AbilityDomainSchema",
     "AbilityAtomicSchema",
-    "AbilityDomainWithAtomicsSchema",
 ]

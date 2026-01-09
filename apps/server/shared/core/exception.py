@@ -65,6 +65,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=200,
         content={"status": exc.status_code, "message": exc.detail},
+        media_type="application/json; charset=utf-8",
     )
 
 
@@ -75,6 +76,7 @@ async def value_error_handler(request: Request, exc: ValueError):
     return JSONResponse(
         status_code=200,
         content={"status": 400, "message": str(exc)},
+        media_type="application/json; charset=utf-8",
     )
 
 
@@ -83,11 +85,19 @@ async def global_exception_handler(request: Request, exc: Exception):
     print_exception(request, exc, exception_type="system_error")
 
     error_message = get_error_message(exc, "服务器内部错误")
-    return JSONResponse(status_code=200, content={"status": 500, "message": error_message})
+    return JSONResponse(
+        status_code=200,
+        content={"status": 500, "message": error_message},
+        media_type="application/json; charset=utf-8",
+    )
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """参数验证异常处理器"""
     print_exception(request, exc, exception_type="validation_error")
 
-    return JSONResponse(status_code=200, content={"status": 422, "message": "参数校验失败"})
+    return JSONResponse(
+        status_code=200,
+        content={"status": 422, "message": "参数校验失败"},
+        media_type="application/json; charset=utf-8",
+    )

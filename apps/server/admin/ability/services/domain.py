@@ -2,15 +2,13 @@
 能力域服务
 """
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from shared.core.database import AbilityAtomic, AbilityDomain
 from shared.core.schema import (
     AbilityAtomicSchema,
     AbilityDomainSchema,
-    AbilityDomainWithAtomicsSchema,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
     CreateAbilityDomainSchema,
@@ -25,9 +23,7 @@ async def create_domain(db: AsyncSession, data: CreateAbilityDomainSchema):
     code = data.code.strip()
 
     # 检查唯一性
-    exists_stmt = select(AbilityDomain).where(
-        AbilityDomain.subject == subject, AbilityDomain.code == code
-    )
+    exists_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.code == code)
     domain_exists = await db.scalar(exists_stmt)
     if domain_exists:
         raise ValueError("该科目下已存在相同代码的能力域")
@@ -46,9 +42,7 @@ async def create_domain(db: AsyncSession, data: CreateAbilityDomainSchema):
     return domain.id
 
 
-async def update_domain(
-    db: AsyncSession, id: int, data: UpdateAbilityDomainSchema
-):
+async def update_domain(db: AsyncSession, id: int, data: UpdateAbilityDomainSchema):
     """更新能力域"""
     domain = await db.scalar(select(AbilityDomain).where(AbilityDomain.id == id))
     if not domain:
@@ -106,21 +100,24 @@ async def get_domain(db: AsyncSession, id: int):
     return AbilityDomainSchema.model_validate(domain)
 
 
-async def get_domains_with_atomics_by_subject(
-    db: AsyncSession, subject: str
-):
+async def get_domains_with_atomics_by_subject(db: AsyncSession, subject: str):
     """根据科目获取能力域及其下的原子能力（二级结构）"""
     # 查询该科目下的所有能力域
-    domain_stmt = select(AbilityDomain).where(
-        AbilityDomain.subject == subject, AbilityDomain.is_active == 1
-    )
+    domain_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.is_active == 1)
     domain_stmt = domain_stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
     domain_result = await db.scalars(domain_stmt)
     domains = domain_result.all()
 
-    # 查询该科目下的所有原子能力
+    # 如果能力域列表为空，直接返回空列表
+    if not domains:
+        return []
+
+    # 提取能力域的 code 列表
+    domain_codes = [domain.code for domain in domains]
+
+    # 通过能力域的 code 查询原子能力
     atomic_stmt = select(AbilityAtomic).where(
-        AbilityAtomic.subject == subject, AbilityAtomic.is_active == 1
+        AbilityAtomic.domain_code.in_(domain_codes), AbilityAtomic.subject == subject, AbilityAtomic.is_active == 1
     )
     atomic_stmt = atomic_stmt.order_by(AbilityAtomic.sort_order, AbilityAtomic.id)
     atomic_result = await db.scalars(atomic_stmt)
@@ -132,19 +129,13 @@ async def get_domains_with_atomics_by_subject(
         domain_code = atomic.domain_code
         if domain_code not in atomics_by_domain:
             atomics_by_domain[domain_code] = []
-        atomics_by_domain[domain_code].append(
-            AbilityAtomicSchema.model_validate(atomic)
-        )
+        atomics_by_domain[domain_code].append(AbilityAtomicSchema.model_validate(atomic))
 
     # 构建嵌套结构
     result = []
     for domain in domains:
-        domain_schema = AbilityDomainSchema.model_validate(domain)
         domain_atomics = atomics_by_domain.get(domain.code, [])
-        result.append(
-            AbilityDomainWithAtomicsSchema(
-                **domain_schema.model_dump(), atomics=domain_atomics
-            )
-        )
+        domain_schema = AbilityDomainSchema.model_validate(domain)
+        result.append(domain_schema.model_copy(update={"atomics": domain_atomics}))
 
     return result

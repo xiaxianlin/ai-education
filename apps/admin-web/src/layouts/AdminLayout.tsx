@@ -2,6 +2,7 @@ import logo from '@/assets/logo.png';
 import { apiClient } from '@/lib/api';
 import { useInitialStateModel } from '@/models/initialState';
 import {
+  ApartmentOutlined,
   BookOutlined,
   ClusterOutlined,
   DashboardOutlined,
@@ -9,7 +10,6 @@ import {
   ProfileOutlined,
   QuestionCircleOutlined,
   UserOutlined,
-  ApartmentOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown, Spin } from 'antd';
@@ -71,10 +71,8 @@ const routes = {
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loading, manager, configs, clearState } = useInitialStateModel();
+  const { loading, manager, clearState } = useInitialStateModel();
   const [pathname, setPathname] = useState(location.pathname);
-
-  console.log('loading', loading, manager, configs);
 
   if (loading) {
     return (

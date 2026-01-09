@@ -108,7 +108,7 @@ export const AbilityApi = {
    * GET /ability/by-subject/{subject}
    */
   async getBySubject(subject: string) {
-    return apiClient.get<AbilityDomainWithAtomics[]>(
+    return apiClient.get<AbilityDomain[]>(
       `/ability/by-subject/${subject}`
     );
   },

@@ -14,6 +14,8 @@ def drop_none(d):
 
 
 class WrappedResponse(Response):
+    media_type = "application/json; charset=utf-8"
+
     def render(self, content: Any) -> bytes:
         return json.dumps(
             drop_none({"status": 0, "message": "success", "data": content}),

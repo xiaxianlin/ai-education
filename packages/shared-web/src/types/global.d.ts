@@ -125,21 +125,6 @@ declare global {
   }
 
   /**
-   * 能力域信息（对应 AbilityDomainSchema）
-   */
-  interface AbilityDomain {
-    id: number;
-    subject: string;
-    code: string;
-    name: string;
-    description?: string;
-    sort_order: number;
-    is_active: number;
-    create_time: number;
-    update_time: number;
-  }
-
-  /**
    * 原子能力信息（对应 AbilityAtomicSchema）
    */
   interface AbilityAtomic {
@@ -158,9 +143,9 @@ declare global {
   }
 
   /**
-   * 能力域信息（包含原子能力列表，对应 AbilityDomainWithAtomicsSchema）
+   * 能力域信息（对应 AbilityDomainSchema）
    */
-  interface AbilityDomainWithAtomics {
+  interface AbilityDomain {
     id: number;
     subject: string;
     code: string;
@@ -170,7 +155,7 @@ declare global {
     is_active: number;
     create_time: number;
     update_time: number;
-    atomics: AbilityAtomic[];
+    atomics?: AbilityAtomic[];
   }
 
   /**

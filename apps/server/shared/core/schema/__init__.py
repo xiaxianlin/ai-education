@@ -45,7 +45,6 @@ from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSc
 from .ability import (
     AbilityAtomicSchema,
     AbilityDomainSchema,
-    AbilityDomainWithAtomicsSchema,
 )
 
 __all__ = [
@@ -88,5 +87,4 @@ __all__ = [
     # 能力
     "AbilityDomainSchema",
     "AbilityAtomicSchema",
-    "AbilityDomainWithAtomicsSchema",
 ]

@@ -29,6 +29,7 @@ async_engine = create_async_engine(
     max_overflow=envs.DATABASE_MAX_OVERFLOW,
     pool_timeout=envs.DATABASE_POOL_TIMEOUT,
     pool_recycle=envs.DATABASE_POOL_RECYCLE,
+    connect_args={"charset": "utf8mb4"},  # 添加字符集参数
 )
 
 # 异步会话工厂
