@@ -56,7 +56,7 @@ export const PracticeStateCard = memo(function PracticeStateCard({
   }, [state, practice, creating, createPractice]);
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-2xl border shadow-sm">
+    <div className="h-full min-h-[200px] flex flex-col bg-white rounded-2xl border shadow-sm">
       <div className="p-5 flex flex-col flex-1">
         {/* 头部：标题 + extra */}
         <div className="flex items-start justify-between gap-3 mb-2">

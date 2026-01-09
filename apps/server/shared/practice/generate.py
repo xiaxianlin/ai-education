@@ -27,13 +27,20 @@ from shared.worker import Executor, submit_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def execute_generate_practice(db: AsyncSession, session_id: str, generate_count: int = 15) -> None:
+async def execute_generate_practice(
+    db: AsyncSession,
+    session_id: str,
+    generate_count: int = 15,
+    session_factory=None,
+) -> None:
     """执行练习会话生成（调用 LangGraph 工作流）
 
     Args:
         db: 数据库会话
         session_id: 练习会话 ID
         generate_count: 生成题目数量
+        session_factory: 可选的数据库会话工厂。在 Celery worker 中必须传入，
+                        因为全局的 AsyncSessionLocal 绑定到了不同的事件循环。
     """
     # Lazy import to avoid circular dependency
     from shared.generation.practice import invoke_practice_generation_workflow
@@ -42,6 +49,7 @@ async def execute_generate_practice(db: AsyncSession, session_id: str, generate_
         db=db,
         session_id=session_id,
         generate_count=generate_count,
+        session_factory=session_factory,
     )
 
 

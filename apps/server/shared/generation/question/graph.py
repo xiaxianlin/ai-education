@@ -386,6 +386,7 @@ async def invoke_question_generation_workflow(
     *,
     question_type_code: str,
     count: int,
+    session_factory=None,
 ) -> List[Question]:
     """执行题目生成工作流
 
@@ -394,6 +395,9 @@ async def invoke_question_generation_workflow(
     Args:
         question_type_code: 题目类型编码
         count: 需要生成的数量
+        session_factory: 可选的数据库会话工厂。在 Celery worker 中必须传入，
+                        因为全局的 AsyncSessionLocal 绑定到了不同的事件循环。
+                        如果不传入，将使用默认的 AsyncSessionLocal。
 
     Returns:
         List[Question]: 生成的题目列表
@@ -402,7 +406,10 @@ async def invoke_question_generation_workflow(
         ValueError: 如果输入参数无效
         Exception: 如果工作流执行失败
     """
-    from shared.core.database import AsyncSessionLocal
+    # 使用传入的 session_factory 或默认的 AsyncSessionLocal
+    if session_factory is None:
+        from shared.core.database import AsyncSessionLocal
+        session_factory = AsyncSessionLocal
 
     workflow_name = "invoke_question_generation_workflow"
     logger.info(
@@ -422,7 +429,7 @@ async def invoke_question_generation_workflow(
         raise ValueError(f"生成数量（count）不能超过 100，当前值: {count}")
 
     # 为每个工作流创建独立的数据库会话，避免并行任务共享会话导致的冲突
-    async with AsyncSessionLocal() as db:
+    async with session_factory() as db:
         state = QuestionGenerationState(
             db=db,
             question_type_code=question_type_code,

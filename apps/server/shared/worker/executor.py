@@ -69,7 +69,8 @@ def execute_generate_practice_task(self, session_id: str, generate_count: int = 
 
         try:
             async with session_factory() as db:
-                await execute_generate_practice(db, session_id, generate_count)
+                # 传递 session_factory 给工作流，确保内部的并行任务也使用正确的事件循环
+                await execute_generate_practice(db, session_id, generate_count, session_factory)
         finally:
             # 任务完成后关闭引擎，释放连接池资源
             await engine.dispose()

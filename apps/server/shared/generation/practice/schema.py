@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, NotRequired, Optional, TypedDict
+from typing import Any, Callable, Dict, List, NotRequired, Optional, TypedDict
 
 import pendulum
 from shared.core.database import Practice, Question
@@ -27,6 +27,8 @@ class PracticeGenerationState(TypedDict, total=False):
     db: AsyncSession
     session_id: str
     generate_count: int
+    # 可选：数据库会话工厂（Celery worker 中需要传入，避免事件循环不匹配问题）
+    session_factory: NotRequired[Callable[[], AsyncSession]]
 
     # 内部构建状态
     session: NotRequired[Practice]

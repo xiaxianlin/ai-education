@@ -187,6 +187,8 @@ async def generate_questions_node(state: PracticeGenerationState) -> Dict[str, A
     db: AsyncSession = state["db"]
     selections = state["selections"]
     session_id = state["session_id"]
+    # 获取 session_factory（Celery worker 传入，避免事件循环不匹配问题）
+    session_factory = state.get("session_factory")
 
     # 最小成功率阈值
     MIN_SUCCESS_RATE = 0.5
@@ -198,10 +200,12 @@ async def generate_questions_node(state: PracticeGenerationState) -> Dict[str, A
     total_expected = sum(s["question_count"] for s in selections)
 
     # 并行生成题目（每个任务使用独立的数据库会话，避免并发冲突）
+    # 传递 session_factory 以确保在 Celery worker 中使用正确的事件循环
     tasks = [
         invoke_question_generation_workflow(
             question_type_code=selection["question_type_code"],
             count=selection["question_count"],
+            session_factory=session_factory,
         )
         for selection in selections
     ]
@@ -381,6 +385,7 @@ async def invoke_practice_generation_workflow(
     db: AsyncSession,
     session_id: str,
     generate_count: int = 15,
+    session_factory=None,
 ) -> None:
     """执行练习生成工作流
 
@@ -392,6 +397,8 @@ async def invoke_practice_generation_workflow(
         db: 数据库会话
         session_id: 练习会话 ID
         generate_count: 生成题目数量
+        session_factory: 可选的数据库会话工厂。在 Celery worker 中必须传入，
+                        因为全局的 AsyncSessionLocal 绑定到了不同的事件循环。
     """
     workflow_name = "invoke_practice_generation_workflow"
 
@@ -414,6 +421,7 @@ async def invoke_practice_generation_workflow(
         session_id=session_id,
         generate_count=generate_count,
         start_time=pendulum.now(),
+        session_factory=session_factory,
     )
 
     try:
