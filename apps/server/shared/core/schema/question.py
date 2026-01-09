@@ -37,7 +37,10 @@ class QuestionTypeSchema(BaseModel):
 
     # 认知与能力
     cognitive_levels: Optional[list] = None
-    ability_dimensions: Optional[list] = None
+    
+    # 能力关联
+    domain_code: Optional[str] = None
+    ability_atomic_codes: Optional[list] = None
 
     # 难度
     difficulty: Optional[str] = None

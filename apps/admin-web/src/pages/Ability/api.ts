@@ -103,6 +103,16 @@ export const AbilityApi = {
     return apiClient.delete(`/ability/domain/${id}`);
   },
 
+  /**
+   * 根据科目获取能力数据（二级结构）
+   * GET /ability/by-subject/{subject}
+   */
+  async getBySubject(subject: string) {
+    return apiClient.get<AbilityDomainWithAtomics[]>(
+      `/ability/by-subject/${subject}`
+    );
+  },
+
   // ========== 原子能力管理 ==========
 
   /**

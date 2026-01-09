@@ -42,7 +42,11 @@ from .student import StudentPracticeSchema, StudentSchema, StudentTextbookSchema
 from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
 
 # 能力模块
-from .ability import AbilityDomainSchema, AbilityAtomicSchema
+from .ability import (
+    AbilityAtomicSchema,
+    AbilityDomainSchema,
+    AbilityDomainWithAtomicsSchema,
+)
 
 __all__ = [
     # 通用
@@ -84,4 +88,5 @@ __all__ = [
     # 能力
     "AbilityDomainSchema",
     "AbilityAtomicSchema",
+    "AbilityDomainWithAtomicsSchema",
 ]

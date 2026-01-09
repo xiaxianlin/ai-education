@@ -1,11 +1,15 @@
 import { DIFFICULTY_LABELS, GRADES } from '@ai-education/shared-web';
 import { ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
-import { Col, Row } from 'antd';
+import { Col, Form, Row } from 'antd';
 import { STAGE_OPTIONS } from '../../constants';
 import { useQuestionTypeFormModel } from '../models/page';
 
 export function BaseForm() {
-  const { subjects, availableGrades, handleStagesChange } = useQuestionTypeFormModel();
+  const { form, subjects, availableGrades, handleStagesChange, domains, atomics } = useQuestionTypeFormModel();
+
+  const subject = Form.useWatch('subject', form);
+  const domainCode = Form.useWatch('domain_code', form);
+  const grades = Form.useWatch('grades', form);
 
   return (
     <>
@@ -80,6 +84,51 @@ export function BaseForm() {
               label: GRADES[g],
             }))}
             disabled={availableGrades.length === 0}
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={12}>
+          <ProFormSelect
+            name="domain_code"
+            label="能力域"
+            placeholder={subject ? '请选择能力域' : '请先选择科目'}
+            rules={[{ required: true, message: '请选择能力域' }]}
+            options={domains.map((d) => ({ label: d.name, value: d.code }))}
+            disabled={!subject}
+            tooltip={!subject ? '请先选择科目' : undefined}
+          />
+        </Col>
+        <Col span={12}>
+          <ProFormSelect
+            name="ability_atomic_codes"
+            label="原子能力"
+            mode="multiple"
+            placeholder={
+              !subject
+                ? '请先选择科目'
+                : !domainCode
+                  ? '请先选择能力域'
+                  : !grades?.length
+                    ? '请先选择年级'
+                    : atomics.length === 0
+                      ? '暂无可用原子能力'
+                      : '请选择原子能力（可选）'
+            }
+            options={atomics.map((a) => ({ label: a.name, value: a.code }))}
+            disabled={!subject || !domainCode || !grades?.length || atomics.length === 0}
+            tooltip={
+              !subject
+                ? '请先选择科目'
+                : !domainCode
+                  ? '请先选择能力域'
+                  : !grades?.length
+                    ? '请先选择年级'
+                    : atomics.length === 0
+                      ? '当前条件下暂无可用原子能力'
+                      : undefined
+            }
           />
         </Col>
       </Row>

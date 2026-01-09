@@ -74,6 +74,17 @@ async def get_domain(id: int, db: AsyncSession = Database):
     return await domain.get_domain(db, id)
 
 
+@ability_router.get(
+    "/by-subject/{subject}",
+    summary="根据科目获取能力数据",
+    description="根据科目获取能力域及其下的原子能力（二级结构）",
+)
+async def get_abilities_by_subject(
+    subject: str, db: AsyncSession = Database
+):
+    return await domain.get_domains_with_atomics_by_subject(db, subject)
+
+
 # ======================== 原子能力管理 ======================== #
 
 

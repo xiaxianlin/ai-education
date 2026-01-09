@@ -1,20 +1,20 @@
 import {
-  ABILITY_TYPE_MAP,
-  ANSWER_TYPE_LABELS,
-  COGNITIVE_LEVEL_LABELS,
-  DIFFICULTY_LABELS,
-  GRADES,
-  INTERACTION_TYPE_LABELS,
-  RESOURCE_TYPE_LABELS,
-  STAGE_LABELS,
+    ANSWER_TYPE_LABELS,
+    COGNITIVE_LEVEL_LABELS,
+    DIFFICULTY_LABELS,
+    GRADES,
+    INTERACTION_TYPE_LABELS,
+    RESOURCE_TYPE_LABELS,
+    STAGE_LABELS,
 } from '@ai-education/shared-web';
 import { ProFormTextArea } from '@ant-design/pro-components';
-import { Button, Form } from 'antd';
+import { Button, Form, message } from 'antd';
+import { AbilityApi } from '../../../Ability/api';
 
 export function PromptForm() {
   const form = Form.useFormInstance();
 
-  const generatePromptTemplate = () => {
+  const generatePromptTemplate = async () => {
     const values = form.getFieldsValue();
 
     // 格式化基础信息
@@ -84,18 +84,49 @@ export function PromptForm() {
       (values.cognitiveLevels || [])
         .map((level: string) => COGNITIVE_LEVEL_LABELS[level as keyof typeof COGNITIVE_LEVEL_LABELS] || level)
         .join('、') || '无';
-    const abilityDimensions =
-      (values.abilityDimensions || [])
-        .map((dim: string) => {
-          const subjectMap = ABILITY_TYPE_MAP[subject as keyof typeof ABILITY_TYPE_MAP];
-          return subjectMap?.[dim as keyof typeof subjectMap] || dim;
-        })
-        .join('、') || '无';
+    
+    // 加载能力域名称
+    let domainName = '无';
+    if (values.domain_code && values.subject) {
+      try {
+        const domains = await AbilityApi.searchDomains({ subject: values.subject });
+        const domain = domains.find((d) => d.code === values.domain_code);
+        domainName = domain?.name || values.domain_code;
+      } catch (error) {
+        console.error('加载能力域失败:', error);
+        domainName = values.domain_code || '无';
+      }
+    }
+
+    // 加载原子能力名称
+    let atomicNames = '无';
+    if (values.ability_atomic_codes?.length && values.subject && values.domain_code && values.grades?.length) {
+      try {
+        const promises = (values.grades as number[]).map((grade: number) =>
+          AbilityApi.searchAtomics({
+            subject: values.subject,
+            grade,
+            domain_code: values.domain_code,
+          })
+        );
+        const results = await Promise.all(promises);
+        const allAtomics = results.flat();
+        const nameMap = new Map(allAtomics.map((a) => [a.code, a.name]));
+        const names = (values.ability_atomic_codes as string[])
+          .map((code: string) => nameMap.get(code) || code)
+          .filter(Boolean);
+        atomicNames = names.length > 0 ? names.join('、') : '无';
+      } catch (error) {
+        console.error('加载原子能力失败:', error);
+        atomicNames = (values.ability_atomic_codes as string[]).join('、') || '无';
+      }
+    }
+
     const difficulty = values.difficulty
       ? DIFFICULTY_LABELS[values.difficulty as keyof typeof DIFFICULTY_LABELS] || values.difficulty
       : '无';
 
-    // 生成模板
+    // 生成改进后的模板
     const template = `请根据题型信息和生成要求生成问题。
 
 ## 题型信息
@@ -108,28 +139,30 @@ export function PromptForm() {
 - 题型描述：${description}
 
 ### 交互配置
-- 说明：交互配置是学生在界面上的操作方式
+- 说明：交互配置定义了学生在界面上的操作方式，包括如何选择答案、输入内容等交互行为。
 - 交互类型：${interactionType}
 - 交互配置：${interactionConfig}
 
 ### 资源配置
-- 说明：资源配置是根据类型去生成问题对于的资源，文本不需要生成资源内容，图片需要生成图片生成的 prompt，音频需要生成合成音频的文本。
+- 说明：资源配置用于生成题目所需的资源。文本类型无需生成资源内容；图片类型需要生成图片生成的 prompt 描述；音频类型需要生成用于合成音频的文本内容。
 - 资源类型：${resourceType}
 - 资源配置：${resourceConfig}
 
 ### 答案配置
+- 说明：答案配置定义了题目的正确答案格式和判断标准。
 - 答案类型：${answerType}
 - 答案配置：${answerConfig}
 
-###认知与能力
+### 认知与能力
 - 认知层次：${cognitiveLevels}
-- 能力维度：${abilityDimensions}
+- 能力域：${domainName}
+- 原子能力：${atomicNames}
 - 难度：${difficulty}
 
 ## 任务
-- 生成严格遵循此题型的{count}题目。
-- 请不要生成超出必填字段的解释。
-- 仅返回 JSON，按照预定义的输出模式。
+- 生成严格遵循此题型的{count}道题目。
+- 请确保生成的题目完全符合题型的各项配置要求。
+- 仅返回 JSON 格式，按照预定义的输出模式，不要添加额外的解释或说明。
 
 ## 输出格式
 {format_instructions}`;
@@ -137,9 +170,15 @@ export function PromptForm() {
     return template;
   };
 
-  const handleApplyTemplate = () => {
-    const template = generatePromptTemplate();
-    form.setFieldValue('aiPrompt', template);
+  const handleApplyTemplate = async () => {
+    try {
+      const template = await generatePromptTemplate();
+      form.setFieldValue('aiPrompt', template);
+      message.success('模板已应用');
+    } catch (error) {
+      console.error('生成模板失败:', error);
+      message.error('生成模板失败，请稍后重试');
+    }
   };
 
   return (

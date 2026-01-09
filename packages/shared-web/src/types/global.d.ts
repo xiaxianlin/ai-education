@@ -158,6 +158,22 @@ declare global {
   }
 
   /**
+   * 能力域信息（包含原子能力列表，对应 AbilityDomainWithAtomicsSchema）
+   */
+  interface AbilityDomainWithAtomics {
+    id: number;
+    subject: string;
+    code: string;
+    name: string;
+    description?: string;
+    sort_order: number;
+    is_active: number;
+    create_time: number;
+    update_time: number;
+    atomics: AbilityAtomic[];
+  }
+
+  /**
    * 题型实体（对应 QuestionTypeSchema）
    */
   interface QuestionType {
@@ -176,7 +192,9 @@ declare global {
     answer_config?: Record<string, unknown>;
     feedback_config?: FeedbackConfig;
     cognitive_levels?: CognitiveLevel[];
-    ability_dimensions?: string[];
+    ability_dimensions?: string[]; // 已废弃，使用 domain_code 和 ability_atomic_codes
+    domain_code?: string;
+    ability_atomic_codes?: string[];
     difficulty?: Difficulty;
     ai_prompt?: string;
     output_schema?: Record<string, unknown>;

@@ -12,8 +12,9 @@ import {
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, message, Modal, Space, Tag } from 'antd';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AbilityApi } from '../../../Ability/api';
 import { QuestionApi } from '../../api';
 import { useQuestionTypeModel } from '../models/page';
 
@@ -22,7 +23,26 @@ export default function ListView() {
   const { actionRef, subject, grade, handleDelete } = useQuestionTypeModel();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [domainMap, setDomainMap] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 加载所有科目的能力域用于映射
+  useEffect(() => {
+    const loadDomains = async () => {
+      try {
+        const subjects = ['语文', '数学', '英语'];
+        const allDomains = await Promise.all(subjects.map((s) => AbilityApi.searchDomains({ subject: s })));
+        const map: Record<string, string> = {};
+        allDomains.flat().forEach((d) => {
+          map[`${d.subject}_${d.code}`] = d.name;
+        });
+        setDomainMap(map);
+      } catch (error) {
+        console.error('加载能力域失败:', error);
+      }
+    };
+    loadDomains();
+  }, []);
 
   // 导出题型数据为 JSON
   const handleExport = async () => {
@@ -170,6 +190,17 @@ export default function ListView() {
         render: (_, record) => record.grades.map((grade) => GRADES[grade]).join(', '),
       },
       {
+        title: '能力域',
+        dataIndex: 'domain_code',
+        width: 120,
+        render: (code, record) => {
+          if (!code) return '-';
+          const key = `${record.subject}_${code}`;
+          const domainName = domainMap[key];
+          return domainName ? <Tag color="cyan">{domainName}</Tag> : <Tag>{code}</Tag>;
+        },
+      },
+      {
         title: '交互类型',
         dataIndex: 'interaction_type',
         width: 100,
@@ -231,7 +262,7 @@ export default function ListView() {
         { width: 120 },
       ),
     ],
-    [navigate, handleDelete],
+    [navigate, handleDelete, domainMap],
   );
 
   return (

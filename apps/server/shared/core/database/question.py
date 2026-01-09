@@ -6,6 +6,8 @@
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import Index
+
 from .base import (
     JSON,
     BaseModel,
@@ -55,7 +57,19 @@ class QuestionType(BaseModel):
 
     # 认知与能力
     cognitive_levels: Mapped[list] = mapped_column(JSON, nullable=True, comment="认知层次列表")
-    ability_dimensions: Mapped[list] = mapped_column(JSON, nullable=True, comment="能力维度列表")
+    
+    # 能力关联
+    domain_code: Mapped[str] = mapped_column(
+        String(50), 
+        nullable=True, 
+        index=True, 
+        comment="关联的能力域代码（对应 AbilityDomain.code）"
+    )
+    ability_atomic_codes: Mapped[list] = mapped_column(
+        JSON, 
+        nullable=True, 
+        comment="关联的原子能力代码列表（对应 AbilityAtomic.code）"
+    )
 
     # 难度
     difficulty: Mapped[str] = mapped_column(String(20), nullable=True, comment="难度：easy/medium/hard")
@@ -69,6 +83,10 @@ class QuestionType(BaseModel):
     is_active: Mapped[bool] = mapped_column(default=True, comment="是否启用")
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    __table_args__ = (
+        Index("ix_subject_domain", "subject", "domain_code"),
+    )
 
 
 class Question(BaseModel):

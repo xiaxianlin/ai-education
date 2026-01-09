@@ -20,11 +20,7 @@ export function ConfigDetail({ item }: ConfigDetailProps) {
       <ResourceConfigDetail resourceType={item?.resource_type} resourceConfig={item?.resource_config} />
       <AnswerConfigDetail answerType={item?.answer_type} answerConfig={item?.answer_config} />
       <FeedbackConfigDetail feedbackConfig={item?.feedback_config} />
-      <CognitiveConfigDetail
-        cognitiveLevels={item?.cognitive_levels}
-        abilityDimensions={item?.ability_dimensions}
-        subject={item?.subject}
-      />
+      <CognitiveConfigDetail cognitiveLevels={item?.cognitive_levels} />
     </div>
   );
 }
