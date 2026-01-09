@@ -18,7 +18,7 @@ class MockPracticeSessionAnswer:
     """Mock 答题记录"""
 
     id: int = 1
-    session_id: int = 1
+    session_id: str = "550e8400-e29b-41d4-a716-446655440000"  # UUID v4 格式
     question_id: str = "q1"
     student_id: str = "student_001"
     status: int = 0  # 0=未答, 1=正确, 2=错误
@@ -67,18 +67,17 @@ class MockTextbook:
 class MockPracticeSession:
     """Mock 练习会话"""
 
-    id: int = 1
+    id: str = "550e8400-e29b-41d4-a716-446655440000"  # UUID v4 格式
     student_id: str = "student_001"
-    practice_slug: str = "daily_practice"
+    practice_type: str = "ability_practice"  # ability_practice / unit_practice
     textbook_id: int = 1
     unit_id: Optional[int] = None
     status: int = 0
-    generate_status: int = 1
+    generate_status: int = 1  # 0=生成中, 1=已完成, -1=生成失败
     question_count: int = 10
     answer_count: int = 0
     correct_count: int = 0
     parameters: Dict[str, Any] = field(default_factory=dict)
-    session_type: str = "daily_practice"
 
 
 # ==================== Fixtures ====================

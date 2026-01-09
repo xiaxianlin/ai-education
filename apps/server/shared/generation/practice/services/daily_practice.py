@@ -41,7 +41,7 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     question_types = session.parameters.get("question_types", {})
 
     # 使用默认提示词模板（Practice 表已删除）
-    # 提示词模板可以根据 practice_slug 从配置或 Prompt 表获取
+    # 提示词模板可以根据 practice_type 从配置或 Prompt 表获取
     # 这里使用一个简单的默认模板
     default_prompt_template = """请为{grade}年级学生生成{count}道{subject}科目的日常练习题目。
     

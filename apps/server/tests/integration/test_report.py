@@ -241,10 +241,10 @@ class TestGenerateRecommendations:
         answers = []
         knowledge_scores = {"加法运算": {"accuracy": 95}}
         overall_score = 95
-        session_type = "daily_practice"
+        practice_type = "ability_practice"
 
         strengths, weaknesses, recommendations = await generate_recommendations(
-            db, answers, knowledge_scores, overall_score, session_type
+            db, answers, knowledge_scores, overall_score, practice_type
         )
 
         assert len(strengths) > 0  # 有优势
@@ -260,10 +260,10 @@ class TestGenerateRecommendations:
         answers = []
         knowledge_scores = {"加法运算": {"accuracy": 40}}
         overall_score = 40
-        session_type = "unit_practice"
+        practice_type = "unit_practice"
 
         strengths, weaknesses, recommendations = await generate_recommendations(
-            db, answers, knowledge_scores, overall_score, session_type
+            db, answers, knowledge_scores, overall_score, practice_type
         )
 
         assert len(strengths) == 0

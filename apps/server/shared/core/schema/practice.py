@@ -33,23 +33,34 @@ class TemplateVariableSchema(BaseModel):
 
 
 class PracticeSessionSchema(BaseModel):
-    """练习会话 Schema"""
+    """练习会话 Schema
+    
+    练习类型 (practice_type):
+    - ability_practice: 能力练习 - 基于原子能力 code 列表生成
+    - unit_practice: 单元练习 - 基于单元 ID 生成
+    
+    生成状态 (generate_status):
+    - 0: 生成中
+    - 1: 已完成
+    - -1: 生成失败
+    """
 
-    id: int
+    id: str = Field(..., description="会话ID (UUID v4)")
     student_id: str
-    practice_slug: str
+    practice_type: str = Field(..., description="练习类型: ability_practice/unit_practice")
     parameters: dict = Field(default_factory=dict, description="练习参数")
     question_count: int = 0
     answer_count: int = 0
     correct_count: int = 0
     status: int = 0  # 会话状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
-    generate_status: int = 0  # 生成状态: 0-未生成, 1-生成中, 2-已生成
+    generate_status: int = 0  # 生成状态: 0-生成中, 1-已完成, -1-生成失败
     generate_time: Optional[int] = None
     start_time: int
     end_time: Optional[int] = None
     create_time: int
     update_time: Optional[int] = None
 
+    # 兼容字段
     textbook_id: Optional[int] = None
     unit_id: Optional[int] = None
 
@@ -60,7 +71,7 @@ class PracticeSessionAnswerSchema(BaseModel):
     """答题记录 Schema"""
 
     id: int
-    session_id: int
+    session_id: str = Field(..., description="会话ID (UUID v4)")
     question_id: str
     student_id: str
     question_order: int
@@ -95,7 +106,7 @@ class PracticeSessionReportSchema(BaseModel):
     """练习报告 Schema"""
 
     id: int
-    session_id: int
+    session_id: str = Field(..., description="会话ID (UUID v4)")
     student_id: str
     total_questions: int = 0
     correct_questions: int = 0
