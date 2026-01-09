@@ -91,6 +91,22 @@ async def create_practice(
 
 
 @practice_router.get(
+    "/progress/{session_id}",
+    tags=["练习"],
+    summary="获取练习生成进度",
+    description="获取练习会话的生成进度信息",
+)
+async def get_practice_progress(session_id: str):
+    """获取练习生成进度"""
+    from shared.services.progress import progress_service
+
+    progress = await progress_service.get_progress(session_id)
+    if progress is None:
+        return {"progress": 0, "step": "pending", "message": "等待生成"}
+    return progress
+
+
+@practice_router.get(
     "/records/{practice_id}",
     tags=["练习"],
     summary="获取练习记录",

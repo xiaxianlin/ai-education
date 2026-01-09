@@ -3,27 +3,48 @@
 包含参数验证、题型选择、答题记录处理等功能
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from pydantic import BaseModel, Field
 from shared.core.database import AbilityAtomic, Practice, PracticeAnswer, Question, QuestionType, Textbook, Unit
-from shared.provider import get_provider
 from shared.practice.prompt import SELECT_QUESTION_TYPE_PROMPT, SELECT_QUESTION_TYPE_SYSTEM_PROMPT
+from shared.provider import get_provider
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT
 
 
+# ==================== Pydantic 模型 ====================
+
+
+class QuestionTypeSelection(BaseModel):
+    """题型选择结果"""
+
+    question_type_code: str = Field(description="题型代码")
+    question_type_name: str = Field(description="题型名称")
+    difficulty: str = Field(description="难度: easy/medium/hard")
+    question_count: int = Field(description="题目数量")
+
+
+class QuestionTypeSelectionResult(BaseModel):
+    """题型选择结果列表"""
+
+    selections: List[QuestionTypeSelection] = Field(description="题型选择列表")
+
+
+# ==================== 服务函数 ====================
+
+
 async def validate_ability_practice_params(
     db: AsyncSession,
     student_id: str,
     ability_code: str,
-    subject: str | None = None,
-    grade: int | None = None,
+    subject: Optional[str] = None,
+    grade: Optional[int] = None,
 ) -> Dict[str, Any]:
     """验证能力练习参数
 
@@ -142,7 +163,7 @@ async def select_question_types(
     total_count: int,
     context: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
-    """调用大模型选择题型
+    """选择题型 - 规则引擎优先，LLM 兜底
 
     Args:
         db: 数据库会话
@@ -159,6 +180,8 @@ async def select_question_types(
             - difficulty: 难度
             - question_count: 题目数量
     """
+    from shared.practice.question_type_rules import get_rule_based_selection
+
     # 获取可用题型
     question_types = await db.scalars(
         select(QuestionType).where(
@@ -171,22 +194,37 @@ async def select_question_types(
     if not question_type_list:
         raise ValueError(f"未找到可用题型: subject={subject}")
 
-    # 构建题型数据
-    question_types_data = []
-    for qt in question_type_list:
-        question_types_data.append(
-            {
-                "code": qt.code,
-                "name": qt.name,
-                "description": qt.description,
-                "interaction_type": qt.interaction_type,
-            }
-        )
+    # 可用题型代码列表
+    available_type_codes = [qt.code for qt in question_type_list]
 
-    # 构建能力目标和认知层级
+    # 1. 先尝试规则引擎
+    rule_selections = get_rule_based_selection(
+        subject=subject,
+        grade=grade,
+        total_count=total_count,
+        available_type_codes=available_type_codes,
+    )
+
+    if rule_selections:
+        logger.info(f"使用规则引擎选择题型: {len(rule_selections)} 种题型")
+        return rule_selections
+
+    # 2. 规则无法匹配，使用 LLM 选择
+    logger.info("规则未匹配，使用 LLM 选择题型")
+
+    # 构建题型数据（使用列表推导式）
+    question_types_data = [
+        {
+            "code": qt.code,
+            "name": qt.name,
+            "description": qt.description,
+            "interaction_type": qt.interaction_type,
+        }
+        for qt in question_type_list
+    ]
+
+    # 构建能力目标
     ability_focus = ""
-    cognitive_preference = "理解、应用"
-
     if practice_type == PRACTICE_TYPE_ABILITY:
         abilities = context.get("abilities", [])
         ability_names = [a.name for a in abilities]
@@ -196,23 +234,11 @@ async def select_question_types(
         if unit:
             ability_focus = f"单元 {unit.name} 相关能力"
 
-    # 难度分布
+    # 认知层级和难度分布
+    cognitive_preference = "理解、应用"
     difficulty_distribution = "简单: 30%, 中等: 50%, 困难: 20%"
 
-    # 构建 prompt
-    class QuestionTypeSelection(BaseModel):
-        """题型选择结果"""
-
-        question_type_code: str = Field(description="题型代码")
-        question_type_name: str = Field(description="题型名称")
-        difficulty: str = Field(description="难度: easy/medium/hard")
-        question_count: int = Field(description="题目数量")
-
-    class QuestionTypeSelectionResult(BaseModel):
-        """题型选择结果列表"""
-
-        selections: List[QuestionTypeSelection] = Field(description="题型选择列表")
-
+    # 使用模块级别的 Pydantic 模型
     parser = JsonOutputParser(pydantic_object=QuestionTypeSelectionResult)
     format_instructions = parser.get_format_instructions()
 
@@ -282,22 +308,21 @@ async def prepare_answer_records(
     await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id))
     await db.flush()
 
-    # 批量创建答题记录
-    answer_records = []
-    for index, question in enumerate(questions):
-        knowledge = question.knowledge_points[0] if question.knowledge_points else None
-        answer_record = PracticeAnswer(
+    # 批量创建答题记录（使用列表推导式）
+    answer_records = [
+        PracticeAnswer(
             session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
             question_order=index + 1,
             unit_id=question.unit_id,
-            knowledge=knowledge,
+            knowledge=question.knowledge_points[0] if question.knowledge_points else None,
             textbook_id=question.textbook_id,
             status=0,
             time_spent=0,
         )
-        answer_records.append(answer_record)
+        for index, question in enumerate(questions)
+    ]
 
     db.add_all(answer_records)
     logger.info(f"预生成答题记录完成: session_id={session.id}, count={len(answer_records)}")

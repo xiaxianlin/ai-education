@@ -111,8 +111,6 @@ importers:
 
   apps/server: {}
 
-  apps/student-app: {}
-
   apps/student-web:
     dependencies:
       '@ai-education/shared-web':

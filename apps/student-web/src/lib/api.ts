@@ -151,6 +151,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取练习生成进度
+   * GET /practice/progress/{session_id}
+   */
+  async getPracticeProgress(sessionId: string) {
+    return apiClient.get<{ progress: number; step: string; message: string }>(`/practice/progress/${sessionId}`);
+  },
+
+  /**
    * 获取练习会话数据（别名，兼容旧代码）
    * GET /practice/{session_id}
    */

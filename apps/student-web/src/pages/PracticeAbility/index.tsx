@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui";
-import { AbilityAtomicCard } from "./components/AbilityAtomicCard";
+import { AbilityPracticeCard } from "./components/AbilityPracticeCard";
 import { PageModel, usePageModel } from "./models/page";
 
 export default function AbilityPractice() {
@@ -24,7 +24,7 @@ function AbilityPracticeContent() {
         </div>
       </section>
 
-      {/* 主体：按学科分组的原子能力卡片 */}
+      {/* 主体：按学科分组的能力练习卡片 */}
       {loading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
@@ -41,7 +41,7 @@ function AbilityPracticeContent() {
               <div key={subject} className="space-y-4">
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   {atomics.map((atomic) => (
-                    <AbilityAtomicCard key={atomic.id} atomic={atomic} />
+                    <AbilityPracticeCard key={atomic.id} atomic={atomic} />
                   ))}
                 </div>
               </div>

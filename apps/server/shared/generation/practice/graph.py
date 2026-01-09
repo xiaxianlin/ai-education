@@ -2,27 +2,25 @@
 
 工作流节点：
 1. load_session_node: 加载练习会话
-2. validate_params_node: 验证参数
+2. validate_params_node: 验证参数并更新会话的 subject/grade
 3. select_question_types_node: 选择题型
 4. generate_questions_node: 生成题目
 5. prepare_answer_records_node: 预生成答题记录
 6. update_session_status_node: 更新会话状态
-7. handle_error_node: 错误处理
 """
 
 import asyncio
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import pendulum
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
-from shared.core.database import Practice, PracticeAnswer, Question
-from shared.generation import invoke_question_generation_workflow
-from sqlalchemy import delete, select
+from shared.core.database import Practice
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .schema import PracticeGenerationState, PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT
+from .schema import PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT, PracticeGenerationState
 from .service import (
     cleanup_session_data,
     prepare_answer_records,
@@ -31,35 +29,33 @@ from .service import (
     validate_unit_practice_params,
 )
 
-# ==================== 日志辅助函数 ====================
+# 进度常量
+PROGRESS_STEP_LOAD = "load_session"
+PROGRESS_STEP_VALIDATE = "validate_params"
+PROGRESS_STEP_SELECT_TYPES = "select_question_types"
+PROGRESS_STEP_GENERATE = "generate_questions"
+PROGRESS_STEP_PREPARE = "prepare_records"
+PROGRESS_STEP_COMPLETE = "complete"
 
 
-def log_node_start(node_name: str, **context):
-    """记录节点开始执行的日志"""
-    logger.info(f"[{node_name}] 开始执行节点", **context)
+async def _update_progress(session_id: str, progress: int, step: str, message: str = "") -> None:
+    """更新进度（安全调用，不抛出异常）"""
+    try:
+        from shared.services.progress import progress_service
+
+        await progress_service.update_progress(session_id, progress, step, message)
+    except Exception:
+        pass  # 进度更新失败不影响主流程
 
 
-def log_node_end(node_name: str, **context):
-    """记录节点执行完成的日志"""
-    logger.info(f"[{node_name}] 节点执行完成", **context)
+async def _checkpoint_step(session_id: str, step: str, data: Optional[Dict[str, Any]] = None) -> None:
+    """保存步骤检查点（安全调用）"""
+    try:
+        from shared.services.checkpoint import checkpoint_service
 
-
-def log_node_debug(node_name: str, message: str, **context):
-    """记录节点调试信息"""
-    logger.debug(f"[{node_name}] {message}", **context)
-
-
-def log_node_warning(node_name: str, message: str, **context):
-    """记录节点警告信息"""
-    logger.warning(f"[{node_name}] {message}", **context)
-
-
-def log_node_error(node_name: str, message: str, exc: Exception = None, **context):
-    """记录节点错误信息"""
-    if exc:
-        logger.error(f"[{node_name}] {message}", exc_info=exc, **context)
-    else:
-        logger.error(f"[{node_name}] {message}", **context)
+        await checkpoint_service.save_checkpoint(session_id, step, data)
+    except Exception:
+        pass  # 检查点保存失败不影响主流程
 
 
 # ==================== 节点函数 ====================
@@ -67,27 +63,25 @@ def log_node_error(node_name: str, message: str, exc: Exception = None, **contex
 
 async def load_session_node(state: PracticeGenerationState) -> Dict[str, Any]:
     """加载练习会话节点"""
-    node_name = "load_session_node"
-    log_node_start(node_name, session_id=state.get("session_id"))
-
+    log = logger.bind(node="load_session")
     db: AsyncSession = state["db"]
     session_id = state["session_id"]
 
-    # 查询练习会话记录
+    await _update_progress(session_id, 5, PROGRESS_STEP_LOAD, "加载会话...")
+    log.info(f"开始加载会话: session_id={session_id}")
+
     session = await db.scalar(select(Practice).where(Practice.id == session_id))
     if not session:
         raise ValueError(f"练习会话不存在: session_id={session_id}")
 
-    log_node_debug(
-        node_name,
-        "练习会话加载成功",
-        session_id=session_id,
-        practice_type=session.practice_type,
-        subject=session.subject,
-        grade=session.grade,
+    log.debug(
+        f"会话加载成功: practice_type={session.practice_type}, "
+        f"ability_code={session.ability_code}, unit_id={session.unit_id}"
     )
 
-    log_node_end(node_name, session_id=session_id)
+    await _update_progress(session_id, 10, PROGRESS_STEP_LOAD, "会话加载完成")
+    await _checkpoint_step(session_id, PROGRESS_STEP_LOAD)
+
     return {
         "session": session,
         "practice_type": session.practice_type,
@@ -95,28 +89,21 @@ async def load_session_node(state: PracticeGenerationState) -> Dict[str, Any]:
 
 
 async def validate_params_node(state: PracticeGenerationState) -> Dict[str, Any]:
-    """验证参数节点"""
-    node_name = "validate_params_node"
-    log_node_start(node_name)
-
+    """验证参数节点 - 同时更新会话的 subject 和 grade"""
+    log = logger.bind(node="validate_params")
     db: AsyncSession = state["db"]
     session: Practice = state["session"]
     practice_type = state["practice_type"]
+    session_id = state["session_id"]
     context = {}
 
-    log_node_debug(
-        node_name,
-        "开始验证参数",
-        practice_type=practice_type,
-        ability_code=session.ability_code,
-        unit_id=session.unit_id,
-    )
+    await _update_progress(session_id, 15, PROGRESS_STEP_VALIDATE, "验证参数...")
+    log.info(f"开始验证参数: practice_type={practice_type}")
 
     if practice_type == PRACTICE_TYPE_ABILITY:
         if not session.ability_code:
             raise ValueError("能力练习需要提供 ability_code")
 
-        # 调用 service 层的验证函数
         context = await validate_ability_practice_params(
             db=db,
             student_id=session.student_id,
@@ -129,7 +116,6 @@ async def validate_params_node(state: PracticeGenerationState) -> Dict[str, Any]
         if not session.unit_id:
             raise ValueError("单元练习需要提供 unit_id")
 
-        # 调用 service 层的验证函数
         context = await validate_unit_practice_params(
             db=db,
             student_id=session.student_id,
@@ -141,15 +127,17 @@ async def validate_params_node(state: PracticeGenerationState) -> Dict[str, Any]
     subject = context.get("subject", "") or session.subject or ""
     grade = context.get("grade", 0) or session.grade or 0
 
-    log_node_debug(
-        node_name,
-        "参数验证完成",
-        subject=subject,
-        grade=grade,
-        context_keys=list(context.keys()),
-    )
+    # 更新会话的 subject 和 grade（如果之前未设置）
+    if not session.subject or not session.grade:
+        session.subject = subject
+        session.grade = grade
+        await db.flush()
+        log.debug(f"更新会话 subject/grade: subject={subject}, grade={grade}")
 
-    log_node_end(node_name)
+    await _update_progress(session_id, 20, PROGRESS_STEP_VALIDATE, "参数验证完成")
+    await _checkpoint_step(session_id, PROGRESS_STEP_VALIDATE, {"subject": subject, "grade": grade})
+    log.info(f"参数验证完成: subject={subject}, grade={grade}")
+
     return {
         "context": context,
         "subject": subject,
@@ -159,26 +147,18 @@ async def validate_params_node(state: PracticeGenerationState) -> Dict[str, Any]
 
 async def select_question_types_node(state: PracticeGenerationState) -> Dict[str, Any]:
     """选择题型节点"""
-    node_name = "select_question_types_node"
-    log_node_start(node_name)
-
+    log = logger.bind(node="select_question_types")
     db: AsyncSession = state["db"]
     practice_type = state["practice_type"]
     subject = state["subject"]
     grade = state["grade"]
     generate_count = state["generate_count"]
     context = state["context"]
+    session_id = state["session_id"]
 
-    log_node_debug(
-        node_name,
-        "开始选择题型",
-        practice_type=practice_type,
-        subject=subject,
-        grade=grade,
-        total_count=generate_count,
-    )
+    await _update_progress(session_id, 25, PROGRESS_STEP_SELECT_TYPES, "选择题型...")
+    log.info(f"开始选择题型: subject={subject}, grade={grade}, count={generate_count}")
 
-    # 调用 service 层的题型选择函数
     selections = await select_question_types(
         db=db,
         practice_type=practice_type,
@@ -188,87 +168,130 @@ async def select_question_types_node(state: PracticeGenerationState) -> Dict[str
         context=context,
     )
 
-    log_node_debug(node_name, "题型选择完成", selections_count=len(selections))
-    log_node_end(node_name, selections_count=len(selections))
+    await _update_progress(session_id, 35, PROGRESS_STEP_SELECT_TYPES, f"已选择 {len(selections)} 种题型")
+    await _checkpoint_step(session_id, PROGRESS_STEP_SELECT_TYPES, {"selections_count": len(selections)})
+    log.info(f"题型选择完成: {len(selections)} 种题型")
 
     return {"selections": selections}
 
 
 async def generate_questions_node(state: PracticeGenerationState) -> Dict[str, Any]:
-    """生成题目节点"""
-    node_name = "generate_questions_node"
-    log_node_start(node_name)
+    """生成题目节点 - 支持部分成功
 
+    当至少 50% 的题目生成成功时，视为部分成功，允许继续流程。
+    """
+    # Lazy import to avoid circular dependency
+    from shared.generation import invoke_question_generation_workflow
+
+    log = logger.bind(node="generate_questions")
     db: AsyncSession = state["db"]
     selections = state["selections"]
+    session_id = state["session_id"]
 
-    log_node_debug(node_name, "开始生成题目", selections_count=len(selections))
+    # 最小成功率阈值
+    MIN_SUCCESS_RATE = 0.5
+
+    await _update_progress(session_id, 40, PROGRESS_STEP_GENERATE, "开始生成题目...")
+    log.info(f"开始并行生成题目: {len(selections)} 种题型")
+
+    # 计算期望的总题目数
+    total_expected = sum(s["question_count"] for s in selections)
 
     # 并行生成题目
-    tasks = []
-    for selection in selections:
-        task = invoke_question_generation_workflow(
+    tasks = [
+        invoke_question_generation_workflow(
             db=db,
             question_type_code=selection["question_type_code"],
             count=selection["question_count"],
         )
-        tasks.append(task)
+        for selection in selections
+    ]
 
-    # 并行执行所有题目生成任务
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # 合并结果
+    # 合并结果，记录失败
     all_questions = []
+    failed_selections = []
     for i, result in enumerate(results):
         if isinstance(result, Exception):
-            log_node_error(
-                node_name,
-                f"题目生成任务失败: selection={selections[i]}",
-                exc=result if isinstance(result, Exception) else None,
-            )
+            failed_selections.append(selections[i])
+            log.error(f"题目生成失败: selection={selections[i]}, error={result}")
         elif isinstance(result, list):
             all_questions.extend(result)
 
-    if not all_questions:
+    # 计算成功率
+    success_count = len(all_questions)
+    success_rate = success_count / total_expected if total_expected > 0 else 0
+
+    # 检查是否达到最小成功率
+    if success_count == 0:
         raise ValueError("题目生成失败，没有生成任何题目")
 
-    log_node_debug(node_name, "题目生成完成", questions_count=len(all_questions))
-    log_node_end(node_name, questions_count=len(all_questions))
+    if success_rate < MIN_SUCCESS_RATE:
+        raise ValueError(
+            f"题目生成成功率过低: {success_rate:.0%} < {MIN_SUCCESS_RATE:.0%} "
+            f"(成功 {success_count}/{total_expected} 题)"
+        )
 
-    return {"questions": all_questions}
+    # 部分成功
+    if failed_selections:
+        log.warning(
+            f"部分题目生成失败，但成功率 {success_rate:.0%} >= {MIN_SUCCESS_RATE:.0%}，继续流程。"
+            f"失败的题型: {[s['question_type_code'] for s in failed_selections]}"
+        )
+
+    await _update_progress(session_id, 85, PROGRESS_STEP_GENERATE, f"已生成 {success_count} 道题目")
+    await _checkpoint_step(
+        session_id,
+        PROGRESS_STEP_GENERATE,
+        {"questions_count": success_count, "success_rate": success_rate},
+    )
+    log.info(
+        f"题目生成完成: 成功 {success_count}/{total_expected} 题 ({success_rate:.0%}), "
+        f"失败 {len(failed_selections)} 种题型"
+    )
+
+    return {
+        "questions": all_questions,
+        "generation_stats": {
+            "expected": total_expected,
+            "actual": success_count,
+            "success_rate": success_rate,
+            "failed_types": [s["question_type_code"] for s in failed_selections],
+        },
+    }
 
 
 async def prepare_answer_records_node(state: PracticeGenerationState) -> Dict[str, Any]:
     """预生成答题记录节点"""
-    node_name = "prepare_answer_records_node"
-    log_node_start(node_name)
-
+    log = logger.bind(node="prepare_answer_records")
     db: AsyncSession = state["db"]
     session: Practice = state["session"]
     questions = state["questions"]
+    session_id = state["session_id"]
 
-    log_node_debug(node_name, "开始预生成答题记录", questions_count=len(questions))
+    await _update_progress(session_id, 90, PROGRESS_STEP_PREPARE, "准备答题记录...")
+    log.info(f"开始预生成答题记录: {len(questions)} 题")
 
-    # 调用 service 层的答题记录预生成函数
     await prepare_answer_records(db=db, session=session, questions=questions)
 
-    log_node_debug(node_name, "答题记录预生成完成", records_count=len(questions))
-    log_node_end(node_name, records_count=len(questions))
+    await _update_progress(session_id, 95, PROGRESS_STEP_PREPARE, "答题记录准备完成")
+    await _checkpoint_step(session_id, PROGRESS_STEP_PREPARE, {"records_count": len(questions)})
+    log.info(f"答题记录预生成完成: {len(questions)} 条")
 
     return {}
 
 
 async def update_session_status_node(state: PracticeGenerationState) -> Dict[str, Any]:
     """更新会话状态节点"""
-    node_name = "update_session_status_node"
-    log_node_start(node_name)
-
+    log = logger.bind(node="update_session_status")
     db: AsyncSession = state["db"]
     session: Practice = state["session"]
     questions = state["questions"]
+    session_id = state["session_id"]
     start_time = state.get("start_time", pendulum.now())
 
-    log_node_debug(node_name, "开始更新会话状态", questions_count=len(questions))
+    log.info(f"开始更新会话状态: {len(questions)} 题")
 
     # 更新会话状态为已完成
     end_time = pendulum.now()
@@ -278,49 +301,13 @@ async def update_session_status_node(state: PracticeGenerationState) -> Dict[str
 
     await db.commit()
 
-    log_node_debug(
-        node_name,
-        "会话状态更新完成",
-        question_count=session.question_count,
-        generate_time=session.generate_time,
-    )
-    log_node_end(
-        node_name,
-        session_id=session.id,
-        question_count=session.question_count,
-        generate_time=session.generate_time,
+    await _update_progress(session_id, 100, PROGRESS_STEP_COMPLETE, "练习生成完成")
+    log.info(
+        f"会话状态更新完成: session_id={session.id}, "
+        f"question_count={session.question_count}, "
+        f"generate_time={session.generate_time}s"
     )
 
-    return {}
-
-
-async def handle_error_node(state: PracticeGenerationState) -> Dict[str, Any]:
-    """错误处理节点"""
-    node_name = "handle_error_node"
-    log_node_start(node_name)
-
-    db: AsyncSession = state["db"]
-    session_id = state["session_id"]
-    error = state.get("error", "未知错误")
-    session = state.get("session")
-
-    log_node_error(node_name, f"处理错误: {error}", session_id=session_id)
-
-    try:
-        # 更新会话状态为生成失败
-        if session:
-            session.generate_status = -1  # 生成失败
-            await db.commit()
-
-        # 调用 service 层的清理函数
-        await cleanup_session_data(db=db, session_id=session_id)
-
-        log_node_debug(node_name, "错误处理完成，已清理数据", session_id=session_id)
-    except Exception as e:
-        log_node_error(node_name, f"错误处理失败: {e}", exc=e)
-        await db.rollback()
-
-    log_node_end(node_name, session_id=session_id)
     return {}
 
 
@@ -338,7 +325,6 @@ def create_practice_generation_graph() -> CompiledStateGraph:
     workflow.add_node("generate_questions", generate_questions_node)
     workflow.add_node("prepare_answer_records", prepare_answer_records_node)
     workflow.add_node("update_session_status", update_session_status_node)
-    workflow.add_node("handle_error", handle_error_node)
 
     # 设置入口点
     workflow.set_entry_point("load_session")
@@ -351,9 +337,6 @@ def create_practice_generation_graph() -> CompiledStateGraph:
     workflow.add_edge("prepare_answer_records", "update_session_status")
     workflow.add_edge("update_session_status", END)
 
-    # 错误处理：所有节点失败时跳转到 handle_error
-    workflow.add_edge("handle_error", END)
-
     return workflow.compile()
 
 
@@ -364,6 +347,36 @@ practice_generation_graph = create_practice_generation_graph()
 # ==================== 工作流入口函数 ====================
 
 
+async def _save_checkpoint(session_id: str, step: str, data: Optional[Dict[str, Any]] = None) -> None:
+    """保存检查点（安全调用）"""
+    try:
+        from shared.services.checkpoint import checkpoint_service
+
+        await checkpoint_service.save_checkpoint(session_id, step, data)
+    except Exception:
+        pass  # 检查点保存失败不影响主流程
+
+
+async def _get_checkpoint(session_id: str) -> Optional[Dict[str, Any]]:
+    """获取检查点"""
+    try:
+        from shared.services.checkpoint import checkpoint_service
+
+        return await checkpoint_service.get_checkpoint(session_id)
+    except Exception:
+        return None
+
+
+async def _delete_checkpoint(session_id: str) -> None:
+    """删除检查点"""
+    try:
+        from shared.services.checkpoint import checkpoint_service
+
+        await checkpoint_service.delete_checkpoint(session_id)
+    except Exception:
+        pass
+
+
 async def invoke_practice_generation_workflow(
     *,
     db: AsyncSession,
@@ -372,12 +385,25 @@ async def invoke_practice_generation_workflow(
 ) -> None:
     """执行练习生成工作流
 
+    支持简化的检查点机制：
+    - 每个节点完成后保存检查点
+    - 失败后可以通过检查点了解进度（完整恢复需要额外实现）
+
     Args:
         db: 数据库会话
         session_id: 练习会话 ID
         generate_count: 生成题目数量
     """
     workflow_name = "invoke_practice_generation_workflow"
+
+    # 检查是否有之前的检查点（用于日志记录）
+    checkpoint = await _get_checkpoint(session_id)
+    if checkpoint:
+        logger.info(
+            f"[{workflow_name}] 发现之前的检查点: step={checkpoint.get('step')}",
+            session_id=session_id,
+        )
+
     logger.info(
         f"[{workflow_name}] 开始执行练习生成工作流",
         session_id=session_id,
@@ -392,13 +418,23 @@ async def invoke_practice_generation_workflow(
     )
 
     try:
+        # 保存初始检查点
+        await _save_checkpoint(session_id, "started")
+
         result = await practice_generation_graph.ainvoke(state)
+
+        # 成功完成，删除检查点
+        await _delete_checkpoint(session_id)
+
         logger.info(
             f"[{workflow_name}] 工作流执行完成",
             session_id=session_id,
             questions_count=len(result.get("questions", [])),
         )
     except Exception as e:
+        # 保存失败检查点
+        await _save_checkpoint(session_id, "failed", {"error": str(e)})
+
         logger.error(
             f"[{workflow_name}] 工作流执行失败: session_id={session_id}, error={e}",
             exc_info=True,

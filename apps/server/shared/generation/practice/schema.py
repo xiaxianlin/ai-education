@@ -11,6 +11,15 @@ PRACTICE_TYPE_UNIT = "unit_practice"
 VALID_PRACTICE_TYPES = [PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT]
 
 
+class GenerationStats(TypedDict):
+    """题目生成统计"""
+
+    expected: int  # 期望生成的题目数
+    actual: int  # 实际生成的题目数
+    success_rate: float  # 成功率
+    failed_types: List[str]  # 失败的题型代码列表
+
+
 class PracticeGenerationState(TypedDict, total=False):
     """练习生成流程的状态"""
 
@@ -27,5 +36,6 @@ class PracticeGenerationState(TypedDict, total=False):
     grade: NotRequired[int]
     selections: NotRequired[List[Dict[str, Any]]]
     questions: NotRequired[List[Question]]
+    generation_stats: NotRequired[GenerationStats]  # 生成统计
     error: NotRequired[str]
     start_time: NotRequired[pendulum.DateTime]
