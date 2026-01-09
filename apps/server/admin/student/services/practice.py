@@ -1,6 +1,6 @@
 from shared.core.database import Practice
 from shared.core.schema import PracticeSchema, StudentSchema
-from shared.practice import practice_session
+from shared.practice import practice
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +16,7 @@ async def get_student_practice_sessions(db: AsyncSession, student: StudentSchema
     Returns:
         List[PracticeSchema]: 练习列表
     """
-    practice_sessions = await db.scalars(
+    practices = await db.scalars(
         select(Practice)
         .where(
             Practice.student_id == student.id,
@@ -25,7 +25,7 @@ async def get_student_practice_sessions(db: AsyncSession, student: StudentSchema
         .order_by(Practice.create_time.desc())
         .limit(30)
     )
-    return [PracticeSchema.model_validate(session) for session in practice_sessions]
+    return [PracticeSchema.model_validate(practice) for practice in practices]
 
 
 async def get_student_practice_session_data(db: AsyncSession, student: StudentSchema, session_id: str):
@@ -39,4 +39,4 @@ async def get_student_practice_session_data(db: AsyncSession, student: StudentSc
     Returns:
         PracticeDataSchema: 练习详情
     """
-    return await practice_session.get_practice_session_data(db, student.id, session_id)
+    return await practice.get_practice_session_data(db, student.id, session_id)

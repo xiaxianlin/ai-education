@@ -4,11 +4,9 @@ from . import (
 from . import (
     generate as practice_generate,
 )
+from . import practice
 from . import (
     report as practice_report,
 )
-from . import (
-    session as practice_session,
-)
 
-__all__ = ["practice_generate", "practice_session", "practice_answer", "practice_report"]
+__all__ = ["practice_generate", "practice", "practice_answer", "practice_report"]

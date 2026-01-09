@@ -17,7 +17,7 @@
 """
 
 import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pendulum
 from loguru import logger
@@ -193,12 +193,14 @@ async def select_question_types(
     # 构建题型数据
     question_types_data = []
     for qt in question_type_list:
-        question_types_data.append({
-            "code": qt.code,
-            "name": qt.name,
-            "description": qt.description,
-            "interaction_type": qt.interaction_type,
-        })
+        question_types_data.append(
+            {
+                "code": qt.code,
+                "name": qt.name,
+                "description": qt.description,
+                "interaction_type": qt.interaction_type,
+            }
+        )
 
     # 构建能力目标和认知层级
     ability_focus = ""
@@ -240,10 +242,15 @@ async def select_question_types(
     # 获取学段
     stage = "小学" if grade <= 6 else ("初中" if grade <= 9 else "高中")
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SELECT_QUESTION_TYPE_SYSTEM_PROMPT),
-        ("human", SELECT_QUESTION_TYPE_PROMPT + "\n\n可用题型数据:\n{question_types_data}\n\n{format_instructions}"),
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", SELECT_QUESTION_TYPE_SYSTEM_PROMPT),
+            (
+                "human",
+                SELECT_QUESTION_TYPE_PROMPT + "\n\n可用题型数据:\n{question_types_data}\n\n{format_instructions}",
+            ),
+        ]
+    )
 
     provider = get_provider()
 
@@ -269,12 +276,14 @@ async def select_question_types(
         logger.warning("LLM 未返回题型选择结果，使用默认分配")
         if question_type_list:
             default_qt = question_type_list[0]
-            selections = [{
-                "question_type_code": default_qt.code,
-                "question_type_name": default_qt.name,
-                "difficulty": "medium",
-                "question_count": total_count,
-            }]
+            selections = [
+                {
+                    "question_type_code": default_qt.code,
+                    "question_type_name": default_qt.name,
+                    "difficulty": "medium",
+                    "question_count": total_count,
+                }
+            ]
 
     logger.info(f"题型选择完成: selections={selections}")
     return selections
@@ -374,9 +383,7 @@ async def prepare_answer_records(
         questions: 题目列表
     """
     # 删除已有的答题记录（如果存在）
-    await db.execute(
-        delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id)
-    )
+    await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session.id))
     await db.flush()
 
     # 批量创建答题记录
@@ -412,14 +419,10 @@ async def cleanup_session_data(db: AsyncSession, session_id: str) -> None:
     """
     try:
         # 删除答题记录
-        await db.execute(
-            delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-        )
+        await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
 
         # 删除练习
-        await db.execute(
-            delete(Practice).where(Practice.id == session_id)
-        )
+        await db.execute(delete(Practice).where(Practice.id == session_id))
 
         await db.commit()
         logger.info(f"清理练习会话数据完成: session_id={session_id}")
@@ -451,9 +454,7 @@ async def execute_generate_practice_session(db: AsyncSession, session_id: str, g
 
     try:
         # 1. 查询练习信息
-        session = await db.scalar(
-            select(Practice).where(Practice.id == session_id)
-        )
+        session = await db.scalar(select(Practice).where(Practice.id == session_id))
         if not session:
             raise ValueError(f"练习会话不存在: session_id={session_id}")
 
@@ -590,7 +591,7 @@ async def create_practice_session(
 
     # 从 parameters 中提取 generate_count（用于生成题目数量）
     generate_count = parameters.get("generate_count", 15)
-    
+
     try:
         if immediately:
             # 同步模式：立即执行生成
