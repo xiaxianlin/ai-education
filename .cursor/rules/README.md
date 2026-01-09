@@ -23,28 +23,22 @@
 - **子规则**: 
   - `sqlalchemy-2.0`: SQLAlchemy 2.0 ORM 风格规范（强制要求）
 
-### 4. flutter-mobile
-- **类型**: Apply to Specific Files
-- **范围**: `apps/student-app/**`
-- **描述**: Flutter 移动端编码规范
-- **内容**: Dart 规范、Riverpod 状态管理、路由、代码生成
-
-### 5. naming-conventions
+### 4. naming-conventions
 - **类型**: Always Apply
 - **描述**: 命名规范和文件组织规范
 - **内容**: 文件命名、代码命名、目录命名、导入顺序
 
-### 6. api-design
+### 5. api-design
 - **类型**: Apply Intelligently
 - **描述**: API 设计规范
 - **内容**: RESTful 设计、请求响应格式、错误处理、认证授权
 
-### 7. code-review
+### 6. code-review
 - **类型**: Apply Intelligently
 - **描述**: 代码审查要点
 - **内容**: 类型安全、错误处理、代码质量、安全性检查清单
 
-### 8. cursor-rules-update
+### 7. cursor-rules-update
 - **类型**: Always Apply
 - **描述**: 更新 Cursor 规则的工作流程说明
 - **内容**: 更新规则时需要同步更新的文件和目录清单

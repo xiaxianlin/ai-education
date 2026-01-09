@@ -12,17 +12,13 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "dev:admin": "cd apps/admin-web && pnpm dev",
     "dev:student": "cd apps/student-web && pnpm dev",
-    "dev:app": "cd apps/student-app && flutter run",
     "dev:server": "cd apps/server && uv run uvicorn main:app --reload --host 0.0.0.0 --port 7890",
     "dev:all": "concurrently \"pnpm dev:admin\" \"pnpm dev:student\" \"pnpm dev:server\"",
     "build:admin": "cd apps/admin-web && pnpm build",
     "build:student": "cd apps/student-web && pnpm build",
     "build:server": "cd apps/server && uv build",
-    "build:app": "cd apps/student-app && flutter build",
-    "build:app:ios": "cd apps/student-app && flutter build ios",
-    "build:app:android": "cd apps/student-app && flutter build apk",
     "build:all": "turbo run build",
-    "install:all": "pnpm install && cd apps/server && uv sync && cd ../student-app && flutter pub get",
+    "install:all": "pnpm install && cd apps/server && uv sync",
     "generate:types": "tsx scripts/generate-types.ts"
   },
   "devDependencies": {

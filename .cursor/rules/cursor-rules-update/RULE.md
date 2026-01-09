@@ -19,7 +19,6 @@ alwaysApply: true
 - 根目录：`AGENTS.md`
 - `apps/admin-web/AGENTS.md`
 - `apps/server/AGENTS.md`
-- `apps/student-app/AGENTS.md`
 - `apps/student-web/AGENTS.md`
 
 ## 更新原则

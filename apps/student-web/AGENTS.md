@@ -165,11 +165,9 @@ pages/[Feature]/[PageName]/
 2. **错误处理**: 所有 API 调用必须有错误处理
 3. **加载状态**: 使用适当的加载状态提示
 4. **用户体验**: 关注交互反馈和动画效果
-5. **跨平台一致性**: 与移动端（student-app）保持功能一致性
 
 ## 相关资源
 
 - 后端 API: `apps/server/student/routes/`
-- 移动端参考: `apps/student-app/`
 - 共享类型: `packages/shared-web/src/types/`
 - shadcn/ui: `https://ui.shadcn.com/`

@@ -10,8 +10,7 @@
 ├── apps/                 # 应用目录
 │   ├── admin-web/        # 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
 │   ├── student-web/      # 学生端前端 (React 18 + Rsbuild + shadcn/ui)
-│   ├── server/           # 服务端单体 (Python FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
-│   └── student-app/      # 移动应用 (Flutter 3 + Riverpod + GoRouter)
+│   └── server/           # 服务端单体 (Python FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
 ├── packages/             # 共享包目录
 │   └── shared-web/       # Web 共享包（类型、API 客户端、工具函数）
 ├── infra/                # 基础设施配置
@@ -60,7 +59,6 @@ pnpm build:student
 -   apps/admin-web: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
 -   apps/student-web: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
 -   apps/server: 服务端单体 (FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
--   apps/student-app: 移动应用 (Flutter + Riverpod + GoRouter)
 -   packages/shared-web: Web 端共享包
 -   infra: 基础设施配置（MySQL 初始化、Nginx 配置）
 -   docs: 文档目录（API 与设计文档等）

@@ -14,7 +14,6 @@
   - `project-overview/RULE.md`
   - `react-frontend/RULE.md`
   - `python-backend/RULE.md`
-  - `flutter-mobile/RULE.md`
   - `naming-conventions/RULE.md`
   - `api-design/RULE.md`
   - `code-review/RULE.md`
@@ -22,7 +21,6 @@
 - `.cursor/commands/` 目录下的所有命令文档（`**/*.md`）
   - `frontend.md`
   - `backend.md`
-  - `app.md`
   - `ui-designer.md`
   - `auth.md`
   - `cr.md`
@@ -40,7 +38,6 @@
 - 根目录：`AGENTS.md`
 - `apps/admin-web/AGENTS.md`
 - `apps/server/AGENTS.md`
-- `apps/student-app/AGENTS.md`
 - `apps/student-web/AGENTS.md`
 
 ## 执行步骤
@@ -86,11 +83,10 @@
    - 更新常用命令和快速参考
 
 4. **更新 AGENTS.md 文件**
-   - 更新根目录 `AGENTS.md`：项目概述、技术栈、快速命令
-   - 更新 `apps/admin-web/AGENTS.md`：管理端特定信息
-   - 更新 `apps/server/AGENTS.md`：服务端特定信息
-   - 更新 `apps/student-app/AGENTS.md`：移动端特定信息
-   - 更新 `apps/student-web/AGENTS.md`：学生端 Web 特定信息
+  - 更新根目录 `AGENTS.md`：项目概述、技术栈、快速命令
+  - 更新 `apps/admin-web/AGENTS.md`：管理端特定信息
+  - 更新 `apps/server/AGENTS.md`：服务端特定信息
+  - 更新 `apps/student-web/AGENTS.md`：学生端 Web 特定信息
 
 ### 阶段 3: 完整性检查
 
@@ -131,7 +127,6 @@
 - [ ] `.cursor/rules/project-overview/RULE.md`
 - [ ] `.cursor/rules/react-frontend/RULE.md`
 - [ ] `.cursor/rules/python-backend/RULE.md`
-- [ ] `.cursor/rules/flutter-mobile/RULE.md`
 - [ ] `.cursor/rules/naming-conventions/RULE.md`
 - [ ] `.cursor/rules/api-design/RULE.md`
 - [ ] `.cursor/rules/code-review/RULE.md`
@@ -140,7 +135,6 @@
 ### 命令文档更新
 - [ ] `.cursor/commands/frontend.md`
 - [ ] `.cursor/commands/backend.md`
-- [ ] `.cursor/commands/app.md`
 - [ ] `.cursor/commands/ui-designer.md`
 - [ ] `.cursor/commands/auth.md`
 - [ ] `.cursor/commands/cr.md`
@@ -156,7 +150,6 @@
 - [ ] `AGENTS.md`（根目录）
 - [ ] `apps/admin-web/AGENTS.md`
 - [ ] `apps/server/AGENTS.md`
-- [ ] `apps/student-app/AGENTS.md`
 - [ ] `apps/student-web/AGENTS.md`
 
 ### 完整性验证

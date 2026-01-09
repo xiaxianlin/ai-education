@@ -125,7 +125,6 @@ if not resource:
 - Token 存储位置：
   - 管理端（admin-web）: `localStorage.getItem('_token_')`（`ApiClient` 默认值）
   - 学生端（student-web）: `localStorage.getItem('_token_')`（`ApiClient` 默认值）
-  - 移动端（student-app）: `SharedPreferences`，key 为 `_t`
 
 ```python
 # 管理端认证
