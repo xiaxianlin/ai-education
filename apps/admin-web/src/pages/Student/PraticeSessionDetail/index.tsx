@@ -1,6 +1,6 @@
-import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS, PRACTICE_TYPE_LABELS } from '@/constants/practice';
+import { PRACTICE_STATUS_COLORS, PRACTICE_STATUS_LABELS } from '@/constants/practice';
 import { createActionColumn } from '@/hooks';
-import { PracticeApi } from '@/pages/Practice/api';
+import { StudentApi } from '../api';
 import { formatDateTime } from '@ai-education/shared-web';
 import { PageContainer, ProColumns, ProDescriptions, ProSkeleton, ProTable } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
@@ -9,16 +9,22 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { QuestionDetailDrawer } from './views/QuestionDetailDrawer';
 
+const PRACTICE_SLUG_LABELS: Record<string, string> = {
+  daily_practice: '日常练习',
+  unit_practice: '单元练习',
+  assess_practice: '综合评估',
+};
+
 export default function PracticeDetailPage() {
-  const { session_id } = useParams<{ session_id: string }>();
+  const { id, session_id } = useParams<{ id: string; session_id: string }>();
   const navigate = useNavigate();
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
-  // 使用统一的会话详情接口
-  const { data, loading, error } = useRequest(() => PracticeApi.getPracticeSession(Number(session_id)), {
-    ready: !!session_id,
+  // 使用学生练习会话详情接口
+  const { data, loading, error } = useRequest(() => StudentApi.getStudentPracticeSessionData(id || '', Number(session_id)), {
+    ready: !!id && !!session_id,
   });
 
-  const { session, answers = [] } = (data as any) || {};
+  const { session, answers = [], questions = [] } = (data as any) || {};
 
   const answersMap = useMemo(() => {
     return answers.reduce(
@@ -161,7 +167,7 @@ export default function PracticeDetailPage() {
         <Card title="基本信息">
           <ProDescriptions column={3}>
             <ProDescriptions.Item label="练习类型">
-              <Tag color="blue">{(PRACTICE_TYPE_LABELS as any)[session.practice_slug] || session.practice_slug}</Tag>
+              <Tag color="blue">{PRACTICE_SLUG_LABELS[session.practice_slug] || session.practice_slug}</Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
               <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
@@ -205,7 +211,7 @@ export default function PracticeDetailPage() {
             columns={columns}
             search={false}
             pagination={false}
-            dataSource={answers.map((answer: PracticeSessionAnswer) => answer.question!)}
+            dataSource={questions}
             loading={loading}
             options={false}
             toolbar={{ actions: [] }}

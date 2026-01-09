@@ -6,7 +6,6 @@ from shared.core.database import (
     PracticeSessionReport,
 )
 from shared.core.schema import (
-    PracticeSchema,
     PracticeSessionAnswerSchema,
     PracticeSessionDataSchema,
     PracticeSessionReportSchema,
@@ -21,13 +20,13 @@ from sqlalchemy.orm import joinedload
 from .report import generate_practice_report
 
 
-async def get_practice_sessions(db: AsyncSession, student_id: str, practice_id: int, limit: int = 30):
+async def get_practice_sessions(db: AsyncSession, student_id: str, practice_slug: str, limit: int = 30):
     """获取指定练习的练习会话记录"""
     sessions = await db.scalars(
         select(PracticeSession)
         .where(
             PracticeSession.student_id == student_id,
-            PracticeSession.practice_id == practice_id,
+            PracticeSession.practice_slug == practice_slug,
         )
         .order_by(desc(PracticeSession.create_time))
         .limit(limit)
@@ -40,15 +39,10 @@ async def get_practice_session_data(db: AsyncSession, student_id: str, session_i
     """根据练习会话ID查询会话详情"""
     session = await db.scalar(
         select(PracticeSession)
-        .options(joinedload(PracticeSession.practice))
         .where(PracticeSession.id == session_id, PracticeSession.student_id == student_id)
     )
     if not session:
         raise ValueError("练习会话不存在")
-
-    practice = session.practice
-    if not practice:
-        raise ValueError("练习不存在")
 
     results = await db.scalars(
         select(PracticeSessionAnswer)
@@ -67,7 +61,6 @@ async def get_practice_session_data(db: AsyncSession, student_id: str, session_i
         report = await db.scalar(select(PracticeSessionReport).where(PracticeSessionReport.session_id == session_id))
 
     return PracticeSessionDataSchema(
-        practice=PracticeSchema.model_validate(practice),
         session=PracticeSessionSchema.model_validate(session),
         questions=[QuestionSchema.model_validate(question) for question in questions],
         answers=[PracticeSessionAnswerSchema.model_validate(answer) for answer in answers],

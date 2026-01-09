@@ -3,7 +3,7 @@ from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import StudentProfileSchema
-from .services import practice, textbook
+from .services import textbook
 
 profile_router = APIRouter()
 
@@ -17,12 +17,10 @@ profile_router = APIRouter()
 async def get_profile(request: Request, db: AsyncSession = Database):
     student = request.state.student
     textbooks = await textbook.query_student_textbooks(db, student.id)
-    practices = await practice.get_student_practices(db, student.id)
 
     return StudentProfileSchema(
         name=student.name,
         phone=student.phone,
         grade=student.grade,
         textbooks=textbooks,
-        practices=practices,
     )

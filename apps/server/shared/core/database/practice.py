@@ -1,7 +1,7 @@
 """
 练习相关模型
 
-包含 Practice、PracticeSession、PracticeSessionAnswer、PracticeSessionReport
+包含 PracticeSession、PracticeSessionAnswer、PracticeSessionReport
 """
 
 from typing import TYPE_CHECKING
@@ -24,46 +24,6 @@ if TYPE_CHECKING:
     from .question import Question
 
 
-class Practice(BaseModel):
-    """练习表"""
-
-    __tablename__ = "ah_practice"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    # 基础信息
-    name: Mapped[str] = mapped_column(String(100), comment="练习名称")
-    slug: Mapped[str] = mapped_column(String(100), unique=True, index=True, comment="练习标识")
-    icon: Mapped[str] = mapped_column(String(255), nullable=True, comment="图标URL")
-    description: Mapped[str] = mapped_column(Text, nullable=True, comment="描述")
-
-    # 专项类型
-    specialty_type: Mapped[str] = mapped_column(
-        String(50),
-        nullable=True,
-        index=True,
-        comment="专项训练类型：pinyin/literacy/calculation 等",
-    )
-
-    # 适用范围
-    subject: Mapped[str] = mapped_column(String(50), nullable=True, index=True, comment="科目")
-    stages: Mapped[list] = mapped_column(JSON, default=list, comment="适用学段列表")
-    grades: Mapped[list] = mapped_column(JSON, default=list, comment="适用年级列表")
-
-    # 配置
-    question_count_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="题量配置")
-    difficulty_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="难度配置")
-    ability_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="能力维度配置")
-    feedback_config: Mapped[dict] = mapped_column(JSON, nullable=True, comment="反馈配置")
-    parameter_config: Mapped[list] = mapped_column(JSON, default=list, comment="参数配置")
-    prompt: Mapped[str] = mapped_column(Text, nullable=True, comment="提示词模板内容")
-
-    # 元数据
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, comment="是否启用")
-    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
-    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
-
-
 class PracticeSession(BaseModel):
     """练习会话表"""
 
@@ -71,7 +31,6 @@ class PracticeSession(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, comment="会话ID")
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
-    practice_id: Mapped[int] = mapped_column(comment="练习ID")
     practice_slug: Mapped[str] = mapped_column(String(50), comment="练习标识")
     parameters: Mapped[dict] = mapped_column(JSON, default=dict, comment="练习参数")
 
@@ -91,12 +50,6 @@ class PracticeSession(BaseModel):
     # parameters 的生成列字段
     textbook_id = column_property(mapped_column(Integer), deferred=False)
     unit_id = column_property(mapped_column(Integer), deferred=False)
-
-    practice: Mapped["Practice"] = relationship(
-        "Practice",
-        primaryjoin="foreign(PracticeSession.practice_id) == Practice.id",
-        lazy="joined",
-    )
 
 
 class PracticeSessionAnswer(BaseModel):
@@ -177,7 +130,6 @@ class PracticeSessionReport(BaseModel):
 
 
 __all__ = [
-    "Practice",
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",

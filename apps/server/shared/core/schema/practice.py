@@ -10,41 +10,6 @@ if TYPE_CHECKING:
     from .question import QuestionSchema
 
 
-class PracticeSchema(BaseModel):
-    """练习 Schema"""
-
-    id: int
-    name: str
-    slug: str
-    icon: Optional[str] = None
-    description: Optional[str] = None
-
-    # 专项类型
-    specialty_type: Optional[str] = None
-
-    # 适用范围
-    subject: Optional[str] = None
-    stages: List[str] = Field(default_factory=list)
-    grades: List[int] = Field(default_factory=list)
-
-    # 配置
-    question_count_config: Optional[Dict[str, Any]] = None
-    difficulty_config: Optional[Dict[str, Any]] = None
-    ability_config: Optional[Dict[str, Any]] = None
-    feedback_config: Optional[Dict[str, Any]] = None
-    parameter_config: Optional[list] = Field(default_factory=list, description="参数配置")
-
-    # 提示词
-    prompt: Optional[str] = None
-
-    # 元数据
-    is_active: bool = True
-    create_time: int
-    update_time: int
-
-    model_config = {"from_attributes": True}
-
-
 class QuestionTypeConfigItem(BaseModel):
     """题型配置项"""
 
@@ -72,7 +37,6 @@ class PracticeSessionSchema(BaseModel):
 
     id: int
     student_id: str
-    practice_id: int
     practice_slug: str
     parameters: dict = Field(default_factory=dict, description="练习参数")
     question_count: int = 0
@@ -88,8 +52,6 @@ class PracticeSessionSchema(BaseModel):
 
     textbook_id: Optional[int] = None
     unit_id: Optional[int] = None
-
-    practice: Optional["PracticeSchema"] = None
 
     model_config = {"from_attributes": True}
 
@@ -157,7 +119,6 @@ class PracticeSessionReportSchema(BaseModel):
 class PracticeSessionDataSchema(BaseModel):
     """练习会话数据"""
 
-    practice: PracticeSchema
     session: PracticeSessionSchema
     questions: list["QuestionSchema"]
     answers: list[PracticeSessionAnswerSchema]
@@ -209,7 +170,6 @@ class PracticeParameterSchema(BaseModel):
 
 
 __all__ = [
-    "PracticeSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
     "PracticeSessionSchema",

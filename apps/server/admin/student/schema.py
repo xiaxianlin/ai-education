@@ -35,7 +35,3 @@ class SaveStudentSchema(BaseModel):
 
 class HandleStudentTextbookSchema(BaseModel):
     ids: list[int]
-
-
-class HandleStudentPracticeSchema(BaseModel):
-    ids: list[int]

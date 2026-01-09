@@ -57,12 +57,20 @@ class AssessPracticeStrategy(BasePracticeStrategy):
         count = session.parameters.get("generate_count", 18)
         question_types = state.get("question_types", {})
 
-        # 从 Practice 获取提示词模板
-        practice = state.get("practice")
-        if not practice or not practice.prompt:
-            raise ValueError("综合评估提示词不存在")
+        # 使用默认提示词模板（Practice 表已删除）
+        default_prompt_template = """请为{grade}年级学生生成{count}道{subject}科目的综合评估题目。
+        
+知识点范围：{knowledge_text}
 
-        prompt = ChatPromptTemplate.from_template(practice.prompt)
+要求：
+1. 题目难度分布：简单{simple_count}道，中等{medium_count}道，困难{hard_count}道
+2. 题目类型分布：{question_types}
+3. 避免重复题目：{avoid_duplicate_hint}
+4. 题目应全面评估学生的知识掌握情况
+
+{format_instructions}"""
+        
+        prompt = ChatPromptTemplate.from_template(default_prompt_template)
 
         # JSON 输出解析器
         prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)

@@ -23,29 +23,6 @@ export enum ManagerType {
   /** 普通管理员 */
   NORMAL = 2,
 }
-/**
- * 练习参数类型
- */
-export enum PracticeParameterType {
-  /** 内置参数 */
-  SYSTEM = "system",
-  /** 输入参数 */
-  INPUT = "input",
-}
-
-/**
- * 练习参数值类型
- */
-export enum PracticeParameterValueType {
-  /** 字符串 */
-  STRING = "string",
-  /** 数字 */
-  NUMBER = "number",
-  /** 对象 */
-  OBJECT = "object",
-  /** 数组 */
-  ARRAY = "array",
-}
 
 /**
  * 练习会话状态
@@ -71,49 +48,6 @@ export enum PracticeGenerateStatus {
   SUCCESS = 2,
 }
 
-/**
- * 练习类型
- */
-export enum PracticeType {
-  /** 系统练习 */
-  SYSTEM = "system",
-  /** 自定义练习 */
-  CUSTOM = "custom",
-}
-
-export const PRACTICE_TYPE_MAP: Record<PracticeType, string> = {
-  system: "系统练习",
-  custom: "自定义练习",
-};
-
-export const PRACTICE_TYPE_OPTIONS = Object.entries(PRACTICE_TYPE_MAP).map(([value, label]) => ({
-  label,
-  value,
-}));
-
-export const PRACTICE_PARAMETER_VALUE_TYPE_MAP: Record<PracticeParameterValueType, string> = {
-  string: "字符串",
-  number: "数字",
-  object: "对象",
-  array: "数组",
-};
-
-export const PRACTICE_PARAMETER_VALUE_TYPE_OPTIONS = Object.entries(PRACTICE_PARAMETER_VALUE_TYPE_MAP).map(
-  ([value, label]) => ({
-    label,
-    value,
-  })
-);
-
-export const PRACTICE_PARAMETER_TYPE_MAP: Record<PracticeParameterType, string> = {
-  system: "内置参数",
-  input: "输入参数",
-};
-
-export const PRACTICE_PARAMETER_TYPE_OPTIONS = Object.entries(PRACTICE_PARAMETER_TYPE_MAP).map(([value, label]) => ({
-  label,
-  value,
-}));
 
 export const PRACTICE_SESSION_STATUS_MAP: Record<PracticeSessionStatus, string> = {
   0: "未开始",

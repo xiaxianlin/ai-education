@@ -12,7 +12,6 @@ from .common import ResponseSchema, SearchResultSchema, SearchSchema, T
 # 练习模块
 from .practice import (
     PracticeParameterSchema,
-    PracticeSchema,
     PracticeSessionAnswerSchema,
     PracticeSessionDataSchema,
     PracticeSessionReportSchema,
@@ -36,7 +35,7 @@ from .question import (
 )
 
 # 学生模块
-from .student import StudentPracticeSchema, StudentSchema, StudentTextbookSchema
+from .student import StudentSchema, StudentTextbookSchema
 
 # 教材模块
 from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
@@ -72,7 +71,6 @@ __all__ = [
     "FeedbackItemSchema",
     "FeedbackConfigSchema",
     # 练习
-    "PracticeSchema",
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",
     "TemplateVariableSchema",
@@ -83,7 +81,6 @@ __all__ = [
     # 学生
     "StudentSchema",
     "StudentTextbookSchema",
-    "StudentPracticeSchema",
     # 能力
     "AbilityDomainSchema",
     "AbilityAtomicSchema",

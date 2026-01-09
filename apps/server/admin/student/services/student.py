@@ -4,9 +4,7 @@ from fastapi import Request
 from loguru import logger
 from shared.core.database import (
     AsyncSessionLocal,
-    Practice,
     Student,
-    StudentPractice,
     StudentTextbook,
     Textbook,
 )
@@ -82,19 +80,6 @@ async def add_student(db: AsyncSession, params: SaveStudentSchema):
         )
         db.add(student)
         await db.flush()  # 刷新以获取 student.id，但不提交事务
-
-        # 查询所有系统练习（通过 slug 判断）
-        system_slugs = ["daily_practice", "unit_practice", "assess_practice"]
-        practices = await db.scalars(select(Practice).where(Practice.slug.in_(system_slugs)))
-        practice_ids = [practice.id for practice in practices.all()]
-
-        # 创建学生练习关联
-        if practice_ids:
-            practice_records = [
-                StudentPractice(student_id=student.id, practice_id=practice_id, sort_order=idx)
-                for idx, practice_id in enumerate(practice_ids)
-            ]
-            db.add_all(practice_records)
 
         # 查询当前年级的所有教材
         textbooks = await db.scalars(select(Textbook).where(Textbook.grade == params.grade))

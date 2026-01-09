@@ -6,14 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 
-async def get_student_practice_sessions(db: AsyncSession, student: StudentSchema, practice_id: int):
+async def get_student_practice_sessions(db: AsyncSession, student: StudentSchema, practice_slug: str):
     """查询学生练习历史"""
     practice_sessions = await db.scalars(
         select(PracticeSession)
-        .options(joinedload(PracticeSession.practice))
         .where(
             PracticeSession.student_id == student.id,
-            PracticeSession.practice_id == practice_id,
+            PracticeSession.practice_slug == practice_slug,
         )
         .order_by(PracticeSession.create_time.desc())
         .limit(30)

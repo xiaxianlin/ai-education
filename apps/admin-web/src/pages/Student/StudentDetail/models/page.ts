@@ -12,7 +12,6 @@ const useContainer = () => {
   const [editForm] = ProForm.useForm<SaveStudentRequest>();
   const [editFormVisible, setEditFormVisible] = useState(false);
   const [addTextbookVisible, setAddTextbookVisible] = useState(false);
-  const [addPracticeVisible, setAddPracticeVisible] = useState(false);
 
   const {
     data: student,
@@ -21,10 +20,6 @@ const useContainer = () => {
   } = useRequest(() => StudentApi.getStudent(id!), {
     ready: !!id,
     refreshDeps: [id],
-  });
-
-  const practiceService = useRequest(() => StudentApi.getStudentPractices(student?.id || ''), {
-    ready: !!student?.id,
   });
 
   const textbookService = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
@@ -61,12 +56,9 @@ const useContainer = () => {
     editForm,
     editFormVisible,
     setEditFormVisible,
-    practiceService,
     textbookService,
     addTextbookVisible,
     setAddTextbookVisible,
-    addPracticeVisible,
-    setAddPracticeVisible,
   };
 };
 

@@ -6,10 +6,7 @@ import {
   InteractionType as _InteractionType,
   ManagerType as _ManagerType,
   PracticeGenerateStatus as _PracticeGenerateStatus,
-  PracticeParameterType as _PracticeParameterType,
-  PracticeParameterValueType as _PracticeParameterValueType,
   PracticeSessionStatus as _PracticeSessionStatus,
-  PracticeType as _PracticeType,
   ResourceType as _ResourceType,
   Stage as _Stage,
 } from "../constants";
@@ -22,10 +19,7 @@ declare global {
   type InteractionType = _InteractionType;
   type ManagerType = _ManagerType;
   type PracticeGenerateStatus = _PracticeGenerateStatus;
-  type PracticeParameterType = _PracticeParameterType;
-  type PracticeParameterValueType = _PracticeParameterValueType;
   type PracticeSessionStatus = _PracticeSessionStatus;
-  type PracticeType = _PracticeType;
   type ResourceType = _ResourceType;
   type Stage = _Stage;
 
@@ -319,79 +313,6 @@ declare global {
     update_time?: number;
   }
 
-  /**
-   * 练习实体
-   */
-  interface Practice {
-    id: number;
-    name: string;
-    slug: string;
-    icon?: string;
-    description?: string;
-    // 专项类型（使用能力类型）
-    specialty_type?: AbilityType | string;
-    // 适用范围
-    subject?: string;
-    stages?: Stage[];
-    grades?: number[];
-    // 配置
-    question_count_config?: QuestionCountConfig;
-    difficulty_config?: DifficultyConfig;
-    ability_config?: AbilityConfig;
-    feedback_config?: PracticeFeedbackConfig;
-    prompt?: string;
-    // 参数配置
-    parameter_config?: PracticeParameter[];
-    // 元数据
-    is_active?: boolean;
-    create_time: number;
-    update_time: number;
-  }
-
-  /**
-   * 题量配置
-   */
-  interface QuestionCountConfig {
-    total?: number;
-    per_group?: number;
-    max_groups?: number;
-    time_limit_minutes?: number;
-  }
-
-  /**
-   * 难度配置
-   */
-  interface DifficultyConfig {
-    level?: string;
-    target_accuracy?: number;
-    distribution?: {
-      easy?: number;
-      medium?: number;
-      hard?: number;
-    };
-  }
-
-  /**
-   * 能力配置
-   */
-  interface AbilityConfig {
-    cognitive_levels?: CognitiveLevel[];
-    distribution?: { key: string; value: number }[];
-  }
-
-  /**
-   * 反馈配置（练习）
-   */
-  interface PracticeFeedbackConfig {
-    instant_feedback?: boolean;
-    show_explanation?: boolean;
-    gamification?: {
-      enable_points?: boolean;
-      enable_badges?: boolean;
-      enable_progress?: boolean;
-    };
-    encouragement_messages?: string[];
-  }
 
   /**
    * 题型配置项
@@ -418,25 +339,12 @@ declare global {
   }
 
   /**
-   * 练习参数配置
-   */
-  interface PracticeParameter {
-    key: string;
-    type: PracticeParameterType;
-    required: boolean;
-    description: string;
-    value_type: PracticeParameterValueType;
-    value?: any;
-  }
-
-  /**
    * 练习会话（对应 PracticeSessionSchema）
    */
   interface PracticeSession {
     id: number;
     student_id: string;
-    practice_id?: number; // 练习ID
-    practice_slug?: string; // 练习slug
+    practice_slug: string; // 练习slug
     parameters?: Record<string, any>; // 练习参数
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
@@ -517,7 +425,6 @@ declare global {
    * 练习会话数据
    */
   interface PracticeSessionData {
-    practice: Practice;
     session: PracticeSession;
     answers: PracticeSessionAnswer[];
     questions: Question[];

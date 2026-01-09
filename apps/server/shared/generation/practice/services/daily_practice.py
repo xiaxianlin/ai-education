@@ -11,8 +11,6 @@ from typing import Any, Dict
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from shared.core.constants import GRADE_NAME_MAP
-from shared.core.database import Practice
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import QuestionGenerationResult, QuestionGenerationState
@@ -42,16 +40,24 @@ async def build_prompt(state: QuestionGenerationState) -> Dict[str, Any]:
     count = session.parameters.get("generate_count", 0)
     question_types = session.parameters.get("question_types", {})
 
-    # 从 Practice 获取提示词模板
-    practice = state.get("practice")
-    if not practice:
-        # 如果 state 中没有 practice，从 session 查询
-        practice = await db.scalar(select(Practice).where(Practice.id == session.practice_id))
+    # 使用默认提示词模板（Practice 表已删除）
+    # 提示词模板可以根据 practice_slug 从配置或 Prompt 表获取
+    # 这里使用一个简单的默认模板
+    default_prompt_template = """请为{grade}年级学生生成{count}道{subject}科目的日常练习题目。
     
-    if not practice or not practice.prompt:
-        raise ValueError("日常练习提示词不存在")
+要求：
+1. 题目难度适中，符合该年级学生的认知水平
+2. 题目类型分布：{question_types}
+3. 避免重复题目：{avoid_duplicate_hint}
+4. 重点关注薄弱知识点：{weak_knowledge_points}
+5. 巩固已掌握知识点：{mastered_knowledge_points}
+6. 适当挑战：{challenge_knowledge_points}
+7. 引入新知识点：{new_knowledge_points}
+8. 复习单元：{review_units}
 
-    prompt = ChatPromptTemplate.from_template(practice.prompt)
+{format_instructions}"""
+    
+    prompt = ChatPromptTemplate.from_template(default_prompt_template)
 
     # 构建 JSON 输出解析器
     prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)

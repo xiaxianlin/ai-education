@@ -8,7 +8,6 @@ from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from .textbook import TextbookSchema
-    from .practice import PracticeSchema
 
 
 class StudentSchema(BaseModel):
@@ -37,21 +36,7 @@ class StudentTextbookSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class StudentPracticeSchema(BaseModel):
-    """学生练习关联"""
-
-    id: int
-    student_id: str
-    practice_id: int
-    sort_order: int = 0
-
-    practice: Optional["PracticeSchema"] = None
-
-    model_config = {"from_attributes": True}
-
-
 __all__ = [
     "StudentSchema",
     "StudentTextbookSchema",
-    "StudentPracticeSchema",
 ]

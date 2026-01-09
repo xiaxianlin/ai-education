@@ -69,7 +69,6 @@ class MockPracticeSession:
 
     id: int = 1
     student_id: str = "student_001"
-    practice_id: int = 1
     practice_slug: str = "daily_practice"
     textbook_id: int = 1
     unit_id: Optional[int] = None

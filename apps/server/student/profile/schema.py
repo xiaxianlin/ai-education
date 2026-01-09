@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from shared.core.schema import PracticeSchema, TextbookSchema
+from shared.core.schema import TextbookSchema
 
 
 class StudentProfileSchema(BaseModel):
@@ -8,4 +8,3 @@ class StudentProfileSchema(BaseModel):
     grade: int
 
     textbooks: list[TextbookSchema]
-    practices: list[PracticeSchema]

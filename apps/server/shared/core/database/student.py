@@ -1,7 +1,7 @@
 """
 学生相关模型
 
-包含 Student、StudentTextbook、StudentPractice
+包含 Student、StudentTextbook
 """
 
 from typing import TYPE_CHECKING
@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from .base import BaseModel, Integer, Mapped, String, mapped_column, now, relationship
 
 if TYPE_CHECKING:
-    from .practice import Practice
     from .textbook import Textbook
 
 
@@ -45,21 +44,4 @@ class StudentTextbook(BaseModel):
     )
 
 
-class StudentPractice(BaseModel):
-    """学生练习关联表"""
-
-    __tablename__ = "ah_student_practice"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    student_id: Mapped[str] = mapped_column(String(255), index=True)
-    practice_id: Mapped[int] = mapped_column(index=True)
-    sort_order: Mapped[int] = mapped_column(Integer, default=0, comment="排序")
-
-    practice: Mapped["Practice"] = relationship(
-        "Practice",
-        primaryjoin="foreign(StudentPractice.practice_id) == Practice.id",
-        lazy="joined",
-    )
-
-
-__all__ = ["Student", "StudentTextbook", "StudentPractice"]
+__all__ = ["Student", "StudentTextbook"]

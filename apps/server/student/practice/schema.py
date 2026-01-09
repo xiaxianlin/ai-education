@@ -23,7 +23,6 @@ class PracticeSubmitParams(BaseModel):
     """练习提交请求（用于 Celery 任务序列化）"""
 
     type: Optional[str] = Field(None, description="练习类型: daily_practice/unit_practice/assessment（兼容旧逻辑）")
-    practice_id: Optional[int] = Field(None, description="练习ID（优先使用）")
     student_id: str = Field(..., description="学生ID")
     textbook_id: int = Field(..., description="教材ID")
     unit_id: Optional[int] = Field(None, description="单元ID")

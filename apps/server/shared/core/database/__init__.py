@@ -27,14 +27,13 @@ from .textbook import Textbook, Unit, Knowledge, TeacherBook
 
 # 练习模块
 from .practice import (
-    Practice,
     PracticeSession,
     PracticeSessionAnswer,
     PracticeSessionReport,
 )
 
 # 学生模块
-from .student import Student, StudentTextbook, StudentPractice
+from .student import Student, StudentTextbook
 
 # 题目模块
 from .question import QuestionType, Question
@@ -63,14 +62,12 @@ __all__ = [
     "Knowledge",
     "TeacherBook",
     # 练习
-    "Practice",
     "PracticeSession",
     "PracticeSessionAnswer",
     "PracticeSessionReport",
     # 学生
     "Student",
     "StudentTextbook",
-    "StudentPractice",
     # 题目
     "QuestionType",
     "Question",

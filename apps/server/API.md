@@ -15,7 +15,6 @@
   - [题目管理](#题目管理)
   - [题型管理](#题型管理)
   - [学生管理](#学生管理)
-  - [练习管理](#练习管理)
   - [配置管理](#配置管理)
   - [Prompt 管理](#prompt-管理)
 - [学生端接口](#学生端接口)
@@ -1357,195 +1356,16 @@ GET /api/admin/student/{id}/unused_textbooks
 
 **功能说明**: 获取学生尚未绑定的教材列表。
 
-#### 添加学生练习
-
-```
-POST /api/admin/student/{id}/practice
-```
-
-**请求参数**:
-
-```json
-{
-  "ids": [1, 2, 3]
-}
-```
-
-**功能说明**: 为学生关联多个练习（支持批量操作）。
-
-#### 删除学生练习
-
-```
-DELETE /api/admin/student/{id}/practice
-```
-
-**请求参数**:
-
-```json
-{
-  "ids": [1, 2, 3]
-}
-```
-
-**功能说明**: 取消学生与多个练习的关联（支持批量操作）。
-
-#### 查询学生练习
-
-```
-GET /api/admin/student/{id}/practices
-```
-
-**功能说明**: 获取学生已关联的所有练习列表。
-
-#### 查询学生未选练习
-
-```
-GET /api/admin/student/{id}/unused_practices
-```
-
-**功能说明**: 获取系统中学生尚未关联的练习列表。
-
----
-
-### 练习管理
-
-#### 获取练习列表
-
-```
-GET /api/admin/practice/list
-```
-
-**查询参数**:
-- `page`: 页码，默认1
-- `size`: 每页数量，默认10
-- 其他筛选参数（根据 `SearchPracticeSchema` 定义）
-
-**响应示例**:
-
-```json
-{
-  "status": 0,
-  "message": "success",
-  "data": {
-    "total": 100,
-    "data": [
-      {
-        "id": 1,
-        "name": "日常练习",
-        "type": "daily_practice",
-        "description": "每日练习",
-        "create_time": 1234567890
-      }
-    ]
-  }
-}
-```
-
-#### 获取练习详情
-
-```
-GET /api/admin/practice/{id}
-```
-
-**响应示例**:
-
-```json
-{
-  "status": 0,
-  "message": "success",
-  "data": {
-    "id": 1,
-    "name": "日常练习",
-    "type": "daily_practice",
-    "description": "每日练习",
-    "create_time": 1234567890
-  }
-}
-```
-
-#### 创建练习
-
-```
-POST /api/admin/practice
-```
-
-**请求参数**:
-
-```json
-{
-  "name": "日常练习",
-  "type": "daily_practice",
-  "description": "每日练习"
-}
-```
-
-#### 更新练习
-
-```
-PUT /api/admin/practice/{id}
-```
-
-**请求参数**: 同创建练习，所有字段可选。
-
-#### 删除练习
-
-```
-DELETE /api/admin/practice/{id}
-```
-
-#### 获取练习参数配置
-
-```
-GET /api/admin/practice/parameters/{id}
-```
-
-**功能说明**: 根据练习 ID 获取其关联的参数配置列表。
-
-**响应示例**:
-
-```json
-{
-  "status": 0,
-  "message": "success",
-  "data": [
-    {
-      "key": "difficulty_config",
-      "value": {...}
-    }
-  ]
-}
-```
-
-#### 保存练习参数配置
-
-```
-POST /api/admin/practice/parameters/{id}/
-```
-
-**请求参数**:
-
-```json
-{
-  "parameter_config": {
-    "difficulty_config": {...},
-    "ability_config": {...},
-    "feedback_config": {...}
-  }
-}
-```
-
-**功能说明**: 保存指定练习的参数配置信息（JSON 格式）。
-
 #### 获取学生练习历史
 
 ```
-GET /api/admin/student/{id}/practice_sessions/{practice_id}
+GET /api/admin/student/{id}/practice_sessions/{practice_slug}
 ```
 
 **路径参数**:
 
-- `student_id`: 学生ID
-- `practice_type`: 练习类型（daily_practice/unit_practice/assessment）
+- `id`: 学生ID
+- `practice_slug`: 练习类型标识（daily_practice/unit_practice/assess_practice）
 
 **响应示例**:
 
@@ -1587,16 +1407,23 @@ GET /api/admin/student/{id}/practice_session/{session_id}
   "data": {
     "session": {
       "id": 123,
-      "session_type": "daily_practice",
+      "practice_slug": "daily_practice",
       "question_count": 10,
       "answer_count": 10,
       "correct_count": 8,
       "status": 2
     },
+    "questions": [
+      {
+        "id": "question_1",
+        "question_type_code": "single_choice",
+        "stem": {...},
+        "options": [...]
+      }
+    ],
     "answers": [
       {
-        "question_id": 1,
-        "question_content": "1 + 1 = ?",
+        "question_id": "question_1",
         "text_answer": "2",
         "status": 1,
         "time_spent": 5
@@ -1607,23 +1434,12 @@ GET /api/admin/student/{id}/practice_session/{session_id}
       "correct_questions": 8,
       "overall_score": 80.0,
       "total_time": 300
-    },
-    "wrong_records": []
+    }
   }
 }
 ```
 
-**功能说明**: 返回会话详情，包含session、answers、report、wrong_records四部分。
-
-#### 删除练习会话
-
-```
-DELETE /api/admin/practice/session/{session_id}
-```
-
-**功能说明**: 删除指定练习会话及其所有答题记录与报告，可用于清理异常数据。
-
-**注意**: 此接口可能已废弃，请使用学生练习会话管理相关接口。
+**功能说明**: 返回会话详情，包含session、answers、questions、report四部分。
 
 ---
 
@@ -2587,18 +2403,14 @@ POST /api/student/practice/answer
 
 - 修正认证方式：从 `Authorization: Bearer {token}` 更正为 `x-access-token: {token}`
 - 修正响应格式：从 `{ "code": 0, ... }` 更正为 `{ "status": 0, ... }`
-- 更新练习管理接口：
-  - 添加练习列表、详情、创建、更新、删除接口
-  - 添加练习参数配置接口（`GET /parameters/{id}` 和 `POST /parameters/{id}/`）
 - 更新学生管理接口：
   - 修正更新学生接口为 `PUT` 方法
   - 更新学生教材管理接口，支持批量操作
-  - 添加学生练习管理接口（添加、删除、查询）
 - 更新单元和知识点管理接口路径：
   - 单元管理接口路径更正为 `/api/admin/textbook/unit`
   - 知识点管理接口路径更正为 `/api/admin/textbook/knowledge`
 - 更新学生端练习接口：
-  - 添加获取题目详情接口 `GET /practice/question/{question_id}`
+  - 保留练习会话相关接口
   - 更新提交答案接口，支持复合题和多种答案类型
   - 移除可能不存在的音频分析和完成练习接口说明
 
@@ -2627,12 +2439,11 @@ POST /api/student/practice/answer
 
 ### v0.2.2 (2024-12-21)
 
-- 新增立即创建练习会话接口：`POST /api/student/practice/immediately_create`
 - 更新文档说明
 
 ### v0.2.1 (2024-12-20)
 
-- 修正练习接口路径参数：日常练习、单元练习、综合评估接口需要路径参数
+- 保留学生端练习会话相关接口
 - 更新日常练习接口：`GET /practice/daily/{textbook_id}`
 - 更新单元练习接口：`GET /practice/unit/{unit_id}`
 - 更新综合评估接口：`GET /practice/assessment/{textbook_id}`

@@ -10,11 +10,9 @@ import { usePracticeSessionListModel } from '../models/PageModel';
 
 export function Main() {
   const navigate = useNavigate();
-  const { student, studentId, studentLoading, studentError, practiceService, practiceId, setPracticeId } =
+  const { student, studentId, studentLoading, studentError, practices, practiceSlug, setPracticeSlug } =
     usePracticeSessionListModel();
   const tableActionRef = useRef<ActionType>();
-
-  const { data: practices = [], loading: practicesLoading } = practiceService;
 
   const columns = useMemo<ProColumns<PracticeSession>[]>(
     () => [
@@ -80,15 +78,8 @@ export function Main() {
         { width: 120 },
       ),
     ],
-    [practiceId, practices, studentId],
+    [practiceSlug, practices, studentId],
   );
-
-  useEffect(() => {
-    if (!practices.length) return;
-    if (!practiceId || !practices.map((i) => i.id).includes(practiceId)) {
-      setPracticeId(practices[0].id);
-    }
-  }, [practices, practiceId]);
 
   if (studentLoading) {
     return (
@@ -109,13 +100,12 @@ export function Main() {
   return (
     <PageContainer title={`${student.name} - 练习会话列表`} header={{ onBack: () => navigate(-1) }}>
       <Card
-        loading={practicesLoading}
-        activeTabKey={practiceId?.toString() || ''}
+        activeTabKey={practiceSlug || ''}
         onTabChange={(key) => {
-          setPracticeId(Number(key));
+          setPracticeSlug(key);
           tableActionRef.current?.reload();
         }}
-        tabList={practices.map((practice) => ({ key: practice.id.toString(), label: practice.name }))}
+        tabList={practices.map((practice) => ({ key: practice.slug, label: practice.name }))}
         styles={{ body: { padding: 0, paddingTop: 16 } }}
       >
         <ProTable<PracticeSession>
@@ -125,7 +115,7 @@ export function Main() {
           columns={columns}
           search={false}
           request={async () => {
-            const res = await StudentApi.getStudentPracticeSessions(studentId || '', practiceId || 0);
+            const res = await StudentApi.getStudentPracticeSessions(studentId || '', practiceSlug || 'daily_practice');
             return { data: res || [], success: true, total: res.length || 0 };
           }}
           scroll={{ x: 'max-content' }}

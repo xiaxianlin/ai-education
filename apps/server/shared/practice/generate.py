@@ -1,7 +1,6 @@
 import pendulum
 from loguru import logger
 from shared.core.database import (
-    Practice,
     PracticeSession,
     PracticeSessionAnswer,
     Question,
@@ -17,29 +16,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .session import get_assess_practices, get_daily_practices, get_unit_practices
 
 
-def _compose_parameters(practice: Practice, textbook: Textbook, student_id: str, unit_id: int | None = None):
+def _compose_parameters(practice_slug: str, textbook: Textbook, student_id: str, unit_id: int | None = None):
     """组合练习参数"""
 
+    # 使用默认配置
     generate_count = 15
     recall_count = 0
-
-    # parameter_config 现在是 dict 类型
-    parameter_config = practice.parameter_config or {}
-
-    # 从 dict 中读取配置
-    if "generate_count" in parameter_config:
-        generate_count_value = parameter_config["generate_count"]
-        if isinstance(generate_count_value, dict):
-            generate_count = generate_count_value.get(textbook.grade, 15)
-        else:
-            generate_count = generate_count_value
-
-    if "recall_count" in parameter_config:
-        recall_count_value = parameter_config["recall_count"]
-        if isinstance(recall_count_value, dict):
-            recall_count = recall_count_value.get(textbook.grade, 0)
-        else:
-            recall_count = recall_count_value
 
     return {
         "student_id": student_id,
@@ -217,26 +199,25 @@ async def create_practice_session(
     if not textbook:
         raise ValueError(f"教材不存在: textbook_id={textbook_id}")
 
-    # 检查练习是否存在
-    practice = await db.scalar(select(Practice).where(Practice.slug == practice_slug))
-    if not practice:
-        raise ValueError(f"练习不存在: slug={practice_slug}")
+    # 验证练习类型
+    valid_slugs = ["daily_practice", "unit_practice", "assess_practice"]
+    if practice_slug not in valid_slugs:
+        raise ValueError(f"无效的练习类型: slug={practice_slug}")
 
-    if practice.slug == "daily_practice":
+    if practice_slug == "daily_practice":
         await _check_daily_practice(db, student_id, textbook_id)
 
-    if practice.slug == "unit_practice":
+    if practice_slug == "unit_practice":
         await _check_unit_practice(db, student_id, textbook_id, unit_id)
 
-    if practice.slug == "assess_practice":
+    if practice_slug == "assess_practice":
         await _check_assess_practice(db, student_id, textbook_id)
 
     # 生成开始前，先创建会话记录
     session = PracticeSession(
         student_id=student_id,
-        practice_id=practice.id,
-        practice_slug=practice.slug,
-        parameters=_compose_parameters(practice, textbook, student_id, unit_id),
+        practice_slug=practice_slug,
+        parameters=_compose_parameters(practice_slug, textbook, student_id, unit_id),
         generate_status=1,
     )
     db.add(session)
