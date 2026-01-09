@@ -7,7 +7,7 @@ import { createContainer } from "unstated-next";
 const useContainer = () => {
   const { data, loading } = useRequest(() => studentApi.getProfile());
 
-  const { name, phone, grade, textbooks = [], practices = [] } = data || {};
+  const { name, phone, grade, textbooks = [] } = data || {};
 
   const activeTextbooks = useMemo(() => {
     return orderBy(
@@ -21,7 +21,6 @@ const useContainer = () => {
     loading,
     profile: { name, phone, grade },
     textbooks,
-    practices,
     subjects: uniq(activeTextbooks.map((t) => t.subject)),
     activeTextbooks,
   };

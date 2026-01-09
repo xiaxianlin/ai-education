@@ -1,11 +1,11 @@
 import { useCallback } from "react";
-import type { InteractionType, QuestionOption } from "../types";
+import type { InteractionType } from "../types";
 
 /**
  * 答案验证 Hook
  */
 export function useAnswerValidation() {
-  const validate = useCallback((type: InteractionType, value: string | string[], options?: QuestionOption[]) => {
+  const validate = useCallback((type: InteractionType, value: string | string[]) => {
     // 基础必填检查
     if (!value || (Array.isArray(value) && value.length === 0)) {
       return { isValid: false, message: "请先完成作答哦" };

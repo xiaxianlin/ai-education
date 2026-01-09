@@ -24,7 +24,7 @@ export function CompleteCard({ practice, textbook }: PracticeCardProps) {
         </div>
 
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">今日练习已完成，快来看看你的学习记录吧！</p>
+          <p className="text-sm text-muted-foreground">能力练习已完成，快来看看你的学习记录吧！</p>
           <div className="p-3 bg-secondary/30 rounded-xl flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground">正确率</span>
             <span className="text-xs font-black text-foreground">

@@ -14,3 +14,10 @@ export enum QuestionType {
   TEXT = "拼写题",
   AUDIO = "口语题",
 }
+
+/** 答案表单 Props */
+export interface AnswerFormProps {
+  value?: PracticeAnswer;
+  disabled?: boolean;
+  onChange: (value: PracticeAnswer) => void;
+}

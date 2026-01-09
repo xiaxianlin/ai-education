@@ -2,10 +2,11 @@ import { Button } from "@/components/ui";
 import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PracticeCardProps } from "../types";
+import { PracticeStatus } from "@ai-education/shared-web";
 
 export function PracticingCard({ practice, textbook }: PracticeCardProps) {
   const navigate = useNavigate();
-  const isInProgress = practice?.status === PracticeSessionStatus.PRACTICING;
+  const isInProgress = practice?.status === PracticeStatus.PRACTICING;
   const { question_count = 0, answer_count = 0 } = practice || {};
 
   return (
@@ -23,7 +24,7 @@ export function PracticingCard({ practice, textbook }: PracticeCardProps) {
 
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            {isInProgress ? "正在评估中，继续完成剩余题目吧。" : "评估已准备完成，随时可以开始。"}
+            {isInProgress ? "正在练习中，继续完成剩余题目吧。" : "练习已准备完成，随时可以开始。"}
           </p>
           <div className="p-3 bg-secondary/30 rounded-xl flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground">进度</span>
@@ -34,11 +35,11 @@ export function PracticingCard({ practice, textbook }: PracticeCardProps) {
         </div>
 
         <Button
-          onClick={() => navigate(`/practice/session/${practice?.id}`)}
+          onClick={() => navigate(`/practice/${practice?.id}`)}
           className="w-full h-12 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 transition-all"
         >
           <Play className="h-4 w-4 mr-2" fill="currentColor" />
-          {isInProgress ? "继续评估" : "开始评估"}
+          {isInProgress ? "继续练习" : "开始练习"}
         </Button>
       </div>
     </div>

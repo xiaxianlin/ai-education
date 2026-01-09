@@ -10,7 +10,7 @@ import { FC, useState } from "react";
 
 interface QuestionAnswerCardProps {
   question: Question;
-  answer?: PracticeSessionAnswer;
+  answer?: PracticeAnswer;
   index: number;
 }
 
@@ -61,7 +61,10 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
   const hasAnswer = status !== undefined && status !== 0;
   const isCorrect = status === 1;
   const userAnswer = answer?.text_answer || "未作答";
-  const correctAnswer = question.answer || "";
+  // Answer 类型是对象，需要提取正确答案字符串
+  const correctAnswer = Array.isArray(question.answer?.correct_answers) 
+    ? question.answer.correct_answers.join(", ")
+    : question.answer?.correct_answers?.[0] || answer?.correct_answer || "";
   const timeSpent = answer?.time_spent || 0;
 
   return (
@@ -109,9 +112,9 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                     <span>未答</span>
                   </div>
                 )}
-                {question.type && (
+                {question.question_type_code && (
                   <Badge variant="outline" className="text-xs px-2.5 py-1 border">
-                    {question.type}
+                    {question.question_type_code}
                   </Badge>
                 )}
               </div>
@@ -119,7 +122,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
               {/* 题目内容 */}
               <div
                 className="text-base leading-relaxed text-foreground line-clamp-3 font-medium"
-                dangerouslySetInnerHTML={{ __html: question.content }}
+                dangerouslySetInnerHTML={{ __html: question.stem.rich_text || question.stem.text }}
               />
             </div>
 
@@ -199,13 +202,13 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
               )}
 
               {/* 知识点 */}
-              {question.knowledge && (
+              {question.knowledge_points && question.knowledge_points.length > 0 && (
                 <div className="rounded-xl p-4 bg-blue-50 border-2 border-blue-200 shadow-sm">
                   <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
                     <span>📚</span>
                     <span>知识点</span>
                   </div>
-                  <div className="text-sm text-foreground leading-relaxed">{question.knowledge}</div>
+                  <div className="text-sm text-foreground leading-relaxed">{question.knowledge_points.join(", ")}</div>
                 </div>
               )}
             </div>

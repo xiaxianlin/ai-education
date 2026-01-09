@@ -6,7 +6,6 @@ import { Button, Card, CardContent } from "@/components/ui";
 import { Loader2 } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { usePracticeSessionModel } from "../models/page";
-import { QuestionType } from "../types";
 import { AudioInput } from "./AnswerForm/AudioInput";
 import { ChoiceInput } from "./AnswerForm/ChoiceInput";
 import { JudgeInput } from "./AnswerForm/JudgeInput";
@@ -26,18 +25,21 @@ export function AnswerCard() {
       disabled,
       onChange: setAnswer,
     };
-    switch (question?.type) {
-      case QuestionType.AUDIO:
-        return <AudioInput {...props} />;
-      case QuestionType.CHOICE:
-        return <ChoiceInput {...props} />;
-      case QuestionType.JUDGE:
-        return <JudgeInput {...props} />;
-      case QuestionType.TEXT:
-        return <TextInput {...props} />;
-      default:
-        return null;
+    // 根据 interaction_type 判断题目类型
+    const interactionType = question?.question_type?.interaction_type;
+    if (interactionType === "voice_input" || interactionType === "free_speak") {
+      return <AudioInput {...props} />;
     }
+    if (interactionType === "single_choice" || interactionType === "multi_choice") {
+      return <ChoiceInput {...props} />;
+    }
+    if (interactionType === "true_false" || interactionType === "correct_wrong") {
+      return <JudgeInput {...props} />;
+    }
+    if (interactionType === "text_input" || interactionType === "fill_blank") {
+      return <TextInput {...props} />;
+    }
+    return null;
   }, [question, answer, submitting, setAnswer]);
 
   return (

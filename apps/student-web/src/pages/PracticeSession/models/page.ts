@@ -3,22 +3,23 @@
  */
 import { useOnce } from "@/common/hooks";
 import { studentApi } from "@/lib/api";
+import { getPracticeName } from "@/lib/practice";
 import { useRequest } from "ahooks";
 import { findLastIndex } from "lodash-es";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { createContainer } from "unstated-next";
-import { PanelType, QuestionType } from "../types";
+import { PanelType } from "../types";
 import { getPanelType } from "../utils";
 
 function useContainer() {
   const param = useParams<{ sessionId: string }>();
-  const sessionId = Number(param.sessionId);
+  const sessionId = param.sessionId || "";
 
   const [panel, setPanel] = useState<PanelType>(PanelType.LOADING);
   const [order, setOrder] = useState(0);
-  const [answer, setAnswer] = useState<PracticeSessionAnswer>();
+  const [answer, setAnswer] = useState<PracticeAnswer>();
 
   const { data, refresh } = useRequest(() => studentApi.getPracticeSessionData(sessionId), {
     ready: !!sessionId,
@@ -90,7 +91,7 @@ function useContainer() {
     }
   );
 
-  const { practice, session, report, questions = [], answers = [] } = data || {};
+  const { session, report, questions = [], answers = [] } = data || {};
   const question = questions[order];
 
   // 是否全部答完
@@ -105,10 +106,11 @@ function useContainer() {
       return;
     }
 
-    const isAudioAnswer = question?.type === QuestionType.AUDIO;
+    // 判断是否为口语题：根据 interaction_type 判断
+    const isAudioAnswer = question?.question_type?.interaction_type === "voice_input" || question?.question_type?.interaction_type === "free_speak";
 
     submitAnswer({
-      session_id: session?.id || 0,
+      session_id: session?.id || "",
       question_id: question?.id || "",
       answer: answer.text_answer || "",
       time_spent: timeSpent,
@@ -130,7 +132,7 @@ function useContainer() {
   );
 
   return {
-    title: practice?.name,
+    title: session ? getPracticeName(session.practice_type) : undefined,
     panel,
     session,
     report,

@@ -50,7 +50,7 @@ export function DragDropInput({ value, options = [], disabled, onChange }: Inter
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {option.imageUrl && <img src={option.imageUrl} alt="" className="w-6 h-6 rounded-md object-cover" />}
+                {option.image_url && <img src={option.image_url} alt="" className="w-6 h-6 rounded-md object-cover" />}
                 <span>{option.text}</span>
               </button>
             );
@@ -82,8 +82,8 @@ export function DragDropInput({ value, options = [], disabled, onChange }: Inter
                   disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {option.imageUrl && (
-                  <img src={option.imageUrl} alt="" className="w-6 h-6 rounded-md object-cover brightness-110" />
+                {option.image_url && (
+                  <img src={option.image_url} alt="" className="w-6 h-6 rounded-md object-cover brightness-110" />
                 )}
                 <span>{option.text}</span>
                 {!disabled && <span className="ml-1 opacity-60 text-xs">×</span>}

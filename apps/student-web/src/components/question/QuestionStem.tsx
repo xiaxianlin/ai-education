@@ -18,18 +18,18 @@ export function QuestionStem({ stem, resources, className }: QuestionStemProps) 
   return (
     <div className={cn('space-y-4', className)}>
       {/* 音频朗读 */}
-      {stem.audioUrl && (
+      {stem.audio_url && (
         <div className="flex items-center gap-2">
-          <AudioPlayer src={stem.audioUrl} />
+          <AudioPlayer src={stem.audio_url} />
           <span className="text-sm text-muted-foreground">点击播放题目朗读</span>
         </div>
       )}
 
       {/* 题干文本 */}
       <div className="text-lg leading-relaxed">
-        {stem.richText ? (
+        {stem.rich_text ? (
           <div
-            dangerouslySetInnerHTML={{ __html: stem.richText }}
+            dangerouslySetInnerHTML={{ __html: stem.rich_text }}
             className="prose prose-lg max-w-none"
           />
         ) : (
@@ -38,9 +38,9 @@ export function QuestionStem({ stem, resources, className }: QuestionStemProps) 
       </div>
 
       {/* 高亮词汇 */}
-      {stem.highlightWords && stem.highlightWords.length > 0 && (
+      {stem.highlight_words && stem.highlight_words.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {stem.highlightWords.map((word, idx) => (
+          {stem.highlight_words?.map((word: string, idx: number) => (
             <span
               key={idx}
               className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-medium"
@@ -85,7 +85,7 @@ export function QuestionStem({ stem, resources, className }: QuestionStemProps) 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <p className="text-sm font-medium text-blue-700 mb-2">💡 提示</p>
           <ul className="text-sm text-blue-600 space-y-1">
-            {stem.hints.map((hint, idx) => (
+            {stem.hints?.map((hint: string, idx: number) => (
               <li key={idx}>• {hint}</li>
             ))}
           </ul>

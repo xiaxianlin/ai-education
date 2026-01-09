@@ -5,10 +5,13 @@
 import { useProfileModel } from "@/common/models/ProfileModel";
 import { PracticeCard } from "@/components/biz";
 import { Skeleton } from "@/components/ui";
-import { PRACTICE_PATH_MAP } from "@/lib/constants";
+import { getPracticeIcon, getPracticeName, getPracticePath } from "@/lib/practice";
+
+// 固定的练习类型列表（根据后端支持的练习类型）
+const PRACTICE_TYPES = ["ability_practice", "unit_practice"] as const;
 
 export default function Home() {
-  const { practices, loading } = useProfileModel();
+  const { loading } = useProfileModel();
   const greetingEmojis = ["👋", "😊", "🎈", "🌈", "🎨", "🚀", "🍦"];
   const randomGreeting = greetingEmojis[Math.floor(Math.random() * greetingEmojis.length)];
 
@@ -38,14 +41,14 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {practices.map((practice) => {
-              const path = PRACTICE_PATH_MAP[practice.slug];
+            {PRACTICE_TYPES.map((practiceType, idx) => {
+              const path = getPracticePath(practiceType);
               return (
-                <div key={practice.id} className="animate-springy" style={{ animationDelay: `${practice.id * 100}ms` }}>
+                <div key={practiceType} className="animate-springy" style={{ animationDelay: `${idx * 100}ms` }}>
                   <PracticeCard
-                    title={practice.name}
-                    description={practice.description}
-                    icon={practice.icon}
+                    title={getPracticeName(practiceType)}
+                    description={undefined}
+                    icon={getPracticeIcon(practiceType)}
                     path={path}
                   />
                 </div>

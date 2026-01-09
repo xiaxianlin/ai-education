@@ -4,6 +4,7 @@
  */
 import { Badge, Button, Card, CardContent, Skeleton } from "@/components/ui";
 import { studentApi } from "@/lib/api";
+import { getPracticeName } from "@/lib/practice";
 import { formatDateTime } from "@ai-education/shared-web";
 import { useRequest } from "ahooks";
 import { ArrowLeft, Play } from "lucide-react";
@@ -14,7 +15,7 @@ import { ReportSummary } from "./components/ReportSummary";
 /**
  * 获取状态文本和样式
  */
-function getStatusInfo(status: PracticeSessionStatus) {
+function getStatusInfo(status: PracticeStatus) {
   switch (status) {
     case 0:
       return { text: "未开始", variant: "outline" as const };
@@ -78,13 +79,13 @@ export default function PracticeSessionData() {
     );
   }
 
-  const { practice, session, questions, answers, report } = detail;
+  const { session, questions, answers, report } = detail;
   const statusInfo = getStatusInfo(session.status);
   const isCompleted = session.status === 2;
   const isInProgress = session.status === 1;
 
   // 创建答案映射，方便查找
-  const answerMap = new Map<string, PracticeSessionAnswer>();
+  const answerMap = new Map<string, PracticeAnswer>();
   answers?.forEach((answer) => {
     answerMap.set(answer.question_id, answer);
   });
@@ -113,7 +114,7 @@ export default function PracticeSessionData() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{practice.name}</h1>
+                <h1 className="text-2xl font-bold text-foreground">{getPracticeName(session.practice_type)}</h1>
                 <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
               </div>
               {!isCompleted && (
@@ -151,7 +152,7 @@ export default function PracticeSessionData() {
       </Card>
 
       {/* 报告摘要（如果已完成） */}
-      {isCompleted && report && <ReportSummary report={report} slug={practice.slug} />}
+      {isCompleted && report && <ReportSummary report={report} slug={session.practice_type} />}
 
       {/* 题目列表 */}
       <div className="space-y-4">

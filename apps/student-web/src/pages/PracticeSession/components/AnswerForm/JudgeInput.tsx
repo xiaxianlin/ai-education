@@ -3,6 +3,7 @@
  */
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
+import type { AnswerFormProps } from "../../types";
 
 export function JudgeInput({ value, disabled, onChange }: AnswerFormProps) {
   return (
@@ -15,7 +16,7 @@ export function JudgeInput({ value, disabled, onChange }: AnswerFormProps) {
         return (
           <button
             key={option}
-            onClick={() => !disabled && onChange({ ...value, text_answer: option } as PracticeSessionAnswer)}
+            onClick={() => !disabled && onChange({ ...value, text_answer: option } as PracticeAnswer)}
             disabled={disabled}
             className={cn(
               "w-full p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",

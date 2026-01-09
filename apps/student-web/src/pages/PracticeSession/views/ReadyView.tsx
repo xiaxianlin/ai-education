@@ -10,10 +10,10 @@ import { UpperGradeReadyPanel } from "../components/UpperGradeReadyPanel";
 import { usePracticeSessionModel } from "../models/page";
 
 export const ReadyView = memo(() => {
-  const { student } = useProfileModel();
+  const { profile } = useProfileModel();
   const { title, questions, begin } = usePracticeSessionModel();
 
-  const isLowerGrade = (student?.grade || 3) < 2;
+  const isLowerGrade = (profile?.grade || 3) < 2;
 
   return (
     <div className="bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8">
@@ -26,9 +26,9 @@ export const ReadyView = memo(() => {
       >
         {/* 根据年级切换不同风格面板 */}
         {isLowerGrade ? (
-          <LowerGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
+          <LowerGradeReadyPanel title={title || ""} total={questions.length} onBegin={begin} />
         ) : (
-          <UpperGradeReadyPanel title={title} total={questions.length} onBegin={begin} />
+          <UpperGradeReadyPanel title={title || ""} total={questions.length} onBegin={begin} />
         )}
       </div>
     </div>

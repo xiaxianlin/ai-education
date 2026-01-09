@@ -14,7 +14,7 @@ export function GeneratingCard({ textbook }: PracticeCardProps) {
           </div>
           <h3 className="text-xl font-bold text-foreground">{textbook.semester}</h3>
         </div>
-        <p className="text-sm text-muted-foreground">AI 正在为你精心准备今日练习题目，请稍候片刻～</p>
+        <p className="text-sm text-muted-foreground">AI 正在为你精心准备能力练习题目，请稍候片刻～</p>
         <div className="flex items-center justify-center gap-3 py-2 bg-secondary/50 rounded-xl">
           <Loader2 className="h-4 w-4 text-primary animate-spin" />
           <span className="text-xs font-bold text-primary">正在生成练习</span>

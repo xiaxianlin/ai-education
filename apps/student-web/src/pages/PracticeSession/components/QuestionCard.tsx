@@ -11,7 +11,7 @@ import { usePracticeSessionModel } from "../models/page";
 
 export function QuestionCard() {
   const { question, answer } = usePracticeSessionModel();
-  const resourceUrl = getResourceUrl(question?.resource);
+  const resourceUrl = question?.resources && question.resources.length > 0 ? getResourceUrl(question.resources[0].url) : undefined;
 
   const resultBadge = useMemo(() => {
     if (answer?.status === 0) return null;
@@ -60,18 +60,24 @@ export function QuestionCard() {
   return (
     <div className="flex flex-col gap-4 relative">
       <div className="flex items-center gap-2 flex-wrap">
-        <Badge className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-200">{question?.type}</Badge>
+        <Badge className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-200">{question?.question_type_code}</Badge>
         <Badge className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 border-purple-200">
           {question?.difficulty}
         </Badge>
-        <Badge className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 border-amber-200">
-          {question?.knowledge}
-        </Badge>
+        {question?.knowledge_points && question.knowledge_points.length > 0 && (
+          <Badge className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 border-amber-200">
+            {question.knowledge_points.join(", ")}
+          </Badge>
+        )}
       </div>
       <div className={cn("text-lg leading-relaxed whitespace-pre-wrap text-foreground font-medium")}>
-        {question?.content}
+        {question?.stem.rich_text ? (
+          <div dangerouslySetInnerHTML={{ __html: question.stem.rich_text }} />
+        ) : (
+          question?.stem.text
+        )}
       </div>
-      {question?.resource_type === "image" && (
+      {question?.resources && question.resources.some(r => r.type === "image") && (
         <div className="flex justify-start">
           <img
             src={resourceUrl || ""}
@@ -80,7 +86,7 @@ export function QuestionCard() {
           />
         </div>
       )}
-      {question?.resource_type === "audio" && (
+      {question?.resources && question.resources.some(r => r.type === "audio") && (
         <div className="flex justify-start">
           <AudioPlayer key={resourceUrl} src={resourceUrl || ""} />
         </div>

@@ -16,7 +16,6 @@ declare global {
     grade: number;
 
     textbooks: Textbook[];
-    practices: Practice[];
   }
   
 
@@ -29,7 +28,7 @@ declare global {
 
 
   interface AnswerRequest {
-    session_id: number;
+    session_id: string; // UUID v4
     question_id: string;
     answer: string;
     time_spent: number;

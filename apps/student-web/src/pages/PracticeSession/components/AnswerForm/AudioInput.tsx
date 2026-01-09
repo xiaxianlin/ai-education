@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useRequest } from "ahooks";
 import { CheckCircle, Loader2, Mic, RotateCcw, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import type { AnswerFormProps } from "../../types";
 
 type RecordingState = "idle" | "recording" | "parsing" | "success" | "failure";
 
@@ -29,7 +30,7 @@ export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
         ...value,
         text_answer: res.text,
         analysis: res.analysis,
-      } as PracticeSessionAnswer);
+      } as PracticeAnswer);
       setState("success");
     },
     onError: (error) => {
@@ -110,7 +111,7 @@ export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
       ...value,
       text_answer: "",
       analysis: "",
-    } as PracticeSessionAnswer);
+    } as PracticeAnswer);
   };
 
   const formatTime = (seconds: number) => {

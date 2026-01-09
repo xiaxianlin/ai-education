@@ -4,12 +4,12 @@
 提供练习会话的查询、状态管理等功能。
 """
 
-import pendulum
 from loguru import logger
 from shared.core.database import (
     Practice,
     PracticeAnswer,
     PracticeReport,
+    Unit,
 )
 from shared.core.schema import (
     PracticeAnswerSchema,
@@ -19,7 +19,7 @@ from shared.core.schema import (
     QuestionSchema,
 )
 from shared.utils.time import now
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -31,18 +31,31 @@ async def get_practice_sessions(
     student_id: str,
     practice_type: str,
     limit: int = 30,
+    page: int = 1,
+    page_size: int = 20,
 ):
-    """获取指定练习类型的练习会话记录
+    """获取指定练习类型的练习会话记录（支持分页）
     
     Args:
         db: 数据库会话
         student_id: 学生 ID
         practice_type: 练习类型 (ability_practice / unit_practice)
-        limit: 返回数量限制
+        limit: 返回数量限制（兼容旧版，已废弃，使用 page_size）
+        page: 页码（从1开始）
+        page_size: 每页数量
         
     Returns:
-        List[PracticeSchema]: 练习列表
+        dict: 包含 data, total, page, pageSize 的分页结果
     """
+    # 查询总数
+    count_query = select(Practice).where(
+        Practice.student_id == student_id,
+        Practice.practice_type == practice_type,
+    )
+    total = await db.scalar(select(func.count()).select_from(count_query.subquery()))
+    
+    # 查询分页数据
+    offset = (page - 1) * page_size
     sessions = await db.scalars(
         select(Practice)
         .where(
@@ -50,10 +63,16 @@ async def get_practice_sessions(
             Practice.practice_type == practice_type,
         )
         .order_by(desc(Practice.create_time))
-        .limit(limit)
+        .limit(page_size)
+        .offset(offset)
     )
 
-    return [PracticeSchema.model_validate(session) for session in sessions.all()]
+    return {
+        "data": [PracticeSchema.model_validate(session) for session in sessions.all()],
+        "total": total or 0,
+        "page": page,
+        "pageSize": page_size,
+    }
 
 
 async def get_practice_session_data(
@@ -116,7 +135,7 @@ async def get_ability_practices(
     student_id: str,
     limit: int = 30,
 ):
-    """获取能力练习记录
+    """获取能力练习记录（按教材分组）
     
     Args:
         db: 数据库会话
@@ -124,40 +143,78 @@ async def get_ability_practices(
         limit: 返回数量限制
         
     Returns:
-        List[PracticeSchema]: 能力练习列表
+        List[PracticeSchema]: 能力练习列表（按教材分组，每个教材返回最新的未完成练习）
     """
-    return await get_practice_sessions(db, student_id, "ability_practice", limit)
+    # 获取所有能力练习
+    all_practices = await get_practice_sessions(db, student_id, "ability_practice", limit=limit, page=1, page_size=limit)
+    
+    # 按教材分组，返回每个教材的最新未完成练习
+    # 注意：Practice 模型中没有 textbook_id，需要通过其他方式获取
+    # 这里先返回所有练习，前端可以根据 subject 和 grade 进行分组
+    practices_by_key = {}
+    for practice in all_practices["data"]:
+        # 使用 subject + grade 作为分组键
+        key = f"{practice.subject}_{practice.grade}"
+        if key not in practices_by_key:
+            # 优先选择未完成的练习
+            if practice.status != 2:
+                practices_by_key[key] = practice
+        elif key in practices_by_key:
+            # 如果已有未完成的，跳过；如果没有，选择最新的
+            if practices_by_key[key].status == 2 and practice.status != 2:
+                practices_by_key[key] = practice
+    
+    return list(practices_by_key.values())
 
 
 async def get_unit_practices(
     db: AsyncSession,
     student_id: str,
-    unit_id: int | None = None,
+    textbook_id: int,
     limit: int = 30,
 ):
-    """获取单元练习记录
+    """获取单元练习记录（按教材）
     
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        unit_id: 单元 ID（可选，用于过滤）
+        textbook_id: 教材 ID
         limit: 返回数量限制
         
     Returns:
-        List[PracticeSchema]: 单元练习列表
+        List[PracticeSchema]: 单元练习列表（按单元分组，每个单元返回最新的未完成练习）
     """
+    # 先查询该教材下的所有单元ID
+    units = await db.scalars(select(Unit.id).where(Unit.textbook_id == textbook_id))
+    unit_ids = [unit for unit in units.all()]
+    
+    if not unit_ids:
+        return []
+    
+    # 查询该教材下的所有单元练习
     query = select(Practice).where(
         Practice.student_id == student_id,
         Practice.practice_type == "unit_practice",
-    )
-
-    if unit_id:
-        query = query.where(Practice.unit_id == unit_id)
-
-    query = query.order_by(desc(Practice.create_time)).limit(limit)
+        Practice.unit_id.in_(unit_ids),
+    ).order_by(desc(Practice.create_time)).limit(limit)
     
     result = await db.scalars(query)
-    return [PracticeSchema.model_validate(session) for session in result.all()]
+    all_practices = [PracticeSchema.model_validate(session) for session in result.all()]
+    
+    # 按单元分组，返回每个单元的最新未完成练习
+    practices_by_unit = {}
+    for practice in all_practices:
+        unit_id = practice.unit_id
+        if unit_id and unit_id not in practices_by_unit:
+            # 优先选择未完成的练习
+            if practice.status != 2:
+                practices_by_unit[unit_id] = practice
+        elif unit_id and unit_id in practices_by_unit:
+            # 如果已有未完成的，跳过；如果没有，选择最新的
+            if practices_by_unit[unit_id].status == 2 and practice.status != 2:
+                practices_by_unit[unit_id] = practice
+    
+    return list(practices_by_unit.values())
 
 
 async def begin_practice(
@@ -288,43 +345,3 @@ async def get_session_by_id(
     return PracticeSchema.model_validate(session)
 
 
-# ==================== 兼容旧版函数（将逐步废弃） ====================
-
-
-async def get_daily_practices(
-    db: AsyncSession,
-    student_id: str,
-    textbook_id: int | None = None,
-):
-    """获取当天的日常练习记录（兼容旧版）"""
-    start = pendulum.today()
-    query = select(Practice).where(
-        Practice.student_id == student_id,
-        Practice.practice_type == "daily_practice",
-        Practice.create_time >= start.int_timestamp,
-    )
-    if textbook_id:
-        query = query.where(Practice.textbook_id == textbook_id)
-    result = await db.scalars(query)
-    return [PracticeSchema.model_validate(session) for session in result.all()]
-
-
-async def get_assess_practices(
-    db: AsyncSession,
-    student_id: str,
-    textbook_id: int | None = None,
-):
-    """获取 30 天内的综合评估记录（兼容旧版）"""
-    thirty_days_ago = pendulum.now().subtract(days=30)
-
-    query = select(Practice).where(
-        Practice.student_id == student_id,
-        Practice.practice_type == "assess_practice",
-        Practice.create_time >= thirty_days_ago.int_timestamp,
-    )
-
-    if textbook_id:
-        query = query.where(Practice.textbook_id == textbook_id)
-
-    result = await db.scalars(query)
-    return [PracticeSchema.model_validate(session) for session in result.all()]

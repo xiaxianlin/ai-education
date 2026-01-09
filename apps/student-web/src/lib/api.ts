@@ -67,11 +67,11 @@ export const studentApi = {
   // ========== 练习相关 ==========
 
   /**
-   * 获取日常练习
-   * GET /practice_session/daily
+   * 获取能力练习
+   * GET /practice/ability
    */
-  async getDailyPractices() {
-    return apiClient.get<Practice[]>("/practice/daily");
+  async getAbilityPractices() {
+    return apiClient.get<Practice[]>("/practice/ability");
   },
 
   /**
@@ -80,14 +80,6 @@ export const studentApi = {
    */
   async getUnitPractices(textbookId: number) {
     return apiClient.get<Practice[]>(`/practice/unit/${textbookId}`);
-  },
-
-  /**
-   * 获取能力评测
-   * GET /practice/assessment
-   */
-  async getAssessments() {
-    return apiClient.get<Practice[]>(`/practice/assessment`);
   },
 
   /**
@@ -143,11 +135,29 @@ export const studentApi = {
   },
 
   /**
+   * 获取练习会话数据（别名，兼容旧代码）
+   * GET /practice/{session_id}
+   */
+  async getPracticeSessionData(sessionId: string | number) {
+    return apiClient.get<PracticeData>(`/practice/${sessionId}`);
+  },
+
+  /**
    * 获取练习历史记录
    * GET /practice/records/{practice_id}
    */
-  async getPracticeRecords(practiceId: number): Promise<Practice[]> {
-    return apiClient.get<Practice[]>(`/practice/records/${practiceId}`);
+  async getPracticeRecords(practiceId: number, page: number = 1, pageSize: number = 20): Promise<{
+    data: Practice[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    return apiClient.get<{
+      data: Practice[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>(`/practice/records/${practiceId}`, { params: { page, page_size: pageSize } });
   },
 
   /**

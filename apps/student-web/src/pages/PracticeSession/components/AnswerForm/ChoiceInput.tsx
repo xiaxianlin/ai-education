@@ -3,19 +3,17 @@
  */
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
-import { toast } from "sonner";
 import { usePracticeSessionModel } from "../../models/page";
+import type { AnswerFormProps } from "../../types";
 
 export function ChoiceInput({ value, disabled, onChange }: AnswerFormProps) {
   const { question } = usePracticeSessionModel();
 
-  let options: Array<{ label: string; text: string }> = [];
-  try {
-    options = JSON.parse(question?.options || "[]");
-  } catch (error) {
-    toast.error("选项解析失败，请刷新重试");
-    console.error("Failed to parse question options:", error);
-  }
+  // question.options 是 QuestionOption[]，需要转换为 { label, text } 格式
+  const options: Array<{ label: string; text: string }> = (question?.options || []).map((opt) => ({
+    label: opt.id,
+    text: opt.text || opt.id,
+  }));
 
   console.log("answer", value);
 
@@ -27,7 +25,7 @@ export function ChoiceInput({ value, disabled, onChange }: AnswerFormProps) {
         return (
           <button
             key={label}
-            onClick={() => !disabled && onChange({ ...value, text_answer: label } as PracticeSessionAnswer)}
+            onClick={() => !disabled && onChange({ ...value, text_answer: label } as PracticeAnswer)}
             disabled={disabled}
             className={cn(
               "flex items-center justify-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 shadow-sm",

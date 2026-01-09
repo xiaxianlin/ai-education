@@ -40,14 +40,15 @@ export enum PracticeStatus {
 
 /**
  * 练习生成状态
+ * 注意：与后端保持一致：0-生成中, 1-已完成, -1-生成失败
  */
 export enum PracticeGenerateStatus {
-  /** 生成失败 */
-  FAILED = 0,
   /** 生成中 */
-  GENERATING = 1,
-  /** 生成成功 */
-  SUCCESS = 2,
+  GENERATING = 0,
+  /** 已完成 */
+  SUCCESS = 1,
+  /** 生成失败 */
+  FAILED = -1,
 }
 
 
@@ -64,9 +65,9 @@ export const PRACTICE_STATUS_OPTIONS = Object.entries(PRACTICE_STATUS_MAP).map((
 }));
 
 export const PRACTICE_GENERATE_STATUS_MAP: Record<PracticeGenerateStatus, string> = {
-  0: "生成失败",
-  1: "生成中",
-  2: "生成成功",
+  [PracticeGenerateStatus.GENERATING]: "生成中",
+  [PracticeGenerateStatus.SUCCESS]: "已完成",
+  [PracticeGenerateStatus.FAILED]: "生成失败",
 };
 
 export const PRACTICE_GENERATE_STATUS_OPTIONS = Object.entries(PRACTICE_GENERATE_STATUS_MAP).map(([value, label]) => ({

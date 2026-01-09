@@ -2,7 +2,7 @@
  * 多选题输入组件
  */
 import { cn } from '@/lib/utils';
-import { Check, Square, CheckSquare } from 'lucide-react';
+import { Square, CheckSquare } from 'lucide-react';
 import type { InteractionInputProps } from '../types';
 
 export function MultiChoiceInput({
@@ -65,9 +65,9 @@ export function MultiChoiceInput({
 
             {/* 选项内容 */}
             <div className="flex-1">
-              {option.imageUrl && (
+              {option.image_url && (
                 <img
-                  src={option.imageUrl}
+                  src={option.image_url}
                   alt={option.text || `选项 ${letter}`}
                   className="max-h-24 rounded-lg mb-2"
                 />

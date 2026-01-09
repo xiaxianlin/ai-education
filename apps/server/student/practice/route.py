@@ -5,9 +5,15 @@
 支持题型系统的练习功能：
 - 获取题目
 - 提交答案（支持复合题）
+- 获取能力练习列表
+- 获取单元练习列表
+- 创建练习会话
+- 开始/完成练习
+- 获取练习详情
+- 获取练习记录（支持分页）
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from typing import Optional, Any
 from sqlalchemy import select
@@ -15,6 +21,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.core.database import Database
 from shared.core.database import Question
+from shared.practice import practice as practice_service
+from shared.practice import practice_generate
+from .schema import CreateAbilityPracticeSchema, CreateUnitPracticeSchema
 
 practice_router = APIRouter(prefix="/practice")
 
@@ -51,7 +60,183 @@ class AnswerResultSchema(BaseModel):
     sub_results: Optional[list[dict]] = Field(None, description="子题评判结果")
 
 
+class CreatePracticeRequest(BaseModel):
+    """创建练习请求"""
+
+    type: str = Field(..., description="练习类型: ability_practice/unit_practice")
+    textbook_id: int = Field(..., description="教材ID")
+    unit_id: Optional[int] = Field(None, description="单元ID（单元练习必填）")
+    ability_codes: Optional[list[str]] = Field(None, description="原子能力code列表（能力练习必填）")
+    subject: Optional[str] = Field(None, description="科目（能力练习必填）")
+    grade: Optional[int] = Field(None, description="年级（能力练习必填）")
+
+
 # ============ 路由 ============
+
+
+@practice_router.get(
+    "/ability",
+    tags=["练习"],
+    summary="获取能力练习列表",
+    description="获取当前学生的能力练习列表（按教材分组）",
+)
+async def get_ability_practices(
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取能力练习列表"""
+    student = request.state.student
+    practices = await practice_service.get_ability_practices(db, student.id)
+    return practices
+
+
+@practice_router.get(
+    "/unit/{textbook_id}",
+    tags=["练习"],
+    summary="获取单元练习列表",
+    description="获取指定教材的单元练习列表（按单元分组）",
+)
+async def get_unit_practices(
+    textbook_id: int,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取单元练习列表"""
+    student = request.state.student
+    practices = await practice_service.get_unit_practices(db, student.id, textbook_id)
+    return practices
+
+
+@practice_router.post(
+    "/create",
+    tags=["练习"],
+    summary="创建练习会话",
+    description="创建新的练习会话",
+)
+async def create_practice(
+    params: CreatePracticeRequest,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """创建练习会话"""
+    student = request.state.student
+
+    if params.type == "ability_practice":
+        if not params.ability_codes or not params.subject or params.grade is None:
+            raise HTTPException(status_code=400, detail="能力练习需要提供 ability_codes, subject, grade")
+        
+        session_id = await practice_generate.create_practice_session(
+            db=db,
+            practice_type="ability_practice",
+            student_id=student.id,
+            parameters={
+                "ability_codes": params.ability_codes,
+                "subject": params.subject,
+                "grade": params.grade,
+                "textbook_id": params.textbook_id,
+            },
+            immediately=False,
+        )
+    elif params.type == "unit_practice":
+        if not params.unit_id:
+            raise HTTPException(status_code=400, detail="单元练习需要提供 unit_id")
+        
+        session_id = await practice_generate.create_practice_session(
+            db=db,
+            practice_type="unit_practice",
+            student_id=student.id,
+            parameters={
+                "unit_id": params.unit_id,
+                "textbook_id": params.textbook_id,
+            },
+            immediately=False,
+        )
+    else:
+        raise HTTPException(status_code=400, detail=f"不支持的练习类型: {params.type}")
+
+    return {"session_id": session_id}
+
+
+@practice_router.get(
+    "/records/{practice_id}",
+    tags=["练习"],
+    summary="获取练习记录",
+    description="获取指定练习类型的记录列表（支持分页）",
+)
+async def get_practice_records(
+    practice_id: int,
+    request: Request,
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    db: AsyncSession = Database,
+):
+    """获取练习记录（支持分页）"""
+    student = request.state.student
+    
+    # practice_id 对应练习类型：1=ability_practice, 2=unit_practice
+    practice_type_map = {
+        1: "ability_practice",
+        2: "unit_practice",
+    }
+    
+    practice_type = practice_type_map.get(practice_id)
+    if not practice_type:
+        raise HTTPException(status_code=400, detail=f"无效的练习类型ID: {practice_id}")
+    
+    result = await practice_service.get_practice_sessions(
+        db, student.id, practice_type, limit=30, page=page, page_size=page_size
+    )
+    return result
+
+
+@practice_router.get(
+    "/{session_id}",
+    tags=["练习"],
+    summary="获取练习详情",
+    description="获取练习会话的详细信息",
+)
+async def get_practice_detail(
+    session_id: str,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取练习详情"""
+    student = request.state.student
+    return await practice_service.get_practice_session_data(db, student.id, session_id)
+
+
+@practice_router.post(
+    "/{session_id}/begin",
+    tags=["练习"],
+    summary="开始练习",
+    description="标记练习会话为进行中状态",
+)
+async def begin_practice(
+    session_id: str,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """开始练习"""
+    student = request.state.student
+    await practice_service.begin_practice(db, student.id, session_id)
+    return {"message": "练习已开始"}
+
+
+@practice_router.post(
+    "/{session_id}/complete",
+    tags=["练习"],
+    summary="完成练习",
+    description="完成练习会话并生成报告",
+)
+async def complete_practice(
+    session_id: str,
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """完成练习"""
+    student = request.state.student
+    report_id = await practice_service.complete_practice(db, student.id, session_id)
+    return {"report_id": report_id}
 
 
 @practice_router.get(

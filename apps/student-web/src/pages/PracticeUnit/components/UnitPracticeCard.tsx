@@ -3,6 +3,7 @@ import { CompleteCard } from "./CompleteCard";
 import { GeneratingCard } from "./GeneratingCard";
 import { PracticingCard } from "./PracticingCard";
 import { WaitCard } from "./WaitCard";
+import { PracticeGenerateStatus, PracticeStatus } from "@ai-education/shared-web";
 
 export function UnitPracticeCard({ unit, practice }: PracticeCardProps) {
   if (!practice) {
@@ -14,10 +15,10 @@ export function UnitPracticeCard({ unit, practice }: PracticeCardProps) {
   }
 
   switch (practice.status) {
-    case PracticeSessionStatus.READY:
-    case PracticeSessionStatus.PRACTICING:
+    case PracticeStatus.READY:
+    case PracticeStatus.PRACTICING:
       return <PracticingCard unit={unit} practice={practice} />;
-    case PracticeSessionStatus.COMPLETED:
+    case PracticeStatus.COMPLETED:
       return <CompleteCard unit={unit} practice={practice} />;
   }
 }

@@ -3,20 +3,20 @@
  */
 import { Badge, Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { getPracticeIcon, getPracticeName } from "@/lib/practice";
 import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface HistoryCardProps {
-  practice?: Practice;
-  session: PracticeSession;
+  session: Practice;
 }
 
 /**
  * 获取状态文本和样式
  */
-function getStatusInfo(status: PracticeSessionStatus) {
+function getStatusInfo(status: PracticeStatus) {
   switch (status) {
     case 0:
       return { text: "未开始", variant: "outline" as const };
@@ -29,7 +29,7 @@ function getStatusInfo(status: PracticeSessionStatus) {
   }
 }
 
-export const HistoryCard: FC<HistoryCardProps> = ({ session, practice }) => {
+export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
   const navigate = useNavigate();
 
   const { id, question_count, answer_count, correct_count, status, create_time, start_time, end_time } = session;
@@ -62,10 +62,10 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session, practice }) => {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-3xl grayscale group-hover:grayscale-0 transition-all transform group-hover:scale-110">
-              {practice?.icon || "📝"}
+              {getPracticeIcon(session.practice_type)}
             </span>
             <div className="min-w-0">
-              <h3 className="text-lg font-black text-foreground truncate">{practice?.name}</h3>
+              <h3 className="text-lg font-black text-foreground truncate">{getPracticeName(session.practice_type)}</h3>
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
                 {timeText}
               </div>

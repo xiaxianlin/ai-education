@@ -3,11 +3,15 @@ import { GeneratingCard } from "../components/GeneratingCard";
 import { PracticingCard } from "../components/PracticingCard";
 import { WaitCard } from "../components/WaitCard";
 import { usePageModel } from "../models/page";
+import { PracticeGenerateStatus, PracticeStatus } from "@ai-education/shared-web";
 
 export function PracticeCard({ textbook }: { textbook: Textbook }) {
   const { practices } = usePageModel();
 
-  const practice = practices.find((p) => p.textbook_id === textbook.id);
+  // 通过 subject 和 grade 匹配练习（后端按 subject + grade 分组）
+  const practice = practices.find(
+    (p) => p.subject === textbook.subject && p.grade === textbook.grade
+  );
   if (!practice) {
     return <WaitCard textbook={textbook} />;
   }
@@ -17,10 +21,10 @@ export function PracticeCard({ textbook }: { textbook: Textbook }) {
   }
 
   switch (practice.status) {
-    case PracticeSessionStatus.READY:
-    case PracticeSessionStatus.PRACTICING:
+    case PracticeStatus.READY:
+    case PracticeStatus.PRACTICING:
       return <PracticingCard textbook={textbook} practice={practice!} />;
-    case PracticeSessionStatus.COMPLETED:
+    case PracticeStatus.COMPLETED:
       return <CompleteCard practice={practice!} textbook={textbook} />;
   }
 }

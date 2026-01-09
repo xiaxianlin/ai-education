@@ -1,23 +1,26 @@
 import { useAuthModel } from "@/common/models/AuthModel";
 import { useProfileModel } from "@/common/models/ProfileModel";
-import { PRACTICE_PATH_MAP } from "@/lib/constants";
+import { getPracticeIcon, getPracticeName, getPracticePath } from "@/lib/practice";
 import { cn } from "@/lib/utils";
 import { GRADES } from "@ai-education/shared-web";
 import { LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+// 固定的练习类型列表（根据后端支持的练习类型）
+const PRACTICE_TYPES = ["ability_practice", "unit_practice"] as const;
+
 export function Header() {
   const { logout } = useAuthModel();
-  const { profile, practices } = useProfileModel();
+  const { profile } = useProfileModel();
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
     { name: "首页", path: "/home", icon: <span className="text-xl">🏠</span> },
-    ...practices.map((p) => ({
-      name: p.name,
-      path: PRACTICE_PATH_MAP[p.slug],
-      icon: <span className="text-xl">{p.icon}</span>,
+    ...PRACTICE_TYPES.map((practiceType) => ({
+      name: getPracticeName(practiceType),
+      path: getPracticePath(practiceType),
+      icon: <span className="text-xl">{getPracticeIcon(practiceType)}</span>,
     })),
     { name: "练习记录", path: "/practice/record", icon: <span className="text-xl">📊</span> },
   ];
@@ -27,7 +30,7 @@ export function Header() {
       {/* Mobile/iPad Portrait Toggle (Hidden for now as we focus on iPad landscape/split) */}
       <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r-2 border-primary/10 p-6 z-50 animate-springy">
         {/* Logo/Grade Area */}
-        <Link to="/home" className="flex items-center gap-3 px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
+        <div className="flex items-center gap-3 px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
           <span className="text-4xl animate-float">🎓</span>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-bold text-secondary-foreground uppercase tracking-wider">我的年级</span>
@@ -35,7 +38,7 @@ export function Header() {
               {GRADES[profile?.grade || 0] || "未设置"}
             </span>
           </div>
-        </Link>
+        </div>
 
         {/* Navigation Items */}
         <nav className="flex-1 flex flex-col gap-2">
@@ -60,21 +63,8 @@ export function Header() {
           })}
         </nav>
 
-        {/* Bottom Area: Profile & Logout */}
+        {/* Bottom Area: Logout */}
         <div className="mt-auto space-y-3">
-          <button
-            onClick={() => navigate("/profile")}
-            className={cn(
-              "w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold transition-all",
-              location.pathname === "/profile"
-                ? "bg-accent/10 text-accent-foreground border-2 border-accent/20"
-                : "text-muted-foreground hover:bg-accent/5 hover:text-accent"
-            )}
-          >
-            <span className="text-xl">👤</span>
-            <span className="truncate">{profile?.name || "个人中心"}</span>
-          </button>
-
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-destructive hover:bg-destructive/5 transition-all"
@@ -91,9 +81,6 @@ export function Header() {
           🎓
         </Link>
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate("/profile")} className="text-xl">
-            👤
-          </button>
           <button onClick={() => navigate("/practice/record")} className="text-xl">
             📊
           </button>

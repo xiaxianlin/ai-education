@@ -3,11 +3,12 @@ import { Lightbulb, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePageModel } from "../models/page";
 import { PracticeCardProps } from "../types";
+import { PracticeStatus } from "@ai-education/shared-web";
 
 export function PracticingCard({ practice, unit }: PracticeCardProps) {
   const navigate = useNavigate();
   const { setUnit } = usePageModel();
-  const isInProgress = practice?.status === PracticeSessionStatus.PRACTICING;
+  const isInProgress = practice?.status === PracticeStatus.PRACTICING;
   const { question_count = 0, answer_count = 0 } = practice || {};
 
   return (

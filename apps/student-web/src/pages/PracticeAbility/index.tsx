@@ -3,7 +3,7 @@ import { SubjectTabs } from "@/components/biz";
 import { PageModel } from "./models/page";
 import { PracticeCard } from "./views/PracticeCard";
 
-export default function AssessmentPractice() {
+export default function AbilityPractice() {
   const { activeTextbooks } = useProfileModel();
 
   return (
@@ -13,8 +13,8 @@ export default function AssessmentPractice() {
         <section className="bg-white rounded-[2rem] p-8 border-4 border-white shadow-xl shadow-primary/5 flex items-center gap-6">
           <div className="text-6xl animate-float select-none">🎯</div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-black text-foreground tracking-tight">综合评估</h1>
-            <p className="text-lg font-bold text-muted-foreground italic">查漏补缺，见证你的全面成长！✨</p>
+            <h1 className="text-3xl font-black text-foreground tracking-tight">能力练习</h1>
+            <p className="text-lg font-bold text-muted-foreground italic">提升核心能力，突破学习瓶颈！🚀</p>
           </div>
         </section>
 

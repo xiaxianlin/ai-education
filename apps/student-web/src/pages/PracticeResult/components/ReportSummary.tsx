@@ -7,7 +7,7 @@ import { CheckCircle, Clock, TrendingUp, Trophy, XCircle } from "lucide-react";
 import { FC } from "react";
 
 interface ReportSummaryProps {
-  report: PracticeSessionReport;
+  report: PracticeReport;
   slug?: string;
 }
 

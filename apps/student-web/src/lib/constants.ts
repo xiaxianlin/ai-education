@@ -1,7 +1,6 @@
-export const DEFAULT_SYSTEM_PRACTICES = ["daily_practice", "unit_practice", "assessment"];
+export const DEFAULT_SYSTEM_PRACTICES = ["ability_practice", "unit_practice"];
 
 export const PRACTICE_PATH_MAP: Record<string, string> = {
-  daily_practice: "/practice/daily",
+  ability_practice: "/practice/ability",
   unit_practice: "/practice/unit",
-  assessment: "/practice/assessment",
 };

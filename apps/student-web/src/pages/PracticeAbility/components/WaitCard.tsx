@@ -1,5 +1,5 @@
 /**
- * 等待生成状态的评估卡片
+ * 等待生成状态的练习卡片
  */
 import { Button } from "@/components/ui";
 import { Loader2, Sparkles } from "lucide-react";
@@ -15,7 +15,7 @@ export function WaitCard({ textbook }: PracticeCardProps) {
           <div className="text-3xl">✨</div>
           <h3 className="text-xl font-bold text-foreground">{textbook.semester}</h3>
         </div>
-        <p className="text-sm text-muted-foreground">还没有为这本教材创建综合评估，点击下方按钮开始吧。</p>
+        <p className="text-sm text-muted-foreground">还没有为这本教材创建能力练习，点击下方按钮开始吧。</p>
         <Button
           disabled={loading}
           onClick={() => createPractice(textbook.id)}
@@ -29,7 +29,7 @@ export function WaitCard({ textbook }: PracticeCardProps) {
           ) : (
             <>
               <Sparkles className="h-4 w-4 mr-2" />
-              创建综合评估
+              创建练习
             </>
           )}
         </Button>

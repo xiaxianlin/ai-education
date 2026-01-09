@@ -1,5 +1,5 @@
 export interface PracticeCardProps {
   unit: Unit;
-  practice?: PracticeSession;
+  practice?: Practice;
 }
 
