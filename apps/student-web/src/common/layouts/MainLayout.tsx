@@ -1,13 +1,27 @@
 import { ProfileModel, useProfileModel } from "@/common/models/ProfileModel";
-import { Header, LoadingPage } from "@/components/biz";
+import { Header, LoadingPage, SettingsDialog } from "@/components/biz";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 const MainContainer = () => {
-  const { loading } = useProfileModel();
+  const { loading, profile } = useProfileModel();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // 检查是否需要设置
+  useEffect(() => {
+    if (!loading && profile) {
+      const needsSetup = !profile.grade || !profile.semester || !profile.subject;
+      if (needsSetup) {
+        setSettingsOpen(true);
+      }
+    }
+  }, [loading, profile]);
 
   if (loading) {
     return <LoadingPage />;
   }
+
+  const needsSetup = !profile?.grade || !profile?.semester || !profile?.subject;
 
   return (
     <div className="flex min-h-screen bg-background bg-pattern">
@@ -17,6 +31,7 @@ const MainContainer = () => {
           <Outlet />
         </div>
       </main>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} required={needsSetup} />
     </div>
   );
 };

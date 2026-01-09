@@ -14,8 +14,16 @@ declare global {
     name: string;
     phone: string;
     grade: number;
+    semester?: string;
+    subject?: string;
 
     textbooks: Textbook[];
+  }
+
+  interface UpdateStudentSettingsRequest {
+    grade: number;
+    semester: string;
+    subject: string;
   }
   
 

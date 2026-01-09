@@ -64,6 +64,14 @@ export const studentApi = {
     return apiClient.get<Profile>("/profile");
   },
 
+  /**
+   * 更新学生设置
+   * PUT /profile
+   */
+  async updateSettings(params: UpdateStudentSettingsRequest) {
+    return apiClient.put("/profile", params);
+  },
+
   // ========== 练习相关 ==========
 
   /**

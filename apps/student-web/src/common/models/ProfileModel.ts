@@ -5,9 +5,11 @@ import { useMemo } from "react";
 import { createContainer } from "unstated-next";
 
 const useContainer = () => {
-  const { data, loading } = useRequest(() => studentApi.getProfile());
+  const { data, loading, refresh } = useRequest(() => studentApi.getProfile(), {
+    refreshDeps: [],
+  });
 
-  const { name, phone, grade, textbooks = [] } = data || {};
+  const { name, phone, grade, semester, subject, textbooks = [] } = data || {};
 
   const activeTextbooks = useMemo(() => {
     return orderBy(
@@ -17,12 +19,19 @@ const useContainer = () => {
     );
   }, [textbooks, grade]);
 
+  const updateSettings = async (params: UpdateStudentSettingsRequest) => {
+    await studentApi.updateSettings(params);
+    await refresh();
+  };
+
   return {
     loading,
-    profile: { name, phone, grade },
+    profile: { name, phone, grade, semester, subject },
     textbooks,
     subjects: uniq(activeTextbooks.map((t) => t.subject)),
     activeTextbooks,
+    updateSettings,
+    refresh,
   };
 };
 

@@ -92,7 +92,25 @@ export const GRADES: Record<number, string> = {
 
 export const GRADE_OPTIONS = Object.entries(GRADES).map(([value, label]) => ({
   label,
-  value,
+  value: Number(value),
+}));
+
+/** 学科列表 */
+export const SUBJECTS = ["语文", "数学", "英语"];
+
+/** 学期列表 */
+export const SEMESTERS = ["上学期", "下学期"];
+
+/** 学科选项 */
+export const SUBJECT_OPTIONS = SUBJECTS.map((subject) => ({
+  label: subject,
+  value: subject,
+}));
+
+/** 学期选项 */
+export const SEMESTER_OPTIONS = SEMESTERS.map((semester) => ({
+  label: semester,
+  value: semester,
 }));
 
 // ============ 题型系统常量 ============

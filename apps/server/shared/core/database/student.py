@@ -4,7 +4,7 @@
 包含 Student、StudentTextbook
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from .base import BaseModel, Integer, Mapped, String, mapped_column, now, relationship
 
@@ -23,6 +23,8 @@ class Student(BaseModel):
     password: Mapped[str] = mapped_column(String(255), default="")
     token: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
     grade: Mapped[int] = mapped_column(nullable=False)
+    semester: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    subject: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     status: Mapped[int] = mapped_column(default=0)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)

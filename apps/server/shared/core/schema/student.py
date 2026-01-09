@@ -17,6 +17,8 @@ class StudentSchema(BaseModel):
     name: str = ""
     phone: str
     grade: int
+    semester: Optional[str] = None
+    subject: Optional[str] = None
     status: int = 0
     create_time: int
     update_time: Optional[int] = None

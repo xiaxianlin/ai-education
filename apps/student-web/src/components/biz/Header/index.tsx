@@ -3,8 +3,10 @@ import { useProfileModel } from "@/common/models/ProfileModel";
 import { getPracticeIcon, getPracticeName, getPracticePath } from "@/lib/practice";
 import { cn } from "@/lib/utils";
 import { GRADES } from "@ai-education/shared-web";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { SettingsDialog } from "../SettingsDialog";
 
 // 固定的练习类型列表（根据后端支持的练习类型）
 const PRACTICE_TYPES = ["ability_practice", "unit_practice"] as const;
@@ -14,6 +16,7 @@ export function Header() {
   const { profile } = useProfileModel();
   const location = useLocation();
   const navigate = useNavigate();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const navItems = [
     { name: "首页", path: "/home", icon: <span className="text-xl">🏠</span> },
@@ -29,14 +32,23 @@ export function Header() {
     <>
       {/* Mobile/iPad Portrait Toggle (Hidden for now as we focus on iPad landscape/split) */}
       <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-white/80 backdrop-blur-xl border-r-2 border-primary/10 p-6 z-50 animate-springy">
-        {/* Logo/Grade Area */}
-        <div className="flex items-center gap-3 px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
-          <span className="text-4xl animate-float">🎓</span>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-bold text-secondary-foreground uppercase tracking-wider">我的年级</span>
-            <span className="text-lg font-bold text-foreground truncate">
-              {GRADES[profile?.grade || 0] || "未设置"}
+        {/* Grade Area */}
+        <div className="px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-lg font-bold text-foreground">
+              {GRADES[profile?.grade || 0] || "未设置年级"}
             </span>
+            {profile?.semester && profile?.subject && (
+              <>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-sm text-muted-foreground">{profile.semester}</span>
+                <span className="text-muted-foreground">·</span>
+                <span className="text-sm text-muted-foreground">{profile.subject}</span>
+              </>
+            )}
+            {(!profile?.semester || !profile?.subject) && (
+              <span className="text-sm text-muted-foreground">未完成设置</span>
+            )}
           </div>
         </div>
 
@@ -63,8 +75,15 @@ export function Header() {
           })}
         </nav>
 
-        {/* Bottom Area: Logout */}
+        {/* Bottom Area: Settings & Logout */}
         <div className="mt-auto space-y-3">
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all"
+          >
+            <Settings className="w-5 h-5" />
+            <span>设置</span>
+          </button>
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl font-bold text-destructive hover:bg-destructive/5 transition-all"
@@ -73,6 +92,7 @@ export function Header() {
             <span>退出登录</span>
           </button>
         </div>
+        <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       </aside>
 
       {/* Mobile Top Bar (Simplified) */}
