@@ -384,14 +384,14 @@ question_generation_graph = create_question_generation_graph()
 
 async def invoke_question_generation_workflow(
     *,
-    db: AsyncSession,
     question_type_code: str,
     count: int,
 ) -> List[Question]:
     """执行题目生成工作流
 
+    每次调用会创建独立的数据库会话，支持并行调用。
+
     Args:
-        db: 数据库会话
         question_type_code: 题目类型编码
         count: 需要生成的数量
 
@@ -402,6 +402,8 @@ async def invoke_question_generation_workflow(
         ValueError: 如果输入参数无效
         Exception: 如果工作流执行失败
     """
+    from shared.core.database import AsyncSessionLocal
+
     workflow_name = "invoke_question_generation_workflow"
     logger.info(
         f"[{workflow_name}] 开始执行题目生成工作流",
@@ -419,69 +421,71 @@ async def invoke_question_generation_workflow(
     if count > 100:
         raise ValueError(f"生成数量（count）不能超过 100，当前值: {count}")
 
-    state = QuestionGenerationState(
-        db=db,
-        question_type_code=question_type_code,
-        count=count,
-    )
-
-    logger.debug(
-        f"[{workflow_name}] 初始 state",
-        question_type_code=question_type_code,
-        count=count,
-    )
-
-    try:
-        result = await question_generation_graph.ainvoke(state)
-
-        # 从最终状态中获取保存的题目列表
-        questions = result.get("questions", [])
-
-        logger.info(
-            f"[{workflow_name}] 工作流执行完成",
-            questions_count=len(questions),
-            target_count=count,
-        )
-        logger.debug(f"[{workflow_name}] 最终结果", questions_count=len(questions))
-
-        if len(questions) == 0:
-            logger.warning(
-                f"[{workflow_name}] ⚠️ 警告: 未能生成任何题目。可能原因: LLM 生成失败，或 prompt 配置不当。",
-                question_type_code=question_type_code,
-                target_count=count,
-            )
-        elif len(questions) < count:
-            completion_rate = len(questions) / count * 100
-            logger.warning(
-                f"[{workflow_name}] ⚠️ 部分完成: 目标 {count} 道，实际 {len(questions)} 道，完成率 {completion_rate:.1f}%",
-                question_type_code=question_type_code,
-                target_count=count,
-                actual_count=len(questions),
-                completion_rate=completion_rate,
-            )
-        else:
-            logger.info(
-                f"[{workflow_name}] ✓ 成功完成: 生成 {len(questions)} 道题目，达到目标数量 {count}",
-                question_type_code=question_type_code,
-                target_count=count,
-                actual_count=len(questions),
-            )
-
-        return questions
-    except Exception as e:
-        # 工作流执行失败，回滚数据库事务
-        logger.error(
-            f"[{workflow_name}] 工作流执行失败: {type(e).__name__}: {str(e)}",
-            exc_info=True,
+    # 为每个工作流创建独立的数据库会话，避免并行任务共享会话导致的冲突
+    async with AsyncSessionLocal() as db:
+        state = QuestionGenerationState(
+            db=db,
             question_type_code=question_type_code,
             count=count,
         )
+
+        logger.debug(
+            f"[{workflow_name}] 初始 state",
+            question_type_code=question_type_code,
+            count=count,
+        )
+
         try:
-            await db.rollback()
-            logger.debug(f"[{workflow_name}] 已回滚数据库事务")
-        except Exception as rollback_error:
-            logger.error(
-                f"[{workflow_name}] 回滚事务失败: {type(rollback_error).__name__}: {str(rollback_error)}",
-                exc_info=True,
+            result = await question_generation_graph.ainvoke(state)
+
+            # 从最终状态中获取保存的题目列表
+            questions = result.get("questions", [])
+
+            logger.info(
+                f"[{workflow_name}] 工作流执行完成",
+                questions_count=len(questions),
+                target_count=count,
             )
-        raise
+            logger.debug(f"[{workflow_name}] 最终结果", questions_count=len(questions))
+
+            if len(questions) == 0:
+                logger.warning(
+                    f"[{workflow_name}] ⚠️ 警告: 未能生成任何题目。可能原因: LLM 生成失败，或 prompt 配置不当。",
+                    question_type_code=question_type_code,
+                    target_count=count,
+                )
+            elif len(questions) < count:
+                completion_rate = len(questions) / count * 100
+                logger.warning(
+                    f"[{workflow_name}] ⚠️ 部分完成: 目标 {count} 道，实际 {len(questions)} 道，完成率 {completion_rate:.1f}%",
+                    question_type_code=question_type_code,
+                    target_count=count,
+                    actual_count=len(questions),
+                    completion_rate=completion_rate,
+                )
+            else:
+                logger.info(
+                    f"[{workflow_name}] ✓ 成功完成: 生成 {len(questions)} 道题目，达到目标数量 {count}",
+                    question_type_code=question_type_code,
+                    target_count=count,
+                    actual_count=len(questions),
+                )
+
+            return questions
+        except Exception as e:
+            # 工作流执行失败，回滚数据库事务
+            logger.error(
+                f"[{workflow_name}] 工作流执行失败: {type(e).__name__}: {str(e)}",
+                exc_info=True,
+                question_type_code=question_type_code,
+                count=count,
+            )
+            try:
+                await db.rollback()
+                logger.debug(f"[{workflow_name}] 已回滚数据库事务")
+            except Exception as rollback_error:
+                logger.error(
+                    f"[{workflow_name}] 回滚事务失败: {type(rollback_error).__name__}: {str(rollback_error)}",
+                    exc_info=True,
+                )
+            raise

@@ -3,6 +3,7 @@
 使用 Redis 缓存练习生成进度，支持前端实时查询。
 """
 
+import asyncio
 from typing import Optional
 
 import redis.asyncio as redis
@@ -18,11 +19,28 @@ class ProgressService:
 
     def __init__(self):
         self._redis: Optional[redis.Redis] = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     async def get_redis(self) -> redis.Redis:
-        """获取 Redis 连接"""
+        """获取 Redis 连接
+
+        检查当前事件循环是否与连接创建时的循环相同，
+        如果不同则重新创建连接（Celery worker 场景）。
+        """
+        current_loop = asyncio.get_running_loop()
+
+        # 如果事件循环变了，需要重新创建连接
+        if self._redis is not None and self._loop != current_loop:
+            try:
+                await self._redis.close()
+            except Exception:
+                pass
+            self._redis = None
+
         if self._redis is None:
             self._redis = redis.from_url(envs.REDIS_URL, decode_responses=True)
+            self._loop = current_loop
+
         return self._redis
 
     async def close(self) -> None:

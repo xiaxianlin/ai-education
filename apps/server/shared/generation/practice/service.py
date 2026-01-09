@@ -309,15 +309,16 @@ async def prepare_answer_records(
     await db.flush()
 
     # 批量创建答题记录（使用列表推导式）
+    # 注意: unit_id 从 session 获取，Question 模型没有 unit_id 和 textbook_id 字段
     answer_records = [
         PracticeAnswer(
             session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
             question_order=index + 1,
-            unit_id=question.unit_id,
+            unit_id=session.unit_id,
             knowledge=question.knowledge_points[0] if question.knowledge_points else None,
-            textbook_id=question.textbook_id,
+            textbook_id=None,
             status=0,
             time_spent=0,
         )

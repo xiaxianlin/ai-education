@@ -197,10 +197,9 @@ async def generate_questions_node(state: PracticeGenerationState) -> Dict[str, A
     # 计算期望的总题目数
     total_expected = sum(s["question_count"] for s in selections)
 
-    # 并行生成题目
+    # 并行生成题目（每个任务使用独立的数据库会话，避免并发冲突）
     tasks = [
         invoke_question_generation_workflow(
-            db=db,
             question_type_code=selection["question_type_code"],
             count=selection["question_count"],
         )

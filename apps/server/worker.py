@@ -5,11 +5,14 @@
 用于启动 Celery Worker 进程，处理异步任务。
 
 使用方法:
-    uv run worker.py                              # 使用默认队列和配置
+    uv run worker.py                # 普通模式启动
+    uv run worker.py --reload       # 开发模式，监听文件变化自动重启
 """
 
+import argparse
 import os
 import sys
+
 import dotenv
 from loguru import logger
 
@@ -18,6 +21,7 @@ from shared.worker import celery_app
 
 
 def start_worker():
+    """启动 Celery Worker"""
     # 加载环境变量
     dotenv.load_dotenv()
 
@@ -59,5 +63,37 @@ def start_worker():
         logger.info("任务 Worker 已关闭")
 
 
+def start_worker_with_reload():
+    """带热重载的 Worker 启动（开发模式）"""
+    try:
+        from watchfiles import run_process
+    except ImportError:
+        logger.error("请安装 watchfiles: uv add watchfiles")
+        sys.exit(1)
+
+    watch_path = os.path.dirname(os.path.abspath(__file__))
+    logger.info("=" * 50)
+    logger.info("🔄 开发模式: 监听文件变化自动重启")
+    logger.info(f"监听目录: {watch_path}")
+    logger.info("=" * 50)
+
+    run_process(
+        watch_path,
+        target=start_worker,
+        watch_filter=lambda change, path: path.endswith(".py"),
+    )
+
+
 if __name__ == "__main__":
-    start_worker()
+    parser = argparse.ArgumentParser(description="Celery Worker 启动脚本")
+    parser.add_argument(
+        "--reload",
+        action="store_true",
+        help="开发模式，监听文件变化自动重启",
+    )
+    args = parser.parse_args()
+
+    if args.reload:
+        start_worker_with_reload()
+    else:
+        start_worker()

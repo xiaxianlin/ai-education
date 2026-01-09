@@ -88,33 +88,11 @@ export const studentApi = {
   },
 
   /**
-   * 获取指定能力的练习
-   * @deprecated 使用 getPractice 代替
-   */
-  async getAbilityPracticeByCode(abilityCode: string) {
-    return this.getPractice({
-      practice_type: "ability_practice",
-      ability_code: abilityCode,
-    });
-  },
-
-  /**
    * 获取原子能力列表
    * GET /ability/atomics
    */
   async getAbilityAtomics(subject: string, grade: number) {
     return apiClient.get<AbilityAtomic[]>("/ability/atomics", { subject, grade });
-  },
-
-  /**
-   * 获取指定单元的练习
-   * @deprecated 使用 getPractice 代替
-   */
-  async getUnitPracticeById(unitId: number) {
-    return this.getPractice({
-      practice_type: "unit_practice",
-      unit_id: unitId,
-    });
   },
 
   /**
@@ -189,7 +167,11 @@ export const studentApi = {
    * 获取练习历史记录
    * GET /practice/records/{practice_id}
    */
-  async getPracticeRecords(practiceId: number, page: number = 1, pageSize: number = 20): Promise<{
+  async getPracticeRecords(
+    practiceId: number,
+    page: number = 1,
+    pageSize: number = 20
+  ): Promise<{
     data: Practice[];
     total: number;
     page: number;

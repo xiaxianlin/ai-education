@@ -6,32 +6,29 @@ import { Button } from "@/components/ui";
 import { studentApi } from "@/lib/api";
 import { useRequest } from "ahooks";
 import { FileText, Loader2, RefreshCw, Sparkles } from "lucide-react";
-import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 /**
  * 生成中状态按钮
  */
-export function GeneratingAction({ sessionId }: { sessionId?: string }) {
-  const pollCountRef = useRef(0);
-
+export function GeneratingAction({ sessionId, onComplete }: { sessionId?: string; onComplete?: () => void }) {
   const { data: progressData } = useRequest(
     () => (sessionId ? studentApi.getPracticeProgress(sessionId) : Promise.resolve(null)),
     {
       ready: !!sessionId,
       pollingInterval: 2000,
-      onSuccess: () => {
-        pollCountRef.current += 1;
+      onSuccess: (res) => {
+        if (res?.progress === 100) {
+          onComplete?.();
+        }
       },
     }
   );
 
-  const progress = progressData?.progress ?? Math.min(pollCountRef.current * 5, 90);
-
   return (
     <Button disabled className="w-full h-11 rounded-xl font-medium">
       <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-      创建中 ({progress}%)...
+      创建中 ({progressData?.progress}%)...
     </Button>
   );
 }
@@ -85,13 +82,7 @@ export function PracticingAction({ practiceId }: { practiceId: string }) {
 /**
  * 等待创建状态按钮
  */
-export function WaitingAction({
-  creating,
-  onCreatePractice,
-}: {
-  creating: boolean;
-  onCreatePractice: () => void;
-}) {
+export function WaitingAction({ creating, onCreatePractice }: { creating: boolean; onCreatePractice: () => void }) {
   return (
     <Button onClick={onCreatePractice} disabled={creating} className="w-full h-11 rounded-xl font-medium">
       {creating ? (

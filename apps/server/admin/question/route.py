@@ -205,12 +205,11 @@ async def get_question_type_by_code(code: str, db: AsyncSession = Database):
     description="根据题型编码生成指定数量的题目",
     response_model=List[QuestionSchema],
 )
-async def generate_questions(code: str, params: QuestionGenerateSchema, db: AsyncSession = Database):
+async def generate_questions(code: str, params: QuestionGenerateSchema):
     """根据题型编码生成题目"""
     from shared.generation import invoke_question_generation_workflow
 
     questions = await invoke_question_generation_workflow(
-        db=db,
         question_type_code=code,
         count=params.count,
     )
