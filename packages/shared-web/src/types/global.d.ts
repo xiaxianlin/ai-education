@@ -1,5 +1,4 @@
 import {
-  AbilityType as _AbilityType,
   AnswerType as _AnswerType,
   CognitiveLevel as _CognitiveLevel,
   Difficulty as _Difficulty,
@@ -12,7 +11,6 @@ import {
 } from "../constants";
 
 declare global {
-  type AbilityType = _AbilityType;
   type AnswerType = _AnswerType;
   type CognitiveLevel = _CognitiveLevel;
   type Difficulty = _Difficulty;
