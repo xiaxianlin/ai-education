@@ -66,20 +66,20 @@ async def get_ability_practice_by_code(
 
 
 @practice_router.get(
-    "/unit/{textbook_id}",
+    "/unit/{unit_id}",
     tags=["练习"],
-    summary="获取单元练习列表",
-    description="获取指定教材的单元练习列表（按单元分组）",
+    summary="获取指定单元的练习",
+    description="获取当前学生指定单元 ID 的未开始或进行中的练习",
 )
-async def get_unit_practices(
-    textbook_id: int,
+async def get_unit_practice_by_id(
+    unit_id: int,
     request: Request,
     db: AsyncSession = Database,
 ):
-    """获取单元练习列表"""
+    """获取指定单元的练习（返回最新的未完成练习）"""
     student = request.state.student
-    practices = await practice_service.get_unit_practices(db, student.id, textbook_id)
-    return practices
+    practice = await practice_service.get_unit_practice_by_id(db, student.id, unit_id)
+    return practice  # 返回单个 PracticeSchema 或 null
 
 
 @practice_router.post(

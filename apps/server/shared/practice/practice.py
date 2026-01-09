@@ -9,7 +9,6 @@ from shared.core.database import (
     Practice,
     PracticeAnswer,
     PracticeReport,
-    Unit,
 )
 from shared.core.schema import (
     PracticeAnswerSchema,
@@ -199,59 +198,38 @@ async def get_ability_practice_by_code(
     return None
 
 
-async def get_unit_practices(
+async def get_unit_practice_by_id(
     db: AsyncSession,
     student_id: str,
-    textbook_id: int,
-    limit: int = 30,
-):
-    """获取单元练习记录（按教材）
+    unit_id: int,
+) -> PracticeSchema | None:
+    """获取指定单元 ID 的练习（返回最新的未完成练习）
 
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        textbook_id: 教材 ID
-        limit: 返回数量限制
+        unit_id: 单元 ID
 
     Returns:
-        List[PracticeSchema]: 单元练习列表（按单元分组，每个单元返回最新的未完成练习）
+        PracticeSchema | None: 匹配的练习（未开始或进行中），如果没有则返回 None
     """
-    # 先查询该教材下的所有单元ID
-    units = await db.scalars(select(Unit.id).where(Unit.textbook_id == textbook_id))
-    unit_ids = [unit for unit in units.all()]
-
-    if not unit_ids:
-        return []
-
-    # 查询该教材下的所有单元练习
+    # 查询匹配该单元 ID 的单元练习
     query = (
         select(Practice)
         .where(
             Practice.student_id == student_id,
             Practice.practice_type == "unit_practice",
-            Practice.unit_id.in_(unit_ids),
+            Practice.unit_id == unit_id,  # 直接匹配 unit_id
+            Practice.status != 2,  # 排除已完成的练习（status=2）
         )
         .order_by(desc(Practice.create_time))
-        .limit(limit)
+        .limit(1)
     )
 
-    result = await db.scalars(query)
-    all_practices = [PracticeSchema.model_validate(session) for session in result.all()]
-
-    # 按单元分组，返回每个单元的最新未完成练习
-    practices_by_unit = {}
-    for practice in all_practices:
-        unit_id = practice.unit_id
-        if unit_id and unit_id not in practices_by_unit:
-            # 优先选择未完成的练习
-            if practice.status != 2:
-                practices_by_unit[unit_id] = practice
-        elif unit_id and unit_id in practices_by_unit:
-            # 如果已有未完成的，跳过；如果没有，选择最新的
-            if practices_by_unit[unit_id].status == 2 and practice.status != 2:
-                practices_by_unit[unit_id] = practice
-
-    return list(practices_by_unit.values())
+    result = await db.scalar(query)
+    if result:
+        return PracticeSchema.model_validate(result)
+    return None
 
 
 async def begin_practice(

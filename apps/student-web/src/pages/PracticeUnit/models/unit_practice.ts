@@ -8,25 +8,9 @@ const useContainer = (textbook?: Textbook) => {
     refreshDeps: [textbook?.id],
   });
 
-  const { data: practices = [] } = useRequest(() => studentApi.getUnitPractices(textbook?.id || 0), {
-    ready: !!textbook?.id,
-    refreshDeps: [textbook?.id],
-  });
-
-  const { loading: creating, run: createPractice } = useRequest(
-    (unitId: number) =>
-      studentApi.createPractice({ type: "unit_practice", textbook_id: textbook?.id || 0, unit_id: unitId }),
-    {
-      manual: true,
-    }
-  );
-
   return {
     loading,
     units,
-    practices,
-    creating,
-    createPractice,
   };
 };
 

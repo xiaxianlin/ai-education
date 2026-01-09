@@ -20,12 +20,10 @@ export function useAbilityPractice(abilityCode: string) {
   } = useRequest(() => studentApi.getAbilityPracticeByCode(abilityCode), {
     ready: !!abilityCode,
     refreshDeps: [abilityCode],
-    // 仅当 generate_status === GENERATING 时启用轮询
-    pollingInterval: (_, data) => {
-      if (data?.generate_status === PracticeGenerateStatus.GENERATING) {
-        return 3000; // 3秒轮询一次
+    onSuccess: (res) => {
+      if (res?.generate_status === PracticeGenerateStatus.GENERATING) {
+        setTimeout(() => refresh(), 1000);
       }
-      return undefined; // 停止轮询
     },
   });
 

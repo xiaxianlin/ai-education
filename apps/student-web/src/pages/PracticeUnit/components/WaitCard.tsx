@@ -5,14 +5,26 @@ import { Button } from "@/components/ui";
 import { useBoolean } from "ahooks";
 import { Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { usePageModel } from "../models/page";
-import { useUnitPracticeModel } from "../models/unit_practice";
 import { PracticeCardProps } from "../types";
 import { ConfirmModal } from "./ConfirmModal";
 
-export function WaitCard({ unit }: PracticeCardProps) {
+interface WaitCardProps extends PracticeCardProps {
+  createPractice?: () => void;
+  creating?: boolean;
+  canCreate?: boolean;
+}
+
+export function WaitCard({ unit, textbook, createPractice, creating = false, canCreate = true }: WaitCardProps) {
   const { setUnit } = usePageModel();
-  const { creating, createPractice } = useUnitPracticeModel();
   const [visible, { setTrue, setFalse }] = useBoolean(false);
+
+  const handleCreate = () => {
+    if (createPractice) {
+      createPractice();
+    } else {
+      setTrue();
+    }
+  };
 
   return (
     <>
@@ -38,8 +50,8 @@ export function WaitCard({ unit }: PracticeCardProps) {
             </Button>
             <Button
               size="sm"
-              disabled={creating}
-              onClick={setTrue}
+              disabled={creating || !canCreate}
+              onClick={handleCreate}
               className="flex-1 h-11 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
             >
               {creating ? (
@@ -57,13 +69,19 @@ export function WaitCard({ unit }: PracticeCardProps) {
           </div>
         </div>
       </div>
-      <ConfirmModal
-        unit={unit}
-        loading={creating}
-        visible={visible}
-        onCancel={setFalse}
-        onConfirm={() => createPractice(unit.id)}
-      />
+      {!createPractice && (
+        <ConfirmModal
+          unit={unit}
+          loading={creating}
+          visible={visible}
+          onCancel={setFalse}
+          onConfirm={() => {
+            // 如果没有传入 createPractice，这里需要从 model 获取
+            // 但为了保持一致性，建议总是传入 createPractice
+            setFalse();
+          }}
+        />
+      )}
     </>
   );
 }

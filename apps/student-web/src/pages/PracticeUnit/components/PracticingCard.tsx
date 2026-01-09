@@ -5,7 +5,7 @@ import { usePageModel } from "../models/page";
 import { PracticeCardProps } from "../types";
 import { PracticeStatus } from "@ai-education/shared-web";
 
-export function PracticingCard({ practice, unit }: PracticeCardProps) {
+export function PracticingCard({ practice, unit, textbook }: PracticeCardProps) {
   const navigate = useNavigate();
   const { setUnit } = usePageModel();
   const isInProgress = practice?.status === PracticeStatus.PRACTICING;

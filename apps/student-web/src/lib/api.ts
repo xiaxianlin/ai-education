@@ -99,11 +99,11 @@ export const studentApi = {
   },
 
   /**
-   * 获取单元练习
-   * GET /practice/unit/{textbook_id}
+   * 获取指定单元的练习
+   * GET /practice/unit/{unit_id}
    */
-  async getUnitPractices(textbookId: number) {
-    return apiClient.get<Practice[]>(`/practice/unit/${textbookId}`);
+  async getUnitPracticeById(unitId: number) {
+    return apiClient.get<Practice | null>(`/practice/unit/${unitId}`);
   },
 
   /**

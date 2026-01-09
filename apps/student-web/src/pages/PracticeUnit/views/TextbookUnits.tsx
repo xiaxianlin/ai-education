@@ -6,7 +6,7 @@ import { UnitPracticeCard } from "../components/UnitPracticeCard";
 import { useUnitPracticeModel } from "../models/unit_practice";
 
 export function TextbookUnits() {
-  const { loading, units, practices } = useUnitPracticeModel();
+  const { loading, units } = useUnitPracticeModel();
 
   if (loading) {
     return <div className="text-center py-8 text-muted-foreground">加载单元中...</div>;
@@ -18,10 +18,9 @@ export function TextbookUnits() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      {units.map((unit) => {
-        const practice = practices.find((p) => p.unit_id === unit.id);
-        return <UnitPracticeCard key={unit.id} unit={unit} practice={practice} />;
-      })}
+      {units.map((unit) => (
+        <UnitPracticeCard key={unit.id} unit={unit} />
+      ))}
     </div>
   );
 }

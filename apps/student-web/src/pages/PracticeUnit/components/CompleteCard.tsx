@@ -6,16 +6,27 @@ import { useBoolean } from "ahooks";
 import { FileText, Lightbulb, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePageModel } from "../models/page";
-import { useUnitPracticeModel } from "../models/unit_practice";
 import { PracticeCardProps } from "../types";
 import { ConfirmModal } from "./ConfirmModal";
 
-export function CompleteCard({ practice, unit }: PracticeCardProps) {
+interface CompleteCardProps extends PracticeCardProps {
+  createPractice?: () => void;
+  creating?: boolean;
+}
+
+export function CompleteCard({ practice, unit, textbook, createPractice, creating = false }: CompleteCardProps) {
   const navigate = useNavigate();
   const { setUnit } = usePageModel();
-  const { creating, createPractice } = useUnitPracticeModel();
   const [visible, { setTrue, setFalse }] = useBoolean(false);
   const { id, answer_count = 0, correct_count = 0 } = practice || {};
+
+  const handleCreate = () => {
+    if (createPractice) {
+      createPractice();
+    } else {
+      setTrue();
+    }
+  };
 
   return (
     <>
@@ -64,7 +75,8 @@ export function CompleteCard({ practice, unit }: PracticeCardProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={setTrue}
+                onClick={handleCreate}
+                disabled={creating}
                 className="flex-1 h-11 rounded-xl text-xs font-bold border-2 border-primary/5 hover:bg-primary/5 transition-all text-muted-foreground"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -74,13 +86,19 @@ export function CompleteCard({ practice, unit }: PracticeCardProps) {
           </div>
         </div>
       </div>
-      <ConfirmModal
-        unit={unit}
-        loading={creating}
-        visible={visible}
-        onCancel={setFalse}
-        onConfirm={() => createPractice(unit.id)}
-      />
+      {!createPractice && (
+        <ConfirmModal
+          unit={unit}
+          loading={creating}
+          visible={visible}
+          onCancel={setFalse}
+          onConfirm={() => {
+            // 如果没有传入 createPractice，这里需要从 model 获取
+            // 但为了保持一致性，建议总是传入 createPractice
+            setFalse();
+          }}
+        />
+      )}
     </>
   );
 }
