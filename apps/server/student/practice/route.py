@@ -78,40 +78,16 @@ async def create_practice(
     """创建练习会话"""
     student = request.state.student
 
-    if params.type == "ability_practice":
-        if not params.ability_code or not params.subject or params.grade is None:
-            raise HTTPException(status_code=400, detail="能力练习需要提供 ability_code, subject, grade")
+    session_id = await practice_generate.create_practice(
+        db=db,
+        practice_type=params.type,
+        student_id=student.id,
+        ability_code=params.ability_code,
+        unit_id=params.unit_id,
+        immediately=False,
+    )
 
-        session_id = await practice_generate.create_practice(
-            db=db,
-            practice_type="ability_practice",
-            student_id=student.id,
-            parameters={
-                "ability_code": params.ability_code,
-                "subject": params.subject,
-                "grade": params.grade,
-                "textbook_id": params.textbook_id,
-            },
-            immediately=False,
-        )
-    elif params.type == "unit_practice":
-        if not params.unit_id:
-            raise HTTPException(status_code=400, detail="单元练习需要提供 unit_id")
-
-        session_id = await practice_generate.create_practice(
-            db=db,
-            practice_type="unit_practice",
-            student_id=student.id,
-            parameters={
-                "unit_id": params.unit_id,
-                "textbook_id": params.textbook_id,
-            },
-            immediately=False,
-        )
-    else:
-        raise HTTPException(status_code=400, detail=f"不支持的练习类型: {params.type}")
-
-    return {"session_id": session_id}
+    return session_id
 
 
 @practice_router.get(

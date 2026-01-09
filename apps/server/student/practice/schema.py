@@ -94,7 +94,6 @@ class CreatePracticeRequest(BaseModel):
     """创建练习请求"""
 
     type: str = Field(..., description="练习类型: ability_practice/unit_practice")
-    textbook_id: int = Field(..., description="教材ID")
     unit_id: Optional[int] = Field(None, description="单元ID（单元练习必填）")
     ability_code: Optional[str] = Field(None, description="原子能力code（能力练习必填）")
     subject: Optional[str] = Field(None, description="科目（能力练习必填）")

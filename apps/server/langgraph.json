@@ -1,6 +1,6 @@
 {
   "graphs": {
-    "generate_practice": "shared.generation.practice.graph:create_practice_generation_graph"
+    "generate_practice": "shared.practice.generate:create_practice_generation_graph"
   },
   "dependencies": [
     "."

@@ -38,32 +38,13 @@ export function useAbilityPractice(abilityCode: string) {
   }, [activeTextbook, subject, grade]);
 
   // 创建练习
-  const { loading: creating, run: createPractice } = useRequest(
-    (params: { abilityCode: string; subject: string; grade: number; textbookId: number }) =>
-      studentApi.createPractice({
-        type: "ability_practice",
-        textbook_id: params.textbookId,
-        ability_code: params.abilityCode,
-        subject: params.subject,
-        grade: params.grade,
-      }),
+  const { loading: creating, run: handleCreatePractice } = useRequest(
+    () => studentApi.createPractice({ type: "ability_practice", ability_code: abilityCode, subject, grade }),
     {
       manual: true,
       onSuccess: refresh,
     }
   );
-
-  // 创建练习的包装函数
-  const handleCreatePractice = () => {
-    if (!matchedTextbook || !grade || !subject) return;
-
-    createPractice({
-      abilityCode: abilityCode,
-      subject: subject,
-      grade: grade,
-      textbookId: matchedTextbook.id,
-    });
-  };
 
   return {
     practice: practice || null,

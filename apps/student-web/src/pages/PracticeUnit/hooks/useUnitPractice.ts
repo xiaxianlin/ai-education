@@ -26,28 +26,13 @@ export function useUnitPractice(unitId: number) {
   });
 
   // 创建练习
-  const { loading: creating, run: createPractice } = useRequest(
-    (params: { unitId: number; textbookId: number }) =>
-      studentApi.createPractice({
-        type: "unit_practice",
-        textbook_id: params.textbookId,
-        unit_id: params.unitId,
-      }),
+  const { loading: creating, run: handleCreatePractice } = useRequest(
+    () => studentApi.createPractice({ type: "unit_practice", unit_id: unitId }),
     {
       manual: true,
       onSuccess: refresh,
     }
   );
-
-  // 创建练习的包装函数
-  const handleCreatePractice = () => {
-    if (!activeTextbook?.id) return;
-
-    createPractice({
-      unitId: unitId,
-      textbookId: activeTextbook.id,
-    });
-  };
 
   return {
     practice: practice || null,

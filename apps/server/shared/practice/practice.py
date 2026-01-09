@@ -38,7 +38,6 @@ async def get_practices(
         db: 数据库会话
         student_id: 学生 ID
         practice_type: 练习类型 (ability_practice / unit_practice)
-        limit: 返回数量限制（兼容旧版，已废弃，使用 page_size）
         page: 页码（从1开始）
         page_size: 每页数量
 
@@ -140,21 +139,16 @@ async def get_ability_practice_by_code(
         PracticeSchema | None: 匹配的练习（未开始或进行中），如果没有则返回 None
     """
     # 查询匹配该能力代码的能力练习
-    query = (
-        select(Practice)
-        .where(
+    practice = await db.scalar(
+        select(Practice).where(
             Practice.student_id == student_id,
             Practice.practice_type == "ability_practice",
-            Practice.ability_code == ability_code,  # 直接匹配字符串
-            Practice.status != 2,  # 排除已完成的练习（status=2）
+            Practice.ability_code == ability_code,
+            Practice.status != 2,
         )
-        .order_by(desc(Practice.create_time))
-        .limit(1)
     )
-
-    result = await db.scalar(query)
-    if result:
-        return PracticeSchema.model_validate(result)
+    if practice:
+        return PracticeSchema.model_validate(practice)
     return None
 
 
@@ -174,21 +168,17 @@ async def get_unit_practice_by_id(
         PracticeSchema | None: 匹配的练习（未开始或进行中），如果没有则返回 None
     """
     # 查询匹配该单元 ID 的单元练习
-    query = (
-        select(Practice)
-        .where(
+    practice = await db.scalar(
+        select(Practice).where(
             Practice.student_id == student_id,
             Practice.practice_type == "unit_practice",
-            Practice.unit_id == unit_id,  # 直接匹配 unit_id
-            Practice.status != 2,  # 排除已完成的练习（status=2）
+            Practice.unit_id == unit_id,
+            Practice.status != 2,
         )
-        .order_by(desc(Practice.create_time))
-        .limit(1)
     )
 
-    result = await db.scalar(query)
-    if result:
-        return PracticeSchema.model_validate(result)
+    if practice:
+        return PracticeSchema.model_validate(practice)
     return None
 
 

@@ -25,21 +25,17 @@ declare global {
     semester: string;
     subject: string;
   }
-  
 
   interface CreatePracticeRequest {
-    type?: PracticeSessionType; // 兼容旧逻辑
-    practice_id?: number; // 优先使用
-    textbook_id: number;
+    type: PracticeType;
     unit_id?: number;
-    ability_code?: string; // 原子能力 code（能力练习必填）
-    subject?: string; // 科目（能力练习必填）
-    grade?: number; // 年级（能力练习必填）
+    ability_code?: string;
+    subject?: string;
+    grade?: number;
   }
 
-
   interface AnswerRequest {
-    session_id: string; // UUID v4
+    session_id: string;
     question_id: string;
     answer: string;
     time_spent: number;
