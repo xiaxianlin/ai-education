@@ -39,6 +39,9 @@ from .student import Student, StudentTextbook, StudentPractice
 # 题目模块
 from .question import QuestionType, Question
 
+# 能力模块
+from .ability import AbilityDomain, AbilityAtomic
+
 
 __all__ = [
     # SQLAlchemy
@@ -71,4 +74,7 @@ __all__ = [
     # 题目
     "QuestionType",
     "Question",
+    # 能力
+    "AbilityDomain",
+    "AbilityAtomic",
 ]

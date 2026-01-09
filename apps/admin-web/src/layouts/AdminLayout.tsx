@@ -9,6 +9,7 @@ import {
   ProfileOutlined,
   QuestionCircleOutlined,
   UserOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import { Dropdown, Spin } from 'antd';
@@ -53,6 +54,15 @@ const routes = {
         { path: '/question_type', name: '题型管理' },
         { path: '/question', name: '题目管理' },
         { path: '/practice', name: '练习管理' },
+      ],
+    },
+    {
+      name: '能力',
+      key: 'ability',
+      icon: <ApartmentOutlined />,
+      children: [
+        { path: '/ability/domain', name: '能力域管理' },
+        { path: '/ability/atomic', name: '原子能力管理' },
       ],
     },
   ],

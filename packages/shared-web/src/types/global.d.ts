@@ -125,6 +125,39 @@ declare global {
   }
 
   /**
+   * 能力域信息（对应 AbilityDomainSchema）
+   */
+  interface AbilityDomain {
+    id: number;
+    subject: string;
+    code: string;
+    name: string;
+    description?: string;
+    sort_order: number;
+    is_active: number;
+    create_time: number;
+    update_time: number;
+  }
+
+  /**
+   * 原子能力信息（对应 AbilityAtomicSchema）
+   */
+  interface AbilityAtomic {
+    id: number;
+    subject: string;
+    grade: number;
+    domain_code: string;
+    code: string;
+    name: string;
+    description?: string;
+    difficulty: number; // 1-5
+    sort_order: number;
+    is_active: number;
+    create_time: number;
+    update_time: number;
+  }
+
+  /**
    * 题型实体（对应 QuestionTypeSchema）
    */
   interface QuestionType {

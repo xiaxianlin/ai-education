@@ -10,6 +10,7 @@ from shared.core.response import WrappedResponse
 from shared.core.middleware.logging import LoggingMiddleware
 from shared.core.middleware.performance import PerformanceMiddleware
 
+from .ability.route import ability_router
 from .auth import admin_route_filter
 from .auth.route import auth_router
 from .practice.route import practice_router
@@ -36,6 +37,7 @@ admin_app.add_middleware(LoggingMiddleware)
 
 
 admin_app.include_router(auth_router)
+admin_app.include_router(ability_router)
 admin_app.include_router(question_router)
 admin_app.include_router(student_router)
 admin_app.include_router(textbook_router)

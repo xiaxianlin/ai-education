@@ -32,8 +32,11 @@ class InterceptHandler(logging.Handler):
 
 
 def _get_text_format() -> str:
-    """获取文本格式"""
-    return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {extra[request_id]!s} | {name}:{function}:{line} - {message}"
+    """获取文本格式（已废弃，使用 _text_formatter 函数）"""
+    # 注意：此函数已不再使用，保留仅为向后兼容
+    # 如果将来需要使用格式字符串，需要转义 < 和 > 字符
+    # 例如：使用 \{function\} 或使用函数格式化器
+    return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {extra[request_id]!s} | {name}:{{function}}:{line} - {message}"
 
 
 def _json_formatter(record):
@@ -84,11 +87,16 @@ def _text_formatter(record):
     record["extra"]["method"] = method if method else "-"
 
     # 手动格式化字符串，避免 None 值导致的格式化错误
+    # 处理 function 字段，将包含 < > 的函数名（如 <module>, <lambda>）替换为安全格式
+    # 避免被 Loguru 误解析为颜色指令
     time_str = record["time"].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # 精确到毫秒
     level_str = f"{record['level'].name:<8}"
     request_id_str = record["extra"].get("request_id", "-")
     name_str = record["name"]
-    function_str = record["function"]
+    function_str = str(record["function"])
+    # 将包含 < > 的函数名替换为安全格式，避免 Loguru 颜色解析错误
+    if function_str.startswith("<") and function_str.endswith(">"):
+        function_str = function_str[1:-1]  # 移除 < 和 >
     line_str = record["line"]
     message_str = record["message"]
 

@@ -3,6 +3,8 @@ import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
 import ModifyPassword from '@/pages/Auth/Password';
 import Profile from '@/pages/Auth/Profile';
+import AtomicList from '@/pages/Ability/AtomicList';
+import DomainList from '@/pages/Ability/DomainList';
 import Home from '@/pages/Home';
 import PracticeDetail from '@/pages/Practice/PracticeDetail';
 import PracticeForm from '@/pages/Practice/PracticeForm';
@@ -48,6 +50,9 @@ export function Router() {
         { path: 'textbook/detail/:id', element: <TextbookDetail /> },
         { path: 'teacher_book', element: <TeacherBookList /> },
         { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
+        // Ability routes
+        { path: 'ability/domain', element: <DomainList /> },
+        { path: 'ability/atomic', element: <AtomicList /> },
         { path: 'question', element: <QuestionList /> },
         { path: 'question/form', element: <QuestionForm /> },
         { path: 'question/form/:id', element: <QuestionForm /> },

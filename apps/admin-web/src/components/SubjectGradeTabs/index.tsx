@@ -6,11 +6,12 @@ import { Flex, Radio } from 'antd';
 interface SubjectGradeTabsProps {
   subject?: string;
   grade?: number;
+  showGrade?: boolean;
   setSubject?: (subject: string) => void;
   setGrade?: (grade: number) => void;
 }
 
-export function SubjectGradeTabs(props: SubjectGradeTabsProps) {
+export function SubjectGradeTabs({ showGrade = true, ...props }: SubjectGradeTabsProps) {
   const initialState = useInitialStateModel();
   const { subjects } = useConfigs();
 
@@ -30,15 +31,17 @@ export function SubjectGradeTabs(props: SubjectGradeTabsProps) {
         onChange={(e) => onSubjectChange(e.target.value)}
         options={subjects.map((subject) => ({ value: subject, label: subject }))}
       />
-      <Radio.Group
-        block
-        size="large"
-        buttonStyle="solid"
-        optionType="button"
-        value={activeGrade}
-        onChange={(e) => onGradeChange(e.target.value)}
-        options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
-      />
+      {showGrade && (
+        <Radio.Group
+          block
+          size="large"
+          buttonStyle="solid"
+          optionType="button"
+          value={activeGrade}
+          onChange={(e) => onGradeChange(e.target.value)}
+          options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
+        />
+      )}
     </Flex>
   );
 }
