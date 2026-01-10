@@ -12,6 +12,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "dev:admin": "cd apps/admin-web && pnpm dev",
     "dev:student": "cd apps/student-web && pnpm dev",
+    "dev:mobile": "cd apps/student-mobile && pnpm dev",
     "dev:server": "cd apps/server && uv run uvicorn main:app --reload --host 0.0.0.0 --port 7890",
     "dev:worker": "cd apps/server && uv run worker.py",
     "dev:all": "concurrently \"pnpm dev:admin\" \"pnpm dev:student\" \"pnpm dev:server\"",

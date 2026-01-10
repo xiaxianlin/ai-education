@@ -98,3 +98,21 @@ class CreatePracticeRequest(BaseModel):
     ability_code: Optional[str] = Field(None, description="原子能力code（能力练习必填）")
     subject: Optional[str] = Field(None, description="科目（能力练习必填）")
     grade: Optional[int] = Field(None, description="年级（能力练习必填）")
+
+
+class PracticeStatisticsSchema(BaseModel):
+    """练习统计数据 Schema"""
+
+    total_practices: int = Field(..., description="总练习数")
+    total_questions: int = Field(..., description="总做题数")
+    completed_unit_practices: int = Field(..., description="完成的单元练习数")
+    completed_ability_practices: int = Field(..., description="完成的能力练习数")
+    total_accuracy: float = Field(..., description="总正确率（百分比）")
+    average_accuracy: float = Field(..., description="平均正确率（百分比）")
+
+
+class PracticeStatisticsResponseSchema(BaseModel):
+    """练习统计响应 Schema"""
+
+    all_time: PracticeStatisticsSchema = Field(..., description="全部时间统计数据")
+    recent_30_days: PracticeStatisticsSchema = Field(..., description="最近30天统计数据")

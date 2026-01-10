@@ -59,7 +59,9 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+import { CurrentToast } from "@/components/CurrentToast";
 import { useAuthStore } from "@/src/stores/useAuthStore";
+import { ToastProvider, ToastViewport } from "@tamagui/toast";
 import { useRouter, useSegments } from "expo-router";
 import { TamaguiProvider } from "tamagui";
 import { tamaguiConfig } from "../tamagui.config";
@@ -69,8 +71,12 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   useEffect(() => {
+    // Wait for store rehydration
+    if (!hasHydrated) return;
+
     const inAuthGroup = segments[0] === "login";
 
     if (!token && !inAuthGroup) {
@@ -80,17 +86,25 @@ function RootLayoutNav() {
       // Redirect away from the login page if the user is authenticated
       router.replace("/(tabs)");
     }
-  }, [token, segments]);
+  }, [token, segments, hasHydrated]);
+
+  if (!hasHydrated) {
+    return null; // Or show a loading spinner
+  }
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme === "dark" ? "dark" : "light"}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="login/index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
+          <ToastProvider>
+            <Stack>
+              <Stack.Screen name="login/index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+            </Stack>
+            <CurrentToast />
+            <ToastViewport />
+          </ToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </TamaguiProvider>

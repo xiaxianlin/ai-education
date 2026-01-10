@@ -186,6 +186,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取练习统计数据
+   * GET /practice/statistics
+   */
+  async getPracticeStatistics() {
+    return apiClient.get<PracticeStatisticsResponse>("/practice/statistics");
+  },
+
+  /**
    * 获取单元的知识点列表
    * GET /textbook/{unit_id}/knowledges
    */

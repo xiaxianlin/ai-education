@@ -1,6 +1,7 @@
 import client from "@/src/api/client";
 import { validators } from "@/src/lib/validators";
 import { useAuthStore } from "@/src/stores/useAuthStore";
+import { useToastController } from "@tamagui/toast";
 import { Stack as ExpoStack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Lock, Phone } from "lucide-react-native";
@@ -11,6 +12,7 @@ import { Button, Input, Spinner, Text, Theme, View, XStack, YStack } from "tamag
 
 export default function LoginScreen() {
   const router = useRouter();
+  const toast = useToastController();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [phone, setPhone] = useState("15068114669");
@@ -29,13 +31,17 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const { data } = await client.post("/auth/login", {
+      const { data: res } = await client.post("/login", {
         phone: validators.sanitize(phone),
         password: validators.sanitize(password),
       });
 
-      const token = typeof data === "string" ? data : data.token;
+      const token = res.data;
       setAuth(token, {});
+      toast.show("登录成功", {
+        message: "欢迎回到 AI 学习空间",
+        duration: 2000,
+      });
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error("Login error:", error);
@@ -128,7 +134,7 @@ export default function LoginScreen() {
                     placeholder="请输入手机号"
                     keyboardType="phone-pad"
                     value={phone}
-                    onChangeText={(text) => {
+                    onChangeText={(text: string) => {
                       setPhone(text);
                       setErrors((prev) => ({ ...prev, phone: undefined }));
                     }}
@@ -164,7 +170,7 @@ export default function LoginScreen() {
                     placeholder="请输入密码"
                     secureTextEntry
                     value={password}
-                    onChangeText={(text) => {
+                    onChangeText={(text: string) => {
                       setPassword(text);
                       setErrors((prev) => ({ ...prev, password: undefined }));
                     }}

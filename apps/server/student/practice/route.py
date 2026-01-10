@@ -25,7 +25,9 @@ from .schema import (
     AnswerResultSchema,
     AnswerSchema,
     CreatePracticeRequest,
+    PracticeStatisticsResponseSchema,
 )
+from .services import statistics
 
 practice_router = APIRouter(prefix="/practice")
 
@@ -108,6 +110,23 @@ async def get_practice_progress(session_id: str):
     if progress is None:
         return {"progress": 0, "step": "pending", "message": "等待生成"}
     return progress
+
+
+@practice_router.get(
+    "/statistics",
+    tags=["练习"],
+    summary="获取练习统计数据",
+    description="获取当前学生的练习统计数据，包括全部时间和最近30天的统计",
+    response_model=PracticeStatisticsResponseSchema,
+)
+async def get_practice_statistics(
+    request: Request,
+    db: AsyncSession = Database,
+):
+    """获取练习统计数据"""
+    student = request.state.student
+    result = await statistics.get_practice_statistics(db, student.id)
+    return result
 
 
 @practice_router.get(
