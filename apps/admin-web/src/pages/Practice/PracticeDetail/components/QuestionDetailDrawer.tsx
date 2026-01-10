@@ -47,7 +47,7 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
           {question.difficulty || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="题目内容" valueType="text">
-          {question.stem.text}
+          {question.stem?.text || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="选项" valueType="text">
           {(!question.options || question.options.length === 0) && '-'}
@@ -81,7 +81,7 @@ export function QuestionDetailDrawer({ open, question, answer, onClose }: Questi
           )}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="正确答案" valueType="text">
-          {answer?.correct_answer || question.answer.correct_answers?.join(', ') || '-'}
+          {answer?.correct_answer || question.answer?.correct_answers?.join(', ') || '-'}
         </ProDescriptions.Item>
         <ProDescriptions.Item label="学生答案" valueType="text">
           {answer?.text_answer || '未作答'}

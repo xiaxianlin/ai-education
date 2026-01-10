@@ -5,27 +5,26 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def get_student_practice_sessions(db: AsyncSession, student: StudentSchema, practice_type: str):
-    """查询学生练习历史
+async def get_student_practice_sessions(
+    db: AsyncSession,
+    student: StudentSchema,
+    practice_type: str,
+    page: int = 1,
+    page_size: int = 20,
+):
+    """查询学生练习历史（支持分页）
 
     Args:
         db: 数据库会话
         student: 学生信息
-        practice_type: 练习类型 (ability_practice / unit_practice)
+        practice_type: 练习类型 (ability_practice / unit_practice / daily_practice / assess_practice)
+        page: 页码（从1开始）
+        page_size: 每页数量
 
     Returns:
-        List[PracticeSchema]: 练习列表
+        dict: 包含 data, total, page, pageSize 的分页结果
     """
-    practices = await db.scalars(
-        select(Practice)
-        .where(
-            Practice.student_id == student.id,
-            Practice.practice_type == practice_type,
-        )
-        .order_by(Practice.create_time.desc())
-        .limit(30)
-    )
-    return [PracticeSchema.model_validate(practice) for practice in practices]
+    return await practice.get_practices(db, student.id, practice_type, page=page, page_size=page_size)
 
 
 async def get_student_practice_session_data(db: AsyncSession, student: StudentSchema, session_id: str):

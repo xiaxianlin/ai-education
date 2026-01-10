@@ -14,7 +14,7 @@ export function Main() {
     usePracticeSessionListModel();
   const tableActionRef = useRef<ActionType>();
 
-  const columns = useMemo<ProColumns<PracticeSession>[]>(
+  const columns = useMemo<ProColumns<Practice>[]>(
     () => [
       {
         title: '目标ID',
@@ -55,7 +55,7 @@ export function Main() {
           return `${accuracy}%`;
         },
       },
-      createStatusColumn<PracticeSession>('状态', 'status', {
+      createStatusColumn<Practice>('状态', 'status', {
         width: 100,
         render: (status) => {
           const isCompleted = status === 2;
@@ -66,10 +66,10 @@ export function Main() {
           );
         },
       }),
-      createTimeColumn<PracticeSession>('创建时间', 'create_time', { width: 180 }),
-      createActionColumn<PracticeSession>(
+      createTimeColumn<Practice>('创建时间', 'create_time', { width: 180 }),
+      createActionColumn<Practice>(
         (record) => (
-          <Link to={`/student/${studentId}/practice_session/${record.id}`}>
+          <Link to={`/student/${studentId}/practice/${record.id}`}>
             <Button size="small" type="link">
               详情
             </Button>
@@ -108,7 +108,7 @@ export function Main() {
         tabList={practices.map((practice) => ({ key: practice.slug, label: practice.name }))}
         styles={{ body: { padding: 0, paddingTop: 16 } }}
       >
-        <ProTable<PracticeSession>
+        <ProTable<Practice>
           actionRef={tableActionRef}
           bordered
           rowKey="id"

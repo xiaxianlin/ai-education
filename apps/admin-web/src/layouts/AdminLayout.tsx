@@ -53,6 +53,7 @@ const routes = {
       children: [
         { path: '/question_type', name: '题型管理' },
         { path: '/question', name: '题目管理' },
+        { path: '/practice', name: '练习管理' },
       ],
     },
     {

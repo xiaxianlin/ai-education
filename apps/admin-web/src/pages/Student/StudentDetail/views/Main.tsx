@@ -5,6 +5,7 @@ import { } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
+import { PracticeSessionList } from './PracticeSessionList';
 import { TextbookList } from './TextbookList';
 
 export function Main() {
@@ -21,6 +22,9 @@ export function Main() {
         <BasicInfo />
         <Card>
           <TextbookList />
+        </Card>
+        <Card title="练习记录">
+          <PracticeSessionList />
         </Card>
       </Flex>
     </PageContainer>

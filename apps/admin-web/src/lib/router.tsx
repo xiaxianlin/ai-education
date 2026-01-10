@@ -1,11 +1,13 @@
 import { AdminLayout } from '@/layouts/AdminLayout';
+import AtomicList from '@/pages/Ability/AtomicList';
+import DomainList from '@/pages/Ability/DomainList';
 import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
 import ModifyPassword from '@/pages/Auth/Password';
 import Profile from '@/pages/Auth/Profile';
-import AtomicList from '@/pages/Ability/AtomicList';
-import DomainList from '@/pages/Ability/DomainList';
 import Home from '@/pages/Home';
+import PracticeDetail from '@/pages/Practice/PracticeDetail';
+import PracticeList from '@/pages/Practice/PracticeList';
 import QuestionDetail from '@/pages/Question/QuestionDetail';
 import QuestionForm from '@/pages/Question/QuestionForm';
 import QuestionList from '@/pages/Question/QuestionList';
@@ -59,6 +61,9 @@ export function Router() {
         { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
         { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
+        // Practice routes
+        { path: 'practice', element: <PracticeList /> },
+        { path: 'practice/detail/:id', element: <PracticeDetail /> },
         // Student routes
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },

@@ -24,6 +24,7 @@ from .base import (
 
 if TYPE_CHECKING:
     from .question import Question
+    from .student import Student
 
 
 def generate_session_id() -> str:
@@ -56,10 +57,16 @@ class Practice(BaseModel):
     )
 
     # 练习参数字段
-    subject: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True, comment="科目")
+    subject: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, index=True, comment="科目"
+    )
     grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="年级")
-    ability_code: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True, comment="原子能力代码")
-    unit_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="单元ID")
+    ability_code: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True, index=True, comment="原子能力代码"
+    )
+    unit_id: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, index=True, comment="单元ID"
+    )
 
     # 题目统计
     question_count: Mapped[int] = mapped_column(default=0, comment="题目数量")
@@ -67,8 +74,12 @@ class Practice(BaseModel):
     correct_count: Mapped[int] = mapped_column(default=0, comment="正确数量")
 
     # 状态字段
-    status: Mapped[int] = mapped_column(default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3")
-    generate_status: Mapped[int] = mapped_column(default=0, index=True, comment="生成中: 0, 已完成: 1, 生成失败: -1")
+    status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="未开始: 0, 进行中: 1, 已完成: 2, 已废弃: 3"
+    )
+    generate_status: Mapped[int] = mapped_column(
+        default=0, index=True, comment="生成中: 0, 已完成: 1, 生成失败: -1"
+    )
     generate_time: Mapped[Optional[int]] = mapped_column(nullable=True, comment="生成耗时(秒)")
     start_time: Mapped[int] = mapped_column(default=now, comment="开始时间")
     end_time: Mapped[Optional[int]] = mapped_column(nullable=True, comment="结束时间")
@@ -76,6 +87,13 @@ class Practice(BaseModel):
     # 时间戳
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+    # 关联关系
+    student: Mapped["Student"] = relationship(
+        "Student",
+        primaryjoin="foreign(Practice.student_id) == Student.id",
+        lazy="select",
+    )
 
 
 class PracticeAnswer(BaseModel):
@@ -120,7 +138,9 @@ class PracticeReport(BaseModel):
     __tablename__ = "ah_practice_report"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[str] = mapped_column(String(36), unique=True, index=True, comment="会话ID (UUID v4)")
+    session_id: Mapped[str] = mapped_column(
+        String(36), unique=True, index=True, comment="会话ID (UUID v4)"
+    )
     student_id: Mapped[str] = mapped_column(String(255), comment="学生ID")
 
     # 总体统计

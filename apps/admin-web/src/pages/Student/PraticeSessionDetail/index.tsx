@@ -28,11 +28,11 @@ export default function PracticeDetailPage() {
 
   const answersMap = useMemo(() => {
     return answers.reduce(
-      (acc: { [x: string]: PracticeSessionAnswer }, answer: PracticeSessionAnswer) => {
+      (acc: { [x: string]: PracticeAnswer }, answer: PracticeAnswer) => {
         acc[answer.question_id] = answer;
         return acc;
       },
-      {} as Record<string, PracticeSessionAnswer>,
+      {} as Record<string, PracticeAnswer>,
     );
   }, [answers]);
 
@@ -170,8 +170,8 @@ export default function PracticeDetailPage() {
               <Tag color="blue">{PRACTICE_SLUG_LABELS[session.practice_slug] || session.practice_slug}</Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="状态">
-              <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeSessionStatus]}>
-                {PRACTICE_STATUS_LABELS[session.status as PracticeSessionStatus]}
+              <Tag color={PRACTICE_STATUS_COLORS[session.status as PracticeStatus]}>
+                {PRACTICE_STATUS_LABELS[session.status as PracticeStatus]}
               </Tag>
             </ProDescriptions.Item>
             <ProDescriptions.Item label="开始时间" valueType="dateTime">

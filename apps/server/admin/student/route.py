@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from shared.core.database import Database
 from shared.core.schema import StudentSchema
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -126,10 +126,18 @@ async def get_student_unused_textbooks(request: Request, db: AsyncSession = Data
     "/{id}/practices/{practice_type}",
     tags=["学生练习管理"],
     summary="查询学生练习历史",
-    description="获取指定学生在不同练习类型下的练习记录 (ability_practice / unit_practice)",
+    description="获取指定学生在不同练习类型下的练习记录（支持分页）",
 )
-async def get_student_practices(request: Request, practice_type: str, db: AsyncSession = Database):
-    return await practice.get_student_practice_sessions(db, request.state.student, practice_type)
+async def get_student_practices(
+    request: Request,
+    practice_type: str,
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    db: AsyncSession = Database,
+):
+    return await practice.get_student_practice_sessions(
+        db, request.state.student, practice_type, page=page, page_size=page_size
+    )
 
 
 @student_router.get(

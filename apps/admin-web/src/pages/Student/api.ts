@@ -91,6 +91,21 @@ export const StudentApi = {
   },
 
   /**
+   * 获取学生练习历史（支持分页）
+   * GET /student/{id}/practices/{practice_type}?page=1&page_size=20
+   */
+  async getStudentPracticeSessions(
+    id: string,
+    practiceType: string,
+    params?: { page?: number; page_size?: number },
+  ) {
+    return apiClient.get<{ data: Practice[]; total: number; page: number; pageSize: number }>(
+      `/student/${id}/practices/${practiceType}`,
+      params,
+    );
+  },
+
+  /**
    * 获取学生练习详情
    * GET /student/{id}/practice/{session_id}
    */

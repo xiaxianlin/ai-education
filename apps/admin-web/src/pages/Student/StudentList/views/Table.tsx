@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { StudentApi } from '../../api';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createActionColumn, createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';
+import { createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';
 import { PlusOutlined } from '@ant-design/icons';
 import { useStudentListModel } from '../models/page';
 
@@ -20,6 +20,11 @@ export default function TableView() {
         title: '姓名',
         dataIndex: 'name',
         width: 120,
+        render: (_, record) => (
+          <Button type="link" onClick={() => navigate(`/student/detail/${record.id}`)} style={{ padding: 0 }}>
+            {record.name}
+          </Button>
+        ),
       },
       {
         title: '手机号',
@@ -30,21 +35,8 @@ export default function TableView() {
       createStatusSearchColumn<Student>(),
       createTimeColumn<Student>('创建时间', 'create_time'),
       createTimeColumn<Student>('更新时间', 'update_time'),
-      createActionColumn<Student>(
-        (record) => (
-          <>
-            <Button type="link" onClick={() => navigate(`/student/detail/${record.id}`)}>
-              详情
-            </Button>
-            <Button type="link" onClick={() => navigate(`/student/${record.id}/practice_sessions`)}>
-              练习记录
-            </Button>
-          </>
-        ),
-        { width: 80 },
-      ),
     ],
-    [],
+    [navigate],
   );
 
   return (
