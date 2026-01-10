@@ -26,6 +26,16 @@ function getAccuracyTextClassName(params: {
   return classes.join(" ");
 }
 
+/**
+ * 根据状态映射获取 Badge 的 className
+ */
+function getBadgeClassName(params: {
+  statusClassName: string;
+}): string {
+  const base = "rounded-lg px-2.5 py-1 text-xs font-semibold";
+  return `${base} ${params.statusClassName}`;
+}
+
 interface HistoryCardProps {
   session: Practice;
 }
@@ -73,7 +83,9 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
             <div className="text-xs text-muted-foreground">{formatRelativeTime(create_time)}</div>
           </div>
         </div>
-        <Badge className={cn("rounded-lg px-2.5 py-1 text-xs font-semibold", statusInfo.className)}>
+        <Badge className={getBadgeClassName({
+          statusClassName: statusInfo.className,
+        })}>
           {statusInfo.text}
         </Badge>
       </div>

@@ -3,17 +3,31 @@
  * 显示某个教材下的所有单元练习卡片
  */
 import { UnitPracticeCard } from "../components/UnitPracticeCard";
-import { useUnitPracticeModel } from "../models/unit_practice";
+import { usePageModel } from "../models/page";
 
 export function TextbookUnits() {
-  const { loading, units } = useUnitPracticeModel();
+  const { units, unitsLoading, unitsError } = usePageModel();
 
-  if (loading) {
+  if (unitsLoading) {
     return <div className="text-center py-8 text-muted-foreground">加载单元中...</div>;
   }
 
+  if (unitsError) {
+    return (
+      <div className="text-center py-8 text-red-600">
+        <p className="text-lg font-semibold">加载失败</p>
+        <p className="text-sm mt-2">{unitsError.message || "请稍后重试"}</p>
+      </div>
+    );
+  }
+
   if (units.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">该教材暂无单元</div>;
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p className="text-lg">暂无匹配的教材</p>
+        <p className="text-sm mt-2">请先设置您的年级、学科和学期</p>
+      </div>
+    );
   }
 
   return (

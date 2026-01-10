@@ -12,15 +12,15 @@ const useContainer = () => {
 
   const activeTextbook = useMemo(() => {
     if (!grade || !semester || !subject) return undefined;
-    return textbooks.find(
-      (t) => t.grade === grade && t.semester === semester && t.subject === subject
-    );
+    return textbooks.find((t) => t.grade === grade && t.semester === semester && t.subject === subject);
   }, [textbooks, grade, semester, subject]);
 
   const updateSettings = async (params: UpdateStudentSettingsRequest) => {
     await studentApi.updateSettings(params);
-    await refresh();
+    refresh();
   };
+  console.log("data", data);
+  console.log("activeTextbook", activeTextbook);
 
   return {
     loading,

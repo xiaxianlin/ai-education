@@ -3,7 +3,7 @@ import { Button } from 'antd';
 import { StudentApi } from '../../api';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';
+import { createActionColumn, createStatusColumn, createStatusSearchColumn, createTimeColumn } from '@/hooks';
 import { PlusOutlined } from '@ant-design/icons';
 import { useStudentListModel } from '../models/page';
 
@@ -12,6 +12,7 @@ export default function TableView() {
   const {
     actionRef,
     formProps: { showForm },
+    handleDelete,
   } = useStudentListModel();
 
   const columns = useMemo<ProColumns<Student>[]>(
@@ -35,8 +36,16 @@ export default function TableView() {
       createStatusSearchColumn<Student>(),
       createTimeColumn<Student>('创建时间', 'create_time'),
       createTimeColumn<Student>('更新时间', 'update_time'),
+      createActionColumn<Student>(
+        (record) => (
+          <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
+            删除
+          </Button>
+        ),
+        { width: 80 },
+      ),
     ],
-    [navigate],
+    [navigate, handleDelete],
   );
 
   return (

@@ -6,7 +6,7 @@ import { Lightbulb, X } from "lucide-react";
 import { usePageModel } from "../models/page";
 
 export function KnowledgeModal() {
-  const { unit, knowledges, loading, setUnit } = usePageModel();
+  const { unit, knowledges, knowledgesLoading, setUnit } = usePageModel();
 
   if (!unit) return null;
 
@@ -28,7 +28,7 @@ export function KnowledgeModal() {
           </Button>
         </div>
         <div className="px-6 py-5 max-h-[60vh] overflow-y-auto space-y-3 bg-background">
-          {loading ? (
+          {knowledgesLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">加载中...</div>
             </div>

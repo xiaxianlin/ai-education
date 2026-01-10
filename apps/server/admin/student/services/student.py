@@ -114,8 +114,15 @@ async def update_student(db: AsyncSession, student: StudentSchema, params: SaveS
 
 async def delete_student(db: AsyncSession, student: StudentSchema):
     """删除学生"""
-    await db.execute(delete(Student).where(Student.id == student.id))
-    await db.commit()
+    try:
+        # 先删除学生教材关联记录
+        await db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == student.id))
+        # 再删除学生记录
+        await db.execute(delete(Student).where(Student.id == student.id))
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise e
 
 
 async def reset_student_password(db: AsyncSession, student: StudentSchema):
