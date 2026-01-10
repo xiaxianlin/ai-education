@@ -9,6 +9,7 @@ from shared.core.database import (
     Practice,
     PracticeAnswer,
     PracticeReport,
+    Question,
 )
 from shared.core.schema import (
     PracticeAnswerSchema,
@@ -101,7 +102,9 @@ async def get_practice_data(
 
     results = await db.scalars(
         select(PracticeAnswer)
-        .options(joinedload(PracticeAnswer.question))
+        .options(
+            joinedload(PracticeAnswer.question).joinedload(Question.question_type)
+        )
         .where(PracticeAnswer.session_id == session_id)
         .order_by(PracticeAnswer.question_order)
     )

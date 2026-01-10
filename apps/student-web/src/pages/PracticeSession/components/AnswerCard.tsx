@@ -19,6 +19,10 @@ export function AnswerCard() {
   const orderAnswer = answers[order];
 
   const answerFormItem = useMemo(() => {
+    if (!question) {
+      return <div className="text-muted-foreground">题目加载中...</div>;
+    }
+    
     const disabled = submitting || isComplete || orderAnswer?.status !== 0;
     const props = {
       value: answer,
@@ -26,7 +30,9 @@ export function AnswerCard() {
       onChange: setAnswer,
     };
     // 根据 interaction_type 判断题目类型
+    // 如果没有 question_type，尝试使用 question_type_code 推断
     const interactionType = question?.question_type?.interaction_type;
+    
     if (interactionType === "voice_input" || interactionType === "free_speak") {
       return <AudioInput {...props} />;
     }
@@ -39,8 +45,11 @@ export function AnswerCard() {
     if (interactionType === "text_input" || interactionType === "fill_blank") {
       return <TextInput {...props} />;
     }
-    return null;
-  }, [question, answer, submitting, setAnswer]);
+    
+    // 如果没有匹配的类型，显示提示
+    console.warn("[AnswerCard] Unknown interaction type:", interactionType, "Question:", question);
+    return <div className="text-muted-foreground">暂不支持此题型</div>;
+  }, [question, answer, submitting, setAnswer, orderAnswer, isComplete]);
 
   return (
     <>

@@ -1,12 +1,11 @@
 /**
  * 练习会话页面级状态管理
  */
-import { useOnce } from "@/common/hooks";
 import { studentApi } from "@/lib/api";
 import { getPracticeName } from "@/lib/practice";
 import { useRequest } from "ahooks";
 import { findLastIndex } from "lodash-es";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { createContainer } from "unstated-next";
@@ -23,7 +22,13 @@ function useContainer() {
 
   const { data, refresh } = useRequest(() => studentApi.getPracticeSessionData(sessionId), {
     ready: !!sessionId,
-    onError: () => setPanel(PanelType.EMPTY),
+    onSuccess: (res) => {
+      console.log("[PracticeSession] API Response:", res);
+    },
+    onError: (err) => {
+      console.error("[PracticeSession] API Error:", err);
+      setPanel(PanelType.EMPTY);
+    },
   });
 
   const { run: begin } = useRequest(() => studentApi.beginPractice(sessionId), {
@@ -51,22 +56,28 @@ function useContainer() {
 
   /** 上一题 */
   const prev = () => {
-    // 边界检查
-    if (order - 1 < 0) {
-      return;
-    }
-    setOrder((curr) => curr - 1);
-    setAnswer(answers[order - 1]);
+    setOrder((curr) => {
+      // 边界检查
+      if (curr - 1 < 0) {
+        return curr;
+      }
+      const newOrder = curr - 1;
+      setAnswer(answers[newOrder]);
+      return newOrder;
+    });
   };
 
   /** 下一题 */
   const next = () => {
-    // 边界检查
-    if (order + 1 >= questions.length) {
-      return;
-    }
-    setOrder((curr) => curr + 1);
-    setAnswer(answers[order + 1]);
+    setOrder((curr) => {
+      // 边界检查
+      if (curr + 1 >= questions.length) {
+        return curr;
+      }
+      const newOrder = curr + 1;
+      setAnswer(answers[newOrder]);
+      return newOrder;
+    });
   };
 
   /** 跳转到指定题目 */
@@ -120,16 +131,17 @@ function useContainer() {
     });
   };
 
-  useOnce(
-    () => {
-      if (!data) return;
-      setPanel(getPanelType(data.session, data.report));
-      const initOrder = findLastIndex(data.answers, (answer) => answer.status !== 0) + 1;
-      setOrder(initOrder);
-      setAnswer(data.answers[initOrder]);
-    },
-    { ready: !!data }
-  );
+  // 当数据加载完成后，初始化面板状态和题目顺序
+  useEffect(() => {
+    if (!data || !data.session) return;
+    setPanel(getPanelType(data.session, data.report));
+    const answers = data.answers || [];
+    const initOrder = findLastIndex(answers, (answer) => answer.status !== 0) + 1;
+    // 确保 initOrder 在有效范围内
+    const safeOrder = Math.max(0, Math.min(initOrder, answers.length - 1));
+    setOrder(safeOrder);
+    setAnswer(answers[safeOrder]);
+  }, [data]);
 
   return {
     title: session ? getPracticeName(session.practice_type) : undefined,

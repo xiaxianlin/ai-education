@@ -2,12 +2,11 @@
 练习相关 Schema
 """
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-if TYPE_CHECKING:
-    from .question import QuestionSchema
+from .question import QuestionSchema
 
 
 class QuestionTypeConfigItem(BaseModel):

@@ -46,7 +46,6 @@ export function UpperGradeReadyPanel({ title, total, onBegin }: UpperGradePanelP
         <div className="w-full md:w-56 lg:w-64 flex justify-center relative z-10">
           <div
             className="relative w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-3xl bg-gradient-to-br from-sky-100 via-sky-50 to-amber-100 shadow-inner flex flex-col items-center justify-center border border-primary/10"
-            style={{ animation: "pulse-glow 3s ease-in-out infinite" }}
           >
             <div
               className="text-5xl md:text-6xl lg:text-7xl mb-3"

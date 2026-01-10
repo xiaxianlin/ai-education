@@ -7,6 +7,7 @@ interface LowerGradePanelProps {
 }
 
 export function LowerGradeReadyPanel({ title, total, onBegin }: LowerGradePanelProps) {
+  console.log("LowerGradeReadyPanel", title, total);
   const estimateMinutes = Math.max(5, Math.ceil(total * 0.5));
 
   return (

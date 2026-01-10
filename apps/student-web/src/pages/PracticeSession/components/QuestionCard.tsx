@@ -71,10 +71,10 @@ export function QuestionCard() {
         )}
       </div>
       <div className={cn("text-lg leading-relaxed whitespace-pre-wrap text-foreground font-medium")}>
-        {question?.stem.rich_text ? (
+        {question?.stem?.rich_text ? (
           <div dangerouslySetInnerHTML={{ __html: question.stem.rich_text }} />
         ) : (
-          question?.stem.text
+          question?.stem?.text || ""
         )}
       </div>
       {question?.resources && question.resources.some(r => r.type === "image") && (
