@@ -91,11 +91,6 @@ class PracticeAnswer(BaseModel):
     student_id: Mapped[str] = mapped_column(String(255), index=True, comment="学生ID")
     question_order: Mapped[int] = mapped_column(comment="题目顺序")
 
-    # 题目相关信息（冗余存储）
-    unit_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="单元ID")
-    knowledge: Mapped[str] = mapped_column(String(255), nullable=True, comment="知识点")
-    textbook_id: Mapped[int] = mapped_column(nullable=True, index=True, comment="教材ID")
-
     # 答题信息
     text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="学生答案")
     status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")

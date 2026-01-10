@@ -75,11 +75,6 @@ class PracticeAnswerSchema(BaseModel):
     student_id: str
     question_order: int
 
-    # 题目相关信息（冗余存储）
-    unit_id: Optional[int] = None
-    knowledge: Optional[str] = None
-    textbook_id: Optional[int] = None
-
     # 答题信息
     text_answer: Optional[str] = None
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误

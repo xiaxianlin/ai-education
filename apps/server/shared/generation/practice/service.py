@@ -11,6 +11,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 from shared.core.database import AbilityAtomic, Practice, PracticeAnswer, Question, QuestionType, Textbook, Unit
 from shared.practice.prompt import SELECT_QUESTION_TYPE_PROMPT, SELECT_QUESTION_TYPE_SYSTEM_PROMPT
+from shared.practice.question_type_rules import get_rule_based_selection
 from shared.provider import get_provider
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -180,8 +181,6 @@ async def select_question_types(
             - difficulty: 难度
             - question_count: 题目数量
     """
-    from shared.practice.question_type_rules import get_rule_based_selection
-
     # 获取可用题型
     question_types = await db.scalars(
         select(QuestionType).where(
@@ -309,16 +308,12 @@ async def prepare_answer_records(
     await db.flush()
 
     # 批量创建答题记录（使用列表推导式）
-    # 注意: unit_id 从 session 获取，Question 模型没有 unit_id 和 textbook_id 字段
     answer_records = [
         PracticeAnswer(
             session_id=session.id,
             question_id=question.id,
             student_id=session.student_id,
             question_order=index + 1,
-            unit_id=session.unit_id,
-            knowledge=question.knowledge_points[0] if question.knowledge_points else None,
-            textbook_id=None,
             status=0,
             time_spent=0,
         )

@@ -17,6 +17,9 @@ from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from loguru import logger
 from shared.core.database import Practice
+from shared.generation.question import invoke_question_generation_workflow
+from shared.services.checkpoint import checkpoint_service
+from shared.services.progress import progress_service
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,8 +44,6 @@ PROGRESS_STEP_COMPLETE = "complete"
 async def _update_progress(session_id: str, progress: int, step: str, message: str = "") -> None:
     """更新进度（安全调用，不抛出异常）"""
     try:
-        from shared.services.progress import progress_service
-
         await progress_service.update_progress(session_id, progress, step, message)
     except Exception:
         pass  # 进度更新失败不影响主流程
@@ -51,8 +52,6 @@ async def _update_progress(session_id: str, progress: int, step: str, message: s
 async def _checkpoint_step(session_id: str, step: str, data: Optional[Dict[str, Any]] = None) -> None:
     """保存步骤检查点（安全调用）"""
     try:
-        from shared.services.checkpoint import checkpoint_service
-
         await checkpoint_service.save_checkpoint(session_id, step, data)
     except Exception:
         pass  # 检查点保存失败不影响主流程
@@ -180,9 +179,6 @@ async def generate_questions_node(state: PracticeGenerationState) -> Dict[str, A
 
     当至少 50% 的题目生成成功时，视为部分成功，允许继续流程。
     """
-    # Lazy import to avoid circular dependency
-    from shared.generation import invoke_question_generation_workflow
-
     log = logger.bind(node="generate_questions")
     db: AsyncSession = state["db"]
     selections = state["selections"]
@@ -353,8 +349,6 @@ practice_generation_graph = create_practice_generation_graph()
 async def _save_checkpoint(session_id: str, step: str, data: Optional[Dict[str, Any]] = None) -> None:
     """保存检查点（安全调用）"""
     try:
-        from shared.services.checkpoint import checkpoint_service
-
         await checkpoint_service.save_checkpoint(session_id, step, data)
     except Exception:
         pass  # 检查点保存失败不影响主流程
@@ -363,8 +357,6 @@ async def _save_checkpoint(session_id: str, step: str, data: Optional[Dict[str, 
 async def _get_checkpoint(session_id: str) -> Optional[Dict[str, Any]]:
     """获取检查点"""
     try:
-        from shared.services.checkpoint import checkpoint_service
-
         return await checkpoint_service.get_checkpoint(session_id)
     except Exception:
         return None
@@ -373,8 +365,6 @@ async def _get_checkpoint(session_id: str) -> Optional[Dict[str, Any]]:
 async def _delete_checkpoint(session_id: str) -> None:
     """删除检查点"""
     try:
-        from shared.services.checkpoint import checkpoint_service
-
         await checkpoint_service.delete_checkpoint(session_id)
     except Exception:
         pass
