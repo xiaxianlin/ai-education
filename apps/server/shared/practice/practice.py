@@ -32,6 +32,8 @@ async def get_practices(
     db: AsyncSession,
     student_id: str,
     practice_type: str = None,
+    grade: int = None,
+    subject: str = None,
     page: int = 1,
     page_size: int = 20,
 ):
@@ -41,6 +43,8 @@ async def get_practices(
         db: 数据库会话
         student_id: 学生 ID
         practice_type: 练习类型 (ability_practice / unit_practice)，可选，为空则表示全部
+        grade: 年级，可选
+        subject: 学科，可选
         page: 页码（从1开始）
         page_size: 每页数量
 
@@ -51,6 +55,10 @@ async def get_practices(
     conditions = [Practice.student_id == student_id]
     if practice_type:
         conditions.append(Practice.practice_type == practice_type)
+    if grade is not None:
+        conditions.append(Practice.grade == grade)
+    if subject:
+        conditions.append(Practice.subject == subject)
 
     # 查询总数
     count_query = select(func.count(Practice.id)).where(*conditions)

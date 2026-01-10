@@ -228,11 +228,11 @@ declare global {
   interface SubQuestion {
     id: string;
     order: number;
-    stem: Record<string, unknown>; // 对应 SubStemSchema，但后端使用 Dict[str, Any]
+    stem: SubStem | string; // 对应 SubStemSchema，但后端使用 Dict[str, Any]
     interaction_type: InteractionType;
     interaction_config?: Record<string, unknown>;
     options?: Array<Record<string, unknown>>; // 对应 OptionSchema[]，但后端使用 List[Dict[str, Any]]
-    resources?: Array<Record<string, unknown>>; // 对应 ResourceSchema[]，但后端使用 List[Dict[str, Any]]
+    resources?: QuestionResource[]; // 对应 ResourceSchema[]，但后端使用 List[Dict[str, Any]]
     answer: Record<string, unknown>; // 对应 AnswerSchema，但后端使用 Dict[str, Any]
     explanation?: string;
   }
@@ -312,7 +312,6 @@ declare global {
     create_time: number;
     update_time?: number;
   }
-
 
   /**
    * 题型配置项
@@ -514,5 +513,4 @@ declare global {
   }
 }
 
-export { };
-
+export {};

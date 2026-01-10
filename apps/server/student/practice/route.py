@@ -128,33 +128,30 @@ async def get_practice_statistics(
 
 
 @practice_router.get(
-    "/records/{practice_id}",
+    "/records",
     tags=["练习"],
     summary="获取练习记录",
-    description="获取指定练习类型的记录列表（支持分页）",
+    description="获取当前学生的练习记录列表（按年级和学科筛选，支持分页）",
 )
 async def get_practice_records(
-    practice_id: int,
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: AsyncSession = Database,
 ):
-    """获取练习记录（支持分页）"""
+    """获取练习记录（支持分页）
+
+    只返回当前学生年级和学科的练习记录，不做类型筛选
+    """
     student = request.state.student
 
-    # practice_id 对应练习类型：1=ability_practice, 2=unit_practice
-    practice_type_map = {
-        1: "ability_practice",
-        2: "unit_practice",
-    }
-
-    practice_type = practice_type_map.get(practice_id)
-    if not practice_type:
-        raise HTTPException(status_code=400, detail=f"无效的练习类型ID: {practice_id}")
-
     result = await practice_service.get_practices(
-        db, student.id, practice_type, page=page, page_size=page_size
+        db,
+        student.id,
+        grade=student.grade,
+        subject=student.subject,
+        page=page,
+        page_size=page_size,
     )
     return result
 

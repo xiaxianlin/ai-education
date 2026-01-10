@@ -165,10 +165,10 @@ export const studentApi = {
 
   /**
    * 获取练习历史记录
-   * GET /practice/records/{practice_id}
+   * GET /practice/records
+   * 返回当前学生年级和学科的练习记录
    */
   async getPracticeRecords(
-    practiceId: number,
     page: number = 1,
     pageSize: number = 20
   ): Promise<{
@@ -182,7 +182,7 @@ export const studentApi = {
       total: number;
       page: number;
       pageSize: number;
-    }>(`/practice/records/${practiceId}`, { page, page_size: pageSize });
+    }>("/practice/records", { page, page_size: pageSize });
   },
 
   /**

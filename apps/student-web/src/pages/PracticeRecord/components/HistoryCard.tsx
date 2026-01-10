@@ -2,9 +2,9 @@
  * 历史记录卡片组件
  */
 import { Badge, Button } from "@/components/ui";
-import { cn } from "@/lib/utils";
 import { getPracticeIcon, getPracticeName } from "@/lib/practice";
-import { formatDateTime, formatRelativeTime } from "@ai-education/shared-web";
+import { cn } from "@/lib/utils";
+import { formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,126 +14,102 @@ interface HistoryCardProps {
 }
 
 /**
- * 获取状态文本和样式
+ * 获取状态信息
  */
 function getStatusInfo(status: PracticeStatus) {
   switch (status) {
     case 0:
-      return { text: "未开始", variant: "outline" as const };
+      return { text: "未开始", className: "bg-muted text-muted-foreground" };
     case 1:
-      return { text: "进行中", variant: "secondary" as const };
+      return { text: "进行中", className: "bg-amber-100 text-amber-600" };
     case 2:
-      return { text: "已完成", variant: "default" as const };
+      return { text: "已完成", className: "bg-green-100 text-green-600" };
     default:
-      return { text: "未知", variant: "outline" as const };
+      return { text: "未知", className: "bg-muted text-muted-foreground" };
   }
 }
 
 export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
   const navigate = useNavigate();
 
-  const { id, question_count, answer_count, correct_count, status, create_time, start_time, end_time } = session;
+  const { id, question_count, answer_count, correct_count, status, create_time } = session;
 
   const isCompleted = status === 2;
   const isInProgress = status === 1;
   const accuracy = answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0;
-
+  const progress = question_count > 0 ? Math.round((answer_count / question_count) * 100) : 0;
   const statusInfo = getStatusInfo(status);
-  const timeText = end_time
-    ? formatDateTime(end_time)
-    : start_time
-      ? formatDateTime(start_time)
-      : formatRelativeTime(create_time);
 
-  const handleViewDetail = () => {
-    navigate(`/practice/detail/${id}`);
-  };
-
-  const handleContinue = () => {
-    navigate(`/practice/session/${id}`);
-  };
+  const handleViewDetail = () => navigate(`/practice/detail/${id}`);
+  const handleContinue = () => navigate(`/practice/${id}`);
 
   return (
-    <div className="relative group bg-white rounded-[2rem] p-6 border-4 border-white shadow-xl shadow-primary/5 h-full flex flex-col bubbly-card transition-all">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-
-      <div className="flex-1 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-3xl grayscale group-hover:grayscale-0 transition-all transform group-hover:scale-110">
-              {getPracticeIcon(session.practice_type)}
-            </span>
-            <div className="min-w-0">
-              <h3 className="text-lg font-black text-foreground truncate">{getPracticeName(session.practice_type)}</h3>
-              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
-                {timeText}
-              </div>
-            </div>
+    <div className="group bg-white rounded-2xl p-5 border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+            {getPracticeIcon(session.practice_type)}
           </div>
-          <Badge
-            variant={statusInfo.variant}
-            className={cn(
-              "rounded-xl px-3 py-1 font-black text-[10px]",
-              isCompleted
-                ? "bg-green-100 text-green-600 border-green-200"
-                : isInProgress
-                  ? "bg-primary/10 text-primary border-primary/20"
-                  : "bg-muted text-muted-foreground"
-            )}
-          >
-            {statusInfo.text}
-          </Badge>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-secondary/30 rounded-2xl p-4 text-center">
-            <div className="text-2xl font-black text-foreground">{question_count}</div>
-            <div className="text-[10px] font-bold text-muted-foreground uppercase mt-1">总题数</div>
-          </div>
-          <div className="bg-primary/5 rounded-2xl p-4 text-center">
-            <div className="text-2xl font-black text-primary">{accuracy}%</div>
-            <div className="text-[10px] font-bold text-primary/60 uppercase mt-1">正确率</div>
+          <div>
+            <h3 className="text-base font-bold text-foreground">{getPracticeName(session.practice_type)}</h3>
+            <div className="text-xs text-muted-foreground">{formatRelativeTime(create_time)}</div>
           </div>
         </div>
-
-        {/* Progress Bar (if in progress) */}
-        {isInProgress && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
-              <span>进度</span>
-              <span>
-                {answer_count} / {question_count}
-              </span>
-            </div>
-            <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: `${(answer_count / question_count) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
+        <Badge className={cn("rounded-lg px-2.5 py-1 text-xs font-semibold", statusInfo.className)}>
+          {statusInfo.text}
+        </Badge>
       </div>
 
+      {/* Stats Row */}
+      <div className="flex items-center gap-4 py-3 px-4 bg-secondary/30 rounded-xl mb-4">
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-foreground">{question_count}</div>
+          <div className="text-[10px] text-muted-foreground font-medium">题目数</div>
+        </div>
+        <div className="w-px h-8 bg-border/50" />
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-foreground">{answer_count}</div>
+          <div className="text-[10px] text-muted-foreground font-medium">已作答</div>
+        </div>
+        <div className="w-px h-8 bg-border/50" />
+        <div className="flex-1 text-center">
+          <div className={cn("text-lg font-bold", isCompleted ? "text-primary" : "text-foreground")}>
+            {isCompleted ? `${accuracy}%` : "-"}
+          </div>
+          <div className="text-[10px] text-muted-foreground font-medium">正确率</div>
+        </div>
+      </div>
+
+      {/* Progress Bar (进行中显示) */}
+      {isInProgress && (
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+            <span>练习进度</span>
+            <span className="font-medium">{progress}%</span>
+          </div>
+          <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
-      <div className="flex gap-3 mt-6">
+      <div className="flex gap-2">
         <Button
           variant="outline"
+          size="sm"
           onClick={handleViewDetail}
-          className="flex-1 rounded-xl font-black text-xs border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/20 transition-all"
+          disabled={!isCompleted}
+          className="flex-1 rounded-lg text-xs font-semibold border-border/50 hover:bg-secondary/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Eye className="h-4 w-4 mr-2" />
-          详情
+          <Eye className="h-3.5 w-3.5 mr-1.5" />
+          查看详情
         </Button>
         {!isCompleted && (
-          <Button
-            onClick={handleContinue}
-            className="flex-1 rounded-xl font-black text-xs shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            开始
+          <Button size="sm" onClick={handleContinue} className="flex-1 rounded-lg text-xs font-semibold">
+            <Play className="h-3.5 w-3.5 mr-1.5" />
+            {isInProgress ? "继续练习" : "开始练习"}
           </Button>
         )}
       </div>
