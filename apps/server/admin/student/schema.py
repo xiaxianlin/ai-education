@@ -33,5 +33,7 @@ class SaveStudentSchema(BaseModel):
         return validation.status(v)
 
 
-class HandleStudentTextbookSchema(BaseModel):
-    ids: list[int]
+class SetStudentSubjectVersionSchema(BaseModel):
+    """设置学生科目版本"""
+
+    subject_versions: list[dict[str, str]]

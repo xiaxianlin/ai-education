@@ -34,7 +34,7 @@ from .practice import (
 )
 
 # 学生模块
-from .student import Student, StudentTextbook
+from .student import Student, StudentSubjectVersion
 
 # 题目模块
 from .question import QuestionType, Question
@@ -69,7 +69,7 @@ __all__ = [
     "generate_session_id",
     # 学生
     "Student",
-    "StudentTextbook",
+    "StudentSubjectVersion",
     # 题目
     "QuestionType",
     "Question",

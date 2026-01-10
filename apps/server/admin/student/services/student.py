@@ -5,8 +5,6 @@ from loguru import logger
 from shared.core.database import (
     AsyncSessionLocal,
     Student,
-    StudentTextbook,
-    Textbook,
 )
 from shared.core.schema import SearchResultSchema, StudentSchema
 from shared.utils import encrypt
@@ -79,19 +77,6 @@ async def add_student(db: AsyncSession, params: SaveStudentSchema):
             status=params.status,
         )
         db.add(student)
-        await db.flush()  # 刷新以获取 student.id，但不提交事务
-
-        # 查询当前年级的所有教材
-        textbooks = await db.scalars(select(Textbook).where(Textbook.grade == params.grade))
-        textbook_ids = [textbook.id for textbook in textbooks.all()]
-
-        # 创建学生教材关联
-        if textbook_ids:
-            textbook_records = [
-                StudentTextbook(student_id=student.id, textbook_id=textbook_id) for textbook_id in textbook_ids
-            ]
-            db.add_all(textbook_records)
-
         await db.commit()
 
     except Exception as e:
@@ -115,9 +100,7 @@ async def update_student(db: AsyncSession, student: StudentSchema, params: SaveS
 async def delete_student(db: AsyncSession, student: StudentSchema):
     """删除学生"""
     try:
-        # 先删除学生教材关联记录
-        await db.execute(delete(StudentTextbook).where(StudentTextbook.student_id == student.id))
-        # 再删除学生记录
+        # 删除学生记录（科目版本关联会通过外键级联删除，如果有设置的话）
         await db.execute(delete(Student).where(Student.id == student.id))
         await db.commit()
     except Exception as e:

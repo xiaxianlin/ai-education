@@ -42,8 +42,8 @@ class Student(Base):
     token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     
     # 关系定义
-    textbooks: Mapped[list["StudentTextbook"]] = relationship(
-        "StudentTextbook",
+    subject_versions: Mapped[list["StudentSubjectVersion"]] = relationship(
+        "StudentSubjectVersion",
         lazy="selectin",  # 使用 2.0 风格的加载策略
     )
 ```
@@ -252,26 +252,22 @@ class Student(Base):
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
     
     # 一对多关系
-    textbooks: Mapped[list["StudentTextbook"]] = relationship(
-        "StudentTextbook",
+    subject_versions: Mapped[list["StudentSubjectVersion"]] = relationship(
+        "StudentSubjectVersion",
         back_populates="student",
         lazy="selectin",
     )
 
-class StudentTextbook(Base):
-    __tablename__ = "ah_student_textbook"
+class StudentSubjectVersion(Base):
+    __tablename__ = "ah_student_subject_version"
     student_id: Mapped[str] = mapped_column(String(255), ForeignKey("ah_student.id"))
+    subject: Mapped[str] = mapped_column(String(255))
+    version: Mapped[str] = mapped_column(String(255))
     
     # 多对一关系
     student: Mapped["Student"] = relationship(
         "Student",
-        back_populates="textbooks",
-        lazy="joined",
-    )
-    
-    # 多对一关系（可选）
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
+        back_populates="subject_versions",
         lazy="joined",
     )
 ```
@@ -281,7 +277,7 @@ class StudentTextbook(Base):
 ```python
 # ❌ 禁止：没有类型注解的关系
 class Student(Base):
-    textbooks = relationship("StudentTextbook")  # ❌ 缺少 Mapped 类型注解
+    subject_versions = relationship("StudentSubjectVersion")  # ❌ 缺少 Mapped 类型注解
 ```
 
 ## 加载策略说明

@@ -4,9 +4,9 @@ from shared.core.schema import StudentSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
-    HandleStudentTextbookSchema,
     SaveStudentSchema,
     SearchStudentSchema,
+    SetStudentSubjectVersionSchema,
 )
 from .services import practice, student, textbook
 
@@ -79,48 +79,26 @@ async def get_student_detail(request: Request):
 # ======================== 学生教材管理 ======================== #
 
 
-@student_router.post(
+@student_router.put(
     "/{id}/textbook",
     tags=["学生教材管理"],
-    summary="保存学生教材",
-    description="为学生关联指定的教材",
+    summary="设置学生科目版本",
+    description="一次性设置学生的科目版本（覆盖旧数据）",
 )
-async def add_student_textbook(
-    request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database
+async def set_student_subject_versions(
+    request: Request, params: SetStudentSubjectVersionSchema, db: AsyncSession = Database
 ):
-    await textbook.add_student_textbook(db, request.state.student, params.ids)
-
-
-@student_router.delete(
-    "/{id}/textbook",
-    tags=["学生教材管理"],
-    summary="删除学生教材",
-    description="取消学生与指定教材的关联",
-)
-async def remove_student_textbook(
-    request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database
-):
-    await textbook.remove_student_textbook(db, request.state.student, params.ids)
+    await textbook.set_student_subject_versions(db, request.state.student, params.subject_versions)
 
 
 @student_router.get(
     "/{id}/textbooks",
     tags=["学生教材管理"],
-    summary="查询学生教材",
-    description="获取学生已关联的所有教材列表",
+    summary="查询学生科目版本",
+    description="获取学生的科目版本关联信息",
 )
 async def get_student_textbooks(request: Request, db: AsyncSession = Database):
-    return await textbook.get_student_textbooks(db, request.state.student)
-
-
-@student_router.get(
-    "/{id}/unused_textbooks",
-    tags=["学生教材管理"],
-    summary="查询学生未选教材",
-    description="获取系统中学生尚未关联的教材列表",
-)
-async def get_student_unused_textbooks(request: Request, db: AsyncSession = Database):
-    return await textbook.get_student_unused_textbooks(db, request.state.student)
+    return await textbook.get_student_subject_versions(db, request.state.student)
 
 
 # ======================== 学生练习管理 ======================== #

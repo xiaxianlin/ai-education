@@ -19,8 +19,6 @@ const useContainer = () => {
     await studentApi.updateSettings(params);
     refresh();
   };
-  console.log("data", data);
-  console.log("activeTextbook", activeTextbook);
 
   return {
     loading,

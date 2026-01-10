@@ -1,7 +1,7 @@
 import { PageContainer, ProSkeleton } from '@ant-design/pro-components';
 import { Card, Flex } from 'antd';
 
-import { } from 'react';
+import {} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
@@ -20,12 +20,8 @@ export function Main() {
     <PageContainer title="学生详情" header={{ onBack: () => navigate(-1) }}>
       <Flex vertical gap={16}>
         <BasicInfo />
-        <Card>
-          <TextbookList />
-        </Card>
-        <Card title="练习记录">
-          <PracticeSessionList />
-        </Card>
+        <TextbookList />
+        <PracticeSessionList />
       </Flex>
     </PageContainer>
   );

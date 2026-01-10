@@ -24,6 +24,13 @@ const useContainer = () => {
 
   const textbookService = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
     ready: !!student?.id,
+    onSuccess: (data) => {
+      console.group('📖 textbookService 数据');
+      console.log('数据:', data);
+      console.table(data);
+      console.log('JSON 格式:', JSON.stringify(data, null, 2));
+      console.groupEnd();
+    },
   });
 
   const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.deleteStudent(id!), {

@@ -26,19 +26,16 @@ class StudentSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class StudentTextbookSchema(BaseModel):
-    """学生教材关联"""
+class StudentSubjectVersionSchema(BaseModel):
+    """学生科目版本关联"""
 
-    id: int
-    student_id: str
-    textbook_id: int
-
-    textbook: Optional["TextbookSchema"] = None
+    subject: str
+    version: str
 
     model_config = {"from_attributes": True}
 
 
 __all__ = [
     "StudentSchema",
-    "StudentTextbookSchema",
+    "StudentSubjectVersionSchema",
 ]

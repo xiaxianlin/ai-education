@@ -6,14 +6,14 @@ import { useEffect } from 'react';
 import { StudentApi } from '../../api';
 import { useConfigs } from '@/hooks/useConfigs';
 
-interface AddTextbookFormProps {
+interface SubjectVersionFormProps {
   studentId: string;
   open: boolean;
   onCancel: () => void;
   onSuccess?: () => void;
 }
 
-export function AddTextbookForm({ studentId, open, onCancel, onSuccess }: AddTextbookFormProps) {
+export function SubjectVersionForm({ studentId, open, onCancel, onSuccess }: SubjectVersionFormProps) {
   const { textbook_versions } = useConfigs();
   const [form] = ProForm.useForm<Record<string, string>>();
 
@@ -50,20 +50,18 @@ export function AddTextbookForm({ studentId, open, onCancel, onSuccess }: AddTex
     },
   );
 
-  const handleFinish = async (values: Record<string, string>) => {
+  const handleFinish = (values: Record<string, string>) => {
     const subjectVersions = SUBJECTS.map((subject) => ({
       subject,
       version: values[subject] || '',
     }));
     handleSetSubjectVersions(subjectVersions);
-    return true;
   };
 
-  const versionOptions =
-    textbook_versions?.map((version) => ({
-      label: version,
-      value: version,
-    })) || [];
+  const versionOptions = textbook_versions?.map((version) => ({
+    label: version,
+    value: version,
+  })) || [];
 
   return (
     <ModalForm<Record<string, string>>

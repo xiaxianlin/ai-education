@@ -206,7 +206,7 @@ server/
 4. **ah_knowledge** - 知识点表
 5. **ah_question** - 题目表
 6. **ah_student** - 学生表
-7. **ah_student_textbook** - 学生教材关联表
+7. **ah_student_subject_version** - 学生科目版本关联表
 8. **ah_practice_session** - 练习会话表
 9. **ah_practice_answer** - 答题记录表
 10. **ah_practice_wrong_record** - 错题记录表

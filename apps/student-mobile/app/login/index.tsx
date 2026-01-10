@@ -1,4 +1,4 @@
-import client from "@/src/api/client";
+import { studentApi } from "@/src/api/client";
 import { validators } from "@/src/lib/validators";
 import { useAuthStore } from "@/src/stores/useAuthStore";
 import { useToastController } from "@tamagui/toast";
@@ -31,12 +31,11 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const { data: res } = await client.post("/login", {
+      const token = await studentApi.login({
         phone: validators.sanitize(phone),
         password: validators.sanitize(password),
       });
 
-      const token = res.data;
       setAuth(token, {});
       toast.show("登录成功", {
         message: "欢迎回到 AI 学习空间",

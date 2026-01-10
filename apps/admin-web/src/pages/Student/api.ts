@@ -51,35 +51,26 @@ export const StudentApi = {
   },
 
   /**
-   * 获取学生的教材列表
+   * 获取学生的教材列表（返回科目版本信息）
    * GET /student/{id}/textbooks
    */
   async getStudentTextbooks(id: string) {
-    return apiClient.get<Textbook[]>(`/student/${id}/textbooks`);
+    const result = await apiClient.get<Array<{ subject: string; version: string }>>(`/student/${id}/textbooks`);
+    console.group('📚 getStudentTextbooks 接口返回');
+    console.log('请求参数 - studentId:', id);
+    console.log('返回数据:', result);
+    console.table(result);
+    console.log('JSON 格式:', JSON.stringify(result, null, 2));
+    console.groupEnd();
+    return result;
   },
 
   /**
-   * 获取学生未使用的教材列表
-   * GET /student/{id}/unused_textbooks
+   * 设置学生科目版本（一次性设置，覆盖旧数据）
+   * PUT /student/{id}/textbook
    */
-  async getStudentUnusedTextbooks(id: string) {
-    return apiClient.get<Textbook[]>(`/student/${id}/unused_textbooks`);
-  },
-
-  /**
-   * 为学生批量添加教材
-   * POST /student/{id}/textbook
-   */
-  async addStudentTextbook(id: string, textbookIds: number[]) {
-    return apiClient.post(`/student/${id}/textbook`, { ids: textbookIds });
-  },
-
-  /**
-   * 批量移除学生的教材
-   * DELETE /student/{id}/textbook
-   */
-  async removeStudentTextbook(id: string, textbookIds: number[]) {
-    return apiClient.delete(`/student/${id}/textbook`, { data: { ids: textbookIds } });
+  async setStudentSubjectVersions(id: string, subjectVersions: Array<{ subject: string; version: string }>) {
+    return apiClient.put(`/student/${id}/textbook`, { subject_versions: subjectVersions });
   },
 
   /**

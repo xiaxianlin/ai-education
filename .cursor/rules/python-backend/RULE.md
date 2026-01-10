@@ -146,7 +146,7 @@ async def update(db: AsyncSession, id: int, update: UpdateSchema):
 - `auth.py`: 认证相关模型（Manager）
 - `textbook.py`: 教材相关模型（Textbook, Unit, Knowledge, TeacherBook）
 - `practice.py`: 练习相关模型（Practice, PracticeSession, PracticeSessionAnswer, PracticeSessionReport）
-- `student.py`: 学生相关模型（Student, StudentTextbook, StudentPractice）
+- `student.py`: 学生相关模型（Student, StudentSubjectVersion, StudentPractice）
 - `question.py`: 题目相关模型（QuestionType, Question）
 
 **核心要求**：

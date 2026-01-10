@@ -1,7 +1,7 @@
 import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
 import { GRADES } from '@ai-education/shared-web';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Tag } from 'antd';
+import { Button, Card, Tag } from 'antd';
 import { useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -132,30 +132,32 @@ export function PracticeSessionList() {
   );
 
   return (
-    <ProTable<Practice>
-      actionRef={tableActionRef}
-      bordered
-      rowKey="id"
-      columns={columns}
-      search={false}
-      request={async ({ pageSize, current }) => {
-        const res = await StudentApi.getStudentPracticeSessions(student?.id || '', {
-          page: current || 1,
-          page_size: pageSize || 20,
-        });
-        return {
-          data: res.data || [],
-          success: true,
-          total: res.total || 0,
-        };
-      }}
-      scroll={{ x: 'max-content' }}
-      pagination={{
-        defaultPageSize: 20,
-        showSizeChanger: true,
-        showQuickJumper: true,
-      }}
-      toolbar={{ settings: [] }}
-    />
+    <Card title="练习记录" className="simple-table-card">
+      <ProTable<Practice>
+        actionRef={tableActionRef}
+        bordered
+        rowKey="id"
+        columns={columns}
+        search={false}
+        request={async ({ pageSize, current }) => {
+          const res = await StudentApi.getStudentPracticeSessions(student?.id || '', {
+            page: current || 1,
+            page_size: pageSize || 20,
+          });
+          return {
+            data: res.data || [],
+            success: true,
+            total: res.total || 0,
+          };
+        }}
+        scroll={{ x: 'max-content' }}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        toolbar={{ settings: [] }}
+      />
+    </Card>
   );
 }

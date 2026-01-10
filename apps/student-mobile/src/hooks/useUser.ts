@@ -5,8 +5,7 @@ export const useUser = () => {
   return useQuery({
     queryKey: ["user"],
     queryFn: async () => {
-      const { data } = await client.get("/check");
-      return data;
+      return await client.get("/check");
     },
     enabled: false, // Only fetch when needed or authenticated
   });

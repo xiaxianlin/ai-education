@@ -1,7 +1,7 @@
 """
 学生相关模型
 
-包含 Student、StudentTextbook
+包含 Student、StudentSubjectVersion
 """
 
 from typing import TYPE_CHECKING, Optional
@@ -30,20 +30,15 @@ class Student(BaseModel):
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
-class StudentTextbook(BaseModel):
-    """学生教材关联表"""
+class StudentSubjectVersion(BaseModel):
+    """学生科目版本关联表"""
 
-    __tablename__ = "ah_student_textbook"
+    __tablename__ = "ah_student_subject_version"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)
-    textbook_id: Mapped[int] = mapped_column(index=True)
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(StudentTextbook.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
-__all__ = ["Student", "StudentTextbook"]
+__all__ = ["Student", "StudentSubjectVersion"]
