@@ -13,8 +13,11 @@
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from shared.core.database import Database, Question
+from shared.core.schema import PracticeAnswerSchema
+from shared.practice import answer as answer_service
 from shared.practice import practice as practice_service
 from shared.practice import practice_generate
+from shared.practice.schema import SubmitAnswerSchema
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -194,26 +197,28 @@ async def complete_practice(
     tags=["练习"],
     summary="提交答案",
     description="提交答案，支持复合题",
-    response_model=AnswerResultSchema,
+    response_model=PracticeAnswerSchema,
 )
 async def submit_answer(
     params: AnswerSchema,
+    request: Request,
     db: AsyncSession = Database,
 ):
     """提交答案"""
+    student = request.state.student
 
-    # 获取题目
-    question = await db.scalar(select(Question).where(Question.id == params.question_id))
-
-    if not question:
-        raise HTTPException(status_code=404, detail=f"题目 {params.question_id} 不存在")
-
-    # 评判答案
-    result = evaluate_answer(question, params)
-
-    # TODO: 保存答题记录到数据库
-
-    return result
+    # 使用答题服务保存答题记录
+    try:
+        submit_params = SubmitAnswerSchema(
+            session_id=params.session_id,
+            question_id=params.question_id,
+            answer=str(params.answer),
+            time_spent=params.time_spent or 0,
+        )
+        result = await answer_service.submit_answer(db, student.id, submit_params)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 def evaluate_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
@@ -323,7 +328,9 @@ def evaluate_composite_answer(question: Question, params: AnswerSchema) -> Answe
             is_sub_correct = False
             sub_score = 0
         else:
-            is_sub_correct = str(user_sub_answer).strip() in [str(a).strip() for a in correct_answers]
+            is_sub_correct = str(user_sub_answer).strip() in [
+                str(a).strip() for a in correct_answers
+            ]
             sub_score = sub_full_score if is_sub_correct else 0
 
         total_score += sub_score

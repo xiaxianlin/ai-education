@@ -218,6 +218,8 @@ class QuestionUpdateSchema(BaseModel):
 class QuestionSearchSchema(SearchSchema):
     """搜索题目"""
 
+    id: Optional[str] = Field(default=None, description="题目ID（精确匹配）")
+    name: Optional[str] = Field(default=None, description="题目名称（题干文本，模糊匹配）")
     question_type_id: Optional[int] = None
     question_type_code: Optional[str] = None
     subject: Optional[str] = None

@@ -3,7 +3,6 @@
  */
 
 import AudioPlayer from "@/components/biz/AudioPlayer";
-import { Badge } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { getResourceUrl } from "@ai-education/shared-web";
 import { useMemo } from "react";
@@ -59,18 +58,7 @@ export function QuestionCard() {
 
   return (
     <div className="flex flex-col gap-4 relative">
-      <div className="flex items-center gap-2 flex-wrap">
-        <Badge className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 border-blue-200">{question?.question_type_code}</Badge>
-        <Badge className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 border-purple-200">
-          {question?.difficulty}
-        </Badge>
-        {question?.knowledge_points && question.knowledge_points.length > 0 && (
-          <Badge className="text-xs px-2.5 py-1 bg-amber-100 text-amber-700 border-amber-200">
-            {question.knowledge_points.join(", ")}
-          </Badge>
-        )}
-      </div>
-      <div className={cn("text-lg leading-relaxed whitespace-pre-wrap text-foreground font-medium")}>
+      <div className="text-lg leading-relaxed whitespace-pre-wrap text-foreground font-medium">
         {question?.stem?.rich_text ? (
           <div dangerouslySetInnerHTML={{ __html: question.stem.rich_text }} />
         ) : (

@@ -40,6 +40,19 @@ export function ListView() {
 
   const columns: ProColumns<Question>[] = [
     {
+      title: '题目ID',
+      dataIndex: 'id',
+      width: 200,
+      copyable: true,
+      hideInTable: true, // 不在表格中显示，只在搜索中使用
+    },
+    {
+      title: '题目名称',
+      dataIndex: 'name',
+      width: 200,
+      hideInTable: true, // 不在表格中显示，只在搜索中使用
+    },
+    {
       title: '题干',
       dataIndex: ['stem', 'text'],
       ellipsis: true,
@@ -152,7 +165,10 @@ export function ListView() {
         bordered
         cardBordered
         rowKey="id"
-        search={false}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: false,
+        }}
         columns={columns}
         pagination={{ defaultPageSize: 20 }}
         scroll={{ x: 'max-content' }}
@@ -160,12 +176,14 @@ export function ListView() {
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys),
         }}
-        request={async ({ current, pageSize }) => {
+        request={async ({ current, pageSize, id, name }) => {
           const res = await QuestionApi.searchQuestions({
             page: current,
             size: pageSize,
             subject,
             grade,
+            id,
+            name,
           });
           return {
             data: res?.data || [],

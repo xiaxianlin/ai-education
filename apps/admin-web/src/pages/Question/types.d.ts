@@ -16,6 +16,8 @@ declare global {
    * 字段名称与后端 QuestionSearchSchema 对齐（使用下划线命名）
    */
   interface SearchQuestionRequest extends SearchRequest {
+    id?: string; // 后端使用 id，题目ID（精确匹配）
+    name?: string; // 后端使用 name，题目名称（题干文本，模糊匹配）
     question_type_id?: number; // 后端使用 question_type_id
     question_type_code?: string; // 后端使用 question_type_code
     subject?: string;

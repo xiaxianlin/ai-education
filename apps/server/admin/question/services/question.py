@@ -10,7 +10,7 @@ from shared.core.database import Question
 from shared.generation.question.service import (
     generate_question_resources as generate_resources,
 )
-from sqlalchemy import and_, delete, func, select
+from sqlalchemy import and_, cast, delete, func, select, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -111,6 +111,18 @@ async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
 async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tuple[List[Question], int]:
     """搜索题目，返回列表和总数"""
     conditions = []
+
+    # 题目ID精确匹配
+    if params.id:
+        conditions.append(Question.id == params.id)
+
+    # 题目名称（题干文本）模糊匹配
+    if params.name:
+        # 使用 JSON_EXTRACT 提取 stem.text 字段，然后进行模糊匹配
+        # MySQL: JSON_EXTRACT(stem, '$.text') LIKE '%name%'
+        # 使用 SQLAlchemy 的 func.json_extract 或直接使用字符串函数
+        stem_text = func.json_unquote(func.json_extract(Question.stem, "$.text"))
+        conditions.append(cast(stem_text, String).like(f"%{params.name}%"))
 
     if params.question_type_id:
         conditions.append(Question.question_type_id == params.question_type_id)
