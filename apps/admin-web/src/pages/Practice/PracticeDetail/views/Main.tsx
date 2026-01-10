@@ -1,8 +1,16 @@
 import { QuestionCard } from '@/components';
 import { createActionColumn } from '@/hooks';
 import { formatDateTime, GRADES } from '@ai-education/shared-web';
-import { PageContainer, ProColumns, ProDescriptions, ProSkeleton, ProTable } from '@ant-design/pro-components';
-import { Button, Card, Col, Empty, Modal, Row, Space, Statistic, Tag } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, SyncOutlined } from '@ant-design/icons';
+import {
+  FooterToolbar,
+  PageContainer,
+  ProColumns,
+  ProDescriptions,
+  ProSkeleton,
+  ProTable,
+} from '@ant-design/pro-components';
+import { Button, Card, Col, Empty, Flex, List, Modal, Row, Space, Statistic, Tag } from 'antd';
 import { useMemo } from 'react';
 import {
   formatDuration,
@@ -24,6 +32,14 @@ export default function MainView() {
     selectedQuestion,
     handleViewQuestion,
     handleCloseQuestion,
+    ungeneratedQuestions,
+    hasUngeneratedQuestions,
+    isModalOpen,
+    setIsModalOpen,
+    generationResults,
+    handleOpenGenerationModal,
+    handleStartGeneration,
+    isGenerating,
   } = usePracticeDetailModel();
 
   const columns = useMemo<ProColumns<Question>[]>(
@@ -279,7 +295,74 @@ export default function MainView() {
         >
           {selectedQuestion && <QuestionCard question={selectedQuestion} />}
         </Modal>
+
+        <Modal
+          title="生成素材"
+          open={isModalOpen}
+          onCancel={() => !isGenerating && setIsModalOpen(false)}
+          footer={[
+            <Button key="close" onClick={() => setIsModalOpen(false)} disabled={isGenerating}>
+              关闭
+            </Button>,
+            <Button
+              key="start"
+              type="primary"
+              onClick={handleStartGeneration}
+              loading={isGenerating}
+              disabled={isGenerating}
+            >
+              开始生成
+            </Button>,
+          ]}
+          width={600}
+          destroyOnClose
+        >
+          <List
+            dataSource={ungeneratedQuestions}
+            renderItem={(item) => {
+              const status = generationResults[item.id];
+              let icon = <SyncOutlined style={{ color: '#999' }} />;
+              let statusText = '等待中';
+              if (status === 'generating') {
+                icon = <LoadingOutlined style={{ color: '#1890ff' }} />;
+                statusText = '生成中...';
+              } else if (status === 'success') {
+                icon = <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+                statusText = '成功';
+              } else if (status === 'error') {
+                icon = <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
+                statusText = '失败';
+              }
+              return (
+                <List.Item
+                  extra={
+                    <Space>
+                      {icon} {statusText}
+                    </Space>
+                  }
+                >
+                  <List.Item.Meta title={item.id} description={item.stem?.text} />
+                </List.Item>
+              );
+            }}
+          />
+        </Modal>
       </Space>
+
+      <FooterToolbar className="page-footer">
+        <Flex justify="center" gap={16}>
+          <Button
+            key="generate"
+            size="large"
+            type="primary"
+            disabled={!hasUngeneratedQuestions || isGenerating}
+            loading={isGenerating}
+            onClick={handleOpenGenerationModal}
+          >
+            {hasUngeneratedQuestions ? '生成素材' : '素材已全部生成'}
+          </Button>
+        </Flex>
+      </FooterToolbar>
     </PageContainer>
   );
 }

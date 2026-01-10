@@ -1,3 +1,4 @@
+import { QuestionApi } from '@/pages/Question/api';
 import { useRequest } from 'ahooks';
 import { message } from 'antd';
 import { useMemo, useState } from 'react';
@@ -9,14 +10,33 @@ const useContainer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedQuestion, setSelectedQuestion] = useState<Question>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [generatingIds, setGeneratingIds] = useState<string[]>([]);
+  const [generationResults, setGenerationResults] = useState<
+    Record<string, 'waiting' | 'generating' | 'success' | 'error'>
+  >({});
 
   // 加载练习详情
-  const { data, loading, error } = useRequest(() => PracticeApi.getPracticeDetail(id!), {
+  const { data, loading, error, refresh } = useRequest(() => PracticeApi.getPracticeDetail(id!), {
     ready: !!id,
     onError: (err: any) => {
       message.error(err?.message || '加载练习详情失败');
     },
   });
+
+  const questions = useMemo(() => data?.questions || [], [data?.questions]);
+
+  // 判定是否需要生成素材的题目
+  const ungeneratedQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const hasResource = q.resources && q.resources.length > 0;
+      if (!hasResource) return false;
+      const resourcesWithUrl = q.resources!.filter((r) => r.url && r.url.trim() !== '');
+      return resourcesWithUrl.length < q.resources!.length;
+    });
+  }, [questions]);
+
+  const hasUngeneratedQuestions = ungeneratedQuestions.length > 0;
 
   // 构建答案映射
   const answersMap = useMemo(() => {
@@ -38,19 +58,57 @@ const useContainer = () => {
     setSelectedQuestion(undefined);
   };
 
+  const handleOpenGenerationModal = () => {
+    setIsModalOpen(true);
+    const initialResults: Record<string, 'waiting' | 'generating' | 'success' | 'error'> = {};
+    ungeneratedQuestions.forEach((q) => {
+      initialResults[q.id] = 'waiting';
+    });
+    setGenerationResults(initialResults);
+  };
+
+  const handleStartGeneration = async () => {
+    const ids = ungeneratedQuestions.map((q) => q.id);
+    setGeneratingIds(ids);
+
+    for (const id of ids) {
+      setGenerationResults((prev) => ({ ...prev, [id]: 'generating' }));
+      try {
+        await QuestionApi.generateQuestionResources(id);
+        setGenerationResults((prev) => ({ ...prev, [id]: 'success' }));
+      } catch (err) {
+        console.error(`Failed to generate materials for ${id}:`, err);
+        setGenerationResults((prev) => ({ ...prev, [id]: 'error' }));
+      }
+    }
+
+    setGeneratingIds([]);
+    setIsModalOpen(false);
+    message.success('素材生成完成');
+    refresh();
+  };
+
   return {
     id,
     navigate,
     loading,
     error,
     session: data?.session,
-    questions: data?.questions || [],
+    questions,
     answers: data?.answers || [],
     report: data?.report,
     answersMap,
     selectedQuestion,
     handleViewQuestion,
     handleCloseQuestion,
+    ungeneratedQuestions,
+    hasUngeneratedQuestions,
+    isModalOpen,
+    setIsModalOpen,
+    generationResults,
+    handleOpenGenerationModal,
+    handleStartGeneration,
+    isGenerating: generatingIds.length > 0,
   };
 };
 
