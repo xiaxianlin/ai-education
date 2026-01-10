@@ -7,7 +7,7 @@
 """
 
 import json
-from typing import Optional
+from typing import Any, Optional
 
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -34,12 +34,12 @@ from .schema import (
 )
 
 
-async def _generate_ai_analysis(question: Question, user_answer: str) -> Optional[str]:
+async def _generate_ai_analysis(question: Question, user_answer: Any) -> Optional[str]:
     """生成 AI 错题分析
 
     Args:
         question: 题目对象
-        user_answer: 用户答案
+        user_answer: 用户答案（可能是字符串、列表、字典等）
 
     Returns:
         str: AI 生成的针对性分析，失败时返回 None
@@ -53,7 +53,12 @@ async def _generate_ai_analysis(question: Question, user_answer: str) -> Optiona
 
         # 构建问题内容，包含用户答案
         question_content = build_question_prompt(question)
-        question_content += f"\n\n学生答案：{user_answer}"
+        # 将答案转换为字符串用于显示
+        if isinstance(user_answer, (dict, list)):
+            answer_str = json.dumps(user_answer, ensure_ascii=False)
+        else:
+            answer_str = str(user_answer)
+        question_content += f"\n\n学生答案：{answer_str}"
 
         prompt_input = {"question_content": question_content}
 
@@ -68,7 +73,7 @@ async def _generate_ai_analysis(question: Question, user_answer: str) -> Optiona
 
 async def _generate_feedback(
     question: Question,
-    user_answer: str,
+    user_answer: Any,
     evaluate_result: EvaluateResult,
 ) -> AnswerFeedbackSchema:
     """生成答题反馈
@@ -144,14 +149,10 @@ async def submit_answer(
         )
     )
     if not answer_record:
-        raise ValueError(
-            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
 
     if answer_record.status != 0:
-        raise ValueError(
-            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
 
     # 4. 使用评判器评判答案
     evaluate_result = AnswerEvaluator.evaluate(
@@ -168,7 +169,16 @@ async def submit_answer(
 
     # 6. 更新答题记录
     answer_record.submit_time = now()
-    answer_record.text_answer = params.answer
+    # 将答案序列化为 JSON 字符串存储
+    if params.answer is not None:
+        if isinstance(params.answer, (dict, list)):
+            answer_record.answer = json.dumps(params.answer, ensure_ascii=False)
+        else:
+            # 字符串类型直接存储
+            answer_record.answer = str(params.answer)
+    else:
+        answer_record.answer = None
+    answer_record.audio_url = params.audio_url
     answer_record.status = 1 if is_correct else 2
     answer_record.time_spent = params.time_spent
 

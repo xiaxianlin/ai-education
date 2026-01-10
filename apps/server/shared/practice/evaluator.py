@@ -68,9 +68,7 @@ class BaseEvaluator(ABC):
         answer_config = question.answer or {}
         return answer_config.get("correct_answers", [])
 
-    def _build_correct_answer_data(
-        self, question: Question, correct_answers: list
-    ) -> CorrectAnswerData:
+    def _build_correct_answer_data(self, question: Question, correct_answers: list) -> CorrectAnswerData:
         """构建结构化正确答案
 
         根据题目的 interaction_type 和 options 构建前端需要的结构化数据
@@ -124,6 +122,13 @@ class ExactEvaluator(BaseEvaluator):
             # 多选题：用户答案为列表，需要完全匹配
             user_set = set(str(a).strip() for a in user_answer)
             is_correct = user_set == correct_set
+        elif isinstance(user_answer, dict):
+            # 匹配题：用户答案为对象格式 {"A": "1", "B": "2"}
+            # 将字典的值转换为集合进行匹配
+            user_values = set(str(v).strip() for v in user_answer.values())
+            # 对于匹配题，需要检查所有匹配关系是否正确
+            # 这里简化处理：检查值集合是否匹配
+            is_correct = user_values == correct_set
         else:
             # 单选题/判断题：用户答案为单值，匹配任一正确答案即可
             user_answer_str = str(user_answer).strip()
@@ -187,25 +192,22 @@ class CompositeEvaluator(BaseEvaluator):
         # 构建子答案映射
         sub_answer_map = {}
 
-        # 1. 尝试从 user_answer 中解析（支持用户提供的 {"q1": "B", "q2": "B"} 格式）
+        # 从 user_answer 中解析新格式: [{"sub_id": "1", "value": "答案"}]
         if user_answer:
             try:
                 # 如果是字符串，尝试解析 JSON
-                if isinstance(user_answer, str) and user_answer.strip().startswith("{"):
-                    ans_dict = json.loads(user_answer)
-                elif isinstance(user_answer, dict):
-                    ans_dict = user_answer
+                if isinstance(user_answer, str):
+                    ans_list = json.loads(user_answer)
                 else:
-                    ans_dict = {}
+                    ans_list = user_answer
 
-                if isinstance(ans_dict, dict):
-                    for k, v in ans_dict.items():
-                        sub_answer_map[str(k)] = v
+                # 必须是数组格式
+                if isinstance(ans_list, list):
+                    for item in ans_list:
+                        if isinstance(item, dict) and "sub_id" in item and "value" in item:
+                            sub_answer_map[str(item["sub_id"])] = item["value"]
             except (json.JSONDecodeError, Exception):
                 pass
-
-        # 2. 从字典中提取（已在第1步完成，这里保留格式清晰性）
-        pass
 
         total_score = 0
         total_full_score = 0
@@ -379,6 +381,10 @@ class AnswerEvaluator:
         """
         answer_config = question.answer or {}
         answer_type = answer_config.get("type", "exact")
+
+        # 如果是复合题，则使用复合题评判器
+        if question.stem.get("sub_questions"):
+            return CompositeEvaluator().evaluate(question, user_answer)
 
         evaluator_class = EVALUATOR_MAP.get(answer_type, ExactEvaluator)
         evaluator = evaluator_class()

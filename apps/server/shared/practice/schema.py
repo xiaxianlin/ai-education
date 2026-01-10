@@ -12,7 +12,7 @@ class SubmitAnswerSchema(BaseModel):
     question_id: str = Field(..., description="题目 ID")
     answer: Any = Field(..., description="学生答案（单值、列表或 JSON 字典）")
     time_spent: int = Field(..., description="答题耗时（秒）")
-    is_audio_answer: bool = Field(default=False, description="是否为音频回答")
+    audio_url: Optional[str] = Field(default=None, description="音频答案URL")
 
 
 class AnswerAnalysisSchema(BaseModel):

@@ -39,9 +39,12 @@ export function SubQuestionItem({ subQuestion, index, value, disabled, onChange 
         {InputComponent ? (
           <InputComponent
             question={subQuestionAsQuestion}
-            value={{ text_answer: value } as PracticeAnswer}
+            value={{ answer: value } as PracticeAnswer}
             disabled={disabled}
-            onChange={(newAnswer) => onChange(newAnswer.text_answer || "")}
+            onChange={(newAnswer) => {
+              const answerValue = newAnswer.answer ?? "";
+              onChange(typeof answerValue === "string" ? answerValue : String(answerValue));
+            }}
           />
         ) : (
           <div className="text-xs text-muted-foreground italic">不支持的题型: {subQuestion.interaction_type}</div>

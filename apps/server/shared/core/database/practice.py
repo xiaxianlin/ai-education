@@ -110,7 +110,8 @@ class PracticeAnswer(BaseModel):
     question_order: Mapped[int] = mapped_column(comment="题目顺序")
 
     # 答题信息
-    text_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="学生答案")
+    answer: Mapped[str] = mapped_column(Text, nullable=True, comment="学生答案（JSON格式）")
+    audio_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True, comment="音频答案URL")
     status: Mapped[int] = mapped_column(default=0, comment="答题状态: 0-未答 1-正确 2-错误")
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")

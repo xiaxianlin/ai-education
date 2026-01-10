@@ -30,7 +30,8 @@ export function QuestionCard(props: QuestionCardProps) {
 
   // 检查是否所有题目都已作答
   const isAllAnswered = useMemo(() => {
-    if (!answer?.text_answer) return false;
+    const rawAnswer = answer?.answer;
+    if (!rawAnswer) return false;
 
     if (isComposite) {
       // 复合题：检查所有子题是否都已作答
@@ -38,19 +39,33 @@ export function QuestionCard(props: QuestionCardProps) {
       if (subQuestions.length === 0) return false;
 
       try {
-        const compositeAnswers = JSON.parse(answer.text_answer);
+        const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+        let compositeAnswers: Record<string, string> = {};
+        
+        if (Array.isArray(parsed)) {
+          // 新格式：转换为字典
+          parsed.forEach((item: any) => {
+            if (item.sub_id && item.value !== undefined) {
+              compositeAnswers[item.sub_id] = String(item.value);
+            }
+          });
+        } else if (typeof parsed === "object" && parsed !== null) {
+          compositeAnswers = parsed;
+        }
+        
         return subQuestions.every((subQ: SubQuestion) => {
           const subAnswer = compositeAnswers[subQ.id];
-          return subAnswer && subAnswer.trim() !== "";
+          return subAnswer && String(subAnswer).trim() !== "";
         });
       } catch {
         return false;
       }
     } else {
       // 单题：检查答案是否非空
-      return answer.text_answer.trim() !== "";
+      const answerStr = typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer);
+      return answerStr.trim() !== "" && answerStr !== "[]" && answerStr !== "{}";
     }
-  }, [answer?.text_answer, isComposite, question]);
+  }, [answer?.answer, answer?.text_answer, isComposite, question]);
 
   const handleSubmit = () => {
     if (props.onSubmit) {

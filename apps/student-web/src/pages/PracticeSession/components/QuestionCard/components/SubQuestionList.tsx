@@ -30,22 +30,55 @@ export function SubQuestionList({
   const subQuestions = question?.stem?.sub_questions || (question?.stem as any)?.subQuestions || [];
 
   // 解析复合题答案
+  // 格式: [{"sub_id": "1", "value": "答案"}]
   const compositeAnswers = useMemo(() => {
-    if (!answer?.text_answer) return {};
+    const rawAnswer = answer?.answer;
+    if (!rawAnswer) return {};
+    
     try {
-      return JSON.parse(answer.text_answer);
+      const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+      
+      if (Array.isArray(parsed)) {
+        // 转换为字典便于查找
+        const result: Record<string, string> = {};
+        parsed.forEach((item: any) => {
+          if (item.sub_id && item.value !== undefined) {
+            result[item.sub_id] = String(item.value);
+          }
+        });
+        return result;
+      }
+      return {};
     } catch {
       return {};
     }
-  }, [answer?.text_answer]);
+  }, [answer?.answer]);
 
   // 更新子题答案
   const handleSubAnswerChange = (subQuestionId: string, value: string) => {
-    const newAnswers = { ...compositeAnswers, [subQuestionId]: value };
+    // 构建新格式的答案数组
+    const currentAnswers = Array.isArray(answer?.answer) 
+      ? [...answer.answer] 
+      : Object.entries(compositeAnswers).map(([subId, val]) => ({
+          sub_id: subId,
+          value: String(val),
+        }));
+    
+    // 更新或添加子题答案
+    const existingIndex = currentAnswers.findIndex(
+      (item: any) => item.sub_id === subQuestionId
+    );
+    
+    if (existingIndex >= 0) {
+      currentAnswers[existingIndex] = { sub_id: subQuestionId, value };
+    } else {
+      currentAnswers.push({ sub_id: subQuestionId, value });
+    }
+    
     if (onAnswerChange) {
       onAnswerChange({
         ...answer,
-        text_answer: JSON.stringify(newAnswers),
+        answer: currentAnswers,
       } as PracticeAnswer);
     }
   };

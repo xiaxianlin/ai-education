@@ -237,7 +237,7 @@ async def reset_practice(db: AsyncSession, session_id: str):
         .where(PracticeAnswer.session_id == session_id)
         .values(
             status=0,
-            text_answer=None,
+            answer=None,
             time_spent=0,
             submit_time=None,
             correct_answer=None,
@@ -305,7 +305,7 @@ async def reset_practice_answer(db: AsyncSession, session_id: str, question_id: 
         )
         .values(
             status=0,
-            text_answer=None,
+            answer=None,
             time_spent=0,
             submit_time=None,
             correct_answer=None,

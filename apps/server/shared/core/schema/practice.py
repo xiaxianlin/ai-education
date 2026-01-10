@@ -82,7 +82,8 @@ class PracticeAnswerSchema(BaseModel):
     question_order: int
 
     # 答题信息
-    text_answer: Optional[str] = None
+    answer: Optional[Any] = Field(default=None, description="学生答案（JSON格式，支持字符串、数组、对象）")
+    audio_url: Optional[str] = Field(default=None, description="音频答案URL")
     status: int = 0  # 答题状态: 0-未答 1-正确 2-错误
     time_spent: int = 0
     submit_time: Optional[int] = None
@@ -107,6 +108,26 @@ class PracticeAnswerSchema(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("answer", mode="before")
+    @classmethod
+    def parse_answer_field(cls, v):
+        """将 answer 字段从 JSON 字符串解析为 Python 对象"""
+        import json
+
+        if v is None:
+            return None
+        if isinstance(v, (str, list, dict)):
+            # 如果是字符串，尝试解析 JSON
+            if isinstance(v, str):
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    # 如果不是 JSON，保持为字符串
+                    return v
+            # 如果已经是 list 或 dict，直接返回
+            return v
+        return v
+
     @field_validator("correct_answer", "analysis", mode="before")
     @classmethod
     def parse_json_fields(cls, v):
@@ -121,8 +142,7 @@ class PracticeAnswerSchema(BaseModel):
             try:
                 return json.loads(v)
             except json.JSONDecodeError:
-                # 兼容旧数据：如果是普通字符串，包装为 dict
-                return {"value": v}
+                return None
         return v
 
 

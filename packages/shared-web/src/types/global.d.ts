@@ -402,7 +402,8 @@ declare global {
     textbook_id?: number;
 
     // 答题信息
-    text_answer?: string; // 文本答案/用户答案
+    answer?: string | any; // 学生答案（JSON格式，支持字符串、数组、对象）
+    audio_url?: string; // 音频答案URL
     status: number; // 答题状态: 0-未答, 1-正确, 2-错误
     time_spent: number; // 耗时（秒）
     submit_time?: number; // 提交时间

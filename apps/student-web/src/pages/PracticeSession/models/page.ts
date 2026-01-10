@@ -118,47 +118,62 @@ function useContainer() {
       return;
     }
 
-    // 判断是否为口语题：根据 interaction_type 判断
-    const isAudioAnswer =
-      question?.question_type?.interaction_type === "voice_input" ||
-      question?.question_type?.interaction_type === "free_speak";
-
-    // 提取分析文本（兼容新旧数据格式）
-    const getAnalysisText = (analysis: unknown): string | undefined => {
-      if (!analysis) return undefined;
-      if (typeof analysis === "string") return analysis;
-      if (typeof analysis === "object") {
-        const data = analysis as Record<string, unknown>;
-        return (data.analysis as string) || undefined;
-      }
-      return undefined;
-    };
-
-    // 构建子题答案列表（复合题）
-    let subAnswers: Array<{ sub_question_id: string; answer: string }> | undefined;
+    const interactionType = question?.question_type?.interaction_type;
     const isComposite = question?.answer?.type === "composite";
-
-    if (isComposite && answer.text_answer) {
-      try {
-        const compositeAnswers = JSON.parse(answer.text_answer);
-        subAnswers = Object.entries(compositeAnswers).map(([subId, ans]) => ({
-          sub_question_id: subId,
-          answer: String(ans),
-        }));
-      } catch {
-        // 解析失败，保持原样
+    
+    // 从 answer.answer 读取答案
+    let rawAnswer = answer.answer;
+    
+    // 根据题型构建标准化的答案格式
+    let formattedAnswer: any;
+    
+    if (isComposite) {
+      // 复合题：构建 [{"sub_id": "1", "value": "答案"}] 格式
+      if (rawAnswer) {
+        try {
+          const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+          formattedAnswer = Array.isArray(parsed) ? parsed : null;
+        } catch {
+          formattedAnswer = null;
+        }
+      } else {
+        formattedAnswer = null;
       }
+    } else if (interactionType === "multi_choice") {
+      // 多选题：构建 ["A", "B", "C"] 数组格式
+      if (rawAnswer) {
+        try {
+          const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+          formattedAnswer = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          formattedAnswer = Array.isArray(rawAnswer) ? rawAnswer : [rawAnswer];
+        }
+      } else {
+        formattedAnswer = [];
+      }
+    } else if (interactionType === "connect_line") {
+      // 匹配题：构建 {"A": "1", "B": "2"} 对象格式
+      if (rawAnswer) {
+        try {
+          const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
+          formattedAnswer = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+        } catch {
+          formattedAnswer = {};
+        }
+      } else {
+        formattedAnswer = {};
+      }
+    } else {
+      // 其他题型：直接使用字符串
+      formattedAnswer = rawAnswer || "";
     }
 
     submitAnswer({
       session_id: session?.id || "",
       question_id: question?.id || "",
-      answer: answer.text_answer || "",
+      answer: formattedAnswer,
       time_spent: timeSpent,
-      is_audio_answer: isAudioAnswer,
-      audio_match: answer.status === 1 ? true : false,
-      audio_analysis: getAnalysisText(answer.analysis),
-      sub_answers: subAnswers,
+      audio_url: answer.audio_url || undefined,
     });
   };
 

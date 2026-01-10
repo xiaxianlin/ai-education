@@ -37,13 +37,9 @@ declare global {
   interface AnswerRequest {
     session_id: string;
     question_id: string;
-    answer: string;
+    answer: string | any; // 学生答案（支持字符串、数组、对象）
     time_spent: number;
-    is_audio_answer: boolean;
-    audio_match?: boolean;
-    audio_analysis?: string;
-    /** 子题答案列表（复合题） */
-    sub_answers?: Array<{ sub_question_id: string; answer: string }>;
+    audio_url?: string; // 音频答案URL
   }
 
   interface AudioAnswerAnalysisResponse {

@@ -12,6 +12,7 @@
 """
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from loguru import logger
 from shared.core.database import Database
 from shared.core.schema import PracticeAnswerSchema
 from shared.practice import answer as answer_service
@@ -233,13 +234,14 @@ async def submit_answer(
     student = request.state.student
 
     # 使用答题服务提交答案
+    logger.info(f"提交答案: {params}")
     try:
         submit_params = SubmitAnswerSchema(
             session_id=params.session_id,
             question_id=params.question_id,
             answer=params.answer,
             time_spent=params.time_spent,
-            is_audio_answer=params.is_audio_answer,
+            audio_url=params.audio_url,
         )
         result = await answer_service.submit_answer(db, student.id, submit_params)
         return result

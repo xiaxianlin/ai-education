@@ -78,7 +78,7 @@ class AnswerSchema(BaseModel):
     question_id: str = Field(..., description="题目ID")
     answer: Any = Field(..., description="主答案内容")
     time_spent: int = Field(..., description="总答题耗时(秒)")
-    is_audio_answer: bool = Field(default=False, description="是否为音频回答")
+    audio_url: Optional[str] = Field(default=None, description="音频答案URL")
 
 
 class AnswerResultSchema(BaseModel):

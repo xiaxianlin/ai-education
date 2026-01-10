@@ -27,10 +27,11 @@ export function AudioInput({ value, disabled, onChange }: AnswerInputProps) {
     manual: true,
     onBefore: () => setState("parsing"),
     onSuccess: (res) => {
+      // 存储识别的文本到 answer.answer，audio_url 到 answer.audio_url
       onChange({
         ...value,
-        text_answer: res.text,
-        analysis: res.analysis,
+        answer: res.text, // 识别的文本作为答案
+        audio_url: (res as any).audio_url || audioUrl, // 如果有返回的 audio_url 使用它，否则使用本地 URL
       } as PracticeAnswer);
       setState("success");
     },
@@ -110,8 +111,8 @@ export function AudioInput({ value, disabled, onChange }: AnswerInputProps) {
     // 清空答案
     onChange({
       ...value,
-      text_answer: "",
-      analysis: "",
+      answer: "",
+      audio_url: "",
     } as PracticeAnswer);
   };
 
@@ -189,10 +190,10 @@ export function AudioInput({ value, disabled, onChange }: AnswerInputProps) {
           )}
 
           {/* 解析结果 - 仅在提交后显示 */}
-          {disabled && value?.text_answer && (
+          {disabled && value?.answer && (
             <div className="w-full bg-muted/50 rounded-lg p-4">
               <div className="text-sm text-muted-foreground mb-1">识别内容：</div>
-              <div className="text-base">{value.text_answer}</div>
+              <div className="text-base">{value.answer}</div>
             </div>
           )}
 

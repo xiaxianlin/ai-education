@@ -7,17 +7,21 @@ import { CheckCircle } from "lucide-react";
 import type { AnswerInputProps } from "../../types";
 
 export function JudgeInput({ value, disabled, onChange }: AnswerInputProps) {
+  // 从 answer.answer 读取答案
+  const rawAnswer = value?.answer;
+  const currentAnswer = typeof rawAnswer === "string" ? rawAnswer : "";
+
   return (
     <div className="space-y-4">
       {[
         { value: "正确", emoji: "✅" },
         { value: "错误", emoji: "❌" },
       ].map(({ value: option, emoji }) => {
-        const isSelected = value?.text_answer === option;
+        const isSelected = currentAnswer === option;
         return (
           <button
             key={option}
-            onClick={() => !disabled && onChange({ ...value, text_answer: option } as PracticeAnswer)}
+            onClick={() => !disabled && onChange({ ...value, answer: option } as PracticeAnswer)}
             disabled={disabled}
             className={cn(
               "w-full p-6 rounded-2xl border-2 transition-all duration-300 shadow-sm hover:shadow-md",
