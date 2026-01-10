@@ -5,8 +5,71 @@
 import { Badge, Card, CardContent } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@ai-education/shared-web";
-import { CheckCircle, ChevronDown, ChevronUp, Clock, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle, ChevronDown, ChevronUp, Clock, Lightbulb, XCircle } from "lucide-react";
 import { FC, useState } from "react";
+
+/**
+ * 从结构化正确答案中提取显示文本
+ */
+function formatCorrectAnswer(correctAnswer: unknown): string {
+  if (!correctAnswer) return "";
+
+  // 兼容旧数据：如果是字符串，直接返回
+  if (typeof correctAnswer === "string") return correctAnswer;
+
+  // 新数据格式：结构化对象
+  if (typeof correctAnswer === "object") {
+    const data = correctAnswer as Record<string, unknown>;
+
+    // 复合题：展示子答案
+    if (data.sub_answers && Array.isArray(data.sub_answers)) {
+      return data.sub_answers
+        .map((sub: Record<string, unknown>) => `${sub.sub_id}: ${sub.value}`)
+        .join(", ");
+    }
+
+    // 多值答案
+    if (data.values && Array.isArray(data.values)) {
+      return data.values.join(", ");
+    }
+
+    // 单值答案（优先使用选项文本）
+    if (data.options && Array.isArray(data.options) && data.options.length > 0) {
+      const opt = data.options[0] as Record<string, unknown>;
+      return `${opt.id}: ${opt.text}`;
+    }
+
+    // 单值答案
+    if (data.value !== undefined) {
+      return String(data.value);
+    }
+  }
+
+  return "";
+}
+
+/**
+ * 从分析对象中提取显示内容
+ */
+function parseAnalysis(analysis: unknown): { explanation?: string; analysisText?: string } {
+  if (!analysis) return {};
+
+  // 兼容旧数据：如果是字符串，作为分析内容
+  if (typeof analysis === "string") {
+    return { analysisText: analysis };
+  }
+
+  // 新数据格式：结构化对象
+  if (typeof analysis === "object") {
+    const data = analysis as Record<string, unknown>;
+    return {
+      explanation: data.explanation as string | undefined,
+      analysisText: data.analysis as string | undefined,
+    };
+  }
+
+  return {};
+}
 
 interface QuestionAnswerCardProps {
   question: Question;
@@ -61,10 +124,17 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
   const hasAnswer = status !== undefined && status !== 0;
   const isCorrect = status === 1;
   const userAnswer = answer?.text_answer || "未作答";
-  // Answer 类型是对象，需要提取正确答案字符串
-  const correctAnswer = Array.isArray(question.answer?.correct_answers) 
-    ? question.answer.correct_answers.join(", ")
-    : question.answer?.correct_answers?.[0] || answer?.correct_answer || "";
+
+  // 正确答案：优先使用 answer.correct_answer（结构化），否则从 question.answer 提取
+  const correctAnswer =
+    formatCorrectAnswer(answer?.correct_answer) ||
+    (Array.isArray(question.answer?.correct_answers)
+      ? question.answer.correct_answers.join(", ")
+      : question.answer?.correct_answers?.[0] || "");
+
+  // 解析分析数据
+  const { explanation, analysisText } = parseAnalysis(answer?.analysis);
+
   const timeSpent = answer?.time_spent || 0;
 
   return (
@@ -177,17 +247,29 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
                     </div>
                   )}
 
+                  {/* 题目解析 */}
+                  {status === 2 && explanation && (
+                    <div className="rounded-xl p-4 bg-blue-50 border-2 border-blue-400 shadow-sm">
+                      <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        <span>题目解析</span>
+                      </div>
+                      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {explanation}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 错题分析 */}
-                  {status === 2 && answer?.analysis && (
+                  {status === 2 && analysisText && (
                     <div className="rounded-xl p-4 bg-orange-50 border-2 border-orange-400 shadow-sm">
                       <div className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
-                        <span>💡</span>
+                        <Lightbulb className="h-4 w-4" />
                         <span>错题分析</span>
                       </div>
-                      <div
-                        className="text-sm text-foreground leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: answer.analysis }}
-                      />
+                      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {analysisText}
+                      </div>
                     </div>
                   )}
                 </div>

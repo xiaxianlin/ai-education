@@ -7,7 +7,7 @@
 使用 `@fix-error` 命令时，我会：
 
 1. 从 `apps/server/.env` 文件读取 `LOG_DIR` 配置
-2. 读取 `{LOG_DIR}/error.log` 文件
+2. 在根目录读取 `{LOG_DIR}/error.log` 文件
 3. 分析错误日志中的错误信息
 4. 定位相关代码文件
 5. 提供修复方案并实施修复

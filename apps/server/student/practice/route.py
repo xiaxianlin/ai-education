@@ -12,17 +12,15 @@
 """
 
 from fastapi import APIRouter, HTTPException, Query, Request
-from shared.core.database import Database, Question
+from shared.core.database import Database
 from shared.core.schema import PracticeAnswerSchema
 from shared.practice import answer as answer_service
 from shared.practice import practice as practice_service
 from shared.practice import practice_generate
 from shared.practice.schema import SubmitAnswerSchema
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
-    AnswerResultSchema,
     AnswerSchema,
     CreatePracticeRequest,
     PracticeStatisticsResponseSchema,
@@ -215,7 +213,7 @@ async def complete_practice(
     "/answer",
     tags=["练习"],
     summary="提交答案",
-    description="提交答案，支持复合题",
+    description="提交答案，支持复合题。错题时返回结构化的正确答案和分析。",
     response_model=PracticeAnswerSchema,
 )
 async def submit_answer(
@@ -223,161 +221,39 @@ async def submit_answer(
     request: Request,
     db: AsyncSession = Database,
 ):
-    """提交答案"""
+    """提交答案
+
+    评判逻辑由 shared/practice/evaluator.py 统一处理，支持：
+    - exact: 精确匹配（选择题、判断题）
+    - fuzzy: 模糊匹配（填空题、简答题）
+    - rubric: 评分标准（主观题）
+    - ai: AI 评分（口语题、开放题）
+    - composite: 复合题（递归评判子题）
+
+    返回的 PracticeAnswerSchema 包含：
+    - correct_answer: 结构化正确答案（dict）
+    - analysis: 错题反馈（dict），包含 explanation 和 AI 分析
+    """
     student = request.state.student
 
-    # 使用答题服务保存答题记录
+    # 构建子答案列表（复合题使用）
+    sub_answers = None
+    if params.sub_answers:
+        sub_answers = [
+            {"sub_question_id": sa.sub_question_id, "answer": sa.answer}
+            for sa in params.sub_answers
+        ]
+
+    # 使用答题服务提交答案
     try:
         submit_params = SubmitAnswerSchema(
             session_id=params.session_id,
             question_id=params.question_id,
             answer=str(params.answer),
             time_spent=params.time_spent or 0,
+            sub_answers=sub_answers,
         )
         result = await answer_service.submit_answer(db, student.id, submit_params)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-def evaluate_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
-    """
-    评判答案
-
-    支持：
-    - 精确匹配 (exact)
-    - 模糊匹配 (fuzzy)
-    - 复合题 (composite)
-    """
-    answer_config = question.answer or {}
-    answer_type = answer_config.get("type", "exact")
-
-    if answer_type == "composite":
-        # 复合题评判
-        return evaluate_composite_answer(question, params)
-    elif answer_type == "exact":
-        return evaluate_exact_answer(question, params)
-    elif answer_type == "fuzzy":
-        return evaluate_fuzzy_answer(question, params)
-    else:
-        # AI 评分等其他类型暂时返回待评判
-        return AnswerResultSchema(
-            is_correct=False,
-            score=0,
-            full_score=answer_config.get("scoring", {}).get("full_score", 10),
-            feedback="此题型暂不支持自动评判",
-        )
-
-
-def evaluate_exact_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
-    """精确匹配评判"""
-    answer_config = question.answer or {}
-    correct_answers = answer_config.get("correct_answers", [])
-    scoring = answer_config.get("scoring", {})
-    full_score = scoring.get("full_score", 10)
-
-    user_answer = str(params.answer).strip()
-    is_correct = user_answer in [str(a).strip() for a in correct_answers]
-
-    return AnswerResultSchema(
-        is_correct=is_correct,
-        score=full_score if is_correct else 0,
-        full_score=full_score,
-        feedback="回答正确！" if is_correct else "回答错误，请再试一次。",
-        correct_answer=correct_answers[0] if correct_answers and not is_correct else None,
-    )
-
-
-def evaluate_fuzzy_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
-    """模糊匹配评判"""
-    answer_config = question.answer or {}
-    correct_answers = answer_config.get("correct_answers", [])
-    accept_values = answer_config.get("accept_values", [])
-    scoring = answer_config.get("scoring", {})
-    full_score = scoring.get("full_score", 10)
-
-    user_answer = str(params.answer).strip().lower()
-    all_acceptable = [str(a).strip().lower() for a in correct_answers + accept_values]
-
-    is_correct = user_answer in all_acceptable
-
-    return AnswerResultSchema(
-        is_correct=is_correct,
-        score=full_score if is_correct else 0,
-        full_score=full_score,
-        feedback="回答正确！" if is_correct else "回答错误，请再试一次。",
-        correct_answer=correct_answers[0] if correct_answers and not is_correct else None,
-    )
-
-
-def evaluate_composite_answer(question: Question, params: AnswerSchema) -> AnswerResultSchema:
-    """复合题评判"""
-    stem = question.stem or {}
-    sub_questions = stem.get("sub_questions", [])
-    answer_config = question.answer or {}
-    scoring = answer_config.get("scoring", {})
-    partial_strategy = scoring.get("partial_strategy", "sum")
-
-    if not sub_questions or not params.sub_answers:
-        return AnswerResultSchema(
-            is_correct=False,
-            score=0,
-            full_score=scoring.get("full_score", 10),
-            feedback="请完成所有小题",
-        )
-
-    # 构建子答案映射
-    sub_answer_map = {sa.sub_question_id: sa.answer for sa in params.sub_answers}
-
-    total_score = 0
-    full_score = 0
-    sub_results = []
-    all_correct = True
-
-    for sub_q in sub_questions:
-        sub_id = sub_q.get("id")
-        sub_answer_config = sub_q.get("answer", {})
-        sub_full_score = sub_answer_config.get("scoring", {}).get("full_score", 10)
-        full_score += sub_full_score
-
-        user_sub_answer = sub_answer_map.get(sub_id)
-        correct_answers = sub_answer_config.get("correct_answers", [])
-
-        if user_sub_answer is None:
-            is_sub_correct = False
-            sub_score = 0
-        else:
-            is_sub_correct = str(user_sub_answer).strip() in [
-                str(a).strip() for a in correct_answers
-            ]
-            sub_score = sub_full_score if is_sub_correct else 0
-
-        total_score += sub_score
-        all_correct = all_correct and is_sub_correct
-
-        sub_results.append(
-            {
-                "sub_question_id": sub_id,
-                "is_correct": is_sub_correct,
-                "score": sub_score,
-                "full_score": sub_full_score,
-            }
-        )
-
-    # 根据策略计算最终得分
-    if partial_strategy == "all_or_nothing":
-        final_score = full_score if all_correct else 0
-    else:  # sum
-        final_score = total_score
-
-    return AnswerResultSchema(
-        is_correct=all_correct,
-        score=final_score,
-        full_score=full_score,
-        feedback=(
-            "全部正确！"
-            if all_correct
-            else f"正确 {sum(1 for r in sub_results if r['is_correct'])}/{len(sub_results)} 题"
-        ),
-        sub_results=sub_results,
-    )

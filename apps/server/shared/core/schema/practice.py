@@ -68,7 +68,12 @@ class PracticeSchema(BaseModel):
 
 
 class PracticeAnswerSchema(BaseModel):
-    """答题记录 Schema"""
+    """答题记录 Schema
+
+    错题相关字段说明：
+    - correct_answer: 结构化正确答案（dict），包含 type, value/values, options 等
+    - analysis: 错题反馈（dict），包含 correct_answer, explanation, analysis
+    """
 
     id: int
     session_id: str = Field(..., description="会话ID (UUID v4)")
@@ -82,9 +87,15 @@ class PracticeAnswerSchema(BaseModel):
     time_spent: int = 0
     submit_time: Optional[int] = None
 
-    # 错题相关字段
-    correct_answer: Optional[str] = None
-    analysis: Optional[str] = None
+    # 错题相关字段（结构化数据）
+    correct_answer: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="结构化正确答案: {type, value, values, options, sub_answers}",
+    )
+    analysis: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="错题反馈: {correct_answer, explanation, analysis}",
+    )
     is_corrected: int = 0
     corrected_time: Optional[int] = None
 
@@ -95,6 +106,24 @@ class PracticeAnswerSchema(BaseModel):
     question: Optional["QuestionSchema"] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("correct_answer", "analysis", mode="before")
+    @classmethod
+    def parse_json_fields(cls, v):
+        """将 JSON 字符串解析为 dict"""
+        import json
+
+        if v is None:
+            return None
+        if isinstance(v, dict):
+            return v
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # 兼容旧数据：如果是普通字符串，包装为 dict
+                return {"value": v}
+        return v
 
 
 class PracticeReportSchema(BaseModel):

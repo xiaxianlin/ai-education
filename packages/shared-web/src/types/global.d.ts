@@ -362,6 +362,32 @@ declare global {
   }
 
   /**
+   * 结构化正确答案
+   * 用于前端根据题型渲染正确答案
+   */
+  interface CorrectAnswerData {
+    type: string; // 与 interaction_type 对应
+    value?: unknown; // 单值答案（单选题等）
+    values?: unknown[]; // 多值答案（多选题等）
+    options?: Array<{ id: string; text: string }>; // 选项详情
+    sub_answers?: Array<{
+      sub_id: string;
+      is_correct: boolean;
+      value: unknown;
+    }>; // 复合题子答案
+  }
+
+  /**
+   * 答题反馈数据
+   * 错题时返回的完整反馈信息
+   */
+  interface AnswerFeedbackData {
+    correct_answer: CorrectAnswerData; // 结构化正确答案
+    explanation?: string; // 题目自带解析
+    analysis?: string; // AI 针对性分析
+  }
+
+  /**
    * 答题记录（对应 PracticeAnswerSchema）
    */
   interface PracticeAnswer {
@@ -383,8 +409,12 @@ declare global {
     submit_time?: number; // 提交时间
 
     // 错题相关字段（仅当 status=2 时有值）
-    correct_answer?: string; // 正确答案
-    analysis?: string; // 错题分析
+    // 新格式：结构化对象 { type, value, values, options, sub_answers }
+    // 旧格式（兼容）：字符串
+    correct_answer?: CorrectAnswerData | string;
+    // 新格式：结构化对象 { correct_answer, explanation, analysis }
+    // 旧格式（兼容）：字符串
+    analysis?: AnswerFeedbackData | string;
     is_corrected?: number; // 是否已订正 0-未订正 1-已订正
     corrected_time?: number; // 订正时间
 

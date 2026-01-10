@@ -1,7 +1,16 @@
-"""答题服务"""
+"""答题服务
+
+支持多种题型的答案评判和反馈生成：
+- 使用 AnswerEvaluator 根据 answer.type 选择评判策略
+- 返回结构化的正确答案供前端渲染
+- 结合题目解析和 AI 分析生成错题反馈
+"""
+
+import json
+from typing import Optional
 
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.prompts.chat import ChatMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import (
     Practice,
@@ -15,48 +24,114 @@ from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .evaluator import AnswerEvaluator, EvaluateResult
 from .prompt import ANALYZE_QUESTION_ANSWER_PROMPT
-from .schema import AnswerAnalysisSchema, SubmitAnswerSchema
+from .schema import (
+    AnswerAnalysisSchema,
+    AnswerFeedbackSchema,
+    CorrectAnswerSchema,
+    SubmitAnswerSchema,
+)
 
 
-async def _analyze_answer(db: AsyncSession, question: Question, answer_content: str):
-    """检查答案是否正确并生成分析
+async def _generate_ai_analysis(question: Question, user_answer: str) -> Optional[str]:
+    """生成 AI 错题分析
 
     Args:
-        question: 题目对象 (V2)
-        answer_content: 答题内容
-        db: 数据库会话
+        question: 题目对象
+        user_answer: 用户答案
 
     Returns:
-        tuple: (is_correct, analysis) - 是否正确和错题分析（如果错误）
+        str: AI 生成的针对性分析，失败时返回 None
     """
-    # V2: answer is a dict with correct_answers list
-    correct_answers = question.answer.get("correct_answers", [])
-    is_correct = answer_content.strip() in [str(a).strip() for a in correct_answers]
-    if is_correct:
-        return is_correct, None
+    try:
+        prompt_parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
+        format_instructions = prompt_parser.get_format_instructions()
 
-    prompt_template = ChatMessagePromptTemplate.from_messages(ANALYZE_QUESTION_ANSWER_PROMPT)
-    prompt_parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
-    prompt_input = {"question_content": build_question_prompt(question)}
+        prompt_template = ChatPromptTemplate.from_template(ANALYZE_QUESTION_ANSWER_PROMPT)
+        prompt_template = prompt_template.partial(format_instructions=format_instructions)
 
-    provider = get_provider()
-    result = await provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
+        # 构建问题内容，包含用户答案
+        question_content = build_question_prompt(question)
+        question_content += f"\n\n学生答案：{user_answer}"
 
-    return result["is_correct"], result["analysis"]
+        prompt_input = {"question_content": question_content}
+
+        provider = get_provider()
+        result = await provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
+
+        return result.get("analysis", "")
+    except Exception as e:
+        logger.warning(f"AI 分析生成失败: {e}")
+        return None
 
 
-async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerSchema):
-    """提交答题答案"""
+async def _generate_feedback(
+    question: Question,
+    user_answer: str,
+    evaluate_result: EvaluateResult,
+) -> AnswerFeedbackSchema:
+    """生成答题反馈
+
+    结合题目自带解析和 AI 针对性分析生成完整反馈。
+
+    Args:
+        question: 题目对象
+        user_answer: 用户答案
+        evaluate_result: 评判结果
+
+    Returns:
+        AnswerFeedbackSchema: 完整的答题反馈
+    """
+    # 获取题目自带解析
+    explanation = question.explanation
+
+    # 生成 AI 针对性分析
+    ai_analysis = await _generate_ai_analysis(question, user_answer)
+
+    # 构建结构化正确答案
+    correct_answer = CorrectAnswerSchema(
+        type=evaluate_result.correct_answer.type,
+        value=evaluate_result.correct_answer.value,
+        values=evaluate_result.correct_answer.values,
+        options=evaluate_result.correct_answer.options,
+        sub_answers=evaluate_result.correct_answer.sub_answers,
+    )
+
+    return AnswerFeedbackSchema(
+        correct_answer=correct_answer,
+        explanation=explanation,
+        analysis=ai_analysis,
+    )
+
+
+async def submit_answer(
+    db: AsyncSession,
+    student_id: str,
+    params: SubmitAnswerSchema,
+) -> PracticeAnswerSchema:
+    """提交答题答案
+
+    Args:
+        db: 数据库会话
+        student_id: 学生 ID
+        params: 提交答案参数
+
+    Returns:
+        PracticeAnswerSchema: 更新后的答题记录
+
+    Raises:
+        ValueError: 参数验证失败
+    """
     # 1. 查询练习
-    session = await db.scalar(select(Practice).where(Practice.id == params.session_id))
-    if not session:
+    practice = await db.scalar(select(Practice).where(Practice.id == params.session_id))
+    if not practice:
         raise ValueError(f"练习会话不存在: session_id={params.session_id}")
 
-    if session.student_id != student_id:
+    if practice.student_id != student_id:
         raise ValueError("无权操作此练习")
 
-    # 2. 查询题目信息 (V2)
+    # 2. 查询题目信息
     question = await db.scalar(select(Question).where(Question.id == params.question_id))
     if not question:
         raise ValueError(f"题目不存在: question_id={params.question_id}")
@@ -69,31 +144,56 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
         )
     )
     if not answer_record:
-        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
     if answer_record.status != 0:
-        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
-    # 4. 检查答案并生成分析
-    is_correct, analysis = await _analyze_answer(db, question, params.answer)
+    # 4. 使用评判器评判答案
+    evaluate_result = AnswerEvaluator.evaluate(
+        question=question,
+        user_answer=params.answer,
+        sub_answers=params.sub_answers,
+    )
 
-    # 5. 更新答题记录
+    is_correct = evaluate_result.is_correct
+
+    # 5. 如果答错，生成反馈
+    feedback = None
+    if not is_correct:
+        feedback = await _generate_feedback(question, params.answer, evaluate_result)
+
+    # 6. 更新答题记录
     answer_record.submit_time = now()
     answer_record.text_answer = params.answer
     answer_record.status = 1 if is_correct else 2
     answer_record.time_spent = params.time_spent
-    # V2: correct_answer is extracted from answer dict
-    correct_answers = question.answer.get("correct_answers", [])
-    answer_record.correct_answer = ", ".join(str(a) for a in correct_answers)
-    answer_record.analysis = analysis
 
-    # 6. 更新练习会话统计
+    # 存储结构化正确答案（JSON 格式）
+    answer_record.correct_answer = json.dumps(
+        evaluate_result.correct_answer.model_dump(),
+        ensure_ascii=False,
+    )
 
-    session.answer_count += 1
+    # 存储反馈信息（JSON 格式）
+    if feedback:
+        answer_record.analysis = json.dumps(
+            feedback.model_dump(),
+            ensure_ascii=False,
+        )
+    else:
+        answer_record.analysis = None
+
+    # 7. 更新练习会话统计
+    practice.answer_count += 1
     if is_correct:
-        session.correct_count += 1
+        practice.correct_count += 1
 
-    session.update_time = now()
+    practice.update_time = now()
 
     await db.commit()
     await db.refresh(answer_record)
@@ -106,8 +206,6 @@ async def submit_answer(db: AsyncSession, student_id: str, params: SubmitAnswerS
     return PracticeAnswerSchema.model_validate(answer_record)
 
 
-async def asr_audio_answer(db: AsyncSession, audio_data: bytes):
-    """语音识别"""
-    provider = get_provider()
-    text = provider.invoke_asr(audio_data)
-    return text
+__all__ = [
+    "submit_answer",
+]

@@ -94,10 +94,17 @@ function useContainer() {
     {
       manual: true,
       onSuccess: (res) => {
+        // 更新当前题目的答案状态（用于显示反馈）
+        setAnswer(res);
+
+        // 刷新数据以同步状态
+        refresh();
+
+        // 只有答对时自动跳转到下一题
+        // 答错时停留在当前题目，让用户查看错题分析
         if (res.status === 1) {
           next();
         }
-        refresh();
       },
     }
   );
@@ -118,7 +125,20 @@ function useContainer() {
     }
 
     // 判断是否为口语题：根据 interaction_type 判断
-    const isAudioAnswer = question?.question_type?.interaction_type === "voice_input" || question?.question_type?.interaction_type === "free_speak";
+    const isAudioAnswer =
+      question?.question_type?.interaction_type === "voice_input" ||
+      question?.question_type?.interaction_type === "free_speak";
+
+    // 提取分析文本（兼容新旧数据格式）
+    const getAnalysisText = (analysis: unknown): string | undefined => {
+      if (!analysis) return undefined;
+      if (typeof analysis === "string") return analysis;
+      if (typeof analysis === "object") {
+        const data = analysis as Record<string, unknown>;
+        return (data.analysis as string) || undefined;
+      }
+      return undefined;
+    };
 
     submitAnswer({
       session_id: session?.id || "",
@@ -127,13 +147,13 @@ function useContainer() {
       time_spent: timeSpent,
       is_audio_answer: isAudioAnswer,
       audio_match: answer.status === 1 ? true : false,
-      audio_analysis: answer.analysis,
+      audio_analysis: getAnalysisText(answer.analysis),
     });
   };
 
   // 当数据加载完成后，初始化面板状态和题目顺序
   useEffect(() => {
-    if (!data || !data.session) return;
+    if (!data || !data.session?.id) return;
     setPanel(getPanelType(data.session, data.report));
     const answers = data.answers || [];
     const initOrder = findLastIndex(answers, (answer) => answer.status !== 0) + 1;
@@ -141,7 +161,7 @@ function useContainer() {
     const safeOrder = Math.max(0, Math.min(initOrder, answers.length - 1));
     setOrder(safeOrder);
     setAnswer(answers[safeOrder]);
-  }, [data]);
+  }, [data?.session?.id]);
 
   return {
     title: session ? getPracticeName(session.practice_type) : undefined,
