@@ -60,7 +60,7 @@ async def create_practice(
     student_id: str,
     ability_code: Optional[str] = None,
     unit_id: Optional[int] = None,
-    generate_count: int = 10,
+    generate_count: Optional[int] = None,
     immediately: bool = False,
 ) -> str:
     """创建练习会话
@@ -71,7 +71,9 @@ async def create_practice(
         student_id: 学生 ID
         ability_code: 原子能力代码（能力练习必填）
         unit_id: 单元ID（单元练习必填）
-        generate_count: 生成题目数量，默认10
+        generate_count: 生成题目数量，如果为 None 则根据练习类型自动设置：
+                        - 单元练习 (unit_practice): 15 道题
+                        - 能力练习 (ability_practice): 10 道题
         immediately: 是否立即执行生成（同步模式）
 
     Returns:
@@ -87,6 +89,13 @@ async def create_practice(
 
     if practice_type == PRACTICE_TYPE_UNIT and not unit_id:
         raise ValueError("单元练习需要提供 unit_id")
+
+    # 根据练习类型设置默认题目数量
+    if generate_count is None:
+        if practice_type == PRACTICE_TYPE_UNIT:
+            generate_count = 15  # 单元练习固定 15 道题
+        elif practice_type == PRACTICE_TYPE_ABILITY:
+            generate_count = 10  # 能力练习固定 10 道题
 
     logger.info(
         f"开始创建练习会话 | practice_type={practice_type} | "

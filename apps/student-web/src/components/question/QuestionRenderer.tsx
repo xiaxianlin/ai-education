@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import type { InteractionType } from "@ai-education/shared-web";
 import { isCompositeQuestion } from "@ai-education/shared-web";
 import { useAnswerState } from "./AnswerStateManager";
@@ -8,6 +7,22 @@ import { getInteractionInput } from "./inputs";
 interface QuestionRendererProps {
   question: any;
   showFeedback?: boolean;
+}
+
+/**
+ * 根据状态映射获取答题交互区的 className
+ */
+function getInteractionAreaClassName(params: {
+  showFeedback: boolean;
+}): string {
+  const base = "transition-all duration-500";
+  const classes: string[] = [base];
+  
+  if (params.showFeedback) {
+    classes.push("opacity-80 pointer-events-none");
+  }
+  
+  return classes.join(" ");
 }
 
 /**
@@ -27,7 +42,9 @@ export function QuestionRenderer({ question, showFeedback }: QuestionRendererPro
       <QuestionStem stem={question.stem} resources={question.resources} className="mb-8" />
 
       {/* 答题交互区 */}
-      <div className={cn("transition-all duration-500", showFeedback && "opacity-80 pointer-events-none")}>
+      <div className={getInteractionAreaClassName({
+        showFeedback,
+      })}>
         {isComposite ? (
           // 复合题渲染
           <div className="space-y-12">

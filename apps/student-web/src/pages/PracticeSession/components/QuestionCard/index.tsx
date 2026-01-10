@@ -41,7 +41,7 @@ export function QuestionCard(props: QuestionCardProps) {
       try {
         const parsed = typeof rawAnswer === "string" ? JSON.parse(rawAnswer) : rawAnswer;
         let compositeAnswers: Record<string, string> = {};
-        
+
         if (Array.isArray(parsed)) {
           // 新格式：转换为字典
           parsed.forEach((item: any) => {
@@ -52,7 +52,7 @@ export function QuestionCard(props: QuestionCardProps) {
         } else if (typeof parsed === "object" && parsed !== null) {
           compositeAnswers = parsed;
         }
-        
+
         return subQuestions.every((subQ: SubQuestion) => {
           const subAnswer = compositeAnswers[subQ.id];
           return subAnswer && String(subAnswer).trim() !== "";
@@ -65,7 +65,7 @@ export function QuestionCard(props: QuestionCardProps) {
       const answerStr = typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer);
       return answerStr.trim() !== "" && answerStr !== "[]" && answerStr !== "{}";
     }
-  }, [answer?.answer, answer?.text_answer, isComposite, question]);
+  }, [answer?.answer, answer?.answer, isComposite, question]);
 
   const handleSubmit = () => {
     if (props.onSubmit) {

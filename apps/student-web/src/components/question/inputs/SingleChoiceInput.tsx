@@ -1,9 +1,49 @@
 /**
  * 单选题输入组件
  */
-import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 import type { InteractionInputProps } from '../types';
+
+/**
+ * 根据状态映射获取按钮的 className
+ */
+function getButtonClassName(params: {
+  isSelected: boolean;
+  disabled: boolean;
+}): string {
+  const base = 'w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left hover:shadow-md';
+  const classes: string[] = [base];
+  
+  if (params.disabled) {
+    classes.push('cursor-not-allowed opacity-60');
+  }
+  
+  if (params.isSelected) {
+    classes.push('border-primary bg-primary/10 shadow-md');
+  } else {
+    classes.push('border-border hover:border-primary/50 hover:bg-primary/5');
+  }
+  
+  return classes.join(' ');
+}
+
+/**
+ * 根据状态映射获取选项字母容器的 className
+ */
+function getLetterClassName(params: {
+  isSelected: boolean;
+}): string {
+  const base = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all';
+  const classes: string[] = [base];
+  
+  if (params.isSelected) {
+    classes.push('bg-primary text-primary-foreground');
+  } else {
+    classes.push('bg-muted text-muted-foreground');
+  }
+  
+  return classes.join(' ');
+}
 
 export function SingleChoiceInput({
   value,
@@ -25,24 +65,16 @@ export function SingleChoiceInput({
             type="button"
             disabled={disabled}
             onClick={() => onChange(option.id)}
-            className={cn(
-              'w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all',
-              'text-left hover:shadow-md',
-              disabled && 'cursor-not-allowed opacity-60',
-              isSelected
-                ? 'border-primary bg-primary/10 shadow-md'
-                : 'border-border hover:border-primary/50 hover:bg-primary/5'
-            )}
+            className={getButtonClassName({
+              isSelected,
+              disabled: !!disabled,
+            })}
           >
             {/* 选项字母 */}
             <div
-              className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg',
-                'transition-all',
-                isSelected
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              )}
+              className={getLetterClassName({
+                isSelected,
+              })}
             >
               {isSelected ? <Check className="w-5 h-5" /> : letter}
             </div>

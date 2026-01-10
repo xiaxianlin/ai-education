@@ -1,10 +1,49 @@
-import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2, Sparkles, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface FeedbackAnimationProps {
   status: "correct" | "incorrect" | "partial" | null;
   onComplete?: () => void;
+}
+
+/**
+ * 根据状态映射获取主容器的 className
+ */
+function getMainContainerClassName(params: {
+  status: "correct" | "incorrect" | "partial";
+}): string {
+  const base = "flex flex-col items-center gap-4 p-8 rounded-3xl shadow-2xl animate-in zoom-in-50 duration-300";
+  const classes: string[] = [base];
+  
+  if (params.status === "correct") {
+    classes.push("bg-primary text-primary-foreground");
+  } else if (params.status === "incorrect") {
+    classes.push("bg-destructive text-destructive-foreground");
+  } else {
+    classes.push("bg-amber-500 text-white");
+  }
+  
+  return classes.join(" ");
+}
+
+/**
+ * 根据状态映射获取背景层的 className
+ */
+function getBackgroundClassName(params: {
+  status: "correct" | "incorrect" | "partial";
+}): string {
+  const base = "absolute inset-0 z-[-1] animate-in fade-in duration-500";
+  const classes: string[] = [base];
+  
+  if (params.status === "correct") {
+    classes.push("bg-primary/10");
+  } else if (params.status === "incorrect") {
+    classes.push("bg-destructive/10");
+  } else {
+    classes.push("bg-amber-500/10");
+  }
+  
+  return classes.join(" ");
 }
 
 /**
@@ -29,12 +68,9 @@ export function FeedbackAnimation({ status, onComplete }: FeedbackAnimationProps
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        className={cn(
-          "flex flex-col items-center gap-4 p-8 rounded-3xl shadow-2xl animate-in zoom-in-50 duration-300",
-          status === "correct" && "bg-primary text-primary-foreground",
-          status === "incorrect" && "bg-destructive text-destructive-foreground",
-          status === "partial" && "bg-amber-500 text-white"
-        )}
+        className={getMainContainerClassName({
+          status,
+        })}
       >
         <div className="relative">
           {status === "correct" && (
@@ -58,12 +94,9 @@ export function FeedbackAnimation({ status, onComplete }: FeedbackAnimationProps
 
       {/* 背景全屏闪烁效果 */}
       <div
-        className={cn(
-          "absolute inset-0 z-[-1] animate-in fade-in duration-500",
-          status === "correct" && "bg-primary/10",
-          status === "incorrect" && "bg-destructive/10",
-          status === "partial" && "bg-amber-500/10"
-        )}
+        className={getBackgroundClassName({
+          status,
+        })}
       />
     </div>
   );

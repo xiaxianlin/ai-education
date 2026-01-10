@@ -1,9 +1,49 @@
 /**
  * 多选题输入组件
  */
-import { cn } from '@/lib/utils';
 import { Square, CheckSquare } from 'lucide-react';
 import type { InteractionInputProps } from '../types';
+
+/**
+ * 根据状态映射获取按钮的 className
+ */
+function getButtonClassName(params: {
+  isSelected: boolean;
+  disabled: boolean;
+}): string {
+  const base = 'w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left hover:shadow-md';
+  const classes: string[] = [base];
+  
+  if (params.disabled) {
+    classes.push('cursor-not-allowed opacity-60');
+  }
+  
+  if (params.isSelected) {
+    classes.push('border-primary bg-primary/10 shadow-md');
+  } else {
+    classes.push('border-border hover:border-primary/50 hover:bg-primary/5');
+  }
+  
+  return classes.join(' ');
+}
+
+/**
+ * 根据状态映射获取复选框容器的 className
+ */
+function getCheckboxClassName(params: {
+  isSelected: boolean;
+}): string {
+  const base = 'w-10 h-10 rounded-lg flex items-center justify-center transition-all';
+  const classes: string[] = [base];
+  
+  if (params.isSelected) {
+    classes.push('bg-primary text-primary-foreground');
+  } else {
+    classes.push('bg-muted text-muted-foreground');
+  }
+  
+  return classes.join(' ');
+}
 
 export function MultiChoiceInput({
   value,
@@ -34,24 +74,16 @@ export function MultiChoiceInput({
             type="button"
             disabled={disabled}
             onClick={() => toggleOption(option.id)}
-            className={cn(
-              'w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all',
-              'text-left hover:shadow-md',
-              disabled && 'cursor-not-allowed opacity-60',
-              isSelected
-                ? 'border-primary bg-primary/10 shadow-md'
-                : 'border-border hover:border-primary/50 hover:bg-primary/5'
-            )}
+            className={getButtonClassName({
+              isSelected,
+              disabled: !!disabled,
+            })}
           >
             {/* 复选框 */}
             <div
-              className={cn(
-                'w-10 h-10 rounded-lg flex items-center justify-center',
-                'transition-all',
-                isSelected
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              )}
+              className={getCheckboxClassName({
+                isSelected,
+              })}
             >
               {isSelected ? (
                 <CheckSquare className="w-6 h-6" />

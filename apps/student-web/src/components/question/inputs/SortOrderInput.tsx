@@ -118,13 +118,10 @@ export function SortOrderInput({ value, options = [], disabled, onChange }: Inte
                 type="button"
                 disabled={disabled || isSelected}
                 onClick={() => handleAdd(option.id)}
-                className={cn(
-                  "px-5 py-3 rounded-xl border-2 transition-all font-medium",
-                  isSelected
-                    ? "bg-muted text-muted-foreground border-transparent opacity-40 grayscale pointer-events-none"
-                    : "bg-background border-border hover:border-primary hover:shadow-md active:scale-95 shadow-sm",
-                  disabled && "opacity-50 cursor-not-allowed"
-                )}
+                className={getOptionButtonClassName({
+                  isSelected,
+                  disabled: !!(disabled || isSelected),
+                })}
               >
                 {option.text}
               </button>

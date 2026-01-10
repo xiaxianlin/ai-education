@@ -101,6 +101,27 @@ function formatCorrectAnswer(correctAnswer: unknown, question: Question): string
 }
 
 /**
+ * 判断是否为选择题
+ */
+function isChoiceQuestion(question: Question): boolean {
+  const interactionType = question?.question_type?.interaction_type;
+  return interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice";
+}
+
+/**
+ * 判断复合题的所有子题是否都是选择题
+ */
+function isAllSubQuestionsChoice(question: Question): boolean {
+  const subQuestions = question?.stem?.sub_questions || (question?.stem as any)?.subQuestions || [];
+  if (subQuestions.length === 0) return false;
+  
+  return subQuestions.every((subQ: SubQuestion) => {
+    const interactionType = subQ.interaction_type;
+    return interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice";
+  });
+}
+
+/**
  * 从分析对象中提取显示内容
  */
 function formatAnalysis(analysis: unknown): { explanation?: string; analysis?: string } {
@@ -127,10 +148,14 @@ export function AnalysisSection({ answer, question }: AnalysisSectionProps) {
   const correctAnswerText = formatCorrectAnswer(answer.correct_answer, question);
   const { explanation, analysis } = formatAnalysis(answer.analysis);
 
+  // 判断是否应该隐藏"正确答案"文本
+  // 如果是选择题（单题或复合题的所有子题都是选择题），则隐藏
+  const shouldHideCorrectAnswer = isChoiceQuestion(question) || isAllSubQuestionsChoice(question);
+
   return (
     <div className="space-y-4 mt-6 p-6 rounded-2xl border-2 border-primary/20 bg-card">
-      {/* 正确答案 */}
-      {correctAnswerText && (
+      {/* 正确答案 - 仅在非选择题时显示 */}
+      {!shouldHideCorrectAnswer && correctAnswerText && (
         <div className="rounded-xl border border-green-500/40 bg-green-50 p-4">
           <div className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />

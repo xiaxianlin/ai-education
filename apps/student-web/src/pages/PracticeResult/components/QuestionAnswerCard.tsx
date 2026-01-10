@@ -3,10 +3,91 @@
  * 参考单元练习页面的卡片设计风格
  */
 import { Badge, Card, CardContent } from "@/components/ui";
-import { cn } from "@/lib/utils";
 import { formatDuration } from "@ai-education/shared-web";
 import { BookOpen, CheckCircle, ChevronDown, ChevronUp, Clock, Lightbulb, XCircle } from "lucide-react";
 import { FC, useState } from "react";
+
+/**
+ * 根据状态映射获取 Card 的 className
+ */
+function getCardClassName(params: {
+  hasAnswer: boolean;
+  isCorrect: boolean;
+}): string {
+  const base = "relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg rounded-2xl bg-card h-full flex flex-col";
+  const classes: string[] = [base];
+  
+  if (params.hasAnswer) {
+    if (params.isCorrect) {
+      classes.push("border-green-500/50 hover:border-green-500/70 bg-green-50/30");
+    } else {
+      classes.push("border-red-500/50 hover:border-red-500/70 bg-red-50/30");
+    }
+  } else {
+    classes.push("border-border hover:border-primary/40 hover:bg-primary/5");
+  }
+  
+  return classes.join(" ");
+}
+
+/**
+ * 根据状态映射获取序号图标容器的 className
+ */
+function getIndexIconClassName(params: {
+  hasAnswer: boolean;
+  isCorrect: boolean;
+}): string {
+  const base = "p-2.5 rounded-xl shadow-sm flex-shrink-0";
+  const classes: string[] = [base];
+  
+  if (params.hasAnswer) {
+    if (params.isCorrect) {
+      classes.push("bg-green-500");
+    } else {
+      classes.push("bg-red-500");
+    }
+  } else {
+    classes.push("bg-primary");
+  }
+  
+  return classes.join(" ");
+}
+
+/**
+ * 根据状态映射获取状态标识的 className
+ */
+function getStatusBadgeClassName(params: {
+  isCorrect: boolean;
+}): string {
+  const base = "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm";
+  const classes: string[] = [base];
+  
+  if (params.isCorrect) {
+    classes.push("bg-green-100 text-green-700");
+  } else {
+    classes.push("bg-red-100 text-red-700");
+  }
+  
+  return classes.join(" ");
+}
+
+/**
+ * 根据状态映射获取答案容器的 className
+ */
+function getAnswerContainerClassName(params: {
+  isCorrect: boolean;
+}): string {
+  const base = "rounded-xl p-4 border-2 shadow-sm";
+  const classes: string[] = [base];
+  
+  if (params.isCorrect) {
+    classes.push("bg-green-50 border-green-300");
+  } else {
+    classes.push("bg-red-50 border-red-300");
+  }
+  
+  return classes.join(" ");
+}
 
 /**
  * 从结构化正确答案中提取显示文本
@@ -139,14 +220,10 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
 
   return (
     <Card
-      className={cn(
-        "relative overflow-hidden border-2 transition-all duration-300 hover:shadow-lg rounded-2xl bg-card h-full flex flex-col",
-        hasAnswer
-          ? isCorrect
-            ? "border-green-500/50 hover:border-green-500/70 bg-green-50/30"
-            : "border-red-500/50 hover:border-red-500/70 bg-red-50/30"
-          : "border-border hover:border-primary/40 hover:bg-primary/5"
-      )}
+      className={getCardClassName({
+        hasAnswer,
+        isCorrect,
+      })}
     >
       <CardContent className="relative z-10 p-5 flex flex-col h-full">
         <div className="space-y-4 flex-1">
@@ -154,10 +231,10 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
           <div className="flex items-start gap-3 flex-1">
             {/* 序号图标容器 - 参考单元练习卡片的设计 */}
             <div
-              className={cn(
-                "p-2.5 rounded-xl shadow-sm flex-shrink-0",
-                hasAnswer ? (isCorrect ? "bg-green-500" : "bg-red-500") : "bg-primary"
-              )}
+              className={getIndexIconClassName({
+                hasAnswer,
+                isCorrect,
+              })}
             >
               <span className="text-xl font-bold text-white">{index + 1}</span>
             </div>
@@ -167,10 +244,9 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
               <div className="flex items-center gap-2 flex-wrap">
                 {hasAnswer && StatusIcon && (
                   <div
-                    className={cn(
-                      "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm",
-                      isCorrect ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    )}
+                    className={getStatusBadgeClassName({
+                      isCorrect,
+                    })}
                   >
                     <StatusIcon className="h-4 w-4" />
                     <span>{statusInfo.text}</span>
@@ -224,10 +300,9 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
 
                   {/* 用户答案 */}
                   <div
-                    className={cn(
-                      "rounded-xl p-4 border-2 shadow-sm",
-                      isCorrect ? "bg-green-50 border-green-300" : "bg-red-50 border-red-300"
-                    )}
+                    className={getAnswerContainerClassName({
+                      isCorrect,
+                    })}
                   >
                     <div className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                       <span>📝</span>

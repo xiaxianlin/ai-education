@@ -1,6 +1,58 @@
-import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import type { InteractionInputProps } from "../types";
+
+/**
+ * 根据状态映射获取左侧按钮的 className
+ */
+function getLeftButtonClassName(params: {
+  isSelected: boolean;
+  isConnected: boolean;
+  disabled: boolean;
+}): string {
+  const base = "w-full p-4 rounded-xl border-2 transition-all text-center relative font-medium shadow-sm";
+  const classes: string[] = [base];
+  
+  if (params.disabled) {
+    classes.push("opacity-50 cursor-not-allowed");
+  }
+  
+  if (params.isSelected) {
+    classes.push("border-primary bg-primary/10 scale-105 z-20");
+  } else if (params.isConnected) {
+    classes.push("border-primary/30");
+  } else {
+    classes.push("border-border bg-background hover:border-primary/50");
+  }
+  
+  return classes.join(" ");
+}
+
+/**
+ * 根据状态映射获取右侧按钮的 className
+ */
+function getRightButtonClassName(params: {
+  isConnected: boolean;
+  selectedLeft: boolean;
+  disabled: boolean;
+}): string {
+  const base = "w-full p-4 rounded-xl border-2 transition-all text-center relative font-medium shadow-sm";
+  const classes: string[] = [base];
+  
+  if (params.disabled) {
+    classes.push("opacity-50 cursor-not-allowed");
+  }
+  
+  if (params.isConnected) {
+    classes.push("border-primary bg-primary/10");
+  } else {
+    classes.push("border-border bg-background");
+    if (params.selectedLeft) {
+      classes.push("hover:border-primary ring-2 ring-primary/20 animate-pulse");
+    }
+  }
+  
+  return classes.join(" ");
+}
 
 /**
  * 连线交互组件
@@ -117,14 +169,11 @@ export function ConnectLineInput({ value, options = [], disabled, onChange }: In
               type="button"
               disabled={disabled}
               onClick={() => handleLeftClick(option.id)}
-              className={cn(
-                "w-full p-4 rounded-xl border-2 transition-all text-center relative font-medium shadow-sm",
-                isSelected
-                  ? "border-primary bg-primary/10 scale-105 z-20"
-                  : "border-border bg-background hover:border-primary/50",
-                isConnected && !isSelected && "border-primary/30",
-                disabled && "opacity-50 cursor-not-allowed"
-              )}
+              className={getLeftButtonClassName({
+                isSelected,
+                isConnected,
+                disabled: !!disabled,
+              })}
             >
               {option.text}
               {isConnected && (
@@ -147,12 +196,11 @@ export function ConnectLineInput({ value, options = [], disabled, onChange }: In
               type="button"
               disabled={disabled || !selectedLeft}
               onClick={() => handleRightClick(option.id)}
-              className={cn(
-                "w-full p-4 rounded-xl border-2 transition-all text-center relative font-medium shadow-sm",
-                isConnected ? "border-primary bg-primary/10" : "border-border bg-background",
-                selectedLeft && !isConnected && "hover:border-primary ring-2 ring-primary/20 animate-pulse",
-                disabled && "opacity-50 cursor-not-allowed"
-              )}
+              className={getRightButtonClassName({
+                isConnected,
+                selectedLeft: !!selectedLeft,
+                disabled: !!(disabled || !selectedLeft),
+              })}
             >
               {option.text}
               {isConnected && (

@@ -43,4 +43,6 @@ export interface SubQuestionInputProps {
   disabled: boolean;
   /** 答案变更回调 */
   onChange: (val: string) => void;
+  /** 父题的答案对象（用于获取正确答案） */
+  parentAnswer?: PracticeAnswer;
 }

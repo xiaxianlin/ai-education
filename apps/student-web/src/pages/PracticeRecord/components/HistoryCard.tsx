@@ -3,11 +3,28 @@
  */
 import { Badge, Button } from "@/components/ui";
 import { getPracticeIcon, getPracticeName } from "@/lib/practice";
-import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 import { FC } from "react";
 import { useNavigate } from "react-router-dom";
+
+/**
+ * 根据状态映射获取正确率文本的 className
+ */
+function getAccuracyTextClassName(params: {
+  isCompleted: boolean;
+}): string {
+  const base = "text-lg font-bold";
+  const classes: string[] = [base];
+  
+  if (params.isCompleted) {
+    classes.push("text-primary");
+  } else {
+    classes.push("text-foreground");
+  }
+  
+  return classes.join(" ");
+}
 
 interface HistoryCardProps {
   session: Practice;
@@ -74,7 +91,9 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
         </div>
         <div className="w-px h-8 bg-border/50" />
         <div className="flex-1 text-center">
-          <div className={cn("text-lg font-bold", isCompleted ? "text-primary" : "text-foreground")}>
+          <div className={getAccuracyTextClassName({
+            isCompleted,
+          })}>
             {isCompleted ? `${accuracy}%` : "-"}
           </div>
           <div className="text-[10px] text-muted-foreground font-medium">正确率</div>

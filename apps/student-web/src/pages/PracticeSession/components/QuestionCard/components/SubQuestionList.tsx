@@ -105,6 +105,7 @@ export function SubQuestionList({
           value={compositeAnswers[subQ.id] || ""}
           disabled={disabled || false}
           onChange={(val) => handleSubAnswerChange(subQ.id, val)}
+          parentAnswer={answer}
         />
       ))}
 
