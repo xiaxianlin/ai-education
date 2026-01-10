@@ -1,20 +1,20 @@
 /**
- * 题目卡片组件 - 组合题目头部、内容、资源
+ * 题目序号和状态徽章组件
  */
-
-import AudioPlayer from "@/components/biz/AudioPlayer";
 import { cn } from "@/lib/utils";
-import { getResourceUrl } from "@ai-education/shared-web";
 import { useMemo } from "react";
-import { usePracticeSessionModel } from "../models/page";
 
-export function QuestionCard() {
-  const { question, answer } = usePracticeSessionModel();
-  const resourceUrl = question?.resources && question.resources.length > 0 ? getResourceUrl(question.resources[0].url) : undefined;
+interface QuestionHeaderProps {
+  /** 题目序号（从 1 开始） */
+  order: number;
+  /** 答题状态：0-未答，1-正确，2-错误 */
+  status?: number;
+}
 
+export function QuestionHeader({ order, status }: QuestionHeaderProps) {
   const resultBadge = useMemo(() => {
-    if (answer?.status === 0) return null;
-    const isCorrect = answer?.status === 1;
+    if (status === 0 || status === undefined) return null;
+    const isCorrect = status === 1;
     return (
       <div
         className={cn(
@@ -54,31 +54,16 @@ export function QuestionCard() {
         />
       </div>
     );
-  }, [answer]);
+  }, [status]);
 
   return (
-    <div className="flex flex-col gap-4 relative">
-      <div className="text-lg leading-relaxed whitespace-pre-wrap text-foreground font-medium">
-        {question?.stem?.rich_text ? (
-          <div dangerouslySetInnerHTML={{ __html: question.stem.rich_text }} />
-        ) : (
-          question?.stem?.text || ""
-        )}
+    <div className="flex items-center justify-between mb-4 relative">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+          {order}
+        </div>
+        <span className="text-sm text-muted-foreground">第 {order} 题</span>
       </div>
-      {question?.resources && question.resources.some(r => r.type === "image") && (
-        <div className="flex justify-start">
-          <img
-            src={resourceUrl || ""}
-            alt="题目图片"
-            className="max-w-full h-auto max-h-[150px] object-contain rounded-xl shadow-lg border-2 border-border"
-          />
-        </div>
-      )}
-      {question?.resources && question.resources.some(r => r.type === "audio") && (
-        <div className="flex justify-start">
-          <AudioPlayer key={resourceUrl} src={resourceUrl || ""} />
-        </div>
-      )}
       {resultBadge}
     </div>
   );

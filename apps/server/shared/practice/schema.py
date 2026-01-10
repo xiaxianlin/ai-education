@@ -10,11 +10,9 @@ class SubmitAnswerSchema(BaseModel):
 
     session_id: str = Field(..., description="练习会话 ID (UUID v4)")
     question_id: str = Field(..., description="题目 ID")
-    answer: str = Field(..., description="学生答案")
+    answer: Any = Field(..., description="学生答案（单值、列表或 JSON 字典）")
     time_spent: int = Field(..., description="答题耗时（秒）")
     is_audio_answer: bool = Field(default=False, description="是否为音频回答")
-    audio_data: Optional[bytes] = Field(default=None, description="音频数据")
-    sub_answers: Optional[list] = Field(default=None, description="子题答案列表（复合题）")
 
 
 class AnswerAnalysisSchema(BaseModel):

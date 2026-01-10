@@ -1,11 +1,12 @@
 /**
  * 判断题输入组件
+ * 支持 true_false / correct_wrong
  */
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
-import type { AnswerFormProps } from "../../types";
+import type { AnswerInputProps } from "../../types";
 
-export function JudgeInput({ value, disabled, onChange }: AnswerFormProps) {
+export function JudgeInput({ value, disabled, onChange }: AnswerInputProps) {
   return (
     <div className="space-y-4">
       {[

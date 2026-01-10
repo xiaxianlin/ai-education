@@ -42,6 +42,8 @@ declare global {
     is_audio_answer: boolean;
     audio_match?: boolean;
     audio_analysis?: string;
+    /** 子题答案列表（复合题） */
+    sub_answers?: Array<{ sub_question_id: string; answer: string }>;
   }
 
   interface AudioAnswerAnalysisResponse {
@@ -51,5 +53,4 @@ declare global {
   }
 }
 
-export { };
-
+export {};

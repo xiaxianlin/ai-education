@@ -14,7 +14,7 @@ from shared.core.schema import (
     PracticeSchema,
     QuestionSchema,
 )
-from sqlalchemy import desc, func, select
+from sqlalchemy import delete, desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -208,6 +208,126 @@ async def delete_practice(db: AsyncSession, session_id: str):
 
     # 删除练习会话
     await db.execute(delete(Practice).where(Practice.id == session_id))
+
+    await db.commit()
+    return True
+
+
+async def reset_practice(db: AsyncSession, session_id: str):
+    """重置练习的所有答题记录为初始状态
+
+    Args:
+        db: 数据库会话
+        session_id: 会话 ID
+
+    Returns:
+        bool: 是否重置成功
+
+    Raises:
+        ValueError: 练习不存在
+    """
+    # 检查练习是否存在
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
+    if not session:
+        raise ValueError("练习不存在")
+
+    # 重置所有答题记录
+    await db.execute(
+        update(PracticeAnswer)
+        .where(PracticeAnswer.session_id == session_id)
+        .values(
+            status=0,
+            text_answer=None,
+            time_spent=0,
+            submit_time=None,
+            correct_answer=None,
+            analysis=None,
+            is_corrected=0,
+            corrected_time=None,
+        )
+    )
+
+    # 更新练习统计信息
+    await db.execute(
+        update(Practice)
+        .where(Practice.id == session_id)
+        .values(
+            answer_count=0,
+            correct_count=0,
+            status=1 if session.status == 2 else session.status,  # 如果已完成，改为进行中
+        )
+    )
+
+    await db.commit()
+    return True
+
+
+async def reset_practice_answer(db: AsyncSession, session_id: str, question_id: str):
+    """重置单个题目的答案记录为未作答状态
+
+    Args:
+        db: 数据库会话
+        session_id: 会话 ID
+        question_id: 题目 ID
+
+    Returns:
+        bool: 是否重置成功
+
+    Raises:
+        ValueError: 练习或答题记录不存在
+    """
+    # 检查练习是否存在
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
+    if not session:
+        raise ValueError("练习不存在")
+
+    # 查询答题记录
+    answer = await db.scalar(
+        select(PracticeAnswer).where(
+            PracticeAnswer.session_id == session_id,
+            PracticeAnswer.question_id == question_id,
+        )
+    )
+
+    if not answer:
+        raise ValueError("答题记录不存在")
+
+    # 记录重置前的状态，用于更新统计信息
+    was_answered = answer.status != 0
+    was_correct = answer.status == 1
+
+    # 重置答题记录
+    await db.execute(
+        update(PracticeAnswer)
+        .where(
+            PracticeAnswer.session_id == session_id,
+            PracticeAnswer.question_id == question_id,
+        )
+        .values(
+            status=0,
+            text_answer=None,
+            time_spent=0,
+            submit_time=None,
+            correct_answer=None,
+            analysis=None,
+            is_corrected=0,
+            corrected_time=None,
+        )
+    )
+
+    # 更新练习统计信息
+    if was_answered:
+        new_answer_count = max(0, session.answer_count - 1)
+        new_correct_count = max(0, session.correct_count - (1 if was_correct else 0))
+
+        await db.execute(
+            update(Practice)
+            .where(Practice.id == session_id)
+            .values(
+                answer_count=new_answer_count,
+                correct_count=new_correct_count,
+            )
+        )
 
     await db.commit()
     return True

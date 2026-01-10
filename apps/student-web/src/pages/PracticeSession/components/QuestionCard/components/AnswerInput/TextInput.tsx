@@ -1,10 +1,11 @@
 /**
- * 文本输入组件 - 用于主观题、拼写题等
+ * 文本输入组件
+ * 支持 text_input / fill_blank 以及其他未实现交互类型的 fallback
  */
 import { cn } from "@/lib/utils";
-import type { AnswerFormProps } from "../../types";
+import type { AnswerInputProps } from "../../types";
 
-export function TextInput({ value, disabled, onChange }: AnswerFormProps) {
+export function TextInput({ value, disabled, onChange }: AnswerInputProps) {
   return (
     <div>
       <textarea

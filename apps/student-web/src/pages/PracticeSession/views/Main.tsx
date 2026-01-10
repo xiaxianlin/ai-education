@@ -3,7 +3,6 @@
  * 根据会话状态选择渲染哪个视图
  */
 import { LoadingPage } from "@/components/biz";
-import { useEffect } from "react";
 import { usePracticeSessionModel } from "../models/page";
 import { PanelType } from "../types";
 import { EmptyView } from "./EmptyView";
@@ -13,19 +12,7 @@ import { ResultView } from "./ResultView";
 import { SettlementView } from "./SettlementView";
 
 export function MainView() {
-  const { panel, session, questions, answers } = usePracticeSessionModel();
-
-  // 调试日志
-  useEffect(() => {
-    console.log("[PracticeSession] State:", {
-      panel,
-      sessionId: session?.id,
-      sessionStatus: session?.status,
-      generateStatus: session?.generate_status,
-      questionsCount: questions?.length,
-      answersCount: answers?.length,
-    });
-  }, [panel, session, questions, answers]);
+  const { panel } = usePracticeSessionModel();
 
   switch (panel) {
     case PanelType.LOADING:

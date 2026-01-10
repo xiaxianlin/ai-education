@@ -188,7 +188,7 @@ declare global {
     type: AnswerType;
     correct_answers?: string[];
     accept_answers?: string[];
-    scoring?: Record<string, unknown>;
+    scoring?: Record<string, number>;
     rubric?: Record<string, unknown>;
   }
 

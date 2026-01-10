@@ -225,7 +225,6 @@ async def submit_answer(
     - fuzzy: 模糊匹配（填空题、简答题）
     - rubric: 评分标准（主观题）
     - ai: AI 评分（口语题、开放题）
-    - composite: 复合题（递归评判子题）
 
     返回的 PracticeAnswerSchema 包含：
     - correct_answer: 结构化正确答案（dict）
@@ -233,24 +232,17 @@ async def submit_answer(
     """
     student = request.state.student
 
-    # 构建子答案列表（复合题使用）
-    sub_answers = None
-    if params.sub_answers:
-        sub_answers = [
-            {"sub_question_id": sa.sub_question_id, "answer": sa.answer}
-            for sa in params.sub_answers
-        ]
-
     # 使用答题服务提交答案
     try:
         submit_params = SubmitAnswerSchema(
             session_id=params.session_id,
             question_id=params.question_id,
-            answer=str(params.answer),
-            time_spent=params.time_spent or 0,
-            sub_answers=sub_answers,
+            answer=params.answer,
+            time_spent=params.time_spent,
+            is_audio_answer=params.is_audio_answer,
         )
         result = await answer_service.submit_answer(db, student.id, submit_params)
         return result
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

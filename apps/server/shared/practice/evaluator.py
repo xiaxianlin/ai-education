@@ -8,7 +8,9 @@
 - composite: 复合题（递归评判子题）
 """
 
+import json
 from abc import ABC, abstractmethod
+
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
@@ -87,9 +89,7 @@ class BaseEvaluator(ABC):
             for opt in question.options:
                 opt_id = opt.get("id", "")
                 if str(opt_id) in [str(a) for a in correct_answers]:
-                    options_detail.append(
-                        {"id": opt_id, "text": opt.get("text", str(opt))}
-                    )
+                    options_detail.append({"id": opt_id, "text": opt.get("text", str(opt))})
 
         # 根据答案数量决定使用 value 还是 values
         if len(correct_answers) == 1:
@@ -116,11 +116,18 @@ class ExactEvaluator(BaseEvaluator):
         correct_answers = self._get_correct_answers(question)
         full_score = self._get_full_score(question)
 
-        # 标准化用户答案
-        user_answer_str = str(user_answer).strip()
+        # 标准化正确答案集合
+        correct_set = set(str(a).strip() for a in correct_answers)
 
-        # 精确匹配
-        is_correct = user_answer_str in [str(a).strip() for a in correct_answers]
+        # 判断用户答案类型并进行匹配
+        if isinstance(user_answer, list):
+            # 多选题：用户答案为列表，需要完全匹配
+            user_set = set(str(a).strip() for a in user_answer)
+            is_correct = user_set == correct_set
+        else:
+            # 单选题/判断题：用户答案为单值，匹配任一正确答案即可
+            user_answer_str = str(user_answer).strip()
+            is_correct = user_answer_str in correct_set
 
         return EvaluateResult(
             is_correct=is_correct,
@@ -166,9 +173,7 @@ class CompositeEvaluator(BaseEvaluator):
     支持：部分得分策略 (sum / all_or_nothing)
     """
 
-    def evaluate(
-        self, question: Question, user_answer: Any, sub_answers: Optional[list] = None
-    ) -> EvaluateResult:
+    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
         stem = question.stem or {}
         sub_questions = stem.get("sub_questions", [])
         answer_config = question.answer or {}
@@ -181,15 +186,29 @@ class CompositeEvaluator(BaseEvaluator):
 
         # 构建子答案映射
         sub_answer_map = {}
-        if sub_answers:
-            for sa in sub_answers:
-                if isinstance(sa, dict):
-                    sub_answer_map[sa.get("sub_question_id")] = sa.get("answer")
+
+        # 1. 尝试从 user_answer 中解析（支持用户提供的 {"q1": "B", "q2": "B"} 格式）
+        if user_answer:
+            try:
+                # 如果是字符串，尝试解析 JSON
+                if isinstance(user_answer, str) and user_answer.strip().startswith("{"):
+                    ans_dict = json.loads(user_answer)
+                elif isinstance(user_answer, dict):
+                    ans_dict = user_answer
                 else:
-                    sub_answer_map[sa.sub_question_id] = sa.answer
+                    ans_dict = {}
+
+                if isinstance(ans_dict, dict):
+                    for k, v in ans_dict.items():
+                        sub_answer_map[str(k)] = v
+            except (json.JSONDecodeError, Exception):
+                pass
+
+        # 2. 从字典中提取（已在第1步完成，这里保留格式清晰性）
+        pass
 
         total_score = 0
-        full_score = 0
+        total_full_score = 0
         sub_results = []
         all_correct = True
         sub_correct_answers = []
@@ -198,52 +217,63 @@ class CompositeEvaluator(BaseEvaluator):
             sub_id = sub_q.get("id")
             sub_answer_config = sub_q.get("answer", {})
             sub_full_score = sub_answer_config.get("scoring", {}).get("full_score", 10)
-            full_score += sub_full_score
+            total_full_score += sub_full_score
 
             user_sub_answer = sub_answer_map.get(sub_id)
-            correct_answers = sub_answer_config.get("correct_answers", [])
 
-            if user_sub_answer is None:
-                is_sub_correct = False
-                sub_score = 0
-            else:
-                is_sub_correct = str(user_sub_answer).strip() in [
-                    str(a).strip() for a in correct_answers
-                ]
-                sub_score = sub_full_score if is_sub_correct else 0
+            # 选择对应的评判器
+            sub_type = sub_answer_config.get("type", "exact")
+            # 延迟获取以处理循环依赖/定义顺序
+            evaluator_cls = EVALUATOR_MAP.get(sub_type, ExactEvaluator)
+            evaluator = evaluator_cls()
 
-            total_score += sub_score
-            all_correct = all_correct and is_sub_correct
+            # 构建子题对象（模拟 Question 模型的核心字段）
+            # 由于子题目前在数据库中是嵌套在 JSON 里的，这里手动组装一个 Question 用于评判
+            sub_question_obj = Question(
+                id=f"{question.id}_{sub_id}",
+                question_type_code=sub_q.get("interaction_type", "unknown"),
+                stem=sub_q.get("stem", {}),
+                options=sub_q.get("options", []),
+                answer=sub_q.get("answer", {}),
+                explanation=sub_q.get("explanation", ""),
+            )
 
+            # 评判子题
+            sub_res = evaluator.evaluate(sub_question_obj, user_sub_answer)
+
+            total_score += sub_res.score
+            all_correct = all_correct and sub_res.is_correct
+
+            # 收集子题评判详情
             sub_results.append(
                 {
                     "sub_question_id": sub_id,
-                    "is_correct": is_sub_correct,
-                    "score": sub_score,
-                    "full_score": sub_full_score,
-                    "correct_answer": correct_answers[0] if correct_answers else None,
+                    "is_correct": sub_res.is_correct,
+                    "score": sub_res.score,
+                    "full_score": sub_res.full_score,
+                    "correct_answer": sub_id,  # 占位，正确答案在 correct_answer.sub_answers 中
                 }
             )
 
-            # 收集子题正确答案
+            # 收集子题正确答案详情
             sub_correct_answers.append(
                 {
                     "sub_id": sub_id,
-                    "is_correct": is_sub_correct,
-                    "value": correct_answers[0] if correct_answers else None,
+                    "is_correct": sub_res.is_correct,
+                    **sub_res.correct_answer.model_dump(),
                 }
             )
 
         # 根据策略计算最终得分
         if partial_strategy == "all_or_nothing":
-            final_score = full_score if all_correct else 0
+            final_score = total_full_score if all_correct else 0
         else:  # sum
             final_score = total_score
 
         return EvaluateResult(
             is_correct=all_correct,
             score=final_score,
-            full_score=full_score,
+            full_score=total_full_score,
             correct_answer=CorrectAnswerData(
                 type="composite",
                 sub_answers=sub_correct_answers,
@@ -337,14 +367,12 @@ class AnswerEvaluator:
     def evaluate(
         question: Question,
         user_answer: Any,
-        sub_answers: Optional[list] = None,
     ) -> EvaluateResult:
         """评判答案
 
         Args:
             question: 题目对象
             user_answer: 用户答案
-            sub_answers: 子题答案列表（复合题使用）
 
         Returns:
             EvaluateResult: 评判结果
@@ -354,9 +382,6 @@ class AnswerEvaluator:
 
         evaluator_class = EVALUATOR_MAP.get(answer_type, ExactEvaluator)
         evaluator = evaluator_class()
-
-        if answer_type == "composite" and sub_answers:
-            return evaluator.evaluate(question, user_answer, sub_answers)
 
         return evaluator.evaluate(question, user_answer)
 

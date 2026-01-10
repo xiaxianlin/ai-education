@@ -1,8 +1,4 @@
-import {
-  DIFFICULTY_COLORS,
-  DIFFICULTY_LABELS,
-  INTERACTION_TYPE_LABELS,
-} from '@ai-education/shared-web';
+import { DIFFICULTY_COLORS, DIFFICULTY_LABELS, INTERACTION_TYPE_LABELS } from '@ai-education/shared-web';
 import { Card } from 'antd';
 import { memo } from 'react';
 import { useQuestionResources } from '../../pages/Question/QuestionDetail/hooks/useQuestionResources';
@@ -74,7 +70,7 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
         <QuestionOptions options={question.options} getOptionResources={getOptionResources} />
 
-        <QuestionAnswer answer={question.answer} />
+        {!isComposite && <QuestionAnswer answer={question.answer} />}
 
         {isComposite && subQuestions.length > 0 && <QuestionSubQuestions subQuestions={subQuestions} />}
 

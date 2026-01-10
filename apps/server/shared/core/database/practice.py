@@ -115,7 +115,7 @@ class PracticeAnswer(BaseModel):
     time_spent: Mapped[int] = mapped_column(default=0, comment="耗时(秒)")
     submit_time: Mapped[int] = mapped_column(nullable=True, comment="提交时间")
 
-    # 错题相关字段
+    # 错题相关字段r
     correct_answer: Mapped[str] = mapped_column(Text, nullable=True, comment="正确答案")
     analysis: Mapped[str] = mapped_column(Text, nullable=True, comment="错题分析")
     is_corrected: Mapped[int] = mapped_column(default=0, comment="是否已订正 0-未订正 1-已订正")

@@ -1,6 +1,6 @@
 import { QuestionCard } from '@/components';
 import { createActionColumn } from '@/hooks';
-import { formatDateTime, GRADES } from '@ai-education/shared-web';
+import { DIFFICULTY_LABELS, formatDateTime, GRADES } from '@ai-education/shared-web';
 import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, SyncOutlined } from '@ant-design/icons';
 import {
   FooterToolbar,
@@ -10,7 +10,7 @@ import {
   ProSkeleton,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Card, Col, Empty, Flex, List, Modal, Row, Space, Statistic, Tag } from 'antd';
+import { Button, Card, Col, Empty, Flex, List, Modal, Row, Space, Statistic, Tag, Typography } from 'antd';
 import { useMemo } from 'react';
 import {
   formatDuration,
@@ -40,6 +40,8 @@ export default function MainView() {
     handleOpenGenerationModal,
     handleStartGeneration,
     isGenerating,
+    handleResetPractice,
+    handleResetAnswer,
   } = usePracticeDetailModel();
 
   const columns = useMemo<ProColumns<Question>[]>(
@@ -64,17 +66,32 @@ export default function MainView() {
         title: '题型',
         dataIndex: 'question_type_code',
         width: 120,
+        render: (_: any, record: Question) => (
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={() => navigate(`/question_type/detail/${record.question_type_id}`)}
+          >
+            {record.question_type?.name}
+          </Button>
+        ),
       },
       {
         title: '题目内容',
         dataIndex: ['stem', 'text'],
-        width: 300,
-        ellipsis: true,
+        maxWidth: 300,
+        renderText: (text) => (
+          <Typography.Text ellipsis style={{ maxWidth: '500px' }}>
+            {text}
+          </Typography.Text>
+        ),
       },
       {
         title: '难度',
         dataIndex: 'difficulty',
         width: 80,
+        valueEnum: DIFFICULTY_LABELS,
       },
       {
         title: '素材',
@@ -101,11 +118,100 @@ export default function MainView() {
         title: '是否作答',
         dataIndex: 'id',
         width: 100,
-        render: (questionId: any) => {
+        render: (questionId: any, record: Question) => {
           const answer = answersMap[questionId];
-          return (
-            <Tag color={answer?.status !== 0 ? 'success' : 'default'}>{answer?.status !== 0 ? '已作答' : '未作答'}</Tag>
-          );
+          const hasAnswer = answer && answer.status !== 0;
+
+          const handleViewAnswer = () => {
+            const questionAnswer = record.answer;
+            const studentAnswer = answer?.text_answer || '未作答';
+            const correctAnswer = answer?.correct_answer || questionAnswer?.correct_answers;
+
+            // 格式化正确答案
+            let correctAnswerText = '-';
+            if (typeof correctAnswer === 'string') {
+              correctAnswerText = correctAnswer;
+            } else if (Array.isArray(correctAnswer)) {
+              correctAnswerText = correctAnswer.join(', ');
+            } else if (correctAnswer && typeof correctAnswer === 'object') {
+              const correctAnswerData = correctAnswer as {
+                type?: string;
+                value?: unknown;
+                values?: unknown[];
+                options?: Array<{ text?: string; id?: string }>;
+                sub_answers?: unknown[];
+              };
+              if (correctAnswerData.options && Array.isArray(correctAnswerData.options)) {
+                correctAnswerText = correctAnswerData.options
+                  .map((opt: { text?: string; id?: string }) => opt.text || opt.id || '')
+                  .join(', ');
+              } else if (correctAnswerData.values && Array.isArray(correctAnswerData.values)) {
+                correctAnswerText = correctAnswerData.values.join(', ');
+              } else if (correctAnswerData.value !== undefined && correctAnswerData.value !== null) {
+                correctAnswerText = String(correctAnswerData.value);
+              }
+            } else if (questionAnswer?.correct_answers) {
+              correctAnswerText = questionAnswer.correct_answers.join(', ');
+            }
+
+            // 格式化解析
+            let explanationText = record.explanation || '-';
+            if (answer?.analysis) {
+              if (typeof answer.analysis === 'string') {
+                explanationText = answer.analysis;
+              } else if (answer.analysis && typeof answer.analysis === 'object') {
+                const analysisData = answer.analysis as { explanation?: string; analysis?: string };
+                explanationText = analysisData.explanation || analysisData.analysis || explanationText;
+              }
+            }
+
+            Modal.info({
+              title: '查看答案',
+              width: 600,
+              content: (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ marginBottom: 16 }}>
+                    <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+                      学生答案：
+                    </Typography.Text>
+                    <Typography.Text>{studentAnswer}</Typography.Text>
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+                      正确答案：
+                    </Typography.Text>
+                    <Tag color="success" style={{ fontSize: 14, padding: '4px 12px' }}>
+                      {correctAnswerText}
+                    </Tag>
+                  </div>
+                  {explanationText && explanationText !== '-' && (
+                    <div>
+                      <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+                        解析：
+                      </Typography.Text>
+                      <Typography.Text>{explanationText}</Typography.Text>
+                    </div>
+                  )}
+                </div>
+              ),
+            });
+          };
+
+          if (hasAnswer) {
+            return (
+              <Tag
+                color="success"
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewAnswer();
+                }}
+              >
+                已作答
+              </Tag>
+            );
+          }
+          return <Tag color="default">未作答</Tag>;
         },
       },
       {
@@ -134,15 +240,31 @@ export default function MainView() {
         },
       },
       createActionColumn<Question>(
-        (record) => (
-          <Button type="link" size="small" onClick={() => handleViewQuestion(record)}>
-            预览
-          </Button>
-        ),
-        { width: 80 },
+        (record) => {
+          const answer = answersMap[record.id];
+          const hasAnswer = answer && answer.status !== 0;
+
+          return (
+            <Space>
+              <Button type="link" size="small" onClick={() => handleViewQuestion(record)}>
+                预览
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                danger
+                disabled={!hasAnswer}
+                onClick={() => handleResetAnswer(record.id)}
+              >
+                重置
+              </Button>
+            </Space>
+          );
+        },
+        { width: 150 },
       ),
     ],
-    [answersMap, handleViewQuestion],
+    [answersMap, handleViewQuestion, handleResetAnswer, navigate],
   );
 
   if (loading) {
@@ -360,6 +482,14 @@ export default function MainView() {
             onClick={handleOpenGenerationModal}
           >
             {hasUngeneratedQuestions ? '生成素材' : '素材已全部生成'}
+          </Button>
+          <Button
+            key="reset"
+            size="large"
+            danger
+            onClick={handleResetPractice}
+          >
+            重置练习
           </Button>
         </Flex>
       </FooterToolbar>

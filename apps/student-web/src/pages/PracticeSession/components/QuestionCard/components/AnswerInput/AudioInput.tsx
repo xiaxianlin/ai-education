@@ -1,5 +1,6 @@
 /**
  * 口语题录音输入组件
+ * 支持 voice_input / free_speak / follow_read
  */
 import { Button } from "@/components/ui";
 import { studentApi } from "@/lib/api";
@@ -7,11 +8,11 @@ import { cn } from "@/lib/utils";
 import { useRequest } from "ahooks";
 import { CheckCircle, Loader2, Mic, RotateCcw, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
-import type { AnswerFormProps } from "../../types";
+import type { AnswerInputProps } from "../../types";
 
 type RecordingState = "idle" | "recording" | "parsing" | "success" | "failure";
 
-export function AudioInput({ value, disabled, onChange }: AnswerFormProps) {
+export function AudioInput({ value, disabled, onChange }: AnswerInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string>("");

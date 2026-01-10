@@ -33,3 +33,25 @@ async def get_practice_detail(id: str, db: AsyncSession = Database):
 )
 async def delete_practice(id: str, db: AsyncSession = Database):
     return await practice.delete_practice(db, id)
+
+
+@practice_router.post(
+    "/{id}/reset",
+    summary="重置练习",
+    description="重置练习的所有答题记录为初始状态",
+)
+async def reset_practice(id: str, db: AsyncSession = Database):
+    return await practice.reset_practice(db, id)
+
+
+@practice_router.post(
+    "/{id}/answer/{question_id}/reset",
+    summary="重置题目答案",
+    description="重置指定题目的答案记录为未作答状态",
+)
+async def reset_practice_answer(
+    id: str,
+    question_id: str,
+    db: AsyncSession = Database,
+):
+    return await practice.reset_practice_answer(db, id, question_id)

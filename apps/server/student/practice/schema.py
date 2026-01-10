@@ -35,7 +35,9 @@ class AnswerQuestionSchema(BaseModel):
     answer: str = Field(..., description="学生答案")
     time_spent: int = Field(..., description="答题耗时，单位秒", ge=0)
     is_audio_answer: bool = Field(default=False, description="是否为音频回答（口语题）")
-    audio_match: Optional[bool] = Field(None, description="音频理解结果：是否匹配题目要求（仅口语题）")
+    audio_match: Optional[bool] = Field(
+        None, description="音频理解结果：是否匹配题目要求（仅口语题）"
+    )
     audio_analysis: Optional[str] = Field(None, description="音频理解结果：综合分析（仅口语题）")
 
 
@@ -75,8 +77,8 @@ class AnswerSchema(BaseModel):
     session_id: str = Field(..., description="练习会话ID (UUID v4)")
     question_id: str = Field(..., description="题目ID")
     answer: Any = Field(..., description="主答案内容")
-    sub_answers: Optional[list[SubAnswerSchema]] = Field(None, description="子题答案列表")
-    time_spent: Optional[int] = Field(None, description="总答题耗时(秒)")
+    time_spent: int = Field(..., description="总答题耗时(秒)")
+    is_audio_answer: bool = Field(default=False, description="是否为音频回答")
 
 
 class AnswerResultSchema(BaseModel):

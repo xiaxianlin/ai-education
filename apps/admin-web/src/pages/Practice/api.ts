@@ -24,4 +24,20 @@ export const PracticeApi = {
   async deletePractice(id: string) {
     return apiClient.delete(`/practice/${id}`);
   },
+
+  /**
+   * 重置练习
+   * POST /practice/{id}/reset
+   */
+  async resetPractice(id: string) {
+    return apiClient.post(`/practice/${id}/reset`);
+  },
+
+  /**
+   * 重置题目答案
+   * POST /practice/{id}/answer/{questionId}/reset
+   */
+  async resetPracticeAnswer(id: string, questionId: string) {
+    return apiClient.post(`/practice/${id}/answer/${questionId}/reset`);
+  },
 };

@@ -1,6 +1,6 @@
 import { QuestionApi } from '@/pages/Question/api';
 import { useRequest } from 'ahooks';
-import { message } from 'antd';
+import { Modal, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
@@ -88,6 +88,48 @@ const useContainer = () => {
     refresh();
   };
 
+  const handleResetPractice = () => {
+    if (!id) return;
+
+    Modal.confirm({
+      title: '重置练习确认',
+      content: '确定要重置整个练习的所有答题记录吗？此操作将清空所有答题数据，无法恢复。',
+      okText: '确定',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await PracticeApi.resetPractice(id);
+          message.success('练习重置成功');
+          refresh();
+        } catch (err: any) {
+          message.error(err?.message || '重置练习失败');
+        }
+      },
+    });
+  };
+
+  const handleResetAnswer = (questionId: string) => {
+    if (!id) return;
+
+    Modal.confirm({
+      title: '重置答案确认',
+      content: '确定要重置该题目的答案记录吗？此操作将清空该题的答题数据，无法恢复。',
+      okText: '确定',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await PracticeApi.resetPracticeAnswer(id, questionId);
+          message.success('答案重置成功');
+          refresh();
+        } catch (err: any) {
+          message.error(err?.message || '重置答案失败');
+        }
+      },
+    });
+  };
+
   return {
     id,
     navigate,
@@ -109,6 +151,8 @@ const useContainer = () => {
     handleOpenGenerationModal,
     handleStartGeneration,
     isGenerating: generatingIds.length > 0,
+    handleResetPractice,
+    handleResetAnswer,
   };
 };
 

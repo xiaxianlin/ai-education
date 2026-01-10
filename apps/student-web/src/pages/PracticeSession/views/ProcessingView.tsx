@@ -2,15 +2,14 @@
  * 单题步骤视图 - 组合进度、题目、答题、导航
  * 直接从 store 读取当前题目与状态，并派发动作
  */
-import { Button, Card, CardContent } from "@/components/ui";
-import { AnswerAnalysis } from "../components/AnswerAnalysis";
-import { AnswerCard } from "../components/AnswerCard";
+import { Button } from "@/components/ui";
 import { ProgressIndicator } from "../components/ProgressIndicator";
 import { QuestionCard } from "../components/QuestionCard";
 import { usePracticeSessionModel } from "../models/page";
 
 export function ProcessingView() {
-  const { question, isComplete, complete } = usePracticeSessionModel();
+  const { question, answer, order, submitting, isComplete, setAnswer, handleSubmit, complete } =
+    usePracticeSessionModel();
 
   return (
     <div className="p-4">
@@ -18,19 +17,20 @@ export function ProcessingView() {
         {/* 返回按钮和进度指示器 */}
         <ProgressIndicator />
 
-        {/* 题目卡片 */}
-        <Card className="border-2 border-primary/30 shadow-lg rounded-2xl bg-card overflow-visible relative">
-          <CardContent className="p-5">
-            <QuestionCard />
-          </CardContent>
-        </Card>
+        {/* 统一的题目卡片 */}
+        <QuestionCard
+          key={question?.id}
+          question={question!}
+          answer={answer}
+          order={order + 1}
+          disabled={submitting || isComplete || answer?.status !== 0}
+          submitting={submitting}
+          onAnswerChange={setAnswer}
+          onSubmit={handleSubmit}
+          showAnalysis={true}
+        />
 
-        {/* 答题区 */}
-        <AnswerCard key={question?.id} />
-
-        <AnswerAnalysis />
-
-        {/* 提交按钮 */}
+        {/* 完成练习按钮 */}
         {isComplete && (
           <div className="pb-4">
             <Button

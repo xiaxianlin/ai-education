@@ -22,13 +22,7 @@ function useContainer() {
 
   const { data, refresh } = useRequest(() => studentApi.getPracticeSessionData(sessionId), {
     ready: !!sessionId,
-    onSuccess: (res) => {
-      console.log("[PracticeSession] API Response:", res);
-    },
-    onError: (err) => {
-      console.error("[PracticeSession] API Error:", err);
-      setPanel(PanelType.EMPTY);
-    },
+    onError: () => setPanel(PanelType.EMPTY),
   });
 
   const { run: begin } = useRequest(() => studentApi.beginPractice(sessionId), {
@@ -140,6 +134,22 @@ function useContainer() {
       return undefined;
     };
 
+    // 构建子题答案列表（复合题）
+    let subAnswers: Array<{ sub_question_id: string; answer: string }> | undefined;
+    const isComposite = question?.answer?.type === "composite";
+
+    if (isComposite && answer.text_answer) {
+      try {
+        const compositeAnswers = JSON.parse(answer.text_answer);
+        subAnswers = Object.entries(compositeAnswers).map(([subId, ans]) => ({
+          sub_question_id: subId,
+          answer: String(ans),
+        }));
+      } catch {
+        // 解析失败，保持原样
+      }
+    }
+
     submitAnswer({
       session_id: session?.id || "",
       question_id: question?.id || "",
@@ -148,6 +158,7 @@ function useContainer() {
       is_audio_answer: isAudioAnswer,
       audio_match: answer.status === 1 ? true : false,
       audio_analysis: getAnalysisText(answer.analysis),
+      sub_answers: subAnswers,
     });
   };
 

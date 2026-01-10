@@ -157,7 +157,6 @@ async def submit_answer(
     evaluate_result = AnswerEvaluator.evaluate(
         question=question,
         user_answer=params.answer,
-        sub_answers=params.sub_answers,
     )
 
     is_correct = evaluate_result.is_correct
