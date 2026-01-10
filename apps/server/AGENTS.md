@@ -54,7 +54,7 @@
 | `auth/route.py`      | `auth/services/auth.py`                                                 | 学生认证（登录、注册）         |
 | `ability/route.py`   | `admin/ability/services/atomic.py`                                      | 原子能力查询（按学科、年级）   |
 | `textbook/route.py`  | `textbook/services/textbook.py`                                         | 教材查询                       |
-| `practice/route.py`  | `shared/practice/practice.py`, `shared/practice/generate.py`           | 练习会话、题目生成、答题、报告 |
+| `practice/route.py`  | `shared/practice/practice.py`, `shared/practice/generate.py`, `shared/generation/practice/` | 练习会话、题目生成、答题、报告 |
 | `profile/route.py`   | -                                                                        | 学生个人信息和设置             |
 
 #### 3. generation/ - AI 生成模块
@@ -63,16 +63,17 @@
 
 | 子模块   | 说明     | 核心文件                                                                                     |
 | -------- | -------- | -------------------------------------------------------------------------------------------- |
-| question | 题目生成 | `graph.py`, `services/daily_practice.py`, `unit_practice.py`, `assess_practice.py`, `llm.py` |
+| question | 题目生成 | `graph.py`, `service.py`                                                                     |
+| practice | 练习生成 | `graph.py`, `service.py`, `schema.py` - 基于 LangGraph 的练习会话生成工作流                |
 | audio    | 语音生成 | `graph.py`, `services/generate.py`                                                           |
 | image    | 图片生成 | `graph.py`, `services/generate.py`                                                           |
 | video    | 视频生成 | `graph.py`, `services/generate.py`                                                           |
 
-**题目生成流程：**
+**练习生成流程 (generation/practice)：**
 
-- 日常练习 (daily_practice): 基于学生教材生成日常练习题
+- 能力练习 (ability_practice): 基于原子能力代码生成练习题
 - 单元练习 (unit_practice): 基于特定单元和知识点生成练习题
-- 综合评估 (assess_practice): 基于能力评估算法生成自适应测试题
+- 生成流程：验证参数 → 选择题型 → 生成题目 → 预生成答题记录 → 更新会话状态
 
 #### 4. shared/ - 共享模块
 

@@ -66,11 +66,16 @@ src/
 **练习会话视图：**
 | 视图 | 说明 |
 |------|------|
-| `ReadyView` | 准备开始 |
+| `ReadyView` | 准备开始（根据年级显示不同风格） |
 | `ProcessingView` | 答题进行中 |
-| `ResultView` | 单题结果 |
+| `ResultView` | 练习结果 |
 | `SettlementView` | 结算页面 |
-| `EmptyView` | 空状态 |
+| `EmptyView` | 空状态/错误状态 |
+
+**练习会话状态管理：**
+- 使用 `PracticeSessionModel` 管理页面级状态
+- 状态类型：`LOADING`（加载中/生成中）、`READY`（准备开始）、`PROCESSING`（答题中）、`SETTLEMENT`（结算中）、`RESULT`（已完成）、`EMPTY`（错误/空状态）
+- 状态判断：首先检查 `generate_status`（生成状态），然后检查 `status`（会话状态）
 
 ### 个人中心 (Profile)
 - **个人页**: `pages/Profile/index.tsx`
@@ -176,6 +181,9 @@ pages/[Feature]/[PageName]/
 2. **错误处理**: 所有 API 调用必须有错误处理
 3. **加载状态**: 使用适当的加载状态提示
 4. **用户体验**: 关注交互反馈和动画效果
+5. **CSS 动画**: 使用内联样式定义动画时，确保动画已在 CSS 中定义，或使用已定义的动画类（如 `animate-springy`）
+6. **可选链访问**: 访问嵌套对象属性时，确保使用完整的可选链（如 `obj?.prop?.subProp`），避免在中间属性为 undefined 时访问导致错误
+7. **状态检查**: 在判断练习会话状态时，需要同时检查 `generate_status`（生成状态）和 `status`（会话状态）
 
 ## 相关资源
 

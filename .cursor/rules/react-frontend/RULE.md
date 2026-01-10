@@ -1082,6 +1082,76 @@ async function getList(params: ListParams) {
 6. **类型安全**：充分利用 TypeScript 类型系统
 7. **错误处理**：所有异步操作必须有错误处理
 
+## 常见问题和注意事项
+
+### 可选链访问
+
+访问嵌套对象属性时，必须使用完整的可选链，避免在中间属性为 `undefined` 时访问导致运行时错误：
+
+```typescript
+// ❌ 错误：如果 question 存在但 stem 为 undefined，会抛出错误
+const text = question?.stem.text;
+
+// ✅ 正确：使用完整的可选链
+const text = question?.stem?.text || "";
+
+// ✅ 正确：使用可选链和默认值
+const richText = question?.stem?.rich_text;
+const displayText = richText ? <div dangerouslySetInnerHTML={{ __html: richText }} /> : question?.stem?.text || "";
+```
+
+### CSS 动画
+
+使用内联样式定义动画时，确保动画已在 CSS 中定义，或使用已定义的动画类：
+
+```typescript
+// ❌ 错误：使用未定义的动画
+<div style={{ animation: "fadeIn 0.5s", opacity: 0 }}>Content</div>
+
+// ✅ 正确：使用已定义的动画类
+<div className="animate-springy">Content</div>
+
+// ✅ 正确：如果必须使用内联样式，确保动画已定义
+// 在 index.css 中定义 @keyframes fadeIn
+<div style={{ animation: "fadeIn 0.5s", opacity: 1 }}>Content</div>
+```
+
+### 状态检查顺序
+
+在判断练习会话等复合状态时，需要按照正确的顺序检查多个状态字段：
+
+```typescript
+// ✅ 正确：先检查生成状态，再检查会话状态
+export const getPanelType = (session: Practice, report?: PracticeReport): PanelType => {
+  // 首先检查生成状态
+  if (session.generate_status === PracticeGenerateStatus.GENERATING) {
+    return PanelType.LOADING;
+  }
+  if (session.generate_status === PracticeGenerateStatus.FAILED) {
+    return PanelType.EMPTY;
+  }
+  
+  // 然后检查会话状态
+  if (session.status === PracticeStatus.READY) return PanelType.READY;
+  if (session.status === PracticeStatus.PRACTICING) return PanelType.PROCESSING;
+  // ...
+};
+```
+
+### 数据验证
+
+在渲染组件前，确保数据已加载且有效：
+
+```typescript
+// ✅ 正确：检查数据是否存在
+if (!questions || questions.length === 0) {
+  return <LoadingPage />;
+}
+
+// ✅ 正确：使用默认值
+const { questions = [], answers = [] } = data || {};
+```
+
 ## 差异化总结
 
 ### admin-web vs student-web
