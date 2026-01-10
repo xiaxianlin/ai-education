@@ -3,34 +3,74 @@ import { GRADES } from '@ai-education/shared-web';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
 import { useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  GENERATE_STATUS_CONFIG,
+  PRACTICE_STATUS_CONFIG,
+  PRACTICE_TYPE_CONFIG,
+} from '../../../Practice/PracticeList/utils';
 import { StudentApi } from '../../api';
 import { useStudentDetailModel } from '../models/page';
 
 export function PracticeSessionList() {
+  const navigate = useNavigate();
   const { student } = useStudentDetailModel();
   const tableActionRef = useRef<ActionType>();
 
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
       {
-        title: '目标ID',
-        dataIndex: 'target_id',
-        width: 120,
+        title: '练习ID',
+        dataIndex: 'id',
+        width: 250,
+        render: (id: any) => (
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/practice/detail/${id}`)}>
+            {id}
+          </Button>
+        ),
       },
       {
-        title: '教材',
-        dataIndex: 'textbook',
+        title: '练习类型',
+        dataIndex: 'practice_type',
+        width: 120,
+        render: (_, record) => {
+          const config = PRACTICE_TYPE_CONFIG[record.practice_type] || {
+            label: record.practice_type,
+            color: 'default',
+          };
+          return <Tag color={config.color}>{config.label}</Tag>;
+        },
+      },
+      {
+        title: '科目',
+        dataIndex: 'subject',
+        width: 80,
+        render: (text) => text || '-',
+      },
+      {
+        title: '年级',
+        dataIndex: 'grade',
+        width: 100,
+        render: (_, record) => (record.grade ? GRADES[record.grade] : '-'),
+      },
+      {
+        title: '练习内容',
         width: 200,
-        renderText: (textbook: Textbook) =>
-          textbook
-            ? `${textbook.subject} | ${textbook.version} | ${GRADES[textbook.grade]} | ${textbook.semester}`
-            : '-',
+        ellipsis: true,
+        render: (_, record) => {
+          if (record.practice_type === 'ability_practice') {
+            return record.ability_name || record.ability_code || '-';
+          }
+          if (record.practice_type === 'unit_practice') {
+            return record.unit_name || record.unit_id || '-';
+          }
+          return '-';
+        },
       },
       {
         title: '总题数',
         dataIndex: 'question_count',
-        width: 100,
+        width: 80,
         render: (value) => `${value} 题`,
       },
       {
@@ -46,27 +86,36 @@ export function PracticeSessionList() {
         render: (value) => `${value} 题`,
       },
       {
-        title: '准确率',
-        width: 100,
+        title: '正确率',
+        width: 80,
         render: (_, record) => {
-          const accuracy =
-            record.question_count > 0
-              ? ((record.correct_count / record.question_count) * 100).toFixed(1)
-              : '0';
-          return `${accuracy}%`;
+          if (record.answer_count === 0) return '-';
+          const rate = ((record.correct_count / record.answer_count) * 100).toFixed(1);
+          return `${rate}%`;
         },
       },
       createStatusColumn<Practice>('状态', 'status', {
         width: 100,
         render: (status) => {
-          const isCompleted = status === 2;
-          return (
-            <Tag color={isCompleted ? 'success' : status === 1 ? 'warning' : 'default'}>
-              {isCompleted ? '已完成' : status === 1 ? '进行中' : '未开始'}
-            </Tag>
-          );
+          const config = PRACTICE_STATUS_CONFIG[status as PracticeStatus] || {
+            label: '未知',
+            color: 'default',
+          };
+          return <Tag color={config.color}>{config.label}</Tag>;
         },
       }),
+      {
+        title: '生成状态',
+        dataIndex: 'generate_status',
+        width: 100,
+        render: (status) => {
+          const config = GENERATE_STATUS_CONFIG[status as PracticeGenerateStatus] || {
+            label: '未知',
+            color: 'default',
+          };
+          return <Tag color={config.color}>{config.label}</Tag>;
+        },
+      },
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 180 }),
       createActionColumn<Practice>(
         (record) => (
@@ -76,10 +125,10 @@ export function PracticeSessionList() {
             </Button>
           </Link>
         ),
-        { width: 120 },
+        { width: 100 },
       ),
     ],
-    [student?.id],
+    [student?.id, navigate],
   );
 
   return (
@@ -90,7 +139,7 @@ export function PracticeSessionList() {
       columns={columns}
       search={false}
       request={async ({ pageSize, current }) => {
-        const res = await StudentApi.getStudentPracticeSessions(student?.id || '', 'daily_practice', {
+        const res = await StudentApi.getStudentPracticeSessions(student?.id || '', {
           page: current || 1,
           page_size: pageSize || 20,
         });

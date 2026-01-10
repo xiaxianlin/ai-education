@@ -12,7 +12,21 @@ export const QuestionPreviewModal: React.FC<QuestionPreviewModalProps> = ({ ques
   if (!question) return null;
 
   return (
-    <Modal title="题目预览" open={open} onCancel={onClose} footer={null} width={800}>
+    <Modal
+      title="题目预览"
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={800}
+      centered
+      styles={{
+        body: {
+          maxHeight: 'calc(100vh - 200px)',
+          overflowY: 'auto',
+          padding: '20px',
+        },
+      }}
+    >
       <QuestionCard question={question} />
     </Modal>
   );

@@ -5,7 +5,7 @@ import {
   getResourceUrl,
   INTERACTION_TYPE_LABELS,
 } from '@ai-education/shared-web';
-import { Card, Tag, Typography } from 'antd';
+import { Card, Typography } from 'antd';
 import { memo } from 'react';
 import { useQuestionResources } from '../../pages/Question/QuestionDetail/hooks/useQuestionResources';
 
@@ -21,10 +21,10 @@ interface QuestionCardProps {
 function getDifficultyBadgeClasses(difficulty: string): string {
   const color = DIFFICULTY_COLORS[difficulty as Difficulty] || 'default';
   const colorMap: Record<string, string> = {
-    green: 'bg-green-100 text-green-700 border-green-200',
-    orange: 'bg-orange-100 text-orange-700 border-orange-200',
-    red: 'bg-red-100 text-red-700 border-red-200',
-    default: 'bg-gray-100 text-gray-700 border-gray-200',
+    green: 'bg-green-50 text-green-600 border-green-100',
+    orange: 'bg-orange-50 text-orange-600 border-orange-100',
+    red: 'bg-red-50 text-red-600 border-red-100',
+    default: 'bg-gray-50 text-gray-600 border-gray-100',
   };
   return colorMap[color] || colorMap.default;
 }
@@ -40,35 +40,35 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
   // 构建标签（使用 Tailwind 类名的 Badge 样式）
   const titleTags = (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs px-2.5 py-1 rounded-full border bg-blue-100 text-blue-700 border-blue-200">
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className="text-[10px] px-2 py-0.5 rounded border bg-blue-50 text-blue-500 border-blue-100">
         {question.subject}
       </span>
-      <span className="text-xs px-2.5 py-1 rounded-full border bg-green-100 text-green-700 border-green-200">
+      <span className="text-[10px] px-2 py-0.5 rounded border bg-green-50 text-green-500 border-green-100">
         {question.grade}年级
       </span>
-      <span className="text-xs px-2.5 py-1 rounded-full border bg-purple-100 text-purple-700 border-purple-200">
+      <span className="text-[10px] px-2 py-0.5 rounded border bg-purple-50 text-purple-500 border-purple-100">
         {INTERACTION_TYPE_LABELS[question.question_type_code as keyof typeof INTERACTION_TYPE_LABELS] ||
           question.question_type_code}
       </span>
-      <span className={`text-xs px-2.5 py-1 rounded-full border ${getDifficultyBadgeClasses(question.difficulty)}`}>
+      <span className={`text-[10px] px-2 py-0.5 rounded border ${getDifficultyBadgeClasses(question.difficulty)}`}>
         {DIFFICULTY_LABELS[question.difficulty as Difficulty]}
       </span>
       {isComposite && (
-        <span className="text-xs px-2.5 py-1 rounded-full border bg-red-100 text-red-700 border-red-200">复合题</span>
+        <span className="text-[10px] px-2 py-0.5 rounded border bg-red-50 text-red-500 border-red-100">复合题</span>
       )}
     </div>
   );
 
   return (
-    <Card title={titleTags} className="rounded-2xl shadow-sm hover:shadow-md transition-shadow" bordered={false}>
-      <div className="flex flex-col gap-4">
+    <Card size="small" title={titleTags} className="rounded-xl border-gray-100" bordered={true}>
+      <div className="flex flex-col gap-3">
         {/* 题干区域 */}
-        <div className="space-y-3">
-          <div className="text-sm font-semibold text-gray-600 mb-2">题干</div>
-          <div className="text-lg leading-relaxed text-gray-900 font-medium">
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-gray-400">题干</div>
+          <div className="text-base leading-relaxed text-gray-800">
             {hasRichText ? (
-              <div dangerouslySetInnerHTML={{ __html: stemContent }} className="prose prose-lg max-w-none" />
+              <div dangerouslySetInnerHTML={{ __html: stemContent }} className="prose prose-sm max-w-none" />
             ) : (
               <div className="whitespace-pre-wrap">{stemContent || '-'}</div>
             )}
@@ -76,20 +76,20 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
           {/* 题干音频（向后兼容） */}
           {question.stem?.audio_url && (
-            <div className="mt-3">
+            <div className="mt-2">
               <AudioPlayer src={getResourceUrl(question.stem.audio_url) ?? ''} />
             </div>
           )}
 
           {/* 题干资源 - 图片 */}
           {stemImageResources.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-3">
+            <div className="flex flex-wrap gap-2 mt-2">
               {stemImageResources.map((res, index) => (
                 <div key={res.id || index} className="flex justify-start">
                   <img
                     src={getResourceUrl(res.url) || ''}
                     alt={res.alt || '题目图片'}
-                    className="max-w-full h-auto max-h-[150px] object-contain rounded-xl shadow-lg border-2 border-gray-200"
+                    className="max-w-full h-auto max-h-[120px] object-contain rounded-lg border border-gray-100"
                   />
                 </div>
               ))}
@@ -98,7 +98,7 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
           {/* 题干资源 - 音频 */}
           {stemAudioResources.map((res, index) => (
-            <div key={res.id || index} className="mt-3">
+            <div key={res.id || index} className="mt-2 text-xs">
               <AudioPlayer src={getResourceUrl(res.url) ?? ''} resourceContent={res.transcript} />
             </div>
           ))}
@@ -109,11 +109,11 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
               (r) => (r.resource_type || r.position) === 'stem' && (r.type === 'video' || r.type === 'animation'),
             )
             .map((res, index) => (
-              <div key={res.id || index} className="mt-3">
+              <div key={res.id || index} className="mt-2">
                 <video
                   src={getResourceUrl(res.url) || ''}
                   controls
-                  className="max-w-full h-auto max-h-[200px] object-contain rounded-xl shadow-lg border-2 border-gray-200"
+                  className="max-w-full h-auto max-h-[180px] object-contain rounded-lg border border-gray-100"
                 >
                   您的浏览器不支持视频播放。
                 </video>
@@ -123,9 +123,9 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
         {/* 选项区域 */}
         {!!question.options?.length && (
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-gray-600 mb-2">选项</div>
-            <div className="flex flex-wrap gap-3">
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-gray-400">选项</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {question.options.map((opt, idx) => {
                 const optionLabel = String.fromCharCode(65 + idx);
                 const optionResources = getOptionResources(opt.id);
@@ -133,17 +133,14 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
                 const optionAudioResources = optionResources.filter((r) => r.type === 'audio');
 
                 return (
-                  <div
-                    key={opt.id || idx}
-                    className="flex-1  p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-blue-500 text-white rounded-lg font-semibold text-sm min-w-[32px] text-center">
+                  <div key={opt.id || idx} className="p-2.5 bg-gray-50/50 rounded-lg border border-gray-100">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-start gap-2">
+                        <span className="shrink-0 w-5 h-5 flex items-center justify-center bg-blue-50 text-blue-500 rounded text-xs font-bold">
                           {optionLabel}
                         </span>
+                        <Text className="text-sm leading-relaxed text-gray-700">{opt.text || '-'}</Text>
                       </div>
-                      <Text className="text-base leading-relaxed word-break break-word">{opt.text || '-'}</Text>
 
                       {/* 选项资源 - 图片（新结构） */}
                       {optionImageResources.length > 0 && (
@@ -190,14 +187,13 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
         )}
 
         {/* 答案区域 */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-gray-600 mb-2">答案</div>
-          <div className="rounded-xl p-4 bg-green-50 border-2 border-green-300 shadow-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">✓</span>
-              <span className="text-sm font-semibold text-green-700">正确答案</span>
+        <div className="space-y-1.5">
+          <div className="text-xs font-medium text-gray-400">答案</div>
+          <div className="rounded-lg p-2.5 bg-green-50/30 border border-green-100">
+            <div className="flex items-center gap-1.5 mb-1 text-green-600">
+              <span className="text-sm font-medium">正确答案</span>
             </div>
-            <div className="text-base text-green-800 leading-relaxed">
+            <div className="text-sm text-green-700 font-medium">
               {question.answer?.correct_answers?.join(', ') || '-'}
             </div>
           </div>
@@ -205,42 +201,36 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
 
         {/* 知识点区域 */}
         {!!question.knowledge_points?.length && (
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-gray-600 mb-2">知识点</div>
-            <div className="rounded-xl p-4 bg-blue-50 border-2 border-blue-200 shadow-sm">
-              <div className="flex flex-wrap gap-2">
-                {question.knowledge_points.map((kp, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs px-2.5 py-1 rounded-full border bg-purple-100 text-purple-700 border-purple-200"
-                  >
-                    {kp}
-                  </span>
-                ))}
-              </div>
+          <div className="space-y-1.5">
+            <div className="text-xs font-medium text-gray-400">知识点</div>
+            <div className="flex flex-wrap gap-1.5">
+              {question.knowledge_points.map((kp, idx) => (
+                <span
+                  key={idx}
+                  className="text-[10px] px-2 py-0.5 rounded border bg-blue-50/50 text-blue-500 border-blue-100"
+                >
+                  {kp}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
         {/* 解析区域 */}
         {question.explanation && (
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-gray-600 mb-2">解析</div>
-            <div className="rounded-xl p-4 bg-amber-50 border-2 border-amber-200 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">💡</span>
-                <span className="text-sm font-semibold text-amber-700">题目解析</span>
-              </div>
-              <div className="text-sm text-gray-900 leading-relaxed">{question.explanation}</div>
+          <div className="space-y-1.5">
+            <div className="text-xs font-medium text-gray-400">解析</div>
+            <div className="rounded-lg p-2.5 bg-amber-50/30 border border-amber-100">
+              <div className="text-xs text-amber-700 leading-relaxed">{question.explanation}</div>
             </div>
           </div>
         )}
 
         {/* 子题区域（复合题） */}
         {isComposite && question.stem?.sub_questions && (
-          <div className="space-y-3">
-            <div className="text-sm font-semibold text-gray-600 mb-2">子题</div>
-            <div className="space-y-3">
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-gray-400">子题</div>
+            <div className="space-y-2">
               {question.stem.sub_questions.map((sub: Record<string, unknown>, idx: number) => {
                 const subStem = sub.stem as Record<string, unknown> | undefined;
                 const subHasRichText = !!subStem?.rich_text;
@@ -249,41 +239,41 @@ export const QuestionCard = memo(function QuestionCard({ question }: QuestionCar
                 return (
                   <div
                     key={(sub.id as string) || idx}
-                    className="rounded-xl p-4 bg-gray-50 border-2 border-gray-200 shadow-sm"
+                    className="rounded-lg p-2.5 bg-gray-50/30 border border-gray-100"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="px-3 py-1 bg-blue-500 text-white rounded-lg font-semibold text-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-500 border border-blue-100 rounded text-[10px] font-bold">
                         第{idx + 1}题
                       </span>
                       {!!sub.interaction_type && (
-                        <Tag className="m-0">
+                        <span className="text-[10px] px-2 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-100">
                           {INTERACTION_TYPE_LABELS[
                             sub.interaction_type as InteractionType as keyof typeof INTERACTION_TYPE_LABELS
                           ] || (sub.interaction_type as string)}
-                        </Tag>
+                        </span>
                       )}
                     </div>
-                    <div className="mb-3">
+                    <div className="mb-2">
                       {subHasRichText ? (
                         <div
                           dangerouslySetInnerHTML={{
                             __html: String(subContent),
                           }}
-                          className="prose prose-sm max-w-none"
+                          className="prose prose-xs max-w-none text-gray-700"
                         />
                       ) : (
-                        <div className="text-base leading-relaxed">{String(subContent)}</div>
+                        <div className="text-sm leading-relaxed text-gray-700">{String(subContent)}</div>
                       )}
                     </div>
                     {Array.isArray(sub.options) && (sub.options as Array<Record<string, unknown>>).length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-2">
                         {(sub.options as Array<Record<string, unknown>>).map(
                           (opt: Record<string, unknown>, optIdx: number) => (
                             <div
                               key={optIdx}
-                              className="px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-sm"
+                              className="px-2 py-1 bg-white rounded border border-gray-100 text-xs text-gray-600"
                             >
-                              <span className="font-semibold mr-1">{String.fromCharCode(65 + optIdx)}.</span>
+                              <span className="font-bold mr-1">{String.fromCharCode(65 + optIdx)}.</span>
                               <span>{String((opt.text as string) || (opt.id as string) || '')}</span>
                             </div>
                           ),

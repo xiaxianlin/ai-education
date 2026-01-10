@@ -1,7 +1,7 @@
 import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
 import { GRADES } from '@ai-education/shared-web';
 import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Card, Tag } from 'antd';
+import { Button, Card, Popconfirm, Tag } from 'antd';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { PracticeApi } from '../../api';
@@ -9,16 +9,19 @@ import { usePracticeListModel } from '../models/page';
 import { GENERATE_STATUS_CONFIG, PRACTICE_STATUS_CONFIG, PRACTICE_TYPE_CONFIG } from '../utils';
 
 export default function MainView() {
-  const { actionRef, practiceType, practiceTypes, handleTabChange, handleViewDetail } = usePracticeListModel();
+  const { navigate, actionRef, practiceType, practiceTypes, handleTabChange, handleDelete } = usePracticeListModel();
 
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
       {
         title: '练习ID',
         dataIndex: 'id',
-        width: 280,
-        ellipsis: true,
-        copyable: true,
+        width: 250,
+        render: (id: any) => (
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/practice/detail/${id}`)}>
+            {id}
+          </Button>
+        ),
       },
       {
         title: '练习类型',
@@ -54,6 +57,20 @@ export default function MainView() {
         dataIndex: 'grade',
         width: 100,
         render: (_, record) => (record.grade ? GRADES[record.grade] : '-'),
+      },
+      {
+        title: '练习内容',
+        width: 200,
+        ellipsis: true,
+        render: (_, record) => {
+          if (record.practice_type === 'ability_practice') {
+            return record.ability_name || record.ability_code || '-';
+          }
+          if (record.practice_type === 'unit_practice') {
+            return record.unit_name || record.unit_id || '-';
+          }
+          return '-';
+        },
       },
       {
         title: '总题数',
@@ -107,14 +124,25 @@ export default function MainView() {
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 180 }),
       createActionColumn<Practice>(
         (record) => (
-          <Button size="small" type="link" onClick={() => handleViewDetail(record.id)}>
-            详情
-          </Button>
+          <>
+            <Popconfirm
+              title="确定要删除这次练习吗？"
+              description="删除后练习数据及报告将无法恢复。"
+              onConfirm={() => handleDelete(record.id)}
+              okText="确定"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+            >
+              <Button size="small" type="link" danger>
+                删除
+              </Button>
+            </Popconfirm>
+          </>
         ),
-        { width: 80 },
+        { width: 120 },
       ),
     ],
-    [handleViewDetail],
+    [navigate, handleDelete],
   );
 
   return (

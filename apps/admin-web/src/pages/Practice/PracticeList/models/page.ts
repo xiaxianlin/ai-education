@@ -2,6 +2,7 @@ import { ActionType } from '@ant-design/pro-components';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
+import { PracticeApi } from '../../api';
 
 // 练习类型配置
 const PRACTICE_TYPES = [
@@ -24,6 +25,16 @@ const useContainer = () => {
     navigate(`/practice/detail/${id}`);
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await PracticeApi.deletePractice(id);
+      actionRef.current?.reload();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   return {
     navigate,
     actionRef,
@@ -31,6 +42,7 @@ const useContainer = () => {
     practiceTypes: PRACTICE_TYPES,
     handleTabChange,
     handleViewDetail,
+    handleDelete,
   };
 };
 

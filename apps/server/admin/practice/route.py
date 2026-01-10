@@ -24,3 +24,12 @@ async def search_practices(params: SearchPracticeSchema = Depends(), db: AsyncSe
 )
 async def get_practice_detail(id: str, db: AsyncSession = Database):
     return await practice.get_practice_detail(db, id)
+
+
+@practice_router.delete(
+    "/{id}",
+    summary="删除练习",
+    description="删除指定的练习会话及其相关数据",
+)
+async def delete_practice(id: str, db: AsyncSession = Database):
+    return await practice.delete_practice(db, id)

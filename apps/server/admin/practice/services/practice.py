@@ -1,4 +1,12 @@
-from shared.core.database import Practice, PracticeAnswer, PracticeReport, Question, Student
+from shared.core.database import (
+    AbilityAtomic,
+    Practice,
+    PracticeAnswer,
+    PracticeReport,
+    Question,
+    Student,
+    Unit,
+)
 from shared.core.schema import (
     PracticeAnswerSchema,
     PracticeDataSchema,
@@ -67,6 +75,25 @@ async def search_practices(db: AsyncSession, params: SearchPracticeSchema):
                 "phone": practice.student.phone,
                 "grade": practice.student.grade,
             }
+
+        # 获取能力名称
+        if practice.ability_code:
+            ability = await db.scalar(
+                select(AbilityAtomic).where(
+                    AbilityAtomic.subject == practice.subject,
+                    AbilityAtomic.grade == practice.grade,
+                    AbilityAtomic.code == practice.ability_code,
+                )
+            )
+            if ability:
+                practice_dict["ability_name"] = ability.name
+
+        # 获取单元名称
+        if practice.unit_id:
+            unit = await db.get(Unit, practice.unit_id)
+            if unit:
+                practice_dict["unit_name"] = unit.name
+
         data.append(practice_dict)
 
     return {
@@ -125,9 +152,62 @@ async def get_practice_detail(db: AsyncSession, session_id: str):
             "grade": session.student.grade,
         }
 
+    # 获取能力名称
+    if session.ability_code:
+        ability = await db.scalar(
+            select(AbilityAtomic).where(
+                AbilityAtomic.subject == session.subject,
+                AbilityAtomic.grade == session.grade,
+                AbilityAtomic.code == session.ability_code,
+            )
+        )
+        if ability:
+            session_dict["ability_name"] = ability.name
+
+    # 获取单元名称
+    if session.unit_id:
+        unit = await db.get(Unit, session.unit_id)
+        if unit:
+            session_dict["unit_name"] = unit.name
+
     return {
         "session": session_dict,
         "questions": [QuestionSchema.model_validate(question) for question in questions],
         "answers": [PracticeAnswerSchema.model_validate(answer) for answer in answers],
         "report": PracticeReportSchema.model_validate(report) if report else None,
     }
+
+
+async def delete_practice(db: AsyncSession, session_id: str):
+    """删除练习
+
+    Args:
+        db: 数据库会话
+        session_id: 会话 ID
+
+    Returns:
+        bool: 是否删除成功
+
+    Raises:
+        ValueError: 练习不存在
+    """
+    # 检查练习是否存在
+    session = await db.scalar(select(Practice).where(Practice.id == session_id))
+    if not session:
+        raise ValueError("练习不存在")
+
+    # 删除答题记录
+    await db.execute(select(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
+    # 注意：实际上应该使用 delete 语句
+    from sqlalchemy import delete
+
+    await db.execute(delete(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
+
+    # 删除报告
+    await db.execute(delete(PracticeReport).where(PracticeReport.session_id == session_id))
+
+    # 删除练习会话
+    await db.execute(delete(Practice).where(Practice.id == session_id))
+
+    await db.commit()
+    return True

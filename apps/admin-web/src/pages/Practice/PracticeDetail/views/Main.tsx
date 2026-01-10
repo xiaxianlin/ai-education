@@ -61,6 +61,27 @@ export default function MainView() {
         width: 80,
       },
       {
+        title: '素材',
+        width: 100,
+        render: (_, record) => {
+          const hasResource = record.resources && record.resources.length > 0;
+          if (!hasResource) {
+            return <span>-</span>;
+          }
+          const resourcesWithUrl = record.resources!.filter((r) => r.url && r.url.trim() !== '');
+          const totalCount = record.resources!.length;
+          const urlCount = resourcesWithUrl.length;
+
+          if (urlCount === 0) {
+            return <Tag color="red">未生成</Tag>;
+          }
+          if (urlCount < totalCount) {
+            return <Tag color="orange">生成不足</Tag>;
+          }
+          return <Tag color="green">已生成</Tag>;
+        },
+      },
+      {
         title: '是否作答',
         dataIndex: 'id',
         width: 100,
@@ -234,7 +255,7 @@ export default function MainView() {
           </Card>
         )}
 
-        <Card title={`题目列表（共 ${session.question_count} 题）`}>
+        <Card title={`题目列表（共 ${session.question_count} 题）`} className="simple-table-card">
           <ProTable<Question>
             rowKey="id"
             columns={columns}

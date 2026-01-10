@@ -9,7 +9,9 @@ declare global {
     subject: string | null;
     grade: number | null;
     ability_code: string | null;
+    ability_name: string | null;
     unit_id: number | null;
+    unit_name: string | null;
     question_count: number;
     answer_count: number;
     correct_count: number;

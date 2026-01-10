@@ -50,7 +50,9 @@ class PracticeSchema(BaseModel):
     subject: Optional[str] = Field(None, description="科目")
     grade: Optional[int] = Field(None, description="年级")
     ability_code: Optional[str] = Field(None, description="原子能力代码")
+    ability_name: Optional[str] = Field(None, description="原子能力名称")
     unit_id: Optional[int] = Field(None, description="单元ID")
+    unit_name: Optional[str] = Field(None, description="单元名称")
     question_count: int = 0
     answer_count: int = 0
     correct_count: int = 0

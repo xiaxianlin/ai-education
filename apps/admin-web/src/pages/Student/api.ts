@@ -83,24 +83,12 @@ export const StudentApi = {
   },
 
   /**
-   * 获取学生练习历史
-   * GET /student/{id}/practices/{practice_type}
-   */
-  async getStudentPractices(id: string, practiceType: string) {
-    return apiClient.get<Practice[]>(`/student/${id}/practices/${practiceType}`);
-  },
-
-  /**
    * 获取学生练习历史（支持分页）
-   * GET /student/{id}/practices/{practice_type}?page=1&page_size=20
+   * GET /student/{id}/practices?page=1&page_size=20
    */
-  async getStudentPracticeSessions(
-    id: string,
-    practiceType: string,
-    params?: { page?: number; page_size?: number },
-  ) {
+  async getStudentPracticeSessions(id: string, params?: { page?: number; page_size?: number }) {
     return apiClient.get<{ data: Practice[]; total: number; page: number; pageSize: number }>(
-      `/student/${id}/practices/${practiceType}`,
+      `/student/${id}/practices`,
       params,
     );
   },

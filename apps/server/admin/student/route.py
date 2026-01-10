@@ -85,7 +85,9 @@ async def get_student_detail(request: Request):
     summary="保存学生教材",
     description="为学生关联指定的教材",
 )
-async def add_student_textbook(request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database):
+async def add_student_textbook(
+    request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database
+):
     await textbook.add_student_textbook(db, request.state.student, params.ids)
 
 
@@ -95,7 +97,9 @@ async def add_student_textbook(request: Request, params: HandleStudentTextbookSc
     summary="删除学生教材",
     description="取消学生与指定教材的关联",
 )
-async def remove_student_textbook(request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database):
+async def remove_student_textbook(
+    request: Request, params: HandleStudentTextbookSchema, db: AsyncSession = Database
+):
     await textbook.remove_student_textbook(db, request.state.student, params.ids)
 
 
@@ -123,20 +127,19 @@ async def get_student_unused_textbooks(request: Request, db: AsyncSession = Data
 
 
 @student_router.get(
-    "/{id}/practices/{practice_type}",
+    "/{id}/practices",
     tags=["学生练习管理"],
     summary="查询学生练习历史",
-    description="获取指定学生在不同练习类型下的练习记录（支持分页）",
+    description="获取指定学生的所有练习记录（支持分页）",
 )
 async def get_student_practices(
     request: Request,
-    practice_type: str,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: AsyncSession = Database,
 ):
     return await practice.get_student_practice_sessions(
-        db, request.state.student, practice_type, page=page, page_size=page_size
+        db, request.state.student, page=page, page_size=page_size
     )
 
 

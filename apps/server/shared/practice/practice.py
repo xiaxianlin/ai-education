@@ -6,10 +6,12 @@
 
 from loguru import logger
 from shared.core.database import (
+    AbilityAtomic,
     Practice,
     PracticeAnswer,
     PracticeReport,
     Question,
+    Unit,
 )
 from shared.core.schema import (
     PracticeAnswerSchema,
@@ -29,44 +31,68 @@ from .report import generate_practice_report
 async def get_practices(
     db: AsyncSession,
     student_id: str,
-    practice_type: str,
+    practice_type: str = None,
     page: int = 1,
     page_size: int = 20,
 ):
-    """获取指定练习类型的练习会话记录（支持分页）
+    """获取练习会话记录（支持分页）
 
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        practice_type: 练习类型 (ability_practice / unit_practice)
+        practice_type: 练习类型 (ability_practice / unit_practice)，可选，为空则表示全部
         page: 页码（从1开始）
         page_size: 每页数量
 
     Returns:
         dict: 包含 data, total, page, pageSize 的分页结果
     """
+    # 构建查询条件
+    conditions = [Practice.student_id == student_id]
+    if practice_type:
+        conditions.append(Practice.practice_type == practice_type)
+
     # 查询总数
-    count_query = select(Practice).where(
-        Practice.student_id == student_id,
-        Practice.practice_type == practice_type,
-    )
-    total = await db.scalar(select(func.count()).select_from(count_query.subquery()))
+    count_query = select(func.count(Practice.id)).where(*conditions)
+    total = await db.scalar(count_query)
 
     # 查询分页数据
     offset = (page - 1) * page_size
     sessions = await db.scalars(
         select(Practice)
-        .where(
-            Practice.student_id == student_id,
-            Practice.practice_type == practice_type,
-        )
+        .where(*conditions)
         .order_by(desc(Practice.create_time))
         .limit(page_size)
         .offset(offset)
     )
 
+    # 转换为 Schema 并补全名称
+    data = []
+    for session in sessions.all():
+        session_dict = PracticeSchema.model_validate(session).model_dump()
+
+        # 获取能力名称
+        if session.ability_code:
+            ability = await db.scalar(
+                select(AbilityAtomic).where(
+                    AbilityAtomic.subject == session.subject,
+                    AbilityAtomic.grade == session.grade,
+                    AbilityAtomic.code == session.ability_code,
+                )
+            )
+            if ability:
+                session_dict["ability_name"] = ability.name
+
+        # 获取单元名称
+        if session.unit_id:
+            unit = await db.get(Unit, session.unit_id)
+            if unit:
+                session_dict["unit_name"] = unit.name
+
+        data.append(session_dict)
+
     return {
-        "data": [PracticeSchema.model_validate(session) for session in sessions.all()],
+        "data": data,
         "total": total or 0,
         "page": page,
         "pageSize": page_size,
@@ -102,9 +128,7 @@ async def get_practice_data(
 
     results = await db.scalars(
         select(PracticeAnswer)
-        .options(
-            joinedload(PracticeAnswer.question).joinedload(Question.question_type)
-        )
+        .options(joinedload(PracticeAnswer.question).joinedload(Question.question_type))
         .where(PracticeAnswer.session_id == session_id)
         .order_by(PracticeAnswer.question_order)
     )
@@ -116,7 +140,9 @@ async def get_practice_data(
     # 查询报告
     report = None
     if session.status == 2:
-        report = await db.scalar(select(PracticeReport).where(PracticeReport.session_id == session_id))
+        report = await db.scalar(
+            select(PracticeReport).where(PracticeReport.session_id == session_id)
+        )
 
     return PracticeDataSchema(
         session=PracticeSchema.model_validate(session),

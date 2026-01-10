@@ -137,7 +137,7 @@ async def get_practice_records(
         raise HTTPException(status_code=400, detail=f"无效的练习类型ID: {practice_id}")
 
     result = await practice_service.get_practices(
-        db, student.id, practice_type, limit=30, page=page, page_size=page_size
+        db, student.id, practice_type, page=page, page_size=page_size
     )
     return result
 

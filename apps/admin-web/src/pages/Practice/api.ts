@@ -16,4 +16,12 @@ export const PracticeApi = {
   async getPracticeDetail(id: string) {
     return apiClient.get<PracticeData>(`/practice/${id}`);
   },
+
+  /**
+   * 删除练习
+   * DELETE /practice/{id}
+   */
+  async deletePractice(id: string) {
+    return apiClient.delete(`/practice/${id}`);
+  },
 };
