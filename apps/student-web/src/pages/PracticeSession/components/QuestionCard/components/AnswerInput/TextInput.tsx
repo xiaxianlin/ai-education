@@ -11,18 +11,16 @@ export function TextInput({ value, disabled, onChange }: AnswerInputProps) {
   const answerText = typeof rawAnswer === "string" ? rawAnswer : "";
 
   return (
-    <div>
-      <textarea
-        rows={3}
-        disabled={disabled}
-        value={answerText}
-        onChange={(e) => !disabled && onChange({ ...value, answer: e.target.value } as PracticeAnswer)}
-        placeholder="请输入你的答案..."
-        className={cn(
-          "w-full p-6 border-2 rounded-2xl resize-none focus:outline-none focus:ring-4 transition-all text-lg bg-card text-foreground placeholder:text-muted-foreground",
-          disabled && "opacity-50 cursor-not-allowed"
-        )}
-      />
-    </div>
+    <textarea
+      rows={3}
+      disabled={disabled}
+      value={answerText}
+      onChange={(e) => !disabled && onChange({ ...value, answer: e.target.value } as PracticeAnswer)}
+      placeholder="请输入你的答案..."
+      className={cn(
+        "w-full p-6 border border-gray-100 rounded-2xl resize-none focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all text-xl bg-white text-foreground placeholder:text-muted-foreground shadow-sm hover:border-gray-200",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    />
   );
 }

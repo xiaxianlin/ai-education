@@ -47,7 +47,7 @@ export function AnswerSection({
   return (
     <div className="space-y-5 mt-6">
       {/* 答题输入区域 */}
-      <div className="p-6 rounded-2xl border-2 border-primary/20 bg-card">
+      <div className="min-h-[120px]">
         {InputComponent ? (
           <InputComponent
             question={question}
@@ -56,7 +56,9 @@ export function AnswerSection({
             onChange={onAnswerChange || (() => {})}
           />
         ) : (
-          <div className="text-muted-foreground">暂不支持此题型: {interactionType}</div>
+          <div className="text-muted-foreground p-6 rounded-2xl border border-gray-100 bg-white">
+            暂不支持此题型: {interactionType}
+          </div>
         )}
       </div>
 

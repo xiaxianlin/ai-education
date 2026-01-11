@@ -12,8 +12,8 @@ export function ProcessingView() {
     usePracticeSessionModel();
 
   return (
-    <div className="p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-6 bg-[#fafafa] min-h-screen">
+      <div className="max-w-4xl mx-auto space-y-2">
         {/* 返回按钮和进度指示器 */}
         <ProgressIndicator />
 
@@ -32,10 +32,10 @@ export function ProcessingView() {
 
         {/* 完成练习按钮 */}
         {isComplete && (
-          <div className="pb-4">
+          <div className="pb-8">
             <Button
               type="button"
-              className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all"
+              className="w-full h-14 text-base font-semibold rounded-2xl shadow-sm hover:shadow-md transition-all"
               onClick={complete}
             >
               完成练习

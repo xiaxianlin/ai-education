@@ -24,6 +24,7 @@ export default function ListView() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [domainMap, setDomainMap] = useState<Record<string, string>>({});
+  const [atomicMap, setAtomicMap] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 加载所有科目的能力域用于映射
@@ -42,6 +43,24 @@ export default function ListView() {
       }
     };
     loadDomains();
+  }, []);
+
+  // 加载所有科目的原子能力用于映射
+  useEffect(() => {
+    const loadAtomics = async () => {
+      try {
+        const subjects = ['语文', '数学', '英语'];
+        const allAtomics = await Promise.all(subjects.map((s) => AbilityApi.searchAtomics({ subject: s })));
+        const map: Record<string, string> = {};
+        allAtomics.flat().forEach((a) => {
+          map[`${a.subject}_${a.code}`] = a.name;
+        });
+        setAtomicMap(map);
+      } catch (error) {
+        console.error('加载原子能力失败:', error);
+      }
+    };
+    loadAtomics();
   }, []);
 
   // 导出题型数据为 JSON
@@ -201,6 +220,27 @@ export default function ListView() {
         },
       },
       {
+        title: '原子能力',
+        dataIndex: 'ability_atomic_codes',
+        width: 200,
+        render: (codes, record) => {
+          if (!codes || codes.length === 0) return '-';
+          return (
+            <Space size={4} wrap>
+              {codes.map((code: string) => {
+                const key = `${record.subject}_${code}`;
+                const atomicName = atomicMap[key];
+                return (
+                  <Tag key={code} color="geekblue">
+                    {atomicName || code}
+                  </Tag>
+                );
+              })}
+            </Space>
+          );
+        },
+      },
+      {
         title: '交互类型',
         dataIndex: 'interaction_type',
         width: 100,
@@ -262,7 +302,7 @@ export default function ListView() {
         { width: 120 },
       ),
     ],
-    [navigate, handleDelete, domainMap],
+    [navigate, handleDelete, domainMap, atomicMap],
   );
 
   return (

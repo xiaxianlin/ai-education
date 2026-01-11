@@ -1,6 +1,5 @@
-/**
- * 进度指示器组件 - 显示所有题目状态的圆圈网格
- */
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePracticeSessionModel } from "../models/page";
 
 /**
@@ -12,55 +11,84 @@ function getButtonClassName(params: {
   isIncorrect: boolean;
   isCurrent: boolean;
 }): string {
-  const base = "relative aspect-square rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-200 hover:scale-110 active:scale-95";
-  const classes: string[] = [base];
-  
-  // 背景颜色 - 根据状态
-  if (params.isUnanswered) {
-    classes.push("bg-gray-200 text-gray-600");
-  } else if (params.isCorrect) {
-    classes.push("bg-gradient-to-br from-green-300 to-green-500 text-white");
-  } else if (params.isIncorrect) {
-    classes.push("bg-gradient-to-br from-red-300 to-red-500 text-white");
-  }
-  
-  // 当前题目高亮
+  const base =
+    "relative min-w-[36px] h-9 px-2 rounded-lg flex items-center justify-center font-medium text-sm transition-all duration-200 border";
+
   if (params.isCurrent) {
-    classes.push("ring-4 ring-primary ring-offset-2");
+    return cn(base, "bg-primary text-primary-foreground border-primary shadow-sm scale-105 z-10");
   }
-  
-  return classes.join(" ");
+
+  if (params.isUnanswered) {
+    return cn(base, "bg-white text-gray-400 border-gray-100 hover:border-gray-300 hover:text-gray-600");
+  }
+
+  if (params.isCorrect) {
+    return cn(base, "bg-green-50 text-green-600 border-green-100 hover:bg-green-100 hover:border-green-200");
+  }
+
+  if (params.isIncorrect) {
+    return cn(base, "bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:border-red-200");
+  }
+
+  return base;
 }
 
 export function ProgressIndicator() {
-  const { questions, answers, order, jumpTo } = usePracticeSessionModel();
+  const { questions, answers, order, jumpTo, prev, next } = usePracticeSessionModel();
 
   return (
-    <div className="w-full">
-      <div className="grid grid-cols-[repeat(15,minmax(0,1fr))] gap-4">
-        {questions.map((question, index) => {
-          const answer = answers[index];
-          const isUnanswered = !answer || answer.status === 0;
-          const isCorrect = answer?.status === 1;
-          const isIncorrect = answer?.status === 2;
-          const isCurrent = index === order;
+    <div className="w-full py-2">
+      <div className="flex items-center w-full bg-gray-50/50 rounded-xl border border-gray-100 shadow-sm p-1.5">
+        {/* 上一题 */}
+        <button
+          onClick={prev}
+          disabled={order === 0}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 h-9 rounded-lg text-sm font-medium transition-colors hover:bg-white hover:text-primary disabled:opacity-30 disabled:hover:bg-transparent text-gray-600"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span>上一题</span>
+        </button>
 
-          return (
-            <button
-              key={question.id}
-              onClick={() => jumpTo(index)}
-              className={getButtonClassName({
-                isUnanswered,
-                isCorrect,
-                isIncorrect,
-                isCurrent,
-              })}
-              title={`第 ${index + 1} 题${isUnanswered ? " - 未作答" : isCorrect ? " - 正确" : " - 错误"}`}
-            >
-              {index + 1}
-            </button>
-          );
-        })}
+        <div className="h-5 w-[1px] bg-gray-200 mx-1" />
+
+        {/* 题目列表 - 允许自适应并处理溢出 */}
+        <div className="flex-1 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar px-6 py-1.5">
+          {questions.map((question, index) => {
+            const answer = answers[index];
+            const isUnanswered = !answer || answer.status === 0;
+            const isCorrect = answer?.status === 1;
+            const isIncorrect = answer?.status === 2;
+            const isCurrent = index === order;
+
+            return (
+              <button
+                key={question.id}
+                onClick={() => jumpTo(index)}
+                className={getButtonClassName({
+                  isUnanswered,
+                  isCorrect,
+                  isIncorrect,
+                  isCurrent,
+                })}
+                title={`第 ${index + 1} 题${isUnanswered ? " - 未作答" : isCorrect ? " - 正确" : " - 错误"}`}
+              >
+                {index + 1}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="h-5 w-[1px] bg-gray-200 mx-1" />
+
+        {/* 下一题 */}
+        <button
+          onClick={next}
+          disabled={order === questions.length - 1}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 h-9 rounded-lg text-sm font-medium transition-colors hover:bg-white hover:text-primary disabled:opacity-30 disabled:hover:bg-transparent text-gray-600"
+        >
+          <span>下一题</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

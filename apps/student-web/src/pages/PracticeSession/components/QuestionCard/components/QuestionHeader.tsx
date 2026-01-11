@@ -1,92 +1,101 @@
-/**
- * 题目序号和状态徽章组件
- */
+import { Badge } from "@/components/ui/badge";
+import { Check, X } from "lucide-react";
 import { useMemo } from "react";
 
 interface QuestionHeaderProps {
-  /** 题目序号（从 1 开始） */
-  order: number;
+  /** 题目数据 */
+  question: Question;
   /** 答题状态：0-未答，1-正确，2-错误 */
   status?: number;
+}
+
+/**
+ * 获取题目类型的显示文本
+ */
+function getQuestionTypeLabel(question: Question): string {
+  const interactionType = question.question_type?.interaction_type;
+  switch (interactionType) {
+    case "single_choice":
+      return "单选题";
+    case "multi_choice":
+      return "多选题";
+    case "image_choice":
+      return "图片选择题";
+    case "true_false":
+    case "correct_wrong":
+      return "判断题";
+    case "text_input":
+    case "fill_blank":
+      return "填空题";
+    case "voice_input":
+    case "free_speak":
+    case "follow_read":
+      return "口语题";
+    case "drag_drop":
+      return "拖拽题";
+    case "connect_line":
+      return "连线题";
+    case "sort_order":
+      return "排序题";
+    default:
+      return question.question_type?.name || "题目";
+  }
 }
 
 /**
  * 根据状态映射获取结果徽章的 className
  */
 function getResultBadgeClassName(params: { isCorrect: boolean }): string {
-  const base = "absolute -top-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl z-10";
-  const classes: string[] = [base];
+  const base = "w-7 h-7 rounded-full flex items-center justify-center border shadow-sm transition-all";
 
   if (params.isCorrect) {
-    classes.push("bg-gradient-to-br from-yellow-300 via-green-400 to-emerald-500");
-  } else {
-    classes.push("bg-gradient-to-br from-pink-400 via-orange-400 to-amber-400");
+    return `${base} bg-green-50 border-green-200 text-green-600`;
   }
-
-  return classes.join(" ");
+  return `${base} bg-red-50 border-red-200 text-red-600`;
 }
 
-/**
- * 根据状态映射获取装饰性边框的 className
- */
-function getBorderClassName(params: { isCorrect: boolean }): string {
-  const base = "absolute inset-0 rounded-full border-4";
-  const classes: string[] = [base];
+export function QuestionHeader({ question, status }: QuestionHeaderProps) {
+  const typeLabel = useMemo(() => getQuestionTypeLabel(question), [question]);
+  const knowledgePoints = useMemo(() => {
+    const kp = question.knowledge_points;
+    if (!kp || !Array.isArray(kp)) return [];
+    return kp.map((p: any) => (typeof p === "string" ? p : p.name || String(p)));
+  }, [question.knowledge_points]);
 
-  if (params.isCorrect) {
-    classes.push("border-white/50");
-  } else {
-    classes.push("border-white/40");
-  }
-
-  return classes.join(" ");
-}
-
-export function QuestionHeader({ order, status }: QuestionHeaderProps) {
   const resultBadge = useMemo(() => {
     if (status === 0 || status === undefined) return null;
     const isCorrect = status === 1;
+
     return (
       <div className={getResultBadgeClassName({ isCorrect })}>
-        {/* 内容 */}
-        <div className="relative flex items-center justify-center">
-          {isCorrect ? (
-            <>
-              {/* 正确答案 - 大大的笑脸和星星 */}
-              <div className="relative">
-                <div className="text-2xl font-bold">😊</div>
-                {/* 闪耀的星星 */}
-                <div className="absolute -top-1 -right-1 text-yellow-300 text-lg">✨</div>
-                <div className="absolute -bottom-1 -left-1 text-yellow-300 text-lg">⭐</div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* 错误答案 - 鼓励的表情 */}
-              <div className="relative">
-                <div className="text-2xl font-bold">💪</div>
-                {/* 小爱心表示鼓励 */}
-                <div className="absolute -top-1 -right-1 text-pink-300 text-sm">💖</div>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* 装饰性边框 */}
-        <div
-          className={getBorderClassName({
-            isCorrect,
-          })}
-        />
+        {isCorrect ? <Check className="w-4 h-4 stroke-[2]" /> : <X className="w-4 h-4 stroke-[2]" />}
       </div>
     );
   }, [status]);
 
   return (
-    <div className="flex items-center justify-between mb-4 relative">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">第 {order} 题</span>
+    <div className="flex items-center justify-between mb-5">
+      {/* 左侧：题目类型 + 知识点 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge
+          variant="secondary"
+          className="bg-gray-100 text-gray-600 border-none px-3 py-1 text-xs font-semibold rounded-md"
+        >
+          {typeLabel}
+        </Badge>
+
+        {knowledgePoints.map((kp, idx) => (
+          <Badge
+            key={idx}
+            variant="outline"
+            className="text-primary/70 border-primary/10 bg-primary/5 px-3 py-1 text-xs font-semibold rounded-md"
+          >
+            {kp}
+          </Badge>
+        ))}
       </div>
+
+      {/* 右侧：结果反馈 */}
       {resultBadge}
     </div>
   );

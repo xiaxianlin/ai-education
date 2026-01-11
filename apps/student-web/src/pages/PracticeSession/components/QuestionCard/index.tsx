@@ -11,7 +11,7 @@ import { AnalysisSection, AnswerSection, QuestionHeader, QuestionStem, SubQuesti
 import type { QuestionCardProps } from "./types";
 
 export function QuestionCard(props: QuestionCardProps) {
-  const { question, answer, order = 1, showAnalysis = true } = props;
+  const { question, answer, showAnalysis = true } = props;
 
   if (!question) {
     return (
@@ -85,10 +85,9 @@ export function QuestionCard(props: QuestionCardProps) {
   };
 
   return (
-    <Card className="border-2 border-primary/30 shadow-lg rounded-2xl bg-card overflow-visible relative">
+    <Card className="border border-gray-100 shadow-sm rounded-2xl bg-white overflow-visible relative">
       <CardContent className="p-5">
-        {/* 题目序号 */}
-        <QuestionHeader order={order} status={answer?.status} />
+        <QuestionHeader question={question} status={answer?.status} />
 
         {isComposite ? (
           // 复合题：左右布局 4/6 比例
@@ -109,7 +108,7 @@ export function QuestionCard(props: QuestionCardProps) {
                 <Button
                   type="button"
                   disabled={props.submitting || !isAllAnswered}
-                  className="w-full h-12 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 text-base font-semibold rounded-xl shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleSubmit}
                 >
                   {props.submitting ? (
@@ -135,6 +134,19 @@ export function QuestionCard(props: QuestionCardProps) {
         {/* 解析区域（答错或有 AI 分析时显示） */}
         {showAnalysis && isAnswered && (isWrong || hasAIAnalysis) && answer && (
           <AnalysisSection answer={answer} question={question} />
+        )}
+
+        {/* 提交中的加载蒙层 */}
+        {props.submitting && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-[1px] rounded-2xl transition-all animate-in fade-in duration-200">
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full border-4 border-primary/20 animate-pulse" />
+                <Loader2 className="absolute inset-0 w-12 h-12 text-primary animate-spin stroke-[2.5px]" />
+              </div>
+              <span className="text-sm font-semibold text-primary animate-pulse">正在智能核查中...</span>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

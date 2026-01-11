@@ -8,10 +8,7 @@ import { getInputComponent } from "./AnswerInput";
 /**
  * 从复合题的正确答案中提取子题的正确答案
  */
-function extractSubQuestionCorrectAnswer(
-  parentAnswer: PracticeAnswer | undefined,
-  subQuestionId: string
-): unknown {
+function extractSubQuestionCorrectAnswer(parentAnswer: PracticeAnswer | undefined, subQuestionId: string): unknown {
   if (!parentAnswer?.correct_answer) return undefined;
 
   const correctAnswer = parentAnswer.correct_answer;
@@ -23,13 +20,11 @@ function extractSubQuestionCorrectAnswer(
 
   // 新数据格式：结构化对象
   if (typeof correctAnswer === "object") {
-    const data = correctAnswer as Record<string, unknown>;
+    const data = correctAnswer as any;
 
     // 复合题：从 sub_answers 中查找对应子题的正确答案
     if (data.sub_answers && Array.isArray(data.sub_answers)) {
-      const subAnswer = data.sub_answers.find(
-        (sub: Record<string, unknown>) => String(sub.sub_id) === String(subQuestionId)
-      );
+      const subAnswer = data.sub_answers.find((sub: any) => String(sub.sub_id) === String(subQuestionId));
       if (subAnswer) {
         // 返回子题的正确答案结构，格式化为与单题相同的结构
         const subValue = subAnswer.value;
@@ -57,10 +52,7 @@ function extractSubQuestionCorrectAnswer(
 /**
  * 检查子题是否答错
  */
-function isSubQuestionWrong(
-  parentAnswer: PracticeAnswer | undefined,
-  subQuestionId: string
-): boolean {
+function isSubQuestionWrong(parentAnswer: PracticeAnswer | undefined, subQuestionId: string): boolean {
   if (!parentAnswer?.correct_answer) return false;
 
   const correctAnswer = parentAnswer.correct_answer;
@@ -72,13 +64,11 @@ function isSubQuestionWrong(
 
   // 新数据格式：结构化对象
   if (typeof correctAnswer === "object") {
-    const data = correctAnswer as Record<string, unknown>;
+    const data = correctAnswer as any;
 
     // 复合题：从 sub_answers 中查找对应子题的 is_correct 状态
     if (data.sub_answers && Array.isArray(data.sub_answers)) {
-      const subAnswer = data.sub_answers.find(
-        (sub: Record<string, unknown>) => String(sub.sub_id) === String(subQuestionId)
-      );
+      const subAnswer = data.sub_answers.find((sub: any) => String(sub.sub_id) === String(subQuestionId));
       if (subAnswer && subAnswer.is_correct !== undefined) {
         return subAnswer.is_correct === false;
       }

@@ -157,10 +157,10 @@ export function AnalysisSection({ answer, question }: AnalysisSectionProps) {
   const shouldHideCorrectAnswer = isChoiceQuestion(question) || isAllSubQuestionsChoice(question);
 
   return (
-    <div className="space-y-4 mt-6 p-6 rounded-2xl border-2 border-primary/20 bg-card">
+    <div className="space-y-4 mt-8 p-6 rounded-2xl border border-gray-100 bg-white">
       {/* 正确答案 - 仅在非选择题时显示 */}
       {!shouldHideCorrectAnswer && correctAnswerText && (
-        <div className="rounded-xl border border-green-500/40 bg-green-50 p-4">
+        <div className="rounded-xl border border-green-100 bg-green-50/50 p-4">
           <div className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             <span>正确答案</span>
@@ -171,8 +171,8 @@ export function AnalysisSection({ answer, question }: AnalysisSectionProps) {
 
       {/* AI 分析 */}
       {analysis && (
-        <div className="rounded-xl border border-orange-500/40 bg-orange-50 p-4">
-          <div className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
+        <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+          <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
             <Lightbulb className="h-4 w-4" />
             <span>分析</span>
           </div>
