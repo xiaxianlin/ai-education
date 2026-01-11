@@ -42,6 +42,9 @@ from .question import QuestionType, Question
 # 能力模块
 from .ability import AbilityDomain, AbilityAtomic
 
+# 掌握度模块
+from .mastery import StudentAbilityMastery
+
 
 __all__ = [
     # SQLAlchemy
@@ -76,4 +79,6 @@ __all__ = [
     # 能力
     "AbilityDomain",
     "AbilityAtomic",
+    # 掌握度
+    "StudentAbilityMastery",
 ]

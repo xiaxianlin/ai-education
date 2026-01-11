@@ -46,6 +46,15 @@ from .ability import (
     AbilityDomainSchema,
 )
 
+# 掌握度模块
+from .mastery import (
+    MasteryLevelEnum,
+    StudentAbilityMasterySchema,
+    StudentAbilityMasteryWithInfoSchema,
+    DomainMasterySchema,
+    MasterySummarySchema,
+)
+
 __all__ = [
     # 通用
     "T",
@@ -84,4 +93,10 @@ __all__ = [
     # 能力
     "AbilityDomainSchema",
     "AbilityAtomicSchema",
+    # 掌握度
+    "MasteryLevelEnum",
+    "StudentAbilityMasterySchema",
+    "StudentAbilityMasteryWithInfoSchema",
+    "DomainMasterySchema",
+    "MasterySummarySchema",
 ]

@@ -91,4 +91,47 @@ export const StudentApi = {
   async getStudentPracticeData(id: string, sessionId: string) {
     return apiClient.get(`/student/${id}/practice/${sessionId}`);
   },
+
+  /**
+   * 获取学生能力掌握度列表
+   * GET /student/{id}/mastery
+   */
+  async getStudentMastery(id: string, params?: { subject?: string }) {
+    return apiClient.get<StudentMastery[]>(`/student/${id}/mastery`, params);
+  },
+
+  /**
+   * 获取学生能力掌握度概览
+   * GET /student/{id}/mastery/summary
+   */
+  async getStudentMasterySummary(id: string) {
+    return apiClient.get<StudentMasterySummary>(`/student/${id}/mastery/summary`);
+  },
 };
+
+// 能力掌握度类型
+interface StudentMastery {
+  id: number;
+  student_id: string;
+  ability_code: string;
+  mastery_score: number;
+  mastery_level: string;
+  correct_count: number;
+  wrong_count: number;
+  last_practice_time: number | null;
+  ability_name: string | null;
+  ability_domain: string | null;
+  subject: string | null;
+  grade: number | null;
+}
+
+interface StudentMasterySummary {
+  total_abilities: number;
+  avg_mastery_score: number;
+  level_distribution: Record<string, number>;
+  domain_stats: Array<{
+    domain_code: string;
+    ability_count: number;
+    avg_mastery_score: number;
+  }>;
+}

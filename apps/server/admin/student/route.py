@@ -129,3 +129,130 @@ async def get_student_practices(
 )
 async def get_student_practice_data(request: Request, session_id: str, db: AsyncSession = Database):
     return await practice.get_student_practice_session_data(db, request.state.student, session_id)
+
+
+# ======================== 学生能力掌握度 ======================== #
+
+
+@student_router.get(
+    "/{id}/mastery",
+    tags=["学生能力掌握度"],
+    summary="查询学生能力掌握度",
+    description="获取指定学生的能力掌握度列表，可按科目筛选",
+)
+async def get_student_mastery(
+    request: Request,
+    subject: str | None = Query(None, description="科目筛选"),
+    db: AsyncSession = Database,
+):
+    from shared.core.database import AbilityAtomic, StudentAbilityMastery
+    from shared.core.schema import StudentAbilityMasterySchema
+    from sqlalchemy import select
+
+    student = request.state.student
+
+    # 查询掌握度，关联能力信息
+    query = (
+        select(
+            StudentAbilityMastery,
+            AbilityAtomic.name.label("ability_name"),
+            AbilityAtomic.domain_code.label("ability_domain"),
+            AbilityAtomic.subject,
+            AbilityAtomic.grade,
+        )
+        .outerjoin(
+            AbilityAtomic,
+            StudentAbilityMastery.ability_code == AbilityAtomic.code,
+        )
+        .where(StudentAbilityMastery.student_id == student.id)
+    )
+
+    if subject:
+        query = query.where(AbilityAtomic.subject == subject)
+
+    query = query.order_by(StudentAbilityMastery.mastery_score.asc())
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    return [
+        {
+            **StudentAbilityMasterySchema.model_validate(row[0]).model_dump(),
+            "ability_name": row.ability_name,
+            "ability_domain": row.ability_domain,
+            "subject": row.subject,
+            "grade": row.grade,
+        }
+        for row in rows
+    ]
+
+
+@student_router.get(
+    "/{id}/mastery/summary",
+    tags=["学生能力掌握度"],
+    summary="查询学生能力掌握度概览",
+    description="获取指定学生的能力掌握度统计概览",
+)
+async def get_student_mastery_summary(
+    request: Request,
+    db: AsyncSession = Database,
+):
+    from shared.core.database import AbilityAtomic, StudentAbilityMastery
+    from sqlalchemy import func, select
+
+    student = request.state.student
+
+    # 1. 统计总体数据
+    total_query = select(
+        func.count(StudentAbilityMastery.id).label("total"),
+        func.avg(StudentAbilityMastery.mastery_score).label("avg_score"),
+    ).where(StudentAbilityMastery.student_id == student.id)
+    total_result = await db.execute(total_query)
+    total_row = total_result.first()
+
+    total_abilities = total_row.total if total_row else 0
+    avg_score = round(float(total_row.avg_score or 0), 2) if total_row else 0
+
+    # 2. 统计等级分布
+    level_query = (
+        select(
+            StudentAbilityMastery.mastery_level,
+            func.count(StudentAbilityMastery.id).label("count"),
+        )
+        .where(StudentAbilityMastery.student_id == student.id)
+        .group_by(StudentAbilityMastery.mastery_level)
+    )
+    level_result = await db.execute(level_query)
+    level_distribution = {row.mastery_level: row.count for row in level_result.all()}
+
+    # 3. 按能力域统计
+    domain_query = (
+        select(
+            AbilityAtomic.domain_code,
+            func.count(StudentAbilityMastery.id).label("ability_count"),
+            func.avg(StudentAbilityMastery.mastery_score).label("avg_mastery_score"),
+        )
+        .join(
+            AbilityAtomic,
+            StudentAbilityMastery.ability_code == AbilityAtomic.code,
+        )
+        .where(StudentAbilityMastery.student_id == student.id)
+        .group_by(AbilityAtomic.domain_code)
+    )
+    domain_result = await db.execute(domain_query)
+
+    domain_stats = [
+        {
+            "domain_code": row.domain_code,
+            "ability_count": row.ability_count,
+            "avg_mastery_score": round(float(row.avg_mastery_score or 0), 2),
+        }
+        for row in domain_result.all()
+    ]
+
+    return {
+        "total_abilities": total_abilities,
+        "avg_mastery_score": avg_score,
+        "level_distribution": level_distribution,
+        "domain_stats": domain_stats,
+    }

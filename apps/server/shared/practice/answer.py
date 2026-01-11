@@ -25,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .evaluator import AnswerEvaluator, EvaluateResult
+from .mastery import extract_ability_codes, update_student_mastery
 from .prompt import ANALYZE_QUESTION_ANSWER_PROMPT
 from .schema import (
     AnswerAnalysisSchema,
@@ -149,10 +150,14 @@ async def submit_answer(
         )
     )
     if not answer_record:
-        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
     if answer_record.status != 0:
-        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
+        raise ValueError(
+            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
+        )
 
     # 4. 使用评判器评判答案
     evaluate_result = AnswerEvaluator.evaluate(
@@ -203,6 +208,11 @@ async def submit_answer(
         practice.correct_count += 1
 
     practice.update_time = now()
+
+    # 8. 更新学生能力掌握度（事件驱动）
+    ability_codes = extract_ability_codes(question)
+    for ability_code in ability_codes:
+        await update_student_mastery(db, student_id, ability_code, is_correct)
 
     await db.commit()
     await db.refresh(answer_record)

@@ -12,6 +12,7 @@ from shared.core.response import WrappedResponse
 
 from .auth import auth_router, student_router_filter
 from .ability import ability_router
+from .mastery import mastery_router
 from .practice import practice_router
 from .profile import profile_router
 from .textbook import textbook_router
@@ -33,6 +34,7 @@ student_app.add_middleware(LoggingMiddleware)
 
 student_app.include_router(auth_router)
 student_app.include_router(ability_router)
+student_app.include_router(mastery_router)
 student_app.include_router(textbook_router)
 student_app.include_router(profile_router)
 student_app.include_router(practice_router)
