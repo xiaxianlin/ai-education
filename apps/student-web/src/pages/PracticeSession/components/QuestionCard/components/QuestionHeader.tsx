@@ -47,11 +47,7 @@ export function QuestionHeader({ order, status }: QuestionHeaderProps) {
     if (status === 0 || status === undefined) return null;
     const isCorrect = status === 1;
     return (
-      <div
-        className={getResultBadgeClassName({
-          isCorrect,
-        })}
-      >
+      <div className={getResultBadgeClassName({ isCorrect })}>
         {/* 内容 */}
         <div className="relative flex items-center justify-center">
           {isCorrect ? (
@@ -89,9 +85,6 @@ export function QuestionHeader({ order, status }: QuestionHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-4 relative">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-          {order}
-        </div>
         <span className="text-sm text-muted-foreground">第 {order} 题</span>
       </div>
       {resultBadge}

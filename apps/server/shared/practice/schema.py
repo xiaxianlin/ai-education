@@ -42,6 +42,20 @@ class CorrectAnswerSchema(BaseModel):
     )
 
 
+class RubricCriterionSchema(BaseModel):
+    """评分标准条目"""
+
+    points: int = Field(..., description="分值")
+    description: str = Field(..., description="评分描述")
+
+
+class RubricAnswerSchema(BaseModel):
+    """评分量表"""
+
+    criteria: list[RubricCriterionSchema] = Field(..., description="评分标准列表")
+    total_points: int = Field(..., description="总分")
+
+
 class AnswerFeedbackSchema(BaseModel):
     """答题反馈
 
@@ -56,9 +70,21 @@ class AnswerFeedbackSchema(BaseModel):
     analysis: Optional[str] = Field(default=None, description="AI 针对性分析")
 
 
+class AIRubricEvaluationSchema(BaseModel):
+    """AI Rubric 评分结果（LLM 返回格式）
+
+    用于主观题的 AI 评分，返回总分和反馈。
+    """
+
+    score: float = Field(..., description="得分（0 到 full_score 之间）")
+    is_pass: bool = Field(..., description="是否及格（达到 60% 即为及格）")
+    feedback: str = Field(..., description="评分反馈，说明得分/扣分原因")
+
+
 __all__ = [
     "SubmitAnswerSchema",
     "AnswerAnalysisSchema",
     "CorrectAnswerSchema",
     "AnswerFeedbackSchema",
+    "AIRubricEvaluationSchema",
 ]

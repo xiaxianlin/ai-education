@@ -26,6 +26,16 @@ export function QuestionCard(props: QuestionCardProps) {
   const isComposite = isCompositeQuestion(question);
   const isAnswered = answer?.status !== 0;
   const isWrong = answer?.status === 2;
+  // 检查是否有 AI 分析（从 answer.analysis 中解析）
+  const hasAIAnalysis = useMemo(() => {
+    if (!answer?.analysis) return false;
+    try {
+      const analysisData = typeof answer.analysis === "string" ? JSON.parse(answer.analysis) : answer.analysis;
+      return !!analysisData?.analysis;
+    } catch {
+      return false;
+    }
+  }, [answer?.analysis]);
   const startTime = useRef(Date.now());
 
   // 检查是否所有题目都已作答
@@ -122,8 +132,10 @@ export function QuestionCard(props: QuestionCardProps) {
           </>
         )}
 
-        {/* 解析区域（仅答错时显示） */}
-        {showAnalysis && isAnswered && isWrong && answer && <AnalysisSection answer={answer} question={question} />}
+        {/* 解析区域（答错或有 AI 分析时显示） */}
+        {showAnalysis && isAnswered && (isWrong || hasAIAnalysis) && answer && (
+          <AnalysisSection answer={answer} question={question} />
+        )}
       </CardContent>
     </Card>
   );

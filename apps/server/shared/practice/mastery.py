@@ -95,15 +95,9 @@ def extract_ability_codes(question: Question) -> list[str]:
     """
     codes: list[str] = []
 
-    # 从 question.ability_tags 提取
-    if question.ability_tags:
-        codes.extend(question.ability_tags)
-
-    # 从 question_type.ability_atomic_codes 提取
     if question.question_type and question.question_type.ability_atomic_codes:
         codes.extend(question.question_type.ability_atomic_codes)
 
-    # 去重并返回
     return list(set(codes))
 
 

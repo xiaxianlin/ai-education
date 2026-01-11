@@ -159,17 +159,31 @@ async def submit_answer(
             f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
         )
 
-    # 4. 使用评判器评判答案
-    evaluate_result = AnswerEvaluator.evaluate(
+    # 4. 使用评判器评判答案（异步，支持 AI 评分）
+    evaluate_result = await AnswerEvaluator.evaluate(
         question=question,
         user_answer=params.answer,
     )
 
     is_correct = evaluate_result.is_correct
 
-    # 5. 如果答错，生成反馈
+    # 5. 如果答错，生成反馈（AI 评分已有 feedback 则直接使用）
     feedback = None
-    if not is_correct:
+    if evaluate_result.feedback:
+        # AI 评分的反馈直接使用
+        feedback = AnswerFeedbackSchema(
+            correct_answer=CorrectAnswerSchema(
+                type=evaluate_result.correct_answer.type,
+                value=evaluate_result.correct_answer.value,
+                values=evaluate_result.correct_answer.values,
+                options=evaluate_result.correct_answer.options,
+                sub_answers=evaluate_result.correct_answer.sub_answers,
+            ),
+            explanation=question.explanation,
+            analysis=evaluate_result.feedback,
+        )
+    elif not is_correct:
+        # 非 AI 评分的错题，生成反馈
         feedback = await _generate_feedback(question, params.answer, evaluate_result)
 
     # 6. 更新答题记录

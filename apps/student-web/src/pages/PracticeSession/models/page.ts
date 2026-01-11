@@ -94,9 +94,18 @@ function useContainer() {
         // 刷新数据以同步状态
         refresh();
 
-        // 只有答对时自动跳转到下一题
-        // 答错时停留在当前题目，让用户查看错题分析
-        if (res.status === 1) {
+        // 检查是否有 AI 分析
+        const hasAIAnalysis = (() => {
+          if (!res.analysis) return false;
+          try {
+            const analysisData = typeof res.analysis === "string" ? JSON.parse(res.analysis) : res.analysis;
+            return !!analysisData?.analysis;
+          } catch {
+            return false;
+          }
+        })();
+
+        if (res.status === 1 && !hasAIAnalysis) {
           next();
         }
       },
@@ -120,13 +129,13 @@ function useContainer() {
 
     const interactionType = question?.question_type?.interaction_type;
     const isComposite = question?.answer?.type === "composite";
-    
+
     // 从 answer.answer 读取答案
     let rawAnswer = answer.answer;
-    
+
     // 根据题型构建标准化的答案格式
     let formattedAnswer: any;
-    
+
     if (isComposite) {
       // 复合题：构建 [{"sub_id": "1", "value": "答案"}] 格式
       if (rawAnswer) {

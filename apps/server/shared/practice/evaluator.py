@@ -10,11 +10,19 @@
 
 import json
 from abc import ABC, abstractmethod
-
 from typing import Any, Optional
 
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from loguru import logger
 from pydantic import BaseModel, Field
+
 from shared.core.database import Question
+from shared.provider import get_provider
+from shared.utils.prompt import build_question_prompt
+
+from .prompt import AI_RUBRIC_EVALUATION_PROMPT
+from .schema import AIRubricEvaluationSchema
 
 
 class CorrectAnswerData(BaseModel):
@@ -35,13 +43,14 @@ class EvaluateResult(BaseModel):
     full_score: float = Field(default=10, description="满分")
     correct_answer: CorrectAnswerData = Field(..., description="结构化正确答案")
     sub_results: Optional[list] = Field(default=None, description="子题评判结果（复合题）")
+    feedback: Optional[str] = Field(default=None, description="AI 评分反馈")
 
 
 class BaseEvaluator(ABC):
     """评判器基类"""
 
     @abstractmethod
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
         """评判答案
 
         Args:
@@ -68,7 +77,9 @@ class BaseEvaluator(ABC):
         answer_config = question.answer or {}
         return answer_config.get("correct_answers", [])
 
-    def _build_correct_answer_data(self, question: Question, correct_answers: list) -> CorrectAnswerData:
+    def _build_correct_answer_data(
+        self, question: Question, correct_answers: list
+    ) -> CorrectAnswerData:
         """构建结构化正确答案
 
         根据题目的 interaction_type 和 options 构建前端需要的结构化数据
@@ -110,7 +121,7 @@ class ExactEvaluator(BaseEvaluator):
     适用于：单选题、多选题、判断题等
     """
 
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
         correct_answers = self._get_correct_answers(question)
         full_score = self._get_full_score(question)
 
@@ -149,7 +160,7 @@ class FuzzyEvaluator(BaseEvaluator):
     支持：大小写忽略、accept_answers 可接受答案
     """
 
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
         answer_config = question.answer or {}
         correct_answers = self._get_correct_answers(question)
         accept_answers = answer_config.get("accept_answers", [])
@@ -178,7 +189,7 @@ class CompositeEvaluator(BaseEvaluator):
     支持：部分得分策略 (sum / all_or_nothing)
     """
 
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
         stem = question.stem or {}
         sub_questions = stem.get("sub_questions", [])
         answer_config = question.answer or {}
@@ -187,7 +198,7 @@ class CompositeEvaluator(BaseEvaluator):
 
         if not sub_questions:
             # 没有子题，退回到精确匹配
-            return ExactEvaluator().evaluate(question, user_answer)
+            return await ExactEvaluator().evaluate(question, user_answer)
 
         # 构建子答案映射
         sub_answer_map = {}
@@ -240,8 +251,8 @@ class CompositeEvaluator(BaseEvaluator):
                 explanation=sub_q.get("explanation", ""),
             )
 
-            # 评判子题
-            sub_res = evaluator.evaluate(sub_question_obj, user_sub_answer)
+            # 评判子题（异步）
+            sub_res = await evaluator.evaluate(sub_question_obj, user_sub_answer)
 
             total_score += sub_res.score
             all_correct = all_correct and sub_res.is_correct
@@ -285,71 +296,125 @@ class CompositeEvaluator(BaseEvaluator):
 
 
 class RubricEvaluator(BaseEvaluator):
-    """评分标准评判器
+    """AI 评分标准评判器
 
     适用于：需要预定义评分规则的主观题
-    根据 rubric 配置进行评分
+    使用 AI 根据 rubric 配置进行语义评分
     """
 
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+    def _build_scoring_criteria(self, answer_config: dict) -> tuple[str, float]:
+        """构建评分标准文本
+
+        Args:
+            answer_config: 答案配置
+
+        Returns:
+            tuple[str, float]: (评分标准文本, 满分)
+        """
+        criteria = answer_config.get("criteria", [])
+        total_points = answer_config.get("total_points", 10)
+
+        if not criteria:
+            return "根据题目要求进行评分", float(total_points)
+
+        # 构建评分标准文本
+        criteria_lines = []
+        for item in criteria:
+            points = item.get("points", 0)
+            description = item.get("description", "")
+            criteria_lines.append(f"- {description}（{points}分）")
+
+        return "\n".join(criteria_lines), float(total_points)
+
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+        """AI 评分
+
+        使用 LLM 根据 rubric 配置对主观题进行语义评分。
+
+        Args:
+            question: 题目对象
+            user_answer: 用户答案
+
+        Returns:
+            EvaluateResult: 包含 AI 评分结果
+        """
         answer_config = question.answer or {}
-        rubric = answer_config.get("rubric", {})
         correct_answers = self._get_correct_answers(question)
-        full_score = self._get_full_score(question)
 
-        # 如果有 rubric 配置，尝试匹配评分
-        # 简单实现：检查是否包含关键词
-        score = 0
-        is_correct = False
+        # 构建评分标准
+        scoring_criteria, full_score = self._build_scoring_criteria(answer_config)
 
-        if rubric:
-            keywords = rubric.get("keywords", [])
-            min_score = rubric.get("min_score", 0)
-            user_answer_str = str(user_answer).lower()
+        try:
+            # 构建 prompt
+            prompt_parser = JsonOutputParser(pydantic_object=AIRubricEvaluationSchema)
+            format_instructions = prompt_parser.get_format_instructions()
 
-            matched = 0
-            for keyword in keywords:
-                if keyword.lower() in user_answer_str:
-                    matched += 1
+            prompt_template = ChatPromptTemplate.from_template(AI_RUBRIC_EVALUATION_PROMPT)
+            prompt_template = prompt_template.partial(format_instructions=format_instructions)
 
-            if keywords:
-                score = (matched / len(keywords)) * full_score
-                is_correct = score >= (full_score * 0.6)  # 60% 及格
+            # 构建问题内容
+            question_content = build_question_prompt(question)
+
+            # 将用户答案转换为字符串
+            if isinstance(user_answer, (dict, list)):
+                student_answer = json.dumps(user_answer, ensure_ascii=False)
             else:
-                # 没有关键词配置，默认给一半分
-                score = full_score * 0.5
-                is_correct = True
-        else:
-            # 没有 rubric，退回到模糊匹配
-            return FuzzyEvaluator().evaluate(question, user_answer)
+                student_answer = str(user_answer) if user_answer else "（未作答）"
 
-        return EvaluateResult(
-            is_correct=is_correct,
-            score=score,
-            full_score=full_score,
-            correct_answer=self._build_correct_answer_data(question, correct_answers),
-        )
+            prompt_input = {
+                "question_content": question_content,
+                "scoring_criteria": scoring_criteria,
+                "full_score": full_score,
+                "student_answer": student_answer,
+            }
+
+            # 调用 LLM
+            provider = get_provider()
+            result = await provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
+
+            # 解析结果
+            ai_score = float(result.get("score", 0))
+            is_pass = result.get("is_pass", False)
+            feedback = result.get("feedback", "")
+
+            # 确保分数在合理范围内
+            ai_score = max(0, min(ai_score, full_score))
+
+            logger.info(
+                f"AI 评分完成: question_id={question.id}, "
+                f"score={ai_score}/{full_score}, is_pass={is_pass}"
+            )
+
+            return EvaluateResult(
+                is_correct=is_pass,
+                score=ai_score,
+                full_score=full_score,
+                correct_answer=self._build_correct_answer_data(question, correct_answers),
+                feedback=feedback,
+            )
+
+        except Exception as e:
+            logger.error(f"AI 评分失败: {e}")
+            # 评分失败时，给予保守分数（40%）
+            fallback_score = full_score * 0.4
+            return EvaluateResult(
+                is_correct=False,
+                score=fallback_score,
+                full_score=full_score,
+                correct_answer=self._build_correct_answer_data(question, correct_answers),
+            )
 
 
 class AIEvaluator(BaseEvaluator):
     """AI 评判器
 
     适用于：口语题、开放题等需要 AI 评分的题型
-    注意：此评判器只做占位，实际 AI 评分在 answer.py 中异步完成
+    复用 RubricEvaluator 的 AI 评分逻辑
     """
 
-    def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
-        correct_answers = self._get_correct_answers(question)
-        full_score = self._get_full_score(question)
-
-        # AI 评判需要异步调用，这里返回待评判状态
-        # 实际的 AI 评判在 answer.py 中处理
-        return EvaluateResult(
-            is_correct=False,  # 待 AI 评判
-            score=0,
-            full_score=full_score,
-            correct_answer=self._build_correct_answer_data(question, correct_answers),
-        )
+    async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
+        """AI 评分，复用 RubricEvaluator 的逻辑"""
+        return await RubricEvaluator().evaluate(question, user_answer)
 
 
 # 评判器映射
@@ -366,7 +431,7 @@ class AnswerEvaluator:
     """答案评判器 - 根据 answer.type 选择策略"""
 
     @staticmethod
-    def evaluate(
+    async def evaluate(
         question: Question,
         user_answer: Any,
     ) -> EvaluateResult:
@@ -384,12 +449,12 @@ class AnswerEvaluator:
 
         # 如果是复合题，则使用复合题评判器
         if question.stem.get("sub_questions"):
-            return CompositeEvaluator().evaluate(question, user_answer)
+            return await CompositeEvaluator().evaluate(question, user_answer)
 
         evaluator_class = EVALUATOR_MAP.get(answer_type, ExactEvaluator)
         evaluator = evaluator_class()
 
-        return evaluator.evaluate(question, user_answer)
+        return await evaluator.evaluate(question, user_answer)
 
 
 __all__ = [

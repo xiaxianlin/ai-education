@@ -2,7 +2,7 @@
  * 解析区域组件
  * 展示正确答案、题目解析和 AI 分析
  */
-import { BookOpen, CheckCircle, Lightbulb } from "lucide-react";
+import { CheckCircle, Lightbulb } from "lucide-react";
 
 interface AnalysisSectionProps {
   answer: PracticeAnswer;
@@ -105,7 +105,9 @@ function formatCorrectAnswer(correctAnswer: unknown, question: Question): string
  */
 function isChoiceQuestion(question: Question): boolean {
   const interactionType = question?.question_type?.interaction_type;
-  return interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice";
+  return (
+    interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice"
+  );
 }
 
 /**
@@ -114,10 +116,12 @@ function isChoiceQuestion(question: Question): boolean {
 function isAllSubQuestionsChoice(question: Question): boolean {
   const subQuestions = question?.stem?.sub_questions || (question?.stem as any)?.subQuestions || [];
   if (subQuestions.length === 0) return false;
-  
+
   return subQuestions.every((subQ: SubQuestion) => {
     const interactionType = subQ.interaction_type;
-    return interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice";
+    return (
+      interactionType === "single_choice" || interactionType === "multi_choice" || interactionType === "image_choice"
+    );
   });
 }
 
@@ -146,7 +150,7 @@ function formatAnalysis(analysis: unknown): { explanation?: string; analysis?: s
 
 export function AnalysisSection({ answer, question }: AnalysisSectionProps) {
   const correctAnswerText = formatCorrectAnswer(answer.correct_answer, question);
-  const { explanation, analysis } = formatAnalysis(answer.analysis);
+  const { analysis } = formatAnalysis(answer.analysis);
 
   // 判断是否应该隐藏"正确答案"文本
   // 如果是选择题（单题或复合题的所有子题都是选择题），则隐藏
@@ -162,17 +166,6 @@ export function AnalysisSection({ answer, question }: AnalysisSectionProps) {
             <span>正确答案</span>
           </div>
           <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{correctAnswerText}</div>
-        </div>
-      )}
-
-      {/* 题目解析 */}
-      {explanation && (
-        <div className="rounded-xl border border-blue-500/40 bg-blue-50 p-4">
-          <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            <span>题目解析</span>
-          </div>
-          <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{explanation}</div>
         </div>
       )}
 
