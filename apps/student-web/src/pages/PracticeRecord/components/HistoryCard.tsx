@@ -2,7 +2,7 @@
  * 历史记录卡片组件
  */
 import { Badge, Button } from "@/components/ui";
-import { getPracticeIcon, getPracticeName } from "@/lib/practice";
+import { getPracticeIcon } from "@/lib/practice";
 import { formatRelativeTime } from "@ai-education/shared-web";
 import { Eye, Play } from "lucide-react";
 import { FC } from "react";
@@ -64,11 +64,15 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
   const isCompleted = status === 2;
   const isInProgress = status === 1;
   const accuracy = answer_count > 0 ? Math.round((correct_count / answer_count) * 100) : 0;
-  const progress = question_count > 0 ? Math.round((answer_count / question_count) * 100) : 0;
   const statusInfo = getStatusInfo(status);
 
-  const handleViewDetail = () => navigate(`/practice/detail/${id}`);
+  const handleViewDetail = () => navigate(`/practice/result/${id}`);
   const handleContinue = () => navigate(`/practice/${id}`);
+
+  // 获取能力名称或单元名称
+  const practiceTagName = session.practice_type === "ability_practice" 
+    ? session.ability_name || "能力练习"
+    : session.unit_name || "单元练习";
 
   return (
     <div className="group bg-white rounded-2xl p-5 border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all">
@@ -78,8 +82,12 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
           <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
             {getPracticeIcon(session.practice_type)}
           </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground">{getPracticeName(session.practice_type)}</h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="secondary" className="text-xs font-semibold">
+                {practiceTagName}
+              </Badge>
+            </div>
             <div className="text-xs text-muted-foreground">{formatRelativeTime(create_time)}</div>
           </div>
         </div>
@@ -111,19 +119,6 @@ export const HistoryCard: FC<HistoryCardProps> = ({ session }) => {
           <div className="text-[10px] text-muted-foreground font-medium">正确率</div>
         </div>
       </div>
-
-      {/* Progress Bar (进行中显示) */}
-      {isInProgress && (
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-            <span>练习进度</span>
-            <span className="font-medium">{progress}%</span>
-          </div>
-          <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      )}
 
       {/* Actions */}
       <div className="flex gap-2">

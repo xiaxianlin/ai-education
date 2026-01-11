@@ -170,6 +170,8 @@ class PracticeReportSchema(BaseModel):
     recommendations: str = "[]"
     create_time: int
 
+    model_config = {"from_attributes": True}
+
 
 class PracticeDataSchema(BaseModel):
     """练习数据"""

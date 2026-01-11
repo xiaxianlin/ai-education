@@ -17,7 +17,7 @@ from shared.core.schema import (
 from shared.practice.mastery import (
     get_weak_abilities,
 )
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -138,7 +138,7 @@ async def get_mastery_summary(
             func.count(StudentAbilityMastery.id).label("ability_count"),
             func.avg(StudentAbilityMastery.mastery_score).label("avg_mastery_score"),
             func.sum(
-                func.case(
+                case(
                     (StudentAbilityMastery.mastery_level == "mastered", 1),
                     else_=0,
                 )

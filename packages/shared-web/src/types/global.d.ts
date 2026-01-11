@@ -346,8 +346,11 @@ declare global {
     practice_type: string; // 练习类型: ability_practice/unit_practice
     subject?: string; // 科目
     grade?: number; // 年级
+    ability_code?: string; // 原子能力代码（能力练习）
+    ability_name?: string; // 原子能力名称（能力练习）
     ability_codes?: string[]; // 原子能力代码列表
-    unit_id?: number; // 单元ID
+    unit_id?: number; // 单元ID（单元练习）
+    unit_name?: string; // 单元名称（单元练习）
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
     correct_count: number; // 正确数
@@ -479,6 +482,33 @@ declare global {
   interface PracticeStatisticsResponse {
     all_time: PracticeStatistics; // 全部时间统计数据
     recent_30_days: PracticeStatistics; // 最近30天统计数据
+  }
+
+  /**
+   * 能力域掌握度统计（对应 DomainMasterySchema）
+   */
+  interface DomainMastery {
+    domain_code: string; // 能力域代码
+    domain_name: string; // 能力域名称
+    avg_mastery_score: number; // 平均掌握度
+    ability_count: number; // 能力数量
+    mastered_count: number; // 已掌握数量
+  }
+
+  /**
+   * 能力掌握度概览（对应 MasterySummarySchema）
+   */
+  interface MasterySummary {
+    total_abilities: number; // 总能力数
+    practiced_abilities: number; // 已练习能力数
+    avg_mastery_score: number; // 平均掌握度
+    level_distribution: {
+      unlearned?: number; // 未掌握数量
+      beginner?: number; // 初步掌握数量
+      proficient?: number; // 基本掌握数量
+      mastered?: number; // 熟练掌握数量
+    }; // 等级分布
+    domain_stats: DomainMastery[]; // 能力域统计
   }
 
   /**

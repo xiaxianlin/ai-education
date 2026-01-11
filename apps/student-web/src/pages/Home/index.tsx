@@ -2,12 +2,15 @@
  * 首页
  * 视图层：只负责渲染，业务逻辑在 hooks 中
  */
+import { AbilityAnalysisSection } from "./components/AbilityAnalysisSection";
 import { StatisticsSection } from "./components/StatisticsSection";
 import { useHomeStatistics } from "./hooks/useHomeStatistics";
+import { useMasterySummary } from "./hooks/useMasterySummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Home() {
   const { statistics, loading } = useHomeStatistics();
+  const { masterySummary, loading: masteryLoading } = useMasterySummary();
 
   return (
     <div className="space-y-8 animate-springy">
@@ -50,6 +53,23 @@ export default function Home() {
             loading={loading}
           />
         )}
+      </section>
+
+      {/* 能力分析区域 */}
+      <section className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 px-2">
+            <div className="w-2 h-10 bg-primary rounded-full" />
+            <h2 className="text-3xl font-black text-foreground">能力分析</h2>
+          </div>
+          <p className="text-lg font-bold text-muted-foreground px-2">
+            了解你的能力掌握情况，发现学习重点
+          </p>
+        </div>
+        <AbilityAnalysisSection
+          masterySummary={masterySummary}
+          loading={masteryLoading}
+        />
       </section>
     </div>
   );

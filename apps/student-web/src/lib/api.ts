@@ -194,6 +194,14 @@ export const studentApi = {
   },
 
   /**
+   * 获取能力掌握度概览
+   * GET /mastery/summary
+   */
+  async getMasterySummary() {
+    return apiClient.get<MasterySummary>("/mastery/summary");
+  },
+
+  /**
    * 获取单元的知识点列表
    * GET /textbook/{unit_id}/knowledges
    */
