@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom';
-import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Form, Input, message } from 'antd';
-import { validPassword } from '@/utils/validation';
 import { apiClient } from '@/lib/api';
-import { AuthApi } from '../api';
-import { useRequest } from 'ahooks';
 import { useInitialStateModel } from '@/models/initialState';
+import { validPassword } from '@/utils/validation';
+import { PageContainer } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { Button, Card, Form, Input, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { AuthApi } from '../api';
 
 export default function MoidfyPasswordPage() {
   const navigate = useNavigate();

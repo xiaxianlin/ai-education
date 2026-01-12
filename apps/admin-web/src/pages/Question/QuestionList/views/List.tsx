@@ -1,5 +1,6 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks';
+import { getResourceStatus, hasResources, RESOURCE_STATUS_CONFIG } from '@/utils/question';
 import { DIFFICULTY_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
@@ -9,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 import { QuestionApi } from '../../api';
 import { useGenerateQuestionResources } from '../../hooks/useGenerateQuestionResources';
 import { useQuestionListModel } from '../models/page';
-import { getResourceStatus, hasResources, RESOURCE_STATUS_CONFIG } from '../utils';
 
 export function ListView() {
   const navigate = useNavigate();
@@ -62,12 +62,6 @@ export function ListView() {
       title: '题型名称',
       dataIndex: ['question_type', 'name'],
       width: 150,
-    },
-    {
-      title: '题型标识',
-      dataIndex: ['question_type', 'code'],
-      width: 120,
-      copyable: true,
     },
     {
       title: '难度',

@@ -96,7 +96,7 @@ async def search_ability_atomic(db: AsyncSession, params: SearchAbilityAtomicSch
         stmt = stmt.where(AbilityAtomic.grade == params.grade)
     if params.domain_code is not None:
         stmt = stmt.where(AbilityAtomic.domain_code == params.domain_code)
-    stmt = stmt.order_by(AbilityAtomic.sort_order, AbilityAtomic.id)
+    stmt = stmt.order_by(AbilityAtomic.domain_code, AbilityAtomic.id)
 
     result = await db.scalars(stmt)
     atomics = result.all()

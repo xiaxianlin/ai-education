@@ -1,12 +1,12 @@
 import { PageContainer, ProSkeleton } from '@ant-design/pro-components';
 import { Flex } from 'antd';
 
-import {} from 'react';
+import { } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentDetailModel } from '../models/page';
 import { AbilityMastery } from './AbilityMastery';
 import { BasicInfo } from './BasicInfo';
-import { PracticeSessionList } from './PracticeSessionList';
+import { PracticeList } from './PracticeList';
 import { TextbookList } from './TextbookList';
 
 export function Main() {
@@ -23,7 +23,7 @@ export function Main() {
         <BasicInfo />
         <TextbookList />
         <AbilityMastery />
-        <PracticeSessionList />
+        <PracticeList />
       </Flex>
     </PageContainer>
   );

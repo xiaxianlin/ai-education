@@ -14,28 +14,6 @@ export default function MainView() {
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
       {
-        title: '练习ID',
-        dataIndex: 'id',
-        width: 250,
-        render: (id: any) => (
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/practice/detail/${id}`)}>
-            {id}
-          </Button>
-        ),
-      },
-      {
-        title: '练习类型',
-        dataIndex: 'practice_type',
-        width: 120,
-        render: (_, record) => {
-          const config = PRACTICE_TYPE_CONFIG[record.practice_type] || {
-            label: record.practice_type,
-            color: 'default',
-          };
-          return <Tag color={config.color}>{config.label}</Tag>;
-        },
-      },
-      {
         title: '学生',
         dataIndex: ['student', 'name'],
         width: 120,
@@ -72,6 +50,19 @@ export default function MainView() {
           return '-';
         },
       },
+      {
+        title: '练习类型',
+        dataIndex: 'practice_type',
+        width: 120,
+        render: (_, record) => {
+          const config = PRACTICE_TYPE_CONFIG[record.practice_type] || {
+            label: record.practice_type,
+            color: 'default',
+          };
+          return <Tag color={config.color}>{config.label}</Tag>;
+        },
+      },
+
       {
         title: '总题数',
         dataIndex: 'question_count',
@@ -125,6 +116,14 @@ export default function MainView() {
       createActionColumn<Practice>(
         (record) => (
           <>
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0 }}
+              onClick={() => navigate(`/practice/detail/${record.id}`)}
+            >
+              详情
+            </Button>
             <Popconfirm
               title="确定要删除这次练习吗？"
               description="删除后练习数据及报告将无法恢复。"

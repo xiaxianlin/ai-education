@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom';
-import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Form, Input, Descriptions, message, Tag, Space } from 'antd';
-import { SafetyCertificateOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
-import { validPassword } from '@/utils/validation';
-import { apiClient } from '@/lib/api';
-import { AuthApi } from '../api';
-import { useRequest } from 'ahooks';
-import { useInitialStateModel } from '@/models/initialState';
 import { ManagerTypeText } from '@/constants/manager';
+import { apiClient } from '@/lib/api';
+import { useInitialStateModel } from '@/models/initialState';
+import { validPassword } from '@/utils/validation';
+import { KeyOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
+import { Button, Card, Descriptions, Form, Input, message, Space, Tag } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { AuthApi } from '../api';
 
 export default function ProfilePage() {
   const navigate = useNavigate();

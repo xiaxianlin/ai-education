@@ -15,8 +15,6 @@ import QuestionTypeDetail from '@/pages/Question/QuestionTypeDetail';
 import QuestionTypeForm from '@/pages/Question/QuestionTypeForm';
 import QuestionTypeGenerate from '@/pages/Question/QuestionTypeGenerate';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
-import PracticeSessionList from '@/pages/Student/PracticeSessionList';
-import PracticeSessionDetail from '@/pages/Student/PraticeSessionDetail';
 import StudentDetail from '@/pages/Student/StudentDetail';
 import StudentList from '@/pages/Student/StudentList';
 import TeacherBookDetail from '@/pages/TeacherBook/Detail';
@@ -67,8 +65,6 @@ export function Router() {
         // Student routes
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
-        { path: 'student/:id/practices', element: <PracticeSessionList /> },
-        { path: 'student/:id/practice/:session_id', element: <PracticeSessionDetail /> },
         { path: 'password', element: <ModifyPassword /> },
         { path: 'profile', element: <Profile /> },
         { path: '*', element: <NotFound /> },

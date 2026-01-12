@@ -1,11 +1,11 @@
-import { useRequest } from 'ahooks';
-import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/lib/api';
+import { validPassword } from '@/utils/validation';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
-import { validPassword } from '@/utils/validation';
-import { apiClient } from '@/lib/api';
-import './index.less';
+import { useRequest } from 'ahooks';
+import { useNavigate } from 'react-router-dom';
 import { AuthApi } from '../api';
+import './index.less';
 
 export default function LoginPage() {
   const navigate = useNavigate();

@@ -1,33 +1,24 @@
 import { createActionColumn, createStatusColumn, createTimeColumn } from '@/hooks';
 import { GRADES } from '@ai-education/shared-web';
-import { ActionType, PageContainer, ProColumns, ProSkeleton, ProTable } from '@ant-design/pro-components';
-import { Button, Empty, Tag } from 'antd';
+import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
+import { Button, Card, Tag } from 'antd';
 import { useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   GENERATE_STATUS_CONFIG,
   PRACTICE_STATUS_CONFIG,
   PRACTICE_TYPE_CONFIG,
 } from '../../../Practice/PracticeList/utils';
 import { StudentApi } from '../../api';
-import { usePracticeSessionListModel } from '../models/PageModel';
-export function Main() {
+import { useStudentDetailModel } from '../models/page';
+
+export function PracticeList() {
   const navigate = useNavigate();
-  const { student, studentId, studentLoading, studentError } = usePracticeSessionListModel();
+  const { student } = useStudentDetailModel();
   const tableActionRef = useRef<ActionType>();
 
   const columns = useMemo<ProColumns<Practice>[]>(
     () => [
-      {
-        title: '练习ID',
-        dataIndex: 'id',
-        width: 250,
-        render: (id: any) => (
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => navigate(`/practice/detail/${id}`)}>
-            {id}
-          </Button>
-        ),
-      },
       {
         title: '练习类型',
         dataIndex: 'practice_type',
@@ -39,12 +30,6 @@ export function Main() {
           };
           return <Tag color={config.color}>{config.label}</Tag>;
         },
-      },
-      {
-        title: '学生',
-        dataIndex: ['student', 'name'],
-        width: 120,
-        render: () => (student ? <Link to={`/student/detail/${studentId}`}>{student.name}</Link> : studentId),
       },
       {
         title: '科目',
@@ -124,36 +109,18 @@ export function Main() {
       createTimeColumn<Practice>('创建时间', 'create_time', { width: 180 }),
       createActionColumn<Practice>(
         (record) => (
-          <Link to={`/student/${studentId}/practice/${record.id}`}>
-            <Button size="small" type="link">
-              跳转
-            </Button>
-          </Link>
+          <Button size="small" type="link" onClick={() => navigate(`/practice/detail/${record.id}`)}>
+            详情
+          </Button>
         ),
         { width: 100 },
       ),
     ],
-    [student, studentId, navigate],
+    [student?.id, navigate],
   );
 
-  if (studentLoading) {
-    return (
-      <PageContainer title="练习会话列表" header={{ onBack: () => navigate(-1) }}>
-        <ProSkeleton type="descriptions" />
-      </PageContainer>
-    );
-  }
-
-  if (studentError || !student) {
-    return (
-      <PageContainer title="练习会话列表" header={{ onBack: () => navigate(-1) }}>
-        <Empty description={studentError ? '加载失败' : '学生不存在'} />
-      </PageContainer>
-    );
-  }
-
   return (
-    <PageContainer title={`${student.name} - 练习会话列表`} header={{ onBack: () => navigate(-1) }}>
+    <Card title="练习记录" className="simple-table-card">
       <ProTable<Practice>
         actionRef={tableActionRef}
         bordered
@@ -161,7 +128,7 @@ export function Main() {
         columns={columns}
         search={false}
         request={async ({ pageSize, current }) => {
-          const res = await StudentApi.getStudentPracticeSessions(studentId || '', {
+          const res = await StudentApi.getStudentPracticeSessions(student?.id || '', {
             page: current || 1,
             page_size: pageSize || 20,
           });
@@ -179,6 +146,6 @@ export function Main() {
         }}
         toolbar={{ settings: [] }}
       />
-    </PageContainer>
+    </Card>
   );
 }

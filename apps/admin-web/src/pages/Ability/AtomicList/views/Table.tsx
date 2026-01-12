@@ -34,14 +34,6 @@ export default function TableView() {
 
   const columns = useMemo<ProColumns<AbilityAtomic>[]>(
     () => [
-      { title: '能力名称', dataIndex: 'name', width: 200 },
-      { title: '能力代码', dataIndex: 'code', width: 150 },
-      {
-        title: '描述',
-        dataIndex: 'description',
-        ellipsis: true,
-        width: 300,
-      },
       {
         title: '能力域',
         dataIndex: 'domain_code',
@@ -50,6 +42,14 @@ export default function TableView() {
           const domain = domains.find((d) => d.code === code);
           return domain?.name || code;
         },
+      },
+      { title: '能力名称', dataIndex: 'name', width: 200 },
+      { title: '能力代码', dataIndex: 'code', width: 150 },
+      {
+        title: '描述',
+        dataIndex: 'description',
+        ellipsis: true,
+        width: 300,
       },
 
       {
