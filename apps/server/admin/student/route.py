@@ -6,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .schema import (
     SaveStudentSchema,
     SearchStudentSchema,
-    SetStudentSubjectVersionSchema,
+    SaveStudentTextbookConfigSchema,
+    SetStudentTextbookConfigsSchema,
 )
-from .services import practice, student, textbook
+from .services import practice, student, textbook, textbook_config
 
 student_router = APIRouter(prefix="/student", dependencies=[Depends(student.check_student)])
 
@@ -76,29 +77,84 @@ async def get_student_detail(request: Request):
     return StudentSchema.model_validate(student)
 
 
-# ======================== 学生教材管理 ======================== #
+# ======================== 学生教材配置管理 ======================== #
+
+
+@student_router.post(
+    "/{id}/textbook-config",
+    tags=["学生教材配置管理"],
+    summary="创建学生教材配置",
+    description="为指定学生创建一条教材配置",
+)
+async def create_student_textbook_config(
+    request: Request, params: SaveStudentTextbookConfigSchema, db: AsyncSession = Database
+):
+    return await textbook_config.create_student_textbook_config(
+        db, request.state.student, params.model_dump()
+    )
 
 
 @student_router.put(
-    "/{id}/textbook",
-    tags=["学生教材管理"],
-    summary="设置学生科目版本",
-    description="一次性设置学生的科目版本（覆盖旧数据）",
+    "/{id}/textbook-config/{config_id}",
+    tags=["学生教材配置管理"],
+    summary="更新学生教材配置",
+    description="更新指定学生的教材配置",
 )
-async def set_student_subject_versions(
-    request: Request, params: SetStudentSubjectVersionSchema, db: AsyncSession = Database
+async def update_student_textbook_config(
+    request: Request,
+    config_id: int,
+    params: SaveStudentTextbookConfigSchema,
+    db: AsyncSession = Database,
 ):
-    await textbook.set_student_subject_versions(db, request.state.student, params.subject_versions)
+    return await textbook_config.update_student_textbook_config(
+        db, request.state.student, config_id, params.model_dump()
+    )
+
+
+@student_router.delete(
+    "/{id}/textbook-config/{config_id}",
+    tags=["学生教材配置管理"],
+    summary="删除学生教材配置",
+    description="删除指定学生的教材配置",
+)
+async def delete_student_textbook_config(
+    request: Request, config_id: int, db: AsyncSession = Database
+):
+    success = await textbook_config.delete_student_textbook_config(
+        db, request.state.student, config_id
+    )
+    return {"success": success}
 
 
 @student_router.get(
-    "/{id}/textbooks",
-    tags=["学生教材管理"],
-    summary="查询学生科目版本",
-    description="获取学生的科目版本关联信息",
+    "/{id}/textbook-configs",
+    tags=["学生教材配置管理"],
+    summary="查询学生教材配置列表",
+    description="获取指定学生的所有教材配置（支持分页）",
 )
-async def get_student_textbooks(request: Request, db: AsyncSession = Database):
-    return await textbook.get_student_subject_versions(db, request.state.student)
+async def get_student_textbook_configs(
+    request: Request,
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    db: AsyncSession = Database,
+):
+    return await textbook_config.search_student_textbook_configs(
+        db, request.state.student, page=page, page_size=page_size
+    )
+
+
+@student_router.post(
+    "/{id}/textbook-configs",
+    tags=["学生教材配置管理"],
+    summary="批量设置学生教材配置",
+    description="一次性设置学生的教材配置（覆盖旧数据）",
+)
+async def set_student_textbook_configs(
+    request: Request, params: SetStudentTextbookConfigsSchema, db: AsyncSession = Database
+):
+    configs = [config.model_dump() for config in params.configs]
+    await textbook.set_student_textbook_configs(db, request.state.student, configs)
+    return {"message": "配置设置成功"}
 
 
 # ======================== 学生练习管理 ======================== #

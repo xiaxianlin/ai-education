@@ -33,7 +33,21 @@ class SaveStudentSchema(BaseModel):
         return validation.status(v)
 
 
-class SetStudentSubjectVersionSchema(BaseModel):
-    """设置学生科目版本"""
+class SaveStudentTextbookConfigSchema(BaseModel):
+    """保存学生教材配置"""
 
-    subject_versions: list[dict[str, str]]
+    subject: str
+    grade: int
+    semester: str
+    version: str
+
+    @field_validator("grade")
+    @classmethod
+    def valid_grade(cls, v):
+        return validation.grade(v)
+
+
+class SetStudentTextbookConfigsSchema(BaseModel):
+    """批量设置学生教材配置"""
+
+    configs: list[SaveStudentTextbookConfigSchema]

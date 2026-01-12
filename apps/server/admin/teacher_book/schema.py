@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from shared.core.constants import SEMESTERS, SUBJECTS, TEXTBOOK_VERSIONS
+from shared.core.constants import SEMESTERS, SUBJECTS
 
 
 class SaveTeacherBookSchema(BaseModel):
@@ -13,13 +13,6 @@ class SaveTeacherBookSchema(BaseModel):
     def valid_subject(cls, v):
         if v and v not in SUBJECTS:
             raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
-        return v
-
-    @field_validator("version")
-    @classmethod
-    def valid_version(cls, v):
-        if v and v not in TEXTBOOK_VERSIONS:
-            raise ValueError(f"版本只能选泽{'、'.join(TEXTBOOK_VERSIONS)}")
         return v
 
     @field_validator("grade")

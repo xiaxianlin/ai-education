@@ -1,7 +1,6 @@
 from enum import Enum
 
 SUBJECTS = ["语文", "数学", "英语"]
-TEXTBOOK_VERSIONS = ["人教版"]
 SEMESTERS = ["上学期", "下学期"]
 QUESTION_TYPES = ["选择题", "拼写题", "口语题", "判断题", "匹配题", "简答题", "应用题", "操作题"]
 GRADE_NAME_MAP = {

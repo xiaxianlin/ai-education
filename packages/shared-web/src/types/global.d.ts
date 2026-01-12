@@ -90,6 +90,19 @@ declare global {
   }
 
   /**
+   * 教材版本信息（对应 TextbookVersionSchema）
+   */
+  interface TextbookVersion {
+    id: number;
+    subject: string;
+    name: string;
+    revision_year: number;
+    is_enabled: number;
+    create_time?: number;
+    update_time?: number;
+  }
+
+  /**
    * 单元信息（对应 UnitSchema）
    */
   interface Unit {
@@ -310,6 +323,30 @@ declare global {
     status: number; // 0-正常, 1-禁用
     create_time: number;
     update_time?: number;
+  }
+
+  /**
+   * 学生教材配置（对应 StudentTextbookConfigSchema）
+   */
+  interface StudentTextbookConfig {
+    id: number;
+    student_id: string;
+    subject: string;
+    grade: number;
+    semester: string;
+    version: string;
+    create_time: number;
+    update_time: number;
+  }
+
+  /**
+   * 保存学生教材配置请求
+   */
+  interface SaveStudentTextbookConfigRequest {
+    subject: string;
+    grade: number;
+    semester: string;
+    version: string;
   }
 
   /**

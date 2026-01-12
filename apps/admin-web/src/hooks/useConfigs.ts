@@ -7,7 +7,6 @@ export const useConfigs = () => {
   const {
     semesters = [],
     subjects = [],
-    textbook_versions = [],
     question_types = [],
     difficulty_levels = [],
     providers = [],
@@ -19,14 +18,11 @@ export const useConfigs = () => {
 
   const difficultyLevelEmun = difficulty_levels.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
-  const textbookVersionEmun = textbook_versions.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
-
   const questionTypeEnum = question_types.reduce((prev, curr) => ({ ...prev, [curr]: curr }), {}) || {};
 
   return {
     semesters,
     subjects,
-    textbook_versions,
     question_types,
     difficulty_levels,
     providers,
@@ -34,6 +30,5 @@ export const useConfigs = () => {
     gradeEnum,
     questionTypeEnum,
     difficultyLevelEmun,
-    textbookVersionEmun,
   };
 };

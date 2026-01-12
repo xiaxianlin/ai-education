@@ -7,7 +7,6 @@ import { useStudentDetailModel } from '../models/page';
 import { AbilityMastery } from './AbilityMastery';
 import { BasicInfo } from './BasicInfo';
 import { PracticeList } from './PracticeList';
-import { TextbookList } from './TextbookList';
 
 export function Main() {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ export function Main() {
     <PageContainer title="学生详情" header={{ onBack: () => navigate(-1) }}>
       <Flex vertical gap={16}>
         <BasicInfo />
-        <TextbookList />
         <AbilityMastery />
         <PracticeList />
       </Flex>

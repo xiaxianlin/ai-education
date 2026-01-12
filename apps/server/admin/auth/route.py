@@ -4,7 +4,6 @@ from shared.core.constants import (
     QUESTION_TYPES,
     SEMESTERS,
     SUBJECTS,
-    TEXTBOOK_VERSIONS,
 )
 from shared.core.database import Database
 from shared.core.schema import ManagerSchema
@@ -40,7 +39,6 @@ async def check(request: Request):
 async def configs():
     return {
         "subjects": SUBJECTS,
-        "textbook_versions": TEXTBOOK_VERSIONS,
         "semesters": SEMESTERS,
         "question_types": QUESTION_TYPES,
         "difficulty_levels": DIFFICULTY_LEVELS,

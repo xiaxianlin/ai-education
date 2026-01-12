@@ -1,85 +1,58 @@
-from shared.core.database import Student, StudentSubjectVersion, Textbook
-from shared.core.schema import StudentSchema, StudentSubjectVersionSchema, TextbookSchema
+from shared.core.database import Student, StudentTextbookConfig, Textbook
+from shared.core.schema import StudentSchema, StudentTextbookConfigSchema, TextbookSchema
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def set_student_subject_versions(
-    db: AsyncSession, student: StudentSchema, subject_versions: list[dict[str, str]]
+async def set_student_textbook_configs(
+    db: AsyncSession, student: StudentSchema, configs: list[dict[str, str | int]]
 ):
-    """一次性设置学生科目版本（覆盖旧数据）"""
-    # 1. 先删除该学生的所有科目版本记录
-    await db.execute(delete(StudentSubjectVersion).where(StudentSubjectVersion.student_id == student.id))
+    """批量设置学生教材配置（覆盖式）"""
+    # 1. 先删除该学生的所有配置记录
+    await db.execute(delete(StudentTextbookConfig).where(StudentTextbookConfig.student_id == student.id))
 
-    # 2. 过滤掉 version 为空或 None 的项（表示清除版本）
-    valid_records = [
-        {"student_id": student.id, "subject": item["subject"], "version": item["version"]}
-        for item in subject_versions
-        if item.get("version") and item.get("version").strip()
-    ]
-
-    # 3. 批量插入有效的科目版本记录
-    if valid_records:
+    # 2. 批量插入新的配置记录
+    if configs:
         records = [
-            StudentSubjectVersion(
-                student_id=record["student_id"], subject=record["subject"], version=record["version"]
+            StudentTextbookConfig(
+                student_id=student.id,
+                subject=config["subject"],
+                grade=config["grade"],
+                semester=config["semester"],
+                version=config["version"],
             )
-            for record in valid_records
+            for config in configs
         ]
         db.add_all(records)
 
     await db.commit()
 
 
-async def get_student_subject_versions(db: AsyncSession, student: StudentSchema):
-    """查询学生科目版本"""
+async def get_student_textbook_configs(db: AsyncSession, student: StudentSchema):
+    """查询学生的教材配置列表"""
     result = await db.scalars(
-        select(StudentSubjectVersion).where(StudentSubjectVersion.student_id == student.id)
+        select(StudentTextbookConfig).where(StudentTextbookConfig.student_id == student.id)
     )
-    return [
-        StudentSubjectVersionSchema.model_validate(item) for item in result.all()
-    ]
-
-
-async def get_textbook_by_subject_version(
-    db: AsyncSession, student: StudentSchema, subject: str, version: str
-):
-    """通过学生-科目-版本查询教材"""
-    # 获取学生的年级和学期
-    student_obj = await db.scalar(select(Student).where(Student.id == student.id))
-    if not student_obj or not student_obj.grade or not student_obj.semester:
-        return None
-
-    result = await db.scalar(
-        select(Textbook).where(
-            Textbook.subject == subject,
-            Textbook.version == version,
-            Textbook.grade == student_obj.grade,
-            Textbook.semester == student_obj.semester,
-        )
-    )
-    return TextbookSchema.model_validate(result) if result else None
+    return [StudentTextbookConfigSchema.model_validate(item) for item in result.all()]
 
 
 async def get_student_textbooks(db: AsyncSession, student: StudentSchema):
-    """查询学生的教材（通过科目版本关联）"""
-    # 1. 查询学生的科目版本关联
-    subject_versions = await get_student_subject_versions(db, student)
+    """根据配置查询实际教材（根据 subject/grade/semester/version 查找 Textbook）"""
+    # 1. 查询学生的教材配置
+    configs = await get_student_textbook_configs(db, student)
 
-    # 2. 获取学生的年级和学期
-    student_obj = await db.scalar(select(Student).where(Student.id == student.id))
-    if not student_obj or not student_obj.grade or not student_obj.semester:
+    if not configs:
         return []
 
-    # 3. 对于每个科目版本关联，根据学生的年级、学期查询对应的教材
+    # 2. 对于每个配置，查找对应的 Textbook
     textbooks = []
-    for sv in subject_versions:
+    for config in configs:
         result = await db.scalars(
             select(Textbook).where(
-                Textbook.subject == sv.subject,
-                Textbook.version == sv.version,
-                Textbook.grade == student_obj.grade,
-                Textbook.semester == student_obj.semester,
+                Textbook.subject == config.subject,
+                Textbook.version == config.version,
+                Textbook.grade == config.grade,
+                Textbook.semester == config.semester,
             )
         )
         textbooks.extend([TextbookSchema.model_validate(item) for item in result.all()])

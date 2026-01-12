@@ -35,7 +35,7 @@ from .question import (
 )
 
 # 学生模块
-from .student import StudentSchema, StudentSubjectVersionSchema
+from .student import StudentSchema, StudentTextbookConfigSchema
 
 # 教材模块
 from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
@@ -89,7 +89,7 @@ __all__ = [
     "PracticeDataSchema",
     # 学生
     "StudentSchema",
-    "StudentSubjectVersionSchema",
+    "StudentTextbookConfigSchema",
     # 能力
     "AbilityDomainSchema",
     "AbilityAtomicSchema",

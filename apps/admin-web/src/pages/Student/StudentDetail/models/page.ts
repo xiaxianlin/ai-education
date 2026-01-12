@@ -11,7 +11,6 @@ const useContainer = () => {
   const { id } = useParams<{ id: string }>();
   const [editForm] = ProForm.useForm<SaveStudentRequest>();
   const [editFormVisible, setEditFormVisible] = useState(false);
-  const [addTextbookVisible, setAddTextbookVisible] = useState(false);
 
   const {
     data: student,
@@ -20,17 +19,6 @@ const useContainer = () => {
   } = useRequest(() => StudentApi.getStudent(id!), {
     ready: !!id,
     refreshDeps: [id],
-  });
-
-  const textbookService = useRequest(() => StudentApi.getStudentTextbooks(student?.id || ''), {
-    ready: !!student?.id,
-    onSuccess: (data) => {
-      console.group('📖 textbookService 数据');
-      console.log('数据:', data);
-      console.table(data);
-      console.log('JSON 格式:', JSON.stringify(data, null, 2));
-      console.groupEnd();
-    },
   });
 
   const { runAsync: handleDelete, loading: deleting } = useRequest(() => StudentApi.deleteStudent(id!), {
@@ -63,9 +51,6 @@ const useContainer = () => {
     editForm,
     editFormVisible,
     setEditFormVisible,
-    textbookService,
-    addTextbookVisible,
-    setAddTextbookVisible,
   };
 };
 

@@ -51,6 +51,7 @@ const routes = {
       children: [
         { path: '/textbook', name: '教材管理' },
         { path: '/teacher_book', name: '教师用书管理' },
+        { path: '/textbook_version', name: '教材版本管理' },
       ],
     },
   ],
@@ -74,7 +75,7 @@ export function AdminLayout() {
     <ProLayout
       className="admin-layout"
       logo={logo}
-      title="AI 教育"
+      title="AI刷题平台"
       layout="mix"
       fixSiderbar
       fixedHeader

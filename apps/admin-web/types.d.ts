@@ -43,7 +43,6 @@ declare global {
    */
   interface Configs {
     subjects: string[];
-    textbook_versions: string[];
     semesters: string[];
     question_types: string[];
     difficulty_levels: string[];

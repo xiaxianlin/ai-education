@@ -1,7 +1,7 @@
 """
 学生相关模型
 
-包含 Student、StudentSubjectVersion
+包含 Student、StudentTextbookConfig
 """
 
 from typing import TYPE_CHECKING, Optional
@@ -30,15 +30,19 @@ class Student(BaseModel):
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
-class StudentSubjectVersion(BaseModel):
-    """学生科目版本关联表"""
+class StudentTextbookConfig(BaseModel):
+    """学生教材配置表"""
 
-    __tablename__ = "ah_student_subject_version"
+    __tablename__ = "ah_student_textbook_config"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    grade: Mapped[int] = mapped_column(nullable=False)
+    semester: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(255), nullable=False)
+    create_time: Mapped[int] = mapped_column(default=now)
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 
 
-__all__ = ["Student", "StudentSubjectVersion"]
+__all__ = ["Student", "StudentTextbookConfig"]

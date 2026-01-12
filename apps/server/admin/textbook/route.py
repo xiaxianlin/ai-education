@@ -180,3 +180,13 @@ async def query_units(id: int, db: AsyncSession = Database):
 )
 async def query_knowledge(id: int, params: SearchSchema = Depends(), db: AsyncSession = Database):
     return await knowledge.query_knowledges_by_textbook(db, id, params)
+
+
+@textbook_router.get(
+    "/available-options",
+    tags=["教材管理"],
+    summary="获取可用教材选项",
+    description="获取系统中所有可用的年级、学科、学期选项（从教材表聚合）",
+)
+async def get_available_options(db: AsyncSession = Database):
+    return await textbook.get_available_textbook_options(db)

@@ -4,7 +4,7 @@
 包含 Textbook、Unit、Knowledge、TeacherBook
 """
 
-from .base import BaseModel, Mapped, mapped_column, relationship, String, Text
+from .base import BaseModel, Mapped, mapped_column, now, relationship, String, Text
 
 
 class Textbook(BaseModel):
@@ -84,4 +84,18 @@ class TeacherBook(BaseModel):
     index_file_id: Mapped[str] = mapped_column(String(255), nullable=True)
 
 
-__all__ = ["Textbook", "Unit", "Knowledge", "TeacherBook"]
+class TextbookVersion(BaseModel):
+    """教材版本表"""
+
+    __tablename__ = "ah_textbook_version"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    revision_year: Mapped[int] = mapped_column(nullable=False)
+    is_enabled: Mapped[int] = mapped_column(default=1)
+    create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
+    update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
+
+
+__all__ = ["Textbook", "Unit", "Knowledge", "TeacherBook", "TextbookVersion"]

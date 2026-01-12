@@ -51,26 +51,46 @@ export const StudentApi = {
   },
 
   /**
-   * 获取学生的教材列表（返回科目版本信息）
-   * GET /student/{id}/textbooks
+   * 获取学生教材配置列表
+   * GET /student/{id}/textbook-configs
    */
-  async getStudentTextbooks(id: string) {
-    const result = await apiClient.get<Array<{ subject: string; version: string }>>(`/student/${id}/textbooks`);
-    console.group('📚 getStudentTextbooks 接口返回');
-    console.log('请求参数 - studentId:', id);
-    console.log('返回数据:', result);
-    console.table(result);
-    console.log('JSON 格式:', JSON.stringify(result, null, 2));
-    console.groupEnd();
-    return result;
+  async getStudentTextbookConfigs(id: string, params?: { page?: number; page_size?: number }) {
+    return apiClient.get<{ items: StudentTextbookConfig[]; total: number; page: number; page_size: number }>(
+      `/student/${id}/textbook-configs`,
+      params,
+    );
   },
 
   /**
-   * 设置学生科目版本（一次性设置，覆盖旧数据）
-   * PUT /student/{id}/textbook
+   * 创建学生教材配置
+   * POST /student/{id}/textbook-config
    */
-  async setStudentSubjectVersions(id: string, subjectVersions: Array<{ subject: string; version: string }>) {
-    return apiClient.put(`/student/${id}/textbook`, { subject_versions: subjectVersions });
+  async createStudentTextbookConfig(id: string, config: SaveStudentTextbookConfigRequest) {
+    return apiClient.post<StudentTextbookConfig>(`/student/${id}/textbook-config`, config);
+  },
+
+  /**
+   * 更新学生教材配置
+   * PUT /student/{id}/textbook-config/{config_id}
+   */
+  async updateStudentTextbookConfig(id: string, configId: number, config: SaveStudentTextbookConfigRequest) {
+    return apiClient.put<StudentTextbookConfig>(`/student/${id}/textbook-config/${configId}`, config);
+  },
+
+  /**
+   * 删除学生教材配置
+   * DELETE /student/{id}/textbook-config/{config_id}
+   */
+  async deleteStudentTextbookConfig(id: string, configId: number) {
+    return apiClient.delete(`/student/${id}/textbook-config/${configId}`);
+  },
+
+  /**
+   * 批量设置学生教材配置
+   * POST /student/{id}/textbook-configs
+   */
+  async setStudentTextbookConfigs(id: string, configs: SaveStudentTextbookConfigRequest[]) {
+    return apiClient.post(`/student/${id}/textbook-configs`, { configs });
   },
 
   /**

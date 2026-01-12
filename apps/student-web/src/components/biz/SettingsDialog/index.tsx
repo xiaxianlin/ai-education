@@ -4,8 +4,10 @@
 import { useProfileModel } from "@/common/models/ProfileModel";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui";
 import { GRADES, GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS } from "@ai-education/shared-web";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
+import { studentApi } from "@/lib/api";
+import { useRequest } from "ahooks";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -19,6 +21,36 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
   const [semester, setSemester] = useState<string>(profile?.semester || "");
   const [subject, setSubject] = useState<string>(profile?.subject || "");
   const [loading, setLoading] = useState(false);
+
+  // 获取可用教材选项
+  const { data: availableOptions, loading: optionsLoading } = useRequest(
+    () => studentApi.getAvailableTextbookOptions(),
+    {
+      ready: open,
+    }
+  );
+
+  // 根据可用选项生成选项列表
+  const gradeOptions = useMemo(() => {
+    if (availableOptions?.grades && availableOptions.grades.length > 0) {
+      return GRADE_OPTIONS.filter(opt => availableOptions.grades.includes(opt.value));
+    }
+    return GRADE_OPTIONS;
+  }, [availableOptions]);
+
+  const semesterOptions = useMemo(() => {
+    if (availableOptions?.semesters && availableOptions.semesters.length > 0) {
+      return SEMESTER_OPTIONS.filter(opt => availableOptions.semesters.includes(opt.value));
+    }
+    return SEMESTER_OPTIONS;
+  }, [availableOptions]);
+
+  const subjectOptions = useMemo(() => {
+    if (availableOptions?.subjects && availableOptions.subjects.length > 0) {
+      return SUBJECT_OPTIONS.filter(opt => availableOptions.subjects.includes(opt.value));
+    }
+    return SUBJECT_OPTIONS;
+  }, [availableOptions]);
 
   // 当弹窗打开或 profile 更新时，同步初始值
   useEffect(() => {
@@ -81,7 +113,7 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
               onChange={(e) => setGrade(Number(e.target.value))}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {GRADE_OPTIONS.map((option) => (
+              {gradeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -101,7 +133,7 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">请选择学期</option>
-              {SEMESTER_OPTIONS.map((option) => (
+              {semesterOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -121,7 +153,7 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">请选择学科</option>
-              {SUBJECT_OPTIONS.map((option) => (
+              {subjectOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

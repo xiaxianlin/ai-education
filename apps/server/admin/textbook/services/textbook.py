@@ -10,7 +10,7 @@ from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
 from shared.provider import get_provider
 from shared.utils import rag
-from sqlalchemy import asc, delete, select
+from sqlalchemy import asc, delete, distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import SaveTextbookSchema, SearchTextbookSchema, UnitExtractionResult
@@ -243,3 +243,28 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     textbook.is_parsed = 1
     await db.commit()
+
+
+async def get_available_textbook_options(db: AsyncSession):
+    """获取可用的教材选项（年级、学科、学期）"""
+    from sqlalchemy import func
+
+    # 获取所有唯一的学科
+    subjects_result = await db.scalars(select(distinct(Textbook.subject)).order_by(Textbook.subject))
+    subjects = [s for s in subjects_result.all() if s]
+
+    # 获取所有唯一的年级
+    grades_result = await db.scalars(select(distinct(Textbook.grade)).order_by(Textbook.grade))
+    grades = [g for g in grades_result.all() if g is not None]
+
+    # 获取所有唯一的学期
+    semesters_result = await db.scalars(
+        select(distinct(Textbook.semester)).order_by(Textbook.semester)
+    )
+    semesters = [s for s in semesters_result.all() if s]
+
+    return {
+        "subjects": subjects,
+        "grades": grades,
+        "semesters": semesters,
+    }

@@ -8,7 +8,7 @@ import { TeacherBookApi } from '../../api';
 import { useTeacherBookListModel } from '../models/page';
 
 export default function TableView() {
-  const { subjectEnum, gradeEnum, textbookVersionEmun } = useConfigs();
+  const { subjectEnum, gradeEnum } = useConfigs();
   const {
     grade,
     subject,
@@ -18,7 +18,6 @@ export default function TableView() {
 
   const columns = useMemo<ProColumns<TeacherBook>[]>(
     () => [
-      { title: 'ID', dataIndex: 'id' },
       { title: '版本', dataIndex: 'version' },
       { title: '学期', dataIndex: 'semester' },
       {
@@ -42,7 +41,7 @@ export default function TableView() {
         { width: 120 },
       ),
     ],
-    [showForm, subjectEnum, textbookVersionEmun, gradeEnum],
+    [showForm, subjectEnum, gradeEnum],
   );
 
   return (

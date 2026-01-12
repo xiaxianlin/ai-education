@@ -38,11 +38,16 @@ export default function TableView() {
       createTimeColumn<Student>('更新时间', 'update_time'),
       createActionColumn<Student>(
         (record) => (
-          <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
-            删除
-          </Button>
+          <>
+            <Button size="small" type="link" onClick={() => navigate(`/student/${record.id}/textbook-config`)}>
+              教材管理
+            </Button>
+            <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
+              删除
+            </Button>
+          </>
         ),
-        { width: 80 },
+        { width: 160 },
       ),
     ],
     [navigate, handleDelete],

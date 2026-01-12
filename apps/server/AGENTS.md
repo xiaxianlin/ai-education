@@ -123,7 +123,7 @@
 | PracticeAnswer        | ah_practice_answer          | 答题记录       |
 | PracticeReport        | ah_practice_report          | 练习报告       |
 | Student               | ah_student                 | 学生           |
-| StudentSubjectVersion | ah_student_subject_version | 学生科目版本关联   |
+| StudentTextbookConfig | ah_student_textbook_config | 学生教材配置   |
 | StudentPractice       | ah_student_practice        | 学生练习关联   |
 
 ## 开发规范
