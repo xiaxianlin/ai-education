@@ -1,7 +1,7 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { DragSortTable, ProColumns } from '@ant-design/pro-components';
-import { Button, message, Tag } from 'antd';
-import { useMemo } from 'react';
+import { Button, message, Space, Tag } from 'antd';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { createActionColumn, useDelete } from '@/hooks';
@@ -16,10 +16,47 @@ export default function TableView() {
   } = useAbilityListModel();
 
   const navigate = useNavigate();
+  const [exporting, setExporting] = useState(false);
 
   const { handleDelete } = useDelete(AbilityApi.deleteDomain, {
     onSuccess: () => actionRef.current?.reload(),
   });
+
+  // 导出能力域数据
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      message.loading({ content: '正在导出能力域数据...', key: 'export', duration: 0 });
+
+      const blob = await AbilityApi.exportDomainsBySubject(subject);
+
+      // 生成文件名
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const filename = `ability-domains-${subject}-${timestamp}.json`;
+
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 释放 URL 对象
+      URL.revokeObjectURL(url);
+
+      message.destroy('export');
+      message.success('能力域数据导出成功');
+    } catch (error) {
+      message.destroy('export');
+      message.error('导出失败：' + (error instanceof Error ? error.message : '未知错误'));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const columns = useMemo<ProColumns<AbilityDomain>[]>(
     () => [
@@ -101,9 +138,19 @@ export default function TableView() {
       dragSortKey="sort_order"
       onDragSortEnd={handleDragSortEnd}
       headerTitle={
-        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => showForm()}>
-          新增能力域
-        </Button>
+        <Space>
+          <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => showForm()}>
+            新增能力域
+          </Button>
+          <Button
+            size="large"
+            icon={<DownloadOutlined />}
+            loading={exporting}
+            onClick={handleExport}
+          >
+            导出
+          </Button>
+        </Space>
       }
       request={async () => {
         const data = await AbilityApi.searchDomains({ subject });

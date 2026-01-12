@@ -177,3 +177,13 @@ async def batch_update_domain_sort_order(db: AsyncSession, items: list[DomainSor
 
     await db.commit()
     return updated_count
+
+
+async def export_domains_by_subject(db: AsyncSession, subject: str) -> list[AbilityDomainSchema]:
+    """查询并导出指定科目的能力域"""
+    stmt = select(AbilityDomain).where(AbilityDomain.subject == subject)
+    stmt = stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
+
+    result = await db.scalars(stmt)
+    domains = result.all()
+    return [AbilityDomainSchema.model_validate(domain) for domain in domains]

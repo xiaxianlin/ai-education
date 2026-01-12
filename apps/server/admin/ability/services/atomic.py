@@ -146,3 +146,81 @@ async def batch_update_atomic_sort_order(db: AsyncSession, items: List[AtomicSor
 
     await db.commit()
     return updated_count
+
+
+async def export_ability_atomics_by_grade(
+    db: AsyncSession, subject: str, grade: int, domain_code: str
+) -> List[AbilityAtomicSchema]:
+    """查询并导出指定年级的原子能力"""
+    stmt = select(AbilityAtomic).where(
+        AbilityAtomic.subject == subject,
+        AbilityAtomic.grade == grade,
+        AbilityAtomic.domain_code == domain_code,
+    )
+    stmt = stmt.order_by(AbilityAtomic.sort_order, AbilityAtomic.id)
+
+    result = await db.scalars(stmt)
+    atomics = result.all()
+    return [AbilityAtomicSchema.model_validate(atomic) for atomic in atomics]
+
+
+async def delete_atomics_by_grade(
+    db: AsyncSession, subject: str, grade: int, domain_code: str
+) -> int:
+    """删除指定能力域+年级的所有原子能力，返回删除的数量"""
+    stmt = select(AbilityAtomic).where(
+        AbilityAtomic.subject == subject,
+        AbilityAtomic.grade == grade,
+        AbilityAtomic.domain_code == domain_code,
+    )
+    result = await db.scalars(stmt)
+    atomics = list(result.all())
+    count = len(atomics)
+
+    # 删除所有匹配的原子能力
+    for atomic in atomics:
+        await db.delete(atomic)
+
+    await db.commit()
+    return count
+
+
+async def batch_create_ability_atomics(
+    db: AsyncSession, atomic_data_list: List[CreateAbilityAtomicSchema]
+) -> List[AbilityAtomic]:
+    """批量创建原子能力"""
+    atomics = []
+    for atomic_data in atomic_data_list:
+        subject = atomic_data.subject.strip()
+        grade = atomic_data.grade
+        code = atomic_data.code.strip()
+        domain_code = atomic_data.domain_code.strip()
+
+        # 检查能力域是否存在
+        domain_stmt = select(AbilityDomain).where(
+            AbilityDomain.subject == subject, AbilityDomain.code == domain_code
+        )
+        domain = await db.scalar(domain_stmt)
+        if not domain:
+            raise ValueError(f"能力域不存在: {subject}/{domain_code}")
+
+        atomic = AbilityAtomic(
+            subject=subject,
+            grade=grade,
+            domain_code=domain_code,
+            code=code,
+            name=atomic_data.name.strip(),
+            description=atomic_data.description.strip() if atomic_data.description else None,
+            difficulty=atomic_data.difficulty,
+            sort_order=atomic_data.sort_order,
+        )
+        db.add(atomic)
+        atomics.append(atomic)
+
+    await db.commit()
+
+    # 刷新所有对象以获取 ID
+    for atomic in atomics:
+        await db.refresh(atomic)
+
+    return atomics

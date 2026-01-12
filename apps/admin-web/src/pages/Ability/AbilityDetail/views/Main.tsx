@@ -1,9 +1,9 @@
 import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Flex, Spin } from 'antd';
-import DomainInfo from './DomainInfo';
-import AtomicList from './AtomicList';
-import AtomicForm from './AtomicForm';
+import { Button, Flex, Spin } from 'antd';
 import { useAbilityDetailModel } from '../models/page';
+import AtomicForm from './AtomicForm';
+import AtomicList from './AtomicList';
+import DomainInfo from './DomainInfo';
 
 export default function MainView() {
   const { domain, loading, navigate } = useAbilityDetailModel();
@@ -12,7 +12,7 @@ export default function MainView() {
     <PageContainer
       title="能力详情"
       header={{
-        onBack: () => navigate('/learning/ability'),
+        onBack: () => navigate('/ability'),
         breadcrumb: {},
       }}
     >
@@ -27,7 +27,7 @@ export default function MainView() {
       </Spin>
       <FooterToolbar className="page-footer">
         <Flex justify="center" gap={16}>
-          <Button size="large" onClick={() => navigate('/learning/ability')}>
+          <Button size="large" onClick={() => navigate('/ability')}>
             返回
           </Button>
         </Flex>

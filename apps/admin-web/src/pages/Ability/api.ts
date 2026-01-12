@@ -138,6 +138,28 @@ export const AbilityApi = {
     );
   },
 
+  /**
+   * 导出能力域数据（按科目）
+   * POST /ability/domain/export
+   */
+  async exportDomainsBySubject(subject: string): Promise<Blob> {
+    const url = `/api/admin/ability/domain/export?subject=${encodeURIComponent(subject)}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-access-token': apiClient.getToken() || '',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`导出失败: ${response.statusText} - ${errorText}`);
+    }
+
+    return await response.blob();
+  },
+
   // ========== 原子能力管理 ==========
 
   /**
@@ -200,5 +222,68 @@ export const AbilityApi = {
       '/ability/atomic/batch-sort',
       data
     );
+  },
+
+  /**
+   * 导出原子能力数据（按年级）
+   * POST /ability/atomic/export
+   */
+  async exportAtomicsByGrade(params: {
+    domain_code: string;
+    subject: string;
+    grade: number;
+  }): Promise<Blob> {
+    const url = `/api/admin/ability/atomic/export?domain_code=${encodeURIComponent(
+      params.domain_code
+    )}&subject=${encodeURIComponent(params.subject)}&grade=${params.grade}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-access-token': apiClient.getToken() || '',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`导出失败: ${response.statusText} - ${errorText}`);
+    }
+
+    return await response.blob();
+  },
+
+  /**
+   * 导入原子能力数据（按年级）
+   * POST /ability/atomic/import
+   */
+  async importAtomicsByGrade(
+    file: File,
+    params: {
+      domain_code: string;
+      subject: string;
+      grade: number;
+    }
+  ): Promise<{ deleted_count: number; created_count: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const url = `/api/admin/ability/atomic/import?domain_code=${encodeURIComponent(
+      params.domain_code
+    )}&subject=${encodeURIComponent(params.subject)}&grade=${params.grade}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-access-token': apiClient.getToken() || '',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `导入失败: ${response.statusText}`);
+    }
+
+    return await response.json();
   },
 };

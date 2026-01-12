@@ -38,21 +38,18 @@ export default function AtomicFormView() {
       labelCol={{ span: 4 }}
     >
       <div className="pt-3" />
-      {!formItem && (
-        <ProFormText
-          name="code"
-          label="能力代码"
-          placeholder="请输入能力代码"
-          rules={[{ required: true, message: '请输入能力代码' }]}
-        />
-      )}
       <ProFormText
         name="name"
-        label="能力名称"
-        placeholder="请输入能力名称"
+        label="名称"
+        placeholder="请输入名称"
         rules={[{ required: true, message: '请输入能力名称' }]}
       />
-      <ProFormTextArea name="description" label="描述" placeholder="请输入能力描述" fieldProps={{ rows: 4 }} />
+      <ProFormText
+        name="code"
+        label="标识"
+        placeholder="请输入标识"
+        rules={[{ required: true, message: '请输入标识' }]}
+      />
       <ProFormDigit
         name="difficulty"
         label="难度"
@@ -65,6 +62,7 @@ export default function AtomicFormView() {
           { type: 'number', min: 1, max: 5, message: '难度范围为1-5' },
         ]}
       />
+      <ProFormTextArea name="description" label="描述" placeholder="请输入描述" fieldProps={{ rows: 4 }} />
     </ModalForm>
   );
 }
