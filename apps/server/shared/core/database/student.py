@@ -34,10 +34,7 @@ class StudentTextbookConfig(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     student_id: Mapped[str] = mapped_column(String(255), index=True)
-    subject: Mapped[str] = mapped_column(String(255), nullable=False)
-    grade: Mapped[int] = mapped_column(nullable=False)
-    semester: Mapped[str] = mapped_column(String(255), nullable=False)
-    version: Mapped[str] = mapped_column(String(255), nullable=False)
+    textbook_id: Mapped[int] = mapped_column(nullable=False, index=True)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)
 

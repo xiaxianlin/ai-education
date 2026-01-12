@@ -28,14 +28,18 @@ class StudentTextbookConfigSchema(BaseModel):
 
     id: int
     student_id: str
-    subject: str
-    grade: int
-    semester: str
-    version: str
+    textbook_id: int
+    textbook: Optional["TextbookSchema"] = None  # 关联的教材信息
     create_time: int
     update_time: int
 
     model_config = {"from_attributes": True}
+
+
+# 避免循环导入
+from .textbook import TextbookSchema
+
+StudentTextbookConfigSchema.model_rebuild()
 
 
 __all__ = [

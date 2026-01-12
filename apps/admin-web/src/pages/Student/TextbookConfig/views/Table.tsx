@@ -14,24 +14,24 @@ export default function TableView() {
     () => [
       {
         title: '学科',
-        dataIndex: 'subject',
+        dataIndex: ['textbook', 'subject'],
         width: 100,
         valueEnum: subjectEnum,
       },
       {
         title: '年级',
-        dataIndex: 'grade',
+        dataIndex: ['textbook', 'grade'],
         width: 100,
         valueEnum: gradeEnum,
       },
       {
         title: '学期',
-        dataIndex: 'semester',
+        dataIndex: ['textbook', 'semester'],
         width: 120,
       },
       {
         title: '版本',
-        dataIndex: 'version',
+        dataIndex: ['textbook', 'version'],
         width: 200,
       },
       createActionColumn<StudentTextbookConfig>(
@@ -79,19 +79,13 @@ export default function TableView() {
         const data = await StudentApi.getStudentTextbookConfigs(studentId, {
           page: current || 1,
           page_size: pageSize || 20,
+          subject: subject || undefined,
+          grade: grade || undefined,
         });
-        // 根据选中的 subject 和 grade 过滤数据
-        let filteredItems = data.items || [];
-        if (subject) {
-          filteredItems = filteredItems.filter((item) => item.subject === subject);
-        }
-        if (grade) {
-          filteredItems = filteredItems.filter((item) => item.grade === grade);
-        }
         return {
-          data: filteredItems,
+          data: data.items || [],
           success: true,
-          total: filteredItems.length,
+          total: data.total,
         };
       }}
     />

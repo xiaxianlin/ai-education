@@ -36,15 +36,7 @@ class SaveStudentSchema(BaseModel):
 class SaveStudentTextbookConfigSchema(BaseModel):
     """保存学生教材配置"""
 
-    subject: str
-    grade: int
-    semester: str
-    version: str
-
-    @field_validator("grade")
-    @classmethod
-    def valid_grade(cls, v):
-        return validation.grade(v)
+    textbook_id: int
 
 
 class SetStudentTextbookConfigsSchema(BaseModel):

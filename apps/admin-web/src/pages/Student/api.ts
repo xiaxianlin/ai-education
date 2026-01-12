@@ -54,7 +54,10 @@ export const StudentApi = {
    * 获取学生教材配置列表
    * GET /student/{id}/textbook-configs
    */
-  async getStudentTextbookConfigs(id: string, params?: { page?: number; page_size?: number }) {
+  async getStudentTextbookConfigs(
+    id: string,
+    params?: { page?: number; page_size?: number; subject?: string; grade?: number },
+  ) {
     return apiClient.get<{ items: StudentTextbookConfig[]; total: number; page: number; page_size: number }>(
       `/student/${id}/textbook-configs`,
       params,

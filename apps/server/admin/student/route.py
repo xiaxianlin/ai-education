@@ -130,16 +130,18 @@ async def delete_student_textbook_config(
     "/{id}/textbook-configs",
     tags=["学生教材配置管理"],
     summary="查询学生教材配置列表",
-    description="获取指定学生的所有教材配置（支持分页）",
+    description="获取指定学生的所有教材配置（支持分页和按学科/年级筛选）",
 )
 async def get_student_textbook_configs(
     request: Request,
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    subject: str | None = Query(None, description="按学科筛选"),
+    grade: int | None = Query(None, description="按年级筛选"),
     db: AsyncSession = Database,
 ):
     return await textbook_config.search_student_textbook_configs(
-        db, request.state.student, page=page, page_size=page_size
+        db, request.state.student, page=page, page_size=page_size, subject=subject, grade=grade
     )
 
 
@@ -152,8 +154,8 @@ async def get_student_textbook_configs(
 async def set_student_textbook_configs(
     request: Request, params: SetStudentTextbookConfigsSchema, db: AsyncSession = Database
 ):
-    configs = [config.model_dump() for config in params.configs]
-    await textbook.set_student_textbook_configs(db, request.state.student, configs)
+    textbook_ids = [config.textbook_id for config in params.configs]
+    await textbook.set_student_textbook_configs(db, request.state.student, textbook_ids)
     return {"message": "配置设置成功"}
 
 

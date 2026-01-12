@@ -332,10 +332,8 @@ declare global {
   interface StudentTextbookConfig {
     id: number;
     student_id: string;
-    subject: string;
-    grade: number;
-    semester: string;
-    version: string;
+    textbook_id: number;
+    textbook?: Textbook; // 关联的教材信息
     create_time: number;
     update_time: number;
   }
@@ -344,10 +342,7 @@ declare global {
    * 保存学生教材配置请求
    */
   interface SaveStudentTextbookConfigRequest {
-    subject: string;
-    grade: number;
-    semester: string;
-    version: string;
+    textbook_id: number;
   }
 
   /**
@@ -581,4 +576,4 @@ declare global {
   }
 }
 
-export { };
+export {};

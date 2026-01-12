@@ -1,7 +1,6 @@
 import { useSimpleForm } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { ActionType } from '@ant-design/pro-components';
-import { message } from 'antd';
 import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
@@ -15,18 +14,13 @@ const useContainer = () => {
   const formProps = useSimpleForm<SaveStudentTextbookConfigRequest, StudentTextbookConfig>({
     service: async (values, item) => {
       if (!studentId) throw new Error('学生ID不存在');
-      values.subject = subject;
-      values.grade = grade;
       if (item) {
         await StudentApi.updateStudentTextbookConfig(studentId, item.id, values);
       } else {
         await StudentApi.createStudentTextbookConfig(studentId, values);
       }
     },
-    onSubmit: () => {
-      actionRef.current?.reload();
-      message.success('操作成功');
-    },
+    onSubmit: () => actionRef.current?.reload(),
   });
 
   useEffect(() => {
