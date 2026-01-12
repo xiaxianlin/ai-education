@@ -37,5 +37,5 @@ const useContainer = () => {
   return { subject, actionRef, formProps };
 };
 
-export const DomainListModel = createContainer(useContainer);
-export const useDomainListModel = DomainListModel.useContainer;
+export const AbilityListModel = createContainer(useContainer);
+export const useAbilityListModel = AbilityListModel.useContainer;

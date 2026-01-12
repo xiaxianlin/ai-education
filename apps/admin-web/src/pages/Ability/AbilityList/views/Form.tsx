@@ -1,6 +1,6 @@
-import { ModalForm, ProFormText, ProFormTextArea, ProFormDigit } from '@ant-design/pro-components';
+import { ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 
-import { useDomainListModel } from '../models/page';
+import { useAbilityListModel } from '../models/page';
 import type {
   CreateAbilityDomainRequest,
   UpdateAbilityDomainRequest,
@@ -9,7 +9,7 @@ import type {
 export default function FormView() {
   const {
     formProps: { form, visible, item, onCancel, handleSubmit },
-  } = useDomainListModel();
+  } = useAbilityListModel();
 
   return (
     <ModalForm<CreateAbilityDomainRequest | UpdateAbilityDomainRequest>
@@ -44,13 +44,6 @@ export default function FormView() {
         label="描述"
         placeholder="请输入能力域描述"
         fieldProps={{ rows: 4 }}
-      />
-      <ProFormDigit
-        name="sort_order"
-        label="排序"
-        placeholder="请输入排序值"
-        initialValue={0}
-        min={0}
       />
     </ModalForm>
   );

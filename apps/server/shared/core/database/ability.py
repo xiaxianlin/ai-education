@@ -21,7 +21,6 @@ class AbilityDomain(BaseModel):
     code: Mapped[str] = mapped_column(String(50), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text)
-    sort_order: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[int] = mapped_column(default=1)
     create_time: Mapped[int] = mapped_column(default=now)
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now)

@@ -2,7 +2,7 @@
 能力管理 Schema
 """
 
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -16,7 +16,6 @@ class CreateAbilityDomainSchema(BaseModel):
     code: str = Field(..., description="能力域标识")
     name: str = Field(..., description="能力域名称")
     description: Optional[str] = Field(None, description="能力域描述")
-    sort_order: int = Field(0, description="排序")
 
     @field_validator("subject")
     @classmethod
@@ -31,7 +30,6 @@ class UpdateAbilityDomainSchema(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    sort_order: Optional[int] = None
     is_active: Optional[int] = None
 
 
@@ -77,3 +75,16 @@ class SearchAbilityAtomicSchema(BaseModel):
     subject: Optional[str] = None
     grade: Optional[int] = Field(None, ge=1, le=6)
     domain_code: Optional[str] = None
+
+
+class AtomicSortOrderItem(BaseModel):
+    """原子能力排序项"""
+
+    id: int = Field(..., description="原子能力ID")
+    sort_order: int = Field(..., description="排序值")
+
+
+class BatchUpdateAtomicSortOrderSchema(BaseModel):
+    """批量更新原子能力排序"""
+
+    items: List[AtomicSortOrderItem] = Field(..., description="排序项列表", min_length=1)

@@ -34,7 +34,6 @@ class AbilityDomainSchema(BaseModel):
     code: str
     name: str
     description: Optional[str] = None
-    sort_order: int = 0
     is_active: int = 1
     create_time: int
     update_time: int

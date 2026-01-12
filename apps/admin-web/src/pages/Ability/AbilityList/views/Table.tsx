@@ -2,17 +2,20 @@ import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Tag } from 'antd';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { createActionColumn, useDelete } from '@/hooks';
 import { AbilityApi } from '../../api';
-import { useDomainListModel } from '../models/page';
+import { useAbilityListModel } from '../models/page';
 
 export default function TableView() {
   const {
     actionRef,
     subject,
     formProps: { showForm },
-  } = useDomainListModel();
+  } = useAbilityListModel();
+
+  const navigate = useNavigate();
 
   const { handleDelete } = useDelete(AbilityApi.deleteDomain, {
     onSuccess: () => actionRef.current?.reload(),
@@ -20,8 +23,17 @@ export default function TableView() {
 
   const columns = useMemo<ProColumns<AbilityDomain>[]>(
     () => [
-      { title: '能力域名称', dataIndex: 'name', width: 200 },
-      { title: '能力域代码', dataIndex: 'code', width: 150 },
+      {
+        title: '能力域',
+        dataIndex: 'name',
+        width: 200,
+        render: (text, record) => (
+          <Button type="link" onClick={() => navigate(`/ability/detail/${record.id}`)}>
+            {text}
+          </Button>
+        ),
+      },
+      { title: '标识', dataIndex: 'code', width: 150 },
       {
         title: '描述',
         dataIndex: 'description',
@@ -45,10 +57,10 @@ export default function TableView() {
             </Button>
           </>
         ),
-        { width: 120 },
+        { width: 180 },
       ),
     ],
-    [showForm, handleDelete],
+    [showForm, handleDelete, navigate],
   );
 
   return (

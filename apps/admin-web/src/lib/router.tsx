@@ -1,6 +1,6 @@
 import { AdminLayout } from '@/layouts/AdminLayout';
-import AtomicList from '@/pages/Ability/AtomicList';
-import DomainList from '@/pages/Ability/DomainList';
+import AbilityDetail from '@/pages/Ability/AbilityDetail';
+import AbilityList from '@/pages/Ability/AbilityList';
 import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
 import ModifyPassword from '@/pages/Auth/Password';
@@ -47,9 +47,6 @@ export function Router() {
         { path: 'textbook/detail/:id', element: <TextbookDetail /> },
         { path: 'teacher_book', element: <TeacherBookList /> },
         { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
-        // Ability routes
-        { path: 'ability/domain', element: <DomainList /> },
-        { path: 'ability/atomic', element: <AtomicList /> },
         { path: 'question', element: <QuestionList /> },
         { path: 'question/form', element: <QuestionForm /> },
         { path: 'question/form/:id', element: <QuestionForm /> },
@@ -59,6 +56,9 @@ export function Router() {
         { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
         { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
+        // Ability routes (moved to learning module)
+        { path: 'ability', element: <AbilityList /> },
+        { path: 'ability/detail/:id', element: <AbilityDetail /> },
         // Practice routes
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/detail/:id', element: <PracticeDetail /> },

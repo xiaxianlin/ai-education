@@ -2,7 +2,7 @@
 原子能力服务
 """
 
-from typing import Optional
+from typing import List, Optional
 
 from shared.core.database import AbilityAtomic, AbilityDomain
 from shared.core.schema import AbilityAtomicSchema
@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
+    AtomicSortOrderItem,
     CreateAbilityAtomicSchema,
     SearchAbilityAtomicSchema,
     UpdateAbilityAtomicSchema,
@@ -96,7 +97,7 @@ async def search_ability_atomic(db: AsyncSession, params: SearchAbilityAtomicSch
         stmt = stmt.where(AbilityAtomic.grade == params.grade)
     if params.domain_code is not None:
         stmt = stmt.where(AbilityAtomic.domain_code == params.domain_code)
-    stmt = stmt.order_by(AbilityAtomic.domain_code, AbilityAtomic.id)
+    stmt = stmt.order_by(AbilityAtomic.sort_order)
 
     result = await db.scalars(stmt)
     atomics = result.all()
@@ -121,3 +122,27 @@ async def get_ability_atomics_by_domain(db: AsyncSession, domain_code: str, subj
     result = await db.scalars(stmt)
     atomics = result.all()
     return [AbilityAtomicSchema.model_validate(atomic) for atomic in atomics]
+
+
+async def batch_update_atomic_sort_order(db: AsyncSession, items: List[AtomicSortOrderItem]) -> int:
+    """批量更新原子能力排序"""
+    if not items:
+        return 0
+
+    # 批量查询所有需要更新的原子能力
+    ids = [item.id for item in items]
+    stmt = select(AbilityAtomic).where(AbilityAtomic.id.in_(ids))
+    result = await db.scalars(stmt)
+    atomics = {atomic.id: atomic for atomic in result.all()}
+
+    # 更新排序
+    updated_count = 0
+    for item in items:
+        atomic_id = item.id
+        sort_order = item.sort_order
+        if atomic_id in atomics:
+            atomics[atomic_id].sort_order = sort_order
+            updated_count += 1
+
+    await db.commit()
+    return updated_count

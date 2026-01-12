@@ -9,11 +9,15 @@ interface SubjectGradeTabsProps {
   showGrade?: boolean;
   setSubject?: (subject: string) => void;
   setGrade?: (grade: number) => void;
+  subjects?: string[]; // 支持传入过滤后的科目列表
 }
 
-export function SubjectGradeTabs({ showGrade = true, ...props }: SubjectGradeTabsProps) {
+export function SubjectGradeTabs({ showGrade = true, subjects: customSubjects, ...props }: SubjectGradeTabsProps) {
   const initialState = useInitialStateModel();
-  const { subjects } = useConfigs();
+  const { subjects: defaultSubjects } = useConfigs();
+  
+  // 如果传入了自定义科目列表，使用自定义的；否则使用默认的
+  const subjects = customSubjects ?? defaultSubjects;
 
   const activeSubject = props.subject ?? initialState.subject;
   const activeGrade = props.grade ?? initialState.grade;

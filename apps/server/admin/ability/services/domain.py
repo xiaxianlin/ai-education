@@ -33,7 +33,6 @@ async def create_domain(db: AsyncSession, data: CreateAbilityDomainSchema):
         code=code,
         name=data.name.strip(),
         description=data.description.strip() if data.description else None,
-        sort_order=data.sort_order,
     )
     db.add(domain)
     await db.commit()
@@ -52,8 +51,6 @@ async def update_domain(db: AsyncSession, id: int, data: UpdateAbilityDomainSche
         domain.name = data.name.strip()
     if data.description is not None:
         domain.description = data.description.strip() if data.description else None
-    if data.sort_order is not None:
-        domain.sort_order = data.sort_order
     if data.is_active is not None:
         domain.is_active = data.is_active
 
@@ -85,7 +82,7 @@ async def search_domain(db: AsyncSession, params: SearchAbilityDomainSchema):
     stmt = select(AbilityDomain)
     if params.subject:
         stmt = stmt.where(AbilityDomain.subject == params.subject)
-    stmt = stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
+    stmt = stmt.order_by(AbilityDomain.id)
 
     result = await db.scalars(stmt)
     domains = result.all()
@@ -104,7 +101,7 @@ async def get_domains_with_atomics_by_subject(db: AsyncSession, subject: str):
     """根据科目获取能力域及其下的原子能力（二级结构）"""
     # 查询该科目下的所有能力域
     domain_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.is_active == 1)
-    domain_stmt = domain_stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
+    domain_stmt = domain_stmt.order_by(AbilityDomain.id)
     domain_result = await db.scalars(domain_stmt)
     domains = domain_result.all()
 

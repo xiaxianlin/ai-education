@@ -143,7 +143,6 @@ declare global {
     code: string;
     name: string;
     description?: string;
-    sort_order: number;
     is_active: number;
     create_time: number;
     update_time: number;
@@ -544,4 +543,4 @@ declare global {
   }
 }
 
-export {};
+export { };

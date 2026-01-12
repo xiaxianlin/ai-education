@@ -8,7 +8,6 @@ export interface CreateAbilityDomainRequest {
   code: string;
   name: string;
   description?: string;
-  sort_order?: number;
 }
 
 /**
@@ -17,7 +16,6 @@ export interface CreateAbilityDomainRequest {
 export interface UpdateAbilityDomainRequest {
   name?: string;
   description?: string;
-  sort_order?: number;
   is_active?: number;
 }
 
@@ -60,6 +58,13 @@ export interface SearchAbilityAtomicRequest {
   subject?: string;
   grade?: number;
   domain_code?: string;
+}
+
+/**
+ * 批量更新原子能力排序请求
+ */
+export interface BatchUpdateAtomicSortOrderRequest {
+  items: Array<{ id: number; sort_order: number }>;
 }
 
 export const AbilityApi = {
@@ -163,6 +168,17 @@ export const AbilityApi = {
     return apiClient.get<AbilityAtomic[]>(
       `/ability/atomic/by-domain/${domainCode}`,
       subject ? { subject } : undefined
+    );
+  },
+
+  /**
+   * 批量更新原子能力排序
+   * PATCH /ability/atomic/batch-sort
+   */
+  async batchUpdateAtomicSortOrder(data: BatchUpdateAtomicSortOrderRequest) {
+    return apiClient.patch<{ message: string; updated_count: number }>(
+      '/ability/atomic/batch-sort',
+      data
     );
   },
 };

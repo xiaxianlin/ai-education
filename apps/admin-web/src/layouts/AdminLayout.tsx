@@ -2,9 +2,7 @@ import logo from '@/assets/logo.png';
 import { apiClient } from '@/lib/api';
 import { useInitialStateModel } from '@/models/initialState';
 import {
-  ApartmentOutlined,
   BookOutlined,
-  ClusterOutlined,
   DashboardOutlined,
   LogoutOutlined,
   ProfileOutlined,
@@ -26,16 +24,25 @@ const routes = {
     },
 
     {
-      name: '系统',
+      name: '用户',
       key: 'system',
-      icon: <ClusterOutlined />,
-      children: [{ path: '/manager', name: '管理员管理' }],
-    },
-    {
-      name: '学生',
-      key: 'student',
       icon: <UserOutlined />,
-      children: [{ path: '/student', name: '学生管理' }],
+      children: [
+        { path: '/manager', name: '后台管理' },
+        { path: '/student', name: '学生管理' },
+      ],
+    },
+
+    {
+      name: '学习',
+      key: 'learning',
+      icon: <QuestionCircleOutlined />,
+      children: [
+        { path: '/ability', name: '能力管理' },
+        { path: '/question_type', name: '题型管理' },
+        { path: '/question', name: '题目管理' },
+        { path: '/practice', name: '练习管理' },
+      ],
     },
     {
       key: 'textbook',
@@ -44,25 +51,6 @@ const routes = {
       children: [
         { path: '/textbook', name: '教材管理' },
         { path: '/teacher_book', name: '教辅管理' },
-      ],
-    },
-    {
-      name: '学习',
-      key: 'learning',
-      icon: <QuestionCircleOutlined />,
-      children: [
-        { path: '/question_type', name: '题型管理' },
-        { path: '/question', name: '题目管理' },
-        { path: '/practice', name: '练习管理' },
-      ],
-    },
-    {
-      name: '能力',
-      key: 'ability',
-      icon: <ApartmentOutlined />,
-      children: [
-        { path: '/ability/domain', name: '能力域管理' },
-        { path: '/ability/atomic', name: '原子能力管理' },
       ],
     },
   ],

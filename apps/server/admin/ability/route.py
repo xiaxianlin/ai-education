@@ -9,6 +9,7 @@ from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
+    BatchUpdateAtomicSortOrderSchema,
     CreateAbilityAtomicSchema,
     CreateAbilityDomainSchema,
     SearchAbilityAtomicSchema,
@@ -97,6 +98,18 @@ async def create_atomic(
     params: CreateAbilityAtomicSchema, db: AsyncSession = Database
 ):
     return await atomic.create_ability_atomic(db, params)
+
+
+@ability_router.patch(
+    "/atomic/batch-sort",
+    summary="批量更新原子能力排序",
+    description="批量更新原子能力的排序顺序",
+)
+async def batch_update_atomic_sort(
+    params: BatchUpdateAtomicSortOrderSchema, db: AsyncSession = Database
+):
+    updated_count = await atomic.batch_update_atomic_sort_order(db, params.items)
+    return {"message": "排序更新成功", "updated_count": updated_count}
 
 
 @ability_router.patch(
