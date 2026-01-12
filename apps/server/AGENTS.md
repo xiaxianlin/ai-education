@@ -40,6 +40,7 @@
 | textbook     | `textbook/route.py`     | `textbook/services/textbook.py`, `unit.py`, `knowledge.py`                         | 教材、单元、知识点管理   |
 | teacher_book | `teacher_book/route.py` | `teacher_book/services/teacher_book.py`                                            | 教师参考书管理           |
 | question     | `question/route.py`     | `question/services/question.py`, `question_type.py`                                | 题目、题型管理           |
+| ability      | `ability/route.py`       | `ability/services/domain.py`, `atomic.py`                                           | 能力域、原子能力管理     |
 | practice     | `practice/route.py`     | `practice/services/practice.py`                                                     | 练习类型管理             |
 | prompt       | `prompt/route.py`       | `prompt/services/question_type.py`, `practice.py`                                 | 提示词优化管理           |
 | student      | `student/route.py`      | `student/services/student.py`, `textbook.py`, `practice.py`, `practice_session.py` | 学生管理                 |
@@ -115,6 +116,8 @@
 | TeacherBook           | ah_teacher_book            | 教师参考书     |
 | Question              | ah_question                | 题目           |
 | QuestionType          | ah_question_type           | 题型           |
+| AbilityDomain         | ah_ability_domain          | 能力域         |
+| AbilityAtomic         | ah_ability_atomic          | 原子能力       |
 | Practice              | ah_practice                | 练习类型       |
 | Practice              | ah_practice                | 练习           |
 | PracticeAnswer        | ah_practice_answer          | 答题记录       |

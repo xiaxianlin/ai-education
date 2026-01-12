@@ -34,7 +34,7 @@ const routes = {
     },
 
     {
-      name: '学习',
+      name: '学习资源',
       key: 'learning',
       icon: <QuestionCircleOutlined />,
       children: [
@@ -46,11 +46,11 @@ const routes = {
     },
     {
       key: 'textbook',
-      name: '知识库',
+      name: '教学资源',
       icon: <BookOutlined />,
       children: [
         { path: '/textbook', name: '教材管理' },
-        { path: '/teacher_book', name: '教辅管理' },
+        { path: '/teacher_book', name: '教师用书管理' },
       ],
     },
   ],
