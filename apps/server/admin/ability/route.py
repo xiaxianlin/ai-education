@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
     BatchUpdateAtomicSortOrderSchema,
+    BatchUpdateDomainSortOrderSchema,
     CreateAbilityAtomicSchema,
     CreateAbilityDomainSchema,
     SearchAbilityAtomicSchema,
@@ -33,6 +34,18 @@ async def create_domain(
     params: CreateAbilityDomainSchema, db: AsyncSession = Database
 ):
     return await domain.create_domain(db, params)
+
+
+@ability_router.patch(
+    "/domain/batch-sort",
+    summary="批量更新能力域排序",
+    description="批量更新能力域的排序顺序",
+)
+async def batch_update_domain_sort(
+    params: BatchUpdateDomainSortOrderSchema, db: AsyncSession = Database
+):
+    updated_count = await domain.batch_update_domain_sort_order(db, params.items)
+    return {"message": "排序更新成功", "updated_count": updated_count}
 
 
 @ability_router.patch(

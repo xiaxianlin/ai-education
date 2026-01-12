@@ -1,10 +1,7 @@
 import { ModalForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 
+import type { CreateAbilityDomainRequest, UpdateAbilityDomainRequest } from '../../api';
 import { useAbilityListModel } from '../models/page';
-import type {
-  CreateAbilityDomainRequest,
-  UpdateAbilityDomainRequest,
-} from '../../api';
 
 export default function FormView() {
   const {
@@ -25,26 +22,19 @@ export default function FormView() {
       labelCol={{ span: 4 }}
     >
       <div className="pt-3" />
-      {!item && (
-        <ProFormText
-          name="code"
-          label="能力域代码"
-          placeholder="请输入能力域代码"
-          rules={[{ required: true, message: '请输入能力域代码' }]}
-        />
-      )}
       <ProFormText
         name="name"
-        label="能力域名称"
-        placeholder="请输入能力域名称"
-        rules={[{ required: true, message: '请输入能力域名称' }]}
+        label="名称"
+        placeholder="请输入名称"
+        rules={[{ required: true, message: '请输入名称' }]}
       />
-      <ProFormTextArea
-        name="description"
-        label="描述"
-        placeholder="请输入能力域描述"
-        fieldProps={{ rows: 4 }}
+      <ProFormText
+        name="code"
+        label="标识"
+        placeholder="请输入标识"
+        rules={[{ required: true, message: '请输入标识' }]}
       />
+      <ProFormTextArea name="description" label="描述" placeholder="请输入能力域描述" fieldProps={{ rows: 4 }} />
     </ModalForm>
   );
 }

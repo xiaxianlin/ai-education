@@ -28,9 +28,11 @@ class CreateAbilityDomainSchema(BaseModel):
 class UpdateAbilityDomainSchema(BaseModel):
     """更新能力域"""
 
+    code: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
     is_active: Optional[int] = None
+    sort_order: Optional[int] = None
 
 
 class SearchAbilityDomainSchema(BaseModel):
@@ -88,3 +90,16 @@ class BatchUpdateAtomicSortOrderSchema(BaseModel):
     """批量更新原子能力排序"""
 
     items: List[AtomicSortOrderItem] = Field(..., description="排序项列表", min_length=1)
+
+
+class DomainSortOrderItem(BaseModel):
+    """能力域排序项"""
+
+    id: int = Field(..., description="能力域ID")
+    sort_order: int = Field(..., description="排序值")
+
+
+class BatchUpdateDomainSortOrderSchema(BaseModel):
+    """批量更新能力域排序"""
+
+    items: List[DomainSortOrderItem] = Field(..., description="排序项列表", min_length=1)

@@ -18,6 +18,7 @@ from loguru import logger
 
 from shared.core.settings import envs
 from shared.worker import celery_app
+from shared.worker.celery import init_celery_app
 
 
 def start_worker():
@@ -38,6 +39,10 @@ def start_worker():
     logger.info(f"日志级别: {loglevel}")
     logger.info(f"并发数: {concurrency}")
     logger.info("=" * 50)
+
+    # 初始化 Celery 应用
+    init_celery_app()
+    logger.info(f"Celery 应用已初始化: broker={envs.REDIS_URL}")
 
     try:
         celery_app.worker_main(

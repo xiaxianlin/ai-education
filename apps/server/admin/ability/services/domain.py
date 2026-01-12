@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
     CreateAbilityDomainSchema,
+    DomainSortOrderItem,
     SearchAbilityDomainSchema,
     UpdateAbilityDomainSchema,
 )
@@ -47,12 +48,28 @@ async def update_domain(db: AsyncSession, id: int, data: UpdateAbilityDomainSche
     if not domain:
         raise ValueError("能力域不存在")
 
+    # 如果更新 code，需要检查唯一性
+    if data.code is not None:
+        code = data.code.strip()
+        if code != domain.code:
+            exists_stmt = select(AbilityDomain).where(
+                AbilityDomain.subject == domain.subject,
+                AbilityDomain.code == code,
+                AbilityDomain.id != id,
+            )
+            domain_exists = await db.scalar(exists_stmt)
+            if domain_exists:
+                raise ValueError("该科目下已存在相同代码的能力域")
+            domain.code = code
+
     if data.name is not None:
         domain.name = data.name.strip()
     if data.description is not None:
         domain.description = data.description.strip() if data.description else None
     if data.is_active is not None:
         domain.is_active = data.is_active
+    if data.sort_order is not None:
+        domain.sort_order = data.sort_order
 
     await db.commit()
     await db.refresh(domain)
@@ -82,7 +99,7 @@ async def search_domain(db: AsyncSession, params: SearchAbilityDomainSchema):
     stmt = select(AbilityDomain)
     if params.subject:
         stmt = stmt.where(AbilityDomain.subject == params.subject)
-    stmt = stmt.order_by(AbilityDomain.id)
+    stmt = stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
 
     result = await db.scalars(stmt)
     domains = result.all()
@@ -101,7 +118,7 @@ async def get_domains_with_atomics_by_subject(db: AsyncSession, subject: str):
     """根据科目获取能力域及其下的原子能力（二级结构）"""
     # 查询该科目下的所有能力域
     domain_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.is_active == 1)
-    domain_stmt = domain_stmt.order_by(AbilityDomain.id)
+    domain_stmt = domain_stmt.order_by(AbilityDomain.sort_order, AbilityDomain.id)
     domain_result = await db.scalars(domain_stmt)
     domains = domain_result.all()
 
@@ -136,3 +153,27 @@ async def get_domains_with_atomics_by_subject(db: AsyncSession, subject: str):
         result.append(domain_schema.model_copy(update={"atomics": domain_atomics}))
 
     return result
+
+
+async def batch_update_domain_sort_order(db: AsyncSession, items: list[DomainSortOrderItem]) -> int:
+    """批量更新能力域排序"""
+    if not items:
+        return 0
+
+    # 批量查询所有需要更新的能力域
+    ids = [item.id for item in items]
+    stmt = select(AbilityDomain).where(AbilityDomain.id.in_(ids))
+    result = await db.scalars(stmt)
+    domains = {domain.id: domain for domain in result.all()}
+
+    # 更新排序
+    updated_count = 0
+    for item in items:
+        domain_id = item.id
+        sort_order = item.sort_order
+        if domain_id in domains:
+            domains[domain_id].sort_order = sort_order
+            updated_count += 1
+
+    await db.commit()
+    return updated_count

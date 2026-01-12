@@ -14,9 +14,11 @@ export interface CreateAbilityDomainRequest {
  * 更新能力域请求
  */
 export interface UpdateAbilityDomainRequest {
+  code?: string;
   name?: string;
   description?: string;
   is_active?: number;
+  sort_order?: number;
 }
 
 /**
@@ -64,6 +66,13 @@ export interface SearchAbilityAtomicRequest {
  * 批量更新原子能力排序请求
  */
 export interface BatchUpdateAtomicSortOrderRequest {
+  items: Array<{ id: number; sort_order: number }>;
+}
+
+/**
+ * 批量更新能力域排序请求
+ */
+export interface BatchUpdateDomainSortOrderRequest {
   items: Array<{ id: number; sort_order: number }>;
 }
 
@@ -115,6 +124,17 @@ export const AbilityApi = {
   async getBySubject(subject: string) {
     return apiClient.get<AbilityDomain[]>(
       `/ability/by-subject/${subject}`
+    );
+  },
+
+  /**
+   * 批量更新能力域排序
+   * PATCH /ability/domain/batch-sort
+   */
+  async batchUpdateDomainSortOrder(data: BatchUpdateDomainSortOrderRequest) {
+    return apiClient.patch<{ message: string; updated_count: number }>(
+      '/ability/domain/batch-sort',
+      data
     );
   },
 

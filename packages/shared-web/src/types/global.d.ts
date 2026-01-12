@@ -157,6 +157,7 @@ declare global {
     name: string;
     description?: string;
     is_active: number;
+    sort_order: number;
     create_time: number;
     update_time: number;
     atomics?: AbilityAtomic[];

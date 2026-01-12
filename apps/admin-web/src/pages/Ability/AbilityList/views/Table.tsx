@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Tag } from 'antd';
+import { DragSortTable, ProColumns } from '@ant-design/pro-components';
+import { Button, message, Tag } from 'antd';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,9 +24,16 @@ export default function TableView() {
   const columns = useMemo<ProColumns<AbilityDomain>[]>(
     () => [
       {
+        title: '排序',
+        dataIndex: 'sort_order',
+        width: 60,
+        className: 'drag-visible',
+      },
+      {
         title: '能力域',
         dataIndex: 'name',
-        width: 200,
+        width: 120,
+        className: 'drag-visible',
         render: (text, record) => (
           <Button type="link" onClick={() => navigate(`/ability/detail/${record.id}`)}>
             {text}
@@ -63,14 +70,36 @@ export default function TableView() {
     [showForm, handleDelete, navigate],
   );
 
+  const handleDragSortEnd = async (_beforeIndex: number, _afterIndex: number, newDataSource: AbilityDomain[]) => {
+    // 更新排序值
+    const items = newDataSource.map((item, index) => ({
+      id: item.id,
+      sort_order: index,
+    }));
+
+    try {
+      await AbilityApi.batchUpdateDomainSortOrder({ items });
+      message.success('排序更新成功');
+      // 刷新列表以确保数据同步
+      actionRef.current?.reload();
+    } catch (error) {
+      message.error('排序更新失败');
+      console.error('排序更新失败:', error);
+      // 恢复原数据
+      actionRef.current?.reload();
+    }
+  };
+
   return (
-    <ProTable<AbilityDomain>
+    <DragSortTable<AbilityDomain>
       bordered
       cardBordered
       actionRef={actionRef}
       rowKey="id"
       columns={columns}
       search={false}
+      dragSortKey="sort_order"
+      onDragSortEnd={handleDragSortEnd}
       headerTitle={
         <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => showForm()}>
           新增能力域

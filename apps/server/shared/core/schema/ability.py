@@ -35,6 +35,7 @@ class AbilityDomainSchema(BaseModel):
     name: str
     description: Optional[str] = None
     is_active: int = 1
+    sort_order: int = 0
     create_time: int
     update_time: int
     atomics: Optional[list[AbilityAtomicSchema]] = None
