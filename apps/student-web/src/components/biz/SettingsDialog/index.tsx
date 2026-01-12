@@ -2,12 +2,24 @@
  * 设置弹窗组件
  */
 import { useProfileModel } from "@/common/models/ProfileModel";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui";
-import { GRADES, GRADE_OPTIONS, SEMESTER_OPTIONS, SUBJECT_OPTIONS } from "@ai-education/shared-web";
-import { useEffect, useState, useMemo } from "react";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui";
+import { GRADES } from "@ai-education/shared-web";
+import { uniqBy } from "lodash-es";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { studentApi } from "@/lib/api";
-import { useRequest } from "ahooks";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -17,47 +29,39 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange, required = false }: SettingsDialogProps) {
   const { profile, updateSettings } = useProfileModel();
-  const [grade, setGrade] = useState<number>(profile?.grade || 1);
-  const [semester, setSemester] = useState<string>(profile?.semester || "");
-  const [subject, setSubject] = useState<string>(profile?.subject || "");
+  const [subject, setSubject] = useState(profile?.subject);
+  const [grade, setGrade] = useState(profile?.grade);
+  const [semester, setSemester] = useState(profile?.semester);
   const [loading, setLoading] = useState(false);
 
-  // 获取可用教材选项
-  const { data: availableOptions, loading: optionsLoading } = useRequest(
-    () => studentApi.getAvailableTextbookOptions(),
-    {
-      ready: open,
-    }
-  );
-
-  // 根据可用选项生成选项列表
-  const gradeOptions = useMemo(() => {
-    if (availableOptions?.grades && availableOptions.grades.length > 0) {
-      return GRADE_OPTIONS.filter(opt => availableOptions.grades.includes(opt.value));
-    }
-    return GRADE_OPTIONS;
-  }, [availableOptions]);
-
-  const semesterOptions = useMemo(() => {
-    if (availableOptions?.semesters && availableOptions.semesters.length > 0) {
-      return SEMESTER_OPTIONS.filter(opt => availableOptions.semesters.includes(opt.value));
-    }
-    return SEMESTER_OPTIONS;
-  }, [availableOptions]);
+  const { textbooks = [] } = profile || {};
 
   const subjectOptions = useMemo(() => {
-    if (availableOptions?.subjects && availableOptions.subjects.length > 0) {
-      return SUBJECT_OPTIONS.filter(opt => availableOptions.subjects.includes(opt.value));
-    }
-    return SUBJECT_OPTIONS;
-  }, [availableOptions]);
+    return uniqBy(
+      textbooks.map(({ subject }) => ({ label: subject, value: subject })),
+      "value"
+    );
+  }, [textbooks]);
+
+  const gradeOptions = useMemo(() => {
+    return uniqBy(
+      textbooks.filter((item) => item.subject === subject).map(({ grade }) => ({ label: GRADES[grade], value: grade })),
+      "value"
+    );
+  }, [textbooks, subject]);
+
+  const semesterOptions = useMemo(() => {
+    return textbooks
+      .filter((item) => item.subject === subject && item.grade === grade)
+      .map(({ semester }) => ({ label: semester, value: semester }));
+  }, [textbooks, subject, grade]);
 
   // 当弹窗打开或 profile 更新时，同步初始值
   useEffect(() => {
     if (open && profile) {
+      setSubject(profile.subject || "");
       setGrade(profile.grade || 1);
       setSemester(profile.semester || "");
-      setSubject(profile.subject || "");
     }
   }, [open, profile]);
 
@@ -69,11 +73,7 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
 
     setLoading(true);
     try {
-      await updateSettings({
-        grade,
-        semester,
-        subject,
-      });
+      await updateSettings({ grade: grade || 1, semester, subject });
       toast.success("设置保存成功");
       onOpenChange(false);
       // 重新加载页面以确保数据同步
@@ -102,63 +102,59 @@ export function SettingsDialog({ open, onOpenChange, required = false }: Setting
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* 年级选择 */}
-          <div className="space-y-2">
-            <label htmlFor="grade" className="text-sm font-medium">
-              年级 <span className="text-destructive">*</span>
-            </label>
-            <select
-              id="grade"
-              value={grade}
-              onChange={(e) => setGrade(Number(e.target.value))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {gradeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 学期选择 */}
-          <div className="space-y-2">
-            <label htmlFor="semester" className="text-sm font-medium">
-              学期 <span className="text-destructive">*</span>
-            </label>
-            <select
-              id="semester"
-              value={semester}
-              onChange={(e) => setSemester(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">请选择学期</option>
-              {semesterOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* 学科选择 */}
           <div className="space-y-2">
-            <label htmlFor="subject" className="text-sm font-medium">
+            <label className="text-sm font-medium">
               学科 <span className="text-destructive">*</span>
             </label>
-            <select
-              id="subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="">请选择学科</option>
-              {subjectOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Select value={subject} onValueChange={setSubject}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择学科" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* 年级选择 */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              年级 <span className="text-destructive">*</span>
+            </label>
+            <Select value={grade ? String(grade) : undefined} onValueChange={(value) => setGrade(Number(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择年级" />
+              </SelectTrigger>
+              <SelectContent>
+                {gradeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value.toString()}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* 学期选择 */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              学期 <span className="text-destructive">*</span>
+            </label>
+            <Select value={semester} onValueChange={setSemester}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择学期" />
+              </SelectTrigger>
+              <SelectContent>
+                {semesterOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

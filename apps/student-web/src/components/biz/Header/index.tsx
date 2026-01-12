@@ -35,15 +35,13 @@ export function Header() {
         {/* Grade Area */}
         <div className="px-4 py-6 mb-8 rounded-3xl bg-secondary/50 bubbly-card">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-lg font-bold text-foreground">
-              {GRADES[profile?.grade || 0] || "未设置年级"}
-            </span>
+            <span className="text-lg font-bold text-foreground">{profile.subject}</span>
             {profile?.semester && profile?.subject && (
               <>
                 <span className="text-muted-foreground">·</span>
-                <span className="text-sm text-muted-foreground">{profile.semester}</span>
+                <span className="text-sm text-muted-foreground">{GRADES[profile?.grade || 0]}</span>
                 <span className="text-muted-foreground">·</span>
-                <span className="text-sm text-muted-foreground">{profile.subject}</span>
+                <span className="text-sm text-muted-foreground">{profile.semester}</span>
               </>
             )}
             {(!profile?.semester || !profile?.subject) && (

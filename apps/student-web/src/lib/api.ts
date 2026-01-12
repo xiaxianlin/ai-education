@@ -216,14 +216,4 @@ export const studentApi = {
   async getTextbookUnits(textbookId: number) {
     return apiClient.get<Unit[]>(`/textbook/${textbookId}/units`);
   },
-
-  /**
-   * 获取可用教材选项
-   * GET /textbook/available-options
-   */
-  async getAvailableTextbookOptions() {
-    return apiClient.get<{ subjects: string[]; grades: number[]; semesters: string[] }>(
-      "/textbook/available-options"
-    );
-  },
 };

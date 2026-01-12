@@ -8,6 +8,8 @@ const useContainer = () => {
     refreshDeps: [],
   });
 
+  console.log(data);
+
   const { name, phone, grade, semester, subject, textbooks = [] } = data || {};
 
   const activeTextbook = useMemo(() => {
@@ -22,7 +24,7 @@ const useContainer = () => {
 
   return {
     loading,
-    profile: { name, phone, grade, semester, subject },
+    profile: { name, phone, grade, semester, subject, textbooks },
     activeTextbook,
     updateSettings,
     refresh,

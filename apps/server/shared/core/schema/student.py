@@ -2,12 +2,9 @@
 学生相关 Schema
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from pydantic import BaseModel
-
-if TYPE_CHECKING:
-    from .textbook import TextbookSchema
 
 
 class StudentSchema(BaseModel):
@@ -16,7 +13,7 @@ class StudentSchema(BaseModel):
     id: str
     name: str = ""
     phone: str
-    grade: int
+    grade: Optional[int] = None
     semester: Optional[str] = None
     subject: Optional[str] = None
     status: int = 0

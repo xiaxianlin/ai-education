@@ -8,7 +8,7 @@ from shared.core.schema import TextbookSchema
 class StudentProfileSchema(BaseModel):
     name: str
     phone: str
-    grade: int
+    grade: Optional[int] = None
     semester: Optional[str] = None
     subject: Optional[str] = None
 

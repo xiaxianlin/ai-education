@@ -4,12 +4,9 @@
 包含 Student、StudentTextbookConfig
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-from .base import BaseModel, Mapped, String, mapped_column, now, relationship
-
-if TYPE_CHECKING:
-    from .textbook import Textbook
+from .base import BaseModel, Mapped, String, mapped_column, now
 
 
 class Student(BaseModel):
@@ -22,7 +19,7 @@ class Student(BaseModel):
     phone: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255), default="")
     token: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
-    grade: Mapped[int] = mapped_column(nullable=False)
+    grade: Mapped[int] = mapped_column(nullable=True)
     semester: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     subject: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     status: Mapped[int] = mapped_column(default=0)

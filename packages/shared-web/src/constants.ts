@@ -51,7 +51,6 @@ export enum PracticeGenerateStatus {
   FAILED = -1,
 }
 
-
 export const PRACTICE_STATUS_MAP: Record<PracticeStatus, string> = {
   0: "未开始",
   1: "进行中",
@@ -82,12 +81,6 @@ export const GRADES: Record<number, string> = {
   4: "四年级",
   5: "五年级",
   6: "六年级",
-  // 7: "七年级",
-  // 8: "八年级",
-  // 9: "九年级",
-  // 10: "高一",
-  // 11: "高二",
-  // 12: "高三",
 };
 
 export const GRADE_OPTIONS = Object.entries(GRADES).map(([value, label]) => ({
@@ -287,4 +280,3 @@ export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
   ai: "AI评分",
   composite: "复合题",
 };
-

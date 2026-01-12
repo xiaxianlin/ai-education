@@ -4,24 +4,19 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 
 const MainContainer = () => {
-  const { loading, profile } = useProfileModel();
+  const { loading, activeTextbook } = useProfileModel();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // 检查是否需要设置
   useEffect(() => {
-    if (!loading && profile) {
-      const needsSetup = !profile.grade || !profile.semester || !profile.subject;
-      if (needsSetup) {
-        setSettingsOpen(true);
-      }
+    if (!loading && !activeTextbook) {
+      setSettingsOpen(true);
     }
-  }, [loading, profile]);
+  }, [loading, activeTextbook]);
 
   if (loading) {
     return <LoadingPage />;
   }
-
-  const needsSetup = !profile?.grade || !profile?.semester || !profile?.subject;
 
   return (
     <div className="flex min-h-screen bg-background bg-pattern">
@@ -31,7 +26,7 @@ const MainContainer = () => {
           <Outlet />
         </div>
       </main>
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} required={needsSetup} />
+      <SettingsDialog required open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 };
