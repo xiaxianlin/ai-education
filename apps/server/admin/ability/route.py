@@ -12,6 +12,7 @@ from shared.core.database import Database
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
+    BatchDeleteAtomicSchema,
     BatchUpdateAtomicSortOrderSchema,
     BatchUpdateDomainSortOrderSchema,
     CreateAbilityAtomicSchema,
@@ -196,6 +197,18 @@ async def update_atomic(
 )
 async def delete_atomic(id: int, db: AsyncSession = Database):
     await atomic.delete_ability_atomic(db, id)
+
+
+@ability_router.post(
+    "/atomic/batch_delete",
+    summary="批量删除原子能力",
+    description="批量删除指定的原子能力",
+)
+async def batch_delete_atomics(
+    params: BatchDeleteAtomicSchema, db: AsyncSession = Database
+):
+    deleted_count = await atomic.batch_delete_ability_atomics(db, params.ids)
+    return {"message": "批量删除成功", "deleted_count": deleted_count}
 
 
 @ability_router.get(

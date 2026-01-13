@@ -70,6 +70,13 @@ export interface BatchUpdateAtomicSortOrderRequest {
 }
 
 /**
+ * 批量删除原子能力请求
+ */
+export interface BatchDeleteAtomicRequest {
+  ids: number[];
+}
+
+/**
  * 批量更新能力域排序请求
  */
 export interface BatchUpdateDomainSortOrderRequest {
@@ -200,6 +207,17 @@ export const AbilityApi = {
    */
   async deleteAtomic(id: number) {
     return apiClient.delete(`/ability/atomic/${id}`);
+  },
+
+  /**
+   * 批量删除原子能力
+   * POST /ability/atomic/batch_delete
+   */
+  async batchDeleteAtomics(ids: number[]) {
+    return apiClient.post<{ message: string; deleted_count: number }>(
+      '/ability/atomic/batch_delete',
+      { ids }
+    );
   },
 
   /**

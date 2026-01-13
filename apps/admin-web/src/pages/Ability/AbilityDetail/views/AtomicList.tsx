@@ -1,6 +1,7 @@
 import { GRADES } from '@ai-education/shared-web';
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { DragSortTable, ProColumns } from '@ant-design/pro-components';
+import { useRequest } from 'ahooks';
 import { Button, Card, message, Modal, Space, Tag } from 'antd';
 import { useMemo, useRef, useState } from 'react';
 
@@ -23,7 +24,23 @@ function GradeTable({ grade, atomics, domain, onReload, onShowForm }: GradeTable
 
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { runAsync: handleBatchDelete, loading: batchDeleteLoading } = useRequest(
+    (ids: number[]) => AbilityApi.batchDeleteAtomics(ids),
+    {
+      manual: true,
+      onSuccess: (res) => {
+        message.success(`成功删除 ${res.deleted_count} 个原子能力`);
+        setSelectedRowKeys([]);
+        onReload();
+      },
+      onError: (error: any) => {
+        message.error(error?.message || '批量删除失败');
+      },
+    },
+  );
 
   const handleDeleteWithConfirm = (id: number, name?: string) => {
     Modal.confirm({
@@ -33,6 +50,21 @@ function GradeTable({ grade, atomics, domain, onReload, onShowForm }: GradeTable
       cancelText: '取消',
       okType: 'danger',
       onOk: () => handleDelete(id),
+    });
+  };
+
+  const handleBatchDeleteClick = () => {
+    if (selectedRowKeys.length === 0) return;
+
+    Modal.confirm({
+      title: '批量删除原子能力',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 个原子能力吗？此操作无法恢复。`,
+      okText: '确定',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: () => {
+        handleBatchDelete(selectedRowKeys as number[]);
+      },
     });
   };
 
@@ -233,10 +265,22 @@ function GradeTable({ grade, atomics, domain, onReload, onShowForm }: GradeTable
         dataSource={atomics}
         pagination={false}
         onDragSortEnd={handleDragSortEnd}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+        }}
         headerTitle={
           <Space>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => onShowForm(grade)}>
               新增原子能力
+            </Button>
+            <Button
+              danger
+              onClick={handleBatchDeleteClick}
+              disabled={selectedRowKeys.length === 0}
+              loading={batchDeleteLoading}
+            >
+              批量删除 ({selectedRowKeys.length})
             </Button>
             <Button
               icon={<DownloadOutlined />}

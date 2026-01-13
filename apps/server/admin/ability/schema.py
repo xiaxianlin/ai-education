@@ -92,6 +92,12 @@ class BatchUpdateAtomicSortOrderSchema(BaseModel):
     items: List[AtomicSortOrderItem] = Field(..., description="排序项列表", min_length=1)
 
 
+class BatchDeleteAtomicSchema(BaseModel):
+    """批量删除原子能力"""
+
+    ids: List[int] = Field(..., description="原子能力ID列表", min_length=1)
+
+
 class DomainSortOrderItem(BaseModel):
     """能力域排序项"""
 

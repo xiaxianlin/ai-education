@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from shared.core.database import AbilityAtomic, AbilityDomain
 from shared.core.schema import AbilityAtomicSchema
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..schema import (
@@ -86,6 +86,19 @@ async def delete_ability_atomic(db: AsyncSession, id: int):
 
     await db.delete(atomic)
     await db.commit()
+
+
+async def batch_delete_ability_atomics(db: AsyncSession, ids: List[int]) -> int:
+    """批量删除原子能力"""
+    if not ids:
+        return 0
+
+    # 使用 SQLAlchemy 2.0 风格的批量删除
+    stmt = delete(AbilityAtomic).where(AbilityAtomic.id.in_(ids))
+    result = await db.execute(stmt)
+    await db.commit()
+
+    return result.rowcount
 
 
 async def search_ability_atomic(db: AsyncSession, params: SearchAbilityAtomicSchema):
