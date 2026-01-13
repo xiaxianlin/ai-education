@@ -65,12 +65,12 @@ async def update_ability_atomic(db: AsyncSession, id: int, data: UpdateAbilityAt
 
     if data.name is not None:
         atomic.name = data.name.strip()
+    if data.code is not None:
+        atomic.code = data.code.strip()
     if data.description is not None:
         atomic.description = data.description.strip() if data.description else None
     if data.difficulty is not None:
         atomic.difficulty = data.difficulty
-    if data.sort_order is not None:
-        atomic.sort_order = data.sort_order
     if data.is_active is not None:
         atomic.is_active = data.is_active
 
@@ -177,9 +177,7 @@ async def export_ability_atomics_by_grade(
     return [AbilityAtomicSchema.model_validate(atomic) for atomic in atomics]
 
 
-async def delete_atomics_by_grade(
-    db: AsyncSession, subject: str, grade: int, domain_code: str
-) -> int:
+async def delete_atomics_by_grade(db: AsyncSession, subject: str, grade: int, domain_code: str) -> int:
     """删除指定能力域+年级的所有原子能力，返回删除的数量"""
     stmt = select(AbilityAtomic).where(
         AbilityAtomic.subject == subject,
@@ -210,9 +208,7 @@ async def batch_create_ability_atomics(
         domain_code = atomic_data.domain_code.strip()
 
         # 检查能力域是否存在
-        domain_stmt = select(AbilityDomain).where(
-            AbilityDomain.subject == subject, AbilityDomain.code == domain_code
-        )
+        domain_stmt = select(AbilityDomain).where(AbilityDomain.subject == subject, AbilityDomain.code == domain_code)
         domain = await db.scalar(domain_stmt)
         if not domain:
             raise ValueError(f"能力域不存在: {subject}/{domain_code}")

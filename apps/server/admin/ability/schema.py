@@ -5,7 +5,6 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
-
 from shared.core.constants import SUBJECTS
 
 
@@ -65,9 +64,9 @@ class UpdateAbilityAtomicSchema(BaseModel):
     """更新原子能力"""
 
     name: Optional[str] = None
+    code: Optional[str] = None
     description: Optional[str] = None
     difficulty: Optional[int] = Field(None, ge=1, le=5)
-    sort_order: Optional[int] = None
     is_active: Optional[int] = None
 
 
