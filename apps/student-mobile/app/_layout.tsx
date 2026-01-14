@@ -65,6 +65,7 @@ import { ToastProvider, ToastViewport } from "@tamagui/toast";
 import { useRouter, useSegments } from "expo-router";
 import { TamaguiProvider } from "tamagui";
 import { tamaguiConfig } from "../tamagui.config";
+import { LearningSettingsGuard } from "@/src/components/LearningSettingsGuard";
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -97,11 +98,13 @@ function RootLayoutNav() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
           <ToastProvider>
-            <Stack>
-              <Stack.Screen name="login/index" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-            </Stack>
+            <LearningSettingsGuard>
+              <Stack>
+                <Stack.Screen name="login/index" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+              </Stack>
+            </LearningSettingsGuard>
             <CurrentToast />
             <ToastViewport />
           </ToastProvider>

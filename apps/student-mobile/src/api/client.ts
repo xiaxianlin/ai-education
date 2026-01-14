@@ -48,6 +48,12 @@ export const studentApi = {
   login: async (params: { phone: string; password: string }): Promise<string> => {
     return (await client.post("/login", params)) as any;
   },
+  getProfile: async (): Promise<any> => {
+    return (await client.get("/profile")) as any;
+  },
+  updateSettings: async (params: { grade: number; semester: string; subject: string }): Promise<any> => {
+    return (await client.put("/profile", params)) as any;
+  },
   getPracticeStatistics: async (): Promise<PracticeStatisticsResponse> => {
     return (await client.get("/practice/statistics")) as any;
   },
@@ -71,9 +77,6 @@ export const studentApi = {
     grade?: number;
   }): Promise<string> => {
     return (await client.post("/practice/create", params)) as any;
-  },
-  getProfile: async (): Promise<any> => {
-    return (await client.get("/profile")) as any;
   },
   getPracticeSessionData: async (sessionId: string): Promise<any> => {
     return (await client.get(`/practice/${sessionId}`)) as any;
