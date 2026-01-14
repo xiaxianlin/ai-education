@@ -56,11 +56,6 @@ function getResultBadgeClassName(params: { isCorrect: boolean }): string {
 
 export function QuestionHeader({ question, status }: QuestionHeaderProps) {
   const typeLabel = useMemo(() => getQuestionTypeLabel(question), [question]);
-  const knowledgePoints = useMemo(() => {
-    const kp = question.knowledge_points;
-    if (!kp || !Array.isArray(kp)) return [];
-    return kp.map((p: any) => (typeof p === "string" ? p : p.name || String(p)));
-  }, [question.knowledge_points]);
 
   const resultBadge = useMemo(() => {
     if (status === 0 || status === undefined) return null;
@@ -75,7 +70,7 @@ export function QuestionHeader({ question, status }: QuestionHeaderProps) {
 
   return (
     <div className="flex items-center justify-between mb-5">
-      {/* 左侧：题目类型 + 知识点 */}
+      {/* 左侧：题目类型 */}
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           variant="secondary"
@@ -83,16 +78,6 @@ export function QuestionHeader({ question, status }: QuestionHeaderProps) {
         >
           {typeLabel}
         </Badge>
-
-        {knowledgePoints.map((kp, idx) => (
-          <Badge
-            key={idx}
-            variant="outline"
-            className="text-primary/70 border-primary/10 bg-primary/5 px-3 py-1 text-xs font-semibold rounded-md"
-          >
-            {kp}
-          </Badge>
-        ))}
       </div>
 
       {/* 右侧：结果反馈 */}

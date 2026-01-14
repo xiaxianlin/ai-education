@@ -69,19 +69,3 @@ class UpdateUnitSchema(BaseModel):
 
     name: Optional[str] = None
     content: Optional[str] = None
-
-
-class CreateKnowledgeSchema(BaseModel):
-    """创建知识点"""
-
-    textbook_id: int
-    unit_id: int
-    name: str
-    content: str
-
-
-class UpdateKnowledgeSchema(BaseModel):
-    """更新知识点"""
-
-    name: Optional[str] = None
-    content: Optional[str] = None

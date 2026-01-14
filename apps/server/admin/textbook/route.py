@@ -1,52 +1,16 @@
 from fastapi import APIRouter, Depends, UploadFile
 from shared.core.database import Database
-from shared.core.schema import SearchSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import (
-    CreateKnowledgeSchema,
     CreateUnitSchema,
     SaveTextbookSchema,
     SearchTextbookSchema,
-    UpdateKnowledgeSchema,
     UpdateUnitSchema,
 )
-from .services import knowledge, textbook, unit
+from .services import textbook, unit
 
 textbook_router = APIRouter(prefix="/textbook")
-
-# ======================== 知识点管理 ======================== #
-
-
-@textbook_router.post(
-    "/knowledge",
-    tags=["知识点管理"],
-    summary="创建知识点",
-    description="在系统中创建新的知识点",
-)
-async def create_knowledge(params: CreateKnowledgeSchema, db: AsyncSession = Database):
-    return await knowledge.create_knowledge(db, params)
-
-
-@textbook_router.patch(
-    "/knowledge/{id}",
-    tags=["知识点管理"],
-    summary="更新知识点",
-    description="更新指定知识点的信息",
-)
-async def update_knowledge(id: int, params: UpdateKnowledgeSchema, db: AsyncSession = Database):
-    await knowledge.update_knowledge(db, id, params)
-
-
-@textbook_router.delete(
-    "/knowledge/{id}",
-    tags=["知识点管理"],
-    summary="删除知识点",
-    description="删除指定的知识点",
-)
-async def delete_knowledge(id: int, db: AsyncSession = Database):
-    await knowledge.delete_knowledge(db, id)
-
 
 # ======================== 课程单元管理 ======================== #
 @textbook_router.post(
@@ -77,16 +41,6 @@ async def update_unit(id: int, unit_update: UpdateUnitSchema, db: AsyncSession =
 )
 async def delete_unit(id: int, db: AsyncSession = Database):
     await unit.delete_unit(db=db, id=id)
-
-
-@textbook_router.get(
-    "/unit/{id}/knowledges",
-    tags=["课程单元管理"],
-    summary="查询课程单元下的知识点",
-    description="获取指定课程单元关联的所有知识点",
-)
-async def query_knowledges(id: int, db: AsyncSession = Database):
-    return await knowledge.query_knowledge_by_unit(db, id)
 
 
 # ======================== 教材管理 ======================== #
@@ -143,6 +97,16 @@ async def delete_textbook(id: int, db: AsyncSession = Database):
 
 
 @textbook_router.get(
+    "/{id}/units",
+    tags=["教材管理"],
+    summary="根据教材ID查询课程单元",
+    description="获取指定教材包含的所有教学单元",
+)
+async def query_units(id: int, db: AsyncSession = Database):
+    return await unit.query_units_by_textbook(db, id)
+
+
+@textbook_router.get(
     "/search",
     tags=["教材管理"],
     summary="搜索教材",
@@ -160,23 +124,3 @@ async def search(params: SearchTextbookSchema = Depends(), db: AsyncSession = Da
 )
 async def get_textbook(id: int, db: AsyncSession = Database):
     return await textbook.get_textbook(db, id)
-
-
-@textbook_router.get(
-    "/{id}/units",
-    tags=["教材管理"],
-    summary="根据教材ID查询课程单元",
-    description="获取指定教材包含的所有教学单元",
-)
-async def query_units(id: int, db: AsyncSession = Database):
-    return await unit.query_units_by_textbook(db, id)
-
-
-@textbook_router.get(
-    "/{id}/knowledges",
-    tags=["教材管理"],
-    summary="根据教材ID查询知识点",
-    description="获取指定教材包含的所有知识点",
-)
-async def query_knowledge(id: int, params: SearchSchema = Depends(), db: AsyncSession = Database):
-    return await knowledge.query_knowledges_by_textbook(db, id, params)

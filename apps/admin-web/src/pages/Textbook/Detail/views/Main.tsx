@@ -3,11 +3,9 @@ import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
 import { Button, Space, Spin, Tabs } from 'antd';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TextbookKnowledgeModel } from '../models/knowledge';
 import { useTextbookDetailModel } from '../models/page';
 import { TextbookUnitModel } from '../models/unit';
 import { BasicInfo } from './BasicInfo';
-import { KnowledgeView } from './Knowledge';
 import { UnitView } from './Unit';
 
 export default function MainView() {
@@ -37,15 +35,6 @@ export default function MainView() {
                 <TextbookUnitModel.Provider>
                   <UnitView />
                 </TextbookUnitModel.Provider>
-              ),
-            },
-            {
-              label: '知识点管理',
-              key: 'knowledge',
-              children: (
-                <TextbookKnowledgeModel.Provider>
-                  <KnowledgeView />
-                </TextbookKnowledgeModel.Provider>
               ),
             },
           ]}

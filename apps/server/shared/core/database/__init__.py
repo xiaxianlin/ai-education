@@ -23,7 +23,7 @@ from .base import (
 from .auth import Manager
 
 # 教材模块
-from .textbook import Textbook, Unit, Knowledge, TeacherBook, TextbookVersion
+from .textbook import Textbook, Unit, TeacherBook, TextbookVersion
 
 # 练习模块
 from .practice import (
@@ -63,7 +63,6 @@ __all__ = [
     # 教材
     "Textbook",
     "Unit",
-    "Knowledge",
     "TeacherBook",
     "TextbookVersion",
     # 练习

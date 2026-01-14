@@ -194,7 +194,7 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
   const hasAnswer = status !== undefined && status !== 0;
   const isCorrect = status === 1;
 
-  const userAnswer = answer?.text_answer || "未作答";
+  const userAnswer = answer?.answer || "未作答";
 
   // 正确答案：优先使用 answer.correct_answer（结构化），否则从 question.answer 提取
   const correctAnswer =
@@ -384,17 +384,6 @@ export const QuestionAnswerCard: FC<QuestionAnswerCardProps> = ({ question, answ
               <div className="text-center py-6 text-sm text-muted-foreground bg-muted/30 rounded-xl">
                 <div className="text-2xl mb-2">📋</div>
                 <div className="font-medium">此题尚未作答</div>
-              </div>
-            )}
-
-            {/* 知识点 */}
-            {question.knowledge_points && question.knowledge_points.length > 0 && (
-              <div className="rounded-xl p-4 bg-blue-50 border-2 border-blue-200 shadow-sm">
-                <div className="text-sm font-semibold text-blue-700 mb-2 flex items-center gap-2">
-                  <span>📚</span>
-                  <span>知识点</span>
-                </div>
-                <div className="text-sm text-foreground leading-relaxed">{question.knowledge_points.join(", ")}</div>
               </div>
             )}
           </div>

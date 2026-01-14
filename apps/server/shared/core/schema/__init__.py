@@ -50,7 +50,7 @@ from .question import (
 from .student import StudentSchema, StudentTextbookConfigSchema
 
 # 教材模块
-from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
+from .textbook import TeacherBookSchema, TextbookSchema, UnitSchema
 
 __all__ = [
     # 通用
@@ -64,7 +64,6 @@ __all__ = [
     "TextbookSchema",
     "TeacherBookSchema",
     "UnitSchema",
-    "KnowledgeSchema",
     # 题目
     "QuestionTypeSchema",
     "QuestionSchema",

@@ -1,7 +1,7 @@
 """
 教材相关模型
 
-包含 Textbook、Unit、Knowledge、TeacherBook
+包含 Textbook、Unit、TeacherBook
 """
 
 from .base import BaseModel, Mapped, mapped_column, now, relationship, String, Text
@@ -39,37 +39,6 @@ class Unit(BaseModel):
     )
 
 
-class Knowledge(BaseModel):
-    """知识点模型（简化版，两级结构：单元 -> 知识点）"""
-
-    __tablename__ = "ah_knowledge"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    textbook_id: Mapped[int] = mapped_column(index=True)
-    unit_id: Mapped[int] = mapped_column(index=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    content: Mapped[str] = mapped_column(Text, default="")
-
-    # 知识点属性（简化）
-    difficulty: Mapped[str] = mapped_column(
-        String(50), nullable=True, comment="知识点难度（简单/普通/困难）"
-    )
-    importance: Mapped[int] = mapped_column(default=5, comment="重要性（1-10，10最重要）")
-    order: Mapped[int] = mapped_column(default=0, comment="同级知识点排序")
-
-    unit: Mapped["Unit"] = relationship(
-        "Unit",
-        primaryjoin="foreign(Knowledge.unit_id) == Unit.id",
-        lazy="joined",
-    )
-
-    textbook: Mapped["Textbook"] = relationship(
-        "Textbook",
-        primaryjoin="foreign(Knowledge.textbook_id) == Textbook.id",
-        lazy="joined",
-    )
-
-
 class TeacherBook(BaseModel):
     """教师用书表"""
 
@@ -98,4 +67,4 @@ class TextbookVersion(BaseModel):
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
 
-__all__ = ["Textbook", "Unit", "Knowledge", "TeacherBook", "TextbookVersion"]
+__all__ = ["Textbook", "Unit", "TeacherBook", "TextbookVersion"]

@@ -1,6 +1,6 @@
 from typing import List
 
-from shared.core.database import Knowledge, Textbook, Unit
+from shared.core.database import Textbook, Unit
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,7 +35,6 @@ async def update_unit(db: AsyncSession, id: int, update: UpdateUnitSchema):
         unit.name = update.name
     if update.content is not None:
         unit.content = update.content
-    # status 字段已移除，不再处理
 
     await db.commit()
 
@@ -45,12 +44,6 @@ async def delete_unit(db: AsyncSession, id: int) -> bool:
     unit = await db.scalar(select(Unit).where(Unit.id == id))
     if not unit:
         raise ValueError("课程单元不存在")
-
-    knowledge_ids_result = await db.scalars(select(Knowledge.id).where(Knowledge.unit_id == id))
-    knowledge_ids = knowledge_ids_result.all()
-
-    if knowledge_ids:
-        await db.execute(delete(Knowledge).where(Knowledge.id.in_(knowledge_ids)))
 
     await db.delete(unit)
     await db.commit()

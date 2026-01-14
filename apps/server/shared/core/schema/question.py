@@ -87,8 +87,7 @@ class QuestionSchema(BaseModel):
     difficulty: str
     cognitive_level: Optional[str] = None
 
-    # 知识点
-    knowledge_points: Optional[list] = None
+    # 能力标签
     ability_tags: Optional[list] = None
 
     # 来源

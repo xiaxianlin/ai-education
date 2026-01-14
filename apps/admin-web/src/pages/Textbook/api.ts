@@ -66,14 +66,6 @@ export const TextbookApi = {
   },
 
   /**
-   * 获取教材的知识点列表
-   * GET /textbook/{id}/knowledges
-   */
-  async getTextbookKnowledges(id: number, params?: SearchRequest) {
-    return apiClient.get<SearchResponse<Knowledge>>(`/textbook/${id}/knowledges`, params);
-  },
-
-  /**
    * 创建单元
    * POST /textbook/unit
    */
@@ -95,31 +87,5 @@ export const TextbookApi = {
    */
   async deleteUnit(id: number) {
     return apiClient.delete(`/textbook/unit/${id}`);
-  },
-
-  // ========== 知识点管理 ==========
-
-  /**
-   * 创建知识点
-   * POST /textbook/knowledge
-   */
-  async createKnowledge(data: CreateKnowledgeRequest) {
-    return apiClient.post<number>('/textbook/knowledge', data);
-  },
-
-  /**
-   * 更新知识点
-   * PATCH /textbook/knowledge/{id}
-   */
-  async updateKnowledge(id: number, data: UpdateKnowledgeRequest) {
-    return apiClient.patch(`/textbook/knowledge/${id}`, data);
-  },
-
-  /**
-   * 删除知识点
-   * DELETE /textbook/knowledge/{id}
-   */
-  async deleteKnowledge(id: number) {
-    return apiClient.delete(`/textbook/knowledge/${id}`);
   },
 };

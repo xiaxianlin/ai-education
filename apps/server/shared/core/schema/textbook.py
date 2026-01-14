@@ -48,27 +48,8 @@ class UnitSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class KnowledgeSchema(BaseModel):
-    """知识点信息"""
-
-    id: int
-    textbook_id: int
-    unit_id: int
-    name: str
-    content: str
-    difficulty: Optional[str] = None
-    importance: Optional[int] = 5
-    order: Optional[int] = 0
-
-    textbook: Optional["TextbookSchema"] = None
-    unit: Optional["UnitSchema"] = None
-
-    model_config = {"from_attributes": True}
-
-
 __all__ = [
     "TextbookSchema",
     "TeacherBookSchema",
     "UnitSchema",
-    "KnowledgeSchema",
 ]

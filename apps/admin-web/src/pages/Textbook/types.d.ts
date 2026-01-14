@@ -34,23 +34,5 @@ declare global {
     name?: string;
     content?: string;
   }
-
-  /**
-   * 创建知识点请求
-   */
-  interface CreateKnowledgeRequest {
-    name: string;
-    content: string;
-    textbook_id: number;
-    unit_id: number;
-  }
-
-  /**
-   * 更新知识点请求
-   */
-  interface UpdateKnowledgeRequest {
-    name?: string;
-    content?: string;
-  }
 }
 export {};

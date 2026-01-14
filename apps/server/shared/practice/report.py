@@ -58,30 +58,27 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     # 计算总得分（正确率 * 100）
     overall_score = (correct_questions / total_questions * 100) if total_questions > 0 else 0.0
 
-    # 5. 分析知识点掌握情况
-    knowledge_scores = await analyze_knowledge_scores(db, answers)
-
-    # 6. 分析题目来源分布
+    # 5. 分析题目来源分布
     question_distribution = await analyze_question_distribution(db, answers)
 
-    # 7. 分析能力分解（按难度）
+    # 6. 分析能力分解（按难度）
     ability_breakdown = await analyze_ability_breakdown(db, answers)
 
-    # 8. 计算学习速度和稳定性
+    # 7. 计算学习速度和稳定性
     learning_speed = calculate_learning_speed(answers)
     consistency = calculate_consistency(answers)
 
-    # 9. 生成优势、薄弱点和建议
+    # 8. 生成优势、薄弱点和建议
     strengths, weaknesses, recommendations = await generate_recommendations(
-        db, answers, knowledge_scores, overall_score, session.practice_type
+        db, answers, overall_score, session.practice_type
     )
 
-    # 10. 综合评估（主要用于assessment类型）
+    # 9. 综合评估（主要用于assessment类型）
     current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
         overall_score, consistency
     )
 
-    # 11. 创建报告
+    # 10. 创建报告
     report = PracticeReport(
         session_id=session_id,
         student_id=student_id,
@@ -93,7 +90,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
         confidence=round(confidence, 2),
         ability_level=ability_level,
         percentile=percentile,
-        knowledge_scores=json.dumps(knowledge_scores, ensure_ascii=False),
+        knowledge_scores=json.dumps({}, ensure_ascii=False),
         question_distribution=json.dumps(question_distribution, ensure_ascii=False),
         ability_breakdown=json.dumps(ability_breakdown, ensure_ascii=False),
         learning_speed=round(learning_speed, 2),
@@ -111,48 +108,6 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     logger.info(f"练习报告生成成功: report_id={report.id}, session_id={session_id}")
 
     return report.id
-
-
-async def analyze_knowledge_scores(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
-    """分析知识点掌握情况"""
-    if not answers:
-        return {}
-
-    # 批量查询所有题目 (V2)
-    question_ids = [answer.question_id for answer in answers]
-    questions_result = await db.scalars(select(Question).where(Question.id.in_(question_ids)))
-    questions = {q.id: q for q in questions_result.all()}
-
-    knowledge_stats = {}
-    for answer in answers:
-        question = questions.get(answer.question_id)
-        # V2: knowledge_points is a list
-        if not question or not question.knowledge_points:
-            continue
-
-        # Use first knowledge point
-        knowledge = question.knowledge_points[0] if question.knowledge_points else None
-        if not knowledge:
-            continue
-
-        if knowledge not in knowledge_stats:
-            knowledge_stats[knowledge] = {"total": 0, "correct": 0}
-
-        knowledge_stats[knowledge]["total"] += 1
-        if answer.status == 1:
-            knowledge_stats[knowledge]["correct"] += 1
-
-    # 计算正确率
-    result = {}
-    for knowledge, stats in knowledge_stats.items():
-        accuracy = (stats["correct"] / stats["total"] * 100) if stats["total"] > 0 else 0
-        result[knowledge] = {
-            "total": stats["total"],
-            "correct": stats["correct"],
-            "accuracy": round(accuracy, 2),
-        }
-
-    return result
 
 
 async def analyze_question_distribution(
@@ -280,16 +235,14 @@ def calculate_consistency(answers: List[PracticeAnswer]) -> float:
 async def generate_recommendations(
     db: AsyncSession,
     answers: List[PracticeAnswer],
-    knowledge_scores: Dict,
     overall_score: float,
     practice_type: str,
 ) -> tuple:
     """生成优势、薄弱点和学习建议
-    
+
     Args:
         db: 数据库会话
         answers: 答题记录列表
-        knowledge_scores: 知识点掌握情况
         overall_score: 总得分
         practice_type: 练习类型 (ability_practice / unit_practice)
     """
@@ -297,29 +250,13 @@ async def generate_recommendations(
     weaknesses = []
     recommendations = []
 
-    # 分析优势（正确率 >= 80% 的知识点）
-    for knowledge, stats in knowledge_scores.items():
-        if stats["accuracy"] >= 80:
-            strengths.append(f"{knowledge}掌握良好（正确率{stats['accuracy']:.1f}%）")
-
-    # 分析薄弱点（正确率 < 60% 的知识点）
-    for knowledge, stats in knowledge_scores.items():
-        if stats["accuracy"] < 60:
-            weaknesses.append(f"{knowledge}需要加强（正确率{stats['accuracy']:.1f}%）")
-
     # 生成建议
     if overall_score >= 80:
         recommendations.append("整体表现优秀，继续保持！")
     elif overall_score >= 60:
-        recommendations.append("基础掌握较好，需要进一步巩固薄弱知识点。")
+        recommendations.append("基础掌握较好，继续巩固。")
     else:
-        recommendations.append("需要系统性复习，建议从基础知识点开始重新学习。")
-
-    # 针对薄弱点的建议
-    if weaknesses:
-        recommendations.append(
-            f"重点加强：{', '.join([w.split('需要')[0] for w in weaknesses[:3]])}"
-        )
+        recommendations.append("需要系统性复习，建议加强练习。")
 
     # 根据练习类型给建议
     if practice_type == "ability_practice":

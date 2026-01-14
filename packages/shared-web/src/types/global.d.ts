@@ -114,22 +114,6 @@ declare global {
   }
 
   /**
-   * 知识点信息（对应 KnowledgeSchema）
-   */
-  interface Knowledge {
-    id: number;
-    textbook_id: number;
-    unit_id: number;
-    name: string;
-    content: string;
-    difficulty?: string; // 难度：简单/普通/困难
-    importance?: number; // 重要性：1-10
-    order?: number; // 排序值
-    textbook?: Textbook;
-    unit?: Unit;
-  }
-
-  /**
    * 原子能力信息（对应 AbilityAtomicSchema）
    */
   /**
@@ -278,7 +262,6 @@ declare global {
     explanation?: string;
     difficulty: Difficulty;
     cognitive_level?: CognitiveLevel;
-    knowledge_points?: string[];
     ability_tags?: string[];
     source: string;
     usage_count: number;
@@ -349,7 +332,7 @@ declare global {
     required?: boolean;
     default_value?: any;
     options?: Array<{ value: string; label: string }>;
-    options_source?: "units" | "textbooks" | "knowledge_points" | "custom";
+    options_source?: "units" | "textbooks" | "custom";
   }
 
   /**
@@ -416,7 +399,6 @@ declare global {
 
     // 题目相关信息（冗余存储）
     unit_id?: number;
-    knowledge?: string;
     textbook_id?: number;
 
     // 答题信息
@@ -458,7 +440,6 @@ declare global {
     confidence?: number; // 置信度
     ability_level?: string; // 能力等级
     percentile?: number; // 百分位排名
-    knowledge_scores?: string; // 知识点掌握情况（JSON字符串）
     question_distribution?: string; // 题目来源分布（JSON字符串）
     ability_breakdown?: string; // 能力分解（JSON字符串）
     learning_speed?: number; // 学习速度

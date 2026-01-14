@@ -1,5 +1,4 @@
 import { PageModel } from "./models/page";
-import { KnowledgeModal } from "./views/KnowledgeModal";
 import { TextbookUnits } from "./views/TextbookUnits";
 
 export default function UnitPractice() {
@@ -17,9 +16,6 @@ export default function UnitPractice() {
 
         {/* 主体：按教材分组的单元列表 */}
         <TextbookUnits />
-
-        {/* 弹窗组件 */}
-        <KnowledgeModal />
       </div>
     </PageModel.Provider>
   );

@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
-from shared.core.database import Knowledge, Textbook, Unit
+from shared.core.database import Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
 from shared.provider import get_provider
@@ -19,11 +19,7 @@ from ..schema import SaveTextbookSchema, SearchTextbookSchema, UnitExtractionRes
 async def _clean_textbook(db: AsyncSession, id: int):
     """清理教材相关数据（优化版）"""
 
-    # 1. 删除知识点
-    stmt = delete(Knowledge).where(Knowledge.textbook_id == id)
-    await db.execute(stmt)
-
-    # 3. 删除单元
+    # 删除单元
     stmt = delete(Unit).where(Unit.textbook_id == id)
     await db.execute(stmt)
 
@@ -148,7 +144,7 @@ async def parse_textbook(db: AsyncSession, id: int):
     解析教材，使用RAG知识库解析：
     1. 从RAG知识库获取切片数据
     2. 解析教材内容，提取单元信息
-    3. 交给 AI 去生成单元和知识点数据
+    3. 生成单元数据
     """
     textbook = await db.scalar(select(Textbook).where(Textbook.id == id))
     if not textbook:
@@ -176,14 +172,13 @@ async def parse_textbook(db: AsyncSession, id: int):
         [
             (
                 "system",
-                "你是一名专业的教材分析专家，擅长从教材内容中提取单元信息和知识点。"
-                "请仔细分析每个单元的内容，提取出单元名称、单元内容摘要，以及该单元包含的知识点。"
-                "每个知识点应包含知识点名称（topic_name）和知识点内容（topic_content）。"
+                "你是一名专业的教材分析专家，擅长从教材内容中提取单元信息。"
+                "请仔细分析每个单元的内容，提取出单元名称和单元内容摘要。"
                 "请严格按照 {format_instructions} 生成 JSON 输出。",
             ),
             (
                 "human",
-                "请分析以下教材单元内容，提取单元信息和知识点：\n\n{units_content}",
+                "请分析以下教材单元内容，提取单元信息：\n\n{units_content}",
             ),
         ]
     )
@@ -212,34 +207,13 @@ async def parse_textbook(db: AsyncSession, id: int):
 
     logger.info(f"AI解析完成，共{len(parsed_units)}个单元")
 
-    # 保存单元和知识点到数据库
+    # 保存单元到数据库
     for item in parsed_units:
         # 创建单元
         unit = Unit(textbook_id=id, name=item.unit_name, content=item.unit_content)
         db.add(unit)
         await db.commit()
         await db.refresh(unit)
-
-        # 创建知识点（带排序和默认属性）
-        topics = item.topics
-        if not topics:
-            continue
-
-        knowledge_objects = []
-        for knowledge_index, topic in enumerate(topics):
-            knowledge = Knowledge(
-                unit_id=unit.id,
-                textbook_id=id,
-                name=topic.get("topic_name", ""),
-                content=topic.get("topic_content", ""),
-                order=knowledge_index,  # 按解析顺序设置排序
-                difficulty=None,  # 可后续手动设置或通过AI分析
-                importance=5,  # 默认重要性
-            )
-            knowledge_objects.append(knowledge)
-
-        db.add_all(knowledge_objects)
-        await db.commit()
 
     textbook.is_parsed = 1
     await db.commit()
