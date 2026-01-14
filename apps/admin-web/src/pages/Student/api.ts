@@ -143,7 +143,6 @@ interface StudentMastery {
   wrong_count: number;
   last_practice_time: number | null;
   ability_name: string | null;
-  ability_domain: string | null;
   subject: string | null;
   grade: number | null;
 }
@@ -152,9 +151,4 @@ interface StudentMasterySummary {
   total_abilities: number;
   avg_mastery_score: number;
   level_distribution: Record<string, number>;
-  domain_stats: Array<{
-    domain_code: string;
-    ability_count: number;
-    avg_mastery_score: number;
-  }>;
 }

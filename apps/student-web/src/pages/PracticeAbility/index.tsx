@@ -40,7 +40,7 @@ function AbilityPracticeContent() {
         </div>
       ) : (
         <div className="text-center py-12 text-muted-foreground">
-          <p className="text-lg">暂无原子能力数据</p>
+          <p className="text-lg">暂无能力数据</p>
           <p className="text-sm mt-2">请先设置您的年级和学科</p>
         </div>
       )}

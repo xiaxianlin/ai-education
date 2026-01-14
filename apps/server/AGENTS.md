@@ -40,7 +40,7 @@
 | textbook     | `textbook/route.py`     | `textbook/services/textbook.py`, `unit.py`, `knowledge.py`                         | 教材、单元、知识点管理   |
 | teacher_book | `teacher_book/route.py` | `teacher_book/services/teacher_book.py`                                            | 教师参考书管理           |
 | question     | `question/route.py`     | `question/services/question.py`, `question_type.py`                                | 题目、题型管理           |
-| ability      | `ability/route.py`       | `ability/services/domain.py`, `atomic.py`                                           | 能力域、原子能力管理     |
+| ability      | `ability/route.py`       | `ability/services/ability.py`                                                       | 能力管理                 |
 | practice     | `practice/route.py`     | `practice/services/practice.py`                                                     | 练习类型管理             |
 | prompt       | `prompt/route.py`       | `prompt/services/question_type.py`, `practice.py`                                 | 提示词优化管理           |
 | student      | `student/route.py`      | `student/services/student.py`, `textbook.py`, `practice.py`, `practice_session.py` | 学生管理                 |
@@ -53,7 +53,7 @@
 | 路由文件             | 服务文件                                                                 | 说明                           |
 | -------------------- | ------------------------------------------------------------------------ | ------------------------------ |
 | `auth/route.py`      | `auth/services/auth.py`                                                 | 学生认证（登录、注册）         |
-| `ability/route.py`   | `admin/ability/services/atomic.py`                                      | 原子能力查询（按学科、年级）   |
+| `ability/route.py`   | `admin/ability/services/ability.py`                                    | 能力查询（按学科、年级）       |
 | `textbook/route.py`  | `textbook/services/textbook.py`                                         | 教材查询                       |
 | `practice/route.py`  | `shared/practice/practice.py`, `shared/practice/generate.py`, `shared/generation/practice/` | 练习会话、题目生成、答题、报告 |
 | `profile/route.py`   | -                                                                        | 学生个人信息和设置             |
@@ -72,7 +72,7 @@
 
 **练习生成流程 (generation/practice)：**
 
-- 能力练习 (ability_practice): 基于原子能力代码生成练习题
+- 能力练习 (ability_practice): 基于能力代码生成练习题
 - 单元练习 (unit_practice): 基于特定单元和知识点生成练习题
 - 生成流程：验证参数 → 选择题型 → 生成题目 → 预生成答题记录 → 更新会话状态
 
@@ -116,8 +116,7 @@
 | TeacherBook           | ah_teacher_book            | 教师参考书     |
 | Question              | ah_question                | 题目           |
 | QuestionType          | ah_question_type           | 题型           |
-| AbilityDomain         | ah_ability_domain          | 能力域         |
-| AbilityAtomic         | ah_ability_atomic          | 原子能力       |
+| Ability                | ah_ability                 | 能力           |
 | Practice              | ah_practice                | 练习类型       |
 | Practice              | ah_practice                | 练习           |
 | PracticeAnswer        | ah_practice_answer          | 答题记录       |

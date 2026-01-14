@@ -23,44 +23,25 @@ export default function ListView() {
   const { actionRef, subject, grade, handleDelete } = useQuestionTypeModel();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [domainMap, setDomainMap] = useState<Record<string, string>>({});
-  const [atomicMap, setAtomicMap] = useState<Record<string, string>>({});
+  const [abilityMap, setAbilityMap] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 加载所有科目的能力域用于映射
+  // 加载所有科目的能力用于映射
   useEffect(() => {
-    const loadDomains = async () => {
+    const loadAbilities = async () => {
       try {
         const subjects = ['语文', '数学', '英语'];
-        const allDomains = await Promise.all(subjects.map((s) => AbilityApi.searchDomains({ subject: s })));
+        const allAbilities = await Promise.all(subjects.map((s) => AbilityApi.searchAbilities({ subject: s })));
         const map: Record<string, string> = {};
-        allDomains.flat().forEach((d) => {
-          map[`${d.subject}_${d.code}`] = d.name;
-        });
-        setDomainMap(map);
-      } catch (error) {
-        console.error('加载能力域失败:', error);
-      }
-    };
-    loadDomains();
-  }, []);
-
-  // 加载所有科目的原子能力用于映射
-  useEffect(() => {
-    const loadAtomics = async () => {
-      try {
-        const subjects = ['语文', '数学', '英语'];
-        const allAtomics = await Promise.all(subjects.map((s) => AbilityApi.searchAtomics({ subject: s })));
-        const map: Record<string, string> = {};
-        allAtomics.flat().forEach((a) => {
+        allAbilities.flat().forEach((a) => {
           map[`${a.subject}_${a.code}`] = a.name;
         });
-        setAtomicMap(map);
+        setAbilityMap(map);
       } catch (error) {
-        console.error('加载原子能力失败:', error);
+        console.error('加载能力失败:', error);
       }
     };
-    loadAtomics();
+    loadAbilities();
   }, []);
 
   // 导出题型数据为 JSON
@@ -209,18 +190,7 @@ export default function ListView() {
         render: (_, record) => record.grades.map((grade) => GRADES[grade]).join(', '),
       },
       {
-        title: '能力域',
-        dataIndex: 'domain_code',
-        width: 120,
-        render: (code, record) => {
-          if (!code) return '-';
-          const key = `${record.subject}_${code}`;
-          const domainName = domainMap[key];
-          return domainName ? <Tag color="cyan">{domainName}</Tag> : <Tag>{code}</Tag>;
-        },
-      },
-      {
-        title: '原子能力',
+        title: '关联能力',
         dataIndex: 'ability_atomic_codes',
         width: 200,
         render: (codes, record) => {
@@ -229,10 +199,10 @@ export default function ListView() {
             <Space size={4} wrap>
               {codes.map((code: string) => {
                 const key = `${record.subject}_${code}`;
-                const atomicName = atomicMap[key];
+                const abilityName = abilityMap[key];
                 return (
                   <Tag key={code} color="geekblue">
-                    {atomicName || code}
+                    {abilityName || code}
                   </Tag>
                 );
               })}

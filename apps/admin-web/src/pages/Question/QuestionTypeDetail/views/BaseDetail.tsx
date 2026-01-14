@@ -16,53 +16,35 @@ interface BaseDetailProps {
 }
 
 export function BaseDetail({ item }: BaseDetailProps) {
-  const [domainName, setDomainName] = useState<string>('');
-  const [atomicNames, setAtomicNames] = useState<Record<string, string>>({});
+  const [abilityNames, setAbilityNames] = useState<Record<string, string>>({});
 
-  // 加载能力域名称
-  useEffect(() => {
-    if (item?.domain_code && item?.subject) {
-      AbilityApi.searchDomains({ subject: item.subject })
-        .then((domains) => {
-          const domain = domains.find((d) => d.code === item.domain_code);
-          setDomainName(domain?.name || item.domain_code);
-        })
-        .catch(() => {
-          setDomainName(item.domain_code);
-        });
-    } else {
-      setDomainName('');
-    }
-  }, [item?.domain_code, item?.subject]);
-
-  // 加载原子能力名称
+  // 加载能力名称
   useEffect(() => {
     if (item?.ability_atomic_codes?.length && item?.subject && item?.grades?.length) {
-      const loadAtomics = async () => {
+      const loadAbilities = async () => {
         try {
           const promises = item.grades.map((grade: number) =>
-            AbilityApi.searchAtomics({
+            AbilityApi.searchAbilities({
               subject: item.subject,
               grade,
-              domain_code: item.domain_code,
             })
           );
           const results = await Promise.all(promises);
-          const allAtomics = results.flat();
+          const allAbilities = results.flat();
           const nameMap: Record<string, string> = {};
-          allAtomics.forEach((atomic) => {
-            nameMap[atomic.code] = atomic.name;
+          allAbilities.forEach((ability) => {
+            nameMap[ability.code] = ability.name;
           });
-          setAtomicNames(nameMap);
+          setAbilityNames(nameMap);
         } catch (error) {
-          console.error('加载原子能力失败:', error);
+          console.error('加载能力失败:', error);
         }
       };
-      loadAtomics();
+      loadAbilities();
     } else {
-      setAtomicNames({});
+      setAbilityNames({});
     }
-  }, [item?.ability_atomic_codes, item?.subject, item?.grades, item?.domain_code]);
+  }, [item?.ability_atomic_codes, item?.subject, item?.grades]);
 
   return (
     <Descriptions column={3} bordered size="small">
@@ -111,19 +93,12 @@ export function BaseDetail({ item }: BaseDetailProps) {
           '-'
         )}
       </Descriptions.Item>
-      <Descriptions.Item label="能力域">
-        {item?.domain_code ? (
-          <Tag color="cyan">{domainName || item.domain_code}</Tag>
-        ) : (
-          '-'
-        )}
-      </Descriptions.Item>
-      <Descriptions.Item label="原子能力" span={2}>
+      <Descriptions.Item label="关联能力" span={2}>
         {item?.ability_atomic_codes?.length ? (
           <Flex gap={4} wrap>
             {item.ability_atomic_codes.map((code: string) => (
               <Tag key={code} color="blue">
-                {atomicNames[code] || code}
+                {abilityNames[code] || code}
               </Tag>
             ))}
           </Flex>

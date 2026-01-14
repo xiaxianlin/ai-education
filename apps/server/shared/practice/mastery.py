@@ -12,7 +12,7 @@ from typing import Optional
 
 from loguru import logger
 from shared.core.database import (
-    AbilityAtomic,
+    Ability,
     Question,
     StudentAbilityMastery,
 )
@@ -82,10 +82,9 @@ def get_mastery_level(score: float) -> str:
 
 
 def extract_ability_codes(question: Question) -> list[str]:
-    """从题目中提取关联的原子能力代码
+    """从题目中提取关联的能力代码
 
-    优先从 question.ability_tags 提取，
-    其次从 question_type.ability_atomic_codes 提取。
+    从 question_type.ability_atomic_codes 提取。
 
     Args:
         question: 题目对象
@@ -118,7 +117,7 @@ async def update_student_mastery(
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        ability_code: 原子能力代码
+        ability_code: 能力代码
         is_correct: 是否答对
 
     Returns:
@@ -185,20 +184,20 @@ async def get_student_mastery_list(
     """
     query = select(StudentAbilityMastery).where(StudentAbilityMastery.student_id == student_id)
 
-    # 如果需要按科目/年级筛选，需要关联 AbilityAtomic 表
+    # 如果需要按科目/年级筛选，需要关联 Ability 表
     if subject or grade:
         query = (
             select(StudentAbilityMastery)
             .join(
-                AbilityAtomic,
-                StudentAbilityMastery.ability_code == AbilityAtomic.code,
+                Ability,
+                StudentAbilityMastery.ability_code == Ability.code,
             )
             .where(StudentAbilityMastery.student_id == student_id)
         )
         if subject:
-            query = query.where(AbilityAtomic.subject == subject)
+            query = query.where(Ability.subject == subject)
         if grade:
-            query = query.where(AbilityAtomic.grade == grade)
+            query = query.where(Ability.grade == grade)
 
     query = query.order_by(StudentAbilityMastery.mastery_score.asc())
     result = await db.scalars(query)

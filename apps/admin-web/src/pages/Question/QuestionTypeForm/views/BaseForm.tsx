@@ -11,8 +11,6 @@ export function BaseForm() {
     handleStagesChange,
     handleSubjectChange,
     handleGradesChange,
-    handleDomainChange,
-    domains,
     atomics,
   } = useQuestionTypeFormModel();
 
@@ -100,24 +98,12 @@ export function BaseForm() {
       </Row>
 
       <Row gutter={16}>
-        <Col span={8}>
-          <ProFormSelect
-            name="domain_code"
-            label="能力域"
-            placeholder="请选择能力域"
-            rules={[{ required: true, message: '请选择能力域' }]}
-            options={domains}
-            fieldProps={{
-              onChange: handleDomainChange,
-            }}
-          />
-        </Col>
-        <Col span={16}>
+        <Col span={24}>
           <ProFormSelect
             name="ability_atomic_codes"
-            label="原子能力"
+            label="关联能力"
             mode="multiple"
-            placeholder="请选择原子能力（可选）"
+            placeholder="请选择关联能力（可选）"
             options={atomics}
           />
         </Col>

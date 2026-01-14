@@ -38,8 +38,7 @@
 - **题型管理**: `pages/Question/Type/` - 题型配置管理（包含AI生成指令）
 
 ### 能力管理 (Ability)
-- **能力列表**: `pages/Ability/AbilityList/` - 能力域CRUD操作
-- **能力详情**: `pages/Ability/AbilityDetail/` - 能力域详情、原子能力管理
+- **能力管理**: `pages/Ability/` - 能力CRUD操作，按学科和年级展示
 
 ### 练习管理 (Practice)
 - **练习列表**: `pages/Practice/List/` - 练习类型管理

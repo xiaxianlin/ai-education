@@ -35,7 +35,7 @@ class PracticeSchema(BaseModel):
     """练习 Schema
 
     练习类型 (practice_type):
-    - ability_practice: 能力练习 - 基于原子能力 code 列表生成
+    - ability_practice: 能力练习 - 基于能力 code 生成
     - unit_practice: 单元练习 - 基于单元 ID 生成
 
     生成状态 (generate_status):
@@ -49,8 +49,8 @@ class PracticeSchema(BaseModel):
     practice_type: str = Field(..., description="练习类型: ability_practice/unit_practice")
     subject: Optional[str] = Field(None, description="科目")
     grade: Optional[int] = Field(None, description="年级")
-    ability_code: Optional[str] = Field(None, description="原子能力代码")
-    ability_name: Optional[str] = Field(None, description="原子能力名称")
+    ability_code: Optional[str] = Field(None, description="能力代码")
+    ability_name: Optional[str] = Field(None, description="能力名称")
     unit_id: Optional[int] = Field(None, description="单元ID")
     unit_name: Optional[str] = Field(None, description="单元名称")
     question_count: int = 0

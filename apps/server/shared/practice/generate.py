@@ -9,7 +9,7 @@
 5. 如果生成失败，清理所有相关数据
 
 练习类型：
-- ability_practice: 能力练习 - 基于原子能力 code 生成
+- ability_practice: 能力练习 - 基于能力 code 生成
 - unit_practice: 单元练习 - 基于单元 ID 生成
 """
 
@@ -69,7 +69,7 @@ async def create_practice(
         db: 数据库会话
         practice_type: 练习类型 (ability_practice / unit_practice)
         student_id: 学生 ID
-        ability_code: 原子能力代码（能力练习必填）
+        ability_code: 能力代码（能力练习必填）
         unit_id: 单元ID（单元练习必填）
         generate_count: 生成题目数量，如果为 None 则根据练习类型自动设置：
                         - 单元练习 (unit_practice): 15 道题

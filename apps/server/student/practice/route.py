@@ -43,7 +43,7 @@ practice_router = APIRouter(prefix="/practice")
 async def get_practice(
     request: Request,
     practice_type: str = Query(..., description="练习类型: ability_practice/unit_practice"),
-    ability_code: str | None = Query(None, description="原子能力代码（能力练习必填）"),
+    ability_code: str | None = Query(None, description="能力代码（能力练习必填）"),
     unit_id: int | None = Query(None, description="单元ID（单元练习必填）"),
     db: AsyncSession = Database,
 ):

@@ -1,12 +1,12 @@
 /**
  * 能力练习卡片组件
- * 显示原子能力信息和练习状态
+ * 显示能力信息和练习状态
  */
 import { PracticeStateCard } from "@/components/biz/PracticeStateCard";
 import { memo } from "react";
 
 interface AbilityPracticeCardProps {
-  atomic: AbilityAtomic;
+  atomic: Ability;
 }
 
 export const AbilityPracticeCard = memo(function AbilityPracticeCard({ atomic }: AbilityPracticeCardProps) {

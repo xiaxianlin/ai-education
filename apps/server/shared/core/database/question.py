@@ -59,16 +59,10 @@ class QuestionType(BaseModel):
     cognitive_levels: Mapped[list] = mapped_column(JSON, nullable=True, comment="认知层次列表")
     
     # 能力关联
-    domain_code: Mapped[str] = mapped_column(
-        String(50), 
-        nullable=True, 
-        index=True, 
-        comment="关联的能力域代码（对应 AbilityDomain.code）"
-    )
     ability_atomic_codes: Mapped[list] = mapped_column(
         JSON, 
         nullable=True, 
-        comment="关联的原子能力代码列表（对应 AbilityAtomic.code）"
+        comment="关联的能力代码列表（对应 Ability.code）"
     )
 
     # 难度
@@ -84,9 +78,7 @@ class QuestionType(BaseModel):
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
 
-    __table_args__ = (
-        Index("ix_subject_domain", "subject", "domain_code"),
-    )
+    __table_args__ = ()
 
 
 class Question(BaseModel):

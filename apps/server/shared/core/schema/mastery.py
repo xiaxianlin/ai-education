@@ -40,19 +40,8 @@ class StudentAbilityMasteryWithInfoSchema(StudentAbilityMasterySchema):
     """学生能力掌握度（含能力信息）"""
 
     ability_name: Optional[str] = Field(default=None, description="能力名称")
-    ability_domain: Optional[str] = Field(default=None, description="能力域")
     subject: Optional[str] = Field(default=None, description="科目")
     grade: Optional[int] = Field(default=None, description="年级")
-
-
-class DomainMasterySchema(BaseModel):
-    """能力域掌握度统计"""
-
-    domain_code: str = Field(description="能力域代码")
-    domain_name: str = Field(description="能力域名称")
-    avg_mastery_score: float = Field(description="平均掌握度")
-    ability_count: int = Field(description="能力数量")
-    mastered_count: int = Field(description="已掌握数量")
 
 
 class MasterySummarySchema(BaseModel):
@@ -62,13 +51,11 @@ class MasterySummarySchema(BaseModel):
     practiced_abilities: int = Field(description="已练习能力数")
     avg_mastery_score: float = Field(description="平均掌握度")
     level_distribution: dict[str, int] = Field(description="等级分布")
-    domain_stats: list[DomainMasterySchema] = Field(description="能力域统计")
 
 
 __all__ = [
     "MasteryLevelEnum",
     "StudentAbilityMasterySchema",
     "StudentAbilityMasteryWithInfoSchema",
-    "DomainMasterySchema",
     "MasterySummarySchema",
 ]

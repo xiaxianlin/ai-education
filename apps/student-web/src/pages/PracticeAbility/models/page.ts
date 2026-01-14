@@ -8,10 +8,10 @@ const useContainer = () => {
   const { profile } = useProfileModel();
   const { grade, subject } = profile || {};
 
-  const [atomicsBySubject, setAtomicsBySubject] = useState<Record<string, AbilityAtomic[]>>({});
+  const [atomicsBySubject, setAtomicsBySubject] = useState<Record<string, Ability[]>>({});
   const [loading, setLoading] = useState(false);
 
-  // 只获取当前设置学科的原子能力列表
+  // 只获取当前设置学科的能力列表
   useEffect(() => {
     // 严格验证：grade 必须是有效的正整数（> 0），subject 必须是有效的非空字符串
     const isValidGrade = typeof grade === "number" && grade > 0 && Number.isInteger(grade);
@@ -26,9 +26,9 @@ const useContainer = () => {
     setLoading(true);
     studentApi
       .getAbilityAtomics(subject, grade)
-      .then((atomics) => {
-        if (atomics.length > 0) {
-          setAtomicsBySubject({ [subject]: atomics });
+      .then((abilities) => {
+        if (abilities.length > 0) {
+          setAtomicsBySubject({ [subject]: abilities });
         } else {
           setAtomicsBySubject({});
         }

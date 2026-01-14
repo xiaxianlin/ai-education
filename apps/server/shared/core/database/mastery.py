@@ -12,7 +12,7 @@ from .base import BaseModel, Mapped, String, mapped_column, now
 
 
 class StudentAbilityMastery(BaseModel):
-    """学生原子能力掌握度表
+    """学生能力掌握度表
 
     掌握等级 (mastery_level):
     - unlearned: 未掌握 (0-39)
@@ -28,7 +28,7 @@ class StudentAbilityMastery(BaseModel):
         String(255), nullable=False, index=True, comment="学生ID"
     )
     ability_code: Mapped[str] = mapped_column(
-        String(100), nullable=False, index=True, comment="原子能力代码"
+        String(100), nullable=False, index=True, comment="能力代码"
     )
 
     # 掌握度

@@ -860,7 +860,7 @@ POST /api/admin/question/type
     }
   },
   "cognitive_levels": ["记忆", "理解"],
-  "ability_dimensions": ["识记能力"],
+  "ability_atomic_codes": ["cn_g1_pinyin_read"],
   "ai_prompt": "请生成一道看图选拼音题...",
   "output_schema": {
     "type": "object",
@@ -890,7 +890,7 @@ POST /api/admin/question/type
 - `answer_config`: 答案配置（可选，JSON对象）
 - `feedback_config`: 反馈配置（可选，JSON对象）
 - `cognitive_levels`: 认知层次列表（可选）
-- `ability_dimensions`: 能力维度列表（可选）
+- `ability_atomic_codes`: 关联的能力代码列表（可选）
 - `ai_prompt`: AI生成指令（可选）
 - `output_schema`: AI输出Schema（可选，JSON对象）
 - `sort_order`: 排序（默认0）

@@ -8,49 +8,15 @@ from pydantic import BaseModel, Field, field_validator
 from shared.core.constants import SUBJECTS
 
 
-class CreateAbilityDomainSchema(BaseModel):
-    """创建能力域"""
-
-    subject: str
-    code: str = Field(..., description="能力域标识")
-    name: str = Field(..., description="能力域名称")
-    description: Optional[str] = Field(None, description="能力域描述")
-
-    @field_validator("subject")
-    @classmethod
-    def valid_subject(cls, v):
-        if v and v not in SUBJECTS:
-            raise ValueError(f"科目只能选择{'、'.join(SUBJECTS)}")
-        return v
-
-
-class UpdateAbilityDomainSchema(BaseModel):
-    """更新能力域"""
-
-    code: Optional[str] = None
-    name: Optional[str] = None
-    description: Optional[str] = None
-    is_active: Optional[int] = None
-    sort_order: Optional[int] = None
-
-
-class SearchAbilityDomainSchema(BaseModel):
-    """搜索能力域"""
-
-    subject: Optional[str] = None
-
-
-class CreateAbilityAtomicSchema(BaseModel):
-    """创建原子能力"""
+class CreateAbilitySchema(BaseModel):
+    """创建能力"""
 
     subject: str
     grade: int = Field(..., ge=1, le=6, description="年级（1-6）")
-    domain_code: str = Field(..., description="能力域 code")
-    code: str = Field(..., description="原子能力标识")
-    name: str = Field(..., description="原子能力名称")
+    code: str = Field(..., description="能力标识")
+    name: str = Field(..., description="能力名称")
     description: Optional[str] = Field(None, description="能力描述")
     difficulty: int = Field(1, ge=1, le=5, description="难度 1-5")
-    sort_order: int = Field(0, description="排序")
 
     @field_validator("subject")
     @classmethod
@@ -60,8 +26,8 @@ class CreateAbilityAtomicSchema(BaseModel):
         return v
 
 
-class UpdateAbilityAtomicSchema(BaseModel):
-    """更新原子能力"""
+class UpdateAbilitySchema(BaseModel):
+    """更新能力"""
 
     name: Optional[str] = None
     code: Optional[str] = None
@@ -70,41 +36,14 @@ class UpdateAbilityAtomicSchema(BaseModel):
     is_active: Optional[int] = None
 
 
-class SearchAbilityAtomicSchema(BaseModel):
-    """搜索原子能力"""
+class SearchAbilitySchema(BaseModel):
+    """搜索能力"""
 
     subject: Optional[str] = None
     grade: Optional[int] = Field(None, ge=1, le=6)
-    domain_code: Optional[str] = None
 
 
-class AtomicSortOrderItem(BaseModel):
-    """原子能力排序项"""
+class BatchDeleteAbilitySchema(BaseModel):
+    """批量删除能力"""
 
-    id: int = Field(..., description="原子能力ID")
-    sort_order: int = Field(..., description="排序值")
-
-
-class BatchUpdateAtomicSortOrderSchema(BaseModel):
-    """批量更新原子能力排序"""
-
-    items: List[AtomicSortOrderItem] = Field(..., description="排序项列表", min_length=1)
-
-
-class BatchDeleteAtomicSchema(BaseModel):
-    """批量删除原子能力"""
-
-    ids: List[int] = Field(..., description="原子能力ID列表", min_length=1)
-
-
-class DomainSortOrderItem(BaseModel):
-    """能力域排序项"""
-
-    id: int = Field(..., description="能力域ID")
-    sort_order: int = Field(..., description="排序值")
-
-
-class BatchUpdateDomainSortOrderSchema(BaseModel):
-    """批量更新能力域排序"""
-
-    items: List[DomainSortOrderItem] = Field(..., description="排序项列表", min_length=1)
+    ids: List[int] = Field(..., description="能力ID列表", min_length=1)

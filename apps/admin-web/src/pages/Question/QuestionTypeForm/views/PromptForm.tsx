@@ -85,40 +85,26 @@ export function PromptForm() {
         .map((level: string) => COGNITIVE_LEVEL_LABELS[level as keyof typeof COGNITIVE_LEVEL_LABELS] || level)
         .join('、') || '无';
     
-    // 加载能力域名称
-    let domainName = '无';
-    if (values.domain_code && values.subject) {
-      try {
-        const domains = await AbilityApi.searchDomains({ subject: values.subject });
-        const domain = domains.find((d) => d.code === values.domain_code);
-        domainName = domain?.name || values.domain_code;
-      } catch (error) {
-        console.error('加载能力域失败:', error);
-        domainName = values.domain_code || '无';
-      }
-    }
-
-    // 加载原子能力名称
-    let atomicNames = '无';
-    if (values.ability_atomic_codes?.length && values.subject && values.domain_code && values.grades?.length) {
+    // 加载能力名称
+    let abilityNames = '无';
+    if (values.ability_atomic_codes?.length && values.subject && values.grades?.length) {
       try {
         const promises = (values.grades as number[]).map((grade: number) =>
-          AbilityApi.searchAtomics({
+          AbilityApi.searchAbilities({
             subject: values.subject,
             grade,
-            domain_code: values.domain_code,
           })
         );
         const results = await Promise.all(promises);
-        const allAtomics = results.flat();
-        const nameMap = new Map(allAtomics.map((a) => [a.code, a.name]));
+        const allAbilities = results.flat();
+        const nameMap = new Map(allAbilities.map((a) => [a.code, a.name]));
         const names = (values.ability_atomic_codes as string[])
           .map((code: string) => nameMap.get(code) || code)
           .filter(Boolean);
-        atomicNames = names.length > 0 ? names.join('、') : '无';
+        abilityNames = names.length > 0 ? names.join('、') : '无';
       } catch (error) {
-        console.error('加载原子能力失败:', error);
-        atomicNames = (values.ability_atomic_codes as string[]).join('、') || '无';
+        console.error('加载能力失败:', error);
+        abilityNames = (values.ability_atomic_codes as string[]).join('、') || '无';
       }
     }
 
@@ -155,8 +141,7 @@ export function PromptForm() {
 
 ### 认知与能力
 - 认知层次：${cognitiveLevels}
-- 能力域：${domainName}
-- 原子能力：${atomicNames}
+- 关联能力：${abilityNames}
 - 难度：${difficulty}
 
 ## 任务

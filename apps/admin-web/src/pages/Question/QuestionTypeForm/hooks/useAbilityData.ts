@@ -4,39 +4,36 @@ import { AbilityApi } from '../../../Ability/api';
 
 /**
  * 能力数据管理 Hook
- * 使用新的 getBySubject 接口获取能力数据，并根据 domainCode 和 grades 过滤原子能力
+ * 根据学科和年级获取能力列表
  */
-export function useAbilityData(subject?: string, domainCode?: string, grades?: number[]) {
-  // 使用 useRequest 调用新接口
+export function useAbilityData(subject?: string, grades?: number[]) {
+  // 获取该学科下所有年级的能力数据
   const { data, loading, error } = useRequest(() => AbilityApi.getBySubject(subject!), {
     refreshDeps: [subject],
     ready: !!subject,
   });
 
-  const domains = useMemo(() => {
-    if (!data) {
-      return [];
-    }
-    return data.map((d) => ({ label: d.name, value: d.code }));
-  }, [data]);
-
-  // 根据 domainCode 和 grades 过滤原子能力
+  // 根据选中的年级过滤能力
   const atomics = useMemo(() => {
-    if (!data || !domainCode || !grades || grades.length === 0) {
+    if (!data || !grades || grades.length === 0) {
       return [];
     }
 
-    // 找到对应的能力域
-    const domain = data.find((d) => d.code === domainCode);
-    if (!domain || !domain.atomics) {
-      return [];
-    }
+    // 从所有年级的能力中筛选出匹配的能力
+    const allAbilities: Ability[] = [];
+    grades.forEach((grade) => {
+      const gradeKey = `grade_${grade}`;
+      const gradeAbilities = data[gradeKey] || [];
+      allAbilities.push(...gradeAbilities);
+    });
 
-    // 过滤出匹配的年级的原子能力
-    return domain.atomics
-      .filter((atomic) => grades.includes(atomic.grade))
-      .map((a) => ({ label: a.name, value: a.code }));
-  }, [data, domainCode, grades]);
+    // 去重并转换为选项格式
+    const uniqueAbilities = Array.from(
+      new Map(allAbilities.map((a) => [a.code, a])).values()
+    );
 
-  return { domains, atomics, loading, error };
+    return uniqueAbilities.map((a) => ({ label: `${a.name} (${a.grade}年级)`, value: a.code }));
+  }, [data, grades]);
+
+  return { atomics, loading, error };
 }

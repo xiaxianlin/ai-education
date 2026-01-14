@@ -6,8 +6,20 @@ Schema 模块
 
 # 通用模块
 # 认证模块
+# 能力模块
+from .ability import (
+    AbilitySchema,
+)
 from .auth import ManagerSchema
 from .common import ResponseSchema, SearchResultSchema, SearchSchema, T
+
+# 掌握度模块
+from .mastery import (
+    MasteryLevelEnum,
+    MasterySummarySchema,
+    StudentAbilityMasterySchema,
+    StudentAbilityMasteryWithInfoSchema,
+)
 
 # 练习模块
 from .practice import (
@@ -39,21 +51,6 @@ from .student import StudentSchema, StudentTextbookConfigSchema
 
 # 教材模块
 from .textbook import KnowledgeSchema, TeacherBookSchema, TextbookSchema, UnitSchema
-
-# 能力模块
-from .ability import (
-    AbilityAtomicSchema,
-    AbilityDomainSchema,
-)
-
-# 掌握度模块
-from .mastery import (
-    MasteryLevelEnum,
-    StudentAbilityMasterySchema,
-    StudentAbilityMasteryWithInfoSchema,
-    DomainMasterySchema,
-    MasterySummarySchema,
-)
 
 __all__ = [
     # 通用
@@ -91,12 +88,10 @@ __all__ = [
     "StudentSchema",
     "StudentTextbookConfigSchema",
     # 能力
-    "AbilityDomainSchema",
-    "AbilityAtomicSchema",
+    "AbilitySchema",
     # 掌握度
     "MasteryLevelEnum",
     "StudentAbilityMasterySchema",
     "StudentAbilityMasteryWithInfoSchema",
-    "DomainMasterySchema",
     "MasterySummarySchema",
 ]

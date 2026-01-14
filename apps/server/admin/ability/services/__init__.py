@@ -2,6 +2,6 @@
 能力服务模块
 """
 
-from . import atomic, domain
+from . import ability
 
-__all__ = ["domain", "atomic"]
+__all__ = ["ability"]

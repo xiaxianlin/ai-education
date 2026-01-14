@@ -1,5 +1,5 @@
 from shared.core.database import (
-    AbilityAtomic,
+    Ability,
     Practice,
     PracticeAnswer,
     PracticeReport,
@@ -79,10 +79,10 @@ async def search_practices(db: AsyncSession, params: SearchPracticeSchema):
         # 获取能力名称
         if practice.ability_code:
             ability = await db.scalar(
-                select(AbilityAtomic).where(
-                    AbilityAtomic.subject == practice.subject,
-                    AbilityAtomic.grade == practice.grade,
-                    AbilityAtomic.code == practice.ability_code,
+                select(Ability).where(
+                    Ability.subject == practice.subject,
+                    Ability.grade == practice.grade,
+                    Ability.code == practice.ability_code,
                 )
             )
             if ability:
@@ -155,10 +155,10 @@ async def get_practice_detail(db: AsyncSession, session_id: str):
     # 获取能力名称
     if session.ability_code:
         ability = await db.scalar(
-            select(AbilityAtomic).where(
-                AbilityAtomic.subject == session.subject,
-                AbilityAtomic.grade == session.grade,
-                AbilityAtomic.code == session.ability_code,
+            select(Ability).where(
+                Ability.subject == session.subject,
+                Ability.grade == session.grade,
+                Ability.code == session.ability_code,
             )
         )
         if ability:

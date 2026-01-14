@@ -48,7 +48,6 @@ const useContainer = () => {
         // 反馈配置
         feedbackConfig: res.feedback_config ? JSON.stringify(res.feedback_config, null, 2) : undefined,
         // 能力关联
-        domain_code: res.domain_code,
         ability_atomic_codes: res.ability_atomic_codes,
         // 认知配置
         cognitiveLevels: res.cognitive_levels,
@@ -64,10 +63,9 @@ const useContainer = () => {
   // 监听表单字段变化
   const subject = Form.useWatch('subject', form);
   const grades = Form.useWatch('grades', form);
-  const domainCode = Form.useWatch('domain_code', form);
 
   // 使用新的 hook 加载能力数据
-  const { domains, atomics } = useAbilityData(subject, domainCode, grades);
+  const { atomics } = useAbilityData(subject, grades);
 
   // 处理学段变化
   const handleStagesChange = (stages: Stage[]) => {
@@ -82,20 +80,13 @@ const useContainer = () => {
 
   // 处理科目变化
   const handleSubjectChange = (_subject: string) => {
-    // 清空能力域和原子能力（因为能力域和原子能力是按科目加载的）
-    form.setFieldValue('domain_code', undefined);
+    // 清空能力（因为能力是按科目加载的）
     form.setFieldValue('ability_atomic_codes', undefined);
   };
 
   // 处理年级变化
   const handleGradesChange = (_grades: number[]) => {
-    // 清空原子能力（因为原子能力会根据年级重新过滤）
-    form.setFieldValue('ability_atomic_codes', undefined);
-  };
-
-  // 处理能力域变化
-  const handleDomainChange = (_domainCode: string) => {
-    // 清空原子能力（因为原子能力会根据能力域重新过滤）
+    // 清空能力（因为能力会根据年级重新过滤）
     form.setFieldValue('ability_atomic_codes', undefined);
   };
 
@@ -122,7 +113,6 @@ const useContainer = () => {
         // 反馈配置
         feedback_config: values.feedbackConfig ? JSON.parse(values.feedbackConfig) : undefined,
         // 能力关联
-        domain_code: values.domain_code,
         ability_atomic_codes: values.ability_atomic_codes,
         // 认知配置
         cognitive_levels: values.cognitiveLevels,
@@ -170,9 +160,7 @@ const useContainer = () => {
     handleStagesChange,
     handleSubjectChange,
     handleGradesChange,
-    handleDomainChange,
     handleSubmit,
-    domains,
     atomics,
   };
 };

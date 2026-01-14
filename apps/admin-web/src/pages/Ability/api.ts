@@ -1,259 +1,117 @@
 import { apiClient } from '@/lib/api';
 
 /**
- * 创建能力域请求
+ * 创建能力请求
  */
-export interface CreateAbilityDomainRequest {
-  subject: string;
-  code: string;
-  name: string;
-  description?: string;
-}
-
-/**
- * 更新能力域请求
- */
-export interface UpdateAbilityDomainRequest {
-  code?: string;
-  name?: string;
-  description?: string;
-  is_active?: number;
-  sort_order?: number;
-}
-
-/**
- * 搜索能力域请求
- */
-export interface SearchAbilityDomainRequest {
-  subject?: string;
-}
-
-/**
- * 创建原子能力请求
- */
-export interface CreateAbilityAtomicRequest {
+export interface CreateAbilityRequest {
   subject: string;
   grade: number;
-  domain_code: string;
   code: string;
   name: string;
   description?: string;
   difficulty?: number; // 1-5
-  sort_order?: number;
 }
 
 /**
- * 更新原子能力请求
+ * 更新能力请求
  */
-export interface UpdateAbilityAtomicRequest {
+export interface UpdateAbilityRequest {
   name?: string;
   description?: string;
   difficulty?: number; // 1-5
-  sort_order?: number;
   is_active?: number;
 }
 
 /**
- * 搜索原子能力请求
+ * 搜索能力请求
  */
-export interface SearchAbilityAtomicRequest {
+export interface SearchAbilityRequest {
   subject?: string;
   grade?: number;
-  domain_code?: string;
 }
 
 /**
- * 批量更新原子能力排序请求
+ * 批量删除能力请求
  */
-export interface BatchUpdateAtomicSortOrderRequest {
-  items: Array<{ id: number; sort_order: number }>;
-}
-
-/**
- * 批量删除原子能力请求
- */
-export interface BatchDeleteAtomicRequest {
+export interface BatchDeleteAbilityRequest {
   ids: number[];
-}
-
-/**
- * 批量更新能力域排序请求
- */
-export interface BatchUpdateDomainSortOrderRequest {
-  items: Array<{ id: number; sort_order: number }>;
 }
 
 export const AbilityApi = {
   /**
-   * 搜索能力域
-   * GET /ability/domain/search
-   */
-  async searchDomains(params?: SearchAbilityDomainRequest) {
-    return apiClient.get<AbilityDomain[]>('/ability/domain/search', params);
-  },
-
-  /**
-   * 获取能力域详情
-   * GET /ability/domain/{id}
-   */
-  async getDomain(id: number) {
-    return apiClient.get<AbilityDomain>(`/ability/domain/${id}`);
-  },
-
-  /**
-   * 创建能力域
-   * POST /ability/domain
-   */
-  async createDomain(data: CreateAbilityDomainRequest) {
-    return apiClient.post<number>('/ability/domain', data);
-  },
-
-  /**
-   * 更新能力域
-   * PATCH /ability/domain/{id}
-   */
-  async updateDomain(id: number, data: UpdateAbilityDomainRequest) {
-    return apiClient.patch(`/ability/domain/${id}`, data);
-  },
-
-  /**
-   * 删除能力域
-   * DELETE /ability/domain/{id}
-   */
-  async deleteDomain(id: number) {
-    return apiClient.delete(`/ability/domain/${id}`);
-  },
-
-  /**
-   * 根据科目获取能力数据（二级结构）
+   * 根据科目获取能力数据（按年级分组）
    * GET /ability/by-subject/{subject}
    */
   async getBySubject(subject: string) {
-    return apiClient.get<AbilityDomain[]>(
+    return apiClient.get<Record<string, Ability[]>>(
       `/ability/by-subject/${subject}`
     );
   },
 
+  // ========== 能力管理 ==========
+
   /**
-   * 批量更新能力域排序
-   * PATCH /ability/domain/batch-sort
+   * 搜索能力
+   * GET /ability/search
    */
-  async batchUpdateDomainSortOrder(data: BatchUpdateDomainSortOrderRequest) {
-    return apiClient.patch<{ message: string; updated_count: number }>(
-      '/ability/domain/batch-sort',
-      data
-    );
+  async searchAbilities(params?: SearchAbilityRequest) {
+    return apiClient.get<Ability[]>('/ability/search', params);
   },
 
   /**
-   * 导出能力域数据（按科目）
-   * POST /ability/domain/export
+   * 获取能力详情
+   * GET /ability/{id}
    */
-  async exportDomainsBySubject(subject: string): Promise<Blob> {
-    const url = `/api/admin/ability/domain/export?subject=${encodeURIComponent(subject)}`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'x-access-token': apiClient.getToken() || '',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`导出失败: ${response.statusText} - ${errorText}`);
-    }
-
-    return await response.blob();
-  },
-
-  // ========== 原子能力管理 ==========
-
-  /**
-   * 搜索原子能力
-   * GET /ability/atomic/search
-   */
-  async searchAtomics(params?: SearchAbilityAtomicRequest) {
-    return apiClient.get<AbilityAtomic[]>('/ability/atomic/search', params);
+  async getAbility(id: number) {
+    return apiClient.get<Ability>(`/ability/${id}`);
   },
 
   /**
-   * 获取原子能力详情
-   * GET /ability/atomic/{id}
+   * 创建能力
+   * POST /ability
    */
-  async getAtomic(id: number) {
-    return apiClient.get<AbilityAtomic>(`/ability/atomic/${id}`);
+  async createAbility(data: CreateAbilityRequest) {
+    return apiClient.post<number>('/ability', data);
   },
 
   /**
-   * 创建原子能力
-   * POST /ability/atomic
+   * 更新能力
+   * PATCH /ability/{id}
    */
-  async createAtomic(data: CreateAbilityAtomicRequest) {
-    return apiClient.post<number>('/ability/atomic', data);
+  async updateAbility(id: number, data: UpdateAbilityRequest) {
+    return apiClient.patch(`/ability/${id}`, data);
   },
 
   /**
-   * 更新原子能力
-   * PATCH /ability/atomic/{id}
+   * 删除能力
+   * DELETE /ability/{id}
    */
-  async updateAtomic(id: number, data: UpdateAbilityAtomicRequest) {
-    return apiClient.patch(`/ability/atomic/${id}`, data);
+  async deleteAbility(id: number) {
+    return apiClient.delete(`/ability/${id}`);
   },
 
   /**
-   * 删除原子能力
-   * DELETE /ability/atomic/{id}
+   * 批量删除能力
+   * POST /ability/batch_delete
    */
-  async deleteAtomic(id: number) {
-    return apiClient.delete(`/ability/atomic/${id}`);
-  },
-
-  /**
-   * 批量删除原子能力
-   * POST /ability/atomic/batch_delete
-   */
-  async batchDeleteAtomics(ids: number[]) {
+  async batchDeleteAbilities(ids: number[]) {
     return apiClient.post<{ message: string; deleted_count: number }>(
-      '/ability/atomic/batch_delete',
+      '/ability/batch_delete',
       { ids }
     );
   },
 
   /**
-   * 按能力域查询原子能力
-   * GET /ability/atomic/by-domain/{domain_code}
+   * 导出能力数据（按学科和年级）
+   * POST /ability/export
    */
-  async getAtomicsByDomain(domainCode: string, subject?: string) {
-    return apiClient.get<AbilityAtomic[]>(
-      `/ability/atomic/by-domain/${domainCode}`,
-      subject ? { subject } : undefined
-    );
-  },
-
-  /**
-   * 批量更新原子能力排序
-   * PATCH /ability/atomic/batch-sort
-   */
-  async batchUpdateAtomicSortOrder(data: BatchUpdateAtomicSortOrderRequest) {
-    return apiClient.patch<{ message: string; updated_count: number }>(
-      '/ability/atomic/batch-sort',
-      data
-    );
-  },
-
-  /**
-   * 导出原子能力数据（按年级）
-   * POST /ability/atomic/export
-   */
-  async exportAtomicsByGrade(params: {
-    domain_code: string;
+  async exportAbilitiesByGrade(params: {
     subject: string;
     grade: number;
   }): Promise<Blob> {
-    const url = `/api/admin/ability/atomic/export?domain_code=${encodeURIComponent(
-      params.domain_code
-    )}&subject=${encodeURIComponent(params.subject)}&grade=${params.grade}`;
+    const url = `/api/admin/ability/export?subject=${encodeURIComponent(
+      params.subject
+    )}&grade=${params.grade}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -271,13 +129,12 @@ export const AbilityApi = {
   },
 
   /**
-   * 导入原子能力数据（按年级）
-   * POST /ability/atomic/import
+   * 导入能力数据（按学科和年级）
+   * POST /ability/import
    */
-  async importAtomicsByGrade(
+  async importAbilitiesByGrade(
     file: File,
     params: {
-      domain_code: string;
       subject: string;
       grade: number;
     }
@@ -285,9 +142,9 @@ export const AbilityApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const url = `/api/admin/ability/atomic/import?domain_code=${encodeURIComponent(
-      params.domain_code
-    )}&subject=${encodeURIComponent(params.subject)}&grade=${params.grade}`;
+    const url = `/api/admin/ability/import?subject=${encodeURIComponent(
+      params.subject
+    )}&grade=${params.grade}`;
 
     const response = await fetch(url, {
       method: 'POST',

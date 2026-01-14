@@ -4,7 +4,7 @@
 包含 Practice、PracticeAnswer、PracticeReport
 
 练习类型分类：
-- ability_practice: 能力练习 - 基于原子能力 code 生成题目
+- ability_practice: 能力练习 - 基于能力 code 生成题目
 - unit_practice: 单元练习 - 基于单元 ID 生成题目
 """
 
@@ -36,7 +36,7 @@ class Practice(BaseModel):
     """练习表
 
     练习类型 (practice_type):
-    - ability_practice: 能力练习 - 基于原子能力 code 列表生成
+    - ability_practice: 能力练习 - 基于能力 code 生成
     - unit_practice: 单元练习 - 基于单元 ID 生成
 
     生成状态 (generate_status):
@@ -62,7 +62,7 @@ class Practice(BaseModel):
     )
     grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True, comment="年级")
     ability_code: Mapped[Optional[str]] = mapped_column(
-        String(255), nullable=True, index=True, comment="原子能力代码"
+        String(255), nullable=True, index=True, comment="能力代码"
     )
     unit_id: Mapped[Optional[int]] = mapped_column(
         Integer, nullable=True, index=True, comment="单元ID"

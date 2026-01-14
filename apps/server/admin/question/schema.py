@@ -38,8 +38,7 @@ class QuestionTypeCreateSchema(BaseModel):
     answer_config: Optional[Dict[str, Any]] = Field(default=None, description="答案配置")
     feedback_config: Optional[Dict[str, Any]] = Field(default=None, description="反馈配置")
     cognitive_levels: Optional[List[str]] = Field(default=None, description="认知层次列表")
-    domain_code: Optional[str] = Field(default=None, description="关联的能力域代码")
-    ability_atomic_codes: Optional[List[str]] = Field(default=None, description="关联的原子能力代码列表")
+    ability_atomic_codes: Optional[List[str]] = Field(default=None, description="关联的能力代码列表")
     difficulty: Optional[str] = Field(default=None, description="难度：easy/medium/hard")
     ai_prompt: Optional[str] = Field(default=None, description="AI生成指令")
     output_schema: Optional[Dict[str, Any]] = Field(default=None, description="AI输出Schema")
@@ -119,7 +118,6 @@ class QuestionTypeUpdateSchema(BaseModel):
     answer_config: Optional[Dict[str, Any]] = None
     feedback_config: Optional[Dict[str, Any]] = None
     cognitive_levels: Optional[List[str]] = None
-    domain_code: Optional[str] = None
     ability_atomic_codes: Optional[List[str]] = None
     difficulty: Optional[str] = None
     ai_prompt: Optional[str] = None

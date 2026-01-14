@@ -39,7 +39,6 @@ class QuestionTypeSchema(BaseModel):
     cognitive_levels: Optional[list] = None
     
     # 能力关联
-    domain_code: Optional[str] = None
     ability_atomic_codes: Optional[list] = None
 
     # 难度

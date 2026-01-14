@@ -148,7 +148,7 @@ async def update(db: AsyncSession, id: int, update: UpdateSchema):
 - `practice.py`: 练习相关模型（Practice, PracticeSession, PracticeSessionAnswer, PracticeSessionReport）
 - `student.py`: 学生相关模型（Student, StudentSubjectVersion, StudentPractice）
 - `question.py`: 题目相关模型（QuestionType, Question）
-- `ability.py`: 能力相关模型（AbilityDomain, AbilityAtomic）
+- `ability.py`: 能力相关模型（Ability）
 
 **核心要求**：
 - 使用异步 SQLAlchemy (`AsyncSession`)

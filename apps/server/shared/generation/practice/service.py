@@ -9,7 +9,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from pydantic import BaseModel, Field
-from shared.core.database import AbilityAtomic, Practice, PracticeAnswer, Question, QuestionType, Textbook, Unit
+from shared.core.database import Ability, Practice, PracticeAnswer, Question, QuestionType, Textbook, Unit
 from shared.practice.prompt import SELECT_QUESTION_TYPE_PROMPT, SELECT_QUESTION_TYPE_SYSTEM_PROMPT
 from shared.practice.question_type_rules import get_rule_based_selection
 from shared.provider import get_provider
@@ -52,7 +52,7 @@ async def validate_ability_practice_params(
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        ability_code: 原子能力 code
+        ability_code: 能力 code
         subject: 科目（可选，如果未提供则从 ability_code 查询获取）
         grade: 年级（可选，如果未提供则从 ability_code 查询获取）
 
@@ -66,24 +66,24 @@ async def validate_ability_practice_params(
         raise ValueError("学生 ID 不能为空")
 
     if not ability_code:
-        raise ValueError("原子能力 code 不能为空")
+        raise ValueError("能力 code 不能为空")
 
     # 如果未提供 subject 和 grade，从 ability_code 查询获取
     if not subject or not grade:
         abilities = await db.scalars(
-            select(AbilityAtomic).where(
-                AbilityAtomic.code == ability_code,
-                AbilityAtomic.is_active == 1,
+            select(Ability).where(
+                Ability.code == ability_code,
+                Ability.is_active == 1,
             )
         )
         ability_list = list(abilities.all())
 
         if not ability_list:
-            raise ValueError(f"未找到有效的原子能力: code={ability_code}")
+            raise ValueError(f"未找到有效的能力: code={ability_code}")
 
         if len(ability_list) > 1:
             raise ValueError(
-                f"找到多个匹配的原子能力: code={ability_code}, " f"请指定 subject 和 grade 以确定具体的能力"
+                f"找到多个匹配的能力: code={ability_code}, " f"请指定 subject 和 grade 以确定具体的能力"
             )
 
         ability = ability_list[0]
@@ -94,18 +94,18 @@ async def validate_ability_practice_params(
         if grade < 1:
             raise ValueError("年级必须大于 0")
 
-        # 验证原子能力是否存在
+        # 验证能力是否存在
         ability = await db.scalar(
-            select(AbilityAtomic).where(
-                AbilityAtomic.code == ability_code,
-                AbilityAtomic.subject == subject,
-                AbilityAtomic.grade == grade,
-                AbilityAtomic.is_active == 1,
+            select(Ability).where(
+                Ability.code == ability_code,
+                Ability.subject == subject,
+                Ability.grade == grade,
+                Ability.is_active == 1,
             )
         )
 
         if not ability:
-            raise ValueError(f"未找到有效的原子能力: code={ability_code}, subject={subject}, grade={grade}")
+            raise ValueError(f"未找到有效的能力: code={ability_code}, subject={subject}, grade={grade}")
 
     return {
         "abilities": [ability],

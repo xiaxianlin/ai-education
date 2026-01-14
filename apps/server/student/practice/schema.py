@@ -2,7 +2,7 @@
 练习请求/响应 Schema
 
 练习类型分类：
-- ability_practice: 能力练习 - 基于原子能力 code 列表生成
+- ability_practice: 能力练习 - 基于能力 code 生成
 - unit_practice: 单元练习 - 基于单元 ID 生成
 """
 
@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 class CreateAbilityPracticeSchema(BaseModel):
     """创建能力练习请求"""
 
-    ability_code: str = Field(..., description="原子能力 code")
+    ability_code: str = Field(..., description="能力 code")
     subject: str = Field(..., description="科目")
     grade: int = Field(..., description="年级")
     generate_count: int = Field(default=15, description="生成题目数量", ge=1, le=50)
@@ -47,7 +47,7 @@ class PracticeSubmitParams(BaseModel):
     practice_type: str = Field(..., description="练习类型: ability_practice/unit_practice")
     student_id: str = Field(..., description="学生 ID")
     # 能力练习参数
-    ability_code: Optional[str] = Field(None, description="原子能力 code（能力练习必填）")
+    ability_code: Optional[str] = Field(None, description="能力 code（能力练习必填）")
     subject: Optional[str] = Field(None, description="科目（能力练习必填）")
     grade: Optional[int] = Field(None, description="年级（能力练习必填）")
     # 单元练习参数
@@ -97,7 +97,7 @@ class CreatePracticeRequest(BaseModel):
 
     type: str = Field(..., description="练习类型: ability_practice/unit_practice")
     unit_id: Optional[int] = Field(None, description="单元ID（单元练习必填）")
-    ability_code: Optional[str] = Field(None, description="原子能力code（能力练习必填）")
+    ability_code: Optional[str] = Field(None, description="能力code（能力练习必填）")
     subject: Optional[str] = Field(None, description="科目（能力练习必填）")
     grade: Optional[int] = Field(None, description="年级（能力练习必填）")
 

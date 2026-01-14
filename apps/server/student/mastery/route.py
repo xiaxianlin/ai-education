@@ -7,12 +7,11 @@
 from typing import Optional
 
 from fastapi import APIRouter, Query, Request
-from shared.core.database import AbilityAtomic, Database, StudentAbilityMastery
+from shared.core.database import Ability, Database, StudentAbilityMastery
 from shared.core.schema import (
     MasterySummarySchema,
     StudentAbilityMasterySchema,
     StudentAbilityMasteryWithInfoSchema,
-    DomainMasterySchema,
 )
 from shared.practice.mastery import (
     get_weak_abilities,
@@ -43,22 +42,21 @@ async def get_mastery_list(
     query = (
         select(
             StudentAbilityMastery,
-            AbilityAtomic.name.label("ability_name"),
-            AbilityAtomic.domain_code.label("ability_domain"),
-            AbilityAtomic.subject,
-            AbilityAtomic.grade,
+            Ability.name.label("ability_name"),
+            Ability.subject,
+            Ability.grade,
         )
         .outerjoin(
-            AbilityAtomic,
-            StudentAbilityMastery.ability_code == AbilityAtomic.code,
+            Ability,
+            StudentAbilityMastery.ability_code == Ability.code,
         )
         .where(StudentAbilityMastery.student_id == student.id)
     )
 
     if subject:
-        query = query.where(AbilityAtomic.subject == subject)
+        query = query.where(Ability.subject == subject)
     if grade:
-        query = query.where(AbilityAtomic.grade == grade)
+        query = query.where(Ability.grade == grade)
 
     query = query.order_by(StudentAbilityMastery.mastery_score.asc())
 
@@ -69,7 +67,6 @@ async def get_mastery_list(
         StudentAbilityMasteryWithInfoSchema(
             **StudentAbilityMasterySchema.model_validate(row[0]).model_dump(),
             ability_name=row.ability_name,
-            ability_domain=row.ability_domain,
             subject=row.subject,
             grade=row.grade,
         )
@@ -99,7 +96,7 @@ async def get_weak_ability_list(
     "/summary",
     tags=["掌握度"],
     summary="获取能力掌握度概览",
-    description="获取学生能力掌握度的整体概览，按能力域分组统计",
+    description="获取学生能力掌握度的整体概览",
 )
 async def get_mastery_summary(
     request: Request,
@@ -131,43 +128,9 @@ async def get_mastery_summary(
     level_result = await db.execute(level_query)
     level_distribution = {row.mastery_level: row.count for row in level_result.all()}
 
-    # 3. 按能力域统计
-    domain_query = (
-        select(
-            AbilityAtomic.domain_code,
-            func.count(StudentAbilityMastery.id).label("ability_count"),
-            func.avg(StudentAbilityMastery.mastery_score).label("avg_mastery_score"),
-            func.sum(
-                case(
-                    (StudentAbilityMastery.mastery_level == "mastered", 1),
-                    else_=0,
-                )
-            ).label("mastered_count"),
-        )
-        .join(
-            AbilityAtomic,
-            StudentAbilityMastery.ability_code == AbilityAtomic.code,
-        )
-        .where(StudentAbilityMastery.student_id == student.id)
-        .group_by(AbilityAtomic.domain_code)
-    )
-    domain_result = await db.execute(domain_query)
-
-    domain_stats = [
-        DomainMasterySchema(
-            domain_code=row.domain_code,
-            domain_name=row.domain_code,  # 可以后续关联 AbilityDomain 获取名称
-            avg_mastery_score=round(float(row.avg_mastery_score or 0), 2),
-            ability_count=row.ability_count,
-            mastered_count=int(row.mastered_count or 0),
-        )
-        for row in domain_result.all()
-    ]
-
     return MasterySummarySchema(
         total_abilities=total_abilities,
         practiced_abilities=total_abilities,  # 已有记录的都是练习过的
         avg_mastery_score=avg_score,
         level_distribution=level_distribution,
-        domain_stats=domain_stats,
     )

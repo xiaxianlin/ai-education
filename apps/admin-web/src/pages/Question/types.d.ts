@@ -51,7 +51,7 @@ declare global {
     answer_config?: Record<string, unknown>; // 后端使用 answer_config
     feedback_config?: FeedbackConfig; // 后端使用 feedback_config
     cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
-    ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    ability_atomic_codes?: string[]; // 后端使用 ability_atomic_codes
     difficulty?: Difficulty; // 后端使用 difficulty
     ai_prompt?: string; // 后端使用 ai_prompt
     output_schema?: Record<string, unknown>; // 后端使用 output_schema
@@ -73,7 +73,7 @@ declare global {
     answer_config?: Record<string, unknown>; // 后端使用 answer_config
     feedback_config?: FeedbackConfig; // 后端使用 feedback_config
     cognitive_levels?: CognitiveLevel[]; // 后端使用 cognitive_levels
-    ability_dimensions?: string[]; // 后端使用 ability_dimensions
+    ability_atomic_codes?: string[]; // 后端使用 ability_atomic_codes
     difficulty?: Difficulty; // 后端使用 difficulty
     ai_prompt?: string; // 后端使用 ai_prompt
     output_schema?: Record<string, unknown>; // 后端使用 output_schema

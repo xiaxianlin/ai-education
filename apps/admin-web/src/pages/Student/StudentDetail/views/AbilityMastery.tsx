@@ -13,18 +13,6 @@ const MASTERY_LEVEL_CONFIG: Record<string, { label: string; color: string }> = {
   mastered: { label: '熟练掌握', color: 'success' },
 };
 
-// 能力域配置
-const DOMAIN_CODE_MAP: Record<string, string> = {
-  literacy: '识字与写字',
-  reading: '阅读理解',
-  expression: '语言表达',
-  number: '数与运算',
-  geometry: '图形与空间',
-  problem: '问题解决',
-  phonics: '语音意识',
-  vocabulary: '词汇运用',
-  grammar: '语法',
-};
 
 export function AbilityMastery() {
   const { student } = useStudentDetailModel();
@@ -45,13 +33,6 @@ export function AbilityMastery() {
       dataIndex: 'ability_name',
       key: 'ability_name',
       width: 200,
-    },
-    {
-      title: '能力域',
-      dataIndex: 'ability_domain',
-      key: 'ability_domain',
-      width: 120,
-      render: (_: any, record: any) => DOMAIN_CODE_MAP[record.ability_domain] || record.ability_domain,
     },
     {
       title: '科目',

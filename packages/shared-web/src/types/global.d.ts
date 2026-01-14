@@ -132,35 +132,20 @@ declare global {
   /**
    * 原子能力信息（对应 AbilityAtomicSchema）
    */
-  interface AbilityAtomic {
+  /**
+   * 能力信息（对应 AbilitySchema）
+   */
+  interface Ability {
     id: number;
     subject: string;
     grade: number;
-    domain_code: string;
     code: string;
     name: string;
     description?: string;
     difficulty: number; // 1-5
-    sort_order: number;
     is_active: number;
     create_time: number;
     update_time: number;
-  }
-
-  /**
-   * 能力域信息（对应 AbilityDomainSchema）
-   */
-  interface AbilityDomain {
-    id: number;
-    subject: string;
-    code: string;
-    name: string;
-    description?: string;
-    is_active: number;
-    sort_order: number;
-    create_time: number;
-    update_time: number;
-    atomics?: AbilityAtomic[];
   }
 
   /**
@@ -182,9 +167,7 @@ declare global {
     answer_config?: Record<string, unknown>;
     feedback_config?: FeedbackConfig;
     cognitive_levels?: CognitiveLevel[];
-    ability_dimensions?: string[]; // 已废弃，使用 domain_code 和 ability_atomic_codes
-    domain_code?: string;
-    ability_atomic_codes?: string[];
+    ability_atomic_codes?: string[]; // 关联的能力代码列表
     difficulty?: Difficulty;
     ai_prompt?: string;
     output_schema?: Record<string, unknown>;
@@ -517,17 +500,6 @@ declare global {
   }
 
   /**
-   * 能力域掌握度统计（对应 DomainMasterySchema）
-   */
-  interface DomainMastery {
-    domain_code: string; // 能力域代码
-    domain_name: string; // 能力域名称
-    avg_mastery_score: number; // 平均掌握度
-    ability_count: number; // 能力数量
-    mastered_count: number; // 已掌握数量
-  }
-
-  /**
    * 能力掌握度概览（对应 MasterySummarySchema）
    */
   interface MasterySummary {
@@ -540,7 +512,6 @@ declare global {
       proficient?: number; // 基本掌握数量
       mastered?: number; // 熟练掌握数量
     }; // 等级分布
-    domain_stats: DomainMastery[]; // 能力域统计
   }
 
   /**

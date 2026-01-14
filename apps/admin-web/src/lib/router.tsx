@@ -1,6 +1,5 @@
 import { AdminLayout } from '@/layouts/AdminLayout';
-import AbilityDetail from '@/pages/Ability/AbilityDetail';
-import AbilityList from '@/pages/Ability/AbilityList';
+import Ability from '@/pages/Ability';
 import Login from '@/pages/Auth/Login';
 import Manager from '@/pages/Auth/Manager';
 import ModifyPassword from '@/pages/Auth/Password';
@@ -59,9 +58,8 @@ export function Router() {
         { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
         { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
-        // Ability routes (moved to learning module)
-        { path: 'ability', element: <AbilityList /> },
-        { path: 'ability/detail/:id', element: <AbilityDetail /> },
+        // Ability routes
+        { path: 'ability', element: <Ability /> },
         // Practice routes
         { path: 'practice', element: <PracticeList /> },
         { path: 'practice/detail/:id', element: <PracticeDetail /> },

@@ -40,7 +40,7 @@ from .student import Student, StudentTextbookConfig
 from .question import QuestionType, Question
 
 # 能力模块
-from .ability import AbilityDomain, AbilityAtomic
+from .ability import Ability
 
 # 掌握度模块
 from .mastery import StudentAbilityMastery
@@ -78,8 +78,7 @@ __all__ = [
     "QuestionType",
     "Question",
     # 能力
-    "AbilityDomain",
-    "AbilityAtomic",
+    "Ability",
     # 掌握度
     "StudentAbilityMastery",
 ]

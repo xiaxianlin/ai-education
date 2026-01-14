@@ -6,7 +6,7 @@
 
 from loguru import logger
 from shared.core.database import (
-    AbilityAtomic,
+    Ability,
     Practice,
     PracticeAnswer,
     PracticeReport,
@@ -82,10 +82,10 @@ async def get_practices(
         # 获取能力名称
         if session.ability_code:
             ability = await db.scalar(
-                select(AbilityAtomic).where(
-                    AbilityAtomic.subject == session.subject,
-                    AbilityAtomic.grade == session.grade,
-                    AbilityAtomic.code == session.ability_code,
+                select(Ability).where(
+                    Ability.subject == session.subject,
+                    Ability.grade == session.grade,
+                    Ability.code == session.ability_code,
                 )
             )
             if ability:
@@ -170,7 +170,7 @@ async def get_ability_practice_by_code(
     Args:
         db: 数据库会话
         student_id: 学生 ID
-        ability_code: 原子能力代码
+        ability_code: 能力代码
 
     Returns:
         PracticeSchema | None: 匹配的练习（未开始或进行中），如果没有则返回 None
