@@ -1,7 +1,7 @@
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import type { UploadProps } from 'antd';
-import { Button, Modal, Space, Tag, Upload } from 'antd';
+import { Button, Modal, Rate, Space, Tag, Upload } from 'antd';
 import { useMemo } from 'react';
 
 import { createActionColumn } from '@/hooks';
@@ -90,7 +90,7 @@ export default function AbilityListView() {
 
   const columns = useMemo<ProColumns<Ability>[]>(
     () => [
-      { title: '能力名称', dataIndex: 'name', width: 200 },
+      { title: '能力名称', dataIndex: 'name', width: 120 },
       { title: '能力标识', dataIndex: 'code', width: 150 },
       {
         title: '描述',
@@ -101,15 +101,16 @@ export default function AbilityListView() {
       {
         title: '难度',
         dataIndex: 'difficulty',
-        width: 80,
+        width: 120,
+        sorter: (a, b) => (a.difficulty || 0) - (b.difficulty || 0),
         renderText: (difficulty) => (
-          <Tag color={difficulty >= 4 ? 'red' : difficulty >= 3 ? 'orange' : 'green'}>{difficulty}</Tag>
+          <Rate value={difficulty} count={5} disabled allowHalf={false} />
         ),
       },
       {
         title: '状态',
         dataIndex: 'is_active',
-        width: 80,
+        width: 50,
         renderText: (isActive) => (
           <Tag color={isActive === 1 ? 'green' : 'default'}>{isActive === 1 ? '启用' : '禁用'}</Tag>
         ),
@@ -131,7 +132,7 @@ export default function AbilityListView() {
             </Button>
           </>
         ),
-        { width: 120 },
+        { width: 80 },
       ),
     ],
     [formProps.showForm, handleDeleteWithConfirm],
