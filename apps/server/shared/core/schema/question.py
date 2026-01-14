@@ -15,42 +15,30 @@ class QuestionTypeSchema(BaseModel):
     name: str
     description: Optional[str] = None
 
-    # 适用范围
+    # 分类与学科
+    category: str = "ability_practice"
     subject: str
-    stages: list = Field(default_factory=list)
-    grades: list = Field(default_factory=list)
+    grade_band: Optional[str] = None
 
-    # 交互配置
-    interaction_type: str
-    interaction_config: Optional[dict] = None
+    # 能力关联
+    ability_code: Optional[str] = None
 
-    # 资源配置
-    resource_type: str = "text"
-    resource_config: Optional[dict] = None
+    # 媒体与脚手架配置
+    media_context: Optional[dict] = None
+    scaffolding_config: Optional[dict] = None
 
     # 答案配置
     answer_type: str
     answer_config: Optional[dict] = None
 
-    # 反馈配置
-    feedback_config: Optional[dict] = None
-
-    # 认知与能力
-    cognitive_levels: Optional[list] = None
-    
-    # 能力关联
-    ability_atomic_codes: Optional[list] = None
-
-    # 难度
-    difficulty: Optional[str] = None
+    # 评估配置
+    evaluation_modes: Optional[list] = None
+    rubric_criteria: Optional[list] = None
 
     # AI生成
     ai_prompt: Optional[str] = None
-    output_schema: Optional[dict] = None
 
-    # 元数据
-    sort_order: int = 0
-    is_active: bool = True
+    # 时间戳
     create_time: int
     update_time: int
 
@@ -69,38 +57,19 @@ class QuestionSchema(BaseModel):
     # 基础信息
     subject: str
     grade: int
-    stage: str
+
+    # 能力关联
+    ability_code: Optional[str] = None
 
     # 题目内容
-    stem: dict
-    options: Optional[list] = None
-    blanks: Optional[list] = None
-
-    # 资源
+    content: dict
     resources: Optional[list] = None
 
     # 答案
     answer: dict
     explanation: Optional[str] = None
 
-    # 难度与认知
-    difficulty: str
-    cognitive_level: Optional[str] = None
-
-    # 能力标签
-    ability_tags: Optional[list] = None
-
-    # 来源
-    source: str = "ai"
-    prompt_id: Optional[int] = None
-
-    # 统计
-    usage_count: int = 0
-    correct_rate: Optional[str] = None
-    avg_time_spent: Optional[int] = None
-
-    # 元数据
-    is_active: bool = True
+    # 时间戳
     create_time: int
     update_time: int
 
@@ -123,14 +92,6 @@ class AnswerSchema(BaseModel):
     rubric: Optional[Dict[str, Any]] = Field(default=None, description="评分标准（主观题）")
 
 
-class SubStemSchema(BaseModel):
-    """子题题干结构（简化版）"""
-
-    text: str = Field(..., description="子题题干文本")
-    rich_text: Optional[str] = Field(default=None, description="富文本题干")
-    hints: Optional[List[str]] = Field(default=None, description="提示信息")
-
-
 class OptionSchema(BaseModel):
     """选项结构"""
 
@@ -149,68 +110,44 @@ class ResourceSchema(BaseModel):
     type: str = Field(..., description="资源类型：none/image/audio/video/animation")
     url: str = Field(..., description="资源URL")
     alt: Optional[str] = Field(default=None, description="替代文本")
-    position: str = Field(default="stem", description="位置：stem/option/background（向后兼容字段）")
-    resource_type: str = Field(..., description="资源归属类型：'stem'（题干资源）/'option'（选项资源）")
-    option_id: Optional[str] = Field(default=None, description="关联的选项ID（当 resource_type='option' 时必填）")
+    position: str = Field(default="stem", description="位置：stem/option/background")
+    resource_type: str = Field(..., description="资源归属类型：'stem'/'option'")
+    option_id: Optional[str] = Field(default=None, description="关联的选项ID")
     size: Optional[Dict[str, int]] = Field(default=None, description="尺寸")
     style: Optional[Dict[str, Any]] = Field(default=None, description="样式")
-    duration: Optional[int] = Field(default=None, description="时长（秒，音视频）")
-    transcript: Optional[str] = Field(default=None, description="文字记录（音频）")
+    duration: Optional[int] = Field(default=None, description="时长（秒）")
+    transcript: Optional[str] = Field(default=None, description="文字记录")
+
+
+class ContentSchema(BaseModel):
+    """题目内容结构"""
+
+    stem: str = Field(..., description="题干文本")
+    rich_text: Optional[str] = Field(default=None, description="富文本题干")
+    options: Optional[List[OptionSchema]] = Field(default=None, description="选项列表")
+    blanks: Optional[List[Dict[str, Any]]] = Field(default=None, description="填空配置")
+    sub_questions: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题列表")
 
 
 class SubQuestionSchema(BaseModel):
-    """子题结构 - 用于复合题/应用题"""
+    """子题结构 - 用于复合题"""
 
-    id: str = Field(..., description="子题ID，如 sub_1, sub_2")
+    id: str = Field(..., description="子题ID")
     order: int = Field(..., description="显示顺序")
     stem: Dict[str, Any] = Field(..., description="子题题干")
-    interaction_type: str = Field(..., description="子题交互类型")
-    interaction_config: Optional[Dict[str, Any]] = Field(default=None, description="子题交互配置")
-    options: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题选项（选择题）")
-    resources: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题专属资源")
+    question_type_code: str = Field(..., description="子题题型")
+    options: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题选项")
+    resources: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题资源")
     answer: Dict[str, Any] = Field(..., description="子题答案")
     explanation: Optional[str] = Field(default=None, description="子题解析")
-
-
-class StemSchema(BaseModel):
-    """题干结构"""
-
-    text: str = Field(..., description="纯文本题干")
-    rich_text: Optional[str] = Field(default=None, description="富文本题干")
-    audio_url: Optional[str] = Field(default=None, description="题干朗读音频")
-    highlight_words: Optional[List[str]] = Field(default=None, description="高亮词汇")
-    hints: Optional[List[str]] = Field(default=None, description="提示信息")
-    sub_questions: Optional[List[Dict[str, Any]]] = Field(default=None, description="子题列表（复合题）")
-
-
-class FeedbackItemSchema(BaseModel):
-    """反馈项"""
-
-    sound: Optional[str] = Field(default=None, description="音效文件")
-    animation: Optional[str] = Field(default=None, description="动画类型")
-    messages: Optional[List[str]] = Field(default=None, description="反馈消息列表")
-    points: Optional[int] = Field(default=None, description="得分")
-    show_hint: Optional[bool] = Field(default=None, description="是否显示提示")
-    max_attempts: Optional[int] = Field(default=None, description="最大尝试次数")
-
-
-class FeedbackConfigSchema(BaseModel):
-    """反馈配置"""
-
-    correct: Optional[Dict[str, Any]] = Field(default=None, description="正确反馈")
-    incorrect: Optional[Dict[str, Any]] = Field(default=None, description="错误反馈")
-    partial: Optional[Dict[str, Any]] = Field(default=None, description="部分正确反馈")
 
 
 __all__ = [
     "QuestionTypeSchema",
     "QuestionSchema",
     "AnswerSchema",
-    "SubStemSchema",
     "OptionSchema",
     "ResourceSchema",
+    "ContentSchema",
     "SubQuestionSchema",
-    "StemSchema",
-    "FeedbackItemSchema",
-    "FeedbackConfigSchema",
 ]
