@@ -598,6 +598,8 @@ export const useModel = Model.useContainer;
 
 ### ahooks 使用规范
 
+**强制要求**：所有接口请求必须使用 `useRequest`，除了脱离 React 环境外（如工具函数、Node.js 脚本等）。
+
 使用 `ahooks` 的 `useRequest` 管理异步操作：
 
 ```typescript
@@ -627,11 +629,38 @@ const { runAsync: handleAction, loading: actionLoading } = useRequest(
 
 **useRequest 最佳实践**：
 
-1. **自动请求**：用于数据加载，不设置 `manual: true`
-2. **手动请求**：用于用户操作，设置 `manual: true`
-3. **条件请求**：使用 `ready` 参数控制执行时机
-4. **错误处理**：始终提供 `onError` 回调
-5. **数据刷新**：操作成功后调用 `refresh()` 刷新数据
+1. **强制使用**：所有接口请求必须使用 `useRequest`，禁止在 React 组件中直接调用 API 方法
+2. **自动请求**：用于数据加载，不设置 `manual: true`
+3. **手动请求**：用于用户操作，设置 `manual: true`
+4. **条件请求**：使用 `ready` 参数控制执行时机
+5. **错误处理**：始终提供 `onError` 回调
+6. **数据刷新**：操作成功后调用 `refresh()` 刷新数据
+
+**错误示例**：
+
+```typescript
+// ❌ 错误：在组件中直接调用 API
+const Component = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    setLoading(true);
+    Api.getData().then(setData).finally(() => setLoading(false));
+  }, []);
+  
+  return <div>{/* ... */}</div>;
+};
+
+// ✅ 正确：使用 useRequest
+const Component = () => {
+  const { data, loading } = useRequest(() => Api.getData());
+  
+  return <div>{/* ... */}</div>;
+};
+```
+
+**例外情况**：仅在脱离 React 环境的工具函数、Node.js 脚本等场景中可以直接调用 API 方法。
 
 ### 全局状态 vs 页面状态
 
@@ -660,9 +689,13 @@ const { runAsync: handleAction, loading: actionLoading } = useRequest(
 
 ## API 调用规范
 
+**强制要求**：所有接口请求必须使用 `useRequest`，除了脱离 React 环境外（如工具函数、Node.js 脚本等）。
+
 ### ApiClient 使用方式
 
 项目 Web 端统一通过 `@ai-education/shared-web` 的 `ApiClient`（内部基于 Axios）进行请求。
+
+**注意**：`ApiClient` 方法（如 `apiClient.get()`、`apiClient.post()`）只能在 `useRequest` 的回调函数中使用，或作为工具函数在非 React 组件环境中使用。在 React 组件中，必须通过 `useRequest` 来调用这些 API 方法。
 
 **API 响应格式**：
 - 后端返回统一格式：`{ status: 0, message: "ok", data: T }`

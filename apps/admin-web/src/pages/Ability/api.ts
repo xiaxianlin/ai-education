@@ -16,6 +16,7 @@ export interface CreateAbilityRequest {
  * 更新能力请求
  */
 export interface UpdateAbilityRequest {
+  code?: string;
   name?: string;
   description?: string;
   difficulty?: number; // 1-5

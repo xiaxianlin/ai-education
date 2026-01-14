@@ -1,30 +1,29 @@
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Modal, Space, Tag } from 'antd';
+import type { UploadProps } from 'antd';
+import { Button, Modal, Space, Tag, Upload } from 'antd';
 import { useMemo } from 'react';
 
 import { createActionColumn } from '@/hooks';
+import { AbilityApi } from '../api';
 import { useAbilityModel } from '../models/page';
 
 export default function AbilityListView() {
   const {
-    abilities,
-    loading,
-    showForm,
+    formProps,
     exporting,
     importing,
     selectedRowKeys,
     setSelectedRowKeys,
-    fileInputRef,
     deleteAbility,
     batchDeleteAbilities,
     batchDeleteLoading,
     handleExport,
-    handleImport,
     importAbilities,
     validateFile,
     subject,
-    selectedGrade,
+    grade,
+    actionRef,
   } = useAbilityModel();
 
   // 删除确认弹窗（视图逻辑）
@@ -55,14 +54,11 @@ export default function AbilityListView() {
     });
   };
 
-  // 处理文件选择（视图逻辑）
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  // 处理文件上传（视图逻辑）
+  const handleUpload: UploadProps['beforeUpload'] = (file) => {
     // 验证文件类型
     if (!validateFile(file)) {
-      return;
+      return Upload.LIST_IGNORE;
     }
 
     // 导入确认弹窗（视图逻辑）
@@ -76,7 +72,7 @@ export default function AbilityListView() {
           </p>
           <p>文件：{file.name}</p>
           <p>学科：{subject}</p>
-          <p>年级：{selectedGrade}年级</p>
+          <p>年级：{grade}年级</p>
           <p>确定要继续导入吗？</p>
         </div>
       ),
@@ -86,13 +82,10 @@ export default function AbilityListView() {
       onOk: () => {
         importAbilities(file);
       },
-      onCancel: () => {
-        // 清空文件选择
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      },
     });
+
+    // 阻止默认上传行为
+    return false;
   };
 
   const columns = useMemo<ProColumns<Ability>[]>(
@@ -124,7 +117,7 @@ export default function AbilityListView() {
       createActionColumn<Ability>(
         (record) => (
           <>
-            <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
+            <Button size="small" key="edit" type="link" onClick={() => formProps.showForm(record)}>
               编辑
             </Button>
             <Button
@@ -141,51 +134,47 @@ export default function AbilityListView() {
         { width: 120 },
       ),
     ],
-    [showForm, handleDeleteWithConfirm],
+    [formProps.showForm, handleDeleteWithConfirm],
   );
 
   return (
-    <>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-      <ProTable<Ability>
-        rowKey="id"
-        columns={columns}
-        search={false}
-        dataSource={abilities}
-        loading={loading}
-        pagination={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys),
-        }}
-        headerTitle={
-          <Space>
-            <Button icon={<DownloadOutlined />} loading={exporting} onClick={handleExport}>
-              导出
-            </Button>
-            <Button icon={<UploadOutlined />} loading={importing} onClick={handleImport}>
+    <ProTable<Ability>
+      actionRef={actionRef}
+      rowKey="id"
+      columns={columns}
+      search={false}
+      pagination={false}
+      rowSelection={{
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      }}
+      request={async () => {
+        const res = await AbilityApi.searchAbilities({ subject, grade });
+        return { data: res || [], success: true };
+      }}
+      headerTitle={
+        <Space>
+          <Button icon={<DownloadOutlined />} loading={exporting} onClick={handleExport}>
+            导出
+          </Button>
+          <Upload beforeUpload={handleUpload} accept=".json" showUploadList={false}>
+            <Button icon={<UploadOutlined />} loading={importing}>
               导入
             </Button>
-            <Button
-              danger
-              onClick={handleBatchDeleteClick}
-              disabled={selectedRowKeys.length === 0}
-              loading={batchDeleteLoading}
-            >
-              批量删除 ({selectedRowKeys.length})
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => showForm()}>
-              新增能力
-            </Button>
-          </Space>
-        }
-      />
-    </>
+          </Upload>
+          <Button
+            danger
+            onClick={handleBatchDeleteClick}
+            disabled={selectedRowKeys.length === 0}
+            loading={batchDeleteLoading}
+          >
+            批量删除 ({selectedRowKeys.length})
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => formProps.showForm()}>
+            新增能力
+          </Button>
+        </Space>
+      }
+    />
   );
 }

@@ -5,21 +5,11 @@ import AbilityForm from './AbilityForm';
 import AbilityList from './AbilityList';
 
 export default function MainView() {
-  const {
-    subject,
-    selectedGrade,
-    handleSubjectChange,
-    handleGradeChange,
-  } = useAbilityModel();
+  const { subject, grade, setSubject, setGrade } = useAbilityModel();
 
   return (
     <PageContainer title="能力管理">
-      <SubjectGradeTabs
-        subject={subject}
-        grade={selectedGrade}
-        setSubject={handleSubjectChange}
-        setGrade={handleGradeChange}
-      />
+      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
       <AbilityList />
       <AbilityForm />
     </PageContainer>
