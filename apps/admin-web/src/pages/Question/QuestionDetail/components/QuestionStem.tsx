@@ -11,9 +11,13 @@ interface QuestionStemProps {
 export function QuestionStem({ question }: QuestionStemProps) {
   const { stemImageResources, stemAudioResources, stemResources } = useQuestionResources(question);
 
-  // 获取题干内容（优先使用 rich_text）
-  const stemContent = question.stem?.rich_text || question.stem?.text || '';
-  const hasRichText = !!question.stem?.rich_text;
+  // 从 content 字段获取题干
+  const content = question.content || {};
+  const stem = content.stem || "";
+  const stemText = typeof stem === "string" ? stem : (stem as Stem)?.text || "";
+  const stemRichText = typeof stem === "object" ? (stem as Stem)?.rich_text : undefined;
+  const hasRichText = !!stemRichText;
+  const stemContent = stemRichText || stemText || '';
 
   return (
     <ProCard title="题目内容" bordered={false}>
@@ -24,10 +28,10 @@ export function QuestionStem({ question }: QuestionStemProps) {
         <Typography.Paragraph style={{ wordBreak: 'break-word' }}>{stemContent || '-'}</Typography.Paragraph>
       )}
 
-      {/* 题干音频（stem.audio_url） */}
-      {question.stem?.audio_url && (
+      {/* 题干音频（向后兼容：stem.audio_url） */}
+      {typeof stem === "object" && (stem as Stem)?.audio_url && (
         <div style={{ marginTop: '16px' }}>
-          <AudioPlayer src={getResourceUrl(question.stem.audio_url) ?? ''} />
+          <AudioPlayer src={getResourceUrl((stem as Stem).audio_url!) ?? ''} />
         </div>
       )}
 

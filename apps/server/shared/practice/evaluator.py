@@ -93,9 +93,11 @@ class BaseEvaluator(ABC):
 
         # 构建选项详情（如果有选项）
         options_detail = None
-        if question.options and correct_answers:
+        content = question.content or {}
+        options = content.get("options", [])
+        if options and correct_answers:
             options_detail = []
-            for opt in question.options:
+            for opt in options:
                 opt_id = opt.get("id", "")
                 if str(opt_id) in [str(a) for a in correct_answers]:
                     options_detail.append({"id": opt_id, "text": opt.get("text", str(opt))})
@@ -190,8 +192,12 @@ class CompositeEvaluator(BaseEvaluator):
     """
 
     async def evaluate(self, question: Question, user_answer: Any) -> EvaluateResult:
-        stem = question.stem or {}
-        sub_questions = stem.get("sub_questions", [])
+        content = question.content or {}
+        # sub_questions 可能在 content.sub_questions 或 content.stem.sub_questions 中
+        sub_questions = content.get("sub_questions", [])
+        if not sub_questions and isinstance(content.get("stem"), dict):
+            sub_questions = content.get("stem", {}).get("sub_questions", [])
+        
         answer_config = question.answer or {}
         scoring = answer_config.get("scoring", {})
         partial_strategy = scoring.get("partial_strategy", "sum")
@@ -242,11 +248,16 @@ class CompositeEvaluator(BaseEvaluator):
 
             # 构建子题对象（模拟 Question 模型的核心字段）
             # 由于子题目前在数据库中是嵌套在 JSON 里的，这里手动组装一个 Question 用于评判
+            sub_question_content = {
+                "stem": sub_q.get("stem", {}).get("text", "") if isinstance(sub_q.get("stem"), dict) else str(sub_q.get("stem", "")),
+                "options": sub_q.get("options", []),
+            }
             sub_question_obj = Question(
                 id=f"{question.id}_{sub_id}",
                 question_type_code=sub_q.get("interaction_type", "unknown"),
-                stem=sub_q.get("stem", {}),
-                options=sub_q.get("options", []),
+                subject=question.subject,
+                grade=question.grade,
+                content=sub_question_content,
                 answer=sub_q.get("answer", {}),
                 explanation=sub_q.get("explanation", ""),
             )
@@ -448,7 +459,11 @@ class AnswerEvaluator:
         answer_type = answer_config.get("type", "exact")
 
         # 如果是复合题，则使用复合题评判器
-        if question.stem.get("sub_questions"):
+        content = question.content or {}
+        sub_questions = content.get("sub_questions", [])
+        if not sub_questions and isinstance(content.get("stem"), dict):
+            sub_questions = content.get("stem", {}).get("sub_questions", [])
+        if sub_questions:
             return await CompositeEvaluator().evaluate(question, user_answer)
 
         evaluator_class = EVALUATOR_MAP.get(answer_type, ExactEvaluator)

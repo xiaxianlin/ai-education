@@ -33,7 +33,7 @@ const useContainer = () => {
       ready: !!code,
       onSuccess: (data) => {
         if (data) {
-          setEditingPrompt(data.ai_prompt || '');
+          setEditingPrompt(data.prompt || '');
         }
       },
     },
@@ -61,9 +61,9 @@ const useContainer = () => {
 
   // 更新提示词
   const { runAsync: updatePrompt, loading: updatingPrompt } = useRequest(
-    async (ai_prompt: string) => {
+    async (prompt: string) => {
       if (!code) return;
-      return QuestionApi.updateQuestionTypePrompt(code, ai_prompt);
+      return QuestionApi.updateQuestionTypePrompt(code, prompt);
     },
     {
       manual: true,
@@ -93,22 +93,8 @@ const useContainer = () => {
     },
   );
 
-  // 批量更新题目（启用）
-  const { runAsync: batchUpdateQuestions, loading: saving } = useRequest(
-    async (ids: string[], is_active: boolean) => {
-      return QuestionApi.batchUpdateQuestions({ ids, is_active });
-    },
-    {
-      manual: true,
-      onSuccess: (res, [, is_active]) => {
-        message.success(`成功${is_active ? '启用' : '禁用'} ${res.updated_count} 道题目`);
-        setGeneratedQuestionsState([]);
-      },
-      onError: (error: any) => {
-        message.error(error?.message || '操作失败');
-      },
-    },
-  );
+  // TODO: 批量更新题目功能已废弃（is_active 字段已删除）
+  // const { runAsync: batchUpdateQuestions, loading: saving } = useRequest(...)
 
   // 批量删除题目
   const { runAsync: batchDeleteQuestions, loading: deleting } = useRequest(
@@ -157,7 +143,7 @@ const useContainer = () => {
 
   // 处理编辑提示词
   const handleEditPrompt = () => {
-    setEditingPrompt(questionType?.ai_prompt || '');
+    setEditingPrompt(questionType?.prompt || '');
     setPromptEditVisible(true);
   };
 
@@ -171,18 +157,18 @@ const useContainer = () => {
   };
 
   // 处理保存提示词（外部调用，接收提示词参数）
-  const handleSavePrompt = async (ai_prompt: string) => {
-    if (!ai_prompt.trim()) {
+  const handleSavePrompt = async (prompt: string) => {
+    if (!prompt.trim()) {
       message.warning('提示词不能为空');
       return;
     }
-    await updatePrompt(ai_prompt);
+    await updatePrompt(prompt);
   };
 
   // 处理取消编辑
   const handleCancelEdit = () => {
     setPromptEditVisible(false);
-    setEditingPrompt(questionType?.ai_prompt || '');
+    setEditingPrompt(questionType?.prompt || '');
   };
 
   // 处理优化提示词
@@ -218,15 +204,9 @@ const useContainer = () => {
     setOptimizedPrompt('');
   };
 
-  // 处理保存（启用题目）
+  // TODO: 处理保存（启用题目）功能已废弃
   const handleSave = async () => {
-    if (!generatedQuestions || generatedQuestions.length === 0) {
-      message.warning('没有可保存的题目');
-      return;
-    }
-
-    const ids = generatedQuestions.map((q) => q.id);
-    await batchUpdateQuestions(ids, true);
+    message.warning('批量更新题目功能已废弃，原 is_active 字段已删除');
   };
 
   // 处理删除
@@ -257,7 +237,7 @@ const useContainer = () => {
   return {
     // 状态
     questionType,
-    prompt: questionType?.ai_prompt || '',
+    prompt: questionType?.prompt || '',
     generatedQuestions: generatedQuestions || [],
     generating,
     hasUnsavedChanges,
@@ -265,7 +245,7 @@ const useContainer = () => {
     promptEditVisible,
     editingPrompt,
     loading,
-    saving,
+    saving: false, // TODO: batchUpdateQuestions 已废弃
     deleting,
     updatingPrompt,
     optimizeSuggestionVisible,

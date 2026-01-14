@@ -141,22 +141,30 @@ declare global {
     name: string;
     description?: string;
     subject: string;
-    stages: Stage[];
-    grades: number[];
-    interaction_type: InteractionType;
-    interaction_config?: Record<string, unknown>;
-    resource_type: ResourceType;
-    resource_config?: Record<string, unknown>;
-    answer_type: AnswerType;
-    answer_config?: Record<string, unknown>;
-    feedback_config?: FeedbackConfig;
-    cognitive_levels?: CognitiveLevel[];
-    ability_atomic_codes?: string[]; // 关联的能力代码列表
-    difficulty?: Difficulty;
-    ai_prompt?: string;
-    output_schema?: Record<string, unknown>;
-    sort_order: number;
-    is_active: boolean;
+    category: "ability_practice" | "unit_practice";
+    grade_band?: "Low" | "Mid" | "High";
+    ability_code?: string;
+    media_context?: {
+      types: string[];
+      configs?: Record<string, unknown>;
+    };
+    scaffolding_config?: {
+      mode?: string;
+      hints?: Array<Record<string, unknown>>;
+      templates?: string[];
+      config?: Record<string, unknown>;
+    };
+    evaluation_config?: {
+      mode: "auto_match" | "ai_analysis";
+      correct_answer?: unknown;
+      rubrics?: Array<{
+        dimension: string;
+        max_score: number;
+        description?: string;
+      }>;
+      config?: Record<string, unknown>;
+    };
+    prompt?: string;
     create_time: number;
     update_time: number;
   }
@@ -245,29 +253,27 @@ declare global {
   }
 
   /**
+   * 题目内容结构（对应 ContentSchema）
+   */
+  interface QuestionContent {
+    stem: string | Stem; // 题干文本或对象
+    resource?: QuestionResource; // 题干资源（单个）
+    options?: QuestionOption[]; // 选项列表
+    sub_questions?: QuestionContent[]; // 子题列表（复合题）
+  }
+
+  /**
    * 题目信息（对应 QuestionSchema）
    */
   interface Question {
     id: string;
-    question_type_id: number;
     question_type_code: string;
     subject: string;
     grade: number;
-    stage: Stage;
-    stem: Stem;
-    options?: QuestionOption[];
-    blanks?: Array<Record<string, unknown>>;
-    resources?: QuestionResource[];
+    ability_code?: string;
+    content: QuestionContent; // 题目内容（包含题干、选项、资源等）
     answer: Answer;
     explanation?: string;
-    difficulty: Difficulty;
-    cognitive_level?: CognitiveLevel;
-    ability_tags?: string[];
-    source: string;
-    usage_count: number;
-    correct_rate?: string;
-    avg_time_spent?: number;
-    is_active: boolean;
     create_time: number;
     update_time: number;
     // 关联关系
@@ -275,6 +281,16 @@ declare global {
     // 前端扩展字段
     is_correct?: boolean; // 是否答对（答题后）
     order?: number; // 题目顺序（练习会话中）
+    // TODO: 以下字段已删除，如需保留需要重新设计
+    // stage: Stage;
+    // difficulty: Difficulty;
+    // cognitive_level?: CognitiveLevel;
+    // ability_tags?: string[];
+    // source: string;
+    // usage_count: number;
+    // correct_rate?: string;
+    // avg_time_spent?: number;
+    // is_active: boolean;
   }
 
   /**

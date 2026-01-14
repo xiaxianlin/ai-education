@@ -1,18 +1,9 @@
-import { DIFFICULTY_LABELS, GRADES } from '@ai-education/shared-web';
 import { ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Col, Row } from 'antd';
-import { STAGE_OPTIONS } from '../../constants';
 import { useQuestionTypeFormModel } from '../models/page';
 
 export function BaseForm() {
-  const {
-    subjects,
-    availableGrades,
-    handleStagesChange,
-    handleSubjectChange,
-    handleGradesChange,
-    atomics,
-  } = useQuestionTypeFormModel();
+  const { subjects } = useQuestionTypeFormModel();
 
   return (
     <>
@@ -25,8 +16,8 @@ export function BaseForm() {
             placeholder="唯一标识，如 pinyin_choice"
             rules={[
               {
-                pattern: /^[A-Z][A-Z0-9_]*$/,
-                message: '编码格式：大写字母开头，只能包含大写字母、数字、下划线',
+                pattern: /^[a-z][a-z0-9_]*$/,
+                message: '编码格式：小写字母开头，只能包含小写字母、数字、下划线',
               },
             ]}
           />
@@ -41,70 +32,44 @@ export function BaseForm() {
         </Col>
         <Col span={8}>
           <ProFormSelect
-            name="difficulty"
-            label="难度"
-            placeholder="请选择难度"
-            options={Object.entries(DIFFICULTY_LABELS).map(([value, label]) => ({
-              value,
-              label,
-            }))}
-            rules={[{ required: true, message: '请选择难度' }]}
-          />
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col span={8}>
-          <ProFormSelect
             name="subject"
             label="科目"
             placeholder="请选择科目"
             rules={[{ required: true, message: '请选择科目' }]}
             options={subjects?.map((s: string) => ({ value: s, label: s }))}
-            fieldProps={{
-              onChange: handleSubjectChange,
-            }}
-          />
-        </Col>
-        <Col span={8}>
-          <ProFormSelect
-            name="stages"
-            label="学段"
-            mode="multiple"
-            placeholder="请选择适用学段"
-            rules={[{ required: true, message: '请选择学段' }]}
-            options={STAGE_OPTIONS}
-            fieldProps={{
-              onChange: handleStagesChange,
-            }}
-          />
-        </Col>
-        <Col span={8}>
-          <ProFormSelect
-            name="grades"
-            label="年级"
-            mode="multiple"
-            placeholder="请选择适用年级"
-            rules={[{ required: true, message: '请选择年级' }]}
-            options={availableGrades.map((g) => ({
-              value: g,
-              label: GRADES[g],
-            }))}
-            disabled={availableGrades.length === 0}
-            fieldProps={{
-              onChange: handleGradesChange,
-            }}
           />
         </Col>
       </Row>
-
       <Row gutter={16}>
-        <Col span={24}>
+        <Col span={8}>
           <ProFormSelect
-            name="ability_atomic_codes"
-            label="关联能力"
-            mode="multiple"
-            placeholder="请选择关联能力（可选）"
-            options={atomics}
+            name="category"
+            label="题型分类"
+            placeholder="请选择题型分类"
+            rules={[{ required: true, message: '请选择题型分类' }]}
+            options={[
+              { value: 'ability_practice', label: '能力练习' },
+              { value: 'unit_practice', label: '单元练习' },
+            ]}
+          />
+        </Col>
+        <Col span={8}>
+          <ProFormSelect
+            name="gradeBand"
+            label="学段"
+            placeholder="请选择学段（可选）"
+            options={[
+              { value: 'Low', label: '低年级 (1-3)' },
+              { value: 'Mid', label: '中年级 (4-6)' },
+              { value: 'High', label: '高年级 (7-12)' },
+            ]}
+          />
+        </Col>
+        <Col span={8}>
+          <ProFormText
+            name="abilityCode"
+            label="能力代码"
+            placeholder="关联能力代码（可选）"
           />
         </Col>
       </Row>
@@ -114,7 +79,6 @@ export function BaseForm() {
         label="描述"
         placeholder="题型描述（可选）"
         fieldProps={{ rows: 2 }}
-        rules={[{ required: true, message: '请输入描述' }]}
       />
     </>
   );

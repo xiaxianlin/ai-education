@@ -182,12 +182,23 @@ async def select_question_types(
             - question_count: 题目数量
     """
     # 获取可用题型
-    question_types = await db.scalars(
-        select(QuestionType).where(
-            QuestionType.subject == subject,
-            QuestionType.is_active == 1,
+    # 根据练习类型筛选题型
+    if practice_type == PRACTICE_TYPE_ABILITY:
+        # 能力练习：筛选 ability_practice 类型的题型
+        question_types = await db.scalars(
+            select(QuestionType).where(
+                QuestionType.subject == subject,
+                QuestionType.category == "ability_practice",
+            )
         )
-    )
+    else:
+        # 单元练习：筛选 unit_practice 类型的题型
+        question_types = await db.scalars(
+            select(QuestionType).where(
+                QuestionType.subject == subject,
+                QuestionType.category == "unit_practice",
+            )
+        )
     question_type_list = list(question_types.all())
 
     if not question_type_list:
@@ -217,7 +228,8 @@ async def select_question_types(
             "code": qt.code,
             "name": qt.name,
             "description": qt.description,
-            "interaction_type": qt.interaction_type,
+            "category": qt.category,
+            "grade_band": qt.grade_band,
         }
         for qt in question_type_list
     ]

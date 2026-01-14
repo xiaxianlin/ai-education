@@ -168,11 +168,14 @@ async def call_llm_node(state: QuestionGenerationState) -> Dict[str, Any]:
     # 处理 LLM 返回的题目
     question_type = state["question_type"]
     db = state["db"]
+    # 从 state 中获取 grade，如果没有则使用默认值
+    grade = state.get("grade", 1)
 
     questions = handle_llm_questions(
         db=db,
         question_type=question_type,
         llm_questions=questions_list,
+        grade=grade,
     )
 
     output = {"questions": questions}
@@ -264,8 +267,19 @@ async def _generate_resources_for_question(question: Question, node_name: str) -
     """
     try:
         new_resources = await generate_question_resources(question)
-        question.resources = new_resources
-        flag_modified(question, "resources")
+        # 更新题目的 content 字段中的资源
+        content = question.content or {}
+        if new_resources:
+            # 更新 content.resource（单个资源）
+            if "resource" in content:
+                content["resource"] = new_resources[0] if new_resources else None
+            elif "stem" in content and isinstance(content["stem"], dict):
+                content["stem"]["resource"] = new_resources[0] if new_resources else None
+            else:
+                # 如果没有 resource 字段，添加一个
+                content["resource"] = new_resources[0] if new_resources else None
+        question.content = content
+        flag_modified(question, "content")
         log_node_debug(node_name, f"题目资源生成完成: question_id={question.id}, resources_count={len(new_resources)}")
         return True
     except Exception as e:
@@ -297,7 +311,15 @@ async def generate_resources_node(state: QuestionGenerationState) -> Dict[str, A
         return {"questions": questions}
 
     # 统计需要生成资源的题目数量
-    questions_with_resources = [q for q in questions if q.resources]
+    # 检查题目是否有资源定义（从 content 字段中检查）
+    questions_with_resources = []
+    for q in questions:
+        content = q.content or {}
+        has_resource = "resource" in content or (
+            "stem" in content and isinstance(content["stem"], dict) and "resource" in content["stem"]
+        )
+        if has_resource:
+            questions_with_resources.append(q)
     log_node_debug(
         node_name,
         f"开始生成资源: 共 {len(questions)} 道题目，其中 {len(questions_with_resources)} 道需要生成资源",

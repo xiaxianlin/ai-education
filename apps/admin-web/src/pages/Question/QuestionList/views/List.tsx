@@ -1,7 +1,6 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks';
 import { getResourceStatus, hasResources, RESOURCE_STATUS_CONFIG } from '@/utils/question';
-import { DIFFICULTY_LABELS, isCompositeQuestion } from '@ai-education/shared-web';
 import { PlusOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Flex, Modal, Tag } from 'antd';
@@ -54,29 +53,29 @@ export function ListView() {
     },
     {
       title: '题干',
-      dataIndex: ['stem', 'text'],
       ellipsis: true,
       width: 300,
+      render: (_, record) => {
+        const content = record.content || {};
+        const stem = content.stem || '';
+        const stemText = typeof stem === 'string' ? stem : (stem as Stem)?.text || '';
+        return stemText || '-';
+      },
     },
     {
       title: '题型名称',
       dataIndex: ['question_type', 'name'],
       width: 150,
     },
-    {
-      title: '难度',
-      dataIndex: 'difficulty',
-      width: 80,
-      render: (_, record) => (
-        <Tag color={record.difficulty === 'easy' ? 'green' : record.difficulty === 'medium' ? 'orange' : 'red'}>
-          {DIFFICULTY_LABELS[record.difficulty as Difficulty]}
-        </Tag>
-      ),
-    },
+    // TODO: difficulty 字段已删除
     {
       title: '类型',
       width: 80,
-      render: (_, record) => (isCompositeQuestion(record) ? <Tag color="volcano">复合题</Tag> : <Tag>单题</Tag>),
+      render: (_, record) => {
+        const content = record.content || {};
+        const isComposite = (content.sub_questions?.length || 0) > 0;
+        return isComposite ? <Tag color="volcano">复合题</Tag> : <Tag>单题</Tag>;
+      },
     },
     {
       title: '素材',
@@ -112,18 +111,7 @@ export function ListView() {
         );
       },
     },
-    {
-      title: '使用次数',
-      dataIndex: 'usageCount',
-      width: 80,
-      valueType: 'digit',
-    },
-    {
-      title: '正确率',
-      dataIndex: 'correctRate',
-      width: 80,
-      valueType: 'percent',
-    },
+    // TODO: usage_count, correct_rate 字段已删除
     createActionColumn<Question>(
       (record) => (
         <>

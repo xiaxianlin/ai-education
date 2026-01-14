@@ -1,10 +1,9 @@
-import { DeleteOutlined, SaveOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Card, Space } from 'antd';
 import { useQuestionTypeGenerateModel } from '../models/page';
 
 export function ActionBar() {
-  const { hasUnsavedChanges, handleSave, handleDelete, saving, deleting } =
-    useQuestionTypeGenerateModel();
+  const { hasUnsavedChanges, handleDelete, deleting } = useQuestionTypeGenerateModel();
 
   if (!hasUnsavedChanges) {
     return null;
@@ -13,26 +12,11 @@ export function ActionBar() {
   return (
     <Card>
       <Space>
-        <Button
-          type="primary"
-          icon={<SaveOutlined />}
-          onClick={handleSave}
-          loading={saving}
-          disabled={saving || deleting}
-        >
-          保存（启用题目）
-        </Button>
-        <Button
-          danger
-          icon={<DeleteOutlined />}
-          onClick={handleDelete}
-          loading={deleting}
-          disabled={saving || deleting}
-        >
+        {/* TODO: 保存（启用题目）功能已废弃，原 is_active 字段已删除 */}
+        <Button danger icon={<DeleteOutlined />} onClick={handleDelete} loading={deleting} disabled={deleting}>
           删除
         </Button>
       </Space>
     </Card>
   );
 }
-

@@ -12,10 +12,10 @@ from .question import QuestionSchema
 class QuestionTypeConfigItem(BaseModel):
     """题型配置项"""
 
-    question_type_id: Optional[int] = None
+    question_type_id: Optional[int] = Field(None, description="题型ID（已废弃，保留用于向后兼容）")
     question_type_code: str
     count: int
-    difficulty: Optional[str] = None
+    difficulty: Optional[str] = Field(None, description="难度（已废弃，保留用于向后兼容）")
     description: Optional[str] = None
 
 

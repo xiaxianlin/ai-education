@@ -6,7 +6,7 @@ import { memo } from 'react';
 const { Text } = Typography;
 
 interface QuestionOptionsProps {
-  options: Question['options'];
+  options?: QuestionOption[];
   getOptionResources: (optionId: string) => QuestionResource[];
 }
 

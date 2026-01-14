@@ -31,7 +31,7 @@ export default function MainView() {
               {
                 key: 'prompt',
                 label: '提示词',
-                children: <PromptDetail prompt={item.ai_prompt} />,
+                children: <PromptDetail prompt={item.prompt} />,
               },
               {
                 key: 'config',

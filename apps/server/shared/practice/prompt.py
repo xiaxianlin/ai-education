@@ -191,8 +191,13 @@ def build_avoid_duplicate_prompt(recall_questions: List[Question]) -> str:
 
     prompt_lines = []
     for recall_question in recall_questions:
-        prompt_lines.append(f"- **{recall_question.stem.get('text', '')}**")
-        prompt_lines.append(f"- **{recall_question.options}**")
+        # 从 content 字段获取 stem 和 options
+        content = recall_question.content or {}
+        stem = content.get("stem", "")
+        stem_text = stem.get("text", "") if isinstance(stem, dict) else str(stem)
+        options = content.get("options", [])
+        prompt_lines.append(f"- **{stem_text}**")
+        prompt_lines.append(f"- **{options}**")
 
     recalled_questions_info = "\n".join(prompt_lines) or "（无）"
     return f"""

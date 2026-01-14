@@ -34,16 +34,14 @@ from .practice import (
 
 # 题目模块
 from .question import (
-    AnswerSchema,
-    FeedbackConfigSchema,
-    FeedbackItemSchema,
+    ContentSchema,
+    EvaluationConfigSchema,
+    MediaContextSchema,
     OptionSchema,
     QuestionSchema,
     QuestionTypeSchema,
     ResourceSchema,
-    StemSchema,
-    SubQuestionSchema,
-    SubStemSchema,
+    ScaffoldingConfigSchema,
 )
 
 # 学生模块
@@ -67,14 +65,12 @@ __all__ = [
     # 题目
     "QuestionTypeSchema",
     "QuestionSchema",
-    "AnswerSchema",
-    "SubStemSchema",
+    "ContentSchema",
     "OptionSchema",
     "ResourceSchema",
-    "SubQuestionSchema",
-    "StemSchema",
-    "FeedbackItemSchema",
-    "FeedbackConfigSchema",
+    "MediaContextSchema",
+    "ScaffoldingConfigSchema",
+    "EvaluationConfigSchema",
     # 练习
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",

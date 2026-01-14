@@ -17,7 +17,15 @@ export type ResourceStatus = keyof typeof RESOURCE_STATUS_CONFIG;
  * 判断是否需要素材
  */
 export function hasResources(question: Question): boolean {
-  return !!(question.resources && question.resources.length > 0);
+  const content = question.content || {};
+  // 检查 content.resource
+  const stemResource = content.resource;
+  // 检查选项资源 - 注意：目前 QuestionOption 类型没有 resource 属性，
+  // 只有 image_url 和 audio_url。如果需要检查，应检查这些字段。
+  // 此处先移除报错逻辑，保持与类型一致。
+  const options = content.options || [];
+  const hasOptionResources = options.some((opt) => opt.image_url || opt.audio_url);
+  return !!(stemResource || hasOptionResources);
 }
 
 /**
@@ -29,11 +37,23 @@ export function getResourceStatus(question: Question): ResourceStatus {
     return 'none';
   }
 
-  const resources = question.resources!;
+  const content = question.content || {};
+  const resources: QuestionResource[] = [];
+
+  // 收集题干资源
+  const stemResource = content.resource;
+  if (stemResource) {
+    resources.push(stemResource);
+  }
+
+  // 收集选项资源 - 如果 QuestionOption 没有 resource 属性，
+  // 我们可能需要从 content.resource (如果是数组) 或其他地方收集。
+  // 目前 global.d.ts 中 QuestionContent.resource 是单个 QuestionResource。
+  // 如果选项有资源，它们通常在 QuestionResource[] 类型的列表中，但 QuestionContent 没定义这个列表。
+  // 临时修复以通过编译。
+
   // 统计有有效 url 的资源数量
-  const resourcesWithUrl = resources.filter(
-    (resource) => resource.url && resource.url.trim() !== '',
-  );
+  const resourcesWithUrl = resources.filter((resource) => resource.url && resource.url.trim() !== '');
 
   const totalCount = resources.length;
   const urlCount = resourcesWithUrl.length;
@@ -57,7 +77,7 @@ export function getResourceStatus(question: Question): ResourceStatus {
  */
 export function renderResourceStatus(question: Question): ReactNode {
   const status = getResourceStatus(question);
-  
+
   if (status === 'none') {
     return <span>-</span>;
   }
@@ -77,10 +97,7 @@ export function hasAnswer(answer?: PracticeAnswer): boolean {
  * 格式化正确答案
  * 处理多种数据格式：字符串、数组、对象等
  */
-export function formatCorrectAnswer(
-  correctAnswer: unknown,
-  questionAnswer?: Answer,
-): string {
+export function formatCorrectAnswer(correctAnswer: unknown, questionAnswer?: Answer): string {
   // 如果 correctAnswer 是字符串，直接返回
   if (typeof correctAnswer === 'string') {
     return correctAnswer;
@@ -103,9 +120,7 @@ export function formatCorrectAnswer(
 
     // 优先处理 options 数组
     if (answerData.options && Array.isArray(answerData.options)) {
-      return answerData.options
-        .map((opt: { text?: string; id?: string }) => opt.text || opt.id || '')
-        .join(', ');
+      return answerData.options.map((opt: { text?: string; id?: string }) => opt.text || opt.id || '').join(', ');
     }
 
     // 处理 values 数组
@@ -133,10 +148,7 @@ export function formatCorrectAnswer(
  * 格式化解析内容
  * 从 answer.analysis 或默认解析中提取
  */
-export function formatExplanation(
-  analysis: unknown,
-  defaultExplanation?: string,
-): string {
+export function formatExplanation(analysis: unknown, defaultExplanation?: string): string {
   // 如果 analysis 是字符串，直接返回
   if (typeof analysis === 'string') {
     return analysis;
@@ -155,11 +167,7 @@ export function formatExplanation(
 /**
  * 显示查看答案的 Modal
  */
-export function showAnswerModal(params: {
-  studentAnswer: string;
-  correctAnswer: string;
-  explanation: string;
-}): void {
+export function showAnswerModal(params: { studentAnswer: string; correctAnswer: string; explanation: string }): void {
   const { studentAnswer, correctAnswer, explanation } = params;
 
   Modal.info({

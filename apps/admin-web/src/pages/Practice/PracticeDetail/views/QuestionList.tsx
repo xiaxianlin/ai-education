@@ -6,7 +6,6 @@ import {
   renderResourceStatus,
   showAnswerModal,
 } from '@/utils/question';
-import { DIFFICULTY_LABELS } from '@ai-education/shared-web';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Card, Space, Tag, Typography } from 'antd';
 import { useMemo } from 'react';
@@ -14,8 +13,7 @@ import { formatDuration } from '../../PracticeList/utils';
 import { usePracticeDetailModel } from '../models/page';
 
 export function QuestionList() {
-  const { session, questions, answersMap, navigate, handleViewQuestion, handleResetAnswer } =
-    usePracticeDetailModel();
+  const { session, questions, answersMap, navigate, handleViewQuestion, handleResetAnswer } = usePracticeDetailModel();
 
   const columns = useMemo<ProColumns<Question>[]>(
     () => [
@@ -34,28 +32,33 @@ export function QuestionList() {
             type="link"
             size="small"
             style={{ padding: 0 }}
-            onClick={() => navigate(`/question_type/detail/${record.question_type_id}`)}
+            onClick={() => {
+              // TODO: 需要根据 question_type_code 查找题型 ID，或使用 code 路由
+              const typeId = record.question_type?.id;
+              if (typeId) {
+                navigate(`/question_type/detail/${typeId}`);
+              }
+            }}
           >
-            {record.question_type?.name}
+            {record.question_type?.name || record.question_type_code}
           </Button>
         ),
       },
       {
         title: '题目内容',
-        dataIndex: ['stem', 'text'],
         maxWidth: 300,
-        renderText: (text) => (
-          <Typography.Text ellipsis style={{ maxWidth: '500px' }}>
-            {text}
-          </Typography.Text>
-        ),
+        render: (_: any, record: Question) => {
+          const content = record.content || {};
+          const stem = content.stem || '';
+          const stemText = typeof stem === 'string' ? stem : (stem as Stem)?.text || '';
+          return (
+            <Typography.Text ellipsis style={{ maxWidth: '500px' }}>
+              {stemText}
+            </Typography.Text>
+          );
+        },
       },
-      {
-        title: '难度',
-        dataIndex: 'difficulty',
-        width: 80,
-        valueEnum: DIFFICULTY_LABELS,
-      },
+      // TODO: difficulty 字段已删除
       {
         title: '素材',
         width: 100,

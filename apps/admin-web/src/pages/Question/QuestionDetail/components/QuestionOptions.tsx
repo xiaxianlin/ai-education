@@ -13,14 +13,18 @@ interface QuestionOptionsProps {
 export function QuestionOptions({ question }: QuestionOptionsProps) {
   const { getOptionResources } = useQuestionResources(question);
 
-  if (!question.options || question.options.length === 0) {
+  // 从 content 字段获取选项
+  const content = question.content || {};
+  const options = content.options || [];
+
+  if (!options || options.length === 0) {
     return null;
   }
 
   return (
     <ProCard title="选项">
       <Flex gap={12} wrap="wrap">
-        {question.options.map((option, index) => {
+        {options.map((option, index) => {
           const optionLabel = String.fromCharCode(65 + index);
           const optionResources = getOptionResources(option.id);
           const optionImageResources = optionResources.filter((r) => r.type === 'image');

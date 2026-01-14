@@ -244,21 +244,20 @@ def handle_llm_questions(
     db: AsyncSession,
     question_type: QuestionType,
     llm_questions: list[dict],
+    grade: int,
 ) -> list[Question]:
-    """将 LLM 返回的题目转换为 Question 对象并保存到数据库（is_active=0）
+    """将 LLM 返回的题目转换为 Question 对象并保存到数据库
 
     Args:
         db: 数据库会话
         question_type: 题目类型对象
         llm_questions: LLM 返回的题目列表
+        grade: 年级（从调用方传入，因为 question_type.grades 字段已删除）
 
     Returns:
         list[Question]: Question 对象列表
     """
     questions = []
-
-    # 获取年级（从 QuestionType 的 grades 列表中取第一个）
-    grade = question_type.grades[0] if question_type.grades else 1
 
     for question in llm_questions:
         if not isinstance(question, dict):
@@ -279,63 +278,54 @@ def handle_llm_questions(
             logger.warning(f"题目验证失败: {e}, 规范化后的数据: {normalized_question}, 跳过处理")
             continue
 
-        # 验证和规范化资源
+        # 构建 content JSON 结构
+        content = {}
+        
+        # 处理 stem：可能是字符串或字典
+        if item.stem:
+            if isinstance(item.stem, dict):
+                # stem 是字典，提取 text 和其他字段
+                stem_text = item.stem.get("text", "")
+                content["stem"] = stem_text if stem_text else str(item.stem)
+                # 如果 stem 中有其他字段（如 rich_text, hints），需要处理
+                # 但根据 ContentSchema，stem 应该是字符串，所以这里简化处理
+            else:
+                content["stem"] = str(item.stem)
+        else:
+            content["stem"] = ""
+
+        # 处理 resource：从 resources 中提取题干资源
         if item.resources:
-            validated_resources = []
-            for resource in item.resources:
-                if not isinstance(resource, dict):
-                    logger.warning(f"资源格式错误，跳过: {resource}")
-                    continue
+            # 分离题干资源和选项资源
+            stem_resources = [r for r in item.resources if r.get("resource_type") != "option"]
+            if stem_resources:
+                # ContentSchema 中 resource 是单个 ResourceSchema，取第一个
+                stem_resource = stem_resources[0]
+                content["resource"] = {
+                    "type": stem_resource.get("type", "image"),
+                    "url": stem_resource.get("url", ""),
+                    "alt": stem_resource.get("alt"),
+                }
 
-                # 确保 resource_type 存在
-                if "resource_type" not in resource:
-                    # 根据 position 推断（兼容性处理）
-                    position = resource.get("position", "stem")
-                    resource["resource_type"] = "option" if position == "option" else "stem"
+        # 处理 options
+        if item.options:
+            content["options"] = item.options
 
-                resource_type = resource.get("resource_type")
+        # 处理 sub_questions（复合题）
+        if item.stem and isinstance(item.stem, dict) and "sub_questions" in item.stem:
+            # TODO: 需要确认 sub_questions 的结构
+            content["sub_questions"] = item.stem.get("sub_questions")
 
-                # 验证选项资源
-                if resource_type == "option":
-                    if "option_id" not in resource or not resource.get("option_id"):
-                        logger.warning(
-                            f"选项资源缺少 option_id，跳过资源: {resource.get('id', 'unknown')}"
-                        )
-                        continue
-
-                    # 验证选项资源类型限制（只支持 image 和 audio）
-                    resource_type_value = resource.get("type", "")
-                    if resource_type_value not in ["image", "audio"]:
-                        logger.warning(
-                            f"选项资源类型不支持 {resource_type_value}，只支持 image 和 audio，跳过资源: {resource.get('id', 'unknown')}"
-                        )
-                        continue
-
-                validated_resources.append(resource)
-
-            # 更新资源列表
-            item.resources = validated_resources if validated_resources else None
-
-        # 直接映射字段到 Question 对象
+        # 构建 Question 对象
         question_obj = Question(
             id=secrets.token_hex(16),
-            question_type_id=question_type.id,
             question_type_code=question_type.code,
             subject=question_type.subject,
             grade=grade,
-            stage=grade_to_stage(grade),
-            stem=item.stem,
-            options=item.options,
-            blanks=item.blanks,
-            resources=item.resources,
+            ability_code=question_type.ability_code,
+            content=content,
             answer=item.answer,
             explanation=item.explanation,
-            difficulty=item.difficulty,
-            cognitive_level=item.cognitive_level,
-            knowledge_points=item.knowledge_points,
-            ability_tags=item.ability_tags,
-            source="ai",
-            is_active=False,  # 生成的题目默认不激活
         )
 
         questions.append(question_obj)
@@ -359,10 +349,10 @@ async def build_question_generation_prompt(
     Returns:
         Dict[str, Any]: 包含 prompt, prompt_input, prompt_parser 的字典
     """
-    # 直接使用 QuestionType 的 ai_prompt 字段，如果为空则抛出错误
-    prompt_template = question_type.ai_prompt
+    # 直接使用 QuestionType 的 prompt 字段，如果为空则抛出错误
+    prompt_template = question_type.prompt
     if not prompt_template:
-        raise ValueError(f"题目类型的 ai_prompt 不能为空: code={question_type.code}")
+        raise ValueError(f"题目类型的 prompt 不能为空: code={question_type.code}")
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
 
@@ -450,12 +440,20 @@ async def generate_question_resources(question: Question) -> List[dict]:
     Raises:
         ValueError: 如果题目没有资源定义
     """
-    if not question.resources:
+    content = question.content or {}
+    # 从 content 中获取资源：可能在 content.resource（单个）或 content.stem.resource 中
+    resources = []
+    if "resource" in content:
+        resources.append(content["resource"])
+    elif "stem" in content and isinstance(content["stem"], dict) and "resource" in content["stem"]:
+        resources.append(content["stem"]["resource"])
+
+    if not resources:
         logger.debug(f"题目 {question.id} 没有资源定义，跳过资源生成")
         return []
 
     new_resources = []
-    for resource in question.resources:
+    for resource in resources:
         try:
             updated_resource = await generate_question_resource(question, resource)
             new_resources.append(updated_resource)

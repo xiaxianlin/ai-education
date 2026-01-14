@@ -1,24 +1,17 @@
 import { useConfigs } from '@/hooks';
-import { STAGE_GRADES, Stage } from '@ai-education/shared-web';
 import { useRequest } from 'ahooks';
 import { Form, message } from 'antd';
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
-import { useAbilityData } from '../hooks/useAbilityData';
 
 const useContainer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { subjects } = useConfigs();
   const [form] = Form.useForm();
-  const [selectedStages, setSelectedStages] = useState<Stage[]>([]);
 
   const isEdit = !!id;
-
-  // 监听学段变化，自动计算可选年级
-  const availableGrades = selectedStages.flatMap((stage) => STAGE_GRADES[stage as keyof typeof STAGE_GRADES] || []);
 
   // 加载详情数据
   const { loading: fetchingDetails } = useRequest(() => QuestionApi.getQuestionType(Number(id)), {
@@ -26,119 +19,67 @@ const useContainer = () => {
     refreshDeps: [id],
     onSuccess: (res) => {
       if (!res) return;
-      setSelectedStages(res.stages || []);
       form.setFieldsValue({
         // 基础字段
         code: res.code,
         name: res.name,
         description: res.description,
         subject: res.subject,
-        stages: res.stages,
-        grades: res.grades,
-        difficulty: res.difficulty,
-        // 交互配置
-        interactionType: res.interaction_type,
-        interactionConfig: res.interaction_config ? JSON.stringify(res.interaction_config, null, 2) : undefined,
-        // 资源配置
-        resourceType: res.resource_type,
-        resourceConfig: res.resource_config ? JSON.stringify(res.resource_config, null, 2) : undefined,
-        // 答案配置
-        answerType: res.answer_type,
-        answerConfig: res.answer_config ? JSON.stringify(res.answer_config, null, 2) : undefined,
-        // 反馈配置
-        feedbackConfig: res.feedback_config ? JSON.stringify(res.feedback_config, null, 2) : undefined,
-        // 能力关联
-        ability_atomic_codes: res.ability_atomic_codes,
-        // 认知配置
-        cognitiveLevels: res.cognitive_levels,
+        category: res.category,
+        gradeBand: res.grade_band,
+        abilityCode: res.ability_code,
+        // 配置字段
+        mediaContext: res.media_context ? JSON.stringify(res.media_context, null, 2) : undefined,
+        scaffoldingConfig: res.scaffolding_config ? JSON.stringify(res.scaffolding_config, null, 2) : undefined,
+        evaluationConfig: res.evaluation_config ? JSON.stringify(res.evaluation_config, null, 2) : undefined,
         // AI 配置
-        aiPrompt: res.ai_prompt,
-        // 其他设置
-        sortOrder: res.sort_order,
-        isActive: res.is_active,
+        prompt: res.prompt,
       });
     },
   });
 
   // 监听表单字段变化
-  const subject = Form.useWatch('subject', form);
-  const grades = Form.useWatch('grades', form);
+  // const subject = Form.useWatch('subject', form);
+  // const gradeBand = Form.useWatch('gradeBand', form);
 
-  // 使用新的 hook 加载能力数据
-  const { atomics } = useAbilityData(subject, grades);
-
-  // 处理学段变化
-  const handleStagesChange = (stages: Stage[]) => {
-    setSelectedStages(stages);
-    // 清空不在范围内的年级
-    const currentGrades = form.getFieldValue('grades') || [];
-    const validGrades = currentGrades.filter((g: number) =>
-      stages.some((stage) => STAGE_GRADES[stage as keyof typeof STAGE_GRADES]?.includes(g)),
-    );
-    form.setFieldValue('grades', validGrades);
-  };
-
-  // 处理科目变化
-  const handleSubjectChange = (_subject: string) => {
-    // 清空能力（因为能力是按科目加载的）
-    form.setFieldValue('ability_atomic_codes', undefined);
-  };
-
-  // 处理年级变化
-  const handleGradesChange = (_grades: number[]) => {
-    // 清空能力（因为能力会根据年级重新过滤）
-    form.setFieldValue('ability_atomic_codes', undefined);
-  };
+  // TODO: 能力数据加载逻辑需要根据新的 ability_code 字段调整
+  // const { atomics } = useAbilityData(subject, grades);
 
   // 提交表单
   const { run: handleSubmit, loading: submitting } = useRequest(
     async (values: any) => {
-      const payload: any = {
+      const payload: QuestionTypeCreateRequest | QuestionTypeUpdateRequest = {
         // 基础字段
         name: values.name,
         description: values.description,
         subject: values.subject,
-        stages: values.stages,
-        grades: values.grades,
-        difficulty: values.difficulty,
-        // 交互配置
-        interaction_type: values.interactionType,
-        interaction_config: values.interactionConfig ? JSON.parse(values.interactionConfig) : undefined,
-        // 资源配置
-        resource_type: values.resourceType || 'text',
-        resource_config: values.resourceConfig ? JSON.parse(values.resourceConfig) : undefined,
-        // 答案配置
-        answer_type: values.answerType,
-        answer_config: values.answerConfig ? JSON.parse(values.answerConfig) : undefined,
-        // 反馈配置
-        feedback_config: values.feedbackConfig ? JSON.parse(values.feedbackConfig) : undefined,
-        // 能力关联
-        ability_atomic_codes: values.ability_atomic_codes,
-        // 认知配置
-        cognitive_levels: values.cognitiveLevels,
+        category: values.category,
+        grade_band: values.gradeBand,
+        ability_code: values.abilityCode,
+        // 配置字段
+        media_context: values.mediaContext ? JSON.parse(values.mediaContext) : undefined,
+        scaffolding_config: values.scaffoldingConfig ? JSON.parse(values.scaffoldingConfig) : undefined,
+        evaluation_config: values.evaluationConfig ? JSON.parse(values.evaluationConfig) : undefined,
         // AI 配置
-        ai_prompt: values.aiPrompt,
-        // 其他设置
-        sort_order: values.sortOrder ?? 0,
-        is_active: values.isActive ?? true,
+        prompt: values.prompt,
       };
 
       // 新建模式下才包含编码字段
       if (!isEdit) {
-        payload.code = values.code;
+        (payload as QuestionTypeCreateRequest).code = values.code;
       }
 
       // 移除 undefined 字段
       Object.keys(payload).forEach((key) => {
-        if (payload[key] === undefined) {
-          delete payload[key];
+        if (payload[key as keyof typeof payload] === undefined) {
+          delete payload[key as keyof typeof payload];
         }
       });
 
       if (isEdit) {
-        await QuestionApi.updateQuestionType(Number(id!), payload);
+        await QuestionApi.updateQuestionType(Number(id!), payload as QuestionTypeUpdateRequest);
       } else {
-        await QuestionApi.createQuestionType(payload);
+        await QuestionApi.createQuestionType(payload as QuestionTypeCreateRequest);
       }
     },
     {
@@ -153,15 +94,9 @@ const useContainer = () => {
     id,
     navigate,
     subjects,
-    selectedStages,
-    availableGrades,
     fetchingDetails,
     submitting,
-    handleStagesChange,
-    handleSubjectChange,
-    handleGradesChange,
     handleSubmit,
-    atomics,
   };
 };
 

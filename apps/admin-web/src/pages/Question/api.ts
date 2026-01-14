@@ -7,13 +7,7 @@ export const QuestionApi = {
    * 搜索题型
    * GET /question/type/search
    */
-  async searchQuestionTypes(params?: {
-    subject?: string;
-    grade?: number;
-    interaction_type?: string;
-    page?: number;
-    size?: number;
-  }) {
+  async searchQuestionTypes(params?: QuestionTypeSearchRequest) {
     const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search', params);
     return res;
   },
@@ -177,16 +171,17 @@ export const QuestionApi = {
    * 更新题型提示词
    * PATCH /question/type/{code}/prompt
    */
-  async updateQuestionTypePrompt(code: string, ai_prompt: string) {
-    return apiClient.patch<QuestionType>(`/question/type/${code}/prompt`, { ai_prompt });
+  async updateQuestionTypePrompt(code: string, prompt: string) {
+    return apiClient.patch<QuestionType>(`/question/type/${code}/prompt`, { prompt });
   },
 
   /**
-   * 批量更新题目
+   * 批量更新题目（已废弃）
    * PATCH /question/batch_update
+   * TODO: 此功能已废弃，后端返回 501 错误
    */
-  async batchUpdateQuestions(params: { ids: string[]; is_active: boolean }) {
-    return apiClient.patch<{ message: string; updated_count: number }>('/question/batch_update', params);
+  async batchUpdateQuestions(_params: { ids: string[]; is_active: boolean }) {
+    throw new Error('批量更新题目功能已废弃，原 is_active 字段已删除');
   },
 
   /**

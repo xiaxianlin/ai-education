@@ -1,48 +1,21 @@
 import { DeleteButton } from '@/components';
 import { createActionColumn } from '@/hooks/useTableColumns';
-import {
-  ANSWER_TYPE_LABELS,
-  DIFFICULTY_LABELS,
-  GRADES,
-  INTERACTION_TYPE_LABELS,
-  RESOURCE_TYPE_LABELS,
-  Stage,
-  STAGE_LABELS as STAGE_LABEL_MAP,
-} from '@ai-education/shared-web';
+// TODO: 以下常量已废弃：ANSWER_TYPE_LABELS, DIFFICULTY_LABELS, GRADES, INTERACTION_TYPE_LABELS, RESOURCE_TYPE_LABELS, STAGE_LABELS
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, message, Modal, Space, Tag } from 'antd';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AbilityApi } from '../../../Ability/api';
+// TODO: AbilityApi 导入已删除，如需能力映射功能需要重新实现
 import { QuestionApi } from '../../api';
 import { useQuestionTypeModel } from '../models/page';
 
 export default function ListView() {
   const navigate = useNavigate();
-  const { actionRef, subject, grade, handleDelete } = useQuestionTypeModel();
+  const { actionRef, subject, handleDelete } = useQuestionTypeModel();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [abilityMap, setAbilityMap] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 加载所有科目的能力用于映射
-  useEffect(() => {
-    const loadAbilities = async () => {
-      try {
-        const subjects = ['语文', '数学', '英语'];
-        const allAbilities = await Promise.all(subjects.map((s) => AbilityApi.searchAbilities({ subject: s })));
-        const map: Record<string, string> = {};
-        allAbilities.flat().forEach((a) => {
-          map[`${a.subject}_${a.code}`] = a.name;
-        });
-        setAbilityMap(map);
-      } catch (error) {
-        console.error('加载能力失败:', error);
-      }
-    };
-    loadAbilities();
-  }, []);
 
   // 导出题型数据为 JSON
   const handleExport = async () => {
@@ -170,95 +143,62 @@ export default function ListView() {
         render: (_, record) => <Tag color="blue">{record.subject}</Tag>,
       },
       {
+        title: '题型分类',
+        dataIndex: 'category',
+        width: 100,
+        render: (_, record) => (
+          <Tag color={record.category === 'ability_practice' ? 'purple' : 'cyan'}>
+            {record.category === 'ability_practice' ? '能力练习' : '单元练习'}
+          </Tag>
+        ),
+      },
+      {
         title: '学段',
-        dataIndex: 'stages',
-        width: 150,
-        render: (_, record) => (
-          <Space size={4} wrap>
-            {record.stages.map((s: Stage) => (
-              <Tag key={s} color="green">
-                {STAGE_LABEL_MAP[s as keyof typeof STAGE_LABEL_MAP] || s}
-              </Tag>
-            ))}
-          </Space>
-        ),
-      },
-      {
-        title: '年级',
-        dataIndex: 'grades',
-        width: 120,
-        render: (_, record) => record.grades.map((grade) => GRADES[grade]).join(', '),
-      },
-      {
-        title: '关联能力',
-        dataIndex: 'ability_atomic_codes',
-        width: 200,
-        render: (codes, record) => {
-          if (!codes || codes.length === 0) return '-';
-          return (
-            <Space size={4} wrap>
-              {codes.map((code: string) => {
-                const key = `${record.subject}_${code}`;
-                const abilityName = abilityMap[key];
-                return (
-                  <Tag key={code} color="geekblue">
-                    {abilityName || code}
-                  </Tag>
-                );
-              })}
-            </Space>
-          );
-        },
-      },
-      {
-        title: '交互类型',
-        dataIndex: 'interaction_type',
-        width: 100,
-        render: (_, record) => (
-          <Tag color="purple">
-            {INTERACTION_TYPE_LABELS[record.interaction_type as keyof typeof INTERACTION_TYPE_LABELS] ||
-              record.interaction_type}
-          </Tag>
-        ),
-      },
-      {
-        title: '资源类型',
-        dataIndex: 'resource_type',
+        dataIndex: 'grade_band',
         width: 80,
-        render: (_, record) => (
-          <Tag>
-            {RESOURCE_TYPE_LABELS[record.resource_type as keyof typeof RESOURCE_TYPE_LABELS] || record.resource_type}
-          </Tag>
-        ),
-      },
-      {
-        title: '答案类型',
-        dataIndex: 'answer_type',
-        width: 100,
-        render: (_, record) => (
-          <Tag color="orange">
-            {ANSWER_TYPE_LABELS[record.answer_type as keyof typeof ANSWER_TYPE_LABELS] || record.answer_type}
-          </Tag>
-        ),
-      },
-      {
-        title: '难度',
-        dataIndex: 'difficulty',
-        width: 80,
-        renderText: (difficulty?: Difficulty) =>
-          difficulty ? (
-            <Tag color={difficulty === 'easy' ? 'green' : difficulty === 'medium' ? 'orange' : 'red'}>
-              {DIFFICULTY_LABELS[difficulty]}
+        render: (_, record) =>
+          record.grade_band ? (
+            <Tag color="green">
+              {record.grade_band === 'Low' ? '低年级' : record.grade_band === 'Mid' ? '中年级' : '高年级'}
             </Tag>
           ) : (
             '-'
           ),
       },
       {
-        title: '状态',
-        dataIndex: 'is_active',
+        title: '能力代码',
+        dataIndex: 'ability_code',
+        width: 120,
+        render: (_, record) => (record.ability_code ? <Tag color="cyan">{record.ability_code}</Tag> : '-'),
+      },
+      {
+        title: '题型分类',
+        dataIndex: 'category',
+        width: 100,
+        render: (_, record) => (
+          <Tag color={record.category === 'ability_practice' ? 'purple' : 'cyan'}>
+            {record.category === 'ability_practice' ? '能力练习' : '单元练习'}
+          </Tag>
+        ),
+      },
+      {
+        title: '学段',
+        dataIndex: 'grade_band',
         width: 80,
-        render: (_, record) => (record.is_active ? <Tag color="success">启用</Tag> : <Tag color="error">禁用</Tag>),
+        render: (_, record) =>
+          record.grade_band ? (
+            <Tag color="green">
+              {record.grade_band === 'Low' ? '低年级' : record.grade_band === 'Mid' ? '中年级' : '高年级'}
+            </Tag>
+          ) : (
+            '-'
+          ),
+      },
+      {
+        title: '能力代码',
+        dataIndex: 'ability_code',
+        width: 120,
+        render: (_, record) => (record.ability_code ? <Tag color="cyan">{record.ability_code}</Tag> : '-'),
       },
       createActionColumn<QuestionType>(
         (record) => (
@@ -272,7 +212,7 @@ export default function ListView() {
         { width: 120 },
       ),
     ],
-    [navigate, handleDelete, domainMap, atomicMap],
+    [navigate, handleDelete],
   );
 
   return (
@@ -311,7 +251,7 @@ export default function ListView() {
           page: current,
           size: pageSize,
           subject,
-          grade,
+          // TODO: grade 参数已删除，如需按年级筛选，需要根据 grade_band 筛选
         });
         return {
           data: res?.data || [],

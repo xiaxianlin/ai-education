@@ -1,8 +1,4 @@
-import {
-  COGNITIVE_LEVEL_LABELS,
-  DIFFICULTY_LABELS,
-  INTERACTION_TYPE_LABELS,
-} from '@ai-education/shared-web';
+import { INTERACTION_TYPE_LABELS } from '@ai-education/shared-web';
 import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Collapse, Divider, Form, Input, Select, Space } from 'antd';
@@ -213,7 +209,6 @@ export default function MainView() {
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={{
-            difficulty: 'medium',
             options: [
               { id: 'A', text: '', isCorrect: false },
               { id: 'B', text: '', isCorrect: false },
@@ -251,36 +246,24 @@ export default function MainView() {
                           }))}
                         />
                       </Form.Item>
-                      <Form.Item name="questionTypeId" label="题型" rules={[{ required: true }]}>
+                      <Form.Item name="questionTypeCode" label="题型" rules={[{ required: true }]}>
                         <Select
                           placeholder="选择题型"
                           style={{ width: 200 }}
                           onChange={handleTypeChange}
                           options={filteredTypes.map((t) => ({
-                            value: t.id,
+                            value: t.code,
                             label: t.name,
                           }))}
                           showSearch
                           optionFilterProp="label"
                         />
                       </Form.Item>
-                    </Space>
-                    <Space size="large">
-                      <Form.Item name="difficulty" label="难度" rules={[{ required: true }]}>
-                        <Select
-                          style={{ width: 120 }}
-                          options={Object.entries(DIFFICULTY_LABELS).map(([value, label]) => ({ value, label }))}
-                        />
-                      </Form.Item>
-                      <Form.Item name="cognitiveLevel" label="认知层次">
-                        <Select
-                          placeholder="选择认知层次"
-                          style={{ width: 120 }}
-                          allowClear
-                          options={Object.entries(COGNITIVE_LEVEL_LABELS).map(([value, label]) => ({ value, label }))}
-                        />
+                      <Form.Item name="abilityCode" label="能力代码">
+                        <Input placeholder="能力代码（可选）" style={{ width: 200 }} />
                       </Form.Item>
                     </Space>
+                    <Space size="large">{/* TODO: difficulty, cognitiveLevel, knowledgePoints 字段已删除 */}</Space>
                   </Space>
                 ),
               },
@@ -321,8 +304,8 @@ export default function MainView() {
                           {
                             validator: (_, value) => {
                               if (
-                                selectedType?.interaction_type === 'single_choice' ||
-                                selectedType?.interaction_type === 'multi_choice'
+                                selectedType?.media_context?.types?.includes('single_choice') ||
+                                selectedType?.media_context?.types?.includes('multi_choice')
                               ) {
                                 if (!value || value.length < 2) {
                                   return Promise.reject('至少需要2个选项');
@@ -337,7 +320,7 @@ export default function MainView() {
                           },
                         ]}
                       >
-                        <OptionEditor interactionType={selectedType?.interaction_type} />
+                        <OptionEditor interactionType={selectedType?.media_context?.types?.[0] as InteractionType} />
                       </Form.Item>
                     )}
                   </>
@@ -351,9 +334,7 @@ export default function MainView() {
                     <Form.Item name="explanation" label="题目解析">
                       <TextArea rows={4} placeholder="输入题目解析" />
                     </Form.Item>
-                    <Form.Item name="knowledgePoints" label="知识点标签">
-                      <Select mode="tags" placeholder="输入知识点，按回车添加" style={{ width: '100%' }} />
-                    </Form.Item>
+                    {/* TODO: knowledgePoints 字段已删除 */}
                   </>
                 ),
               },
@@ -371,4 +352,3 @@ export default function MainView() {
     </PageContainer>
   );
 }
-

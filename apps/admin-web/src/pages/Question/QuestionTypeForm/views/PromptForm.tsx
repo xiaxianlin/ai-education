@@ -1,15 +1,5 @@
-import {
-    ANSWER_TYPE_LABELS,
-    COGNITIVE_LEVEL_LABELS,
-    DIFFICULTY_LABELS,
-    GRADES,
-    INTERACTION_TYPE_LABELS,
-    RESOURCE_TYPE_LABELS,
-    STAGE_LABELS,
-} from '@ai-education/shared-web';
 import { ProFormTextArea } from '@ant-design/pro-components';
 import { Button, Form, message } from 'antd';
-import { AbilityApi } from '../../../Ability/api';
 
 export function PromptForm() {
   const form = Form.useFormInstance();
@@ -20,97 +10,51 @@ export function PromptForm() {
     // 格式化基础信息
     const name = values.name || '';
     const subject = values.subject || '';
-    const stages =
-      (values.stages || [])
-        .map((stage: string) => STAGE_LABELS[stage as keyof typeof STAGE_LABELS] || stage)
-        .join('、') || '无';
-    const grades = (values.grades || []).map((grade: number) => GRADES[grade] || `${grade}年级`).join('、') || '无';
+    const category = values.category === 'ability_practice' ? '能力练习' : '单元练习';
+    const gradeBands: Record<string, string> = { Low: '低年级 (1-3)', Mid: '中年级 (4-6)', High: '高年级 (7-12)' };
+    const gradeBand =
+      values.gradeBand && gradeBands[values.gradeBand as string]
+        ? gradeBands[values.gradeBand as string]
+        : values.gradeBand || '无';
+    const abilityCode = values.abilityCode || '无';
     const description = values.description || '无';
 
-    // 格式化交互配置
-    const interactionType = values.interactionType
-      ? INTERACTION_TYPE_LABELS[values.interactionType as keyof typeof INTERACTION_TYPE_LABELS] ||
-        values.interactionType
-      : '无';
-    let interactionConfig = '无';
-    if (values.interactionConfig) {
+    // 格式化配置字段
+    let mediaContext = '无';
+    if (values.mediaContext) {
       try {
-        const parsed = JSON.parse(values.interactionConfig);
+        const parsed = JSON.parse(values.mediaContext);
         if (parsed && Object.keys(parsed).length > 0) {
-          interactionConfig = JSON.stringify(parsed, null, 2);
+          mediaContext = JSON.stringify(parsed, null, 2);
         }
       } catch {
-        // 如果解析失败，保持原值
-        interactionConfig = values.interactionConfig;
+        mediaContext = values.mediaContext;
       }
     }
 
-    // 格式化资源配置
-    const resourceType = values.resourceType
-      ? RESOURCE_TYPE_LABELS[values.resourceType as keyof typeof RESOURCE_TYPE_LABELS] || values.resourceType
-      : '文本';
-    let resourceConfig = '无';
-    if (values.resourceConfig) {
+    let scaffoldingConfig = '无';
+    if (values.scaffoldingConfig) {
       try {
-        const parsed = JSON.parse(values.resourceConfig);
+        const parsed = JSON.parse(values.scaffoldingConfig);
         if (parsed && Object.keys(parsed).length > 0) {
-          resourceConfig = JSON.stringify(parsed, null, 2);
+          scaffoldingConfig = JSON.stringify(parsed, null, 2);
         }
       } catch {
-        // 如果解析失败，保持原值
-        resourceConfig = values.resourceConfig;
+        scaffoldingConfig = values.scaffoldingConfig;
       }
     }
 
-    // 格式化答案配置
-    const answerType = values.answerType
-      ? ANSWER_TYPE_LABELS[values.answerType as keyof typeof ANSWER_TYPE_LABELS] || values.answerType
-      : '无';
-    let answerConfig = '无';
-    if (values.answerConfig) {
+    let evaluationConfig = '无';
+    if (values.evaluationConfig) {
       try {
-        const parsed = JSON.parse(values.answerConfig);
+        const parsed = JSON.parse(values.evaluationConfig);
         if (parsed && Object.keys(parsed).length > 0) {
-          answerConfig = JSON.stringify(parsed, null, 2);
+          evaluationConfig = JSON.stringify(parsed, null, 2);
         }
       } catch {
-        // 如果解析失败，保持原值
-        answerConfig = values.answerConfig;
+        evaluationConfig = values.evaluationConfig;
       }
     }
-
-    // 格式化认知与能力
-    const cognitiveLevels =
-      (values.cognitiveLevels || [])
-        .map((level: string) => COGNITIVE_LEVEL_LABELS[level as keyof typeof COGNITIVE_LEVEL_LABELS] || level)
-        .join('、') || '无';
-    
-    // 加载能力名称
-    let abilityNames = '无';
-    if (values.ability_atomic_codes?.length && values.subject && values.grades?.length) {
-      try {
-        const promises = (values.grades as number[]).map((grade: number) =>
-          AbilityApi.searchAbilities({
-            subject: values.subject,
-            grade,
-          })
-        );
-        const results = await Promise.all(promises);
-        const allAbilities = results.flat();
-        const nameMap = new Map(allAbilities.map((a) => [a.code, a.name]));
-        const names = (values.ability_atomic_codes as string[])
-          .map((code: string) => nameMap.get(code) || code)
-          .filter(Boolean);
-        abilityNames = names.length > 0 ? names.join('、') : '无';
-      } catch (error) {
-        console.error('加载能力失败:', error);
-        abilityNames = (values.ability_atomic_codes as string[]).join('、') || '无';
-      }
-    }
-
-    const difficulty = values.difficulty
-      ? DIFFICULTY_LABELS[values.difficulty as keyof typeof DIFFICULTY_LABELS] || values.difficulty
-      : '无';
 
     // 生成改进后的模板
     const template = `请根据题型信息和生成要求生成问题。
@@ -120,29 +64,22 @@ export function PromptForm() {
 ### 基础信息
 - 题型名称：${name}
 - 科目：${subject}
-- 适用学段：${stages}
-- 适用年级：${grades}
+- 题型分类：${category}
+- 学段：${gradeBand}
+- 能力代码：${abilityCode}
 - 题型描述：${description}
 
-### 交互配置
-- 说明：交互配置定义了学生在界面上的操作方式，包括如何选择答案、输入内容等交互行为。
-- 交互类型：${interactionType}
-- 交互配置：${interactionConfig}
+### 媒体配置 (media_context)
+- 说明：定义支持的媒体类型(文本/图片/音视频)及其配置
+- 配置：${mediaContext}
 
-### 资源配置
-- 说明：资源配置用于生成题目所需的资源。文本类型无需生成资源内容；图片类型需要生成图片生成的 prompt 描述；音频类型需要生成用于合成音频的文本内容。
-- 资源类型：${resourceType}
-- 资源配置：${resourceConfig}
+### 脚手架配置 (scaffolding_config)
+- 说明：定义脚手架模式(单/多选)与交互工具(提示/模板)
+- 配置：${scaffoldingConfig}
 
-### 答案配置
-- 说明：答案配置定义了题目的正确答案格式和判断标准。
-- 答案类型：${answerType}
-- 答案配置：${answerConfig}
-
-### 认知与能力
-- 认知层次：${cognitiveLevels}
-- 关联能力：${abilityNames}
-- 难度：${difficulty}
+### 评估配置 (evaluation_config)
+- 说明：聚合评估模式(auto_match/ai_analysis)、正确答案参考及评分量表
+- 配置：${evaluationConfig}
 
 ## 任务
 - 生成严格遵循此题型的{count}道题目。
@@ -158,7 +95,7 @@ export function PromptForm() {
   const handleApplyTemplate = async () => {
     try {
       const template = await generatePromptTemplate();
-      form.setFieldValue('aiPrompt', template);
+      form.setFieldValue('prompt', template);
       message.success('模板已应用');
     } catch (error) {
       console.error('生成模板失败:', error);
@@ -168,7 +105,7 @@ export function PromptForm() {
 
   return (
     <ProFormTextArea
-      name="aiPrompt"
+      name="prompt"
       label="AI 生成指令"
       placeholder="用于生成该题型题目的 AI 指令"
       fieldProps={{ rows: 26 }}

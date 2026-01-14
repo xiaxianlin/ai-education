@@ -7,16 +7,14 @@
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator
-from shared.core.constants import (
-    ANSWER_TYPES,
-    COGNITIVE_LEVELS,
-    DIFFICULTY_LEVELS,
-    INTERACTION_TYPES,
-    RESOURCE_TYPES,
-    STAGES,
-    SUBJECTS,
+from shared.core.constants import SUBJECTS
+from shared.core.schema import (
+    ContentSchema,
+    EvaluationConfigSchema,
+    MediaContextSchema,
+    ScaffoldingConfigSchema,
+    SearchSchema,
 )
-from shared.core.schema import SearchSchema
 
 # ============ 题型 Schema ============
 
@@ -28,21 +26,13 @@ class QuestionTypeCreateSchema(BaseModel):
     name: str = Field(..., description="题型名称，如 看图选拼音")
     description: Optional[str] = Field(default=None, description="题型描述")
     subject: str = Field(..., description="科目")
-    stages: List[str] = Field(..., description="适用学段列表")
-    grades: List[int] = Field(..., description="适用年级列表")
-    interaction_type: str = Field(..., description="交互类型")
-    interaction_config: Optional[Dict[str, Any]] = Field(default=None, description="交互配置")
-    resource_type: str = Field(default="text", description="资源类型")
-    resource_config: Optional[Dict[str, Any]] = Field(default=None, description="资源配置")
-    answer_type: str = Field(..., description="答案类型")
-    answer_config: Optional[Dict[str, Any]] = Field(default=None, description="答案配置")
-    feedback_config: Optional[Dict[str, Any]] = Field(default=None, description="反馈配置")
-    cognitive_levels: Optional[List[str]] = Field(default=None, description="认知层次列表")
-    ability_atomic_codes: Optional[List[str]] = Field(default=None, description="关联的能力代码列表")
-    difficulty: Optional[str] = Field(default=None, description="难度：easy/medium/hard")
-    ai_prompt: Optional[str] = Field(default=None, description="AI生成指令")
-    output_schema: Optional[Dict[str, Any]] = Field(default=None, description="AI输出Schema")
-    sort_order: int = Field(default=0, description="排序")
+    category: str = Field(..., description="题型分类: ability_practice / unit_practice")
+    grade_band: Optional[str] = Field(default=None, description="学段: Low/Mid/High")
+    ability_code: Optional[str] = Field(default=None, description="关联能力代码")
+    media_context: Optional[MediaContextSchema] = Field(default=None, description="媒体配置")
+    scaffolding_config: Optional[ScaffoldingConfigSchema] = Field(default=None, description="脚手架配置")
+    evaluation_config: Optional[EvaluationConfigSchema] = Field(default=None, description="评估配置")
+    prompt: Optional[str] = Field(default=None, description="AI生成指令")
 
     @field_validator("subject")
     @classmethod
@@ -51,57 +41,18 @@ class QuestionTypeCreateSchema(BaseModel):
             raise ValueError(f"科目必须是 {SUBJECTS} 之一")
         return v
 
-    @field_validator("stages")
+    @field_validator("category")
     @classmethod
-    def validate_stages(cls, v):
-        for stage in v:
-            if stage not in STAGES:
-                raise ValueError(f"学段必须是 {STAGES} 之一")
+    def validate_category(cls, v):
+        if v not in ["ability_practice", "unit_practice"]:
+            raise ValueError("题型分类必须是 ability_practice 或 unit_practice")
         return v
 
-    @field_validator("grades")
+    @field_validator("grade_band")
     @classmethod
-    def validate_grades(cls, v):
-        for grade in v:
-            if grade not in range(1, 13):
-                raise ValueError("年级必须在 1-12 之间")
-        return v
-
-    @field_validator("interaction_type")
-    @classmethod
-    def validate_interaction_type(cls, v):
-        if v not in INTERACTION_TYPES:
-            raise ValueError(f"交互类型必须是 {INTERACTION_TYPES} 之一")
-        return v
-
-    @field_validator("resource_type")
-    @classmethod
-    def validate_resource_type(cls, v):
-        if v not in RESOURCE_TYPES:
-            raise ValueError(f"资源类型必须是 {RESOURCE_TYPES} 之一")
-        return v
-
-    @field_validator("answer_type")
-    @classmethod
-    def validate_answer_type(cls, v):
-        if v not in ANSWER_TYPES:
-            raise ValueError(f"答案类型必须是 {ANSWER_TYPES} 之一")
-        return v
-
-    @field_validator("difficulty")
-    @classmethod
-    def validate_difficulty(cls, v):
-        if v is not None and v not in DIFFICULTY_LEVELS:
-            raise ValueError(f"难度必须是 {DIFFICULTY_LEVELS} 之一")
-        return v
-
-    @field_validator("cognitive_levels")
-    @classmethod
-    def validate_cognitive_levels(cls, v):
-        if v is not None:
-            for level in v:
-                if level not in COGNITIVE_LEVELS:
-                    raise ValueError(f"认知层次必须是 {COGNITIVE_LEVELS} 之一，当前值: {level}")
+    def validate_grade_band(cls, v):
+        if v is not None and v not in ["Low", "Mid", "High"]:
+            raise ValueError("学段必须是 Low、Mid 或 High")
         return v
 
 
@@ -110,28 +61,26 @@ class QuestionTypeUpdateSchema(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    stages: Optional[List[str]] = None
-    grades: Optional[List[int]] = None
-    interaction_config: Optional[Dict[str, Any]] = None
-    resource_type: Optional[str] = None
-    resource_config: Optional[Dict[str, Any]] = None
-    answer_config: Optional[Dict[str, Any]] = None
-    feedback_config: Optional[Dict[str, Any]] = None
-    cognitive_levels: Optional[List[str]] = None
-    ability_atomic_codes: Optional[List[str]] = None
-    difficulty: Optional[str] = None
-    ai_prompt: Optional[str] = None
-    output_schema: Optional[Dict[str, Any]] = None
-    sort_order: Optional[int] = None
-    is_active: Optional[bool] = None
+    category: Optional[str] = None
+    grade_band: Optional[str] = None
+    ability_code: Optional[str] = None
+    media_context: Optional[MediaContextSchema] = None
+    scaffolding_config: Optional[ScaffoldingConfigSchema] = None
+    evaluation_config: Optional[EvaluationConfigSchema] = None
+    prompt: Optional[str] = None
 
-    @field_validator("cognitive_levels")
+    @field_validator("category")
     @classmethod
-    def validate_cognitive_levels(cls, v):
-        if v is not None:
-            for level in v:
-                if level not in COGNITIVE_LEVELS:
-                    raise ValueError(f"认知层次必须是 {COGNITIVE_LEVELS} 之一，当前值: {level}")
+    def validate_category(cls, v):
+        if v is not None and v not in ["ability_practice", "unit_practice"]:
+            raise ValueError("题型分类必须是 ability_practice 或 unit_practice")
+        return v
+
+    @field_validator("grade_band")
+    @classmethod
+    def validate_grade_band(cls, v):
+        if v is not None and v not in ["Low", "Mid", "High"]:
+            raise ValueError("学段必须是 Low、Mid 或 High")
         return v
 
 
@@ -139,8 +88,9 @@ class QuestionTypeSearchSchema(SearchSchema):
     """搜索题型"""
 
     subject: Optional[str] = None
-    grade: Optional[int] = None
-    interaction_type: Optional[str] = None
+    category: Optional[str] = None
+    grade_band: Optional[str] = None
+    ability_code: Optional[str] = None
 
 
 # ============ 题目 Schema ============
@@ -150,23 +100,13 @@ class QuestionCreateSchema(BaseModel):
     """创建题目"""
 
     id: Optional[str] = Field(default=None, description="题目ID，不传则自动生成UUID")
-    question_type_id: int = Field(..., description="题型ID")
     question_type_code: str = Field(..., description="题型编码")
     subject: str = Field(..., description="科目")
     grade: int = Field(..., description="年级 1-12")
-    stage: str = Field(..., description="学段")
-    stem: Dict[str, Any] = Field(..., description="题干")
-    options: Optional[List[Dict[str, Any]]] = Field(default=None, description="选项列表")
-    blanks: Optional[List[Dict[str, Any]]] = Field(default=None, description="填空位置配置")
-    resources: Optional[List[Dict[str, Any]]] = Field(default=None, description="资源列表")
+    ability_code: Optional[str] = Field(default=None, description="能力代码")
+    content: Dict[str, Any] = Field(..., description="题目内容（包含题干、选项、资源等）")
     answer: Dict[str, Any] = Field(..., description="答案配置")
     explanation: Optional[str] = Field(default=None, description="解析")
-    difficulty: str = Field(..., description="难度")
-    cognitive_level: Optional[str] = Field(default=None, description="认知层次")
-    knowledge_points: Optional[List[str]] = Field(default=None, description="知识点列表")
-    ability_tags: Optional[List[str]] = Field(default=None, description="能力标签")
-    source: str = Field(default="ai", description="来源")
-    prompt_id: Optional[int] = Field(default=None, description="生成此题的Prompt ID")
 
     @field_validator("subject")
     @classmethod
@@ -182,35 +122,14 @@ class QuestionCreateSchema(BaseModel):
             raise ValueError("年级必须在 1-12 之间")
         return v
 
-    @field_validator("stage")
-    @classmethod
-    def validate_stage(cls, v):
-        if v not in STAGES:
-            raise ValueError(f"学段必须是 {STAGES} 之一")
-        return v
-
-    @field_validator("difficulty")
-    @classmethod
-    def validate_difficulty(cls, v):
-        if v not in DIFFICULTY_LEVELS:
-            raise ValueError(f"难度必须是 {DIFFICULTY_LEVELS} 之一")
-        return v
-
 
 class QuestionUpdateSchema(BaseModel):
     """更新题目"""
 
-    stem: Optional[Dict[str, Any]] = None
-    options: Optional[List[Dict[str, Any]]] = None
-    blanks: Optional[List[Dict[str, Any]]] = None
-    resources: Optional[List[Dict[str, Any]]] = None
+    content: Optional[Dict[str, Any]] = Field(default=None, description="题目内容（包含题干、选项、资源等）")
     answer: Optional[Dict[str, Any]] = None
     explanation: Optional[str] = None
-    difficulty: Optional[str] = None
-    cognitive_level: Optional[str] = None
-    knowledge_points: Optional[List[str]] = None
-    ability_tags: Optional[List[str]] = None
-    is_active: Optional[bool] = None
+    ability_code: Optional[str] = None
 
 
 class QuestionSearchSchema(SearchSchema):
@@ -218,15 +137,10 @@ class QuestionSearchSchema(SearchSchema):
 
     id: Optional[str] = Field(default=None, description="题目ID（精确匹配）")
     name: Optional[str] = Field(default=None, description="题目名称（题干文本，模糊匹配）")
-    question_type_id: Optional[int] = None
     question_type_code: Optional[str] = None
     subject: Optional[str] = None
     grade: Optional[int] = None
-    stage: Optional[str] = None
-    difficulty: Optional[str] = None
-    cognitive_level: Optional[str] = None
-    source: Optional[str] = None
-    is_active: Optional[bool] = None
+    ability_code: Optional[str] = None
 
 
 class QuestionBatchDeleteSchema(BaseModel):
@@ -239,7 +153,7 @@ class QuestionBatchUpdateSchema(BaseModel):
     """批量更新题目"""
 
     ids: List[str] = Field(..., description="题目ID列表", min_length=1)
-    is_active: Optional[bool] = Field(default=None, description="是否启用")
+    # TODO: 如需批量更新功能，需要重新设计（原 is_active 字段已删除）
 
 
 class QuestionGenerateSchema(BaseModel):
@@ -251,4 +165,4 @@ class QuestionGenerateSchema(BaseModel):
 class QuestionTypePromptUpdateSchema(BaseModel):
     """更新题型提示词请求"""
 
-    ai_prompt: str = Field(..., description="AI生成指令")
+    prompt: str = Field(..., description="AI生成指令")

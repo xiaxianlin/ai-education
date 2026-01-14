@@ -3,10 +3,10 @@ import { getResourceUrl, QuestionResource } from '@ai-education/shared-web';
 import { memo } from 'react';
 
 interface QuestionStemProps {
-  stem: Question['stem'];
+  stem: string | Stem | undefined;
   stemImageResources: QuestionResource[];
   stemAudioResources: QuestionResource[];
-  resources?: Question['resources'];
+  resources?: QuestionResource[];
 }
 
 export const QuestionStem = memo(function QuestionStem({
@@ -15,8 +15,10 @@ export const QuestionStem = memo(function QuestionStem({
   stemAudioResources,
   resources,
 }: QuestionStemProps) {
-  const stemContent = stem?.rich_text || stem?.text || '';
-  const hasRichText = !!stem?.rich_text;
+  const stemText = typeof stem === "string" ? stem : (stem as Stem)?.text || "";
+  const stemRichText = typeof stem === "object" ? (stem as Stem)?.rich_text : undefined;
+  const stemContent = stemRichText || stemText || '';
+  const hasRichText = !!stemRichText;
 
   return (
     <div className="space-y-2">
@@ -30,9 +32,9 @@ export const QuestionStem = memo(function QuestionStem({
       </div>
 
       {/* 题干音频（向后兼容） */}
-      {stem?.audio_url && (
+      {typeof stem === "object" && (stem as Stem)?.audio_url && (
         <div className="mt-2">
-          <AudioPlayer src={getResourceUrl(stem.audio_url) ?? ''} />
+          <AudioPlayer src={getResourceUrl((stem as Stem).audio_url!) ?? ''} />
         </div>
       )}
 

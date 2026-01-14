@@ -6,7 +6,7 @@ import { Flex, Image, Space, Tag, Typography } from 'antd';
 const { Text } = Typography;
 
 interface QuestionSubQuestionsProps {
-  subQuestions?: Array<Record<string, unknown>>;
+  subQuestions?: any[];
 }
 
 export function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps) {
@@ -17,10 +17,10 @@ export function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps
   return (
     <ProCard title="子题">
       <Flex vertical gap={16}>
-        {subQuestions.map((sub: Record<string, unknown>, idx: number) => {
-          const subStem = sub.stem as Record<string, unknown>;
-          const subStemContent = (subStem?.rich_text as string) || (subStem?.text as string) || '';
-          const subHasRichText = !!(subStem?.rich_text as string);
+        {subQuestions.map((sub: any, idx: number) => {
+          const subStem = sub.stem;
+          const subStemContent = subStem?.rich_text || subStem?.text || (typeof sub.stem === 'string' ? sub.stem : '');
+          const subHasRichText = !!subStem?.rich_text;
           const subResourcesArray: QuestionResource[] = Array.isArray(sub.resources)
             ? (sub.resources as QuestionResource[])
             : [];
@@ -35,7 +35,7 @@ export function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps
                   {sub.interaction_type ? (
                     <Tag>
                       {INTERACTION_TYPE_LABELS[
-                        (sub.interaction_type as InteractionType) as keyof typeof INTERACTION_TYPE_LABELS
+                        sub.interaction_type as InteractionType as keyof typeof INTERACTION_TYPE_LABELS
                       ] || String(sub.interaction_type)}
                     </Tag>
                   ) : null}
@@ -84,16 +84,14 @@ export function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps
                 </ProDescriptions.Item>
 
                 {/* 子题选项 */}
-                {Array.isArray(sub.options) && (sub.options as Array<Record<string, unknown>>).length > 0 ? (
+                {Array.isArray(sub.options) && sub.options.length > 0 ? (
                   <ProDescriptions.Item label="选项">
                     <Flex vertical gap={4}>
-                      {(sub.options as Array<Record<string, unknown>>).map(
-                        (opt: Record<string, unknown>, optIdx: number) => (
-                          <Text key={optIdx}>
-                            {String.fromCharCode(65 + optIdx)}. {String(opt.text || opt.id || '')}
-                          </Text>
-                        ),
-                      )}
+                      {(sub.options as Array<Record<string, unknown>>).map((opt, optIdx) => (
+                        <Text key={optIdx}>
+                          {String.fromCharCode(65 + optIdx)}. {String(opt.text || opt.id || '')}
+                        </Text>
+                      ))}
                     </Flex>
                   </ProDescriptions.Item>
                 ) : null}
@@ -121,4 +119,3 @@ export function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps
     </ProCard>
   );
 }
-

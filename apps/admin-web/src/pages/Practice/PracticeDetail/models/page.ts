@@ -29,10 +29,8 @@ const useContainer = () => {
   // 判定是否需要生成素材的题目
   const ungeneratedQuestions = useMemo(() => {
     return questions.filter((q) => {
-      const hasResource = q.resources && q.resources.length > 0;
-      if (!hasResource) return false;
-      const resourcesWithUrl = q.resources!.filter((r) => r.url && r.url.trim() !== '');
-      return resourcesWithUrl.length < q.resources!.length;
+      const resource = q.content?.resource;
+      return resource && (!resource.url || resource.url.trim() === '');
     });
   }, [questions]);
 

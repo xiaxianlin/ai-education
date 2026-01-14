@@ -3,7 +3,7 @@ import { getResourceUrl, INTERACTION_TYPE_LABELS, QuestionResource } from '@ai-e
 import { memo } from 'react';
 
 interface QuestionSubQuestionsProps {
-  subQuestions: SubQuestion[];
+  subQuestions?: any[];
 }
 
 export const QuestionSubQuestions = memo(function QuestionSubQuestions({ subQuestions }: QuestionSubQuestionsProps) {
@@ -15,12 +15,11 @@ export const QuestionSubQuestions = memo(function QuestionSubQuestions({ subQues
     <div className="space-y-2">
       <div className="text-xs font-medium text-gray-400">子题</div>
       <div className="space-y-2">
-        {subQuestions.map((sub, idx) => {
-          const subContent =
-            typeof sub.stem === 'string'
-              ? sub.stem
-              : (sub.stem?.rich_text as string) || (sub.stem?.text as string) || '';
-          const subResources = Array.isArray(sub.resources) ? (sub.resources as unknown as QuestionResource[]) : [];
+        {subQuestions.map((sub: any, idx) => {
+          const subContent = typeof sub.stem === 'string' ? sub.stem : sub.stem?.rich_text || sub.stem?.text || '';
+          const subResources = Array.isArray(sub.resources || sub.resource)
+            ? ((sub.resources || (sub.resource ? [sub.resource] : [])) as QuestionResource[])
+            : [];
           const subAnswer = sub.answer;
           const correctAnswers = Array.isArray(subAnswer?.correct_answers)
             ? (subAnswer.correct_answers as string[]).join(', ')
@@ -83,7 +82,7 @@ export const QuestionSubQuestions = memo(function QuestionSubQuestions({ subQues
               {/* 子题选项 */}
               {sub.options && sub.options.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 mt-2 mb-2">
-                  {sub.options.map((opt, optIdx) => (
+                  {sub.options.map((opt: any, optIdx: number) => (
                     <div
                       key={optIdx}
                       className="px-2 py-1 bg-white rounded border border-gray-100 text-xs text-gray-600"

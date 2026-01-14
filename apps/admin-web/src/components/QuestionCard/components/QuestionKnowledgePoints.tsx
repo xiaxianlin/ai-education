@@ -1,7 +1,7 @@
 import { memo } from 'react';
 
 interface QuestionKnowledgePointsProps {
-  knowledgePoints: Question['knowledge_points'];
+  knowledgePoints?: string[];
 }
 
 export const QuestionKnowledgePoints = memo(function QuestionKnowledgePoints({

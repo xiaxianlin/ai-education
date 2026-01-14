@@ -21,31 +21,31 @@ export function QuestionTypeConfig({ questionType }: QuestionTypeConfigProps) {
         <ProDescriptions.Item label="题型描述" span={2}>
           {questionType.description || '-'}
         </ProDescriptions.Item>
-        {questionType.interaction_config && (
-          <ProDescriptions.Item label="交互配置" span={2}>
+        {questionType.media_context && (
+          <ProDescriptions.Item label="媒体配置" span={2}>
             <Text code style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {JSON.stringify(questionType.interaction_config, null, 2)}
+              {JSON.stringify(questionType.media_context, null, 2)}
             </Text>
           </ProDescriptions.Item>
         )}
-        {questionType.resource_config && (
-          <ProDescriptions.Item label="资源配置" span={2}>
+        {questionType.scaffolding_config && (
+          <ProDescriptions.Item label="脚手架配置" span={2}>
             <Text code style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {JSON.stringify(questionType.resource_config, null, 2)}
+              {JSON.stringify(questionType.scaffolding_config, null, 2)}
             </Text>
           </ProDescriptions.Item>
         )}
-        {questionType.answer_config && (
-          <ProDescriptions.Item label="答案配置" span={2}>
+        {questionType.evaluation_config && (
+          <ProDescriptions.Item label="评估配置" span={2}>
             <Text code style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {JSON.stringify(questionType.answer_config, null, 2)}
+              {JSON.stringify(questionType.evaluation_config, null, 2)}
             </Text>
           </ProDescriptions.Item>
         )}
-        {questionType.feedback_config && (
-          <ProDescriptions.Item label="反馈配置" span={2}>
+        {questionType.prompt && (
+          <ProDescriptions.Item label="AI 指令" span={2}>
             <Text code style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-              {JSON.stringify(questionType.feedback_config, null, 2)}
+              {questionType.prompt}
             </Text>
           </ProDescriptions.Item>
         )}
@@ -53,4 +53,3 @@ export function QuestionTypeConfig({ questionType }: QuestionTypeConfigProps) {
     </ProCard>
   );
 }
-

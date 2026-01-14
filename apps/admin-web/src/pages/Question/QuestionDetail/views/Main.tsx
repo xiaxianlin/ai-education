@@ -3,7 +3,7 @@ import { Button, Drawer, Flex, Popconfirm } from 'antd';
 import { useState } from 'react';
 import { QuestionAnswer } from '../components/QuestionAnswer';
 import { QuestionBasicInfo } from '../components/QuestionBasicInfo';
-import { QuestionBlanks } from '../components/QuestionBlanks';
+
 import { QuestionOptions } from '../components/QuestionOptions';
 import { QuestionStatistics } from '../components/QuestionStatistics';
 import { QuestionStem } from '../components/QuestionStem';
@@ -31,37 +31,35 @@ export default function MainView() {
     return null;
   }
 
-  // 判断是否为复合题
-  const isComposite = (question.stem?.sub_questions?.length || 0) > 0;
+  // 判断是否为复合题（从 content 字段获取）
+  const content = question.content || {};
+  const subQuestions = content.sub_questions || [];
+  const isComposite = subQuestions.length > 0;
 
   return (
     <PageContainer title="题目详情" header={{ onBack: () => navigate(-1) }}>
       <Flex vertical gap={16} style={{ width: '100%' }}>
         <QuestionBasicInfo question={question} />
 
-        <QuestionStatistics question={question} />
+        <QuestionStatistics />
 
         <QuestionStem question={question} />
 
         <QuestionOptions question={question} />
 
-        <QuestionBlanks blanks={question.blanks} />
+        {/* TODO: blanks 字段已删除，如需保留需要存储在 content 中 */}
+        {/* <QuestionBlanks blanks={question.blanks} /> */}
 
         <QuestionAnswer answer={question.answer} explanation={question.explanation} />
 
-        {isComposite && <QuestionSubQuestions subQuestions={question.stem?.sub_questions} />}
+        {isComposite && <QuestionSubQuestions subQuestions={subQuestions} />}
       </Flex>
       <FooterToolbar className="page-footer">
         <Flex justify="center" gap={16}>
           <Button size="large" onClick={() => setShowDataDrawer(true)}>
             查看数据
           </Button>
-          <Button
-            size="large"
-            type="primary"
-            loading={generatingResources}
-            onClick={() => handleGenerateResources()}
-          >
+          <Button size="large" type="primary" loading={generatingResources} onClick={() => handleGenerateResources()}>
             生成素材
           </Button>
           <Button size="large" type="primary" onClick={() => navigate(`/question/form/${question.id}`)}>

@@ -230,7 +230,7 @@ async def update_question_type_prompt(code: str, params: QuestionTypePromptUpdat
     if not question_type_obj:
         raise HTTPException(status_code=404, detail=f"题型不存在: code={code}")
 
-    update_params = QuestionTypeUpdateSchema(ai_prompt=params.ai_prompt)
+    update_params = QuestionTypeUpdateSchema(prompt=params.prompt)
     updated = await question_type.update_question_type(db, question_type_obj.id, update_params)
     return QuestionTypeSchema.model_validate(updated)
 
@@ -264,15 +264,18 @@ async def batch_delete_questions(params: QuestionBatchDeleteSchema, db: AsyncSes
     "/batch_update",
     tags=["题目管理"],
     summary="批量更新题目",
-    description="批量更新题目的状态（启用/禁用）",
+    description="批量更新题目的状态（已废弃：is_active 字段已删除）",
 )
 async def batch_update_questions(params: QuestionBatchUpdateSchema, db: AsyncSession = Database):
-    """批量更新题目状态"""
-    if params.is_active is None:
-        raise HTTPException(status_code=400, detail="is_active 参数不能为空")
-
-    updated_count = await question.batch_update_questions(db, params.ids, params.is_active)
-    return {"message": "批量更新成功", "updated_count": updated_count}
+    """批量更新题目状态
+    
+    TODO: 此功能已废弃，原 is_active 字段已删除。
+    如需批量更新功能，需要重新设计（可能使用软删除或状态字段）。
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="批量更新题目功能已废弃，原 is_active 字段已删除。如需此功能，需要重新设计。"
+    )
 
 
 @question_router.get(

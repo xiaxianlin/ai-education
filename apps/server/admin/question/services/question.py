@@ -118,14 +118,14 @@ async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tu
 
     # 题目名称（题干文本）模糊匹配
     if params.name:
-        # 使用 JSON_EXTRACT 提取 stem.text 字段，然后进行模糊匹配
-        # MySQL: JSON_EXTRACT(stem, '$.text') LIKE '%name%'
-        # 使用 SQLAlchemy 的 func.json_extract 或直接使用字符串函数
-        stem_text = func.json_unquote(func.json_extract(Question.stem, "$.text"))
+        # 使用 JSON_EXTRACT 提取 content.stem.text 字段，然后进行模糊匹配
+        # MySQL: JSON_EXTRACT(content, '$.stem.text') LIKE '%name%'
+        # 注意：content.stem 可能是字符串或对象，需要兼容处理
+        # 先尝试提取 content.stem.text，如果不存在则尝试 content.stem（字符串）
+        stem_text = func.json_unquote(
+            func.json_extract(Question.content, "$.stem.text")
+        ) | func.json_unquote(func.json_extract(Question.content, "$.stem"))
         conditions.append(cast(stem_text, String).like(f"%{params.name}%"))
-
-    if params.question_type_id:
-        conditions.append(Question.question_type_id == params.question_type_id)
 
     if params.question_type_code:
         conditions.append(Question.question_type_code == params.question_type_code)
@@ -136,20 +136,8 @@ async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tu
     if params.grade:
         conditions.append(Question.grade == params.grade)
 
-    if params.stage:
-        conditions.append(Question.stage == params.stage)
-
-    if params.difficulty:
-        conditions.append(Question.difficulty == params.difficulty)
-
-    if params.cognitive_level:
-        conditions.append(Question.cognitive_level == params.cognitive_level)
-
-    if params.source:
-        conditions.append(Question.source == params.source)
-
-    if params.is_active is not None:
-        conditions.append(Question.is_active == params.is_active)
+    if params.ability_code:
+        conditions.append(Question.ability_code == params.ability_code)
 
     # 构建基础查询
     base_query = select(Question)
@@ -184,46 +172,30 @@ async def get_questions_by_ids(db: AsyncSession, ids: List[str]) -> List[Questio
     return list(result.scalars().all())
 
 
-async def count_questions_by_type(db: AsyncSession, question_type_id: int) -> int:
+async def count_questions_by_type(db: AsyncSession, question_type_code: str) -> int:
     """统计题型下的题目数量"""
-    result = await db.execute(select(func.count(Question.id)).where(Question.question_type_id == question_type_id))
+    result = await db.execute(
+        select(func.count(Question.id)).where(Question.question_type_code == question_type_code)
+    )
     return result.scalar() or 0
 
 
-async def increment_usage_count(db: AsyncSession, id: str) -> None:
-    """增加题目使用次数"""
-    result = await db.execute(select(Question).where(Question.id == id))
-    question = result.scalar_one_or_none()
-
-    if question:
-        question.usage_count = (question.usage_count or 0) + 1
-        await db.commit()
-
-
-async def update_correct_rate(db: AsyncSession, id: str, correct_rate: str) -> None:
-    """更新题目正确率"""
-    result = await db.execute(select(Question).where(Question.id == id))
-    question = result.scalar_one_or_none()
-
-    if question:
-        question.correct_rate = correct_rate
-        await db.commit()
+# TODO: 题目使用统计功能（usage_count, correct_rate, avg_time_spent）
+# 原字段已删除，如需保留，需要重新设计数据存储方案（可能使用单独的统计表）
+# async def increment_usage_count(db: AsyncSession, id: str) -> None:
+#     """增加题目使用次数"""
+#     pass
+#
+# async def update_correct_rate(db: AsyncSession, id: str, correct_rate: str) -> None:
+#     """更新题目正确率"""
+#     pass
 
 
-async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bool) -> int:
-    """批量更新题目状态"""
-    if not ids:
-        return 0
-
-    # 批量更新题目状态
-    result = await db.execute(select(Question).where(Question.id.in_(ids)))
-    questions = list(result.scalars().all())
-
-    for q in questions:
-        q.is_active = is_active
-
-    await db.commit()
-    return len(questions)
+# TODO: 批量更新题目状态功能（is_active）
+# 原字段已删除，如需保留，需要重新设计（可能使用软删除或状态字段）
+# async def batch_update_questions(db: AsyncSession, ids: List[str], is_active: bool) -> int:
+#     """批量更新题目状态"""
+#     pass
 
 
 async def generate_question_resources(db: AsyncSession, id: str):
@@ -246,15 +218,30 @@ async def generate_question_resources(db: AsyncSession, id: str):
         logger.error(f"题目 {id} 不存在")
         raise ValueError(f"题目 {id} 不存在")
 
-    # 如果没有资源定义，直接返回
-    if not question.resources:
+    # 从 content 字段中获取资源定义
+    content = question.content or {}
+    # 资源可能在 content.resource（单个）或 content.stem.resource 中
+    resources = []
+    if "resource" in content:
+        resources.append(content["resource"])
+    elif "stem" in content and isinstance(content["stem"], dict) and "resource" in content["stem"]:
+        resources.append(content["stem"]["resource"])
+
+    if not resources:
         logger.warning(f"题目 {id} 没有资源定义，跳过资源生成")
         return
 
     # 复用 shared 层的资源生成函数
-    new_resources = await generate_resources(question)
-
-    # 更新题目的资源列表
-    question.resources = new_resources
-    flag_modified(question, "resources")  # 显式标记字段已修改
-    await db.commit()
+    # 注意：需要适配新的 content 结构
+    # TODO: 适配资源生成逻辑以支持新的 content 结构
+    # new_resources = await generate_resources(question)
+    # 
+    # # 更新题目的 content 字段中的资源
+    # if "resource" in content:
+    #     content["resource"] = new_resources[0] if new_resources else None
+    # elif "stem" in content and isinstance(content["stem"], dict):
+    #     content["stem"]["resource"] = new_resources[0] if new_resources else None
+    # 
+    # question.content = content
+    # flag_modified(question, "content")
+    # await db.commit()

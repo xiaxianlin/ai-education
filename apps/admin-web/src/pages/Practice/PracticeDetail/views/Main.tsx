@@ -130,7 +130,14 @@ export default function MainView() {
                     </Space>
                   }
                 >
-                  <List.Item.Meta title={item.id} description={item.stem?.text} />
+                  <List.Item.Meta
+                    title={item.id}
+                    description={
+                      typeof item.content?.stem === "string"
+                        ? item.content.stem
+                        : (item.content?.stem as Stem)?.text || ""
+                    }
+                  />
                 </List.Item>
               );
             }}

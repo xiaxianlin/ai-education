@@ -1,13 +1,4 @@
-import {
-  DIFFICULTY_COLORS,
-  DIFFICULTY_LABELS,
-  GRADES,
-  RESOURCE_TYPE_COLORS,
-  RESOURCE_TYPE_LABELS,
-  STAGE_LABELS,
-  Stage,
-} from '@ai-education/shared-web';
-import { Card, Descriptions, Flex, Tag } from 'antd';
+import { Card, Descriptions, Tag } from 'antd';
 import { useQuestionTypeGenerateModel } from '../models/page';
 
 export function QuestionTypeInfo() {
@@ -25,43 +16,33 @@ export function QuestionTypeInfo() {
         <Descriptions.Item label="科目">
           {questionType.subject ? <Tag color="blue">{questionType.subject}</Tag> : '-'}
         </Descriptions.Item>
-        <Descriptions.Item label="难度">
-          <Tag color={DIFFICULTY_COLORS[questionType.difficulty as Difficulty]}>
-            {DIFFICULTY_LABELS[questionType.difficulty as Difficulty]}
-          </Tag>
-        </Descriptions.Item>
-        <Descriptions.Item label="资源类型">
-          <Tag color={RESOURCE_TYPE_COLORS[questionType.resource_type as ResourceType]}>
-            {RESOURCE_TYPE_LABELS[questionType.resource_type as ResourceType]}
-          </Tag>
-        </Descriptions.Item>
-        <Descriptions.Item label="适用学段">
-          {questionType.stages?.length ? (
-            <Flex gap={4} wrap>
-              {questionType.stages.map((s: Stage) => (
-                <Tag key={s} color="green">
-                  {STAGE_LABELS[s as keyof typeof STAGE_LABELS] || s}
-                </Tag>
-              ))}
-            </Flex>
+        <Descriptions.Item label="题型分类">
+          {questionType.category ? (
+            <Tag color={questionType.category === 'ability_practice' ? 'purple' : 'cyan'}>
+              {questionType.category === 'ability_practice' ? '能力练习' : '单元练习'}
+            </Tag>
           ) : (
             '-'
           )}
         </Descriptions.Item>
-        <Descriptions.Item label="适用年级">
-          {questionType.grades?.length ? (
-            <Flex gap={4} wrap>
-              {questionType.grades.map((g: number) => (
-                <Tag key={g}>{GRADES[g] || `${g}年级`}</Tag>
-              ))}
-            </Flex>
+        <Descriptions.Item label="学段">
+          {questionType.grade_band ? (
+            <Tag color="green">
+              {questionType.grade_band === 'Low' ? '低年级 (1-3)' : questionType.grade_band === 'Mid' ? '中年级 (4-6)' : '高年级 (7-12)'}
+            </Tag>
           ) : (
             '-'
           )}
         </Descriptions.Item>
+        {questionType.ability_code && (
+          <Descriptions.Item label="能力代码">
+            <Tag color="cyan">{questionType.ability_code}</Tag>
+          </Descriptions.Item>
+        )}
         <Descriptions.Item label="描述" span={1}>
           {questionType.description || '-'}
         </Descriptions.Item>
+        {/* TODO: 以下字段已删除：difficulty, resource_type, stages, grades */}
       </Descriptions>
     </Card>
   );

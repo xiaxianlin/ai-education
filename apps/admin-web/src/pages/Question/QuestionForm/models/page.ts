@@ -1,6 +1,4 @@
 import { useConfigs } from '@/hooks';
-import { gradeToStage } from '@ai-education/shared-web';
-import { useRequest } from 'ahooks';
 import { Form, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -32,33 +30,37 @@ const useContainer = () => {
       setLoading(true);
       QuestionApi.getQuestion(id)
         .then((question) => {
+          // 从 content 字段提取数据
+          const content = question.content || {};
+          const stem = content.stem || '';
+          const stemText = typeof stem === 'string' ? stem : (stem as Stem)?.text || '';
+          const stemRichText = typeof stem === 'object' ? (stem as Stem)?.rich_text : undefined;
+
           // 转换数据格式
           form.setFieldsValue({
             subject: question.subject,
             grade: question.grade,
-            questionTypeId: question.question_type_id,
-            stemText: question.stem.text,
-            stemRichText: question.stem.rich_text,
-            options: question.options,
-            subQuestions: question.stem.sub_questions,
-            difficulty: question.difficulty,
-            cognitiveLevel: question.cognitive_level,
+            questionTypeCode: question.question_type_code,
+            abilityCode: question.ability_code,
+            stemText,
+            stemRichText,
+            options: content.options,
+            subQuestions: content.sub_questions,
             explanation: question.explanation,
-            knowledgePoints: question.knowledge_points,
           });
-          setIsComposite((question.stem.sub_questions?.length || 0) > 0);
+          setIsComposite((content.sub_questions?.length || 0) > 0);
 
           // 设置选中的题型
-          const type = questionTypes.find((t) => t.id === question.question_type_id);
+          const type = questionTypes.find((t) => t.code === question.question_type_code);
           setSelectedType(type);
         })
         .finally(() => setLoading(false));
     }
   }, [id, questionTypes, form]);
 
-  // 题型变化时更新交互类型
-  const handleTypeChange = (typeId: number) => {
-    const type = questionTypes.find((t) => t.id === typeId);
+  // 题型变化时更新题型编码
+  const handleTypeChange = (typeCode: string) => {
+    const type = questionTypes.find((t) => t.code === typeCode);
     setSelectedType(type);
     if (type) {
       form.setFieldValue('questionTypeCode', type.code);
@@ -70,7 +72,6 @@ const useContainer = () => {
     setLoading(true);
     try {
       const grade = values.grade as number;
-      const stage = gradeToStage(grade);
 
       // 构建答案
       let answer: Record<string, unknown>;
@@ -92,28 +93,31 @@ const useContainer = () => {
           .map((o) => o.id);
         answer = {
           type: 'exact',
-          correctAnswers,
-          scoring: { fullScore: 10 },
+          correct_answers: correctAnswers,
+          scoring: { full_score: 10 },
         };
       }
 
+      // 构建 content 结构
+      const content: QuestionCreateRequest['content'] = {
+        stem: values.stemRichText
+          ? {
+              text: values.stemText as string,
+              rich_text: values.stemRichText as string,
+            }
+          : (values.stemText as string),
+        options: isComposite ? undefined : (values.options as QuestionOption[]),
+        sub_questions: isComposite ? (values.subQuestions as Array<Record<string, unknown>>) : undefined,
+      };
+
       const data: QuestionCreateRequest = {
-        question_type_id: values.questionTypeId as number,
-        question_type_code: selectedType?.code || '',
+        question_type_code: (values.questionTypeCode as string) || selectedType?.code || '',
         subject: values.subject as string,
         grade,
-        stage: stage as Stage,
-        stem: {
-          text: values.stemText as string,
-          rich_text: values.stemRichText as string,
-          sub_questions: isComposite ? (values.subQuestions as Array<Record<string, unknown>>) : undefined,
-        },
-        options: isComposite ? undefined : (values.options as QuestionOption[]),
+        ability_code: values.abilityCode as string | undefined,
+        content,
         answer: answer as any as Answer,
-        difficulty: values.difficulty as Difficulty,
-        cognitive_level: values.cognitiveLevel as CognitiveLevel,
         explanation: values.explanation as string,
-        knowledge_points: values.knowledgePoints as string[],
       };
 
       if (isEdit && id) {
@@ -136,7 +140,11 @@ const useContainer = () => {
   const grade = Form.useWatch('grade', form);
   const filteredTypes = questionTypes.filter((t) => {
     if (subject && t.subject !== subject) return false;
-    if (grade && !t.grades.includes(grade)) return false;
+    // 根据 grade_band 筛选：Low(1-3), Mid(4-6), High(7-12)
+    if (grade) {
+      const gradeBand = grade <= 3 ? 'Low' : grade <= 6 ? 'Mid' : 'High';
+      if (t.grade_band && t.grade_band !== gradeBand) return false;
+    }
     return true;
   });
 
@@ -159,4 +167,3 @@ const useContainer = () => {
 
 export const QuestionFormModel = createContainer(useContainer);
 export const useQuestionFormModel = QuestionFormModel.useContainer;
-

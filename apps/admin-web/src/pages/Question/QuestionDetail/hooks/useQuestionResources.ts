@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 
 /**
  * 题目资源处理 Hook
- * 分离题干资源和选项资源，并提供向后兼容处理
+ * 从 content 字段中提取资源，支持新结构和向后兼容
  */
 export function useQuestionResources(question: Question | undefined) {
   return useMemo(() => {
-    if (!question?.resources) {
+    if (!question) {
       return {
         stemResources: [],
         stemImageResources: [],
@@ -15,26 +15,37 @@ export function useQuestionResources(question: Question | undefined) {
       };
     }
 
-    // 分离题干资源和选项资源（向后兼容：优先使用 resource_type，降级到 position）
-    const stemResources =
-      question.resources.filter(
-        (r) =>
-          (r.resource_type || r.position) === 'stem' ||
-          (r.resource_type || r.position) === 'background',
-      ) || [];
+    const content = question.content || {};
+    const stemResource = content.resource;
+    const options = content.options || [];
 
+    // 题干资源（单个）
+    const stemResources: QuestionResource[] = stemResource ? [stemResource] : [];
     const stemImageResources = stemResources.filter((r) => r.type === 'image');
     const stemAudioResources = stemResources.filter((r) => r.type === 'audio');
 
+    // 为每个选项匹配资源（从选项的 resource 字段获取）
     // 为每个选项匹配资源
     const getOptionResources = (optionId: string) => {
-      return (
-        question.resources?.filter(
-          (r) =>
-            (r.resource_type === 'option' || r.position === 'option') &&
-            (r.option_id === optionId || (!r.option_id && !r.resource_type)), // 向后兼容：旧数据可能只有 position，没有 resource_type 和 option_id
-        ) || []
-      );
+      const option = options.find((opt) => opt.id === optionId);
+      const resources: QuestionResource[] = [];
+      if (option?.image_url) {
+        resources.push({
+          id: `${optionId}_img`,
+          type: 'image',
+          url: option.image_url,
+          position: 'option',
+        });
+      }
+      if (option?.audio_url) {
+        resources.push({
+          id: `${optionId}_aud`,
+          type: 'audio',
+          url: option.audio_url,
+          position: 'option',
+        });
+      }
+      return resources;
     };
 
     return {
@@ -45,4 +56,3 @@ export function useQuestionResources(question: Question | undefined) {
     };
   }, [question]);
 }
-
