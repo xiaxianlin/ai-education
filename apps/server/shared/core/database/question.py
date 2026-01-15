@@ -30,12 +30,11 @@ class QuestionType(BaseModel):
 
     name: Mapped[str] = mapped_column(String(100), nullable=False, comment="题型名称")
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, comment="题型编码")
-    category: Mapped[str] = mapped_column(String(30), comment="题型分类: ability_practice/unit_practice")
+    category: Mapped[str] = mapped_column(String(50), comment="题型分类: ability_practice/unit_practice")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="题型描述")
 
     subject: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="科目")
     ability_code: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, comment="关联能力代码")
-
     configs: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True, comment="题型配置信息")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")

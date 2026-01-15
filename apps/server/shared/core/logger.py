@@ -32,14 +32,6 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
-def _get_text_format() -> str:
-    """获取文本格式（已废弃，使用 _text_formatter 函数）"""
-    # 注意：此函数已不再使用，保留仅为向后兼容
-    # 如果将来需要使用格式字符串，需要转义 < 和 > 字符
-    # 例如：使用 \{function\} 或使用函数格式化器
-    return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {extra[request_id]!s} | {name}:{{function}}:{line} - {message}"
-
-
 def _json_formatter(record):
     """JSON格式化器"""
     # 设置请求上下文
@@ -72,7 +64,7 @@ def _json_formatter(record):
             exc_type = exception.type if hasattr(exception, "type") else None
             exc_value = exception.value if hasattr(exception, "value") else None
             exc_traceback = exception.traceback if hasattr(exception, "traceback") else None
-            
+
             if exc_type and exc_value and exc_traceback:
                 # 使用 traceback.format_exception 格式化异常
                 exception_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -128,7 +120,7 @@ def _text_formatter(record):
 
     # 格式化基本日志行
     log_line = f"{time_str} | {level_str} | {request_id_str} | {name_str}:{function_str}:{line_str} - {message_str}\n"
-    
+
     # 如果有异常信息，添加异常堆栈
     # Loguru 的 record["exception"] 是一个 TracebackException 对象
     # 我们需要使用 traceback 模块来格式化它
@@ -141,7 +133,7 @@ def _text_formatter(record):
             exc_type = exception.type if hasattr(exception, "type") else None
             exc_value = exception.value if hasattr(exception, "value") else None
             exc_traceback = exception.traceback if hasattr(exception, "traceback") else None
-            
+
             if exc_type and exc_value and exc_traceback:
                 # 使用 traceback.format_exception 格式化异常
                 exception_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -156,7 +148,7 @@ def _text_formatter(record):
             exception_str = str(record.get("exception", ""))
             if exception_str:
                 log_line += exception_str + "\n"
-    
+
     return log_line
 
 
@@ -172,14 +164,13 @@ for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
 # 配置日志
 os.makedirs(envs.LOG_DIR, exist_ok=True)
 
-# 确定日志格式和级别
-log_format = envs.LOG_FORMAT
+# 确定日志级别
 log_level = envs.LOG_LEVEL
 is_production = envs.RUN_ENV == "production"
 is_development = envs.RUN_ENV == "development"
 
-# 选择格式化器
-formatter = _json_formatter if log_format == "json" else _text_formatter
+# 选择格式化器：生产环境使用 JSON，开发环境使用文本
+formatter = _json_formatter if is_production else _text_formatter
 
 # 配置日志文件
 if is_production:

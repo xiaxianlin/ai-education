@@ -4,7 +4,7 @@
 
 from typing import List
 
-from shared.core.database import QuestionType
+from shared.core.database import Ability, QuestionType
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,14 @@ from admin.question.schema import AbilityPracticeSearchSchema, QuestionTypeSaveS
 
 async def create_question_type(db: AsyncSession, params: QuestionTypeSaveSchema):
     """创建题型"""
-    question_type = QuestionType(**params.model_dump())
+    question_type = QuestionType(
+        name=params.name,
+        code=params.code,
+        description=params.description,
+        category=params.category,
+        subject=params.subject,
+        ability_code=params.ability_code,
+    )
     db.add(question_type)
     await db.commit()
     await db.refresh(question_type)
@@ -21,16 +28,18 @@ async def create_question_type(db: AsyncSession, params: QuestionTypeSaveSchema)
 
 async def update_question_type(db: AsyncSession, id: int, params: QuestionTypeSaveSchema):
     """更新题型"""
-    result = await db.execute(select(QuestionType).where(QuestionType.id == id))
-    question_type = result.scalar_one_or_none()
+    question_type = await db.scalar(select(QuestionType).where(QuestionType.id == id))
 
     if not question_type:
         raise ValueError(f"题型 {id} 不存在")
 
-    update_data = params.model_dump(exclude_unset=True)
-    update_data.pop("id", None)
-    for key, value in update_data.items():
-        setattr(question_type, key, value)
+    question_type.name = params.name
+    question_type.code = params.code
+
+    if params.description:
+        question_type.description = params.description
+    if params.ability_code:
+        question_type.ability_code = params.ability_code
 
     await db.commit()
     await db.refresh(question_type)
@@ -60,9 +69,12 @@ async def search_ability_practice_types(db: AsyncSession, params: AbilityPractic
 
     query = (
         select(QuestionType)
+        .join(Ability, Ability.code == QuestionType.ability_code)
         .where(
             QuestionType.category == "ability_practice",
             QuestionType.subject == params.subject,
+            Ability.grade == params.grade,
+            Ability.subject == params.subject,
         )
         .order_by(QuestionType.id)
     )

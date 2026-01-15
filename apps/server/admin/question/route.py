@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from shared.core.database import Database
 from shared.core.schema import (
     QuestionSchema,
-    QuestionTypeSchema,
     SearchResultSchema,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,15 +33,14 @@ question_router = APIRouter(prefix="/question")
 @question_router.post(
     "/type",
     tags=["题型管理"],
-    summary="创建题型",
-    description="创建一种新的题型",
-    response_model=QuestionTypeSchema,
+    summary="保存题型",
+    description="保存题型信息",
 )
 async def save_question_type(params: QuestionTypeSaveSchema, db: AsyncSession = Database):
     if params.id:
-        return await question_type.update_question_type(db, params.id, params)
+        await question_type.update_question_type(db, params.id, params)
     else:
-        return await question_type.create_question_type(db, params)
+        await question_type.create_question_type(db, params)
 
 
 @question_router.delete(
@@ -52,7 +50,7 @@ async def save_question_type(params: QuestionTypeSaveSchema, db: AsyncSession = 
     description="删除指定的题型",
 )
 async def delete_question_type(id: int, db: AsyncSession = Database):
-    return await question_type.delete_question_type(db, id)
+    await question_type.delete_question_type(db, id)
 
 
 @question_router.get(

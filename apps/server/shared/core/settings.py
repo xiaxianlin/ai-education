@@ -52,7 +52,6 @@ class Settings(BaseSettings):
 
     # 日志配置
     LOG_LEVEL: str | None = None  # 日志级别（DEBUG/INFO/WARNING/ERROR），None时根据环境自动设置
-    LOG_FORMAT: str | None = None  # 日志格式（text/json），None时根据环境自动设置
     LOG_SQL_ENABLED: bool = False  # 是否启用SQL日志（默认false，开发环境可开启）
     LOG_PERFORMANCE_ENABLED: bool = True  # 是否启用性能日志（默认true）
     LOG_SLOW_QUERY_THRESHOLD: int = 1000  # 慢查询阈值（毫秒，默认1000）
@@ -101,18 +100,6 @@ class Settings(BaseSettings):
             return "INFO"
         else:  # test
             return "WARNING"
-
-    @field_validator("LOG_FORMAT", mode="before")
-    @classmethod
-    def validate_log_format(cls, v, info):
-        """根据环境自动设置日志格式"""
-        if v is not None:
-            if v.lower() not in ["text", "json"]:
-                raise ValueError(f"LOG_FORMAT 必须是 text 或 json，当前值: {v}")
-            return v.lower()
-        # 根据环境自动设置
-        run_env = info.data.get("RUN_ENV", "development")
-        return "text" if run_env == "development" else "json"
 
     class Config:
         env_file = ".env"

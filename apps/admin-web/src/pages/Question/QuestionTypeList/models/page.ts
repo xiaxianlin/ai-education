@@ -36,6 +36,7 @@ const useContainer = () => {
       if (item) {
         values.id = item.id;
       }
+      values.category = type;
       await QuestionApi.saveQuestionType(values);
     },
     onSubmit: refresh,

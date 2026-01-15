@@ -19,12 +19,13 @@ class QuestionTypeSaveSchema(BaseModel):
     """创建题型"""
 
     id: Optional[int] = Field(default=None, description="题型ID，不传则自动生成")
-    code: Optional[str] = Field(default=None, description="题型编码，如 pinyin_choice")
+    code: str = Field(..., description="题型编码，如 pinyin_choice")
     name: str = Field(..., description="题型名称，如 看图选拼音")
+    category: str = Field(..., description="题型分类: ability_practice / unit_practice")
+
     description: Optional[str] = Field(default=None, description="题型描述")
     subject: Optional[str] = Field(default=None, description="科目")
     ability_code: Optional[str] = Field(default=None, description="关联能力代码")
-    category: str = Field(..., description="题型分类: ability_practice / unit_practice")
 
     @field_validator("subject")
     @classmethod
