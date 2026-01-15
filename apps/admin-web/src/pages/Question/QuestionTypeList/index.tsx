@@ -1,10 +1,13 @@
-import { QuestionTypeModel } from './models/page';
+import { AbilityPracticeModel } from './models/abilityPractice';
+import { UnitPracticeModel } from './models/unitPractice';
 import MainView from './views/Main';
 
 export default function QuestionTypePage() {
   return (
-    <QuestionTypeModel.Provider>
-      <MainView />
-    </QuestionTypeModel.Provider>
+    <UnitPracticeModel.Provider>
+      <AbilityPracticeModel.Provider>
+        <MainView />
+      </AbilityPracticeModel.Provider>
+    </UnitPracticeModel.Provider>
   );
 }

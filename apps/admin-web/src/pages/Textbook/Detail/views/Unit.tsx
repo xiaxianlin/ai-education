@@ -15,7 +15,6 @@ export const UnitView: React.FC = () => {
   } = useTextbookUnitModel();
 
   const columns: ProColumns<Unit>[] = [
-    { title: 'ID', dataIndex: 'id', width: 60 },
     { title: '单元名称', dataIndex: 'name', width: 200 },
     { title: '单元内容', dataIndex: 'content', ellipsis: true },
     createActionColumn<Unit>(

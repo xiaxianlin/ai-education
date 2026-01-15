@@ -54,8 +54,7 @@ export function Router() {
         { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
-        { path: 'question_type/form', element: <QuestionTypeForm /> },
-        { path: 'question_type/form/:id', element: <QuestionTypeForm /> },
+        { path: 'question_type/:type/form', element: <QuestionTypeForm /> },
         { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
         // Ability routes

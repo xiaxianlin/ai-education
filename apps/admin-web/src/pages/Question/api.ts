@@ -13,6 +13,24 @@ export const QuestionApi = {
   },
 
   /**
+   * 搜索单元练习题型
+   * GET /question/type/search/unit
+   */
+  async searchUnitPracticeTypes(params?: Omit<QuestionTypeSearchRequest, 'category'>) {
+    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search/unit', params);
+    return res;
+  },
+
+  /**
+   * 搜索能力练习题型
+   * GET /question/type/search/ability
+   */
+  async searchAbilityPracticeTypes(params?: Omit<QuestionTypeSearchRequest, 'category'>) {
+    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search/ability', params);
+    return res;
+  },
+
+  /**
    * 导出题型数据（全量数据）
    * POST /question/type/export
    */

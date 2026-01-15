@@ -1,16 +1,24 @@
 import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Collapse, Flex, Form } from 'antd';
+import { Button, Card, Flex, Form } from 'antd';
 import { useQuestionTypeFormModel } from '../models/page';
-import { BaseForm } from './BaseForm';
-import { ConfigForm } from './ConfigForm';
-import { PromptForm } from './PromptForm';
+import { AbilityForm } from './AbilityForm';
+import { UnitForm } from './UnitForm';
 
 export default function MainView() {
-  const { form, isEdit, navigate, fetchingDetails, submitting, handleSubmit } = useQuestionTypeFormModel();
+  const { form, isEdit, type, navigate, fetchingDetails, submitting, handleSubmit } = useQuestionTypeFormModel();
+
+  // 根据 type 动态显示标题
+  const title = isEdit
+    ? type === 'unit'
+      ? '编辑单元练习'
+      : '编辑能力练习'
+    : type === 'unit'
+      ? '新增单元练习'
+      : '新增能力练习';
 
   return (
     <PageContainer
-      title={isEdit ? '编辑题型' : '新增题型'}
+      title={title}
       header={{
         onBack: () => navigate('/question_type'),
         breadcrumb: {},
@@ -18,26 +26,7 @@ export default function MainView() {
     >
       <Card loading={fetchingDetails}>
         <Form form={form} size="large" onFinish={handleSubmit} disabled={submitting}>
-          <Collapse
-            activeKey={['basic', 'prompt', 'config']}
-            items={[
-              {
-                key: 'basic',
-                label: '基本信息',
-                children: <BaseForm />,
-              },
-              {
-                key: 'prompt',
-                label: '提示词',
-                children: <PromptForm />,
-              },
-              {
-                key: 'config',
-                label: '配置信息',
-                children: <ConfigForm />,
-              },
-            ]}
-          />
+          {type === 'unit' ? <UnitForm /> : <AbilityForm />}
           <FooterToolbar className="page-footer">
             <Flex justify="center" gap={16}>
               <Button size="large" onClick={() => navigate(-1)}>

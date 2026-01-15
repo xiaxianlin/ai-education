@@ -13,7 +13,7 @@ from shared.core.database import Ability, Practice, PracticeAnswer, Question, Qu
 from shared.practice.prompt import SELECT_QUESTION_TYPE_PROMPT, SELECT_QUESTION_TYPE_SYSTEM_PROMPT
 from shared.practice.question_type_rules import get_rule_based_selection
 from shared.provider import get_provider
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schema import PRACTICE_TYPE_ABILITY, PRACTICE_TYPE_UNIT
@@ -183,11 +183,12 @@ async def select_question_types(
     """
     # 获取可用题型
     # 根据练习类型筛选题型
+    # 查询指定科目的题型，或 subject 为 None 的通用题型
     if practice_type == PRACTICE_TYPE_ABILITY:
         # 能力练习：筛选 ability_practice 类型的题型
         question_types = await db.scalars(
             select(QuestionType).where(
-                QuestionType.subject == subject,
+                or_(QuestionType.subject == subject, QuestionType.subject.is_(None)),
                 QuestionType.category == "ability_practice",
             )
         )
@@ -195,7 +196,7 @@ async def select_question_types(
         # 单元练习：筛选 unit_practice 类型的题型
         question_types = await db.scalars(
             select(QuestionType).where(
-                QuestionType.subject == subject,
+                or_(QuestionType.subject == subject, QuestionType.subject.is_(None)),
                 QuestionType.category == "unit_practice",
             )
         )

@@ -1,31 +1,52 @@
 import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { Form, message } from 'antd';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const { id } = useParams<{ id: string }>();
+  const { type } = useParams<{ type: string }>();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const navigate = useNavigate();
   const { subjects } = useConfigs();
   const [form] = Form.useForm();
 
+  // 验证 type 参数
+  useEffect(() => {
+    if (type && type !== 'unit' && type !== 'ability') {
+      message.error('无效的题型类型');
+      navigate('/question_type');
+    }
+  }, [type, navigate]);
+
+  // 映射 type 到 category
+  const category = type === 'unit' ? 'unit_practice' : 'ability_practice';
+
   const isEdit = !!id;
 
   // 加载详情数据
-  const { loading: fetchingDetails } = useRequest(() => QuestionApi.getQuestionType(Number(id)), {
+  const { loading: fetchingDetails } = useRequest(() => QuestionApi.getQuestionType(Number(id!)), {
     ready: !!id,
     refreshDeps: [id],
     onSuccess: (res) => {
       if (!res) return;
+      
+      // 验证数据中的 category 是否与路由 type 匹配
+      if (res.category !== category) {
+        message.error('题型分类不匹配');
+        navigate('/question_type');
+        return;
+      }
+      
       form.setFieldsValue({
         // 基础字段
         code: res.code,
         name: res.name,
         description: res.description,
         subject: res.subject,
-        category: res.category,
         gradeBand: res.grade_band,
         abilityCode: res.ability_code,
         // 配置字段
@@ -53,7 +74,7 @@ const useContainer = () => {
         name: values.name,
         description: values.description,
         subject: values.subject,
-        category: values.category,
+        category: category, // 固定使用路由参数映射的 category
         grade_band: values.gradeBand,
         ability_code: values.abilityCode,
         // 配置字段
@@ -92,6 +113,8 @@ const useContainer = () => {
     form,
     isEdit,
     id,
+    type,
+    category,
     navigate,
     subjects,
     fetchingDetails,

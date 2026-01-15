@@ -10,6 +10,19 @@ export default function MainView() {
   const { id } = useParams<{ id: string }>();
   const { item, loading, navigate, deleting, handleDelete, handleGenerate } = useQuestionTypeDetailModel();
 
+  // 根据 category 判断 type
+  const getTypeFromCategory = (category?: string) => {
+    if (category === 'unit_practice') return 'unit';
+    if (category === 'ability_practice') return 'ability';
+    return 'unit'; // 默认值
+  };
+
+  const handleEdit = () => {
+    if (!item || !id) return;
+    const type = getTypeFromCategory(item.category);
+    navigate(`/question_type/${type}/form?id=${id}`);
+  };
+
   return (
     <PageContainer
       title="题型详情"
@@ -50,7 +63,7 @@ export default function MainView() {
           <Button size="large" type="primary" onClick={handleGenerate} disabled={!item?.code}>
             生成
           </Button>
-          <Button size="large" type="primary" onClick={() => navigate(`/question_type/form/${id}`)}>
+          <Button size="large" type="primary" onClick={handleEdit}>
             编辑
           </Button>
           <Button size="large" danger loading={deleting} onClick={handleDelete}>

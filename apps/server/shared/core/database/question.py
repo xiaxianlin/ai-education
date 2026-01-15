@@ -40,7 +40,7 @@ class QuestionType(BaseModel):
         String(30), nullable=False, comment="题型分类: ability_practice / unit_practice"
     )
     # 学科
-    subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
+    subject: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, comment="科目")
     grade_band: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, comment="学段: Low/Mid/High")
 
     # 能力关联

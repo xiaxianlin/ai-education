@@ -25,7 +25,7 @@ class QuestionTypeCreateSchema(BaseModel):
     code: str = Field(..., description="题型编码，如 pinyin_choice")
     name: str = Field(..., description="题型名称，如 看图选拼音")
     description: Optional[str] = Field(default=None, description="题型描述")
-    subject: str = Field(..., description="科目")
+    subject: Optional[str] = Field(default=None, description="科目")
     category: str = Field(..., description="题型分类: ability_practice / unit_practice")
     grade_band: Optional[str] = Field(default=None, description="学段: Low/Mid/High")
     ability_code: Optional[str] = Field(default=None, description="关联能力代码")
@@ -37,7 +37,7 @@ class QuestionTypeCreateSchema(BaseModel):
     @field_validator("subject")
     @classmethod
     def validate_subject(cls, v):
-        if v not in SUBJECTS:
+        if v is not None and v not in SUBJECTS:
             raise ValueError(f"科目必须是 {SUBJECTS} 之一")
         return v
 
@@ -62,6 +62,7 @@ class QuestionTypeUpdateSchema(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
+    subject: Optional[str] = None
     grade_band: Optional[str] = None
     ability_code: Optional[str] = None
     media_context: Optional[MediaContextSchema] = None
@@ -74,6 +75,13 @@ class QuestionTypeUpdateSchema(BaseModel):
     def validate_category(cls, v):
         if v is not None and v not in ["ability_practice", "unit_practice"]:
             raise ValueError("题型分类必须是 ability_practice 或 unit_practice")
+        return v
+
+    @field_validator("subject")
+    @classmethod
+    def validate_subject(cls, v):
+        if v is not None and v not in SUBJECTS:
+            raise ValueError(f"科目必须是 {SUBJECTS} 之一")
         return v
 
     @field_validator("grade_band")
@@ -89,6 +97,21 @@ class QuestionTypeSearchSchema(SearchSchema):
 
     subject: Optional[str] = None
     category: Optional[str] = None
+    grade_band: Optional[str] = None
+    ability_code: Optional[str] = None
+
+
+class UnitPracticeSearchSchema(SearchSchema):
+    """搜索单元练习题型"""
+
+    subject: Optional[str] = None
+    grade_band: Optional[str] = None
+
+
+class AbilityPracticeSearchSchema(SearchSchema):
+    """搜索能力练习题型"""
+
+    subject: Optional[str] = None
     grade_band: Optional[str] = None
     ability_code: Optional[str] = None
 

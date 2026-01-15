@@ -84,7 +84,7 @@ class QuestionTypeSchema(BaseModel):
 
     # 分类与学科
     category: str = Field(..., description="题型分类: ability_practice / unit_practice")
-    subject: str
+    subject: Optional[str] = None
     grade_band: Optional[str] = None
 
     # 能力关联

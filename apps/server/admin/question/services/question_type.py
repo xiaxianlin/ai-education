@@ -74,7 +74,11 @@ async def search_question_types(
 
     if params.subject:
         conditions.append(
-            or_(QuestionType.subject == params.subject, QuestionType.subject == "全科")
+            or_(
+                QuestionType.subject == params.subject,
+                QuestionType.subject == "全科",
+                QuestionType.subject.is_(None),
+            )
         )
 
     if params.category:

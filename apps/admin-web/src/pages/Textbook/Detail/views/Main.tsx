@@ -1,6 +1,6 @@
 import { UploadButton } from '@/components';
 import { FooterToolbar, PageContainer } from '@ant-design/pro-components';
-import { Button, Space, Spin, Tabs } from 'antd';
+import { Button, Space, Spin } from 'antd';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTextbookDetailModel } from '../models/page';
@@ -24,21 +24,9 @@ export default function MainView() {
     <PageContainer loading={loading} title="教材详情" header={{ onBack: () => navigate(-1) }}>
       <Space orientation="vertical" style={{ width: '100%' }} size="large">
         <BasicInfo />
-        <Tabs
-          type="card"
-          defaultActiveKey="unit"
-          items={[
-            {
-              label: '单元管理',
-              key: 'unit',
-              children: (
-                <TextbookUnitModel.Provider>
-                  <UnitView />
-                </TextbookUnitModel.Provider>
-              ),
-            },
-          ]}
-        />
+        <TextbookUnitModel.Provider>
+          <UnitView />
+        </TextbookUnitModel.Provider>
       </Space>
       <FooterToolbar className="page-footer">
         <Button

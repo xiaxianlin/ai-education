@@ -17,6 +17,7 @@ from shared.core.schema import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.question.schema import (
+    AbilityPracticeSearchSchema,
     QuestionBatchDeleteSchema,
     QuestionBatchUpdateSchema,
     QuestionCreateSchema,
@@ -27,6 +28,7 @@ from admin.question.schema import (
     QuestionTypeSearchSchema,
     QuestionTypeUpdateSchema,
     QuestionUpdateSchema,
+    UnitPracticeSearchSchema,
 )
 from admin.question.services import question, question_type
 
@@ -76,6 +78,51 @@ async def delete_question_type(id: int, db: AsyncSession = Database):
 )
 async def search_question_types(params: QuestionTypeSearchSchema = Depends(), db: AsyncSession = Database):
     types, total = await question_type.search_question_types(db, params)
+    return SearchResultSchema(
+        data=[QuestionTypeSchema.model_validate(t) for t in types],
+        total=total,
+    )
+
+
+@question_router.get(
+    "/type/search/unit",
+    tags=["题型管理"],
+    summary="搜索单元练习题型",
+    description="搜索单元练习类型的题型列表（分页）",
+)
+async def search_unit_practice_types(params: UnitPracticeSearchSchema = Depends(), db: AsyncSession = Database):
+    """搜索单元练习题型，固定 category 为 unit_practice"""
+    search_params = QuestionTypeSearchSchema(
+        subject=params.subject,
+        category="unit_practice",
+        grade_band=params.grade_band,
+        page=params.page,
+        size=params.size,
+    )
+    types, total = await question_type.search_question_types(db, search_params)
+    return SearchResultSchema(
+        data=[QuestionTypeSchema.model_validate(t) for t in types],
+        total=total,
+    )
+
+
+@question_router.get(
+    "/type/search/ability",
+    tags=["题型管理"],
+    summary="搜索能力练习题型",
+    description="搜索能力练习类型的题型列表（分页）",
+)
+async def search_ability_practice_types(params: AbilityPracticeSearchSchema = Depends(), db: AsyncSession = Database):
+    """搜索能力练习题型，固定 category 为 ability_practice"""
+    search_params = QuestionTypeSearchSchema(
+        subject=params.subject,
+        category="ability_practice",
+        grade_band=params.grade_band,
+        ability_code=params.ability_code,
+        page=params.page,
+        size=params.size,
+    )
+    types, total = await question_type.search_question_types(db, search_params)
     return SearchResultSchema(
         data=[QuestionTypeSchema.model_validate(t) for t in types],
         total=total,
