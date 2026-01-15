@@ -230,7 +230,6 @@ async def select_question_types(
             "name": qt.name,
             "description": qt.description,
             "category": qt.category,
-            "grade_band": qt.grade_band,
         }
         for qt in question_type_list
     ]

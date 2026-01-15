@@ -4,110 +4,32 @@ export const QuestionApi = {
   // ======================== 题型 API ======================== //
 
   /**
-   * 搜索题型
-   * GET /question/type/search
-   */
-  async searchQuestionTypes(params?: QuestionTypeSearchRequest) {
-    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search', params);
-    return res;
-  },
-
-  /**
    * 搜索单元练习题型
-   * GET /question/type/search/unit
+   * GET /question/type/units
+   * 后端返回列表，无分页
    */
-  async searchUnitPracticeTypes(params?: Omit<QuestionTypeSearchRequest, 'category'>) {
-    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search/unit', params);
+  async searchUnitPracticeTypes() {
+    const res = await apiClient.get<QuestionType[]>('/question/type/units');
     return res;
   },
 
   /**
    * 搜索能力练习题型
-   * GET /question/type/search/ability
+   * GET /question/type/abilities
+   * 后端返回列表，无分页
+   * subject 和 grade 是必需参数
    */
-  async searchAbilityPracticeTypes(params?: Omit<QuestionTypeSearchRequest, 'category'>) {
-    const res = await apiClient.get<{ data: QuestionType[]; total: number }>('/question/type/search/ability', params);
+  async searchAbilityPracticeTypes(params: { subject: string; grade: number }) {
+    const res = await apiClient.get<QuestionType[]>('/question/type/abilities', params);
     return res;
   },
 
   /**
-   * 导出题型数据（全量数据）
-   * POST /question/type/export
-   */
-  async exportQuestionTypes(): Promise<Blob> {
-    const url = `/api/admin/question/type/export`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'x-access-token': apiClient.getToken() || '',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`导出失败: ${response.statusText} - ${errorText}`);
-    }
-
-    return await response.blob();
-  },
-
-  /**
-   * 导入题型数据（全量数据）
-   * POST /question/type/import
-   */
-  async importQuestionTypes(file: File): Promise<{ deleted_count: number; created_count: number }> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const url = `/api/admin/question/type/import`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'x-access-token': apiClient.getToken() || '',
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      throw new Error(errorData.detail || `导入失败: ${response.statusText}`);
-    }
-
-    return await response.json();
-  },
-
-  /**
-   * 获取题型详情
-   * GET /question/type/{id}
-   */
-  async getQuestionType(id: number) {
-    return apiClient.get<QuestionType>(`/question/type/${id}`);
-  },
-
-  /**
-   * 根据编码获取题型
-   * GET /question/type/code/{code}
-   */
-  async getQuestionTypeByCode(code: string) {
-    return apiClient.get<QuestionType>(`/question/type/code/${code}`);
-  },
-
-  /**
-   * 创建题型
+   * 题型保存
    * POST /question/type
    */
-  async createQuestionType(data: QuestionTypeCreateRequest) {
+  async saveQuestionType(data: QuestionTypeSaveRequest) {
     return apiClient.post<QuestionType>('/question/type', data);
-  },
-
-  /**
-   * 更新题型
-   * PATCH /question/type/{id}
-   */
-  async updateQuestionType(id: number, data: QuestionTypeUpdateRequest) {
-    return apiClient.patch<QuestionType>(`/question/type/${id}`, data);
   },
 
   /**

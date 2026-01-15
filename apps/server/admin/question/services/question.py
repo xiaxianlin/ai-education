@@ -136,9 +136,6 @@ async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tu
     if params.grade:
         conditions.append(Question.grade == params.grade)
 
-    if params.ability_code:
-        conditions.append(Question.ability_code == params.ability_code)
-
     # 构建基础查询
     base_query = select(Question)
     count_query = select(func.count(Question.id))

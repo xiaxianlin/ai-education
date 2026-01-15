@@ -53,6 +53,14 @@ class EvaluationConfigSchema(BaseModel):
     config: Optional[Dict[str, Any]] = None
 
 
+class ConfigsSchema(BaseModel):
+    """题型配置 Schema（合并了媒体、脚手架、评估配置）"""
+
+    media: Optional[MediaContextSchema] = Field(None, description="媒体配置")
+    scaffolding: Optional[ScaffoldingConfigSchema] = Field(None, description="脚手架配置")
+    evaluation: Optional[EvaluationConfigSchema] = Field(None, description="评估配置")
+
+
 class OptionSchema(BaseModel):
     """选项结构"""
 
@@ -85,18 +93,12 @@ class QuestionTypeSchema(BaseModel):
     # 分类与学科
     category: str = Field(..., description="题型分类: ability_practice / unit_practice")
     subject: Optional[str] = None
-    grade_band: Optional[str] = None
 
     # 能力关联
     ability_code: Optional[str] = None
 
     # 配置信息
-    media_context: Optional[MediaContextSchema] = None
-    scaffolding_config: Optional[ScaffoldingConfigSchema] = None
-    evaluation_config: Optional[EvaluationConfigSchema] = None
-
-    # AI 生成指令
-    prompt: Optional[str] = None
+    configs: Optional[ConfigsSchema] = None
 
     # 时间戳
     create_time: int
@@ -116,9 +118,6 @@ class QuestionSchema(BaseModel):
     # 基础信息
     subject: str
     grade: int
-
-    # 能力关联
-    ability_code: Optional[str] = None
 
     # 题目内容与资源
     content: ContentSchema
@@ -143,6 +142,7 @@ __all__ = [
     "MediaContextSchema",
     "ScaffoldingConfigSchema",
     "EvaluationConfigSchema",
+    "ConfigsSchema",
     "ContentSchema",
     "ResourceSchema",
 ]

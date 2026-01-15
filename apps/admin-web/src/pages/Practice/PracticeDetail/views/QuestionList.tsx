@@ -27,22 +27,7 @@ export function QuestionList() {
         title: '题型',
         dataIndex: 'question_type_code',
         width: 120,
-        render: (_: any, record: Question) => (
-          <Button
-            type="link"
-            size="small"
-            style={{ padding: 0 }}
-            onClick={() => {
-              // TODO: 需要根据 question_type_code 查找题型 ID，或使用 code 路由
-              const typeId = record.question_type?.id;
-              if (typeId) {
-                navigate(`/question_type/detail/${typeId}`);
-              }
-            }}
-          >
-            {record.question_type?.name || record.question_type_code}
-          </Button>
-        ),
+        render: (_: any, record: Question) => record.question_type?.name || record.question_type_code,
       },
       {
         title: '题目内容',

@@ -1,18 +1,4 @@
 /**
- * 生成类型
- */
-export enum GenerateType {
-  /** 文本 */
-  TEXT = "text",
-  /** 图片 */
-  IMAGE = "image",
-  /** 视频 */
-  VIDEO = "video",
-  /** 音频 */
-  AUDIO = "audio",
-}
-
-/**
  * 管理员类型
  */
 export enum ManagerType {
@@ -23,6 +9,22 @@ export enum ManagerType {
   /** 普通管理员 */
   NORMAL = 2,
 }
+
+export const ManagerTypeMap: Record<ManagerType, string> = {
+  [ManagerType.SYSTEM]: "系统管理员",
+  [ManagerType.ADMIN]: "超级管理员",
+  [ManagerType.NORMAL]: "普通管理员",
+};
+
+export enum PracticeType {
+  UNIT_PRACTICE = "unit_practice",
+  ABILITY_PRACTICE = "ability_practice",
+}
+
+export const PracticeTypeMap: Record<PracticeType, string> = {
+  [PracticeType.UNIT_PRACTICE]: "单元练习",
+  [PracticeType.ABILITY_PRACTICE]: "能力练习",
+};
 
 /**
  * 练习状态
@@ -51,29 +53,6 @@ export enum PracticeGenerateStatus {
   FAILED = -1,
 }
 
-export const PRACTICE_STATUS_MAP: Record<PracticeStatus, string> = {
-  0: "未开始",
-  1: "进行中",
-  2: "已完成",
-  3: "已废弃",
-};
-
-export const PRACTICE_STATUS_OPTIONS = Object.entries(PRACTICE_STATUS_MAP).map(([value, label]) => ({
-  label,
-  value,
-}));
-
-export const PRACTICE_GENERATE_STATUS_MAP: Record<PracticeGenerateStatus, string> = {
-  [PracticeGenerateStatus.GENERATING]: "生成中",
-  [PracticeGenerateStatus.SUCCESS]: "已完成",
-  [PracticeGenerateStatus.FAILED]: "生成失败",
-};
-
-export const PRACTICE_GENERATE_STATUS_OPTIONS = Object.entries(PRACTICE_GENERATE_STATUS_MAP).map(([value, label]) => ({
-  label,
-  value,
-}));
-
 export const GRADES: Record<number, string> = {
   1: "一年级",
   2: "二年级",
@@ -83,28 +62,11 @@ export const GRADES: Record<number, string> = {
   6: "六年级",
 };
 
-export const GRADE_OPTIONS = Object.entries(GRADES).map(([value, label]) => ({
-  label,
-  value: Number(value),
-}));
-
 /** 学科列表 */
 export const SUBJECTS = ["语文", "数学", "英语"];
 
 /** 学期列表 */
 export const SEMESTERS = ["上学期", "下学期"];
-
-/** 学科选项 */
-export const SUBJECT_OPTIONS = SUBJECTS.map((subject) => ({
-  label: subject,
-  value: subject,
-}));
-
-/** 学期选项 */
-export const SEMESTER_OPTIONS = SEMESTERS.map((semester) => ({
-  label: semester,
-  value: semester,
-}));
 
 // ============ 题型系统常量 ============
 
@@ -145,13 +107,6 @@ export enum CognitiveLevel {
   CREATE = "create",
 }
 
-/** 难度枚举 */
-export enum Difficulty {
-  EASY = "easy",
-  MEDIUM = "medium",
-  HARD = "hard",
-}
-
 /** 资源类型枚举 */
 export enum ResourceType {
   TEXT = "text",
@@ -170,59 +125,12 @@ export enum AnswerType {
   COMPOSITE = "composite",
 }
 
-/** 交互类型与组件映射 */
-export const INTERACTION_COMPONENT_MAP: Record<InteractionType, string> = {
-  single_choice: "RadioGroup",
-  multi_choice: "CheckboxGroup",
-  image_choice: "ImageRadioGroup",
-  text_input: "TextField",
-  handwriting: "HandwritingCanvas",
-  voice_input: "VoiceRecorder",
-  drag_drop: "DragDropZone",
-  connect_line: "ConnectionLine",
-  sort_order: "SortableList",
-  true_false: "TrueFalseToggle",
-  correct_wrong: "CorrectWrongToggle",
-  follow_read: "FollowReadPlayer",
-  free_speak: "FreeSpeakRecorder",
-  fill_blank: "FillBlankInput",
-  multi_step: "MultiStepForm",
-};
-
-/** 学段与年级映射 */
-export const STAGE_GRADES: Record<Stage, number[]> = {
-  primary_low: [1, 2, 3],
-  primary_high: [4, 5, 6],
-  junior: [7, 8, 9],
-  senior: [10, 11, 12],
-};
-
 /** 学段标签 */
 export const STAGE_LABELS: Record<Stage, string> = {
   primary_low: "小学低段",
   primary_high: "小学高段",
   junior: "初中",
   senior: "高中",
-};
-
-/** 学段选项 */
-export const STAGE_OPTIONS = Object.entries(STAGE_LABELS).map(([value, label]) => ({
-  label,
-  value,
-}));
-
-/** 难度标签 */
-export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  easy: "简单",
-  medium: "中等",
-  hard: "困难",
-};
-
-/** 难度颜色 */
-export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
-  easy: "green",
-  medium: "orange",
-  hard: "red",
 };
 
 /** 认知层次标签 */
@@ -261,15 +169,6 @@ export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   audio: "音频",
   video: "视频",
   animation: "动画",
-};
-
-/** 资源类型颜色 */
-export const RESOURCE_TYPE_COLORS: Record<ResourceType, string> = {
-  text: "blue",
-  image: "green",
-  audio: "purple",
-  video: "orange",
-  animation: "red",
 };
 
 /** 答案类型标签 */

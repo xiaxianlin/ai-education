@@ -2,30 +2,24 @@
 题型服务层
 """
 
-from typing import List, Optional, Tuple
-from sqlalchemy import select, and_, or_, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from shared.core.database import QuestionType
-from admin.question.schema import (
-    QuestionTypeCreateSchema,
-    QuestionTypeUpdateSchema,
-    QuestionTypeSearchSchema,
-)
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from admin.question.schema import AbilityPracticeSearchSchema, QuestionTypeSaveSchema
 
 
-async def create_question_type(db: AsyncSession, params: QuestionTypeCreateSchema) -> QuestionType:
+async def create_question_type(db: AsyncSession, params: QuestionTypeSaveSchema):
     """创建题型"""
     question_type = QuestionType(**params.model_dump())
     db.add(question_type)
     await db.commit()
     await db.refresh(question_type)
-    return question_type
 
 
-async def update_question_type(
-    db: AsyncSession, id: int, params: QuestionTypeUpdateSchema
-) -> QuestionType:
+async def update_question_type(db: AsyncSession, id: int, params: QuestionTypeSaveSchema):
     """更新题型"""
     result = await db.execute(select(QuestionType).where(QuestionType.id == id))
     question_type = result.scalar_one_or_none()
@@ -34,12 +28,12 @@ async def update_question_type(
         raise ValueError(f"题型 {id} 不存在")
 
     update_data = params.model_dump(exclude_unset=True)
+    update_data.pop("id", None)
     for key, value in update_data.items():
         setattr(question_type, key, value)
 
     await db.commit()
     await db.refresh(question_type)
-    return question_type
 
 
 async def delete_question_type(db: AsyncSession, id: int) -> None:
@@ -54,64 +48,27 @@ async def delete_question_type(db: AsyncSession, id: int) -> None:
     await db.commit()
 
 
-async def get_question_type(db: AsyncSession, id: int) -> Optional[QuestionType]:
-    """获取题型详情"""
-    result = await db.execute(select(QuestionType).where(QuestionType.id == id))
-    return result.scalar_one_or_none()
+async def search_unit_practice_types(db: AsyncSession):
+    """搜索单元练习题型"""
+    query = select(QuestionType).where(QuestionType.category == "unit_practice").order_by(QuestionType.id)
+    result = await db.scalars(query)
+    return list(result.all())
 
 
-async def get_question_type_by_code(db: AsyncSession, code: str) -> Optional[QuestionType]:
-    """根据编码获取题型"""
-    result = await db.execute(select(QuestionType).where(QuestionType.code == code))
-    return result.scalar_one_or_none()
+async def search_ability_practice_types(db: AsyncSession, params: AbilityPracticeSearchSchema):
+    """搜索能力练习题型"""
 
-
-async def search_question_types(
-    db: AsyncSession, params: QuestionTypeSearchSchema
-) -> Tuple[List[QuestionType], int]:
-    """搜索题型，返回列表和总数"""
-    conditions = []
-
-    if params.subject:
-        conditions.append(
-            or_(
-                QuestionType.subject == params.subject,
-                QuestionType.subject == "全科",
-                QuestionType.subject.is_(None),
-            )
+    query = (
+        select(QuestionType)
+        .where(
+            QuestionType.category == "ability_practice",
+            QuestionType.subject == params.subject,
         )
+        .order_by(QuestionType.id)
+    )
 
-    if params.category:
-        conditions.append(QuestionType.category == params.category)
-
-    if params.grade_band:
-        conditions.append(QuestionType.grade_band == params.grade_band)
-
-    if params.ability_code:
-        conditions.append(QuestionType.ability_code == params.ability_code)
-
-    # 构建基础查询
-    base_query = select(QuestionType)
-    count_query = select(func.count(QuestionType.id))
-
-    if conditions:
-        base_query = base_query.where(and_(*conditions))
-        count_query = count_query.where(and_(*conditions))
-
-    # 获取总数
-    total_result = await db.execute(count_query)
-    total = total_result.scalar() or 0
-
-    # 分页查询
-    page = params.page or 1
-    size = params.size or 10
-    offset = (page - 1) * size
-    query = base_query.order_by(QuestionType.id).offset(offset).limit(size)
-
-    result = await db.execute(query)
-    types = list(result.scalars().all())
-
-    return types, total
+    result = await db.scalars(query)
+    return list(result.all())
 
 
 async def list_all_question_types(db: AsyncSession) -> List[QuestionType]:
@@ -123,35 +80,11 @@ async def list_all_question_types(db: AsyncSession) -> List[QuestionType]:
     return list(result.scalars().all())
 
 
-async def delete_all_question_types(db: AsyncSession) -> int:
-    """删除所有题型，返回删除的数量"""
-    # 获取所有题型
-    result = await db.execute(select(QuestionType))
-    all_types = list(result.scalars().all())
-    count = len(all_types)
-
-    # 删除所有题型
-    for question_type in all_types:
-        await db.delete(question_type)
-
-    await db.commit()
-    return count
-
-
-async def batch_create_question_types(
-    db: AsyncSession, type_data_list: List[QuestionTypeCreateSchema]
-) -> List[QuestionType]:
+async def batch_create_question_types(db: AsyncSession, type_data_list: List[QuestionTypeSaveSchema]):
     """批量创建题型"""
-    question_types = []
+
     for type_data in type_data_list:
         question_type = QuestionType(**type_data.model_dump())
         db.add(question_type)
-        question_types.append(question_type)
 
     await db.commit()
-
-    # 刷新所有对象以获取 ID
-    for question_type in question_types:
-        await db.refresh(question_type)
-
-    return question_types

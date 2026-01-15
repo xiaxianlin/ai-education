@@ -1,25 +1,8 @@
-import {
-  AnswerType as _AnswerType,
-  CognitiveLevel as _CognitiveLevel,
-  Difficulty as _Difficulty,
-  InteractionType as _InteractionType,
-  ManagerType as _ManagerType,
-  PracticeGenerateStatus as _PracticeGenerateStatus,
-  PracticeStatus as _PracticeStatus,
-  ResourceType as _ResourceType,
-  Stage as _Stage,
-} from "../constants";
+import { ManagerType as _ManagerType, PracticeType as _PracticeType } from "../constants";
 
 declare global {
-  type AnswerType = _AnswerType;
-  type CognitiveLevel = _CognitiveLevel;
-  type Difficulty = _Difficulty;
-  type InteractionType = _InteractionType;
   type ManagerType = _ManagerType;
-  type PracticeGenerateStatus = _PracticeGenerateStatus;
-  type PracticeStatus = _PracticeStatus;
-  type ResourceType = _ResourceType;
-  type Stage = _Stage;
+  type PracticeType = _PracticeType;
 
   // ================ API 响应类型 ================
 
@@ -134,39 +117,20 @@ declare global {
 
   /**
    * 题型实体（对应 QuestionTypeSchema）
+   * 字段名称与后端 QuestionTypeSchema 对齐
    */
   interface QuestionType {
     id: number;
     code: string;
     name: string;
     description?: string;
-    subject: string;
-    category: "ability_practice" | "unit_practice";
-    grade_band?: "Low" | "Mid" | "High";
+    category: PracticeType;
+    subject?: string;
     ability_code?: string;
-    media_context?: {
-      types: string[];
-      configs?: Record<string, unknown>;
-    };
-    scaffolding_config?: {
-      mode?: string;
-      hints?: Array<Record<string, unknown>>;
-      templates?: string[];
-      config?: Record<string, unknown>;
-    };
-    evaluation_config?: {
-      mode: "auto_match" | "ai_analysis";
-      correct_answer?: unknown;
-      rubrics?: Array<{
-        dimension: string;
-        max_score: number;
-        description?: string;
-      }>;
-      config?: Record<string, unknown>;
-    };
-    prompt?: string;
+    configs?: Record<string, unknown>;
     create_time: number;
     update_time: number;
+    ability?: Ability;
   }
 
   // ================ 基础结构 ================
@@ -544,4 +508,5 @@ declare global {
   }
 }
 
-export {};
+export { };
+

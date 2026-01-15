@@ -2,12 +2,9 @@
 题型和题目管理 API 路由
 """
 
-import json
-from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, HTTPException
 from shared.core.database import Database
 from shared.core.schema import (
     QuestionSchema,
@@ -23,12 +20,8 @@ from admin.question.schema import (
     QuestionCreateSchema,
     QuestionGenerateSchema,
     QuestionSearchSchema,
-    QuestionTypeCreateSchema,
-    QuestionTypePromptUpdateSchema,
-    QuestionTypeSearchSchema,
-    QuestionTypeUpdateSchema,
+    QuestionTypeSaveSchema,
     QuestionUpdateSchema,
-    UnitPracticeSearchSchema,
 )
 from admin.question.services import question, question_type
 
@@ -45,19 +38,11 @@ question_router = APIRouter(prefix="/question")
     description="创建一种新的题型",
     response_model=QuestionTypeSchema,
 )
-async def create_question_type(params: QuestionTypeCreateSchema, db: AsyncSession = Database):
-    return await question_type.create_question_type(db, params)
-
-
-@question_router.patch(
-    "/type/{id}",
-    tags=["题型管理"],
-    summary="更新题型",
-    description="更新指定的题型信息",
-    response_model=QuestionTypeSchema,
-)
-async def update_question_type(id: int, params: QuestionTypeUpdateSchema, db: AsyncSession = Database):
-    return await question_type.update_question_type(db, id, params)
+async def save_question_type(params: QuestionTypeSaveSchema, db: AsyncSession = Database):
+    if params.id:
+        return await question_type.update_question_type(db, params.id, params)
+    else:
+        return await question_type.create_question_type(db, params)
 
 
 @question_router.delete(
@@ -71,178 +56,25 @@ async def delete_question_type(id: int, db: AsyncSession = Database):
 
 
 @question_router.get(
-    "/type/search",
-    tags=["题型管理"],
-    summary="搜索题型",
-    description="根据条件搜索题型列表（分页）",
-)
-async def search_question_types(params: QuestionTypeSearchSchema = Depends(), db: AsyncSession = Database):
-    types, total = await question_type.search_question_types(db, params)
-    return SearchResultSchema(
-        data=[QuestionTypeSchema.model_validate(t) for t in types],
-        total=total,
-    )
-
-
-@question_router.get(
-    "/type/search/unit",
+    "/type/units",
     tags=["题型管理"],
     summary="搜索单元练习题型",
     description="搜索单元练习类型的题型列表（分页）",
 )
-async def search_unit_practice_types(params: UnitPracticeSearchSchema = Depends(), db: AsyncSession = Database):
+async def search_unit_practice_types(db: AsyncSession = Database):
     """搜索单元练习题型，固定 category 为 unit_practice"""
-    search_params = QuestionTypeSearchSchema(
-        subject=params.subject,
-        category="unit_practice",
-        grade_band=params.grade_band,
-        page=params.page,
-        size=params.size,
-    )
-    types, total = await question_type.search_question_types(db, search_params)
-    return SearchResultSchema(
-        data=[QuestionTypeSchema.model_validate(t) for t in types],
-        total=total,
-    )
+    return await question_type.search_unit_practice_types(db)
 
 
 @question_router.get(
-    "/type/search/ability",
+    "/type/abilities",
     tags=["题型管理"],
     summary="搜索能力练习题型",
-    description="搜索能力练习类型的题型列表（分页）",
+    description="搜索能力练习类型的题型列表",
 )
 async def search_ability_practice_types(params: AbilityPracticeSearchSchema = Depends(), db: AsyncSession = Database):
-    """搜索能力练习题型，固定 category 为 ability_practice"""
-    search_params = QuestionTypeSearchSchema(
-        subject=params.subject,
-        category="ability_practice",
-        grade_band=params.grade_band,
-        ability_code=params.ability_code,
-        page=params.page,
-        size=params.size,
-    )
-    types, total = await question_type.search_question_types(db, search_params)
-    return SearchResultSchema(
-        data=[QuestionTypeSchema.model_validate(t) for t in types],
-        total=total,
-    )
-
-
-@question_router.post(
-    "/type/export",
-    tags=["题型管理"],
-    summary="导出题型",
-    description="导出所有题型数据为 JSON 文件（全量数据）",
-    response_class=Response,
-)
-async def export_question_types(db: AsyncSession = Database):
-    """导出题型数据为 JSON 文件（全量数据）"""
-    # 获取所有题型数据
-    types = await question_type.list_all_question_types(db=db)
-
-    # 转换为 Schema 列表，然后转换为字典
-    type_schemas = [QuestionTypeSchema.model_validate(t) for t in types]
-    type_dicts = [schema.model_dump() for schema in type_schemas]
-
-    # 转换为 JSON 字符串（格式化）
-    json_content = json.dumps(
-        type_dicts,
-        ensure_ascii=False,
-        indent=2,
-        default=str,  # 处理日期等特殊类型
-    )
-
-    # 生成文件名（包含时间戳）
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"question-types-{timestamp}.json"
-
-    # 返回文件响应
-    return Response(
-        content=json_content.encode("utf-8"),
-        media_type="application/json",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"',
-            "Content-Type": "application/json; charset=utf-8",
-        },
-    )
-
-
-@question_router.post(
-    "/type/import",
-    tags=["题型管理"],
-    summary="导入题型",
-    description="导入题型数据（JSON 文件），先删除全部存量数据，然后保存新数据",
-)
-async def import_question_types(file: UploadFile = File(...), db: AsyncSession = Database):
-    """导入题型数据"""
-    # 验证文件类型
-    if not file.filename.endswith(".json"):
-        raise HTTPException(status_code=400, detail="只支持 JSON 格式文件")
-
-    try:
-        # 读取文件内容
-        content = await file.read()
-        json_data = json.loads(content.decode("utf-8"))
-
-        # 验证数据格式
-        if not isinstance(json_data, list):
-            raise HTTPException(status_code=400, detail="JSON 文件必须包含一个数组")
-
-        # 转换为 Schema 列表
-        type_schemas = []
-        for item in json_data:
-            try:
-                schema = QuestionTypeCreateSchema.model_validate(item)
-                type_schemas.append(schema)
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"数据验证失败：{str(e)}，请检查 JSON 文件格式",
-                )
-
-        # 删除所有存量数据
-        deleted_count = await question_type.delete_all_question_types(db)
-
-        # 批量创建新数据
-        created_types = await question_type.batch_create_question_types(db, type_schemas)
-
-        return {
-            "message": "导入成功",
-            "deleted_count": deleted_count,
-            "created_count": len(created_types),
-        }
-    except json.JSONDecodeError as e:
-        raise HTTPException(status_code=400, detail=f"JSON 解析失败：{str(e)}")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"导入失败：{str(e)}")
-
-
-@question_router.get(
-    "/type/{id}",
-    tags=["题型管理"],
-    summary="获取题型详情",
-    description="获取指定题型的详细信息",
-    response_model=QuestionTypeSchema,
-)
-async def get_question_type(id: int, db: AsyncSession = Database):
-    return QuestionTypeSchema.model_validate(await question_type.get_question_type(db, id))
-
-
-@question_router.get(
-    "/type/code/{code}",
-    tags=["题型管理"],
-    summary="根据编码获取题型",
-    description="根据题型编码获取题型详情",
-    response_model=QuestionTypeSchema,
-)
-async def get_question_type_by_code(code: str, db: AsyncSession = Database):
-    result = await question_type.get_question_type_by_code(db, code)
-    if not result:
-        raise HTTPException(status_code=404, detail=f"题型不存在: code={code}")
-    return QuestionTypeSchema.model_validate(result)
+    """搜索能力练习题型，subject 和 grade 是必要条件"""
+    return await question_type.search_ability_practice_types(db, params)
 
 
 @question_router.post(
@@ -262,24 +94,6 @@ async def generate_questions(code: str, params: QuestionGenerateSchema):
     )
 
     return [QuestionSchema.model_validate(q) for q in questions]
-
-
-@question_router.patch(
-    "/type/{code}/prompt",
-    tags=["题型管理"],
-    summary="更新提示词",
-    description="更新题型的 ai_prompt 字段",
-    response_model=QuestionTypeSchema,
-)
-async def update_question_type_prompt(code: str, params: QuestionTypePromptUpdateSchema, db: AsyncSession = Database):
-    """更新题型的提示词"""
-    question_type_obj = await question_type.get_question_type_by_code(db, code)
-    if not question_type_obj:
-        raise HTTPException(status_code=404, detail=f"题型不存在: code={code}")
-
-    update_params = QuestionTypeUpdateSchema(prompt=params.prompt)
-    updated = await question_type.update_question_type(db, question_type_obj.id, update_params)
-    return QuestionTypeSchema.model_validate(updated)
 
 
 # ======================== 题目管理 ======================== #
@@ -315,13 +129,12 @@ async def batch_delete_questions(params: QuestionBatchDeleteSchema, db: AsyncSes
 )
 async def batch_update_questions(params: QuestionBatchUpdateSchema, db: AsyncSession = Database):
     """批量更新题目状态
-    
+
     TODO: 此功能已废弃，原 is_active 字段已删除。
     如需批量更新功能，需要重新设计（可能使用软删除或状态字段）。
     """
     raise HTTPException(
-        status_code=501,
-        detail="批量更新题目功能已废弃，原 is_active 字段已删除。如需此功能，需要重新设计。"
+        status_code=501, detail="批量更新题目功能已废弃，原 is_active 字段已删除。如需此功能，需要重新设计。"
     )
 
 

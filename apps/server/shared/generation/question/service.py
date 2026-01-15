@@ -322,7 +322,6 @@ def handle_llm_questions(
             question_type_code=question_type.code,
             subject=question_type.subject,
             grade=grade,
-            ability_code=question_type.ability_code,
             content=content,
             answer=item.answer,
             explanation=item.explanation,
@@ -348,13 +347,15 @@ async def build_question_generation_prompt(
 
     Returns:
         Dict[str, Any]: 包含 prompt, prompt_input, prompt_parser 的字典
-    """
-    # 直接使用 QuestionType 的 prompt 字段，如果为空则抛出错误
-    prompt_template = question_type.prompt
-    if not prompt_template:
-        raise ValueError(f"题目类型的 prompt 不能为空: code={question_type.code}")
 
-    prompt = ChatPromptTemplate.from_template(prompt_template)
+    Raises:
+        ValueError: prompt 功能已移除，该函数不再可用
+    """
+    # prompt 功能已移除，不再支持从 QuestionType 获取 prompt
+    raise ValueError(
+        f"题目生成 prompt 功能已移除。题型: {question_type.code}。"
+        "请使用其他方式生成题目。"
+    )
 
     # 构建 JSON 输出解析器
     prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)

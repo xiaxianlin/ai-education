@@ -3,13 +3,24 @@
 
 导入通用题型(5个)和能力训练题型(37个)
 
-evaluation_config 结构:
+configs 结构:
 {
-    "mode": "auto_match" | "ai_analysis",
-    "correct_answer": any,       # 正确答案
-    "rubrics": [                 # 评分量表（主观题）
-        {"dimension": "逻辑", "max_score": 3}
-    ]
+    "media": {
+        "types": ["text", "image"],
+        "configs": {...}
+    },
+    "scaffolding": {
+        "mode": "single",
+        "hints": [...],
+        "templates": [...],
+        "config": {...}
+    },
+    "evaluation": {
+        "mode": "auto_match" | "ai_analysis",
+        "correct_answer": any,
+        "rubrics": [...],
+        "config": {...}
+    }
 }
 
 使用方法:
@@ -428,6 +439,30 @@ MATH_ABILITY_TYPES = [
 ]
 
 
+def convert_to_configs_format(question_type_data: dict) -> dict:
+    """将旧格式（三个独立配置字段）转换为新格式（configs 字段）"""
+    result = question_type_data.copy()
+    
+    # 构建 configs 对象
+    configs = {}
+    if "media_context" in result:
+        configs["media"] = result.pop("media_context")
+    if "scaffolding_config" in result:
+        configs["scaffolding"] = result.pop("scaffolding_config")
+    if "evaluation_config" in result:
+        configs["evaluation"] = result.pop("evaluation_config")
+    
+    # 删除 prompt 和 grade_band 字段（如果存在）
+    result.pop("prompt", None)
+    result.pop("grade_band", None)
+    
+    # 如果有配置，添加到结果中
+    if configs:
+        result["configs"] = configs
+    
+    return result
+
+
 def get_all_question_types():
     """获取所有题型数据"""
     all_types = []
@@ -444,7 +479,8 @@ def get_all_question_types():
     # 能力题型 - 数学
     all_types.extend(MATH_ABILITY_TYPES)
 
-    return all_types
+    # 转换为新格式
+    return [convert_to_configs_format(t) for t in all_types]
 
 
 async def import_question_types():

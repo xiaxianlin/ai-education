@@ -34,6 +34,7 @@ from .practice import (
 
 # 题目模块
 from .question import (
+    ConfigsSchema,
     ContentSchema,
     EvaluationConfigSchema,
     MediaContextSchema,
@@ -71,6 +72,7 @@ __all__ = [
     "MediaContextSchema",
     "ScaffoldingConfigSchema",
     "EvaluationConfigSchema",
+    "ConfigsSchema",
     # 练习
     "PracticeParameterSchema",
     "QuestionTypeConfigItem",

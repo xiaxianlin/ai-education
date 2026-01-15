@@ -1,28 +1,64 @@
-import { useDelete } from '@/hooks';
+import { useDelete, useSimpleForm } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
+import { AbilityApi } from '@/pages/Ability/api';
+import { PracticeType } from '@ai-education/shared-web';
 import { ActionType } from '@ant-design/pro-components';
-import { useEffect, useRef } from 'react';
+import { useRequest } from 'ahooks';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const actionRef = useRef<ActionType>();
-
   const { subject, grade } = useInitialStateModel();
+  const [type, setType] = useState<PracticeType>(PracticeType.ABILITY_PRACTICE);
+
+  const unitActionRef = useRef<ActionType>();
+  const abilityActionRef = useRef<ActionType>();
+
+  const refresh = () => {
+    if (type === PracticeType.UNIT_PRACTICE) {
+      unitActionRef.current?.reload?.();
+    } else {
+      abilityActionRef.current?.reload?.();
+    }
+  };
+
+  const { data: abilities } = useRequest(() => AbilityApi.searchAbilities({ subject, grade }), {
+    refreshDeps: [subject, grade],
+  });
+  const abilityOptions = useMemo(
+    () => abilities?.map((ability) => ({ label: ability.name, value: ability.code })),
+    [abilities],
+  );
+
+  const formProps = useSimpleForm<QuestionTypeSaveRequest, QuestionType>({
+    service: async (values, item) => {
+      if (item) {
+        values.id = item.id;
+      }
+      await QuestionApi.saveQuestionType(values);
+    },
+    onSubmit: refresh,
+  });
 
   // 删除
   const { handleDelete } = useDelete(QuestionApi.deleteQuestionType, {
-    onSuccess: () => actionRef.current?.reload?.(),
+    onSuccess: refresh,
   });
 
   useEffect(() => {
-    actionRef.current?.reload?.();
-  }, [subject, grade, actionRef]);
+    abilityActionRef.current?.reload?.();
+  }, [subject, grade]);
 
   return {
-    actionRef,
-    subject,
+    type,
     grade,
+    subject,
+    abilityOptions,
+    unitActionRef,
+    abilityActionRef,
+    ...formProps,
+    setType,
     handleDelete,
   };
 };

@@ -10,8 +10,6 @@ import PracticeList from '@/pages/Practice/PracticeList';
 import QuestionDetail from '@/pages/Question/QuestionDetail';
 import QuestionForm from '@/pages/Question/QuestionForm';
 import QuestionList from '@/pages/Question/QuestionList';
-import QuestionTypeDetail from '@/pages/Question/QuestionTypeDetail';
-import QuestionTypeForm from '@/pages/Question/QuestionTypeForm';
 import QuestionTypeGenerate from '@/pages/Question/QuestionTypeGenerate';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
 import StudentDetail from '@/pages/Student/StudentDetail';
@@ -54,8 +52,6 @@ export function Router() {
         { path: 'question/form/:id', element: <QuestionForm /> },
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
-        { path: 'question_type/:type/form', element: <QuestionTypeForm /> },
-        { path: 'question_type/detail/:id', element: <QuestionTypeDetail /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
         // Ability routes
         { path: 'ability', element: <Ability /> },
