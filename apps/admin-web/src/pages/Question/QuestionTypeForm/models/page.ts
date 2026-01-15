@@ -1,4 +1,3 @@
-import { useConfigs } from '@/hooks';
 import { useRequest } from 'ahooks';
 import { Form, message } from 'antd';
 import { useEffect } from 'react';
@@ -11,7 +10,6 @@ const useContainer = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const navigate = useNavigate();
-  const { subjects } = useConfigs();
   const [form] = Form.useForm();
 
   // 验证 type 参数
@@ -46,13 +44,6 @@ const useContainer = () => {
         code: res.code,
         name: res.name,
         description: res.description,
-        subject: res.subject,
-        gradeBand: res.grade_band,
-        abilityCode: res.ability_code,
-        // 配置字段
-        mediaContext: res.media_context ? JSON.stringify(res.media_context, null, 2) : undefined,
-        scaffoldingConfig: res.scaffolding_config ? JSON.stringify(res.scaffolding_config, null, 2) : undefined,
-        evaluationConfig: res.evaluation_config ? JSON.stringify(res.evaluation_config, null, 2) : undefined,
         // AI 配置
         prompt: res.prompt,
       });
@@ -73,14 +64,7 @@ const useContainer = () => {
         // 基础字段
         name: values.name,
         description: values.description,
-        subject: values.subject,
         category: category, // 固定使用路由参数映射的 category
-        grade_band: values.gradeBand,
-        ability_code: values.abilityCode,
-        // 配置字段
-        media_context: values.mediaContext ? JSON.parse(values.mediaContext) : undefined,
-        scaffolding_config: values.scaffoldingConfig ? JSON.parse(values.scaffoldingConfig) : undefined,
-        evaluation_config: values.evaluationConfig ? JSON.parse(values.evaluationConfig) : undefined,
         // AI 配置
         prompt: values.prompt,
       };
@@ -116,7 +100,6 @@ const useContainer = () => {
     type,
     category,
     navigate,
-    subjects,
     fetchingDetails,
     submitting,
     handleSubmit,

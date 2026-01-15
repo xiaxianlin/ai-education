@@ -4,7 +4,7 @@ import { createActionColumn } from '@/hooks/useTableColumns';
 import { DownloadOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import type { UploadProps } from 'antd';
-import { Button, Modal, Space, Tag, Upload } from 'antd';
+import { Button, Modal, Space, Upload } from 'antd';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuestionApi } from '../../api';
@@ -68,23 +68,15 @@ export default function UnitPracticeListView() {
         ),
       },
       {
-        title: '科目',
-        dataIndex: 'subject',
-        width: 80,
-        render: (_, record) => <Tag color="blue">{record.subject}</Tag>,
+        title: '编码',
+        dataIndex: 'code',
+        width: 150,
       },
       {
-        title: '学段',
-        dataIndex: 'grade_band',
-        width: 80,
-        render: (_, record) =>
-          record.grade_band ? (
-            <Tag color="green">
-              {record.grade_band === 'Low' ? '低年级' : record.grade_band === 'Mid' ? '中年级' : '高年级'}
-            </Tag>
-          ) : (
-            '-'
-          ),
+        title: '描述',
+        dataIndex: 'description',
+        width: 200,
+        render: (text) => text || '-',
       },
       createActionColumn<QuestionType>(
         (record) => (

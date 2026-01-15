@@ -25,7 +25,7 @@ export default function MainView() {
       }}
     >
       <Card loading={fetchingDetails}>
-        <Form form={form} size="large" onFinish={handleSubmit} disabled={submitting}>
+        <Form form={form} size="large" onFinish={handleSubmit} disabled={submitting} labelCol={{ span: 2 }} labelAlign="left">
           {type === 'unit' ? <UnitForm /> : <AbilityForm />}
           <FooterToolbar className="page-footer">
             <Flex justify="center" gap={16}>
