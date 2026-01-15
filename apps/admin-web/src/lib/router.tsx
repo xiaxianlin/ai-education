@@ -12,6 +12,7 @@ import QuestionForm from '@/pages/Question/QuestionForm';
 import QuestionList from '@/pages/Question/QuestionList';
 import QuestionTypeGenerate from '@/pages/Question/QuestionTypeGenerate';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
+import QuestionTypeSettings from '@/pages/Question/QuestionTypeSettings';
 import StudentDetail from '@/pages/Student/StudentDetail';
 import StudentList from '@/pages/Student/StudentList';
 import StudentTextbookConfig from '@/pages/Student/TextbookConfig';
@@ -53,6 +54,7 @@ export function Router() {
         { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
         { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
+        { path: 'question_type/settings/:type', element: <QuestionTypeSettings /> },
         // Ability routes
         { path: 'ability', element: <Ability /> },
         // Practice routes

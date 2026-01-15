@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from shared.core.database import Database
 from shared.core.schema import (
     QuestionSchema,
+    QuestionTypeSchema,
     SearchResultSchema,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,10 +20,22 @@ from admin.question.schema import (
     QuestionCreateSchema,
     QuestionGenerateSchema,
     QuestionSearchSchema,
+    QuestionTypeConfigsUpdateSchema,
+    QuestionTypePromptUpdateSchema,
     QuestionTypeSaveSchema,
     QuestionUpdateSchema,
 )
 from admin.question.services import question, question_type
+from admin.question.services.question_type import (
+    get_question_type_by_code as get_question_type_by_code_service,
+)
+from admin.question.services.question_type import (
+    read_prompt_file,
+    write_prompt_file,
+)
+from admin.question.services.question_type import (
+    update_question_type_configs as update_question_type_configs_service,
+)
 
 question_router = APIRouter(prefix="/question")
 
@@ -73,6 +86,55 @@ async def search_unit_practice_types(db: AsyncSession = Database):
 async def search_ability_practice_types(params: AbilityPracticeSearchSchema = Depends(), db: AsyncSession = Database):
     """搜索能力练习题型，subject 和 grade 是必要条件"""
     return await question_type.search_ability_practice_types(db, params)
+
+
+@question_router.get(
+    "/type/{code}",
+    tags=["题型管理"],
+    summary="获取题型详情",
+    description="根据 code 获取题型详情（包含 configs）",
+    response_model=QuestionTypeSchema,
+)
+async def get_question_type_by_code(code: str, db: AsyncSession = Database):
+    """根据 code 获取题型详情"""
+    question_type = await get_question_type_by_code_service(db, code)
+    return QuestionTypeSchema.model_validate(question_type)
+
+
+@question_router.get(
+    "/type/{code}/prompt",
+    tags=["题型管理"],
+    summary="获取题型 prompt",
+    description="读取题型的 prompt 文件内容",
+)
+async def get_question_type_prompt(code: str):
+    """获取题型的 prompt 文件内容"""
+    return {"prompt": read_prompt_file(code)}
+
+
+@question_router.patch(
+    "/type/{code}/prompt",
+    tags=["题型管理"],
+    summary="更新题型 prompt",
+    description="更新题型的 prompt 文件内容",
+)
+async def update_question_type_prompt(code: str, params: QuestionTypePromptUpdateSchema):
+    """更新题型的 prompt 文件"""
+    write_prompt_file(code, params.prompt)
+    return {"message": "prompt 更新成功"}
+
+
+@question_router.patch(
+    "/type/{code}/configs",
+    tags=["题型管理"],
+    summary="更新题型 configs",
+    description="更新题型的 configs 配置",
+    response_model=QuestionTypeSchema,
+)
+async def update_question_type_configs(code: str, params: QuestionTypeConfigsUpdateSchema, db: AsyncSession = Database):
+    """更新题型的 configs 配置"""
+    question_type = await update_question_type_configs_service(db, code, params.configs)
+    return QuestionTypeSchema.model_validate(question_type)
 
 
 @question_router.post(

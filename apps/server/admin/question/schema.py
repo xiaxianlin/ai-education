@@ -127,3 +127,15 @@ class QuestionGenerateSchema(BaseModel):
     """生成题目请求"""
 
     count: int = Field(..., description="生成数量", gt=0, le=100)
+
+
+class QuestionTypePromptUpdateSchema(BaseModel):
+    """更新题型 prompt"""
+
+    prompt: str = Field(..., description="prompt 内容")
+
+
+class QuestionTypeConfigsUpdateSchema(BaseModel):
+    """更新题型 configs"""
+
+    configs: Dict[str, Any] = Field(..., description="configs 配置")

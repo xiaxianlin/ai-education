@@ -10,7 +10,7 @@ import { QuestionApi } from '../../api';
 
 const useContainer = () => {
   const { subject, grade } = useInitialStateModel();
-  const [type, setType] = useState<PracticeType>(PracticeType.ABILITY_PRACTICE);
+  const [type, setType] = useState<PracticeType>(PracticeType.UNIT_PRACTICE);
 
   const unitActionRef = useRef<ActionType>();
   const abilityActionRef = useRef<ActionType>();
@@ -37,6 +37,7 @@ const useContainer = () => {
         values.id = item.id;
       }
       values.category = type;
+      values.subject = subject;
       await QuestionApi.saveQuestionType(values);
     },
     onSubmit: refresh,

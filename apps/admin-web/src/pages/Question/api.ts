@@ -108,11 +108,36 @@ export const QuestionApi = {
   },
 
   /**
-   * 更新题型提示词
+   * 根据 code 获取题型详情
+   * GET /question/type/{code}
+   */
+  async getQuestionTypeByCode(code: string) {
+    return apiClient.get<QuestionType>(`/question/type/${code}`);
+  },
+
+  /**
+   * 获取题型 prompt
+   * GET /question/type/{code}/prompt
+   */
+  async getQuestionTypePrompt(code: string) {
+    const res = await apiClient.get<{ prompt: string }>(`/question/type/${code}/prompt`);
+    return res.prompt;
+  },
+
+  /**
+   * 更新题型 prompt
    * PATCH /question/type/{code}/prompt
    */
   async updateQuestionTypePrompt(code: string, prompt: string) {
-    return apiClient.patch<QuestionType>(`/question/type/${code}/prompt`, { prompt });
+    return apiClient.patch(`/question/type/${code}/prompt`, { prompt });
+  },
+
+  /**
+   * 更新题型 configs
+   * PATCH /question/type/{code}/configs
+   */
+  async updateQuestionTypeConfigs(code: string, configs: Record<string, any>) {
+    return apiClient.patch<QuestionType>(`/question/type/${code}/configs`, { configs });
   },
 
   /**

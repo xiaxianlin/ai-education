@@ -1,4 +1,4 @@
-import { useDelete, useSimpleForm } from '@/hooks';
+import { useDelete, useExport, useSimpleForm } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { ActionType } from '@ant-design/pro-components';
 import { useMemoizedFn, useRequest } from 'ahooks';
@@ -46,42 +46,18 @@ const useContainer = () => {
   );
 
   // 导出能力数据
-  const { runAsync: handleExport, loading: exporting } = useRequest(
-    async () => {
-      message.loading({ content: '正在导出能力数据...', key: 'export', duration: 0 });
-
-      const blob = await AbilityApi.exportAbilitiesByGrade({
+  const { handleExport, exporting } = useExport(
+    () =>
+      AbilityApi.exportAbilitiesByGrade({
         subject,
         grade,
-      });
-
-      // 生成文件名
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const filename = `ability-${subject}-grade${grade}-${timestamp}.json`;
-
-      // 创建下载链接
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-
-      // 触发下载
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // 释放 URL 对象
-      URL.revokeObjectURL(url);
-
-      message.destroy('export');
-      message.success('能力数据导出成功');
-    },
+      }),
     {
-      manual: true,
-      onError: (error: any) => {
-        message.destroy('export');
-        message.error('导出失败：' + (error instanceof Error ? error.message : '未知错误'));
-      },
+      successMessage: '能力数据导出成功',
+      errorMessage: '导出失败',
+      loadingMessage: '正在导出能力数据...',
+      defaultFilename: `ability-${subject}-grade${grade}`,
+      fileExtension: 'json',
     },
   );
 
