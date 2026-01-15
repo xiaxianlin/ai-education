@@ -11,7 +11,7 @@
 
 ### 2. react-frontend
 - **类型**: Apply to Specific Files
-- **范围**: `apps/admin-web/**`, `apps/student-web/**`
+- **范围**: `apps/admin-web/**`, `apps/student-web/**`, `app/student-mobile/**`
 - **描述**: React 前端编码规范
 - **内容**: TypeScript 规范、组件结构、状态管理、页面编码规范
 

@@ -1,12 +1,13 @@
-# AI 教育辅导平台 - Agent 指令
+# 小学生练习系统 - Agent 指令
 
-K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace + Turborepo 管理。
+小学生练习系统的 Monorepo 项目，包括后台管理、学生 PC 端、学生移动端，使用 pnpm workspace + Turborepo 管理。
 
 ## 技术栈
 
 - **前端**: React 18 + TypeScript 5 + Rsbuild
-  - admin-web: Ant Design 5 + Ant Design Pro + unstated-next + ahooks
-  - student-web: shadcn/ui + unstated-next + ahooks
+  - admin-web: 后台管理端，Ant Design 5 + Ant Design Pro + unstated-next + ahooks
+  - student-web: 学生 PC 端，shadcn/ui + unstated-next + ahooks
+  - student-mobile: 学生移动端，React Native + Expo + Tamagui
   - 共享包: `@ai-education/shared-web` (API 客户端、类型定义、工具函数)
 - **后端**: Python 3.12 + FastAPI + SQLAlchemy 2.0 (强制使用 2.0 ORM 风格)
   - AI 工作流: LangChain + LangGraph
@@ -16,14 +17,15 @@ K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace + Turborepo �
 
 ```bash
 # 开发
-pnpm dev:admin        # 管理端
-pnpm dev:student      # 学生端 Web
+pnpm dev:admin        # 后台管理端
+pnpm dev:student      # 学生 PC 端
+pnpm dev:mobile       # 学生移动端
 pnpm dev:server       # 启动服务端 (FastAPI @ 7890)
 pnpm dev:all         # 同时启动所有服务
 
 # 构建
-pnpm build:admin      # 管理端构建
-pnpm build:student    # 学生端构建
+pnpm build:admin      # 后台管理端构建
+pnpm build:student    # 学生 PC 端构建
 pnpm build:server     # 后端构建
 
 # 测试与类型检查

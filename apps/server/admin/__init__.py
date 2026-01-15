@@ -14,7 +14,6 @@ from .ability.route import ability_router
 from .auth import admin_route_filter
 from .auth.route import auth_router
 from .practice.route import practice_router
-from .prompt import prompt_router
 from .question.route import question_router
 from .student.route import student_router
 from .teacher_book.route import teacher_book_router
@@ -45,6 +44,5 @@ admin_app.include_router(student_router)
 admin_app.include_router(textbook_router)
 admin_app.include_router(teacher_book_router)
 admin_app.include_router(textbook_version_router)
-admin_app.include_router(prompt_router)
 
 __all__ = ["admin_app"]

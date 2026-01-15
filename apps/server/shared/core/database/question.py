@@ -55,12 +55,10 @@ class Question(BaseModel):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, comment="UUID")
     question_type_code: Mapped[str] = mapped_column(String(50), nullable=False, comment="题型编码")
 
-    # 基础信息
     subject: Mapped[str] = mapped_column(String(50), nullable=False, comment="科目")
     grade: Mapped[int] = mapped_column(nullable=False, comment="年级 1-12")
 
     content: Mapped[dict] = mapped_column(JSON, nullable=False, comment="题目内容：包含题干、选项等")
-
     answer: Mapped[dict] = mapped_column(JSON, nullable=False, comment="答案配置")
     explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="解析")
 

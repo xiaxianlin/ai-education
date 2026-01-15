@@ -70,112 +70,24 @@ export const SEMESTERS = ["上学期", "下学期"];
 
 // ============ 题型系统常量 ============
 
-/** 学段枚举 */
+/** 学段枚举（仅支持小学阶段） */
 export enum Stage {
-  PRIMARY_LOW = "primary_low",
-  PRIMARY_HIGH = "primary_high",
-  JUNIOR = "junior",
-  SENIOR = "senior",
-}
-
-/** 交互类型枚举 */
-export enum InteractionType {
-  SINGLE_CHOICE = "single_choice",
-  MULTI_CHOICE = "multi_choice",
-  IMAGE_CHOICE = "image_choice",
-  TEXT_INPUT = "text_input",
-  HANDWRITING = "handwriting",
-  VOICE_INPUT = "voice_input",
-  DRAG_DROP = "drag_drop",
-  CONNECT_LINE = "connect_line",
-  SORT_ORDER = "sort_order",
-  TRUE_FALSE = "true_false",
-  CORRECT_WRONG = "correct_wrong",
-  FOLLOW_READ = "follow_read",
-  FREE_SPEAK = "free_speak",
-  FILL_BLANK = "fill_blank",
-  MULTI_STEP = "multi_step",
-}
-
-/** 认知层次枚举 */
-export enum CognitiveLevel {
-  REMEMBER = "remember",
-  UNDERSTAND = "understand",
-  APPLY = "apply",
-  ANALYZE = "analyze",
-  EVALUATE = "evaluate",
-  CREATE = "create",
-}
-
-/** 资源类型枚举 */
-export enum ResourceType {
-  TEXT = "text",
-  IMAGE = "image",
-  AUDIO = "audio",
-  VIDEO = "video",
-  ANIMATION = "animation",
-}
-
-/** 答案类型枚举 */
-export enum AnswerType {
-  EXACT = "exact",
-  FUZZY = "fuzzy",
-  RUBRIC = "rubric",
-  AI = "ai",
-  COMPOSITE = "composite",
+  LOW = "low",
+  MID = "mid",
+  HIGH = "high",
 }
 
 /** 学段标签 */
 export const STAGE_LABELS: Record<Stage, string> = {
-  primary_low: "小学低段",
-  primary_high: "小学高段",
-  junior: "初中",
-  senior: "高中",
+  low: "小学低段",
+  mid: "小学中段",
+  high: "小学高段",
 };
 
-/** 认知层次标签 */
-export const COGNITIVE_LEVEL_LABELS: Record<CognitiveLevel, string> = {
-  remember: "识记",
-  understand: "理解",
-  apply: "应用",
-  analyze: "分析",
-  evaluate: "评价",
-  create: "创造",
+/** 学段年级映射 */
+export const STAGE_GRADES: Record<Stage, number[]> = {
+  low: [1, 2],
+  mid: [3, 4],
+  high: [5, 6],
 };
 
-/** 交互类型标签 */
-export const INTERACTION_TYPE_LABELS: Record<InteractionType, string> = {
-  single_choice: "单选题",
-  multi_choice: "多选题",
-  image_choice: "图片选择",
-  text_input: "文本输入",
-  handwriting: "手写输入",
-  voice_input: "语音输入",
-  drag_drop: "拖拽放置",
-  connect_line: "连线匹配",
-  sort_order: "排序排列",
-  true_false: "是非判断",
-  correct_wrong: "对错判断",
-  follow_read: "跟读",
-  free_speak: "自由表达",
-  fill_blank: "填空",
-  multi_step: "多步骤",
-};
-
-/** 资源类型标签 */
-export const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
-  text: "文本",
-  image: "图片",
-  audio: "音频",
-  video: "视频",
-  animation: "动画",
-};
-
-/** 答案类型标签 */
-export const ANSWER_TYPE_LABELS: Record<AnswerType, string> = {
-  exact: "精确匹配",
-  fuzzy: "模糊匹配",
-  rubric: "评分标准",
-  ai: "AI评分",
-  composite: "复合题",
-};

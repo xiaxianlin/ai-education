@@ -44,8 +44,6 @@ declare global {
   interface Configs {
     subjects: string[];
     semesters: string[];
-    question_types: string[];
-    difficulty_levels: string[];
     providers: string[];
     question_types: Record<string, Record<number, Record<string, string[]>>>;
   }

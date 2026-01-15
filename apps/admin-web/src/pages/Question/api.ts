@@ -60,22 +60,6 @@ export const QuestionApi = {
   },
 
   /**
-   * 创建题目
-   * POST /question
-   */
-  async createQuestion(data: QuestionCreateRequest) {
-    return apiClient.post<Question>('/question/', data);
-  },
-
-  /**
-   * 更新题目
-   * PATCH /question/{id}
-   */
-  async updateQuestion(id: string, data: QuestionUpdateRequest) {
-    return apiClient.patch<Question>(`/question/${id}`, data);
-  },
-
-  /**
    * 删除题目
    * DELETE /question/{id}
    */
@@ -84,27 +68,11 @@ export const QuestionApi = {
   },
 
   /**
-   * 批量删除题目
-   * POST /question/batch_delete
+   * 更新题目
+   * PATCH /question/{id}
    */
-  async batchDeleteQuestions(ids: string[]) {
-    return apiClient.post<{ message: string; deleted_count: number }>('/question/batch_delete', { ids });
-  },
-
-  /**
-   * 生成题目资源
-   * POST /question/{id}/generate_resources
-   */
-  async generateQuestionResources(id: string) {
-    return apiClient.post<Question>(`/question/${id}/generate_resources`);
-  },
-
-  /**
-   * 根据题型编码生成题目
-   * POST /question/type/{code}/generate
-   */
-  async generateQuestions(code: string, count: number) {
-    return apiClient.post<Question[]>(`/question/type/${code}/generate`, { count });
+  async updateQuestion(id: string, data: QuestionUpdateRequest) {
+    return apiClient.patch<Question>(`/question/${id}`, data);
   },
 
   /**
@@ -138,36 +106,5 @@ export const QuestionApi = {
    */
   async updateQuestionTypeConfigs(code: string, configs: Record<string, any>) {
     return apiClient.patch<QuestionType>(`/question/type/${code}/configs`, { configs });
-  },
-
-  /**
-   * 批量更新题目（已废弃）
-   * PATCH /question/batch_update
-   * TODO: 此功能已废弃，后端返回 501 错误
-   */
-  async batchUpdateQuestions(_params: { ids: string[]; is_active: boolean }) {
-    throw new Error('批量更新题目功能已废弃，原 is_active 字段已删除');
-  },
-
-  /**
-   * 优化题型生成提示词
-   * POST /prompt/optimize/question_type
-   */
-  async optimizePrompt(code: string, suggestion?: string) {
-    return apiClient.post<{ optimized_prompt: string }>('/prompt/optimize/question_type', {
-      code,
-      suggestion,
-    });
-  },
-
-  /**
-   * 生成题型提示词
-   * POST /prompt/generate/question_type
-   */
-  async generatePrompt(code: string, templateType: 'auto' | 'template' = 'auto') {
-    return apiClient.post<{ generated_prompt: string }>('/prompt/generate/question_type', {
-      code,
-      template_type: templateType,
-    });
   },
 };

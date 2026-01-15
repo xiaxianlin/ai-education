@@ -46,10 +46,10 @@ export default function AbilityPracticeListView() {
             <Button key="edit" type="link" onClick={() => showForm(record)}>
               编辑
             </Button>
-            <Link key="settings" to={`/question_type/settings/${record.code}#prompt`}>
+            <Link key="settings" to={`/question_type/settings/prompt/${record.code}`}>
               <Button type="link">指令</Button>
             </Link>
-            <Link key="configs" to={`/question_type/settings/${record.code}#configs`}>
+            <Link key="configs" to={`/question_type/settings/configs/${record.code}`}>
               <Button type="link">配置</Button>
             </Link>
             <DeleteButton buttonProps={{ type: 'link' }} onConfirm={() => handleDelete(record.id)} />

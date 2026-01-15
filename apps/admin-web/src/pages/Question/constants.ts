@@ -1,37 +1,7 @@
-import {
-  STAGE_LABELS,
-  INTERACTION_TYPE_LABELS,
-  RESOURCE_TYPE_LABELS,
-  ANSWER_TYPE_LABELS,
-  COGNITIVE_LEVEL_LABELS,
-} from '@ai-education/shared-web';
+import { STAGE_LABELS } from '@ai-education/shared-web';
 
 /** 学段选项 */
 export const STAGE_OPTIONS = Object.entries(STAGE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-/** 交互类型选项 */
-export const INTERACTION_OPTIONS = Object.entries(INTERACTION_TYPE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-/** 资源类型选项 */
-export const RESOURCE_OPTIONS = Object.entries(RESOURCE_TYPE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-/** 答案类型选项 */
-export const ANSWER_OPTIONS = Object.entries(ANSWER_TYPE_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
-/** 认知层次选项 */
-export const COGNITIVE_OPTIONS = Object.entries(COGNITIVE_LEVEL_LABELS).map(([value, label]) => ({
   value,
   label,
 }));

@@ -5,6 +5,7 @@
 from pathlib import Path
 from typing import Any, Dict, List
 
+from loguru import logger
 from shared.core.database import Ability, QuestionType
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +14,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from admin.question.schema import AbilityPracticeSearchSchema, QuestionTypeSaveSchema
 
 # prompt 文件目录路径
-PROMPTS_DIR = Path(__file__).parent.parent.parent / "shared" / "prompts"
+PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "shared" / "prompts"
 
 
 async def create_question_type(db: AsyncSession, params: QuestionTypeSaveSchema):
@@ -65,7 +66,11 @@ async def delete_question_type(db: AsyncSession, id: int) -> None:
 
 async def search_unit_practice_types(db: AsyncSession):
     """搜索单元练习题型"""
-    query = select(QuestionType).where(QuestionType.category == "unit_practice").order_by(QuestionType.id)
+    query = (
+        select(QuestionType)
+        .where(QuestionType.category == "unit_practice")
+        .order_by(QuestionType.id)
+    )
     result = await db.scalars(query)
     return list(result.all())
 
@@ -98,7 +103,9 @@ async def list_all_question_types(db: AsyncSession) -> List[QuestionType]:
     return list(result.scalars().all())
 
 
-async def batch_create_question_types(db: AsyncSession, type_data_list: List[QuestionTypeSaveSchema]):
+async def batch_create_question_types(
+    db: AsyncSession, type_data_list: List[QuestionTypeSaveSchema]
+):
     """批量创建题型"""
 
     for type_data in type_data_list:
@@ -130,6 +137,7 @@ def read_prompt_file(code: str) -> str:
     """
     file_path = PROMPTS_DIR / f"{code}.md"
     if file_path.exists():
+        logger.info(f"读取 prompt 文件: {file_path}")
         return file_path.read_text(encoding="utf-8")
     return ""
 
@@ -149,7 +157,9 @@ def write_prompt_file(code: str, content: str) -> None:
     file_path.write_text(content, encoding="utf-8")
 
 
-async def update_question_type_configs(db: AsyncSession, code: str, configs: Dict[str, Any]) -> QuestionType:
+async def update_question_type_configs(
+    db: AsyncSession, code: str, configs: Dict[str, Any]
+) -> QuestionType:
     """更新题型的 configs 字段
 
     Args:

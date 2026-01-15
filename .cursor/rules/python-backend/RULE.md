@@ -2,7 +2,7 @@
 description: "Python/FastAPI 后端编码规范，包含路由、服务层、数据库操作和错误处理"
 globs:
   - "apps/server/**"
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Python/FastAPI 后端编码规范

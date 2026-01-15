@@ -14,41 +14,26 @@ declare global {
   }
 
   /**
-   * 创建题目请求
-   * 字段名称与后端 QuestionCreateSchema 对齐（使用下划线命名）
+   * 搜索题目请求
    */
-  interface QuestionCreateRequest {
+  interface SearchQuestionRequest {
+    page?: number;
+    size?: number;
     id?: string;
-    question_type_code: string; // 后端使用 question_type_code
-    subject: string;
-    grade: number;
-    ability_code?: string;
-    content: {
-      stem: string | Stem; // 题干文本或对象
-      resource?: QuestionResource; // 题干资源（单个）
-      options?: QuestionOption[]; // 选项列表
-      sub_questions?: Array<Record<string, unknown>>; // 子题列表（复合题）
-    };
-    answer: Answer;
-    explanation?: string;
+    question_type_code?: string;
+    subject?: string;
+    grade?: number;
+    name?: string;
   }
 
   /**
    * 更新题目请求
-   * 字段名称与后端 QuestionUpdateSchema 对齐（使用下划线命名）
    */
   interface QuestionUpdateRequest {
-    content?: {
-      stem?: string | Stem; // 题干文本或对象
-      resource?: QuestionResource; // 题干资源（单个）
-      options?: QuestionOption[]; // 选项列表
-      sub_questions?: Array<Record<string, unknown>>; // 子题列表（复合题）
-    };
-    answer?: Answer;
+    content?: Record<string, any>;
+    answer?: Record<string, any>;
     explanation?: string;
-    ability_code?: string;
   }
 }
 
-export { };
-
+export {};

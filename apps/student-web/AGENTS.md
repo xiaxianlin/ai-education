@@ -1,7 +1,7 @@
 # 学生端 Web - Agent 配置
 
 ## 应用概述
-学生端 Web 应用，基于 React 18 + Rsbuild + shadcn/ui + Tailwind CSS 构建。
+小学生练习系统的学生 PC 端应用，基于 React 18 + Rsbuild + shadcn/ui + Tailwind CSS 构建。
 
 ## 技术栈
 - **框架**: React 18

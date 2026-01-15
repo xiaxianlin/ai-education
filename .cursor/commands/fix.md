@@ -4,7 +4,7 @@
 
 ## 使用方法
 
-使用 `@fix-error` 命令时，我会：
+使用 `@fix` 命令时，我会：
 
 1. 从 `apps/server/.env` 文件读取 `LOG_DIR` 配置
 2. 在根目录读取 `{LOG_DIR}/error.log` 文件

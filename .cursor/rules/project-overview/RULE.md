@@ -5,26 +5,35 @@ alwaysApply: true
 
 # 项目概述
 
-这是一个 K12 教育辅导工具的 Monorepo 项目，使用 pnpm workspace 和 Turborepo 进行管理。
+这是一个小学生练习系统的 Monorepo 项目，包括后台管理、学生 PC 端、学生移动端，使用 pnpm workspace 和 Turborepo 进行管理。
 
 ## 项目结构
 
 ### 前端应用
-- **apps/admin-web**: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
+
+- **apps/admin-web**: 后台管理端 (React 18 + Rsbuild + Ant Design 5)
   - TypeScript 5, Less + Tailwind CSS
   - UI 库: Ant Design 5 + Ant Design Pro Components
   - 状态管理: unstated-next（页面/模块模型）+ ahooks（异步/请求辅助）
   - HTTP 客户端: 基于 `@ai-education/shared-web` 的 `ApiClient`，业务 API 按模块拆分到各业务目录下的 `api.ts`
   - 路由: react-router-dom
 
-- **apps/student-web**: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
+- **apps/student-web**: 学生 PC 端 (React 18 + Rsbuild + shadcn/ui)
   - TypeScript 5, Tailwind CSS
   - UI 组件: shadcn/ui (基于 Radix UI)
   - 状态管理: unstated-next（全局/页面模型）+ ahooks（异步/请求辅助）
   - HTTP 客户端: 基于 `@ai-education/shared-web` 的 `ApiClient`，API 统一封装在 `src/lib/api.ts` 的 `studentApi`
   - 路由: react-router-dom
 
+- **apps/student-mobile**: 学生移动端 (React Native + Expo + Tamagui)
+  - TypeScript 5, NativeWind (Tailwind CSS for React Native)
+  - UI 组件: Tamagui
+  - 状态管理: Zustand
+  - HTTP 客户端: Axios，基于 `@ai-education/shared-web` 的 `ApiClient`
+  - 路由: Expo Router
+
 ### 后端服务
+
 - **apps/server**: 服务端单体 (Python 3.12 + FastAPI)
   - FastAPI 0.115+, SQLAlchemy 2.0 异步 ORM（强制使用 2.0 风格）
   - MySQL 数据库, Redis + Celery 任务队列
@@ -35,30 +44,9 @@ alwaysApply: true
 
 ## 开发工作流
 
-1. **前端开发**: `pnpm dev:admin` 或 `pnpm dev:student`
+1. **前端开发**: `pnpm dev:admin`（后台管理端）、`pnpm dev:student`（学生 PC 端）、`pnpm dev:mobile`（学生移动端）
 2. **后端开发**: `pnpm dev:server` 启动服务端（FastAPI 单体，默认端口 7890）
 3. **全部启动**: `pnpm dev:all` 启动所有前端和后端服务
-
-## Git 工作流
-
-### Keep All 脚本
-在合并冲突或需要保留所有变更时，可以使用 `keep-all` 脚本自动提交并推送到远程仓库：
-
-```bash
-# 使用默认提交信息
-pnpm keep-all
-
-# 使用自定义提交信息
-pnpm keep-all "feat: 重构代码结构"
-```
-
-脚本功能：
-- 自动检测当前分支
-- 添加所有变更（包括删除的文件）
-- 提交变更
-- 推送到远程仓库
-
-详细说明请查看 `scripts/README.md`。
 
 ## 依赖管理
 

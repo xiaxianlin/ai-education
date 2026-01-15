@@ -1,6 +1,5 @@
-import { QuestionCard } from '@/components';
 import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, SyncOutlined } from '@ant-design/icons';
-import { FooterToolbar, PageContainer, ProSkeleton } from '@ant-design/pro-components';
+import { FooterToolbar, PageContainer, ProDescriptions, ProSkeleton } from '@ant-design/pro-components';
 import { Button, Empty, Flex, List, Modal, Space } from 'antd';
 import { usePracticeDetailModel } from '../models/page';
 import { BasicInfo } from './BasicInfo';
@@ -82,7 +81,13 @@ export default function MainView() {
           width={800}
           destroyOnClose
         >
-          {selectedQuestion && <QuestionCard question={selectedQuestion} />}
+          {selectedQuestion && (
+            <ProDescriptions column={1} dataSource={selectedQuestion}>
+              <ProDescriptions.Item label="题型" dataIndex="question_type_code" />
+              <ProDescriptions.Item label="题干" dataIndex={['content', 'stem']} />
+              <ProDescriptions.Item label="解析" dataIndex="explanation" />
+            </ProDescriptions>
+          )}
         </Modal>
 
         <Modal
@@ -130,14 +135,7 @@ export default function MainView() {
                     </Space>
                   }
                 >
-                  <List.Item.Meta
-                    title={item.id}
-                    description={
-                      typeof item.content?.stem === "string"
-                        ? item.content.stem
-                        : (item.content?.stem as Stem)?.text || ""
-                    }
-                  />
+                  <List.Item.Meta title={item.id} description={item.content?.stem} />
                 </List.Item>
               );
             }}

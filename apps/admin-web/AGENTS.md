@@ -1,7 +1,7 @@
 # 管理端前端 - Agent 配置
 
 ## 应用概述
-管理后台前端应用，基于 React 18 + Rsbuild + Ant Design 5 构建。
+小学生练习系统的后台管理端，基于 React 18 + Rsbuild + Ant Design 5 构建。
 
 ## 技术栈
 - **框架**: React 18

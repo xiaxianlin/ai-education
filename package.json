@@ -2,7 +2,7 @@
   "name": "ai-education-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "AI Education Platform Monorepo",
+  "description": "小学生练习系统 Monorepo - 包括后台管理、学生 PC 端、学生移动端",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",

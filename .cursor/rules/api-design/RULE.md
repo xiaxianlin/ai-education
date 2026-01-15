@@ -1,6 +1,6 @@
 ---
 description: "API 设计规范，包含 RESTful 设计、请求响应格式、错误处理和认证"
-alwaysApply: false
+alwaysApply: true
 ---
 
 # API 设计规范

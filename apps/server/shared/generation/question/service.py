@@ -17,14 +17,14 @@ from .schema import GeneratedQuestion, QuestionGenerationResult
 
 
 def grade_to_stage(grade: int) -> str:
-    """根据年级计算学段"""
-    if grade <= 3:
-        return "primary_low"
+    """根据年级计算学段（仅支持小学 1-6 年级）"""
+    if grade <= 2:
+        return "low"
+    elif grade <= 4:
+        return "mid"
     elif grade <= 6:
-        return "primary_high"
-    elif grade <= 9:
-        return "junior"
-    return "senior"
+        return "high"
+    raise ValueError(f"不支持的年级: {grade}，仅支持 1-6 年级")
 
 
 def get_llm_temperature(loop_count: int, unique_questions_count: int, count: int) -> float:
@@ -85,13 +85,9 @@ def format_llm_questions(result: Any) -> List[dict]:
             questions_list = result["questions"]
             logger.debug(f"使用标准格式: questions 数组，数量={len(questions_list)}")
         else:
-            raise ValueError(
-                f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}"
-            )
+            raise ValueError(f"questions 字段格式错误，期望列表类型，实际为: {type(result['questions']).__name__}")
     # 情况2: 单个题目对象格式（LLM 可能只返回一道题目，字段名可能是 question 而不是 stem）
-    elif isinstance(result, dict) and (
-        "question" in result or "stem" in result or "options" in result
-    ):
+    elif isinstance(result, dict) and ("question" in result or "stem" in result or "options" in result):
         logger.warning("LLM 返回的是单个题目对象，将其包装成数组并尝试字段映射")
         # 检查字段映射：如果返回的是 question 字段，需要映射到 stem
         single_question = dict(result)
@@ -147,9 +143,7 @@ def normalize_llm_question(question: dict) -> dict:
                     if "resources" not in normalized or normalized["resources"] is None:
                         normalized["resources"] = []
                     normalized["resources"].extend(stem_resources)
-                    logger.debug(
-                        f"已将 stem 中的 resources 提取到顶层，数量: {len(stem_resources)}"
-                    )
+                    logger.debug(f"已将 stem 中的 resources 提取到顶层，数量: {len(stem_resources)}")
     elif "question" in normalized:
         # 如果只有 question 字段，映射到 stem
         question_value = normalized.pop("question")
@@ -163,9 +157,7 @@ def normalize_llm_question(question: dict) -> dict:
                     if "resources" not in normalized or normalized["resources"] is None:
                         normalized["resources"] = []
                     normalized["resources"].extend(q_resources)
-                    logger.debug(
-                        f"已将 question 中的 resources 提取到顶层，数量: {len(q_resources)}"
-                    )
+                    logger.debug(f"已将 question 中的 resources 提取到顶层，数量: {len(q_resources)}")
             normalized["stem"] = question_value
         else:
             normalized["stem"] = {"text": str(question_value)}
@@ -178,12 +170,9 @@ def normalize_llm_question(question: dict) -> dict:
             if isinstance(options[0], str):
                 # 转换为字典格式：{"id": "A", "text": "选项内容"}
                 normalized["options"] = [
-                    {"id": chr(65 + i), "text": opt} if isinstance(opt, str) else opt
-                    for i, opt in enumerate(options)
+                    {"id": chr(65 + i), "text": opt} if isinstance(opt, str) else opt for i, opt in enumerate(options)
                 ]
-                logger.debug(
-                    f"已将 options 从字符串列表转换为字典列表: {len(normalized['options'])} 个选项"
-                )
+                logger.debug(f"已将 options 从字符串列表转换为字典列表: {len(normalized['options'])} 个选项")
 
     # 3. 处理 answer 字段：如果是字符串，转换为字典格式
     # 先检查是否有 correct_answer 字段（LLM 可能使用这个字段名）
@@ -219,16 +208,12 @@ def normalize_llm_question(question: dict) -> dict:
                             resource["resource_type"] = "option"
                         else:
                             resource["resource_type"] = "stem"
-                        logger.debug(
-                            f"根据 position={position} 推断 resource_type={resource['resource_type']}"
-                        )
+                        logger.debug(f"根据 position={position} 推断 resource_type={resource['resource_type']}")
 
                     # 验证选项资源包含 option_id
                     if resource.get("resource_type") == "option":
                         if "option_id" not in resource or not resource.get("option_id"):
-                            logger.warning(
-                                f"选项资源缺少 option_id 字段，资源ID: {resource.get('id', 'unknown')}"
-                            )
+                            logger.warning(f"选项资源缺少 option_id 字段，资源ID: {resource.get('id', 'unknown')}")
                             # 尝试从 position 或其他字段推断，如果无法推断则跳过该资源
                             # 这里可以选择跳过或设置默认值，根据实际需求决定
 
@@ -280,7 +265,7 @@ def handle_llm_questions(
 
         # 构建 content JSON 结构
         content = {}
-        
+
         # 处理 stem：可能是字符串或字典
         if item.stem:
             if isinstance(item.stem, dict):
@@ -288,7 +273,7 @@ def handle_llm_questions(
                 stem_text = item.stem.get("text", "")
                 content["stem"] = stem_text if stem_text else str(item.stem)
                 # 如果 stem 中有其他字段（如 rich_text, hints），需要处理
-                # 但根据 ContentSchema，stem 应该是字符串，所以这里简化处理
+                # 但根据 QuestionContentSchema，stem 应该是字符串，所以这里简化处理
             else:
                 content["stem"] = str(item.stem)
         else:
@@ -299,7 +284,7 @@ def handle_llm_questions(
             # 分离题干资源和选项资源
             stem_resources = [r for r in item.resources if r.get("resource_type") != "option"]
             if stem_resources:
-                # ContentSchema 中 resource 是单个 ResourceSchema，取第一个
+                # QuestionContentSchema 中 resource 是单个 ResourceSchema，取第一个
                 stem_resource = stem_resources[0]
                 content["resource"] = {
                     "type": stem_resource.get("type", "image"),
@@ -352,10 +337,7 @@ async def build_question_generation_prompt(
         ValueError: prompt 功能已移除，该函数不再可用
     """
     # prompt 功能已移除，不再支持从 QuestionType 获取 prompt
-    raise ValueError(
-        f"题目生成 prompt 功能已移除。题型: {question_type.code}。"
-        "请使用其他方式生成题目。"
-    )
+    raise ValueError(f"题目生成 prompt 功能已移除。题型: {question_type.code}。" "请使用其他方式生成题目。")
 
     # 构建 JSON 输出解析器
     prompt_parser = JsonOutputParser(pydantic_object=QuestionGenerationResult)
@@ -398,9 +380,7 @@ async def generate_question_resource(question: Question, resource: dict) -> dict
     # 生成图片资源
     if resource_type == "image":
         if not resource.get("image_prompt"):
-            raise ValueError(
-                f"图片资源缺少 image_prompt 字段: resource_id={resource.get('id', 'unknown')}"
-            )
+            raise ValueError(f"图片资源缺少 image_prompt 字段: resource_id={resource.get('id', 'unknown')}")
 
         oss_path = f"{resource_path}/{resource['id']}.png"
         await invoke_question_image_workflow(prompt=resource["image_prompt"], oss_path=oss_path)
@@ -415,16 +395,12 @@ async def generate_question_resource(question: Question, resource: dict) -> dict
         oss_path = f"{resource_path}/{resource['id']}.mp3"
         # 根据题目科目确定语言
         language = "Chinese" if question.subject == "英语" else "English"
-        await invoke_question_audio_workflow(
-            text=resource["text"], language=language, oss_path=oss_path
-        )
+        await invoke_question_audio_workflow(text=resource["text"], language=language, oss_path=oss_path)
         new_resource["url"] = oss_path
         logger.debug(f"音频资源生成成功: question_id={question.id}, path={oss_path}")
 
     else:
-        raise ValueError(
-            f"不支持的资源类型: {resource_type}, resource_id={resource.get('id', 'unknown')}"
-        )
+        raise ValueError(f"不支持的资源类型: {resource_type}, resource_id={resource.get('id', 'unknown')}")
 
     return new_resource
 

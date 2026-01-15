@@ -4,12 +4,10 @@
  */
 import { Button } from "@/components/ui";
 import { ProgressIndicator } from "../components/ProgressIndicator";
-import { QuestionCard } from "../components/QuestionCard";
 import { usePracticeSessionModel } from "../models/page";
 
 export function ProcessingView() {
-  const { question, answer, order, submitting, isComplete, setAnswer, handleSubmit, complete } =
-    usePracticeSessionModel();
+  const { isComplete, complete } = usePracticeSessionModel();
 
   return (
     <div className="p-6 bg-[#fafafa] min-h-screen">
@@ -17,18 +15,8 @@ export function ProcessingView() {
         {/* 返回按钮和进度指示器 */}
         <ProgressIndicator />
 
-        {/* 统一的题目卡片 */}
-        <QuestionCard
-          key={question?.id}
-          question={question!}
-          answer={answer}
-          order={order + 1}
-          disabled={submitting || isComplete || answer?.status !== 0}
-          submitting={submitting}
-          onAnswerChange={setAnswer}
-          onSubmit={handleSubmit}
-          showAnalysis={true}
-        />
+        {/* TODO: 题目卡片占位 */}
+        <></>
 
         {/* 完成练习按钮 */}
         {isComplete && (

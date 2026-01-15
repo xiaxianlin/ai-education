@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Request
 from shared.core.constants import (
-    DIFFICULTY_LEVELS,
-    QUESTION_TYPES,
     SEMESTERS,
     SUBJECTS,
 )
@@ -40,8 +38,6 @@ async def configs():
     return {
         "subjects": SUBJECTS,
         "semesters": SEMESTERS,
-        "question_types": QUESTION_TYPES,
-        "difficulty_levels": DIFFICULTY_LEVELS,
         "providers": ["aliyun"],
     }
 

@@ -7,10 +7,7 @@ import Profile from '@/pages/Auth/Profile';
 import Home from '@/pages/Home';
 import PracticeDetail from '@/pages/Practice/PracticeDetail';
 import PracticeList from '@/pages/Practice/PracticeList';
-import QuestionDetail from '@/pages/Question/QuestionDetail';
-import QuestionForm from '@/pages/Question/QuestionForm';
 import QuestionList from '@/pages/Question/QuestionList';
-import QuestionTypeGenerate from '@/pages/Question/QuestionTypeGenerate';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
 import QuestionTypeSettings from '@/pages/Question/QuestionTypeSettings';
 import StudentDetail from '@/pages/Student/StudentDetail';
@@ -49,12 +46,8 @@ export function Router() {
         { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
         { path: 'textbook_version', element: <TextbookVersionList /> },
         { path: 'question', element: <QuestionList /> },
-        { path: 'question/form', element: <QuestionForm /> },
-        { path: 'question/form/:id', element: <QuestionForm /> },
-        { path: 'question/detail/:id', element: <QuestionDetail /> },
         { path: 'question_type', element: <QuestionTypeList /> },
-        { path: 'question_type/generate/:code', element: <QuestionTypeGenerate /> },
-        { path: 'question_type/settings/:type', element: <QuestionTypeSettings /> },
+        { path: 'question_type/settings/:type/:code', element: <QuestionTypeSettings /> },
         // Ability routes
         { path: 'ability', element: <Ability /> },
         // Practice routes

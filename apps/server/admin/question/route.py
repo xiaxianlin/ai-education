@@ -15,10 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.question.schema import (
     AbilityPracticeSearchSchema,
-    QuestionBatchDeleteSchema,
-    QuestionBatchUpdateSchema,
-    QuestionCreateSchema,
-    QuestionGenerateSchema,
     QuestionSearchSchema,
     QuestionTypeConfigsUpdateSchema,
     QuestionTypePromptUpdateSchema,
@@ -137,67 +133,6 @@ async def update_question_type_configs(code: str, params: QuestionTypeConfigsUpd
     return QuestionTypeSchema.model_validate(question_type)
 
 
-@question_router.post(
-    "/type/{code}/generate",
-    tags=["题型管理"],
-    summary="生成题目",
-    description="根据题型编码生成指定数量的题目",
-    response_model=List[QuestionSchema],
-)
-async def generate_questions(code: str, params: QuestionGenerateSchema):
-    """根据题型编码生成题目"""
-    from shared.generation import invoke_question_generation_workflow
-
-    questions = await invoke_question_generation_workflow(
-        question_type_code=code,
-        count=params.count,
-    )
-
-    return [QuestionSchema.model_validate(q) for q in questions]
-
-
-# ======================== 题目管理 ======================== #
-
-
-@question_router.post(
-    "/",
-    tags=["题目管理"],
-    summary="创建题目",
-    description="创建一道新的题目",
-    response_model=QuestionSchema,
-)
-async def create_question(params: QuestionCreateSchema, db: AsyncSession = Database):
-    return await question.create_question(db, params)
-
-
-@question_router.post(
-    "/batch_delete",
-    tags=["题目管理"],
-    summary="批量删除题目",
-    description="批量删除指定的题目",
-)
-async def batch_delete_questions(params: QuestionBatchDeleteSchema, db: AsyncSession = Database):
-    deleted_count = await question.delete_questions_batch(db, params.ids)
-    return {"message": "批量删除成功", "deleted_count": deleted_count}
-
-
-@question_router.patch(
-    "/batch_update",
-    tags=["题目管理"],
-    summary="批量更新题目",
-    description="批量更新题目的状态（已废弃：is_active 字段已删除）",
-)
-async def batch_update_questions(params: QuestionBatchUpdateSchema, db: AsyncSession = Database):
-    """批量更新题目状态
-
-    TODO: 此功能已废弃，原 is_active 字段已删除。
-    如需批量更新功能，需要重新设计（可能使用软删除或状态字段）。
-    """
-    raise HTTPException(
-        status_code=501, detail="批量更新题目功能已废弃，原 is_active 字段已删除。如需此功能，需要重新设计。"
-    )
-
-
 @question_router.get(
     "/search",
     tags=["题目管理"],
@@ -246,14 +181,3 @@ async def get_question(id: str, db: AsyncSession = Database):
     if not result:
         raise HTTPException(status_code=404, detail=f"题目 {id} 不存在")
     return QuestionSchema.model_validate(result)
-
-
-@question_router.post(
-    "/{id}/generate_resources",
-    tags=["题目管理"],
-    summary="生成题目资源",
-    description="根据题目的 resources 字段定义，生成所有需要的资源（图片、音频等）",
-)
-async def generate_question_resources(id: str, db: AsyncSession = Database):
-    """生成题目资源"""
-    await question.generate_question_resources(db, id)

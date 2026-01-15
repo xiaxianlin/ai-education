@@ -135,95 +135,46 @@ declare global {
 
   // ================ 基础结构 ================
 
-  /** 答案（对应 AnswerSchema） */
+  /** 评价量表项（对应 RubricSchema） */
+  interface Rubric {
+    dimension: string;
+    max_score: number;
+    description?: string;
+  }
+
+  /** 答案（对应 QuestionAnswerSchema） */
   interface Answer {
-    type: AnswerType;
-    correct_answers?: string[];
-    accept_answers?: string[];
-    scoring?: Record<string, number>;
-    rubric?: Record<string, unknown>;
+    value: any; // 学生答案内容
+    correct_value?: any; // 正确答案参考
+    analysis_mode: string; // "objective" | "subjective"
+    explanation?: string; // 答案解析
+    rubrics?: Rubric[]; // 评分量表（主观题）
+    configs?: Record<string, unknown>; // 其他配置项
   }
 
   /** 选项（对应 OptionSchema） */
   interface QuestionOption {
     id: string;
     text?: string;
-    image_url?: string;
-    audio_url?: string;
-    is_correct: boolean;
-    feedback?: string;
+    resource?: QuestionResource; // 选项资源
+    is_correct?: boolean;
   }
 
   /** 资源（对应 ResourceSchema） */
   interface QuestionResource {
-    id: string;
-    type: string; // 资源类型：none/image/audio/video/animation
+    type: string; // 资源类型：image, audio, video
     url: string;
     alt?: string;
-    position: "stem" | "option" | "background"; // 向后兼容字段
-    resource_type?: "stem" | "option"; // 资源归属类型：'stem'（题干资源）/'option'（选项资源），向后兼容时可能不存在
-    option_id?: string; // 关联的选项ID（当 resource_type='option' 时必填）
-    size?: Record<string, number>; // 尺寸，如 { width: number, height: number }
-    style?: Record<string, unknown>;
-    duration?: number;
-    transcript?: string;
-  }
-
-  /** 子题题干（简化版，对应 SubStemSchema） */
-  interface SubStem {
-    text: string;
-    rich_text?: string;
-    hints?: string[];
-  }
-
-  /** 子题结构 - 用于复合题/应用题（对应 SubQuestionSchema） */
-  interface SubQuestion {
-    id: string;
-    order: number;
-    stem: SubStem | string; // 对应 SubStemSchema，但后端使用 Dict[str, Any]
-    interaction_type: InteractionType;
-    interaction_config?: Record<string, unknown>;
-    options?: Array<Record<string, unknown>>; // 对应 OptionSchema[]，但后端使用 List[Dict[str, Any]]
-    resources?: QuestionResource[]; // 对应 ResourceSchema[]，但后端使用 List[Dict[str, Any]]
-    answer: Record<string, unknown>; // 对应 AnswerSchema，但后端使用 Dict[str, Any]
-    explanation?: string;
-  }
-
-  /** 题干（对应 StemSchema） */
-  interface Stem {
-    text: string;
-    rich_text?: string;
-    audio_url?: string;
-    highlight_words?: string[];
-    hints?: string[];
-    sub_questions?: Array<Record<string, unknown>>; // 对应 SubQuestionSchema[]，但后端使用 List[Dict[str, Any]]
-  }
-
-  /** 反馈项（对应 FeedbackItemSchema） */
-  interface FeedbackItem {
-    sound?: string;
-    animation?: string;
-    messages?: string[];
-    points?: number;
-    show_hint?: boolean;
-    max_attempts?: number;
-  }
-
-  /** 反馈配置（对应 FeedbackConfigSchema） */
-  interface FeedbackConfig {
-    correct?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
-    incorrect?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
-    partial?: Record<string, unknown>; // 对应 FeedbackItemSchema，但后端使用 Dict[str, Any]
   }
 
   /**
-   * 题目内容结构（对应 ContentSchema）
+   * 题目内容结构（对应 QuestionContentSchema）
    */
   interface QuestionContent {
-    stem: string | Stem; // 题干文本或对象
-    resource?: QuestionResource; // 题干资源（单个）
+    stem: string; // 题干文本
+    resource?: QuestionResource; // 题干资源
     options?: QuestionOption[]; // 选项列表
-    sub_questions?: QuestionContent[]; // 子题列表（复合题）
+    sub_questions?: QuestionContent; // 子题列表（复合题，单个可选对象）
   }
 
   /**
@@ -332,8 +283,8 @@ declare global {
     question_count: number; // 题目总数
     answer_count: number; // 已答题数
     correct_count: number; // 正确数
-    status: PracticeStatus; // 练习状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
-    generate_status: PracticeGenerateStatus; // 生成状态: 0-生成中, 1-已完成, -1-生成失败
+    status: number; // 练习状态: 0-未开始, 1-进行中, 2-已完成, 3-已废弃
+    generate_status: number; // 生成状态: 0-生成中, 1-已完成, -1-生成失败
     generate_time?: number; // 生成耗时（秒）
     start_time: number; // 开始时间（Unix时间戳，秒）
     end_time?: number; // 结束时间（Unix时间戳，秒）

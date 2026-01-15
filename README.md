@@ -1,6 +1,6 @@
-# AI 教育辅导
+# 小学生练习系统
 
-一款 K12 教育辅导工具
+一款面向小学生的在线练习系统，包括后台管理、学生 PC 端、学生移动端。
 
 ## 项目结构
 
@@ -8,8 +8,9 @@
 
 ```
 ├── apps/                 # 应用目录
-│   ├── admin-web/        # 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
-│   ├── student-web/      # 学生端前端 (React 18 + Rsbuild + shadcn/ui)
+│   ├── admin-web/        # 后台管理端 (React 18 + Rsbuild + Ant Design 5)
+│   ├── student-web/      # 学生 PC 端 (React 18 + Rsbuild + shadcn/ui)
+│   ├── student-mobile/   # 学生移动端 (React Native + Expo + Tamagui)
 │   └── server/           # 服务端单体 (Python FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
 ├── packages/             # 共享包目录
 │   └── shared-web/       # Web 共享包（类型、API 客户端、工具函数）
@@ -38,8 +39,9 @@ cd apps/server && uv sync
 pnpm dev:all
 
 # 或单独启动
-pnpm dev:admin    # 管理后台
-pnpm dev:student  # 学生端
+pnpm dev:admin    # 后台管理端
+pnpm dev:student  # 学生 PC 端
+pnpm dev:mobile   # 学生移动端
 pnpm dev:server   # 后端服务
 ```
 
@@ -56,8 +58,9 @@ pnpm build:student
 
 ## 目录说明
 
--   apps/admin-web: 管理后台前端 (React 18 + Rsbuild + Ant Design 5)
--   apps/student-web: 学生端前端 (React 18 + Rsbuild + shadcn/ui)
+-   apps/admin-web: 后台管理端 (React 18 + Rsbuild + Ant Design 5)
+-   apps/student-web: 学生 PC 端 (React 18 + Rsbuild + shadcn/ui)
+-   apps/student-mobile: 学生移动端 (React Native + Expo + Tamagui)
 -   apps/server: 服务端单体 (FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
 -   packages/shared-web: Web 端共享包
 -   infra: 基础设施配置（MySQL 初始化、Nginx 配置）
