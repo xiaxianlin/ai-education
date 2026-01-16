@@ -27,6 +27,7 @@ pnpm dev:all         # 同时启动所有服务
 pnpm build:admin      # 后台管理端构建
 pnpm build:student    # 学生 PC 端构建
 pnpm build:server     # 后端构建
+pnpm build:all        # 构建所有应用
 
 # 测试与类型检查
 pnpm test            # 运行所有测试 (via turbo)
@@ -106,6 +107,7 @@ async def create(params: Schema, db: AsyncSession = Database):
 3. **LangGraph 工作流**: 复杂业务逻辑使用 LangGraph，状态字段用 `TypedDict` 定义
 4. **可选链访问**: 访问嵌套对象属性时使用完整可选链 `obj?.prop?.subProp`
 5. **状态检查顺序**: 判断练习会话等复合状态时，先检查 `generate_status` 再检查 `status`
+6. **API GET 参数**: `ApiClient.get()` 方法的第二个参数是查询参数字典，直接传递对象，不要嵌套在 `params` 字段中
 
 ## 详细规范
 

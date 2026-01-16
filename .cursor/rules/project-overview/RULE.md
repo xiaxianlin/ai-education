@@ -44,9 +44,14 @@ alwaysApply: true
 
 ## 开发工作流
 
-1. **前端开发**: `pnpm dev:admin`（后台管理端）、`pnpm dev:student`（学生 PC 端）、`pnpm dev:mobile`（学生移动端）
-2. **后端开发**: `pnpm dev:server` 启动服务端（FastAPI 单体，默认端口 7890）
-3. **全部启动**: `pnpm dev:all` 启动所有前端和后端服务
+1. **前端开发**: 
+   - `pnpm dev:admin` - 后台管理端
+   - `pnpm dev:student` - 学生 PC 端
+   - `pnpm dev:mobile` - 学生移动端
+2. **后端开发**: 
+   - `pnpm dev:server` - 启动服务端（FastAPI 单体，默认端口 7890）
+   - `pnpm dev:worker` - 启动 Celery 任务队列工作进程
+3. **全部启动**: `pnpm dev:all` - 同时启动所有前端和后端服务
 
 ## 依赖管理
 

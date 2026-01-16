@@ -219,11 +219,13 @@ const handleSubmit = useMemoizedFn((params: SubmitParams) => {
 ```typescript
 import { apiClient } from "@ai-education/shared-web";
 
-// GET 请求 - 参数直接传递对象
+// GET 请求 - 参数直接传递对象（不要嵌套在 params 字段中）
 const data = await apiClient.get<Question[]>("/question/list", {
   subject: "math",
   grade: 1,
 });
+// ✅ 正确：直接传递对象
+// ❌ 错误：apiClient.get("/question/list", { params: { subject: "math" } })
 
 // POST 请求
 const result = await apiClient.post<Question>("/question", {
@@ -237,6 +239,8 @@ await apiClient.patch(`/question/${id}`, { title: "更新标题" });
 // DELETE 请求
 await apiClient.delete(`/question/${id}`);
 ```
+
+**重要**: `ApiClient.get()` 方法的第二个参数是查询参数字典，直接传递对象，不要嵌套在 `params` 字段中。`ApiClient` 会自动将参数转换为 URL 查询参数。
 
 ### 错误处理
 

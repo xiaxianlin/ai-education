@@ -84,6 +84,14 @@ async def create_unit(
 - 后端返回格式统一为 `{ status: 0, message: "ok", data: T }`
 - 前端 `ApiClient` 会自动提取 `data` 字段，业务代码直接使用数据对象
 - `status !== 0` 时会抛出错误，错误信息在 `message` 字段
+- **GET 请求参数**: `ApiClient.get()` 方法的第二个参数是查询参数字典，直接传递对象，不要嵌套在 `params` 字段中
+  ```typescript
+  // ✅ 正确
+  apiClient.get("/ability/atomics", { subject, grade });
+  
+  // ❌ 错误
+  apiClient.get("/ability/atomics", { params: { subject, grade } });
+  ```
 
 ## 错误处理
 

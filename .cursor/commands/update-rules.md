@@ -17,20 +17,16 @@
   - `naming-conventions/RULE.md`
   - `api-design/RULE.md`
   - `code-review/RULE.md`
+  - `tailwind/RULE.md`
   - `cursor-rules-update/RULE.md`
 - `.cursor/commands/` 目录下的所有命令文档（`**/*.md`）
-  - `frontend.md`
-  - `backend.md`
-  - `ui-designer.md`
   - `auth.md`
   - `cr.md`
-  - `new-feature.md`
+  - `fix.md`
   - `pr.md`
   - `push.md`
-  - `test-fix.md`
-  - `api.md`
   - `update-rules.md`（本文件）
-- `.cursor/roles.md` 文件
+- `.cursor/roles.md` 文件（如果存在）
 
 ### 2. 所有 `AGENTS.md` 文件
 
@@ -130,19 +126,15 @@
 - [ ] `.cursor/rules/naming-conventions/RULE.md`
 - [ ] `.cursor/rules/api-design/RULE.md`
 - [ ] `.cursor/rules/code-review/RULE.md`
+- [ ] `.cursor/rules/tailwind/RULE.md`
 - [ ] `.cursor/rules/cursor-rules-update/RULE.md`
 
 ### 命令文档更新
-- [ ] `.cursor/commands/frontend.md`
-- [ ] `.cursor/commands/backend.md`
-- [ ] `.cursor/commands/ui-designer.md`
 - [ ] `.cursor/commands/auth.md`
 - [ ] `.cursor/commands/cr.md`
-- [ ] `.cursor/commands/new-feature.md`
+- [ ] `.cursor/commands/fix.md`
 - [ ] `.cursor/commands/pr.md`
 - [ ] `.cursor/commands/push.md`
-- [ ] `.cursor/commands/test-fix.md`
-- [ ] `.cursor/commands/api.md`
 - [ ] `.cursor/commands/update-rules.md`
 
 ### 角色和代理文档更新
