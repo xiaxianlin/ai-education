@@ -8,9 +8,9 @@ from shared.core.database import (
     Practice,
     PracticeAnswer,
     PracticeReport,
+    Question,
 )
-from shared.core.database import Question
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,17 +37,13 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
         raise ValueError("无权操作此练习")
 
     # 2. 检查是否已存在报告
-    existing_report = await db.scalar(
-        select(PracticeReport).where(PracticeReport.session_id == session_id)
-    )
+    existing_report = await db.scalar(select(PracticeReport).where(PracticeReport.session_id == session_id))
     if existing_report:
         logger.info(f"报告已存在: report_id={existing_report.id}")
         return existing_report.id
 
     # 3. 查询所有答题记录
-    answer_records = await db.scalars(
-        select(PracticeAnswer).where(PracticeAnswer.session_id == session_id)
-    )
+    answer_records = await db.scalars(select(PracticeAnswer).where(PracticeAnswer.session_id == session_id))
     answers = answer_records.all()
 
     # 4. 统计基础数据
@@ -74,9 +70,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     )
 
     # 9. 综合评估（主要用于assessment类型）
-    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(
-        overall_score, consistency
-    )
+    current_ability, confidence, ability_level, percentile = calculate_ability_assessment(overall_score, consistency)
 
     # 10. 创建报告
     report = PracticeReport(
@@ -110,9 +104,7 @@ async def generate_practice_report(db: AsyncSession, student_id: str, session_id
     return report.id
 
 
-async def analyze_question_distribution(
-    db: AsyncSession, answers: List[PracticeAnswer]
-) -> Dict:
+async def analyze_question_distribution(db: AsyncSession, answers: List[PracticeAnswer]) -> Dict:
     """分析题目来源分布（按题型）"""
     if not answers:
         return {}

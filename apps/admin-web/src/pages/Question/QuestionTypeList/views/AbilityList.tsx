@@ -47,7 +47,7 @@ export default function AbilityPracticeListView() {
               编辑
             </Button>
             <Link key="settings" to={`/question_type/settings/prompt/${record.code}`}>
-              <Button type="link">指令</Button>
+              <Button type="link">提示词</Button>
             </Link>
             <Link key="configs" to={`/question_type/settings/configs/${record.code}`}>
               <Button type="link">配置</Button>

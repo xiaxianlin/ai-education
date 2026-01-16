@@ -1,8 +1,8 @@
 from fastapi import HTTPException, Request
 from shared.core.database import AsyncSessionLocal, Student
 from shared.core.schema import StudentSchema
-from shared.utils import encrypt
-from shared.utils.time import now
+from shared.util import encrypt
+from shared.util.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

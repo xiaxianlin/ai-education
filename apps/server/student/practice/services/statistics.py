@@ -5,7 +5,7 @@
 """
 
 from shared.core.database import Practice
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -92,9 +92,7 @@ async def _calculate_statistics(db: AsyncSession, student_id: str, start_time: i
 
     # 平均正确率：查询所有已完成的练习，计算每个练习的正确率，然后取平均
     completed_conditions = base_conditions + [Practice.status == 2, Practice.answer_count > 0]
-    completed_practices_result = await db.execute(
-        select(Practice).where(*completed_conditions)
-    )
+    completed_practices_result = await db.execute(select(Practice).where(*completed_conditions))
     completed_practices_list = completed_practices_result.scalars().all()
 
     average_accuracy = 0.0

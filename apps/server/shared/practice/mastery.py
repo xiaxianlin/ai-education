@@ -16,11 +16,9 @@ from shared.core.database import (
     Question,
     StudentAbilityMastery,
 )
-from shared.core.schema import StudentAbilityMasterySchema
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 
 # 掌握度等级阈值映射
 MASTERY_LEVEL_THRESHOLDS: list[tuple[int, int, str]] = [

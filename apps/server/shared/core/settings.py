@@ -1,5 +1,3 @@
-import multiprocessing
-
 from pydantic_settings import BaseSettings
 
 
@@ -36,12 +34,28 @@ class Settings(BaseSettings):
     # 任务配置
     TASK_QUEUE_NAME: str = "ai-education-task"  # Celery 队列名称
     TASK_TIMEOUT: int = 1800  # 任务默认超时时间（秒）- 30分钟
-    TASK_CONCURRENCY: int = multiprocessing.cpu_count()  # 任务并发数，自动检测（CPU核心数）
+    TASK_CONCURRENCY: int = 2  # 任务并发数
     TASK_LOGLEVEL: str = "info"  # 任务日志级别
 
+    # 文本模型配置
     LLM_API_KEY: str
     LLM_API_BASE: str
     LLM_MODEL_NAME: str
+
+    # 图片模型配置
+    IMAGE_API_KEY: str
+    IMAGE_API_BASE: str
+    IMAGE_API_MODEL: str
+
+    # TTS 模型配置
+    TTS_API_KEY: str
+    TTS_API_BASE: str
+    TTS_API_MODEL: str
+
+    # ASR 模型配置
+    ASR_API_KEY: str
+    ASR_API_BASE: str
+    ASR_API_MODEL: str
 
     class Config:
         env_file = ".env"

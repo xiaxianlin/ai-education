@@ -1,0 +1,201 @@
+{
+  "ali": {
+    "text": [
+      {
+        "model_name": "qwen3-max",
+        "input_price": 3.2,
+        "output_price": 12.8,
+        "unit": "元/百万Tokens"
+      },
+      {
+        "model_name": "qwen-max",
+        "input_price": 2.4,
+        "output_price": 9.6,
+        "unit": "元/百万Tokens"
+      },
+      {
+        "model_name": "qwen-plus",
+        "input_price": 0.8,
+        "output_price": 2,
+        "unit": "元/百万Tokens"
+      },
+      {
+        "model_name": "qwen-flash",
+        "input_price": 0.15,
+        "output_price": 1.5,
+        "unit": "元/百万Tokens"
+      }
+    ],
+    "image": [
+      {
+        "model_name": "qwen-image-max",
+        "price": 0.5,
+        "unit": "元/张"
+      },
+      {
+        "model_name": "qwen-image-push",
+        "price": 0.2,
+        "unit": "元/张"
+      },
+      {
+        "model_name": "qwen-image",
+        "price": 0.25,
+        "unit": "元/张"
+      },
+      {
+        "model_name": "z-image-turbo",
+        "price": [0.1, 0.2],
+        "unit": "元/张"
+      }
+    ],
+    "tts": [
+      {
+        "model_name": "qwen3-tts-flash",
+        "price": 0.8,
+        "unit": "元/万字符"
+      },
+      {
+        "model_name": "qwen-tts",
+        "price": 10,
+        "unit": "元/百万Tokens"
+      },
+      {
+        "model_name": "cosyvoice-v3-flash",
+        "price": 1,
+        "unit": "元/万字符"
+      },
+      {
+        "model_name": "cosyvoice-v3-plus",
+        "price": 2,
+        "unit": "元/万字符"
+      }
+    ],
+    "asr": [
+      {
+        "model_name": "qwen3-asr-flash",
+        "price": 0.00022,
+        "unit": "元/每秒"
+      },
+      {
+        "model_name": "paraformer-8k-v2",
+        "price": 0.00008,
+        "unit": "元/每秒"
+      }
+    ]
+  },
+  "bytedance": {
+    "text": [
+      {
+        "model_name": "Doubao-Seed-1.8",
+        "input_price": 0.8,
+        "output_price": 2,
+        "unit": "元/百万Tokens"
+      }
+    ],
+    "image": [
+      {
+        "model_name": "Doubao-Seedream-4.5",
+        "price": 0.25,
+        "unit": "元/张"
+      },
+      {
+        "model_name": "Doubao-Seedream-4.0",
+        "price": 0.2,
+        "unit": "元/张"
+      }
+    ]
+  },
+  "minmax": {
+    "text": [
+      {
+        "model_name": "MiniMax-M2.1",
+        "input_price": 2.1,
+        "output_price": 8.4,
+        "unit": "元/百万Tokens"
+      }
+    ],
+    "image": [
+      {
+        "model_name": "image-01",
+        "price": 0.025,
+        "unit": "元/张"
+      }
+    ],
+    "tts": [
+      {
+        "model_name": "speech-2.6-hd",
+        "price": 3.5,
+        "unit": "元/万字符"
+      },
+      {
+        "model_name": "speech-2.6-turbo",
+        "price": 2,
+        "unit": "元/万字符"
+      }
+    ]
+  },
+  "zipu": {
+    "text": [
+      {
+        "model_name": "GLM-4.7",
+        "input_price": 2,
+        "output_price": 8,
+        "unit": "元/百万Tokens"
+      }
+    ],
+    "image": [
+      {
+        "model_name": "GLM-Image",
+        "price": 0.1,
+        "unit": "元/张"
+      },
+      {
+        "model_name": "CogView-4",
+        "price": 0.06,
+        "unit": "元/张"
+      }
+    ],
+    "tts": [
+      {
+        "model_name": "GLM-TTS",
+        "price": 2,
+        "unit": "元/万字符"
+      }
+    ],
+    "asr": [
+      {
+        "model_name": "GLM-ASR-2512",
+        "price": 0.0002,
+        "unit": "元/每秒"
+      }
+    ]
+  },
+  "openai": {
+    "text": [
+      {
+        "model_name": "gpt-5.2",
+        "input_price": 13,
+        "output_price": 98,
+        "unit": "元/百万Tokens"
+      }
+    ]
+  },
+  "gemini": {
+    "text": [
+      {
+        "model_name": "gemini-3-flash",
+        "input_price": 3.5,
+        "output_price": 21,
+        "unit": "元/百万Tokens"
+      }
+    ],
+    "image": [
+      {
+        "model_name": "gemini-3-flash",
+        "input_price": 14.6,
+        "output_price": 876,
+        "unit": "元/百万Tokens"
+      }
+    ]
+  }
+}

@@ -2104,7 +2104,7 @@ K12 在线教育市场竞争激烈，需要建立有效的竞争风险应对策�
 
 \[203] 作业智能批改-智能体工场-河南空港数字城市开发建设有限公司-争做新型基础设施建设运营专家-河南空港数字城市开发建设有限公司[ https://www.kgszcs.com/zs\_27/291.html](https://www.kgszcs.com/zs_27/291.html)
 
-\[204] AI赋能智慧教育:主流作业批改技术方案选型与深度解析\_大模型ocr批改指令-CSDN博客[ https://blog.csdn.net/u012210662/article/details/149799212](https://blog.csdn.net/u012210662/article/details/149799212)
+\[204] AI赋能智慧教育:主流作业批改技术方案选型与深度解析\_大模型ocr批改提示词-CSDN博客[ https://blog.csdn.net/u012210662/article/details/149799212](https://blog.csdn.net/u012210662/article/details/149799212)
 
 \[205] 作业批改智能体:让教学效率与标准化双向提升​\_沧浪之水中沉浮[ http://m.toutiao.com/group/7546112632533615140/?upstream\_biz=doubao](http://m.toutiao.com/group/7546112632533615140/?upstream_biz=doubao)
 

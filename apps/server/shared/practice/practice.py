@@ -20,7 +20,7 @@ from shared.core.schema import (
     PracticeSchema,
     QuestionSchema,
 )
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -67,11 +67,7 @@ async def get_practices(
     # 查询分页数据
     offset = (page - 1) * page_size
     sessions = await db.scalars(
-        select(Practice)
-        .where(*conditions)
-        .order_by(desc(Practice.create_time))
-        .limit(page_size)
-        .offset(offset)
+        select(Practice).where(*conditions).order_by(desc(Practice.create_time)).limit(page_size).offset(offset)
     )
 
     # 转换为 Schema 并补全名称
@@ -148,9 +144,7 @@ async def get_practice_data(
     # 查询报告
     report = None
     if session.status == 2:
-        report = await db.scalar(
-            select(PracticeReport).where(PracticeReport.session_id == session_id)
-        )
+        report = await db.scalar(select(PracticeReport).where(PracticeReport.session_id == session_id))
 
     return PracticeDataSchema(
         session=PracticeSchema.model_validate(session),

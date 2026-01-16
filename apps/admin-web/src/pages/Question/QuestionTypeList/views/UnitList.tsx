@@ -36,7 +36,7 @@ export default function UnitPracticeListView() {
               编辑
             </Button>
             <Link key="settings" to={`/question_type/settings/prompt/${record.code}`}>
-              <Button type="link">指令</Button>
+              <Button type="link">提示词</Button>
             </Link>
             <Link key="generate" to={`/question/generate/${record.code}`}>
               <Button type="link">生成</Button>

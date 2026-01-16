@@ -8,7 +8,7 @@ from loguru import logger
 from shared.core.database import Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
-from shared.utils import rag
+from shared.util import rag
 from sqlalchemy import asc, delete, distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -15,7 +15,7 @@ from shared.core.database import (
     Question,
 )
 from shared.core.schema import PracticeAnswerSchema
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

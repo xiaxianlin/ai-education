@@ -51,7 +51,7 @@ const useContainer = () => {
     },
   );
 
-  const pageTitle = `题型配置 - ${type === 'prompt' ? '指令' : '配置'}`;
+  const pageTitle = `题型配置 - ${type === 'prompt' ? '提示词' : '配置'}`;
 
   return {
     type,

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
-from shared.utils import validation
+from shared.util import validation
 
 
 class LoginSchema(BaseModel):

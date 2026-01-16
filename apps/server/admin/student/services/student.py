@@ -7,8 +7,8 @@ from shared.core.database import (
     Student,
 )
 from shared.core.schema import SearchResultSchema, StudentSchema
-from shared.utils import encrypt
-from shared.utils.time import now
+from shared.util import encrypt
+from shared.util.time import now
 from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -35,7 +35,7 @@
 - **题目列表**: `pages/Question/List/` - 题目CRUD操作
 - **题目详情**: `pages/Question/Detail/` - 题目详情查看
 - **题目表单**: `pages/Question/Form/` - 题目编辑表单
-- **题型管理**: `pages/Question/Type/` - 题型配置管理（包含AI生成指令）
+- **题型管理**: `pages/Question/Type/` - 题型配置管理（包含AI生成提示词）
 
 ### 能力管理 (Ability)
 - **能力管理**: `pages/Ability/` - 能力CRUD操作，按学科和年级展示

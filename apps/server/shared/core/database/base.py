@@ -8,7 +8,7 @@ from typing import Optional
 
 from fastapi import Depends
 from shared.core.settings import envs
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import (
@@ -62,7 +62,6 @@ def get_async_session() -> AsyncSession:
 
 class Base(DeclarativeBase):
     """SQLAlchemy 声明式基类"""
-
 
 
 class BaseModel(Base):

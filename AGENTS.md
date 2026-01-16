@@ -1,4 +1,4 @@
-# 小学生练习系统 - Agent 指令
+# 小学生练习系统 - Agent 提示词
 
 小学生练习系统的 Monorepo 项目，包括后台管理、学生 PC 端、学生移动端，使用 pnpm workspace + Turborepo 管理。
 

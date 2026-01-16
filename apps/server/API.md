@@ -891,7 +891,7 @@ POST /api/admin/question/type
 - `feedback_config`: 反馈配置（可选，JSON对象）
 - `cognitive_levels`: 认知层次列表（可选）
 - `ability_atomic_codes`: 关联的能力代码列表（可选）
-- `ai_prompt`: AI生成指令（可选）
+- `ai_prompt`: AI生成提示词（可选）
 - `output_schema`: AI输出Schema（可选，JSON对象）
 - `sort_order`: 排序（默认0）
 
@@ -922,7 +922,7 @@ PATCH /api/admin/question/type/{id}
     }
   },
   "cognitive_levels": ["记忆", "理解", "应用"],
-  "ai_prompt": "更新后的 AI 指令",
+  "ai_prompt": "更新后的 AI 提示词",
   "sort_order": 10,
   "is_active": true
 }

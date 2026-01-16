@@ -1,4 +1,4 @@
-import { useRequest } from 'ahooks';
+import { useLocalStorageState, useRequest } from 'ahooks';
 import { message } from 'antd';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -7,7 +7,7 @@ import { QuestionApi } from '../../api';
 
 const useContainer = () => {
   const { code } = useParams<{ code: string }>();
-  const [inputJson, setInputJson] = useState<string>('{}');
+  const [inputJson, setInputJson] = useLocalStorageState<string>(`config_${code}`, { defaultValue: '{}' });
   const [promptModalVisible, setPromptModalVisible] = useState(false);
 
   const {

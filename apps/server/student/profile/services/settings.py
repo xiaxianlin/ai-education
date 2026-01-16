@@ -1,5 +1,5 @@
 from shared.core.database import Student
-from shared.utils.time import now
+from shared.util.time import now
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 

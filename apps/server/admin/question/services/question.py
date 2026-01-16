@@ -5,6 +5,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from shared.core.database import Question
+from shared.util.prompt import create_question_generate_prompt
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -103,6 +104,9 @@ async def generate_question(db: AsyncSession, code: str, params: Dict[str, Any])
     """
     # TODO: 实现实际的题目生成逻辑
     # 目前返回一个包含输入参数的占位符响应
+    prompt = create_question_generate_prompt(code)
+    print(params)
+    print(prompt.input_variables)
     return {
         "code": code,
         "params": params,
