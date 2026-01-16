@@ -31,8 +31,6 @@ interface Question {{
   answer: QuestionAnswer;        // 答案配置（必填）
   explanation?: string;          // 题目解析
   difficulty: "easy" | "medium" | "hard";  // 难度（必填）
-  cognitive_level?: string;      // 认知层次
-  knowledge_points?: string[];   // 知识点列表
 }}
 ```
 
