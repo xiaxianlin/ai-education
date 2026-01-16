@@ -390,7 +390,7 @@ interface Rubric {
 
 ---
 
-## 九、输出格式要求
+## 八、输出格式要求
 
 {format_instructions}
 

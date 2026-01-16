@@ -2,8 +2,6 @@
 题型和题目管理 API 路由
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException
 from shared.core.database import Database
 from shared.core.schema import (
