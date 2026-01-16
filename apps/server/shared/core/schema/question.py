@@ -106,8 +106,8 @@ class QuestionSchema(BaseModel):
     content: QuestionContentSchema
     # 答案配置
     answer: QuestionAnswerSchema
-    # 解析
-    explanation: Optional[str] = None
+    # 难度
+    difficulty: Optional[str] = None
 
     create_time: int
     update_time: int

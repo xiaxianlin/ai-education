@@ -60,7 +60,7 @@ class Question(BaseModel):
 
     content: Mapped[dict] = mapped_column(JSON, nullable=False, comment="题目内容：包含题干、选项等")
     answer: Mapped[dict] = mapped_column(JSON, nullable=False, comment="答案配置")
-    explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True, comment="解析")
+    difficulty: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, comment="难度")
 
     create_time: Mapped[int] = mapped_column(default=now, comment="创建时间")
     update_time: Mapped[int] = mapped_column(default=now, onupdate=now, comment="更新时间")
