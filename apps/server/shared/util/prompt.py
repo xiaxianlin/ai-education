@@ -25,7 +25,7 @@ def get_question_generate_prompt_template(code: str) -> str:
     return file_path.read_text(encoding="utf-8")
 
 
-def create_question_generate_prompt(code: str) -> ChatPromptTemplate:
+def get_question_generate_prompt(code: str) -> ChatPromptTemplate:
     """创建题目生成提示词模板
 
     使用 ChatPromptTemplate.from_template 创建提示词模板对象。

@@ -11,14 +11,14 @@ def get_openai_client():
     return OpenAI(api_key=envs.LLM_API_KEY, base_url=envs.LLM_API_BASE, model=envs.LLM_MODEL_NAME)
 
 
-def get_langchain_cleint():
+def get_langchain_client():
     return ChatOpenAI(api_key=envs.LLM_API_KEY, base_url=envs.LLM_API_BASE, model=envs.LLM_MODEL_NAME)
 
 
 def llm(prompt: str):
     """LLM 调用"""
     try:
-        client = get_langchain_cleint()
+        client = get_langchain_client()
         response = client.invoke(prompt)
         logger.info(f"LLM 调用成功: {response.usage_metadata}")
         return response.content
@@ -106,7 +106,7 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
             "model": envs.IMAGE_MODEL_NAME,
             "prompt": prompt,
             "aspect_ratio": aspect_ratio,
-            "response_format": "base64",
+            "response_format": "url",
             "n": 3,
         }
         response = requests.post(url, json=payload, headers=headers, timeout=600)
@@ -119,10 +119,10 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
             status_msg = base_resp.get("status_msg", "unknown error")
             raise ValueError(f"IMAGE API 返回错误: {status_msg}")
 
-        # 提取图片 base64 列表
-        image_base64s = result.get("data", {}).get("image_base64", [])
-        if not image_base64s:
-            raise ValueError("IMAGE API 返回的图片 base64 列表为空")
+        # 提取图片 URL 列表
+        image_urls = result.get("data", {}).get("image_urls", [])
+        if not image_urls:
+            raise ValueError("IMAGE API 返回的图片 URL 列表为空")
 
         # 记录元数据信息
         metadata = result.get("metadata", {})
@@ -132,10 +132,10 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
         logger.info(
             f"IMAGE 调用成功: prompt={prompt[:50]}..., "
             f"success_count={success_count}, failed_count={failed_count}, "
-            f"image_count={len(image_base64s)}"
+            f"image_count={len(image_urls)}"
         )
-        # 返回图片第一张图片的 base64
-        return image_base64s[0]
+        # 返回图片第一张图片的 URL
+        return image_urls[0]
     except Exception as e:
         logger.error(f"IMAGE 调用失败: {e}")
         raise ValueError(f"IMAGE 调用失败: {str(e)}")
