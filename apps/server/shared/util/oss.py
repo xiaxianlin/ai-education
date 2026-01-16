@@ -1,5 +1,7 @@
 """OSS 服务"""
 
+import uuid
+import base64
 from datetime import timedelta
 
 import alibabacloud_oss_v2 as oss
@@ -87,3 +89,17 @@ def get_access_url(filepath: str, days: int = 7):
     req = oss.GetObjectRequest(bucket=envs.ALIYUN_OSS_BUCKET, key=filepath)
     res = client.presign(req, expires=timedelta(days=days))
     return res.url
+
+
+def upload_image(image_base64: str):
+    file_path = f"images/{uuid.uuid4()}.png"
+    data = base64.b64decode(image_base64)
+    upload(file_path, data)
+    return file_path
+
+
+def upload_audio(audio_base64: str):
+    file_path = f"audios/{uuid.uuid4()}.mp3"
+    data = base64.b64decode(audio_base64)
+    upload(file_path, data)
+    return file_path

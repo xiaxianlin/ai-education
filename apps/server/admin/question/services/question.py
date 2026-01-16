@@ -5,7 +5,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from shared.core.database import Question
-from shared.question.generate import generate_question_workflow
+from shared.question.generate import generate_question_agent, generate_question_workflow
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,7 +51,9 @@ async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
     return result.scalar_one_or_none()
 
 
-async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tuple[List[Question], int]:
+async def search_questions(
+    db: AsyncSession, params: QuestionSearchSchema
+) -> Tuple[List[Question], int]:
     """搜索题目，返回列表和总数"""
     conditions = []
 
@@ -103,5 +105,5 @@ async def generate_question(db: AsyncSession, code: str, params: Dict[str, Any])
         生成的题目数据（字典格式）
     """
     # 目前返回一个包含输入参数的占位符响应
-    result = generate_question_workflow(code, params)
+    result = generate_question_agent(code, params)
     return result

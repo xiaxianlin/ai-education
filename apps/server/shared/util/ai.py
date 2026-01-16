@@ -12,7 +12,9 @@ def get_openai_client():
 
 
 def get_langchain_client():
-    return ChatOpenAI(api_key=envs.LLM_API_KEY, base_url=envs.LLM_API_BASE, model=envs.LLM_MODEL_NAME)
+    return ChatOpenAI(
+        api_key=envs.LLM_API_KEY, base_url=envs.LLM_API_BASE, model=envs.LLM_MODEL_NAME
+    )
 
 
 def llm(prompt: str):
@@ -27,8 +29,16 @@ def llm(prompt: str):
         raise ValueError(f"LLM 调用失败: {str(e)}")
 
 
-def asr(audio_url: str):
-    """ASR 调用"""
+def asr(audio_url: str) -> str:
+    """
+    ASR 调用
+
+    Args:
+        audio_url (str): 需要识别的音频 URL
+
+    Returns:
+        str: 识别后的文本
+    """
     try:
         client = OpenAI(api_key=envs.ASR_API_KEY, base_url=envs.ASR_API_BASE)
         completion = client.chat.completions.create(
@@ -50,8 +60,16 @@ def asr(audio_url: str):
         raise ValueError(f"ASR 调用失败: {str(e)}")
 
 
-def tts(text: str):
-    """TTS 调用"""
+def tts(text: str) -> str:
+    """
+    TTS 调用
+
+    Args:
+        text (str): 需要转换的文本
+
+    Returns:
+        str: base64 编码的音频数据
+    """
     try:
         url = envs.TTS_API_BASE
         headers = {
@@ -94,8 +112,17 @@ def tts(text: str):
         raise ValueError(f"TTS 调用失败: {str(e)}")
 
 
-def image(prompt: str, aspect_ratio: str = "16:9"):
-    """图片生成调用"""
+def image(prompt: str, aspect_ratio: str = "16:9") -> str:
+    """
+    图片生成调用
+
+    Args:
+        prompt (str): 图片生成提示词
+        aspect_ratio (str, optional): 图片宽高比. Defaults to "16:9".
+
+    Returns:
+        str: 图片 base64 编码
+    """
     try:
         url = envs.IMAGE_API_BASE
         headers = {
@@ -106,7 +133,7 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
             "model": envs.IMAGE_MODEL_NAME,
             "prompt": prompt,
             "aspect_ratio": aspect_ratio,
-            "response_format": "url",
+            "response_format": "base64",
             "n": 3,
         }
         response = requests.post(url, json=payload, headers=headers, timeout=600)
@@ -119,10 +146,10 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
             status_msg = base_resp.get("status_msg", "unknown error")
             raise ValueError(f"IMAGE API 返回错误: {status_msg}")
 
-        # 提取图片 URL 列表
-        image_urls = result.get("data", {}).get("image_urls", [])
-        if not image_urls:
-            raise ValueError("IMAGE API 返回的图片 URL 列表为空")
+        # 提取图片 base64 列表
+        image_raws = result.get("data", {}).get("image_base64", [])
+        if not image_raws:
+            raise ValueError("IMAGE API 返回的图片 base64 列表为空")
 
         # 记录元数据信息
         metadata = result.get("metadata", {})
@@ -132,10 +159,10 @@ def image(prompt: str, aspect_ratio: str = "16:9"):
         logger.info(
             f"IMAGE 调用成功: prompt={prompt[:50]}..., "
             f"success_count={success_count}, failed_count={failed_count}, "
-            f"image_count={len(image_urls)}"
+            f"image_count={len(image_raws)}"
         )
-        # 返回图片第一张图片的 URL
-        return image_urls[0]
+        # 返回图片第一张图片的 base64
+        return image_raws[0]
     except Exception as e:
         logger.error(f"IMAGE 调用失败: {e}")
         raise ValueError(f"IMAGE 调用失败: {str(e)}")

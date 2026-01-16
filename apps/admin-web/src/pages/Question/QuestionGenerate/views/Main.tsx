@@ -29,9 +29,9 @@ export default function MainView() {
         </Button>
       }
     >
-      <Flex gap={16} vertical>
+      <Flex gap={16}>
         <ProCard
-          bordered
+          className="flex-1"
           title="设置参数"
           extra={
             <Button type="primary" loading={loading} onClick={handleGenerate}>
@@ -39,11 +39,11 @@ export default function MainView() {
             </Button>
           }
         >
-          <JsonEditor value={inputJson} onChange={setInputJson} height="200px" disabled={loading} />
+          <JsonEditor value={inputJson} onChange={setInputJson} height="700px" disabled={loading} />
         </ProCard>
 
-        <ProCard title="生成结果" loading={loading} bordered>
-          {result ? <JsonViewer value={result} height="600px" collapsed={2} /> : <Empty description="暂无生成结果" />}
+        <ProCard className="flex-1" title="生成结果" loading={loading}>
+          {result ? <JsonViewer value={result} height="700px" /> : <Empty description="暂无生成结果" />}
         </ProCard>
       </Flex>
 
@@ -55,9 +55,7 @@ export default function MainView() {
         width={800}
         loading={promptLoading}
       >
-        <pre className="break-all whitespace-pre-wrap leading-[1.2] max-h-[600px] overflow-auto">
-          {promptContent}
-        </pre>
+        <pre className="break-all whitespace-pre-wrap leading-[1.2] max-h-[600px] overflow-auto">{promptContent}</pre>
       </Modal>
     </PageContainer>
   );
