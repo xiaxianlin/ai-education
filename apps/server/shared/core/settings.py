@@ -45,17 +45,18 @@ class Settings(BaseSettings):
     # 图片模型配置
     IMAGE_API_KEY: str
     IMAGE_API_BASE: str
-    IMAGE_API_MODEL: str
+    IMAGE_MODEL_NAME: str
 
     # TTS 模型配置
     TTS_API_KEY: str
     TTS_API_BASE: str
-    TTS_API_MODEL: str
+    TTS_MODEL_NAME: str
+    TTS_API_VOICE: str
 
     # ASR 模型配置
     ASR_API_KEY: str
     ASR_API_BASE: str
-    ASR_API_MODEL: str
+    ASR_MODEL_NAME: str
 
     class Config:
         env_file = ".env"
