@@ -2,7 +2,7 @@
 题目服务层
 """
 
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from shared.core.database import Question
 from sqlalchemy import and_, func, select
@@ -88,3 +88,24 @@ async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tu
     questions = list(result.scalars().all())
 
     return questions, total
+
+
+async def generate_question(db: AsyncSession, code: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    """生成题目
+
+    Args:
+        db: 数据库会话
+        code: 题型编码
+        params: 生成参数
+
+    Returns:
+        生成的题目数据（字典格式）
+    """
+    # TODO: 实现实际的题目生成逻辑
+    # 目前返回一个包含输入参数的占位符响应
+    return {
+        "code": code,
+        "params": params,
+        "generated": True,
+        "message": "题目生成功能待实现",
+    }

@@ -107,4 +107,12 @@ export const QuestionApi = {
   async updateQuestionTypeConfigs(code: string, configs: Record<string, any>) {
     return apiClient.patch<QuestionType>(`/question/type/${code}/configs`, { configs });
   },
+
+  /**
+   * 生成题目
+   * POST /question/generate/{code}
+   */
+  async generateQuestion(code: string, params: Record<string, any>) {
+    return apiClient.post<Record<string, any>>(`/question/generate/${code}`, { params });
+  },
 };

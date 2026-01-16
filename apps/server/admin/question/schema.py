@@ -94,3 +94,9 @@ class QuestionSearchSchema(SearchSchema):
     question_type_code: Optional[str] = None
     subject: Optional[str] = None
     grade: Optional[int] = None
+
+
+class QuestionGenerateSchema(BaseModel):
+    """生成题目"""
+
+    params: Dict[str, Any] = Field(..., description="生成参数")

@@ -3,6 +3,7 @@ export * from './DeleteButton';
 export * from './DescriptionList';
 export * from './DetailCard';
 export * from './JsonEditor';
+export * from './JsonViewer';
 export * from './MarkdownEditor';
 export * from './PageHeader';
 export * from './StatusTag';

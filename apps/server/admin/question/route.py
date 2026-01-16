@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin.question.schema import (
     AbilityPracticeSearchSchema,
+    QuestionGenerateSchema,
     QuestionSearchSchema,
     QuestionTypeConfigsUpdateSchema,
     QuestionTypePromptUpdateSchema,
@@ -179,3 +180,15 @@ async def get_question(id: str, db: AsyncSession = Database):
     if not result:
         raise HTTPException(status_code=404, detail=f"题目 {id} 不存在")
     return QuestionSchema.model_validate(result)
+
+
+@question_router.post(
+    "/generate/{code}",
+    tags=["题目管理"],
+    summary="生成题目",
+    description="根据题型编码和参数生成题目",
+)
+async def generate_question(code: str, params: QuestionGenerateSchema, db: AsyncSession = Database):
+    """生成题目"""
+    result = await question.generate_question(db, code, params.params)
+    return result

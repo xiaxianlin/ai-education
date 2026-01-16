@@ -7,6 +7,7 @@ import Profile from '@/pages/Auth/Profile';
 import Home from '@/pages/Home';
 import PracticeDetail from '@/pages/Practice/PracticeDetail';
 import PracticeList from '@/pages/Practice/PracticeList';
+import QuestionGenerate from '@/pages/Question/QuestionGenerate';
 import QuestionList from '@/pages/Question/QuestionList';
 import QuestionTypeList from '@/pages/Question/QuestionTypeList';
 import QuestionTypeSettings from '@/pages/Question/QuestionTypeSettings';
@@ -46,6 +47,7 @@ export function Router() {
         { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
         { path: 'textbook_version', element: <TextbookVersionList /> },
         { path: 'question', element: <QuestionList /> },
+        { path: 'question/generate/:code', element: <QuestionGenerate /> },
         { path: 'question_type', element: <QuestionTypeList /> },
         { path: 'question_type/settings/:type/:code', element: <QuestionTypeSettings /> },
         // Ability routes

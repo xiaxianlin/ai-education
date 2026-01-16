@@ -26,7 +26,7 @@ export default function UnitPracticeListView() {
       {
         title: '描述',
         dataIndex: 'description',
-        width: 200,
+        width: 500,
         render: (text) => text || '-',
       },
       createActionColumn<QuestionType>(
@@ -38,10 +38,13 @@ export default function UnitPracticeListView() {
             <Link key="settings" to={`/question_type/settings/prompt/${record.code}`}>
               <Button type="link">指令</Button>
             </Link>
+            <Link key="generate" to={`/question/generate/${record.code}`}>
+              <Button type="link">生成</Button>
+            </Link>
             <DeleteButton buttonProps={{ type: 'link' }} onConfirm={() => handleDelete(record.id)} />
           </>
         ),
-        { width: 120 },
+        { width: 180 },
       ),
     ],
     [showForm, handleDelete],
