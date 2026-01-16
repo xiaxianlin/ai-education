@@ -58,7 +58,6 @@ pnpm format          # Prettier 格式化
 - **命名**: `snake_case` (变量/函数), `PascalCase` (类), `UPPER_SNAKE_CASE` (常量)
 - **数据库**: SQLAlchemy 2.0 异步 ORM，使用 `AsyncSession` + `select()` (禁止 `session.query()`)
 - **错误处理**: 使用 `ValueError` 抛出业务错误，由全局异常处理器统一处理
-- **日志**: 使用 Loguru，异常消息含花括号时用 `log_error()` 函数自动转义
 
 ### TypeScript (React)
 

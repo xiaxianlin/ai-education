@@ -13,8 +13,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 ##################################
 from shared.core.database import init_database
 from shared.core.logger import logger
-from shared.core.middleware.logging import LoggingMiddleware
-from shared.core.middleware.performance import PerformanceMiddleware
 from shared.core.settings import envs
 from student import student_app
 
@@ -53,10 +51,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
-# 性能监控中间件（在最外层，记录完整请求时间）
-app.add_middleware(PerformanceMiddleware)
-# 日志中间件（记录请求和响应）
-app.add_middleware(LoggingMiddleware)
 
 
 app.mount("/api/admin", admin_app)

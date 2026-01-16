@@ -22,7 +22,6 @@
   - Avoid `session.query(Model)`.
   - Use `joinedload` or `selectinload` for relationship fetching.
 - **Error Handling**: Use `ValueError` for business logic errors; let the global exception handler convert to HTTP responses.
-- **Logging**: Use `loguru` with `log_error` helper for exception context.
 
 ## AI Integration
 

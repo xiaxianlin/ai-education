@@ -1,7 +1,5 @@
-from shared.core.database import Practice
-from shared.core.schema import PracticeSchema, StudentSchema
+from shared.core.schema import StudentSchema
 from shared.practice import practice
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -25,9 +23,7 @@ async def get_student_practice_sessions(
     return await practice.get_practices(db, student.id, page=page, page_size=page_size)
 
 
-async def get_student_practice_session_data(
-    db: AsyncSession, student: StudentSchema, session_id: str
-):
+async def get_student_practice_session_data(db: AsyncSession, student: StudentSchema, session_id: str):
     """查询学生练习会话详情
 
     Args:

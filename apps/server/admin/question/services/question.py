@@ -2,17 +2,11 @@
 题目服务层
 """
 
-import uuid
 from typing import List, Optional, Tuple
 
-from loguru import logger
 from shared.core.database import Question
-from shared.generation.question.service import (
-    generate_question_resources as generate_resources,
-)
-from sqlalchemy import and_, cast, delete, func, select, String
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
 
 from admin.question.schema import QuestionSearchSchema, QuestionUpdateSchema
 
@@ -56,9 +50,7 @@ async def get_question(db: AsyncSession, id: str) -> Optional[Question]:
     return result.scalar_one_or_none()
 
 
-async def search_questions(
-    db: AsyncSession, params: QuestionSearchSchema
-) -> Tuple[List[Question], int]:
+async def search_questions(db: AsyncSession, params: QuestionSearchSchema) -> Tuple[List[Question], int]:
     """搜索题目，返回列表和总数"""
     conditions = []
 

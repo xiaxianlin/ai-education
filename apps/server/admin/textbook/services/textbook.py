@@ -8,7 +8,6 @@ from loguru import logger
 from shared.core.database import Textbook, Unit
 from shared.core.schema import TextbookSchema
 from shared.core.settings import envs
-from shared.provider import get_provider
 from shared.utils import rag
 from sqlalchemy import asc, delete, distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -188,13 +187,11 @@ async def parse_textbook(db: AsyncSession, id: int):
         "format_instructions": format_instructions,
     }
 
-    provider = get_provider()
+    # TODO: 调用AI模型解析单元信息
 
-    result = await provider.invoke_chain(
-        prompt=prompt,
-        parser=parser,
-        prompt_input=prompt_input,
-    )
+    result = {
+        "units": [],
+    }
     logger.info("AI解析单元信息成功")
 
     # 验证结果
@@ -221,7 +218,6 @@ async def parse_textbook(db: AsyncSession, id: int):
 
 async def get_available_textbook_options(db: AsyncSession):
     """获取可用的教材选项（年级、学科、学期）"""
-    from sqlalchemy import func
 
     # 获取所有唯一的学科
     subjects_result = await db.scalars(select(distinct(Textbook.subject)).order_by(Textbook.subject))
@@ -232,9 +228,7 @@ async def get_available_textbook_options(db: AsyncSession):
     grades = [g for g in grades_result.all() if g is not None]
 
     # 获取所有唯一的学期
-    semesters_result = await db.scalars(
-        select(distinct(Textbook.semester)).order_by(Textbook.semester)
-    )
+    semesters_result = await db.scalars(select(distinct(Textbook.semester)).order_by(Textbook.semester))
     semesters = [s for s in semesters_result.all() if s]
 
     return {

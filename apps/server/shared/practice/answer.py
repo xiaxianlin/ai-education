@@ -7,10 +7,7 @@
 """
 
 import json
-from typing import Any, Optional
 
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 from loguru import logger
 from shared.core.database import (
     Practice,
@@ -18,97 +15,16 @@ from shared.core.database import (
     Question,
 )
 from shared.core.schema import PracticeAnswerSchema
-from shared.provider import get_provider
-from shared.utils.prompt import build_question_prompt
 from shared.utils.time import now
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .evaluator import AnswerEvaluator, EvaluateResult
 from .mastery import extract_ability_codes, update_student_mastery
-from .prompt import ANALYZE_QUESTION_ANSWER_PROMPT
 from .schema import (
-    AnswerAnalysisSchema,
     AnswerFeedbackSchema,
     CorrectAnswerSchema,
     SubmitAnswerSchema,
 )
-
-
-async def _generate_ai_analysis(question: Question, user_answer: Any) -> Optional[str]:
-    """生成 AI 错题分析
-
-    Args:
-        question: 题目对象
-        user_answer: 用户答案（可能是字符串、列表、字典等）
-
-    Returns:
-        str: AI 生成的针对性分析，失败时返回 None
-    """
-    try:
-        prompt_parser = JsonOutputParser(pydantic_object=AnswerAnalysisSchema)
-        format_instructions = prompt_parser.get_format_instructions()
-
-        prompt_template = ChatPromptTemplate.from_template(ANALYZE_QUESTION_ANSWER_PROMPT)
-        prompt_template = prompt_template.partial(format_instructions=format_instructions)
-
-        # 构建问题内容，包含用户答案
-        question_content = build_question_prompt(question)
-        # 将答案转换为字符串用于显示
-        if isinstance(user_answer, (dict, list)):
-            answer_str = json.dumps(user_answer, ensure_ascii=False)
-        else:
-            answer_str = str(user_answer)
-        question_content += f"\n\n学生答案：{answer_str}"
-
-        prompt_input = {"question_content": question_content}
-
-        provider = get_provider()
-        result = await provider.invoke_chain(prompt_template, prompt_parser, prompt_input)
-
-        return result.get("analysis", "")
-    except Exception as e:
-        logger.warning(f"AI 分析生成失败: {e}")
-        return None
-
-
-async def _generate_feedback(
-    question: Question,
-    user_answer: Any,
-    evaluate_result: EvaluateResult,
-) -> AnswerFeedbackSchema:
-    """生成答题反馈
-
-    结合题目自带解析和 AI 针对性分析生成完整反馈。
-
-    Args:
-        question: 题目对象
-        user_answer: 用户答案
-        evaluate_result: 评判结果
-
-    Returns:
-        AnswerFeedbackSchema: 完整的答题反馈
-    """
-    # 获取题目自带解析
-    explanation = question.explanation
-
-    # 生成 AI 针对性分析
-    ai_analysis = await _generate_ai_analysis(question, user_answer)
-
-    # 构建结构化正确答案
-    correct_answer = CorrectAnswerSchema(
-        type=evaluate_result.correct_answer.type,
-        value=evaluate_result.correct_answer.value,
-        values=evaluate_result.correct_answer.values,
-        options=evaluate_result.correct_answer.options,
-        sub_answers=evaluate_result.correct_answer.sub_answers,
-    )
-
-    return AnswerFeedbackSchema(
-        correct_answer=correct_answer,
-        explanation=explanation,
-        analysis=ai_analysis,
-    )
 
 
 async def submit_answer(
@@ -150,41 +66,28 @@ async def submit_answer(
         )
     )
     if not answer_record:
-        raise ValueError(
-            f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录不存在: session_id={params.session_id}, question_id={params.question_id}")
 
     if answer_record.status != 0:
-        raise ValueError(
-            f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}"
-        )
+        raise ValueError(f"答题记录已提交: session_id={params.session_id}, question_id={params.question_id}")
 
     # 4. 使用评判器评判答案（异步，支持 AI 评分）
-    evaluate_result = await AnswerEvaluator.evaluate(
-        question=question,
-        user_answer=params.answer,
-    )
+    evaluate_result = {"is_correct": True, "feedback": None}
 
     is_correct = evaluate_result.is_correct
 
     # 5. 如果答错，生成反馈（AI 评分已有 feedback 则直接使用）
-    feedback = None
-    if evaluate_result.feedback:
-        # AI 评分的反馈直接使用
-        feedback = AnswerFeedbackSchema(
-            correct_answer=CorrectAnswerSchema(
-                type=evaluate_result.correct_answer.type,
-                value=evaluate_result.correct_answer.value,
-                values=evaluate_result.correct_answer.values,
-                options=evaluate_result.correct_answer.options,
-                sub_answers=evaluate_result.correct_answer.sub_answers,
-            ),
-            explanation=question.explanation,
-            analysis=evaluate_result.feedback,
-        )
-    elif not is_correct:
-        # 非 AI 评分的错题，生成反馈
-        feedback = await _generate_feedback(question, params.answer, evaluate_result)
+    feedback = AnswerFeedbackSchema(
+        correct_answer=CorrectAnswerSchema(
+            type=evaluate_result.correct_answer.type,
+            value=evaluate_result.correct_answer.value,
+            values=evaluate_result.correct_answer.values,
+            options=evaluate_result.correct_answer.options,
+            sub_answers=evaluate_result.correct_answer.sub_answers,
+        ),
+        explanation=question.explanation,
+        analysis=evaluate_result.feedback,
+    )
 
     # 6. 更新答题记录
     answer_record.submit_time = now()

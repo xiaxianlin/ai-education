@@ -3,8 +3,6 @@ import json
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
-from shared.core.logger import log_error
 from shared.core.settings import envs
 
 
@@ -35,13 +33,6 @@ def print_exception(request: Request, exc: Exception, exception_type: str = "exc
     if isinstance(exc, RequestValidationError):
         validation_errors = exc.errors()
         exception_info["validation_errors"] = json.dumps(validation_errors, ensure_ascii=False)
-
-    # 记录错误（带完整堆栈）
-    log_error(
-        message=f"{exception_type}: {type(exc).__name__} - {str(exc)}",
-        exc=exc,
-        **exception_info,
-    )
 
 
 def get_error_message(exc: Exception, default_message: str) -> str:

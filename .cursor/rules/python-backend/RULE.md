@@ -216,21 +216,12 @@ class CreateUnitSchema(BaseModel):
 - 使用 Loguru 记录日志
 - 在关键操作点记录日志
 - 错误日志包含足够的上下文信息
-- **使用 `log_error` 函数记录错误**：会自动转义异常消息中的花括号，防止 loguru 解析错误
 
 ```python
-from shared.core.logger import log_error
-
-# ✅ 推荐：使用 log_error 函数（自动转义花括号）
-log_error("创建单元失败", exc=e, unit_id=unit.id, textbook_id=textbook_id)
-
-# ✅ 也可以直接使用 logger（简单场景）
 from loguru import logger
 logger.info("创建单元", unit_id=unit.id, textbook_id=textbook_id)
 logger.error("创建单元失败", error=str(e), unit_id=unit.id)
 ```
-
-**注意**: 当异常消息包含 JSON 字符串（如 `RequestValidationError`）时，必须使用 `log_error` 函数，它会自动转义花括号，防止 loguru 将 JSON 中的 `{` 和 `}` 解析为格式占位符。
 
 ## 任务队列
 

@@ -17,7 +17,6 @@ from shared.core.database import Database
 from shared.core.schema import PracticeAnswerSchema
 from shared.practice import answer as answer_service
 from shared.practice import practice as practice_service
-from shared.practice import practice_generate
 from shared.practice.schema import SubmitAnswerSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,12 +46,6 @@ async def get_practice(
     unit_id: int | None = Query(None, description="单元ID（单元练习必填）"),
     db: AsyncSession = Database,
 ):
-    """获取练习（返回最新的未完成练习）
-
-    根据 practice_type 判断：
-    - ability_practice: 需要 ability_code
-    - unit_practice: 需要 unit_id
-    """
     student = request.state.student
 
     if practice_type == "ability_practice":
@@ -83,32 +76,7 @@ async def create_practice(
     """创建练习会话"""
     student = request.state.student
 
-    session_id = await practice_generate.create_practice(
-        db=db,
-        practice_type=params.type,
-        student_id=student.id,
-        ability_code=params.ability_code,
-        unit_id=params.unit_id,
-        immediately=False,
-    )
-
-    return session_id
-
-
-@practice_router.get(
-    "/progress/{session_id}",
-    tags=["练习"],
-    summary="获取练习生成进度",
-    description="获取练习会话的生成进度信息",
-)
-async def get_practice_progress(session_id: str):
-    """获取练习生成进度"""
-    from shared.services.progress import progress_service
-
-    progress = await progress_service.get_progress(session_id)
-    if progress is None:
-        return {"progress": 0, "step": "pending", "message": "等待生成"}
-    return progress
+    return student
 
 
 @practice_router.get(

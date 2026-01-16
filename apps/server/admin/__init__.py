@@ -7,8 +7,6 @@ from shared.core.exception import (
     value_error_handler,
 )
 from shared.core.response import WrappedResponse
-from shared.core.middleware.logging import LoggingMiddleware
-from shared.core.middleware.performance import PerformanceMiddleware
 
 from .ability.route import ability_router
 from .auth import admin_route_filter
@@ -30,10 +28,6 @@ admin_app = FastAPI(
         Exception: global_exception_handler,
     },
 )
-
-# 注册日志和性能监控中间件
-admin_app.add_middleware(PerformanceMiddleware)
-admin_app.add_middleware(LoggingMiddleware)
 
 
 admin_app.include_router(auth_router)
