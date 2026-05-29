@@ -49,9 +49,11 @@ type QuestionContent struct {
 }
 
 type Resource struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
-	Alt  string `json:"alt,omitempty"`
+	Type        string `json:"type"`
+	URL         string `json:"url,omitempty"`
+	Alt         string `json:"alt,omitempty"`
+	ImagePrompt string `json:"image_prompt,omitempty"`
+	TTSText     string `json:"tts_text,omitempty"`
 }
 
 type Option struct {

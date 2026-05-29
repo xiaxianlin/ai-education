@@ -1,14 +1,45 @@
 package router
 
 import (
+	"context"
 	"net/http"
 
+	"ai-education/server-go/internal/ability"
+	"ai-education/server-go/internal/auth"
 	"ai-education/server-go/internal/middleware"
 	"ai-education/server-go/internal/response"
+	"ai-education/server-go/internal/student"
 )
 
-func New() http.Handler {
+type Dependencies struct {
+	AuthHandler    *auth.Handler
+	AbilityService *ability.Service
+	StudentService *student.Service
+	CurrentStudent student.CurrentStudentProvider
+}
+
+type currentStudentProviderFunc func(ctx context.Context, r *http.Request) (string, error)
+
+func (f currentStudentProviderFunc) CurrentStudentID(ctx context.Context, r *http.Request) (string, error) {
+	return f(ctx, r)
+}
+
+func AuthCurrentStudentProvider(authService *auth.Service) student.CurrentStudentProvider {
+	return currentStudentProviderFunc(func(ctx context.Context, r *http.Request) (string, error) {
+		current, err := authService.CheckStudent(ctx, r.Header.Get(middleware.AccessTokenHeader))
+		if err != nil {
+			return "", err
+		}
+		return current.ID, nil
+	})
+}
+
+func New(deps ...Dependencies) http.Handler {
 	mux := http.NewServeMux()
+	var resolved Dependencies
+	if len(deps) > 0 {
+		resolved = deps[0]
+	}
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		response.OK(w, map[string]string{
@@ -17,13 +48,25 @@ func New() http.Handler {
 		})
 	})
 
-	mux.Handle("GET /api/admin/check", middleware.RequireToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.Error(w, 501, "admin check 尚未迁移")
-	})))
+	if resolved.AuthHandler != nil {
+		auth.RegisterAdminRoutes(mux, resolved.AuthHandler)
+		auth.RegisterStudentRoutes(mux, resolved.AuthHandler)
+	} else {
+		mux.Handle("GET /api/admin/check", middleware.RequireToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			response.Error(w, 501, "admin check 尚未迁移")
+		})))
 
-	mux.Handle("GET /api/student/check", middleware.RequireToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response.Error(w, 501, "student check 尚未迁移")
-	})))
+		mux.Handle("GET /api/student/check", middleware.RequireToken(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			response.Error(w, 501, "student check 尚未迁移")
+		})))
+	}
+
+	if resolved.AbilityService != nil {
+		ability.RegisterStudentRoutes(mux, resolved.AbilityService)
+	}
+	if resolved.StudentService != nil && resolved.CurrentStudent != nil {
+		student.RegisterStudentRoutes(mux, resolved.StudentService, resolved.CurrentStudent)
+	}
 
 	return middleware.Recover(mux)
 }

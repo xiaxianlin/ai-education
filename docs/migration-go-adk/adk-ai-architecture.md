@@ -30,6 +30,19 @@ type ReportGenerator interface {
 }
 ```
 
+The current Go package also defines a low-level `Adapter` interface for the future
+Google ADK SDK integration:
+
+```go
+type Adapter interface {
+    Invoke(ctx Context, req AdapterRequest) (AdapterResponse, error)
+}
+```
+
+This interface intentionally has no Google ADK import. The approved SDK-backed
+implementation can translate `AdapterRequest` into ADK agent calls later while
+the rest of the service continues to depend on package-local contracts.
+
 ## Agent Split
 
 - `QuestionGeneratorAgent`: builds validated question JSON from prompt, subject, grade, and source material.
@@ -52,3 +65,29 @@ type ReportGenerator interface {
 - Objective answer evaluation should not call AI.
 - Tool logs must not expose API keys or student private data.
 
+## Current Preparation Layer
+
+Implemented in `apps/server-go/internal/ai` without external ADK dependencies:
+
+- `FilePromptLoader`: loads `apps/server/prompt/*.md`-style prompt files by safe
+  prompt code and rejects path traversal.
+- `RenderPrompt`: fills simple `{name}` placeholders while preserving escaped
+  literal braces used in JSON examples.
+- JSON helpers: extract fenced/raw JSON from model text, decode with
+  `json.Decoder.UseNumber`, and accept single question, question arrays, or
+  `{ "questions": [...] }` wrappers.
+- Schema validation: verifies required content/answer fields, supported
+  resource types, objective/subjective answer modes, rubrics, difficulty, and
+  type-specific shapes for choice, judge, sorting, matching, and input.
+- `ObjectiveAnswerEvaluator`: deterministic local scoring for objective
+  choice/judge/input/sorting/matching answers. Subjective answers return
+  `ErrRequiresAI` for the future ADK evaluator.
+
+## Future ADK Provider Points
+
+- Implement an SDK-backed adapter behind `Adapter.Invoke`.
+- Build `QuestionGeneratorAgent` on top of `FilePromptLoader`, `RenderPrompt`,
+  `DecodeGeneratedQuestions`, and `ValidateGeneratedQuestions` before saving.
+- Route subjective/open/audio evaluation to an ADK-backed evaluator only after
+  objective answers have been handled locally.
+- Keep image/audio/RAG/OSS calls behind the tool interfaces in `tools.go`.

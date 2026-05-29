@@ -3,11 +3,10 @@ package auth
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"strings"
-)
 
-var ErrBcryptDependencyMissing = errors.New("bcrypt password hashing requires golang.org/x/crypto/bcrypt")
+	"golang.org/x/crypto/bcrypt"
+)
 
 type PythonPasswordHasher struct{}
 
@@ -15,9 +14,12 @@ func NewPythonPasswordHasher() PythonPasswordHasher {
 	return PythonPasswordHasher{}
 }
 
-func (PythonPasswordHasher) Hash(string) (string, error) {
-	// TODO(auth): enable bcrypt generation after approving golang.org/x/crypto/bcrypt.
-	return "", ErrBcryptDependencyMissing
+func (PythonPasswordHasher) Hash(plain string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(plain), 12)
+	if err != nil {
+		return "", err
+	}
+	return string(hashed), nil
 }
 
 func (PythonPasswordHasher) Compare(plain string, hashed string) bool {
@@ -28,8 +30,7 @@ func (PythonPasswordHasher) Compare(plain string, hashed string) bool {
 	if strings.HasPrefix(hashed, "$2a$") ||
 		strings.HasPrefix(hashed, "$2b$") ||
 		strings.HasPrefix(hashed, "$2y$") {
-		// TODO(auth): verify Python bcrypt hashes with golang.org/x/crypto/bcrypt.
-		return false
+		return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain)) == nil
 	}
 
 	return compareLegacySHA256(plain, hashed)

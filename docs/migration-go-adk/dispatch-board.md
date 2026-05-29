@@ -24,6 +24,9 @@ Primary objective:
 | R-001 | Auth DB/token compatibility | Complete boundary, bcrypt dependency pending |
 | R-002 | Ability DB Repository | Complete, student atomics is first cutover candidate |
 | R-003 | Practice DB Repository and Worker Placeholder | Complete partial SQL repository and placeholder worker |
+| R-005 | MySQL driver + bcrypt + API route wiring | Complete |
+| M-002 | Student Profile SQL module | Complete and mounted when DB is available |
+| AI-002 | ADK adapter preparation | Complete without SDK dependency |
 | M-001 | Ability Module | Complete skeleton, pending DB repository |
 | M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
 | M-004 | Textbook Module | Complete skeleton, upload/parse remain Python |
@@ -277,7 +280,7 @@ Done when:
 
 Agent: Agent 5
 
-Status: Not started
+Status: Complete and mounted when DB is available
 
 Start here:
 
@@ -287,6 +290,12 @@ Done when:
 
 - Student login/check/profile/settings work through Go.
 - Student web can load `/home` after route cutover.
+
+Notes:
+
+- SQL repository, service, handlers, and route registration are implemented.
+- `cmd/api` wires profile routes when DB opens successfully.
+- Current student ID is resolved through the Go auth service.
 
 ### Ticket M-003: Practice Contract Fix
 
