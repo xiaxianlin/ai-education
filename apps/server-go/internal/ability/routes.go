@@ -15,6 +15,7 @@ func RegisterAdminRoutes(mux *http.ServeMux, service *Service) {
 	handler := NewHandler(service)
 
 	mux.Handle("GET /api/admin/ability", protected(handler.Search))
+	mux.Handle("GET /api/admin/ability/by-subject/{subject}", protected(handler.BySubject))
 	mux.Handle("POST /api/admin/ability", protected(handler.Create))
 	mux.Handle("PATCH /api/admin/ability/{id}", protected(handler.Update))
 	mux.Handle("DELETE /api/admin/ability/{id}", protected(handler.Delete))

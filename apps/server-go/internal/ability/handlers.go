@@ -108,6 +108,27 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, abilities)
 }
 
+func (h *Handler) BySubject(w http.ResponseWriter, r *http.Request) {
+	subject := strings.TrimSpace(r.PathValue("subject"))
+	if subject == "" {
+		response.Error(w, 400, "subject 不能为空")
+		return
+	}
+
+	abilities, err := h.service.Search(r.Context(), SearchAbilityParams{Subject: &subject})
+	if err != nil {
+		writeAbilityError(w, err)
+		return
+	}
+
+	grouped := make(map[string][]Ability)
+	for _, item := range abilities {
+		key := fmt.Sprintf("grade_%d", item.Grade)
+		grouped[key] = append(grouped[key], item)
+	}
+	response.OK(w, grouped)
+}
+
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	id, ok := parsePathID(w, r)
 	if !ok {

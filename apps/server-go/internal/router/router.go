@@ -68,7 +68,7 @@ func New(deps ...Dependencies) http.Handler {
 	}
 
 	if resolved.AbilityService != nil {
-		ability.RegisterStudentRoutes(mux, resolved.AbilityService)
+		ability.RegisterRoutes(mux, resolved.AbilityService)
 	}
 	if resolved.StudentService != nil && resolved.CurrentStudent != nil {
 		student.RegisterStudentRoutes(mux, resolved.StudentService, resolved.CurrentStudent)
