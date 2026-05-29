@@ -20,6 +20,7 @@ Primary objective:
 | F-001 | Database Foundation | Complete |
 | F-002 | Queue Foundation | Complete |
 | F-003 | Auth Foundation | Complete skeleton, pending real store/hash/token implementation |
+| R-000 | DSN Normalization | In progress |
 | M-001 | Ability Module | Complete skeleton, pending DB repository |
 | M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
 | M-004 | Textbook Module | Complete skeleton, upload/parse remain Python |
@@ -66,6 +67,8 @@ Done when:
 ### Ticket R-000: DSN Normalization
 
 Agent: DB integration
+
+Status: In progress in main thread
 
 Start here:
 

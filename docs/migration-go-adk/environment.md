@@ -49,7 +49,15 @@ apps/server-go/.env
 | `DATABASE_POOL_TIMEOUT` | `Database.PoolTimeout` | `30` |
 | `DATABASE_POOL_RECYCLE` | `Database.PoolRecycle` | `3600` |
 
-Python currently uses SQLAlchemy URLs such as `mysql+asyncmy://...`. The Go DB integration should either document a Go driver DSN or normalize the Python URL before opening the driver connection.
+Python currently uses SQLAlchemy URLs such as `mysql+asyncmy://...`. Go normalizes these URL forms before opening the MySQL driver:
+
+```text
+mysql+asyncmy://user:pass@localhost:3306/ai_education
+mysql+pymysql://user:pass@localhost:3306/ai_education
+mysql://user:pass@localhost:3306/ai_education
+```
+
+Native Go MySQL DSNs such as `user:pass@tcp(localhost:3306)/ai_education?parseTime=true` are also accepted and passed through unchanged.
 
 ### Redis and Queue
 

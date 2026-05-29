@@ -40,14 +40,23 @@ func Open(ctx context.Context, cfg config.Config, opts ...Option) (*Database, er
 		opt(&options)
 	}
 
-	if cfg.DatabaseURL == "" {
+	rawURL := cfg.Database.URL
+	if rawURL == "" {
+		rawURL = cfg.DatabaseURL
+	}
+	if rawURL == "" {
 		return nil, ErrMissingDatabaseURL
 	}
 	if options.DriverName == "" {
 		return nil, errors.New("database driver name is required")
 	}
 
-	conn, err := sql.Open(options.DriverName, cfg.DatabaseURL)
+	dsn, err := NormalizeMySQLDSN(rawURL)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := sql.Open(options.DriverName, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
