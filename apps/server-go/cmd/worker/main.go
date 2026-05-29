@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"ai-education/server-go/internal/practice"
 	"ai-education/server-go/internal/queue"
 )
 
@@ -24,10 +25,10 @@ func main() {
 }
 
 func registerHandlers(registry *queue.Registry) {
-	mustRegister(queue.RegisterTypedHandler(registry, queue.TaskPracticeGenerate, func(ctx context.Context, payload queue.PracticeGeneratePayload) error {
-		log.Printf("practice generation handler placeholder: session_id=%s generate_count=%d", payload.SessionID, payload.GenerateCount)
-		return nil
+	mustRegister(practice.RegisterWorkerHandlers(registry, nil, practice.GeneratePlaceholderOptions{
+		Strategy: practice.GeneratePlaceholderKeepGenerating,
 	}))
+	log.Print("practice generation placeholder registered with keep-generating strategy; no AI is called")
 	mustRegister(queue.RegisterTypedHandler(registry, queue.TaskQuestionGenerate, func(ctx context.Context, payload queue.QuestionGeneratePayload) error {
 		log.Printf("question generation handler placeholder: request_id=%s code=%s", payload.RequestID, payload.Code)
 		return nil

@@ -20,7 +20,10 @@ Primary objective:
 | F-001 | Database Foundation | Complete |
 | F-002 | Queue Foundation | Complete |
 | F-003 | Auth Foundation | Complete skeleton, pending real store/hash/token implementation |
-| R-000 | DSN Normalization | In progress |
+| R-000 | DSN Normalization | Complete |
+| R-001 | Auth DB/token compatibility | Complete boundary, bcrypt dependency pending |
+| R-002 | Ability DB Repository | Complete, student atomics is first cutover candidate |
+| R-003 | Practice DB Repository and Worker Placeholder | Complete partial SQL repository and placeholder worker |
 | M-001 | Ability Module | Complete skeleton, pending DB repository |
 | M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
 | M-004 | Textbook Module | Complete skeleton, upload/parse remain Python |
@@ -44,6 +47,8 @@ This passed after Wave 1 integration.
 
 Agent: DB/Auth integration
 
+Status: Complete boundary, blocked from login cutover until bcrypt dependency is added
+
 Start here:
 
 - `apps/server-go/internal/db/`
@@ -64,11 +69,18 @@ Done when:
 - Admin and student login/check work against existing database rows.
 - Missing, invalid, disabled, and valid token cases are tested.
 
+Notes:
+
+- SQL-backed manager/student store adapters are implemented.
+- HS256 JWT resolver matches the Python `{id, update_time, exp}` payload shape.
+- Bcrypt password verification still needs `golang.org/x/crypto/bcrypt`; current Go boundary intentionally does not accept bcrypt hashes without that dependency.
+
 ### Ticket R-000: DSN Normalization
 
 Agent: DB integration
 
 Status: In progress in main thread
+Final status: Complete
 
 Start here:
 
@@ -90,6 +102,8 @@ Done when:
 
 Agent: Ability + DB integration
 
+Status: Complete
+
 Start here:
 
 - `apps/server-go/internal/ability/`
@@ -107,9 +121,15 @@ Done when:
 - Student ability atomics can be served from Go with existing DB data.
 - Admin CRUD remains behind Python until mutation compatibility is reviewed.
 
+First cutover candidate:
+
+- `GET /api/student/ability/atomics`
+
 ### Ticket R-003: Practice DB Repository and Worker Handler
 
 Agent: Practice + Queue integration
+
+Status: Partial repository complete, generation worker placeholder complete
 
 Start here:
 
@@ -127,6 +147,12 @@ Done when:
 
 - `POST /practice/create` persists a session and enqueues a task.
 - `GET /practice/progress/{session_id}` reflects DB state.
+
+Notes:
+
+- SQL repository covers session create/read/list/update plus basic answer/report operations.
+- `practice.generate` worker placeholder supports explicit `keep_generating` and `mark_failed` behavior.
+- True question generation still needs AI output persistence queries.
 
 ### Ticket R-004: Google ADK Adapter
 

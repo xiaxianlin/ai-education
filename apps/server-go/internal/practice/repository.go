@@ -91,6 +91,20 @@ func (repo *MemoryRepository) GetPractice(ctx context.Context, studentID string,
 	return &session, nil
 }
 
+func (repo *MemoryRepository) GetPracticeByID(ctx context.Context, sessionID string) (*Practice, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	session, ok := repo.practices[sessionID]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return &session, nil
+}
+
 func (repo *MemoryRepository) ListPractices(ctx context.Context, params PracticeListParams) (PracticeListResult, error) {
 	if err := ctx.Err(); err != nil {
 		return PracticeListResult{}, err

@@ -85,76 +85,152 @@ INSERT INTO ah_practice (
     question_count, answer_count, correct_count, status, generate_status,
     generate_time, start_time, end_time, create_time, update_time
 ) VALUES (
-    :id, :student_id, :practice_type, :subject, :grade, :ability_code, :unit_id,
-    :question_count, :answer_count, :correct_count, :status, :generate_status,
-    :generate_time, :start_time, :end_time, :create_time, :update_time
+    ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?
 );
 
 -- name: GetPractice
-SELECT *
+SELECT id, student_id, practice_type, subject, grade, ability_code, unit_id,
+       question_count, answer_count, correct_count, status, generate_status,
+       generate_time, start_time, end_time, create_time, update_time
 FROM ah_practice
-WHERE id = :session_id
-  AND student_id = :student_id;
+WHERE id = ?
+  AND student_id = ?
+LIMIT 1;
+
+-- name: GetPracticeByID
+SELECT id, student_id, practice_type, subject, grade, ability_code, unit_id,
+       question_count, answer_count, correct_count, status, generate_status,
+       generate_time, start_time, end_time, create_time, update_time
+FROM ah_practice
+WHERE id = ?
+LIMIT 1;
 
 -- name: GetOpenAbilityPractice
-SELECT *
+SELECT id, student_id, practice_type, subject, grade, ability_code, unit_id,
+       question_count, answer_count, correct_count, status, generate_status,
+       generate_time, start_time, end_time, create_time, update_time
 FROM ah_practice
-WHERE student_id = :student_id
+WHERE student_id = ?
   AND practice_type = 'ability_practice'
-  AND ability_code = :ability_code
   AND status != 2
+  AND ability_code = ?
 ORDER BY create_time DESC
 LIMIT 1;
 
 -- name: GetOpenUnitPractice
-SELECT *
+SELECT id, student_id, practice_type, subject, grade, ability_code, unit_id,
+       question_count, answer_count, correct_count, status, generate_status,
+       generate_time, start_time, end_time, create_time, update_time
 FROM ah_practice
-WHERE student_id = :student_id
+WHERE student_id = ?
   AND practice_type = 'unit_practice'
-  AND unit_id = :unit_id
   AND status != 2
+  AND unit_id = ?
 ORDER BY create_time DESC
 LIMIT 1;
 
--- name: ListPractices
-SELECT *
+-- name: CountPractices
+SELECT COUNT(*)
 FROM ah_practice
-WHERE student_id = :student_id
-  AND (:practice_type = '' OR practice_type = :practice_type)
-  AND (:subject = '' OR subject = :subject)
-  AND (:grade = 0 OR grade = :grade)
+WHERE student_id = ?
+  -- Optional filters are appended by the Go repository:
+  -- AND practice_type = ?
+  -- AND subject = ?
+  -- AND grade = ?;
+
+-- name: ListPractices
+SELECT id, student_id, practice_type, subject, grade, ability_code, unit_id,
+       question_count, answer_count, correct_count, status, generate_status,
+       generate_time, start_time, end_time, create_time, update_time
+FROM ah_practice
+WHERE student_id = ?
+  -- Optional filters are appended by the Go repository:
+  -- AND practice_type = ?
+  -- AND subject = ?
+  -- AND grade = ?
 ORDER BY create_time DESC
-LIMIT :limit OFFSET :offset;
+LIMIT ? OFFSET ?;
 
 -- name: UpdatePracticeState
 UPDATE ah_practice
-SET status = :status,
-    generate_status = :generate_status,
-    answer_count = :answer_count,
-    correct_count = :correct_count,
-    start_time = :start_time,
-    end_time = :end_time,
-    update_time = :update_time
-WHERE id = :session_id
-  AND student_id = :student_id;
+SET subject = ?,
+    grade = ?,
+    ability_code = ?,
+    unit_id = ?,
+    question_count = ?,
+    answer_count = ?,
+    correct_count = ?,
+    status = ?,
+    generate_status = ?,
+    generate_time = ?,
+    start_time = ?,
+    end_time = ?,
+    update_time = ?
+WHERE id = ?
+  AND student_id = ?;
 
 -- name: GetPracticeAnswer
-SELECT *
-FROM ah_practice_answer
-WHERE session_id = :session_id
-  AND question_id = :question_id
-  AND student_id = :student_id;
+SELECT pa.id, pa.session_id, pa.question_id, pa.student_id, pa.question_order,
+       pa.answer, pa.audio_url, pa.status, pa.time_spent, pa.submit_time,
+       pa.correct_answer, pa.analysis, pa.is_corrected, pa.corrected_time,
+       pa.create_time, pa.update_time,
+       q.id, q.question_type_code, q.subject, q.grade, q.content, q.answer,
+       q.difficulty, q.create_time, q.update_time
+FROM ah_practice_answer pa
+LEFT JOIN ah_question q ON q.id = pa.question_id
+WHERE pa.session_id = ?
+  AND pa.question_id = ?
+  AND pa.student_id = ?
+LIMIT 1;
+
+-- name: ListPracticeAnswersWithQuestions
+SELECT pa.id, pa.session_id, pa.question_id, pa.student_id, pa.question_order,
+       pa.answer, pa.audio_url, pa.status, pa.time_spent, pa.submit_time,
+       pa.correct_answer, pa.analysis, pa.is_corrected, pa.corrected_time,
+       pa.create_time, pa.update_time,
+       q.id, q.question_type_code, q.subject, q.grade, q.content, q.answer,
+       q.difficulty, q.create_time, q.update_time
+FROM ah_practice_answer pa
+LEFT JOIN ah_question q ON q.id = pa.question_id
+WHERE pa.session_id = ?
+  AND pa.student_id = ?
+ORDER BY pa.question_order;
 
 -- name: UpdatePracticeAnswer
 UPDATE ah_practice_answer
-SET answer = :answer,
-    audio_url = :audio_url,
-    status = :status,
-    time_spent = :time_spent,
-    submit_time = :submit_time,
-    correct_answer = :correct_answer,
-    analysis = :analysis,
-    update_time = :update_time
-WHERE session_id = :session_id
-  AND question_id = :question_id
-  AND student_id = :student_id;
+SET answer = ?,
+    audio_url = ?,
+    status = ?,
+    time_spent = ?,
+    submit_time = ?,
+    correct_answer = ?,
+    analysis = ?,
+    is_corrected = ?,
+    corrected_time = ?,
+    update_time = ?
+WHERE session_id = ?
+  AND question_id = ?
+  AND student_id = ?;
+
+-- name: GetPracticeReport
+SELECT id, session_id, student_id, total_questions, correct_questions, total_time,
+       overall_score, current_ability, confidence, ability_level, percentile,
+       knowledge_scores, question_distribution, ability_breakdown, learning_speed,
+       consistency, strengths, weaknesses, recommendations, create_time
+FROM ah_practice_report
+WHERE session_id = ?
+  AND student_id = ?
+LIMIT 1;
+
+-- name: CreatePracticeReport
+INSERT INTO ah_practice_report (
+    session_id, student_id, total_questions, correct_questions, total_time,
+    overall_score, current_ability, confidence, ability_level, percentile,
+    knowledge_scores, question_distribution, ability_breakdown, learning_speed,
+    consistency, strengths, weaknesses, recommendations, create_time
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
+);
