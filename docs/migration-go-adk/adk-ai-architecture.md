@@ -39,8 +39,8 @@ type Adapter interface {
 }
 ```
 
-This interface intentionally has no Google ADK import. The approved SDK-backed
-implementation can translate `AdapterRequest` into ADK agent calls later while
+This interface intentionally has no Google ADK import. The SDK-backed
+implementation now translates `AdapterRequest` into ADK `llmagent` runs while
 the rest of the service continues to depend on package-local contracts.
 
 ## Agent Split
@@ -65,9 +65,9 @@ the rest of the service continues to depend on package-local contracts.
 - Objective answer evaluation should not call AI.
 - Tool logs must not expose API keys or student private data.
 
-## Current Preparation Layer
+## Current ADK Layer
 
-Implemented in `apps/server-go/internal/ai` without external ADK dependencies:
+Implemented in `apps/server-go/internal/ai`:
 
 - `FilePromptLoader`: loads `apps/server/prompt/*.md`-style prompt files by safe
   prompt code and rejects path traversal.
@@ -82,12 +82,14 @@ Implemented in `apps/server-go/internal/ai` without external ADK dependencies:
 - `ObjectiveAnswerEvaluator`: deterministic local scoring for objective
   choice/judge/input/sorting/matching answers. Subjective answers return
   `ErrRequiresAI` for the future ADK evaluator.
+- `ADKAdapter`: wraps Google ADK Go `llmagent`, `runner`, in-memory sessions, and
+  Gemini model configuration behind `Adapter.Invoke`.
+- `ADKProvider`: exposes `QuestionGenerator`, `ReportGenerator`, and local
+  objective `AnswerEvaluator` implementations to business modules.
 
-## Future ADK Provider Points
+## Remaining ADK Provider Points
 
-- Implement an SDK-backed adapter behind `Adapter.Invoke`.
-- Build `QuestionGeneratorAgent` on top of `FilePromptLoader`, `RenderPrompt`,
-  `DecodeGeneratedQuestions`, and `ValidateGeneratedQuestions` before saving.
+- Add tool-backed RAG, image, audio, and OSS integrations.
 - Route subjective/open/audio evaluation to an ADK-backed evaluator only after
   objective answers have been handled locally.
 - Keep image/audio/RAG/OSS calls behind the tool interfaces in `tools.go`.

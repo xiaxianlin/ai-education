@@ -4,14 +4,13 @@ This board is the execution entry point for migration agents.
 
 ## Current Migration Phase
 
-Phase: Foundation complete, repository integration next
+Phase: Go runtime cutover in progress, Python service no longer on the default dev path
 
 Primary objective:
 
-- Keep Python service stable.
-- Build a compiling Go service skeleton.
-- Freeze contracts before moving traffic.
-- Keep migrated module routes unmounted from the main router until real repositories are wired.
+- Keep Go API and frontend services as the default runtime.
+- Continue migrating remaining Python-only admin/file/RAG flows behind Go interfaces.
+- Keep Python available only as explicitly named legacy commands.
 
 ## Completed in Subagent Wave 1
 
@@ -34,6 +33,10 @@ Primary objective:
 | M-006 | Mastery and Statistics | Complete skeleton, pending DB repository |
 | AI-001 | AI Interface Foundation | Complete no-op/stub provider interfaces |
 | ENV-001 | Environment variable migration | Complete config fields and sample template |
+| R-004 | Google ADK Adapter | Complete initial SDK-backed adapter |
+| R-006 | Textbook SQL Repository | Complete and mounted when DB is available |
+| R-007 | Mastery SQL Repository | Complete and mounted when DB is available |
+| R-008 | Practice Generation Persistence | Complete initial ADK generation to `ah_question`/`ah_practice_answer` |
 
 Verification:
 
@@ -132,7 +135,7 @@ First cutover candidate:
 
 Agent: Practice + Queue integration
 
-Status: Partial repository complete, generation worker placeholder complete
+Status: Complete initial SQL repository and in-process generation dispatch
 
 Start here:
 
@@ -142,24 +145,26 @@ Start here:
 
 Tasks:
 
-- Implement SQL-backed `practice.Repository`.
-- Register `practice.generate` worker handler with a no-AI placeholder that marks failed or pending explicitly.
+- SQL-backed `practice.Repository` covers sessions, answers, reports, generated question persistence.
+- `practice.generate` is registered in the Go API via in-process dispatch until an external queue backend is added.
 - Keep `generate_status` transition rules identical to the contract.
 
 Done when:
 
-- `POST /practice/create` persists a session and enqueues a task.
+- `POST /practice/create` persists a session and dispatches a generation task.
 - `GET /practice/progress/{session_id}` reflects DB state.
+- Generated questions are written to `ah_question`; answer placeholders are written to `ah_practice_answer`; practice updates `generate_status=1`.
 
 Notes:
 
-- SQL repository covers session create/read/list/update plus basic answer/report operations.
-- `practice.generate` worker placeholder supports explicit `keep_generating` and `mark_failed` behavior.
-- True question generation still needs AI output persistence queries.
+- Placeholder behavior remains available for worker-only tests.
+- API runtime now uses the real handler with ADK provider when AI config is present.
 
 ### Ticket R-004: Google ADK Adapter
 
 Agent: AI integration
+
+Status: Complete initial SDK-backed adapter, tool integrations still pending
 
 Start here:
 
@@ -168,13 +173,15 @@ Start here:
 
 Tasks:
 
-- Add Google ADK adapter behind the existing AI interfaces.
-- Keep no-op provider available for local tests.
-- Add schema validation before database writes.
+- Added `google.golang.org/adk` SDK dependency.
+- Added ADK `llmagent` + `runner` adapter behind `internal/ai.Adapter`.
+- Added `ADKProvider` for question generation and report generation.
+- Objective answer evaluation remains local.
+- Schema validation runs before generated questions are persisted.
 
 Done when:
 
-- Question generation can return validated `[]GeneratedQuestion`.
+- Question generation returns validated `[]GeneratedQuestion`.
 - Objective answer evaluation still stays local.
 
 ## Historical Wave 1 Tickets

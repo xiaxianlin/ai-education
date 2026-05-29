@@ -171,6 +171,46 @@ SET subject = ?,
 WHERE id = ?
   AND student_id = ?;
 
+-- name: UpsertGeneratedQuestionForPractice
+-- Called by the Go practice generation persister for every AI-generated question.
+INSERT INTO ah_question (
+    id, question_type_code, subject, grade, content, answer, difficulty, create_time, update_time
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
+)
+ON DUPLICATE KEY UPDATE
+    question_type_code = VALUES(question_type_code),
+    subject = VALUES(subject),
+    grade = VALUES(grade),
+    content = VALUES(content),
+    answer = VALUES(answer),
+    difficulty = VALUES(difficulty),
+    update_time = VALUES(update_time);
+
+-- name: DeletePracticeGeneratedAnswers
+-- Safe only before the student starts the session.
+DELETE FROM ah_practice_answer
+WHERE session_id = ?;
+
+-- name: CreateGeneratedPracticeAnswer
+INSERT INTO ah_practice_answer (
+    session_id, question_id, student_id, question_order, answer, audio_url, status,
+    time_spent, submit_time, correct_answer, analysis, is_corrected, corrected_time,
+    create_time, update_time
+) VALUES (
+    ?, ?, ?, ?, NULL, NULL, 0,
+    0, NULL, NULL, NULL, 0, NULL,
+    ?, ?
+);
+
+-- name: CompletePracticeGeneration
+UPDATE ah_practice
+SET question_count = ?,
+    generate_status = 1,
+    generate_time = ?,
+    update_time = ?
+WHERE id = ?;
+
 -- name: GetPracticeAnswer
 SELECT pa.id, pa.session_id, pa.question_id, pa.student_id, pa.question_order,
        pa.answer, pa.audio_url, pa.status, pa.time_spent, pa.submit_time,

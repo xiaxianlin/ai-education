@@ -24,3 +24,8 @@ Migrate student mastery queries and practice statistics.
 
 Statistics must match existing Python behavior before route cutover.
 
+## Current Go Coverage
+
+- SQL repository covers mastery list, weak mastery recommendation, summary aggregation, and practice statistics.
+- Service/handler tests cover current-student injection, filters, weak defaults/limits, and statistics time windows.
+- Repository tests cover ability join metadata, weak filtering, level distribution, and all-time/recent-compatible statistics aggregation.

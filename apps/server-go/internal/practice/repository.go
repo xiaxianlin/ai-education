@@ -4,14 +4,18 @@ import (
 	"context"
 	"sort"
 	"sync"
+
+	"ai-education/server-go/internal/ai"
 )
 
 type Repository interface {
 	CreatePractice(ctx context.Context, session Practice) (Practice, error)
 	GetOpenPractice(ctx context.Context, studentID string, practiceType string, abilityCode string, unitID int64) (*Practice, error)
 	GetPractice(ctx context.Context, studentID string, sessionID string) (*Practice, error)
+	GetPracticeByID(ctx context.Context, sessionID string) (*Practice, error)
 	ListPractices(ctx context.Context, params PracticeListParams) (PracticeListResult, error)
 	UpdatePractice(ctx context.Context, session Practice) error
+	PersistGeneratedPractice(ctx context.Context, sessionID string, questions []ai.GeneratedQuestion, generateTime *int) (Practice, error)
 	GetPracticeData(ctx context.Context, studentID string, sessionID string) (PracticeData, error)
 	GetAnswer(ctx context.Context, studentID string, sessionID string, questionID string) (*PracticeAnswer, error)
 	UpdateAnswer(ctx context.Context, answer PracticeAnswer) error
@@ -171,6 +175,61 @@ func (repo *MemoryRepository) UpdatePractice(ctx context.Context, session Practi
 	return nil
 }
 
+func (repo *MemoryRepository) PersistGeneratedPractice(ctx context.Context, sessionID string, questions []ai.GeneratedQuestion, generateTime *int) (Practice, error) {
+	if err := ctx.Err(); err != nil {
+		return Practice{}, err
+	}
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	session, ok := repo.practices[sessionID]
+	if !ok {
+		return Practice{}, ErrNotFound
+	}
+
+	for key, answer := range repo.answers {
+		if answer.SessionID == sessionID {
+			delete(repo.answers, key)
+		}
+	}
+
+	now := unixNow()
+	for index, question := range questions {
+		practiceQuestion := PracticeQuestion{
+			ID:               question.ID,
+			QuestionTypeCode: question.QuestionTypeCode,
+			Subject:          question.Subject,
+			Grade:            question.Grade,
+			Content:          question.Content,
+			Answer:           question.Answer,
+			Difficulty:       question.Difficulty,
+			CreateTime:       now,
+			UpdateTime:       now,
+		}
+		repo.questions[practiceQuestion.ID] = practiceQuestion
+
+		repo.nextAnswerID++
+		answer := PracticeAnswer{
+			ID:            repo.nextAnswerID,
+			SessionID:     session.ID,
+			QuestionID:    practiceQuestion.ID,
+			StudentID:     session.StudentID,
+			QuestionOrder: index + 1,
+			Status:        AnswerStatusUnanswered,
+			CreateTime:    now,
+			UpdateTime:    now,
+		}
+		repo.answers[answerKey(session.ID, practiceQuestion.ID)] = answer
+	}
+
+	session.QuestionCount = len(questions)
+	session.GenerateStatus = GenerateStatusCompleted
+	session.GenerateTime = generateTime
+	session.UpdateTime = now
+	repo.practices[session.ID] = session
+	return session, nil
+}
+
 func (repo *MemoryRepository) GetPracticeData(ctx context.Context, studentID string, sessionID string) (PracticeData, error) {
 	if err := ctx.Err(); err != nil {
 		return PracticeData{}, err
@@ -187,20 +246,24 @@ func (repo *MemoryRepository) GetPracticeData(ctx context.Context, studentID str
 	}
 
 	answers := make([]PracticeAnswer, 0)
-	questions := make([]PracticeQuestion, 0)
 	for _, answer := range repo.answers {
 		if answer.SessionID != sessionID {
 			continue
 		}
 		if question, ok := repo.questions[answer.QuestionID]; ok {
 			answer.Question = &question
-			questions = append(questions, question)
 		}
 		answers = append(answers, answer)
 	}
 	sort.Slice(answers, func(i, j int) bool {
 		return answers[i].QuestionOrder < answers[j].QuestionOrder
 	})
+	questions := make([]PracticeQuestion, 0, len(answers))
+	for _, answer := range answers {
+		if answer.Question != nil {
+			questions = append(questions, *answer.Question)
+		}
+	}
 
 	var report *PracticeReport
 	if stored, ok := repo.reports[sessionID]; ok {

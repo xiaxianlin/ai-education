@@ -6,12 +6,12 @@ import (
 	"ai-education/server-go/internal/middleware"
 )
 
-func RegisterRoutes(mux *http.ServeMux, service *Service) {
-	RegisterStudentRoutes(mux, service)
+func RegisterRoutes(mux *http.ServeMux, service *Service, currentStudent ...CurrentStudentProvider) {
+	RegisterStudentRoutes(mux, service, currentStudent...)
 }
 
-func RegisterStudentRoutes(mux *http.ServeMux, service *Service) {
-	handler := NewHandler(service)
+func RegisterStudentRoutes(mux *http.ServeMux, service *Service, currentStudent ...CurrentStudentProvider) {
+	handler := NewHandler(service, currentStudent...)
 
 	mux.Handle("GET /api/student/practice/", protected(handler.Get))
 	mux.Handle("POST /api/student/practice/create", protected(handler.Create))

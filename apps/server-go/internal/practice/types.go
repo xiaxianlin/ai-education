@@ -124,6 +124,17 @@ type CreatePracticeResponse struct {
 	Message   string `json:"message"`
 }
 
+type PersistGeneratedPracticeRequest struct {
+	SessionID    string                 `json:"session_id"`
+	Questions    []ai.GeneratedQuestion `json:"questions"`
+	GenerateTime *int                   `json:"generate_time,omitempty"`
+}
+
+type PersistGeneratedPracticeResult struct {
+	Session       Practice `json:"session"`
+	QuestionCount int      `json:"question_count"`
+}
+
 type SubmitAnswerRequest struct {
 	SessionID  string `json:"session_id"`
 	QuestionID string `json:"question_id"`

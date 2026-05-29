@@ -117,6 +117,34 @@ func (s *Service) Records(ctx context.Context, params PracticeListParams) (Pract
 	return s.repo.ListPractices(ctx, params)
 }
 
+func (s *Service) PersistGeneratedPractice(ctx context.Context, req PersistGeneratedPracticeRequest) (PersistGeneratedPracticeResult, error) {
+	if req.SessionID == "" {
+		return PersistGeneratedPracticeResult{}, newValidationError("session_id 不能为空")
+	}
+
+	session, err := s.repo.GetPracticeByID(ctx, req.SessionID)
+	if err != nil {
+		return PersistGeneratedPracticeResult{}, err
+	}
+	if session.Status != PracticeStatusNotStarted {
+		return PersistGeneratedPracticeResult{}, newConflictError("只能在练习开始前写入生成题目")
+	}
+
+	questions, err := normalizeGeneratedQuestions(*session, req.Questions)
+	if err != nil {
+		return PersistGeneratedPracticeResult{}, err
+	}
+
+	updated, err := s.repo.PersistGeneratedPractice(ctx, req.SessionID, questions, req.GenerateTime)
+	if err != nil {
+		return PersistGeneratedPracticeResult{}, err
+	}
+	return PersistGeneratedPracticeResult{
+		Session:       updated,
+		QuestionCount: len(questions),
+	}, nil
+}
+
 func (s *Service) Detail(ctx context.Context, studentID string, sessionID string) (PracticeData, error) {
 	if sessionID == "" {
 		return PracticeData{}, newValidationError("session_id 不能为空")
@@ -302,6 +330,35 @@ func normalizeCreateRequest(req CreatePracticeRequest) (CreatePracticeRequest, e
 		return CreatePracticeRequest{}, newValidationError("无效的练习类型")
 	}
 	return req, nil
+}
+
+func normalizeGeneratedQuestions(session Practice, questions []ai.GeneratedQuestion) ([]ai.GeneratedQuestion, error) {
+	if len(questions) == 0 {
+		return nil, newValidationError("生成题目不能为空")
+	}
+
+	normalized := make([]ai.GeneratedQuestion, len(questions))
+	seenIDs := map[string]struct{}{}
+	for index, question := range questions {
+		if question.ID == "" {
+			question.ID = newSessionID()
+		}
+		if question.Subject == "" {
+			question.Subject = session.Subject
+		}
+		if question.Grade == 0 {
+			question.Grade = session.Grade
+		}
+		if _, ok := seenIDs[question.ID]; ok {
+			return nil, newValidationError("生成题目 ID 不能重复")
+		}
+		seenIDs[question.ID] = struct{}{}
+		normalized[index] = question
+	}
+	if err := ai.ValidateGeneratedQuestions(normalized); err != nil {
+		return nil, err
+	}
+	return normalized, nil
 }
 
 func ensureGenerationReady(session Practice) error {

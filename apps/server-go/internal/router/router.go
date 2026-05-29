@@ -6,16 +6,22 @@ import (
 
 	"ai-education/server-go/internal/ability"
 	"ai-education/server-go/internal/auth"
+	"ai-education/server-go/internal/mastery"
 	"ai-education/server-go/internal/middleware"
+	"ai-education/server-go/internal/practice"
 	"ai-education/server-go/internal/response"
 	"ai-education/server-go/internal/student"
+	"ai-education/server-go/internal/textbook"
 )
 
 type Dependencies struct {
-	AuthHandler    *auth.Handler
-	AbilityService *ability.Service
-	StudentService *student.Service
-	CurrentStudent student.CurrentStudentProvider
+	AuthHandler     *auth.Handler
+	AbilityService  *ability.Service
+	StudentService  *student.Service
+	MasteryService  *mastery.Service
+	PracticeService *practice.Service
+	TextbookRepo    textbook.Repository
+	CurrentStudent  student.CurrentStudentProvider
 }
 
 type currentStudentProviderFunc func(ctx context.Context, r *http.Request) (string, error)
@@ -66,6 +72,15 @@ func New(deps ...Dependencies) http.Handler {
 	}
 	if resolved.StudentService != nil && resolved.CurrentStudent != nil {
 		student.RegisterStudentRoutes(mux, resolved.StudentService, resolved.CurrentStudent)
+	}
+	if resolved.TextbookRepo != nil {
+		textbook.RegisterRoutes(mux, resolved.TextbookRepo)
+	}
+	if resolved.MasteryService != nil && resolved.CurrentStudent != nil {
+		mastery.RegisterStudentRoutes(mux, resolved.MasteryService, resolved.CurrentStudent)
+	}
+	if resolved.PracticeService != nil && resolved.CurrentStudent != nil {
+		practice.RegisterStudentRoutes(mux, resolved.PracticeService, resolved.CurrentStudent)
 	}
 
 	return middleware.Recover(mux)

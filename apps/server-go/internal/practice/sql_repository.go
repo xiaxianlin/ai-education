@@ -217,6 +217,122 @@ WHERE id = ?
 	return requireRowsAffected(result)
 }
 
+func (repo *SQLRepository) PersistGeneratedPractice(ctx context.Context, sessionID string, questions []ai.GeneratedQuestion, generateTime *int) (Practice, error) {
+	if err := repo.ensureDB(); err != nil {
+		return Practice{}, err
+	}
+
+	runner := repo.db
+	var tx *sql.Tx
+	if beginner, ok := repo.db.(interface {
+		BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
+	}); ok {
+		started, err := beginner.BeginTx(ctx, nil)
+		if err != nil {
+			return Practice{}, fmt.Errorf("begin persist generated practice: %w", err)
+		}
+		tx = started
+		runner = started
+		defer tx.Rollback()
+	}
+
+	session, err := scanPractice(runner.QueryRowContext(ctx, selectPracticeColumns+`
+FROM ah_practice
+WHERE id = ?
+LIMIT 1`, sessionID))
+	if err != nil {
+		return Practice{}, wrapPracticeLookupError("get practice for generated questions", err)
+	}
+
+	if _, err := runner.ExecContext(ctx, `DELETE FROM ah_practice_answer WHERE session_id = ?`, sessionID); err != nil {
+		return Practice{}, fmt.Errorf("delete stale practice answers: %w", err)
+	}
+
+	now := unixNow()
+	for index, question := range questions {
+		contentJSON, err := marshalJSONDefault(question.Content, "{}")
+		if err != nil {
+			return Practice{}, err
+		}
+		answerJSON, err := marshalJSONDefault(question.Answer, "{}")
+		if err != nil {
+			return Practice{}, err
+		}
+		if _, err := runner.ExecContext(ctx, `
+INSERT INTO ah_question (
+    id, question_type_code, subject, grade, content, answer, difficulty, create_time, update_time
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+    question_type_code = VALUES(question_type_code),
+    subject = VALUES(subject),
+    grade = VALUES(grade),
+    content = VALUES(content),
+    answer = VALUES(answer),
+    difficulty = VALUES(difficulty),
+    update_time = VALUES(update_time)`,
+			question.ID,
+			question.QuestionTypeCode,
+			question.Subject,
+			question.Grade,
+			contentJSON,
+			answerJSON,
+			nullableString(question.Difficulty),
+			now,
+			now,
+		); err != nil {
+			return Practice{}, fmt.Errorf("upsert generated question %q: %w", question.ID, err)
+		}
+
+		if _, err := runner.ExecContext(ctx, `
+INSERT INTO ah_practice_answer (
+    session_id, question_id, student_id, question_order, answer, audio_url, status,
+    time_spent, submit_time, correct_answer, analysis, is_corrected, corrected_time,
+    create_time, update_time
+) VALUES (?, ?, ?, ?, NULL, NULL, ?, 0, NULL, NULL, NULL, 0, NULL, ?, ?)`,
+			session.ID,
+			question.ID,
+			session.StudentID,
+			index+1,
+			AnswerStatusUnanswered,
+			now,
+			now,
+		); err != nil {
+			return Practice{}, fmt.Errorf("create practice answer for question %q: %w", question.ID, err)
+		}
+	}
+
+	result, err := runner.ExecContext(ctx, `
+UPDATE ah_practice
+SET question_count = ?,
+    generate_status = ?,
+    generate_time = ?,
+    update_time = ?
+WHERE id = ?`,
+		len(questions),
+		GenerateStatusCompleted,
+		nullableIntPointer(generateTime),
+		now,
+		sessionID,
+	)
+	if err != nil {
+		return Practice{}, fmt.Errorf("mark practice generation completed: %w", err)
+	}
+	if err := requireRowsAffected(result); err != nil {
+		return Practice{}, err
+	}
+	if tx != nil {
+		if err := tx.Commit(); err != nil {
+			return Practice{}, fmt.Errorf("commit generated practice: %w", err)
+		}
+	}
+
+	session.QuestionCount = len(questions)
+	session.GenerateStatus = GenerateStatusCompleted
+	session.GenerateTime = generateTime
+	session.UpdateTime = now
+	return *session, nil
+}
+
 func (repo *SQLRepository) GetPracticeData(ctx context.Context, studentID string, sessionID string) (PracticeData, error) {
 	session, err := repo.GetPractice(ctx, studentID, sessionID)
 	if err != nil {
