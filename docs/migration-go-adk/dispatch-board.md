@@ -26,6 +26,7 @@ Primary objective:
 | M-005 | Question CRUD | Complete skeleton, AI generation endpoint remains ADK-owned |
 | M-006 | Mastery and Statistics | Complete skeleton, pending DB repository |
 | AI-001 | AI Interface Foundation | Complete no-op/stub provider interfaces |
+| ENV-001 | Environment variable migration | Complete config fields and sample template |
 
 Verification:
 
@@ -61,6 +62,26 @@ Done when:
 
 - Admin and student login/check work against existing database rows.
 - Missing, invalid, disabled, and valid token cases are tested.
+
+### Ticket R-000: DSN Normalization
+
+Agent: DB integration
+
+Start here:
+
+- `apps/server-go/internal/config/config.go`
+- `docs/migration-go-adk/environment.md`
+- `apps/server-go/.env.sample`
+
+Tasks:
+
+- Decide whether Go deployments use native Go MySQL DSN or Python-compatible `mysql+asyncmy://...` URLs.
+- If sharing Python `DATABASE_URL`, add a normalization helper before opening the SQL driver.
+
+Done when:
+
+- Local Go DB connection works from the documented `.env` format.
+- The chosen DSN format is reflected in `.env.sample` and DB migration docs.
 
 ### Ticket R-002: Ability DB Repository
 
