@@ -4,19 +4,133 @@ This board is the execution entry point for migration agents.
 
 ## Current Migration Phase
 
-Phase: Foundation
+Phase: Foundation complete, repository integration next
 
 Primary objective:
 
 - Keep Python service stable.
 - Build a compiling Go service skeleton.
 - Freeze contracts before moving traffic.
+- Keep migrated module routes unmounted from the main router until real repositories are wired.
 
-## Ready to Assign Now
+## Completed in Subagent Wave 1
+
+| Ticket | Module | Status |
+| --- | --- | --- |
+| F-001 | Database Foundation | Complete |
+| F-002 | Queue Foundation | Complete |
+| F-003 | Auth Foundation | Complete skeleton, pending real store/hash/token implementation |
+| M-001 | Ability Module | Complete skeleton, pending DB repository |
+| M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
+| M-004 | Textbook Module | Complete skeleton, upload/parse remain Python |
+| M-005 | Question CRUD | Complete skeleton, AI generation endpoint remains ADK-owned |
+| M-006 | Mastery and Statistics | Complete skeleton, pending DB repository |
+| AI-001 | AI Interface Foundation | Complete no-op/stub provider interfaces |
+
+Verification:
+
+```bash
+cd apps/server-go
+GOCACHE=/private/tmp/ai-education-go-build-cache go test ./...
+```
+
+This passed after Wave 1 integration.
+
+## Ready to Assign Next
+
+### Ticket R-001: Real Auth Repository and Token Compatibility
+
+Agent: DB/Auth integration
+
+Start here:
+
+- `apps/server-go/internal/db/`
+- `apps/server-go/internal/auth/`
+- `apps/server/shared/util/encrypt.py`
+- `apps/server/admin/auth/services/auth.py`
+- `apps/server/student/auth/services/auth.py`
+
+Tasks:
+
+- Implement `auth.ManagerStore` and `auth.StudentStore` using the DB foundation.
+- Implement password compatibility with existing Python hashes.
+- Implement token resolver compatible with existing stored tokens.
+- Replace placeholder check routes only after compatibility tests pass.
+
+Done when:
+
+- Admin and student login/check work against existing database rows.
+- Missing, invalid, disabled, and valid token cases are tested.
+
+### Ticket R-002: Ability DB Repository
+
+Agent: Ability + DB integration
+
+Start here:
+
+- `apps/server-go/internal/ability/`
+- `apps/server-go/sql/ability.sql`
+- `apps/server/shared/core/database/ability.py`
+
+Tasks:
+
+- Implement SQL-backed `ability.Repository`.
+- Preserve `subject + grade + code` uniqueness behavior.
+- Wire only `GET /api/student/ability/atomics` for first route cutover.
+
+Done when:
+
+- Student ability atomics can be served from Go with existing DB data.
+- Admin CRUD remains behind Python until mutation compatibility is reviewed.
+
+### Ticket R-003: Practice DB Repository and Worker Handler
+
+Agent: Practice + Queue integration
+
+Start here:
+
+- `apps/server-go/internal/practice/`
+- `apps/server-go/internal/queue/`
+- `apps/server-go/sql/practice.sql`
+
+Tasks:
+
+- Implement SQL-backed `practice.Repository`.
+- Register `practice.generate` worker handler with a no-AI placeholder that marks failed or pending explicitly.
+- Keep `generate_status` transition rules identical to the contract.
+
+Done when:
+
+- `POST /practice/create` persists a session and enqueues a task.
+- `GET /practice/progress/{session_id}` reflects DB state.
+
+### Ticket R-004: Google ADK Adapter
+
+Agent: AI integration
+
+Start here:
+
+- `apps/server-go/internal/ai/`
+- `docs/migration-go-adk/adk-ai-architecture.md`
+
+Tasks:
+
+- Add Google ADK adapter behind the existing AI interfaces.
+- Keep no-op provider available for local tests.
+- Add schema validation before database writes.
+
+Done when:
+
+- Question generation can return validated `[]GeneratedQuestion`.
+- Objective answer evaluation still stays local.
+
+## Historical Wave 1 Tickets
 
 ### Ticket F-001: Database Foundation
 
 Agent: Agent 2
+
+Status: Complete
 
 Start here:
 
@@ -41,6 +155,8 @@ Done when:
 
 Agent: Agent 3
 
+Status: Complete
+
 Start here:
 
 - `apps/server-go/internal/queue/MIGRATION.md`
@@ -61,6 +177,8 @@ Done when:
 ### Ticket F-003: Auth Middleware Integration
 
 Agent: Agent 1 + Agent 4/5
+
+Status: Skeleton complete, real middleware integration pending R-001
 
 Start here:
 
@@ -86,6 +204,8 @@ Done when:
 
 Agent: Agent 6
 
+Status: Skeleton complete, DB repository pending R-002
+
 Start here:
 
 - `apps/server-go/internal/ability/MIGRATION.md`
@@ -107,6 +227,8 @@ Done when:
 
 Agent: Agent 5
 
+Status: Not started
+
 Start here:
 
 - `docs/migration-go-adk/api-contracts/student.md`
@@ -119,6 +241,8 @@ Done when:
 ### Ticket M-003: Practice Contract Fix
 
 Agent: Agent 10
+
+Status: In-memory skeleton complete, DB repository pending R-003
 
 Start here:
 
@@ -165,4 +289,3 @@ Run from `apps/server-go`:
 ```bash
 go test ./...
 ```
-
