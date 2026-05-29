@@ -8,6 +8,7 @@ Current status:
 - Response envelope is compatible with the Python service.
 - Route placeholders exist for `/api/admin` and `/api/student`.
 - Business modules should be migrated independently under `internal/{module}`.
+- The default monorepo server scripts now start this Go service, not the legacy Python service.
 
 ## Run
 
@@ -21,7 +22,7 @@ Environment:
 SERVER_ADDR=:7891
 ```
 
-The Python service continues to use port `7890`; the Go service starts on `7891` by default during migration.
+The Go service starts on `7891` by default. The legacy Python service is no longer started by normal monorepo development scripts.
 
 Copy `.env.sample` to `.env` for local Go-only runs. The variable names intentionally match the Python service so deployment can share the same environment while routes are migrated.
 

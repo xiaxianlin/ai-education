@@ -4,11 +4,11 @@ This directory is the migration control room. It defines the work split, module 
 
 ## Migration Strategy
 
-Use dual services during migration:
+Use the Go service as the default development backend during migration:
 
-- Keep `apps/server` running as the source of truth for modules not yet migrated.
-- Introduce `apps/server-go` as the new Go API and worker service.
-- Move traffic route by route through the gateway after each module passes compatibility checks.
+- Start `apps/server-go` for normal development.
+- Keep `apps/server` as legacy reference code only.
+- Move feature coverage route by route inside the Go service after each module passes compatibility checks.
 
 The frontend contract should remain stable unless a contract gap is explicitly listed in `api-contracts/known-gaps.md`.
 
@@ -78,4 +78,3 @@ A module can be routed to Go only when:
 - Unit or integration tests cover the migrated service behavior.
 - Manual frontend smoke test passes for the primary page.
 - Rollback route is documented.
-

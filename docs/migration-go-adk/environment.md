@@ -18,7 +18,7 @@ apps/server-go/.env
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SERVER_ADDR` | `:7891` | Go API listen address during side-by-side migration. Python remains on `7890`. |
+| `SERVER_ADDR` | `:7891` | Go API listen address. Frontend dev proxies point to this port. |
 
 ## Variables Kept Compatible with Python
 
@@ -91,4 +91,3 @@ Python currently uses SQLAlchemy URLs such as `mysql+asyncmy://...`. The Go DB i
 | `ASR_API_KEY` | `AI.ASR.APIKey` |
 | `ASR_API_BASE` | `AI.ASR.APIBase` |
 | `ASR_MODEL_NAME` | `AI.ASR.ModelName` |
-

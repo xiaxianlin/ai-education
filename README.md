@@ -28,8 +28,8 @@
 # 安装所有 Node.js 依赖
 pnpm install
 
-# 安装 Python 依赖（服务端）
-cd apps/server && uv sync
+# Go 服务无需额外安装 Python 依赖
+cd apps/server-go && go test ./...
 ```
 
 ### 开发
@@ -42,7 +42,7 @@ pnpm dev:all
 pnpm dev:admin    # 后台管理端
 pnpm dev:student  # 学生 PC 端
 pnpm dev:mobile   # 学生移动端
-pnpm dev:server   # 后端服务
+pnpm dev:server   # Go 后端服务 @ 7891
 ```
 
 ### 构建
@@ -61,8 +61,8 @@ pnpm build:student
 -   apps/admin-web: 后台管理端 (React 18 + Rsbuild + Ant Design 5)
 -   apps/student-web: 学生 PC 端 (React 18 + Rsbuild + shadcn/ui)
 -   apps/student-mobile: 学生移动端 (React Native + Expo + Tamagui)
--   apps/server: 服务端单体 (FastAPI + SQLAlchemy + Celery + LangChain/LangGraph)
+-   apps/server-go: 服务端迁移目标 (Go)
+-   apps/server: 旧 Python 服务（legacy，不再由默认开发命令启动）
 -   packages/shared-web: Web 端共享包
 -   infra: 基础设施配置（MySQL 初始化、Nginx 配置）
 -   docs: 文档目录（API 与设计文档等）
-
