@@ -148,6 +148,7 @@ type PracticeListParams struct {
 	PracticeType string
 	Subject      string
 	Grade        int
+	Status       *int
 	Page         int
 	PageSize     int
 }

@@ -73,6 +73,7 @@ func buildHandler(cfg config.Config) http.Handler {
 		StudentService:  studentService,
 		MasteryService:  masteryService,
 		PracticeService: practiceService,
+		PracticeAdmin:   practiceRepo,
 		TextbookRepo:    textbookRepo,
 		CurrentStudent:  currentStudent,
 	})

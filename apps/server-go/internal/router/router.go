@@ -20,6 +20,7 @@ type Dependencies struct {
 	StudentService  *student.Service
 	MasteryService  *mastery.Service
 	PracticeService *practice.Service
+	PracticeAdmin   practice.AdminRepository
 	TextbookRepo    textbook.Repository
 	CurrentStudent  student.CurrentStudentProvider
 }
@@ -81,6 +82,9 @@ func New(deps ...Dependencies) http.Handler {
 	}
 	if resolved.PracticeService != nil && resolved.CurrentStudent != nil {
 		practice.RegisterStudentRoutes(mux, resolved.PracticeService, resolved.CurrentStudent)
+	}
+	if resolved.PracticeAdmin != nil {
+		practice.RegisterAdminRoutes(mux, resolved.PracticeAdmin)
 	}
 
 	return middleware.Recover(mux)

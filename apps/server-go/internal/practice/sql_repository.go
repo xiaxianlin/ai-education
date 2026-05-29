@@ -356,6 +356,14 @@ func (repo *SQLRepository) GetPracticeData(ctx context.Context, studentID string
 	}, nil
 }
 
+func (repo *SQLRepository) GetPracticeDataByID(ctx context.Context, sessionID string) (PracticeData, error) {
+	session, err := repo.GetPracticeByID(ctx, sessionID)
+	if err != nil {
+		return PracticeData{}, err
+	}
+	return repo.GetPracticeData(ctx, session.StudentID, sessionID)
+}
+
 func (repo *SQLRepository) GetAnswer(ctx context.Context, studentID string, sessionID string, questionID string) (*PracticeAnswer, error) {
 	if err := repo.ensureDB(); err != nil {
 		return nil, err
@@ -420,6 +428,124 @@ WHERE session_id = ?
 	)
 	if err != nil {
 		return fmt.Errorf("update practice answer: %w", err)
+	}
+	return requireRowsAffected(result)
+}
+
+func (repo *SQLRepository) DeletePractice(ctx context.Context, sessionID string) error {
+	if err := repo.ensureDB(); err != nil {
+		return err
+	}
+	if _, err := repo.GetPracticeByID(ctx, sessionID); err != nil {
+		return err
+	}
+	if _, err := repo.db.ExecContext(ctx, `DELETE FROM ah_practice_answer WHERE session_id = ?`, sessionID); err != nil {
+		return fmt.Errorf("delete practice answers: %w", err)
+	}
+	if _, err := repo.db.ExecContext(ctx, `DELETE FROM ah_practice_report WHERE session_id = ?`, sessionID); err != nil {
+		return fmt.Errorf("delete practice report: %w", err)
+	}
+	result, err := repo.db.ExecContext(ctx, `DELETE FROM ah_practice WHERE id = ?`, sessionID)
+	if err != nil {
+		return fmt.Errorf("delete practice: %w", err)
+	}
+	return requireRowsAffected(result)
+}
+
+func (repo *SQLRepository) ResetPractice(ctx context.Context, sessionID string) error {
+	if err := repo.ensureDB(); err != nil {
+		return err
+	}
+	session, err := repo.GetPracticeByID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+	if _, err := repo.db.ExecContext(ctx, `
+UPDATE ah_practice_answer
+SET status = ?,
+    answer = NULL,
+    time_spent = 0,
+    submit_time = NULL,
+    correct_answer = NULL,
+    analysis = NULL,
+    is_corrected = 0,
+    corrected_time = NULL,
+    update_time = ?
+WHERE session_id = ?`, AnswerStatusUnanswered, unixNow(), sessionID); err != nil {
+		return fmt.Errorf("reset practice answers: %w", err)
+	}
+	status := session.Status
+	if status == PracticeStatusCompleted {
+		status = PracticeStatusInProgress
+	}
+	result, err := repo.db.ExecContext(ctx, `
+UPDATE ah_practice
+SET answer_count = 0,
+    correct_count = 0,
+    status = ?,
+    update_time = ?
+WHERE id = ?`, status, unixNow(), sessionID)
+	if err != nil {
+		return fmt.Errorf("reset practice: %w", err)
+	}
+	return requireRowsAffected(result)
+}
+
+func (repo *SQLRepository) ResetPracticeAnswer(ctx context.Context, sessionID string, questionID string) error {
+	if err := repo.ensureDB(); err != nil {
+		return err
+	}
+	session, err := repo.GetPracticeByID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+	answer, err := repo.GetAnswer(ctx, session.StudentID, sessionID, questionID)
+	if err != nil {
+		return err
+	}
+	wasAnswered := answer.Status != AnswerStatusUnanswered
+	wasCorrect := answer.Status == AnswerStatusCorrect
+	result, err := repo.db.ExecContext(ctx, `
+UPDATE ah_practice_answer
+SET status = ?,
+    answer = NULL,
+    time_spent = 0,
+    submit_time = NULL,
+    correct_answer = NULL,
+    analysis = NULL,
+    is_corrected = 0,
+    corrected_time = NULL,
+    update_time = ?
+WHERE session_id = ?
+  AND question_id = ?`, AnswerStatusUnanswered, unixNow(), sessionID, questionID)
+	if err != nil {
+		return fmt.Errorf("reset practice answer: %w", err)
+	}
+	if err := requireRowsAffected(result); err != nil {
+		return err
+	}
+	if !wasAnswered {
+		return nil
+	}
+	answerCount := session.AnswerCount - 1
+	if answerCount < 0 {
+		answerCount = 0
+	}
+	correctCount := session.CorrectCount
+	if wasCorrect {
+		correctCount--
+		if correctCount < 0 {
+			correctCount = 0
+		}
+	}
+	result, err = repo.db.ExecContext(ctx, `
+UPDATE ah_practice
+SET answer_count = ?,
+    correct_count = ?,
+    update_time = ?
+WHERE id = ?`, answerCount, correctCount, unixNow(), sessionID)
+	if err != nil {
+		return fmt.Errorf("update practice counters after answer reset: %w", err)
 	}
 	return requireRowsAffected(result)
 }
@@ -804,11 +930,19 @@ func scanReport(scanner practiceScanner) (*PracticeReport, error) {
 }
 
 func buildPracticeListWhere(params PracticeListParams) (string, []any) {
-	clauses := []string{"student_id = ?"}
-	args := []any{params.StudentID}
+	clauses := make([]string, 0, 5)
+	args := make([]any, 0, 5)
+	if params.StudentID != "" {
+		clauses = append(clauses, "student_id = ?")
+		args = append(args, params.StudentID)
+	}
 	if params.PracticeType != "" {
 		clauses = append(clauses, "practice_type = ?")
 		args = append(args, params.PracticeType)
+	}
+	if params.Status != nil {
+		clauses = append(clauses, "status = ?")
+		args = append(args, *params.Status)
 	}
 	if params.Subject != "" {
 		clauses = append(clauses, "subject = ?")
@@ -817,6 +951,9 @@ func buildPracticeListWhere(params PracticeListParams) (string, []any) {
 	if params.Grade != 0 {
 		clauses = append(clauses, "grade = ?")
 		args = append(args, params.Grade)
+	}
+	if len(clauses) == 0 {
+		return "", args
 	}
 	return "WHERE " + strings.Join(clauses, " AND "), args
 }
