@@ -9,6 +9,7 @@ import (
 	"ai-education/server-go/internal/mastery"
 	"ai-education/server-go/internal/middleware"
 	"ai-education/server-go/internal/practice"
+	"ai-education/server-go/internal/question"
 	"ai-education/server-go/internal/response"
 	"ai-education/server-go/internal/student"
 	"ai-education/server-go/internal/textbook"
@@ -18,9 +19,11 @@ type Dependencies struct {
 	AuthHandler     *auth.Handler
 	AbilityService  *ability.Service
 	StudentService  *student.Service
+	StudentAdmin    *student.AdminService
 	MasteryService  *mastery.Service
 	PracticeService *practice.Service
 	PracticeAdmin   practice.AdminRepository
+	QuestionService *question.Service
 	TextbookRepo    textbook.Repository
 	CurrentStudent  student.CurrentStudentProvider
 }
@@ -74,6 +77,9 @@ func New(deps ...Dependencies) http.Handler {
 	if resolved.StudentService != nil && resolved.CurrentStudent != nil {
 		student.RegisterStudentRoutes(mux, resolved.StudentService, resolved.CurrentStudent)
 	}
+	if resolved.StudentAdmin != nil {
+		student.RegisterAdminRoutes(mux, resolved.StudentAdmin)
+	}
 	if resolved.TextbookRepo != nil {
 		textbook.RegisterRoutes(mux, resolved.TextbookRepo)
 	}
@@ -85,6 +91,9 @@ func New(deps ...Dependencies) http.Handler {
 	}
 	if resolved.PracticeAdmin != nil {
 		practice.RegisterAdminRoutes(mux, resolved.PracticeAdmin)
+	}
+	if resolved.QuestionService != nil {
+		question.RegisterRoutes(mux, resolved.QuestionService, middleware.RequireToken)
 	}
 
 	return middleware.Recover(mux)

@@ -115,3 +115,64 @@ func TestStudentProfileRouteRequiresToken(t *testing.T) {
 		t.Fatalf("envelope status = %d, want 401", envelope.Status)
 	}
 }
+
+func TestAdminStudentRoutesSearchAndMasterySummary(t *testing.T) {
+	mux := http.NewServeMux()
+	repo := &fakeAdminRepository{}
+	service := student.NewAdminServiceWithOptions(repo, fakePasswordHasher{}, nil, nil, nil)
+	student.RegisterAdminRoutes(mux, service, func(next http.Handler) http.Handler { return next })
+
+	searchReq := httptest.NewRequest(http.MethodGet, "/api/admin/student/search?keywords=小明&page=2&size=10", nil)
+	searchRec := httptest.NewRecorder()
+	mux.ServeHTTP(searchRec, searchReq)
+
+	var searchEnvelope struct {
+		Status int `json:"status"`
+		Data   struct {
+			Total int `json:"total"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(searchRec.Body.Bytes(), &searchEnvelope); err != nil {
+		t.Fatalf("decode search response: %v", err)
+	}
+	if searchEnvelope.Status != 0 {
+		t.Fatalf("unexpected search response: %+v body=%s", searchEnvelope, searchRec.Body.String())
+	}
+
+	summaryReq := httptest.NewRequest(http.MethodGet, "/api/admin/student/student-1/mastery/summary", nil)
+	summaryRec := httptest.NewRecorder()
+	mux.ServeHTTP(summaryRec, summaryReq)
+
+	var summaryEnvelope struct {
+		Status int                           `json:"status"`
+		Data   student.StudentMasterySummary `json:"data"`
+	}
+	if err := json.Unmarshal(summaryRec.Body.Bytes(), &summaryEnvelope); err != nil {
+		t.Fatalf("decode summary response: %v", err)
+	}
+	if summaryEnvelope.Status != 0 || summaryEnvelope.Data.TotalAbilities != 1 || summaryEnvelope.Data.LevelDistribution["mastered"] != 1 {
+		t.Fatalf("unexpected summary response: %+v", summaryEnvelope)
+	}
+}
+
+func TestAdminStudentTextbookConfigRoute(t *testing.T) {
+	mux := http.NewServeMux()
+	repo := &fakeAdminRepository{}
+	service := student.NewAdminServiceWithOptions(repo, fakePasswordHasher{}, func() int64 { return 456 }, nil, nil)
+	student.RegisterAdminRoutes(mux, service, func(next http.Handler) http.Handler { return next })
+
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/student/student-1/textbook-config", strings.NewReader(`{"textbook_id":7}`))
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	var envelope struct {
+		Status int                           `json:"status"`
+		Data   student.StudentTextbookConfig `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if envelope.Status != 0 || envelope.Data.StudentID != "student-1" || envelope.Data.TextbookID != 7 {
+		t.Fatalf("unexpected config response: %+v body=%s", envelope, rec.Body.String())
+	}
+}

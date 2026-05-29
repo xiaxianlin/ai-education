@@ -71,6 +71,50 @@ func TestSaveQuestionTypeChoosesCreateOrUpdate(t *testing.T) {
 	}
 }
 
+func TestServiceQuestionUpdateDeleteAndConfigs(t *testing.T) {
+	repo := &fakeRepository{}
+	service := question.NewService(repo, question.ServiceOptions{})
+	explanation := "答案解析"
+
+	updated, err := service.UpdateQuestion(context.Background(), "q1", question.QuestionUpdate{Explanation: &explanation})
+	if err != nil {
+		t.Fatalf("UpdateQuestion returned error: %v", err)
+	}
+	if updated.ID != "q1" || repo.updatedQuestionID != "q1" || repo.lastQuestionUpdate.Explanation == nil || *repo.lastQuestionUpdate.Explanation != explanation {
+		t.Fatalf("unexpected update state: question=%+v repo=%+v", updated, repo)
+	}
+
+	if err := service.DeleteQuestion(context.Background(), "q1"); err != nil {
+		t.Fatalf("DeleteQuestion returned error: %v", err)
+	}
+	if repo.deletedQuestionID != "q1" {
+		t.Fatalf("expected DeleteQuestion id q1, got %q", repo.deletedQuestionID)
+	}
+
+	configs := question.JSONMap{"max_options": 4}
+	questionType, err := service.UpdateQuestionTypeConfigs(context.Background(), "choice", configs)
+	if err != nil {
+		t.Fatalf("UpdateQuestionTypeConfigs returned error: %v", err)
+	}
+	if questionType.Configs["max_options"] != 4 {
+		t.Fatalf("unexpected configs: %+v", questionType.Configs)
+	}
+}
+
+func TestServiceSearchAbilityPracticeTypesValidatesRequiredFilters(t *testing.T) {
+	service := question.NewService(&fakeRepository{}, question.ServiceOptions{})
+
+	_, err := service.SearchAbilityPracticeTypes(context.Background(), question.AbilityPracticeSearch{Subject: "", Grade: 3})
+	if !errors.Is(err, question.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument for empty subject, got %v", err)
+	}
+
+	_, err = service.SearchAbilityPracticeTypes(context.Background(), question.AbilityPracticeSearch{Subject: "数学", Grade: 13})
+	if !errors.Is(err, question.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument for invalid grade, got %v", err)
+	}
+}
+
 func TestPromptStoreRoundTrip(t *testing.T) {
 	store := question.NewFilePromptStore(t.TempDir())
 
@@ -90,6 +134,9 @@ func TestPromptStoreRoundTrip(t *testing.T) {
 
 type fakeRepository struct {
 	lastQuestionSearch    question.QuestionSearch
+	lastQuestionUpdate    question.QuestionUpdate
+	updatedQuestionID     string
+	deletedQuestionID     string
 	createdQuestionType   bool
 	updatedQuestionTypeID int64
 }
@@ -106,11 +153,14 @@ func (r *fakeRepository) GetQuestion(_ context.Context, id string) (*question.Qu
 	return nil, nil
 }
 
-func (r *fakeRepository) UpdateQuestion(_ context.Context, id string, _ question.QuestionUpdate) (*question.Question, error) {
+func (r *fakeRepository) UpdateQuestion(_ context.Context, id string, params question.QuestionUpdate) (*question.Question, error) {
+	r.updatedQuestionID = id
+	r.lastQuestionUpdate = params
 	return &question.Question{ID: id}, nil
 }
 
-func (r *fakeRepository) DeleteQuestion(_ context.Context, _ string) error {
+func (r *fakeRepository) DeleteQuestion(_ context.Context, id string) error {
+	r.deletedQuestionID = id
 	return nil
 }
 

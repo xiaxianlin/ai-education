@@ -1,6 +1,5 @@
 -- Question CRUD module SQL reference.
--- The first Go cut keeps repository as an interface; concrete DB wiring can reuse
--- these statements when the shared db package lands.
+-- Go implementation: apps/server-go/internal/question/sql_repository.go
 
 CREATE TABLE IF NOT EXISTS ah_question_type (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -35,58 +34,53 @@ CREATE TABLE IF NOT EXISTS ah_question (
 -- name: SearchQuestions
 SELECT *
 FROM ah_question
-WHERE (:id = '' OR id = :id)
-  AND (:question_type_code = '' OR question_type_code = :question_type_code)
-  AND (:subject = '' OR subject = :subject)
-  AND (:grade = 0 OR grade = :grade)
+/* WHERE clauses are appended only when filters are present:
+   id = ?, question_type_code = ?, subject = ?, grade = ? */
 ORDER BY create_time DESC
-LIMIT :limit OFFSET :offset;
+LIMIT ? OFFSET ?;
 
 -- name: CountQuestions
 SELECT COUNT(id)
 FROM ah_question
-WHERE (:id = '' OR id = :id)
-  AND (:question_type_code = '' OR question_type_code = :question_type_code)
-  AND (:subject = '' OR subject = :subject)
-  AND (:grade = 0 OR grade = :grade);
+/* same dynamic WHERE clauses as SearchQuestions */;
 
 -- name: GetQuestion
 SELECT *
 FROM ah_question
-WHERE id = :id;
+WHERE id = ?;
 
 -- name: UpdateQuestion
 UPDATE ah_question
-SET content = COALESCE(:content, content),
-    answer = COALESCE(:answer, answer),
-    update_time = :update_time
-WHERE id = :id;
+SET content = ?,
+    answer = ?,
+    update_time = ?
+WHERE id = ?;
 
 -- name: DeleteQuestion
 DELETE FROM ah_question
-WHERE id = :id;
+WHERE id = ?;
 
 -- name: CreateQuestionType
 INSERT INTO ah_question_type (
     name, code, category, description, subject, ability_code, configs, create_time, update_time
 ) VALUES (
-    :name, :code, :category, :description, :subject, :ability_code, JSON_OBJECT(), :create_time, :update_time
+    ?, ?, ?, ?, ?, ?, JSON_OBJECT(), ?, ?
 );
 
 -- name: UpdateQuestionType
 UPDATE ah_question_type
-SET name = :name,
-    code = :code,
-    category = :category,
-    description = COALESCE(:description, description),
-    subject = COALESCE(:subject, subject),
-    ability_code = COALESCE(:ability_code, ability_code),
-    update_time = :update_time
-WHERE id = :id;
+SET name = ?,
+    code = ?,
+    category = ?,
+    description = ?,
+    subject = ?,
+    ability_code = ?,
+    update_time = ?
+WHERE id = ?;
 
 -- name: DeleteQuestionType
 DELETE FROM ah_question_type
-WHERE id = :id;
+WHERE id = ?;
 
 -- name: SearchUnitPracticeTypes
 SELECT *
@@ -99,19 +93,23 @@ SELECT qt.*
 FROM ah_question_type qt
 JOIN ah_ability a ON a.code = qt.ability_code
 WHERE qt.category = 'ability_practice'
-  AND qt.subject = :subject
-  AND a.grade = :grade
-  AND a.subject = :subject
+  AND qt.subject = ?
+  AND a.grade = ?
+  AND a.subject = ?
 ORDER BY qt.ability_code, qt.id;
 
 -- name: GetQuestionTypeByCode
 SELECT *
 FROM ah_question_type
-WHERE code = :code;
+WHERE code = ?;
+
+-- name: GetQuestionTypeByID
+SELECT *
+FROM ah_question_type
+WHERE id = ?;
 
 -- name: UpdateQuestionTypeConfigs
 UPDATE ah_question_type
-SET configs = :configs,
-    update_time = :update_time
-WHERE code = :code;
-
+SET configs = ?,
+    update_time = ?
+WHERE code = ?;

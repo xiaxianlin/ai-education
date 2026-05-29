@@ -13,6 +13,7 @@ import (
 	"ai-education/server-go/internal/db"
 	"ai-education/server-go/internal/mastery"
 	"ai-education/server-go/internal/practice"
+	"ai-education/server-go/internal/question"
 	"ai-education/server-go/internal/queue"
 	"ai-education/server-go/internal/router"
 	"ai-education/server-go/internal/student"
@@ -53,9 +54,13 @@ func buildHandler(cfg config.Config) http.Handler {
 
 	abilityService := ability.NewService(ability.NewSQLRepository(database.SQL()))
 	studentService := student.NewService(student.NewSQLRepository(database.SQL()))
+	studentAdminService := student.NewAdminService(student.NewSQLRepository(database.SQL()))
 	masteryService := mastery.NewService(mastery.NewSQLRepository(database.SQL()))
 	textbookRepo := textbook.NewSQLRepository(database.SQL())
 	practiceRepo := practice.NewSQLRepository(database.SQL())
+	questionService := question.NewService(question.NewSQLRepository(database.SQL()), question.ServiceOptions{
+		PromptStore: question.NewFilePromptStore("../server/prompt"),
+	})
 
 	aiProvider := buildAIProvider(cfg)
 	workerRegistry := queue.NewRegistry()
@@ -71,9 +76,11 @@ func buildHandler(cfg config.Config) http.Handler {
 		AuthHandler:     auth.NewHandler(authService),
 		AbilityService:  abilityService,
 		StudentService:  studentService,
+		StudentAdmin:    studentAdminService,
 		MasteryService:  masteryService,
 		PracticeService: practiceService,
 		PracticeAdmin:   practiceRepo,
+		QuestionService: questionService,
 		TextbookRepo:    textbookRepo,
 		CurrentStudent:  currentStudent,
 	})
