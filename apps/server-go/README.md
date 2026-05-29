@@ -1,0 +1,35 @@
+# AI Education Go Server
+
+This is the migration target for `apps/server`.
+
+Current status:
+
+- Standard-library API skeleton is in place.
+- Response envelope is compatible with the Python service.
+- Route placeholders exist for `/api/admin` and `/api/student`.
+- Business modules should be migrated independently under `internal/{module}`.
+
+## Run
+
+```bash
+go run ./cmd/api
+```
+
+Environment:
+
+```text
+SERVER_ADDR=:7891
+```
+
+The Python service continues to use port `7890`; the Go service starts on `7891` by default during migration.
+
+## Test
+
+```bash
+go test ./...
+```
+
+## Ownership
+
+See `docs/migration-go-adk/agent-workstreams.md`.
+
