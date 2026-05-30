@@ -42,12 +42,23 @@ func buildHandler(cfg config.Config) http.Handler {
 		return router.New()
 	}
 
+	passwordHasher := auth.NewPythonPasswordHasher()
+	createdSuperManager, err := auth.EnsureSuperManager(ctx, database.ManagerBootstrapRepository(), passwordHasher, auth.SuperManagerBootstrapConfig{
+		Username: cfg.Admin.Username,
+		Password: cfg.Admin.Password,
+	})
+	if err != nil {
+		log.Printf("super manager bootstrap failed: %v", err)
+	} else if createdSuperManager {
+		log.Printf("super manager initialized")
+	}
+
 	tokenRepo := database.TokenRepository()
 	authStore := auth.NewDatabaseStore(tokenRepo)
 	authService := auth.NewService(auth.ServiceConfig{
 		ManagerStore:    authStore,
 		StudentStore:    authStore,
-		PasswordHasher:  auth.NewPythonPasswordHasher(),
+		PasswordHasher:  passwordHasher,
 		ManagerResolver: auth.NewJWTResolver[auth.ManagerTokenClaims](cfg.App.SecretKey, auth.DefaultTokenTTL, nil),
 		StudentResolver: auth.NewJWTResolver[auth.StudentTokenClaims](cfg.App.SecretKey, auth.DefaultTokenTTL, nil),
 	})
