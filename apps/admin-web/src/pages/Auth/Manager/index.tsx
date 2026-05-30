@@ -1,9 +1,10 @@
 import React, { useRef } from 'react';
+import type { TableActionRef } from '@/components/ui';
 import { ManagerFormView } from './views/FormView';
 import { ManagerTableView } from './views/TableView';
 
 export default function ManagerPage() {
-  const actionRef = useRef<any>();
+  const actionRef = useRef<TableActionRef>();
   const [formVisible, setFormVisible] = React.useState(false);
 
   return (

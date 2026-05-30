@@ -8,6 +8,8 @@ import (
 const (
 	statusBadRequest   = 400
 	statusUnauthorized = 401
+	statusForbidden    = 403
+	statusNotFound     = 404
 	statusInternal     = 500
 )
 
@@ -16,6 +18,10 @@ var (
 	ErrInvalidToken       = errors.New("invalid access token")
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrAccountDisabled    = errors.New("account disabled")
+	ErrManagerNotFound    = errors.New("manager not found")
+	ErrDuplicateManager   = errors.New("manager already exists")
+	ErrProtectedManager   = errors.New("protected manager")
+	ErrInvalidArgument    = errors.New("invalid argument")
 )
 
 type Error struct {
@@ -46,6 +52,22 @@ func newAuthError(message string, err error) *Error {
 func newBadRequestError(message string, err error) *Error {
 	return &Error{
 		Status:  statusBadRequest,
+		Message: message,
+		Err:     err,
+	}
+}
+
+func newForbiddenError(message string, err error) *Error {
+	return &Error{
+		Status:  statusForbidden,
+		Message: message,
+		Err:     err,
+	}
+}
+
+func newNotFoundError(message string, err error) *Error {
+	return &Error{
+		Status:  statusNotFound,
 		Message: message,
 		Err:     err,
 	}

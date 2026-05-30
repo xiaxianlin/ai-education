@@ -90,6 +90,82 @@ func (s *fakeManagerStore) SaveManagerToken(_ context.Context, managerID string,
 	return errors.New("not found")
 }
 
+func (s *fakeManagerStore) GetManagerByID(_ context.Context, managerID string) (*Manager, error) {
+	for _, manager := range s.byUsername {
+		if manager.ID == managerID {
+			return manager, nil
+		}
+	}
+	return nil, ErrManagerNotFound
+}
+
+func (s *fakeManagerStore) ManagerUsernameExists(_ context.Context, username string) (bool, error) {
+	_, ok := s.byUsername[username]
+	return ok, nil
+}
+
+func (s *fakeManagerStore) CreateManager(_ context.Context, manager Manager) error {
+	if _, ok := s.byUsername[manager.Username]; ok {
+		return ErrDuplicateManager
+	}
+	copy := manager
+	s.byUsername[manager.Username] = &copy
+	return nil
+}
+
+func (s *fakeManagerStore) UpdateManager(_ context.Context, managerID string, managerType *int, status *int, updateTime int64) error {
+	manager, err := s.GetManagerByID(context.Background(), managerID)
+	if err != nil {
+		return err
+	}
+	if managerType != nil {
+		manager.Type = *managerType
+	}
+	if status != nil {
+		manager.Status = *status
+	}
+	manager.UpdateTime = updateTime
+	return nil
+}
+
+func (s *fakeManagerStore) DeleteManager(_ context.Context, managerID string) error {
+	for username, manager := range s.byUsername {
+		if manager.ID == managerID {
+			delete(s.byUsername, username)
+			if manager.Token != "" {
+				delete(s.byToken, manager.Token)
+			}
+			return nil
+		}
+	}
+	return ErrManagerNotFound
+}
+
+func (s *fakeManagerStore) UpdateManagerPassword(_ context.Context, managerID string, passwordHash string, token *string, updateTime int64) error {
+	manager, err := s.GetManagerByID(context.Background(), managerID)
+	if err != nil {
+		return err
+	}
+	manager.PasswordHash = passwordHash
+	if token != nil {
+		if manager.Token != "" {
+			delete(s.byToken, manager.Token)
+		}
+		manager.Token = *token
+		s.byToken[*token] = manager
+	}
+	manager.UpdateTime = updateTime
+	return nil
+}
+
+func (s *fakeManagerStore) ListManagers(_ context.Context) ([]Manager, error) {
+	managers := make([]Manager, 0, len(s.byUsername))
+	for _, manager := range s.byUsername {
+		managers = append(managers, *manager)
+	}
+	return managers, nil
+}
+
 type fakeStudentStore struct {
 	byPhone map[string]*Student
 	byToken map[string]*Student
@@ -239,39 +315,172 @@ func TestMissingTokenReturnsEnvelopeUnauthorized(t *testing.T) {
 	}
 }
 
+func TestTeacherCannotUseManagerAdminRoutes(t *testing.T) {
+	t.Parallel()
+
+	service, managerStore, _ := testServiceWithStores()
+	managerStore.byUsername["teacher"] = &Manager{
+		ID:           "teacher-1",
+		Username:     "teacher",
+		PasswordHash: "hash:Secret123!",
+		Type:         2,
+		Status:       statusEnabled,
+		CreateTime:   100,
+	}
+
+	token, err := service.AdminLogin(context.Background(), "teacher", "Secret123!")
+	if err != nil {
+		t.Fatalf("AdminLogin returned error: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	RegisterAdminRoutes(mux, NewHandler(service))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/manager/all", nil)
+	req.Header.Set("x-access-token", token)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("unexpected HTTP status: %d", rec.Code)
+	}
+
+	var envelope struct {
+		Status  int    `json:"status"`
+		Message string `json:"message"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&envelope); err != nil {
+		t.Fatalf("decode envelope: %v", err)
+	}
+	if envelope.Status != statusForbidden || envelope.Message != "权限不足" {
+		t.Fatalf("unexpected envelope: %#v", envelope)
+	}
+}
+
+func TestManagerAdminServiceLifecycle(t *testing.T) {
+	service, managerStore, _ := testServiceWithStores()
+
+	password, err := service.CreateManager(context.Background(), CreateManagerRequest{
+		Username: "teacher",
+		Type:     2,
+	})
+	if err != nil {
+		t.Fatalf("CreateManager returned error: %v", err)
+	}
+	if password != "Generated123!" {
+		t.Fatalf("unexpected generated password: %q", password)
+	}
+	teacher := managerStore.byUsername["teacher"]
+	if teacher == nil || teacher.Status != statusEnabled || teacher.PasswordHash != "hash:Generated123!" {
+		t.Fatalf("unexpected created manager: %#v", teacher)
+	}
+
+	managers, err := service.ListManagers(context.Background())
+	if err != nil {
+		t.Fatalf("ListManagers returned error: %v", err)
+	}
+	if len(managers) != 2 {
+		t.Fatalf("unexpected manager count: %d", len(managers))
+	}
+
+	disabled := statusDisabled
+	if err := service.UpdateManager(context.Background(), teacher.ID, UpdateManagerRequest{Status: &disabled}); err != nil {
+		t.Fatalf("disable manager: %v", err)
+	}
+	if teacher.Status != statusDisabled {
+		t.Fatalf("manager was not disabled: %#v", teacher)
+	}
+	enabled := statusEnabled
+	if err := service.UpdateManager(context.Background(), teacher.ID, UpdateManagerRequest{Status: &enabled}); err != nil {
+		t.Fatalf("enable manager: %v", err)
+	}
+	if teacher.Status != statusEnabled {
+		t.Fatalf("manager was not enabled: %#v", teacher)
+	}
+
+	resetPassword, err := service.ResetManagerPassword(context.Background(), teacher.ID)
+	if err != nil {
+		t.Fatalf("ResetManagerPassword returned error: %v", err)
+	}
+	if resetPassword != "Generated123!" || teacher.PasswordHash != "hash:Generated123!" {
+		t.Fatalf("unexpected reset password state: password=%q manager=%#v", resetPassword, teacher)
+	}
+
+	err = service.ModifyManagerPassword(context.Background(), "manager-1", ModifyPasswordRequest{
+		Origin:   "Secret123!",
+		Password: "NewSecret123!",
+	})
+	if err != nil {
+		t.Fatalf("ModifyManagerPassword returned error: %v", err)
+	}
+	admin := managerStore.byUsername["admin"]
+	if admin.PasswordHash != "hash:NewSecret123!" || admin.Token == "" {
+		t.Fatalf("unexpected modified admin: %#v", admin)
+	}
+}
+
+func TestManagerTypeZeroIsProtectedFromAdminMutations(t *testing.T) {
+	service := testService()
+
+	status := statusDisabled
+	if err := service.UpdateManager(context.Background(), "manager-1", UpdateManagerRequest{Status: &status}); err == nil {
+		t.Fatal("UpdateManager expected protected manager error")
+	}
+	if err := service.DeleteManager(context.Background(), "manager-1"); err == nil {
+		t.Fatal("DeleteManager expected protected manager error")
+	}
+	if _, err := service.ResetManagerPassword(context.Background(), "manager-1"); err == nil {
+		t.Fatal("ResetManagerPassword expected protected manager error")
+	}
+}
+
 func testService() *Service {
+	service, _, _ := testServiceWithStores()
+	return service
+}
+
+func testServiceWithStores() (*Service, *fakeManagerStore, *fakeStudentStore) {
+	managerStore := &fakeManagerStore{
+		byUsername: map[string]*Manager{
+			"admin": {
+				ID:           "manager-1",
+				Username:     "admin",
+				PasswordHash: "hash:Secret123!",
+				Type:         0,
+				Status:       1,
+				CreateTime:   100,
+			},
+		},
+		byToken: map[string]*Manager{},
+	}
+	studentStore := &fakeStudentStore{
+		byPhone: map[string]*Student{
+			"13800138000": {
+				ID:           "student-1",
+				Name:         "张三",
+				Phone:        "13800138000",
+				PasswordHash: "hash:Secret123!",
+				Status:       1,
+				CreateTime:   100,
+			},
+		},
+		byToken: map[string]*Student{},
+	}
 	return NewService(ServiceConfig{
-		ManagerStore: &fakeManagerStore{
-			byUsername: map[string]*Manager{
-				"admin": {
-					ID:           "manager-1",
-					Username:     "admin",
-					PasswordHash: "hash:Secret123!",
-					Type:         0,
-					Status:       1,
-					CreateTime:   100,
-				},
-			},
-			byToken: map[string]*Manager{},
-		},
-		StudentStore: &fakeStudentStore{
-			byPhone: map[string]*Student{
-				"13800138000": {
-					ID:           "student-1",
-					Name:         "张三",
-					Phone:        "13800138000",
-					PasswordHash: "hash:Secret123!",
-					Status:       1,
-					CreateTime:   100,
-				},
-			},
-			byToken: map[string]*Student{},
-		},
+		ManagerStore:    managerStore,
+		ManagerAdmin:    managerStore,
+		StudentStore:    studentStore,
 		PasswordHasher:  fakeHasher{},
 		ManagerResolver: &fakeManagerResolver{claims: map[string]ManagerTokenClaims{}},
 		StudentResolver: &fakeStudentResolver{claims: map[string]StudentTokenClaims{}},
 		Clock: func() time.Time {
 			return time.Unix(1234567890, 0)
 		},
-	})
+		IDGenerator: func() (string, error) {
+			return "manager-2", nil
+		},
+		PasswordGen: func() (string, error) {
+			return "Generated123!", nil
+		},
+	}), managerStore, studentStore
 }

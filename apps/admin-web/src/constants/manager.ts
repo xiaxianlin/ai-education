@@ -8,12 +8,6 @@ export const SYSTEM_MANAGER_TYPE = 0 as ManagerType;
 export const ADMIN_MANAGER_TYPE = 1 as ManagerType;
 export const TEACHER_MANAGER_TYPE = 2 as ManagerType;
 
-export const ManagerTypeTagColor: Record<ManagerType, string> = {
-  0: 'gold',
-  1: 'blue',
-  2: 'green',
-};
-
 export const isAdminManager = (type?: ManagerType) => type === SYSTEM_MANAGER_TYPE || type === ADMIN_MANAGER_TYPE;
 
 export const isTeacherManager = (type?: ManagerType) => type === TEACHER_MANAGER_TYPE;

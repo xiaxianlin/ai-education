@@ -21,6 +21,16 @@ type ManagerStore interface {
 	SaveManagerToken(ctx context.Context, managerID string, token string, updateTime time.Time) error
 }
 
+type ManagerAdminStore interface {
+	GetManagerByID(ctx context.Context, managerID string) (*Manager, error)
+	ManagerUsernameExists(ctx context.Context, username string) (bool, error)
+	CreateManager(ctx context.Context, manager Manager) error
+	UpdateManager(ctx context.Context, managerID string, managerType *int, status *int, updateTime int64) error
+	DeleteManager(ctx context.Context, managerID string) error
+	UpdateManagerPassword(ctx context.Context, managerID string, passwordHash string, token *string, updateTime int64) error
+	ListManagers(ctx context.Context) ([]Manager, error)
+}
+
 type StudentStore interface {
 	FindStudentByPhone(ctx context.Context, phone string) (*Student, error)
 	FindStudentByToken(ctx context.Context, token string) (*Student, error)

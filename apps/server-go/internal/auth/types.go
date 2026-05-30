@@ -40,6 +40,25 @@ type AdminLoginRequest struct {
 	Password string `json:"password"`
 }
 
+type CreateManagerRequest struct {
+	Username string `json:"username"`
+	Type     int    `json:"type"`
+}
+
+type UpdateManagerRequest struct {
+	Type   *int `json:"type,omitempty"`
+	Status *int `json:"status,omitempty"`
+}
+
+type ModifyPasswordRequest struct {
+	Origin   string `json:"origin"`
+	Password string `json:"password"`
+}
+
+type PasswordResponse struct {
+	Password string `json:"password"`
+}
+
 type StudentLoginRequest struct {
 	Phone    string `json:"phone"`
 	Password string `json:"password"`
