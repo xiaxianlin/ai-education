@@ -37,12 +37,6 @@ func RegisterAdminRoutes(mux *http.ServeMux, service *AdminService, middlewares 
 	handle(mux, "PUT /api/admin/student/{id}", http.HandlerFunc(handler.UpdateStudent), chain...)
 	handle(mux, "DELETE /api/admin/student/{id}", http.HandlerFunc(handler.DeleteStudent), chain...)
 	handle(mux, "POST /api/admin/student/{id}/reset_password", http.HandlerFunc(handler.ResetStudentPassword), chain...)
-	handle(mux, "GET /api/admin/student/{id}/unused_textbooks", http.HandlerFunc(handler.ListUnusedTextbooks), chain...)
-	handle(mux, "POST /api/admin/student/{id}/textbook-config", http.HandlerFunc(handler.CreateTextbookConfig), chain...)
-	handle(mux, "PUT /api/admin/student/{id}/textbook-config/{config_id}", http.HandlerFunc(handler.UpdateTextbookConfig), chain...)
-	handle(mux, "DELETE /api/admin/student/{id}/textbook-config/{config_id}", http.HandlerFunc(handler.DeleteTextbookConfig), chain...)
-	handle(mux, "GET /api/admin/student/{id}/textbook-configs", http.HandlerFunc(handler.ListTextbookConfigs), chain...)
-	handle(mux, "POST /api/admin/student/{id}/textbook-configs", http.HandlerFunc(handler.SetTextbookConfigs), chain...)
 	handle(mux, "GET /api/admin/student/{id}/mastery", http.HandlerFunc(handler.ListMastery), chain...)
 	handle(mux, "GET /api/admin/student/{id}/mastery/summary", http.HandlerFunc(handler.GetMasterySummary), chain...)
 }

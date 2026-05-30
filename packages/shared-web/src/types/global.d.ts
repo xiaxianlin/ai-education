@@ -60,32 +60,6 @@ declare global {
   }
 
   /**
-   * 教师用书信息（对应 TeacherBookSchema）
-   */
-  interface TeacherBook {
-    id: number;
-    subject: string;
-    version: string;
-    grade: number;
-    semester: string;
-    file?: string;
-    index_file_id?: string;
-  }
-
-  /**
-   * 教材版本信息（对应 TextbookVersionSchema）
-   */
-  interface TextbookVersion {
-    id: number;
-    subject: string;
-    name: string;
-    revision_year: number;
-    is_enabled: number;
-    create_time?: number;
-    update_time?: number;
-  }
-
-  /**
    * 单元信息（对应 UnitSchema）
    */
   interface Unit {
@@ -218,28 +192,19 @@ declare global {
     grade: number;
     semester?: string;
     subject?: string;
+    teacher_id?: string;
+    teacher?: {
+      id: string;
+      account: string;
+      name: string;
+      phone: string;
+      subject: string;
+      school: string;
+      status: number;
+    };
     status: number; // 0-正常, 1-禁用
     create_time: number;
     update_time?: number;
-  }
-
-  /**
-   * 学生教材配置（对应 StudentTextbookConfigSchema）
-   */
-  interface StudentTextbookConfig {
-    id: number;
-    student_id: string;
-    textbook_id: number;
-    textbook?: Textbook; // 关联的教材信息
-    create_time: number;
-    update_time: number;
-  }
-
-  /**
-   * 保存学生教材配置请求
-   */
-  interface SaveStudentTextbookConfigRequest {
-    textbook_id: number;
   }
 
   /**
@@ -460,4 +425,3 @@ declare global {
 }
 
 export { };
-

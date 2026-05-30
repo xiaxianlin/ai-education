@@ -17,6 +17,7 @@ import (
 	"ai-education/server-go/internal/queue"
 	"ai-education/server-go/internal/router"
 	"ai-education/server-go/internal/student"
+	"ai-education/server-go/internal/teacher"
 	"ai-education/server-go/internal/textbook"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -66,6 +67,7 @@ func buildHandler(cfg config.Config) http.Handler {
 	abilityService := ability.NewService(ability.NewSQLRepository(database.SQL()))
 	studentService := student.NewService(student.NewSQLRepository(database.SQL()))
 	studentAdminService := student.NewAdminService(student.NewSQLRepository(database.SQL()))
+	teacherService := teacher.NewService(teacher.NewSQLRepository(database.SQL()))
 	masteryService := mastery.NewService(mastery.NewSQLRepository(database.SQL()))
 	textbookRepo := textbook.NewSQLRepository(database.SQL())
 	practiceRepo := practice.NewSQLRepository(database.SQL())
@@ -88,6 +90,7 @@ func buildHandler(cfg config.Config) http.Handler {
 		AbilityService:  abilityService,
 		StudentService:  studentService,
 		StudentAdmin:    studentAdminService,
+		TeacherService:  teacherService,
 		MasteryService:  masteryService,
 		PracticeService: practiceService,
 		PracticeAdmin:   practiceRepo,

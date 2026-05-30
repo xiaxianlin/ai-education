@@ -1,5 +1,4 @@
-import { TextbookVersionSelect } from '@/components';
-import { Button, Field, Modal, Select } from '@/components/ui';
+import { Button, Field, Input, Modal, Select } from '@/components/ui';
 import { toast } from '@/components/ui/toast';
 import { useConfigs } from '@/hooks';
 import { FormEvent, useEffect, useState } from 'react';
@@ -49,7 +48,9 @@ export default function FormView() {
       }
     >
       <form id="textbook-form" className="grid gap-4" onSubmit={onSubmit}>
-        <TextbookVersionSelect subject={subject} value={version} onChange={setVersion} />
+        <Field label="教材版本" required>
+          <Input value={version} placeholder="请输入教材版本" onChange={(event) => setVersion(event.target.value)} />
+        </Field>
         <Field label="学期" required>
           <Select value={semester} onChange={(event) => setSemester(event.target.value)}>
             <option value="">请选择学期</option>

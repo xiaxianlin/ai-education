@@ -1,4 +1,12 @@
+import { isAdminManager } from '@/constants/manager';
+import { useInitialStateModel } from '@/models/initialState';
+import { Button, Select } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { GRADES } from '@ai-education/shared-web';
+import { useRequest } from 'ahooks';
+import { useState } from 'react';
+import { AuthApi } from '@/pages/Auth/api';
+import { StudentApi } from '../../api';
 import { BasicInfoForm } from '../components/BasicInfoForm';
 import { useStudentDetailModel } from '../models/page';
 import { Footer } from './Footer';
@@ -9,7 +17,26 @@ const formatTime = (value?: number) => {
 };
 
 export function BasicInfo() {
-  const { student } = useStudentDetailModel();
+  const { student, refresh } = useStudentDetailModel();
+  const { manager } = useInitialStateModel();
+  const showTeacherInfo = isAdminManager(manager?.type);
+  const [teacherId, setTeacherId] = useState('');
+  const { data: teacherResult } = useRequest(() => AuthApi.searchTeachers({ size: 100, status: 1 }), {
+    ready: showTeacherInfo,
+  });
+  const { runAsync: assignTeacher, loading: assigning } = useRequest(
+    async () => StudentApi.assignStudentTeacher(student?.id || '', teacherId),
+    {
+      manual: true,
+      onSuccess: () => {
+        toast.success('关联教师成功');
+        refresh();
+      },
+      onError: (error: any) => toast.error(error?.message || '关联教师失败'),
+    },
+  );
+
+  const teachers = teacherResult?.data || [];
 
   return (
     <section className="rounded-lg border bg-background shadow-sm">
@@ -55,6 +82,41 @@ export function BasicInfo() {
           <dd className="mt-1 text-foreground">{formatTime((student as any)?.update_time)}</dd>
         </div>
       </dl>
+      {showTeacherInfo ? (
+        <div className="border-t p-5">
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-foreground">教师信息</h3>
+            <p className="mt-1 text-sm text-muted-foreground">仅管理员可查看和调整学生关联教师。</p>
+          </div>
+          <dl className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div>
+              <dt className="text-sm text-muted-foreground">关联教师</dt>
+              <dd className="mt-1 font-medium text-foreground">{student?.teacher?.name || '-'}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">教师账号</dt>
+              <dd className="mt-1 text-foreground">{student?.teacher?.account || '-'}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">学校</dt>
+              <dd className="mt-1 text-foreground">{student?.teacher?.school || '-'}</dd>
+            </div>
+          </dl>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Select value={teacherId} onChange={(event) => setTeacherId(event.target.value)} className="sm:max-w-xs">
+              <option value="">选择教师</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.name} / {teacher.account}
+                </option>
+              ))}
+            </Select>
+            <Button disabled={!teacherId || !student?.id} loading={assigning} onClick={() => assignTeacher()}>
+              关联教师
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <BasicInfoForm />
     </section>
   );

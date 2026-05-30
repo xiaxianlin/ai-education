@@ -12,6 +12,7 @@ import (
 	"ai-education/server-go/internal/question"
 	"ai-education/server-go/internal/response"
 	"ai-education/server-go/internal/student"
+	"ai-education/server-go/internal/teacher"
 	"ai-education/server-go/internal/textbook"
 )
 
@@ -20,6 +21,7 @@ type Dependencies struct {
 	AbilityService  *ability.Service
 	StudentService  *student.Service
 	StudentAdmin    *student.AdminService
+	TeacherService  *teacher.Service
 	MasteryService  *mastery.Service
 	PracticeService *practice.Service
 	PracticeAdmin   practice.AdminRepository
@@ -79,6 +81,9 @@ func New(deps ...Dependencies) http.Handler {
 	}
 	if resolved.StudentAdmin != nil {
 		student.RegisterAdminRoutes(mux, resolved.StudentAdmin)
+	}
+	if resolved.TeacherService != nil {
+		teacher.RegisterAdminRoutes(mux, resolved.TeacherService)
 	}
 	if resolved.TextbookRepo != nil {
 		textbook.RegisterRoutes(mux, resolved.TextbookRepo)

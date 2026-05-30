@@ -53,7 +53,7 @@ func TestSQLRepositoryGetProfileAndUpdateSettings(t *testing.T) {
 	}
 }
 
-func TestSQLRepositoryAdminSearchConfigsAndMastery(t *testing.T) {
+func TestSQLRepositoryAdminSearchAndMastery(t *testing.T) {
 	store := newStudentSQLStore()
 	store.students["student-1"] = studentRow{
 		name:       "小明",
@@ -72,7 +72,6 @@ func TestSQLRepositoryAdminSearchConfigsAndMastery(t *testing.T) {
 		updateTime: 190,
 	}
 	store.allTextbooks[7] = student.Textbook{ID: 7, Subject: "数学", Version: "人教版", Grade: 4, Semester: "上学期", IsParsed: 1}
-	store.configs = []studentConfigRow{{id: 3, studentID: "student-1", textbookID: 7, createTime: 110, updateTime: 120}}
 	store.mastery = []studentMasteryRow{{id: 5, studentID: "student-1", abilityCode: "MATH-1", score: 88.126, level: "mastered", correct: 8, wrong: 1, createTime: 130, updateTime: 140, abilityName: stringPtr("数感"), subject: stringPtr("数学"), grade: intPtr(4)}}
 
 	db := openStudentTestDB(t, store)
@@ -84,14 +83,6 @@ func TestSQLRepositoryAdminSearchConfigsAndMastery(t *testing.T) {
 	}
 	if search.Total != 1 || len(search.Data) != 1 || search.Data[0].ID != "student-1" {
 		t.Fatalf("unexpected search result: %+v", search)
-	}
-
-	configs, err := repo.ListStudentTextbookConfigs(context.Background(), "student-1", student.ListStudentTextbookConfigsRequest{Page: 1, Size: 20, Subject: "数学", Grade: intPtr(4)})
-	if err != nil {
-		t.Fatalf("ListStudentTextbookConfigs returned error: %v", err)
-	}
-	if configs.Total != 1 || len(configs.Items) != 1 || configs.Items[0].Textbook == nil || configs.Items[0].Textbook.ID != 7 {
-		t.Fatalf("unexpected configs: %+v", configs)
 	}
 
 	masteryList, err := repo.ListStudentMastery(context.Background(), "student-1", "数学")
@@ -142,14 +133,6 @@ type studentRow struct {
 	updateTime int64
 }
 
-type studentConfigRow struct {
-	id         int64
-	studentID  string
-	textbookID int64
-	createTime int64
-	updateTime int64
-}
-
 type studentMasteryRow struct {
 	id               int64
 	studentID        string
@@ -171,7 +154,6 @@ type studentSQLStore struct {
 	students     map[string]studentRow
 	textbooks    map[string][]student.Textbook
 	allTextbooks map[int64]student.Textbook
-	configs      []studentConfigRow
 	mastery      []studentMasteryRow
 }
 
@@ -213,30 +195,16 @@ func (c *studentTestConn) QueryContext(ctx context.Context, query string, args [
 
 	studentID := namedString(args, 0)
 	switch {
-	case strings.Contains(query, "COUNT(id) FROM ah_student "):
+	case strings.Contains(query, "COUNT(id) FROM ah_student ") || strings.Contains(query, "COUNT(s.id) FROM ah_student s "):
 		return &studentRows{columns: []string{"count"}, values: [][]driver.Value{{int64(len(c.store.filterStudents(query, args)))}}}, nil
-	case strings.Contains(query, "FROM ah_student") && strings.Contains(query, "ORDER BY create_time DESC"):
+	case strings.Contains(query, "FROM ah_student") && (strings.Contains(query, "ORDER BY create_time DESC") || strings.Contains(query, "ORDER BY s.create_time DESC")):
 		items := c.store.filterStudents(query, args)
 		values := make([][]driver.Value, 0, len(items))
 		for id, item := range items {
 			values = append(values, adminStudentValues(id, item))
 		}
 		return &studentRows{
-			columns: []string{"id", "name", "phone", "grade", "semester", "subject", "status", "create_time", "update_time"},
-			values:  values,
-		}, nil
-	case strings.Contains(query, "COUNT(c.id)") && strings.Contains(query, "FROM ah_student_textbook_config"):
-		items := c.store.filterConfigs(studentID, query, args)
-		return &studentRows{columns: []string{"count"}, values: [][]driver.Value{{int64(len(items))}}}, nil
-	case strings.Contains(query, "FROM ah_student_textbook_config c") && strings.Contains(query, "LEFT JOIN ah_textbook"):
-		items := c.store.filterConfigs(studentID, query, args)
-		values := make([][]driver.Value, 0, len(items))
-		for _, config := range items {
-			textbook := c.store.allTextbooks[config.textbookID]
-			values = append(values, configValues(config, textbook))
-		}
-		return &studentRows{
-			columns: []string{"id", "student_id", "textbook_id", "create_time", "update_time", "t_id", "subject", "version", "grade", "semester", "file", "index_file_id", "is_parsed"},
+			columns: []string{"id", "name", "phone", "grade", "semester", "subject", "teacher_id", "status", "create_time", "update_time", "t_id", "t_account", "t_name", "t_phone", "t_subject", "t_school", "t_status"},
 			values:  values,
 		}, nil
 	case strings.Contains(query, "FROM ah_student_ability_mastery m") && strings.Contains(query, "LEFT JOIN ah_ability"):
@@ -352,7 +320,7 @@ func (s *studentSQLStore) filterStudents(query string, args []driver.NamedValue)
 	keyword := ""
 	status := (*int)(nil)
 	index := 0
-	if strings.Contains(query, "(name LIKE ? OR phone LIKE ?)") {
+	if strings.Contains(query, "(name LIKE ? OR phone LIKE ?)") || strings.Contains(query, "(s.name LIKE ? OR s.phone LIKE ?)") {
 		keyword = strings.Trim(namedString(args, index), "%")
 		index += 2
 	}
@@ -372,35 +340,6 @@ func (s *studentSQLStore) filterStudents(query string, args []driver.NamedValue)
 	return items
 }
 
-func (s *studentSQLStore) filterConfigs(studentID string, query string, args []driver.NamedValue) []studentConfigRow {
-	subject := ""
-	grade := (*int)(nil)
-	index := 1
-	if strings.Contains(query, "t.subject = ?") {
-		subject = namedString(args, index)
-		index++
-	}
-	if strings.Contains(query, "t.grade = ?") {
-		value := int(namedInt64(args, index))
-		grade = &value
-	}
-	items := make([]studentConfigRow, 0)
-	for _, config := range s.configs {
-		if config.studentID != studentID {
-			continue
-		}
-		textbook := s.allTextbooks[config.textbookID]
-		if subject != "" && textbook.Subject != subject {
-			continue
-		}
-		if grade != nil && textbook.Grade != *grade {
-			continue
-		}
-		items = append(items, config)
-	}
-	return items
-}
-
 func adminStudentValues(id string, item studentRow) []driver.Value {
 	return []driver.Value{
 		id,
@@ -409,27 +348,17 @@ func adminStudentValues(id string, item studentRow) []driver.Value {
 		nullableInt(item.grade),
 		nullableString(item.semester),
 		nullableString(item.subject),
+		nil,
 		int64(item.status),
 		item.createTime,
 		item.updateTime,
-	}
-}
-
-func configValues(config studentConfigRow, textbook student.Textbook) []driver.Value {
-	return []driver.Value{
-		config.id,
-		config.studentID,
-		config.textbookID,
-		config.createTime,
-		config.updateTime,
-		textbook.ID,
-		textbook.Subject,
-		textbook.Version,
-		int64(textbook.Grade),
-		textbook.Semester,
-		nullableString(textbook.File),
-		nullableString(textbook.IndexFileID),
-		int64(textbook.IsParsed),
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	}
 }
 

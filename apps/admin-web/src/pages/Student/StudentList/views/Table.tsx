@@ -143,13 +143,6 @@ export default function TableView() {
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        className="rounded-md px-2 py-1 text-sm font-medium text-primary hover:bg-primary/10"
-                        onClick={() => navigate(`/student/${student.id}/textbook-config`)}
-                      >
-                        教材管理
-                      </button>
-                      <button
-                        type="button"
                         className="rounded-md px-2 py-1 text-sm font-medium text-destructive hover:bg-destructive/10"
                         onClick={() => handleDelete(student)}
                       >

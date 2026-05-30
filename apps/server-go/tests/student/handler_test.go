@@ -154,25 +154,3 @@ func TestAdminStudentRoutesSearchAndMasterySummary(t *testing.T) {
 		t.Fatalf("unexpected summary response: %+v", summaryEnvelope)
 	}
 }
-
-func TestAdminStudentTextbookConfigRoute(t *testing.T) {
-	mux := http.NewServeMux()
-	repo := &fakeAdminRepository{}
-	service := student.NewAdminServiceWithOptions(repo, fakePasswordHasher{}, func() int64 { return 456 }, nil, nil)
-	student.RegisterAdminRoutes(mux, service, func(next http.Handler) http.Handler { return next })
-
-	req := httptest.NewRequest(http.MethodPost, "/api/admin/student/student-1/textbook-config", strings.NewReader(`{"textbook_id":7}`))
-	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, req)
-
-	var envelope struct {
-		Status int                           `json:"status"`
-		Data   student.StudentTextbookConfig `json:"data"`
-	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
-		t.Fatalf("decode response: %v", err)
-	}
-	if envelope.Status != 0 || envelope.Data.StudentID != "student-1" || envelope.Data.TextbookID != 7 {
-		t.Fatalf("unexpected config response: %+v body=%s", envelope, rec.Body.String())
-	}
-}

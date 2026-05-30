@@ -95,9 +95,11 @@ func (r *SQLRepository) GetAdminStudent(ctx context.Context, studentID string) (
 	}
 	return scanAdminStudent(r.store.QueryRowContext(
 		ctx,
-		`SELECT id, name, phone, grade, semester, subject, status, create_time, update_time
-FROM ah_student
-WHERE id = ?
+		`SELECT s.id, s.name, s.phone, s.grade, s.semester, s.subject, s.teacher_id, s.status, s.create_time, s.update_time,
+t.id, t.account, t.name, t.phone, t.subject, t.school, t.status
+FROM ah_student s
+LEFT JOIN ah_teacher t ON s.teacher_id = t.id
+WHERE s.id = ?
 LIMIT 1`,
 		studentID,
 	))
@@ -110,14 +112,16 @@ func (r *SQLRepository) SearchStudents(ctx context.Context, req SearchStudentsRe
 
 	where, args := buildStudentSearchWhere(req)
 	var total int
-	if err := r.store.QueryRowContext(ctx, "SELECT COUNT(id) FROM ah_student "+where, args...).Scan(&total); err != nil {
+	if err := r.store.QueryRowContext(ctx, "SELECT COUNT(s.id) FROM ah_student s "+where, args...).Scan(&total); err != nil {
 		return SearchStudentsResult{}, fmt.Errorf("count students: %w", err)
 	}
 
 	offset := (req.Page - 1) * req.Size
-	query := `SELECT id, name, phone, grade, semester, subject, status, create_time, update_time
-FROM ah_student ` + where + `
-ORDER BY create_time DESC
+	query := `SELECT s.id, s.name, s.phone, s.grade, s.semester, s.subject, s.teacher_id, s.status, s.create_time, s.update_time,
+t.id, t.account, t.name, t.phone, t.subject, t.school, t.status
+FROM ah_student s
+LEFT JOIN ah_teacher t ON s.teacher_id = t.id ` + where + `
+ORDER BY s.create_time DESC
 LIMIT ? OFFSET ?`
 	args = append(args, req.Size, offset)
 	rows, err := r.store.QueryContext(ctx, query, args...)
@@ -167,9 +171,9 @@ func (r *SQLRepository) CreateStudent(ctx context.Context, record CreateStudentR
 		return err
 	}
 	_, err := r.store.ExecContext(ctx,
-		`INSERT INTO ah_student (id, name, phone, password, grade, status, create_time, update_time)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		record.ID, record.Name, record.Phone, record.PasswordHash, record.Grade, record.Status, record.CreateTime, record.UpdateTime,
+		`INSERT INTO ah_student (id, name, phone, password, grade, teacher_id, status, create_time, update_time)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		record.ID, record.Name, record.Phone, record.PasswordHash, record.Grade, nullString(record.TeacherID), record.Status, record.CreateTime, record.UpdateTime,
 	)
 	if err != nil {
 		return fmt.Errorf("create student: %w", err)
@@ -183,9 +187,9 @@ func (r *SQLRepository) UpdateStudent(ctx context.Context, studentID string, rec
 	}
 	result, err := r.store.ExecContext(ctx,
 		`UPDATE ah_student
-SET name = ?, phone = ?, grade = ?, status = ?, update_time = ?
+SET name = ?, phone = ?, grade = ?, teacher_id = COALESCE(?, teacher_id), status = ?, update_time = ?
 WHERE id = ?`,
-		record.Name, record.Phone, record.Grade, record.Status, record.UpdateTime, studentID,
+		record.Name, record.Phone, record.Grade, nullString(record.TeacherID), record.Status, record.UpdateTime, studentID,
 	)
 	if err != nil {
 		return fmt.Errorf("update student: %w", err)
@@ -223,173 +227,6 @@ func (r *SQLRepository) ResetStudentPassword(ctx context.Context, studentID stri
 	}
 	if affectedRows(result) == 0 {
 		return ErrStudentNotFound
-	}
-	return nil
-}
-
-func (r *SQLRepository) ListUnusedTextbooks(ctx context.Context, studentID string) ([]Textbook, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	if _, err := r.GetAdminStudent(ctx, studentID); err != nil {
-		return nil, err
-	}
-	rows, err := r.store.QueryContext(ctx,
-		`SELECT t.id, t.subject, t.version, t.grade, t.semester, t.file, t.index_file_id, t.is_parsed
-FROM ah_textbook t
-WHERE NOT EXISTS (
-	SELECT 1 FROM ah_student_textbook_config c
-	WHERE c.student_id = ? AND c.textbook_id = t.id
-)
-ORDER BY t.id`,
-		studentID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("list unused textbooks: %w", err)
-	}
-	defer rows.Close()
-
-	items := make([]Textbook, 0)
-	for rows.Next() {
-		item, err := scanTextbook(rows)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, *item)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate unused textbooks: %w", err)
-	}
-	return items, nil
-}
-
-func (r *SQLRepository) CreateStudentTextbookConfig(ctx context.Context, studentID string, textbookID int64, now int64) (*StudentTextbookConfig, error) {
-	if err := r.validateTextbookConfigInput(ctx, studentID, textbookID, 0); err != nil {
-		return nil, err
-	}
-	result, err := r.store.ExecContext(ctx,
-		`INSERT INTO ah_student_textbook_config (student_id, textbook_id, create_time, update_time)
-VALUES (?, ?, ?, ?)`,
-		studentID, textbookID, now, now,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("create student textbook config: %w", err)
-	}
-	id, _ := result.LastInsertId()
-	return r.getStudentTextbookConfig(ctx, studentID, id)
-}
-
-func (r *SQLRepository) UpdateStudentTextbookConfig(ctx context.Context, studentID string, configID int64, textbookID int64, now int64) (*StudentTextbookConfig, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	if exists, err := r.studentTextbookConfigExists(ctx, studentID, configID); err != nil {
-		return nil, err
-	} else if !exists {
-		return nil, ErrTextbookConfigNotFound
-	}
-	if err := r.validateTextbookConfigInput(ctx, studentID, textbookID, configID); err != nil {
-		return nil, err
-	}
-	result, err := r.store.ExecContext(ctx,
-		`UPDATE ah_student_textbook_config
-SET textbook_id = ?, update_time = ?
-WHERE id = ? AND student_id = ?`,
-		textbookID, now, configID, studentID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("update student textbook config: %w", err)
-	}
-	if affectedRows(result) == 0 {
-		return nil, ErrTextbookConfigNotFound
-	}
-	return r.getStudentTextbookConfig(ctx, studentID, configID)
-}
-
-func (r *SQLRepository) DeleteStudentTextbookConfig(ctx context.Context, studentID string, configID int64) (bool, error) {
-	if err := r.ensureStore(); err != nil {
-		return false, err
-	}
-	result, err := r.store.ExecContext(ctx,
-		"DELETE FROM ah_student_textbook_config WHERE id = ? AND student_id = ?",
-		configID, studentID,
-	)
-	if err != nil {
-		return false, fmt.Errorf("delete student textbook config: %w", err)
-	}
-	return affectedRows(result) > 0, nil
-}
-
-func (r *SQLRepository) ListStudentTextbookConfigs(ctx context.Context, studentID string, req ListStudentTextbookConfigsRequest) (ListStudentTextbookConfigsResult, error) {
-	if err := r.ensureStore(); err != nil {
-		return ListStudentTextbookConfigsResult{}, err
-	}
-	where, args := buildStudentTextbookConfigWhere(studentID, req)
-	var total int
-	if err := r.store.QueryRowContext(ctx,
-		`SELECT COUNT(c.id)
-FROM ah_student_textbook_config c
-LEFT JOIN ah_textbook t ON c.textbook_id = t.id `+where,
-		args...,
-	).Scan(&total); err != nil {
-		return ListStudentTextbookConfigsResult{}, fmt.Errorf("count student textbook configs: %w", err)
-	}
-
-	offset := (req.Page - 1) * req.Size
-	query := `SELECT c.id, c.student_id, c.textbook_id, c.create_time, c.update_time,
-t.id, t.subject, t.version, t.grade, t.semester, t.file, t.index_file_id, t.is_parsed
-FROM ah_student_textbook_config c
-LEFT JOIN ah_textbook t ON c.textbook_id = t.id ` + where + `
-ORDER BY c.id DESC
-LIMIT ? OFFSET ?`
-	args = append(args, req.Size, offset)
-	rows, err := r.store.QueryContext(ctx, query, args...)
-	if err != nil {
-		return ListStudentTextbookConfigsResult{}, fmt.Errorf("list student textbook configs: %w", err)
-	}
-	defer rows.Close()
-
-	items := make([]StudentTextbookConfig, 0)
-	for rows.Next() {
-		item, err := scanStudentTextbookConfig(rows)
-		if err != nil {
-			return ListStudentTextbookConfigsResult{}, err
-		}
-		items = append(items, *item)
-	}
-	if err := rows.Err(); err != nil {
-		return ListStudentTextbookConfigsResult{}, fmt.Errorf("iterate student textbook configs: %w", err)
-	}
-	return ListStudentTextbookConfigsResult{Items: items, Total: total, Page: req.Page, PageSize: req.Size}, nil
-}
-
-func (r *SQLRepository) SetStudentTextbookConfigs(ctx context.Context, studentID string, textbookIDs []int64, now int64) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	if _, err := r.GetAdminStudent(ctx, studentID); err != nil {
-		return err
-	}
-	for _, textbookID := range textbookIDs {
-		exists, err := r.textbookExists(ctx, textbookID)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return ErrTextbookNotFound
-		}
-	}
-	if _, err := r.store.ExecContext(ctx, "DELETE FROM ah_student_textbook_config WHERE student_id = ?", studentID); err != nil {
-		return fmt.Errorf("clear student textbook configs: %w", err)
-	}
-	for _, textbookID := range textbookIDs {
-		if _, err := r.store.ExecContext(ctx,
-			`INSERT INTO ah_student_textbook_config (student_id, textbook_id, create_time, update_time)
-VALUES (?, ?, ?, ?)`,
-			studentID, textbookID, now, now,
-		); err != nil {
-			return fmt.Errorf("insert student textbook config: %w", err)
-		}
 	}
 	return nil
 }
@@ -476,8 +313,11 @@ func (r *SQLRepository) listTextbooks(ctx context.Context, studentID string) ([]
 		ctx,
 		`SELECT t.id, t.subject, t.version, t.grade, t.semester, t.file, t.index_file_id, t.is_parsed
 FROM ah_textbook t
-INNER JOIN ah_student_textbook_config c ON c.textbook_id = t.id
-WHERE c.student_id = ?
+INNER JOIN ah_student s ON s.id = ?
+WHERE t.grade = s.grade
+  AND (s.subject IS NULL OR s.subject = '' OR t.subject = s.subject)
+  AND (s.semester IS NULL OR s.semester = '' OR t.semester = s.semester)
+  AND (s.teacher_id IS NULL OR t.teacher_id IS NULL OR t.teacher_id = s.teacher_id)
 ORDER BY t.id`,
 		studentID,
 	)
@@ -561,6 +401,15 @@ func scanAdminStudent(scanner scanner) (*AdminStudent, error) {
 	var grade sql.NullInt64
 	var semester sql.NullString
 	var subject sql.NullString
+	var teacherID sql.NullString
+	var teacher TeacherSummary
+	var joinedTeacherID sql.NullString
+	var joinedTeacherAccount sql.NullString
+	var joinedTeacherName sql.NullString
+	var joinedTeacherPhone sql.NullString
+	var joinedTeacherSubject sql.NullString
+	var joinedTeacherSchool sql.NullString
+	var joinedTeacherStatus sql.NullInt64
 	if err := scanner.Scan(
 		&item.ID,
 		&item.Name,
@@ -568,9 +417,17 @@ func scanAdminStudent(scanner scanner) (*AdminStudent, error) {
 		&grade,
 		&semester,
 		&subject,
+		&teacherID,
 		&item.Status,
 		&item.CreateTime,
 		&item.UpdateTime,
+		&joinedTeacherID,
+		&joinedTeacherAccount,
+		&joinedTeacherName,
+		&joinedTeacherPhone,
+		&joinedTeacherSubject,
+		&joinedTeacherSchool,
+		&joinedTeacherStatus,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrStudentNotFound
@@ -582,51 +439,18 @@ func scanAdminStudent(scanner scanner) (*AdminStudent, error) {
 	}
 	item.Semester = stringPointer(semester)
 	item.Subject = stringPointer(subject)
-	return &item, nil
-}
-
-func scanStudentTextbookConfig(scanner scanner) (*StudentTextbookConfig, error) {
-	var item StudentTextbookConfig
-	var textbookID sql.NullInt64
-	var subject sql.NullString
-	var version sql.NullString
-	var grade sql.NullInt64
-	var semester sql.NullString
-	var file sql.NullString
-	var indexFileID sql.NullString
-	var isParsed sql.NullInt64
-	if err := scanner.Scan(
-		&item.ID,
-		&item.StudentID,
-		&item.TextbookID,
-		&item.CreateTime,
-		&item.UpdateTime,
-		&textbookID,
-		&subject,
-		&version,
-		&grade,
-		&semester,
-		&file,
-		&indexFileID,
-		&isParsed,
-	); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrTextbookConfigNotFound
+	item.TeacherID = stringPointer(teacherID)
+	if joinedTeacherID.Valid {
+		teacher.ID = joinedTeacherID.String
+		teacher.Account = joinedTeacherAccount.String
+		teacher.Name = joinedTeacherName.String
+		teacher.Phone = joinedTeacherPhone.String
+		teacher.Subject = joinedTeacherSubject.String
+		teacher.School = joinedTeacherSchool.String
+		if joinedTeacherStatus.Valid {
+			teacher.Status = int(joinedTeacherStatus.Int64)
 		}
-		return nil, fmt.Errorf("scan student textbook config: %w", err)
-	}
-	if textbookID.Valid {
-		textbook := Textbook{
-			ID:          textbookID.Int64,
-			Subject:     subject.String,
-			Version:     version.String,
-			Grade:       int(grade.Int64),
-			Semester:    semester.String,
-			File:        stringPointer(file),
-			IndexFileID: stringPointer(indexFileID),
-			IsParsed:    int(isParsed.Int64),
-		}
-		item.Textbook = &textbook
+		item.Teacher = &teacher
 	}
 	return &item, nil
 }
@@ -665,21 +489,25 @@ func buildStudentSearchWhere(req SearchStudentsRequest) (string, []any) {
 	conditions := make([]string, 0, 4)
 	args := make([]any, 0, 4)
 	if req.Name != "" {
-		conditions = append(conditions, "name LIKE ?")
+		conditions = append(conditions, "s.name LIKE ?")
 		args = append(args, "%"+req.Name+"%")
 	}
 	if req.Phone != "" {
-		conditions = append(conditions, "phone = ?")
+		conditions = append(conditions, "s.phone = ?")
 		args = append(args, req.Phone)
 	}
 	if req.Keywords != "" {
-		conditions = append(conditions, "(name LIKE ? OR phone LIKE ?)")
+		conditions = append(conditions, "(s.name LIKE ? OR s.phone LIKE ?)")
 		keyword := "%" + req.Keywords + "%"
 		args = append(args, keyword, keyword)
 	}
 	if req.Status != nil {
-		conditions = append(conditions, "status = ?")
+		conditions = append(conditions, "s.status = ?")
 		args = append(args, *req.Status)
+	}
+	if req.TeacherID != "" {
+		conditions = append(conditions, "s.teacher_id = ?")
+		args = append(args, req.TeacherID)
 	}
 	if len(conditions) == 0 {
 		return "", args
@@ -689,102 +517,6 @@ func buildStudentSearchWhere(req SearchStudentsRequest) (string, []any) {
 		where += " AND " + condition
 	}
 	return where, args
-}
-
-func buildStudentTextbookConfigWhere(studentID string, req ListStudentTextbookConfigsRequest) (string, []any) {
-	where := "WHERE c.student_id = ?"
-	args := []any{studentID}
-	if req.Subject != "" {
-		where += " AND t.subject = ?"
-		args = append(args, req.Subject)
-	}
-	if req.Grade != nil {
-		where += " AND t.grade = ?"
-		args = append(args, *req.Grade)
-	}
-	return where, args
-}
-
-func (r *SQLRepository) validateTextbookConfigInput(ctx context.Context, studentID string, textbookID int64, excludeConfigID int64) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	if _, err := r.GetAdminStudent(ctx, studentID); err != nil {
-		return err
-	}
-	exists, err := r.textbookExists(ctx, textbookID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return ErrTextbookNotFound
-	}
-	duplicate, err := r.studentTextbookConfigDuplicate(ctx, studentID, textbookID, excludeConfigID)
-	if err != nil {
-		return err
-	}
-	if duplicate {
-		return ErrTextbookConfigured
-	}
-	return nil
-}
-
-func (r *SQLRepository) textbookExists(ctx context.Context, textbookID int64) (bool, error) {
-	var id int64
-	err := r.store.QueryRowContext(ctx, "SELECT id FROM ah_textbook WHERE id = ? LIMIT 1", textbookID).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("check textbook: %w", err)
-	}
-	return true, nil
-}
-
-func (r *SQLRepository) studentTextbookConfigExists(ctx context.Context, studentID string, configID int64) (bool, error) {
-	var id int64
-	err := r.store.QueryRowContext(ctx,
-		"SELECT id FROM ah_student_textbook_config WHERE id = ? AND student_id = ? LIMIT 1",
-		configID, studentID,
-	).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("check student textbook config: %w", err)
-	}
-	return true, nil
-}
-
-func (r *SQLRepository) studentTextbookConfigDuplicate(ctx context.Context, studentID string, textbookID int64, excludeConfigID int64) (bool, error) {
-	query := "SELECT id FROM ah_student_textbook_config WHERE student_id = ? AND textbook_id = ?"
-	args := []any{studentID, textbookID}
-	if excludeConfigID > 0 {
-		query += " AND id != ?"
-		args = append(args, excludeConfigID)
-	}
-	query += " LIMIT 1"
-	var id int64
-	err := r.store.QueryRowContext(ctx, query, args...).Scan(&id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("check duplicate student textbook config: %w", err)
-	}
-	return true, nil
-}
-
-func (r *SQLRepository) getStudentTextbookConfig(ctx context.Context, studentID string, configID int64) (*StudentTextbookConfig, error) {
-	return scanStudentTextbookConfig(r.store.QueryRowContext(ctx,
-		`SELECT c.id, c.student_id, c.textbook_id, c.create_time, c.update_time,
-t.id, t.subject, t.version, t.grade, t.semester, t.file, t.index_file_id, t.is_parsed
-FROM ah_student_textbook_config c
-LEFT JOIN ah_textbook t ON c.textbook_id = t.id
-WHERE c.id = ? AND c.student_id = ?
-LIMIT 1`,
-		configID, studentID,
-	))
 }
 
 func affectedRows(result sql.Result) int64 {
@@ -808,6 +540,13 @@ func stringPointer(value sql.NullString) *string {
 		return nil
 	}
 	return &value.String
+}
+
+func nullString(value *string) sql.NullString {
+	if value == nil || *value == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: *value, Valid: true}
 }
 
 func int64Pointer(value sql.NullInt64) *int64 {

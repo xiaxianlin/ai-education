@@ -12,10 +12,10 @@ import {
   type TableActionRef,
 } from '@/components/ui';
 import { toast } from '@/components/ui/toast';
-import { SYSTEM_MANAGER_TYPE, TEACHER_MANAGER_TYPE } from '@/constants/manager';
 import { useRequest } from 'ahooks';
 import React from 'react';
 import { AuthApi } from '../../api';
+import { TeacherDetailView } from './TeacherDetailView';
 
 export interface ManagerTableViewProps {
   actionRef: React.MutableRefObject<TableActionRef | undefined>;
@@ -27,25 +27,42 @@ const formatTime = (value?: number) => {
   return new Date(value * 1000).toLocaleString();
 };
 
+const statusTextMap: Record<number, string> = {
+  0: '停用',
+  1: '启用',
+};
+
+const statusVariantMap: Record<number, 'success' | 'destructive'> = {
+  0: 'destructive',
+  1: 'success',
+};
+
 export function ManagerTableView(props: ManagerTableViewProps) {
   const { actionRef, onAddClick } = props;
   const [keyword, setKeyword] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('');
+  const [detailVisible, setDetailVisible] = React.useState(false);
+  const [currentTeacherId, setCurrentTeacherId] = React.useState('');
 
   const {
-    data: managers,
+    data: teachers,
     loading,
     refresh,
   } = useRequest(async () => {
-    const data = await AuthApi.getAllManagers();
-    return data?.filter((item) => item.type === TEACHER_MANAGER_TYPE) || [];
+    const result = await AuthApi.searchTeachers({
+      keywords: keyword.trim() || undefined,
+      status: statusFilter ? Number(statusFilter) : undefined,
+    });
+    return result;
+  }, {
+    refreshDeps: [keyword, statusFilter],
   });
 
   React.useEffect(() => {
     actionRef.current = { reload: refresh };
   }, [actionRef, refresh]);
 
-  const { runAsync: remove } = useRequest((id: string) => AuthApi.deleteManager(id), {
+  const { runAsync: remove } = useRequest((id: string) => AuthApi.deleteTeacher(id), {
     manual: true,
     onSuccess: () => {
       toast.success('删除成功');
@@ -56,7 +73,7 @@ export function ManagerTableView(props: ManagerTableViewProps) {
     },
   });
 
-  const { runAsync: updateStatus } = useRequest((id: string, status: number) => AuthApi.updateManager(id, { status }), {
+  const { runAsync: updateStatus } = useRequest((id: string, status: number) => AuthApi.updateTeacher(id, { status }), {
     manual: true,
     onSuccess: () => {
       toast.success('状态更新成功');
@@ -67,7 +84,7 @@ export function ManagerTableView(props: ManagerTableViewProps) {
     },
   });
 
-  const { runAsync: resetPassword } = useRequest((id: string) => AuthApi.resetManagerPassword(id), {
+  const { runAsync: resetPassword } = useRequest((id: string) => AuthApi.resetTeacherPassword(id), {
     manual: true,
     onSuccess: (passwd: PasswordResponse) => {
       toast.success(`密码重置成功，新密码：${passwd.password}，请保存好密码`);
@@ -77,100 +94,115 @@ export function ManagerTableView(props: ManagerTableViewProps) {
     },
   });
 
-  const handleDelete = (manager: Manager) => {
-    if (window.confirm(`确定要删除老师账号 "${manager.username}" 吗？`)) {
-      remove(manager.id);
+  const handleDelete = (teacher: Teacher) => {
+    if (window.confirm(`确定要删除教师 "${teacher.name || teacher.account}" 吗？`)) {
+      remove(teacher.id);
     }
   };
 
-  const handleUpdateStatus = (manager: Manager) => {
-    if (window.confirm(`确定要${manager.status === 1 ? '停用' : '启用'}老师账号 "${manager.username}" 吗？`)) {
-      updateStatus(manager.id, manager.status === 1 ? 0 : 1);
+  const handleUpdateStatus = (teacher: Teacher) => {
+    if (window.confirm(`确定要${teacher.status === 1 ? '停用' : '启用'}教师 "${teacher.name || teacher.account}" 吗？`)) {
+      updateStatus(teacher.id, teacher.status === 1 ? 0 : 1);
     }
   };
 
-  const handleResetPassword = (manager: Manager) => {
-    if (window.confirm(`确定要重置老师账号 "${manager.username}" 的密码吗？`)) {
-      resetPassword(manager.id);
+  const handleResetPassword = (teacher: Teacher) => {
+    if (window.confirm(`确定要重置教师 "${teacher.name || teacher.account}" 的密码吗？`)) {
+      resetPassword(teacher.id);
     }
   };
 
-  const filteredManagers = React.useMemo(() => {
-    return (managers || []).filter((manager) => {
-      const matchKeyword = !keyword.trim() || manager.username?.includes(keyword.trim());
-      const matchStatus = !statusFilter || String(manager.status) === statusFilter;
-      return matchKeyword && matchStatus;
-    });
-  }, [keyword, managers, statusFilter]);
+  const handleOpenDetail = (teacher: Teacher) => {
+    setCurrentTeacherId(teacher.id);
+    setDetailVisible(true);
+  };
 
-  const columns: DataTableColumn<Manager>[] = [
+  const columns: DataTableColumn<Teacher>[] = [
     {
-      key: 'username',
-      title: '老师账号',
-      render: (manager) => <span className="font-medium text-foreground">{manager.username}</span>,
+      key: 'account',
+      title: '教师账号',
+      render: (teacher) => <span className="font-medium text-foreground">{teacher.account}</span>,
+    },
+    {
+      key: 'name',
+      title: '姓名',
+      render: (teacher) => teacher.name || '-',
+    },
+    {
+      key: 'phone',
+      title: '手机号',
+      render: (teacher) => teacher.phone || '-',
+    },
+    {
+      key: 'subject',
+      title: '学科',
+      width: '100px',
+      render: (teacher) => (teacher.subject ? <Badge variant="outline">{teacher.subject}</Badge> : '-'),
+    },
+    {
+      key: 'school',
+      title: '学校',
+      render: (teacher) => teacher.school || '-',
     },
     {
       key: 'status',
       title: '状态',
       width: '110px',
-      render: (manager) => <Badge variant={manager.status === 1 ? 'success' : 'destructive'}>{manager.status === 1 ? '启用' : '停用'}</Badge>,
+      render: (teacher) => <Badge variant={statusVariantMap[teacher.status] || 'destructive'}>{statusTextMap[teacher.status] || '未知'}</Badge>,
     },
     {
       key: 'create_time',
       title: '创建时间',
       width: '190px',
-      render: (manager) => <span className="text-muted-foreground">{formatTime(manager.create_time)}</span>,
-    },
-    {
-      key: 'update_time',
-      title: '更新时间',
-      width: '190px',
-      render: (manager) => <span className="text-muted-foreground">{formatTime(manager.update_time)}</span>,
+      render: (teacher) => <span className="text-muted-foreground">{formatTime(teacher.create_time)}</span>,
     },
     {
       key: 'actions',
       title: '操作',
-      width: '260px',
+      width: '320px',
       className: 'text-right',
-      render: (manager) =>
-        manager.type !== SYSTEM_MANAGER_TYPE ? (
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleUpdateStatus(manager)}>
-              {manager.status === 1 ? '停用' : '启用'}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleResetPassword(manager)}>
-              重置密码
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => handleDelete(manager)}>
-              删除
-            </Button>
-          </div>
-        ) : null,
+      render: (teacher) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="link" size="sm" onClick={() => handleOpenDetail(teacher)}>
+            详情
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => handleUpdateStatus(teacher)}>
+            {teacher.status === 1 ? '停用' : '启用'}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => handleResetPassword(teacher)}>
+            重置密码
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => handleDelete(teacher)}>
+            删除
+          </Button>
+        </div>
+      ),
     },
   ];
 
   return (
-    <Card>
-      <CardHeader className="flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <CardTitle>老师账号列表</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">共 {filteredManagers.length} 个老师账号</p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input value={keyword} placeholder="搜索账号" onChange={(event) => setKeyword(event.target.value)} />
-          <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="">全部状态</option>
-            <option value="1">启用</option>
-            <option value="0">停用</option>
-          </Select>
-          <Button onClick={onAddClick}>
-            添加老师
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <DataTable columns={columns} data={filteredManagers} loading={loading} rowKey="id" emptyText="暂无老师账号" />
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader className="flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <CardTitle>教师列表</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">共 {teachers?.total || 0} 位教师</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input value={keyword} placeholder="搜索账号、姓名、手机号" onChange={(event) => setKeyword(event.target.value)} />
+            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="">全部状态</option>
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </Select>
+            <Button onClick={onAddClick}>添加教师</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable columns={columns} data={teachers?.data || []} loading={loading} rowKey="id" emptyText="暂无教师" />
+        </CardContent>
+      </Card>
+      <TeacherDetailView teacherId={currentTeacherId} open={detailVisible} onOpenChange={setDetailVisible} />
+    </>
   );
 }

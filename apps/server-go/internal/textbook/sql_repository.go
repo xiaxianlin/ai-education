@@ -3,10 +3,10 @@ package textbook
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 )
 
 type Queryer interface {
@@ -32,11 +32,15 @@ func NewSQLRepository(store QueryExecer) *SQLRepository {
 }
 
 const (
-	textbookColumns        = "id, subject, version, grade, semester, file, index_file_id, is_parsed"
-	unitColumns            = "id, textbook_id, name, content"
-	textbookVersionColumns = "id, subject, name, revision_year, is_enabled, create_time, update_time"
-	teacherBookColumns     = "id, subject, version, grade, semester, file, index_file_id"
+	textbookColumns = "id, subject, version, grade, semester, file, index_file_id, is_parsed"
 )
+
+type textbookUnitJSON struct {
+	ID        int64  `json:"id"`
+	SortOrder int    `json:"sort_order,omitempty"`
+	Name      string `json:"name"`
+	Content   string `json:"content"`
+}
 
 func (r *SQLRepository) ListUnitsByTextbook(ctx context.Context, textbookID int64) ([]Unit, error) {
 	return r.listUnits(ctx, textbookID)
@@ -94,9 +98,6 @@ func (r *SQLRepository) DeleteTextbook(ctx context.Context, id int64) error {
 	if _, err := r.GetTextbook(ctx, id); err != nil {
 		return err
 	}
-	if _, err := r.store.ExecContext(ctx, "DELETE FROM ah_unit WHERE textbook_id = ?", id); err != nil {
-		return fmt.Errorf("delete textbook units: %w", err)
-	}
 	result, err := r.store.ExecContext(ctx, "DELETE FROM ah_textbook WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete textbook: %w", err)
@@ -149,290 +150,130 @@ func (r *SQLRepository) CreateUnit(ctx context.Context, data SaveUnitRequest) (i
 	if err := r.ensureStore(); err != nil {
 		return 0, err
 	}
-	if _, err := r.GetTextbook(ctx, data.TextbookID); err != nil {
+	units, err := r.listUnits(ctx, data.TextbookID)
+	if err != nil {
 		return 0, err
 	}
-	result, err := r.store.ExecContext(ctx,
-		"INSERT INTO ah_unit (textbook_id, name, content) VALUES (?, ?, ?)",
-		data.TextbookID, data.Name, data.Content,
-	)
+	nextID := nextUnitID(units)
+	units = append(units, Unit{
+		ID:         nextID,
+		TextbookID: data.TextbookID,
+		Name:       data.Name,
+		Content:    data.Content,
+	})
+	err = r.saveTextbookUnits(ctx, data.TextbookID, units)
 	if err != nil {
 		return 0, fmt.Errorf("create unit: %w", err)
 	}
-	return lastInsertID(result, "create unit")
+	return nextID, nil
 }
 
 func (r *SQLRepository) UpdateUnit(ctx context.Context, id int64, data UpdateUnitRequest) error {
 	if err := r.ensureStore(); err != nil {
 		return err
 	}
-	sets := make([]string, 0, 2)
-	args := make([]any, 0, 3)
-	if data.Name != nil {
-		sets = append(sets, "name = ?")
-		args = append(args, *data.Name)
-	}
-	if data.Content != nil {
-		sets = append(sets, "content = ?")
-		args = append(args, *data.Content)
-	}
-	if len(sets) == 0 {
-		_, err := r.getUnit(ctx, id)
+	if data.Name == nil && data.Content == nil {
+		_, _, err := r.findUnit(ctx, id)
 		return err
 	}
-	args = append(args, id)
-	result, err := r.store.ExecContext(ctx, "UPDATE ah_unit SET "+strings.Join(sets, ", ")+" WHERE id = ?", args...)
+	textbookID, units, err := r.findUnit(ctx, id)
 	if err != nil {
-		return fmt.Errorf("update unit: %w", err)
+		return err
 	}
-	return requireAffectedRow(result, ErrUnitNotFound)
+	for index := range units {
+		if units[index].ID != id {
+			continue
+		}
+		if data.Name != nil {
+			units[index].Name = *data.Name
+		}
+		if data.Content != nil {
+			units[index].Content = *data.Content
+		}
+		return r.saveTextbookUnits(ctx, textbookID, units)
+	}
+	return ErrUnitNotFound
 }
 
 func (r *SQLRepository) DeleteUnit(ctx context.Context, id int64) error {
 	if err := r.ensureStore(); err != nil {
 		return err
 	}
-	result, err := r.store.ExecContext(ctx, "DELETE FROM ah_unit WHERE id = ?", id)
-	if err != nil {
-		return fmt.Errorf("delete unit: %w", err)
-	}
-	return requireAffectedRow(result, ErrUnitNotFound)
-}
-
-func (r *SQLRepository) CreateTextbookVersion(ctx context.Context, data SaveTextbookVersionRequest) (int64, error) {
-	if err := r.ensureStore(); err != nil {
-		return 0, err
-	}
-	if exists, err := r.textbookVersionExistsByUnique(ctx, data, nil); err != nil {
-		return 0, err
-	} else if exists {
-		return 0, ErrDuplicateTextbookVersion
-	}
-	now := time.Now().Unix()
-	result, err := r.store.ExecContext(ctx,
-		"INSERT INTO ah_textbook_version (subject, name, revision_year, is_enabled, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
-		data.Subject, data.Name, data.RevisionYear, 1, now, now,
-	)
-	if err != nil {
-		return 0, wrapDuplicateError("create textbook version", err, ErrDuplicateTextbookVersion)
-	}
-	return lastInsertID(result, "create textbook version")
-}
-
-func (r *SQLRepository) UpdateTextbookVersion(ctx context.Context, id int64, data SaveTextbookVersionRequest) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	if _, err := r.GetTextbookVersion(ctx, id); err != nil {
-		return err
-	}
-	if exists, err := r.textbookVersionExistsByUnique(ctx, data, &id); err != nil {
-		return err
-	} else if exists {
-		return ErrDuplicateTextbookVersion
-	}
-	result, err := r.store.ExecContext(ctx,
-		"UPDATE ah_textbook_version SET subject = ?, name = ?, revision_year = ?, update_time = ? WHERE id = ?",
-		data.Subject, data.Name, data.RevisionYear, time.Now().Unix(), id,
-	)
-	if err != nil {
-		return wrapDuplicateError("update textbook version", err, ErrDuplicateTextbookVersion)
-	}
-	return requireAffectedRow(result, ErrTextbookVersionNotFound)
-}
-
-func (r *SQLRepository) DeleteTextbookVersion(ctx context.Context, id int64) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	version, err := r.GetTextbookVersion(ctx, id)
+	textbookID, units, err := r.findUnit(ctx, id)
 	if err != nil {
 		return err
 	}
-	versionName := fmt.Sprintf("%s(%d)", version.Name, version.RevisionYear)
-	if used, err := r.versionInUse(ctx, versionName); err != nil {
-		return err
-	} else if used {
-		return ErrTextbookVersionInUse
-	}
-	result, err := r.store.ExecContext(ctx, "DELETE FROM ah_textbook_version WHERE id = ?", id)
-	if err != nil {
-		return fmt.Errorf("delete textbook version: %w", err)
-	}
-	return requireAffectedRow(result, ErrTextbookVersionNotFound)
-}
-
-func (r *SQLRepository) SetTextbookVersionEnabled(ctx context.Context, id int64, enabled bool) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	isEnabled := 0
-	if enabled {
-		isEnabled = 1
-	}
-	result, err := r.store.ExecContext(ctx,
-		"UPDATE ah_textbook_version SET is_enabled = ?, update_time = ? WHERE id = ?",
-		isEnabled, time.Now().Unix(), id,
-	)
-	if err != nil {
-		return fmt.Errorf("set textbook version enabled: %w", err)
-	}
-	return requireAffectedRow(result, ErrTextbookVersionNotFound)
-}
-
-func (r *SQLRepository) GetTextbookVersion(ctx context.Context, id int64) (*TextbookVersion, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	return scanTextbookVersionRow(r.store.QueryRowContext(ctx, "SELECT "+textbookVersionColumns+" FROM ah_textbook_version WHERE id = ? LIMIT 1", id))
-}
-
-func (r *SQLRepository) SearchTextbookVersions(ctx context.Context, filter SearchTextbookVersionRequest) ([]TextbookVersion, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	query := "SELECT " + textbookVersionColumns + " FROM ah_textbook_version"
-	args := make([]any, 0, 1)
-	if filter.Subject != "" {
-		query += " WHERE subject = ?"
-		args = append(args, filter.Subject)
-	}
-	query += " ORDER BY create_time DESC"
-	rows, err := r.store.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("search textbook versions: %w", err)
-	}
-	defer rows.Close()
-	items := make([]TextbookVersion, 0)
-	for rows.Next() {
-		item, err := scanTextbookVersion(rows)
-		if err != nil {
-			return nil, err
+	nextUnits := make([]Unit, 0, len(units))
+	for _, unit := range units {
+		if unit.ID != id {
+			nextUnits = append(nextUnits, unit)
 		}
-		items = append(items, *item)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate textbook versions: %w", err)
+	if len(nextUnits) == len(units) {
+		return ErrUnitNotFound
 	}
-	return items, nil
-}
-
-func (r *SQLRepository) CreateTeacherBook(ctx context.Context, data SaveTeacherBookRequest) (int64, error) {
-	if err := r.ensureStore(); err != nil {
-		return 0, err
-	}
-	data = normalizeTeacherBook(data)
-	if exists, err := r.teacherBookExistsByUnique(ctx, data, nil); err != nil {
-		return 0, err
-	} else if exists {
-		return 0, ErrDuplicateTeacherBook
-	}
-	result, err := r.store.ExecContext(ctx,
-		"INSERT INTO ah_teacher_book (subject, version, grade, semester) VALUES (?, ?, ?, ?)",
-		data.Subject, data.Version, data.Grade, data.Semester,
-	)
-	if err != nil {
-		return 0, wrapDuplicateError("create teacher book", err, ErrDuplicateTeacherBook)
-	}
-	return lastInsertID(result, "create teacher book")
-}
-
-func (r *SQLRepository) UpdateTeacherBook(ctx context.Context, id int64, data SaveTeacherBookRequest) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	if _, err := r.GetTeacherBook(ctx, id); err != nil {
-		return err
-	}
-	data = normalizeTeacherBook(data)
-	if exists, err := r.teacherBookExistsByUnique(ctx, data, &id); err != nil {
-		return err
-	} else if exists {
-		return ErrDuplicateTeacherBook
-	}
-	result, err := r.store.ExecContext(ctx,
-		"UPDATE ah_teacher_book SET subject = ?, version = ?, grade = ?, semester = ? WHERE id = ?",
-		data.Subject, data.Version, data.Grade, data.Semester, id,
-	)
-	if err != nil {
-		return wrapDuplicateError("update teacher book", err, ErrDuplicateTeacherBook)
-	}
-	return requireAffectedRow(result, ErrTeacherBookNotFound)
-}
-
-func (r *SQLRepository) DeleteTeacherBook(ctx context.Context, id int64) error {
-	if err := r.ensureStore(); err != nil {
-		return err
-	}
-	result, err := r.store.ExecContext(ctx, "DELETE FROM ah_teacher_book WHERE id = ?", id)
-	if err != nil {
-		return fmt.Errorf("delete teacher book: %w", err)
-	}
-	return requireAffectedRow(result, ErrTeacherBookNotFound)
-}
-
-func (r *SQLRepository) GetTeacherBook(ctx context.Context, id int64) (*TeacherBook, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	return scanTeacherBookRow(r.store.QueryRowContext(ctx, "SELECT "+teacherBookColumns+" FROM ah_teacher_book WHERE id = ? LIMIT 1", id))
-}
-
-func (r *SQLRepository) SearchTeacherBooks(ctx context.Context, filter SearchTeacherBookRequest) ([]TeacherBook, error) {
-	if err := r.ensureStore(); err != nil {
-		return nil, err
-	}
-	rows, err := r.store.QueryContext(ctx,
-		"SELECT "+teacherBookColumns+" FROM ah_teacher_book WHERE subject = ? AND grade = ? ORDER BY id",
-		filter.Subject, filter.Grade,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("search teacher books: %w", err)
-	}
-	defer rows.Close()
-	items := make([]TeacherBook, 0)
-	for rows.Next() {
-		item, err := scanTeacherBook(rows)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, *item)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate teacher books: %w", err)
-	}
-	return items, nil
+	return r.saveTextbookUnits(ctx, textbookID, nextUnits)
 }
 
 func (r *SQLRepository) listUnits(ctx context.Context, textbookID int64) ([]Unit, error) {
 	if err := r.ensureStore(); err != nil {
 		return nil, err
 	}
-	rows, err := r.store.QueryContext(ctx, "SELECT "+unitColumns+" FROM ah_unit WHERE textbook_id = ? ORDER BY id", textbookID)
+	var raw sql.NullString
+	err := r.store.QueryRowContext(ctx, "SELECT units FROM ah_textbook WHERE id = ? LIMIT 1", textbookID).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrTextbookNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("list textbook units: %w", err)
 	}
-	defer rows.Close()
-	items := make([]Unit, 0)
-	for rows.Next() {
-		item, err := scanUnit(rows)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, *item)
+	if !raw.Valid || strings.TrimSpace(raw.String) == "" {
+		return []Unit{}, nil
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate textbook units: %w", err)
-	}
-	return items, nil
+	return decodeTextbookUnits(textbookID, []byte(raw.String))
 }
 
-func (r *SQLRepository) getUnit(ctx context.Context, id int64) (*Unit, error) {
-	item, err := scanUnit(r.store.QueryRowContext(ctx, "SELECT "+unitColumns+" FROM ah_unit WHERE id = ? LIMIT 1", id))
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrUnitNotFound
+func (r *SQLRepository) findUnit(ctx context.Context, id int64) (int64, []Unit, error) {
+	rows, err := r.store.QueryContext(ctx, "SELECT id, units FROM ah_textbook WHERE units IS NOT NULL AND JSON_LENGTH(units) > 0")
+	if err != nil {
+		return 0, nil, fmt.Errorf("find textbook unit: %w", err)
 	}
-	return item, err
+	defer rows.Close()
+	for rows.Next() {
+		var textbookID int64
+		var raw sql.NullString
+		if err := rows.Scan(&textbookID, &raw); err != nil {
+			return 0, nil, fmt.Errorf("scan textbook units: %w", err)
+		}
+		if !raw.Valid || strings.TrimSpace(raw.String) == "" {
+			continue
+		}
+		units, err := decodeTextbookUnits(textbookID, []byte(raw.String))
+		if err != nil {
+			return 0, nil, err
+		}
+		for _, unit := range units {
+			if unit.ID == id {
+				return textbookID, units, nil
+			}
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return 0, nil, fmt.Errorf("iterate textbook units: %w", err)
+	}
+	return 0, nil, ErrUnitNotFound
+}
+
+func (r *SQLRepository) saveTextbookUnits(ctx context.Context, textbookID int64, units []Unit) error {
+	payload, err := json.Marshal(encodeTextbookUnits(textbookID, units))
+	if err != nil {
+		return fmt.Errorf("encode textbook units: %w", err)
+	}
+	result, err := r.store.ExecContext(ctx, "UPDATE ah_textbook SET units = ? WHERE id = ?", string(payload), textbookID)
+	if err != nil {
+		return fmt.Errorf("save textbook units: %w", err)
+	}
+	return requireAffectedRow(result, ErrTextbookNotFound)
 }
 
 func (r *SQLRepository) textbookExistsByUnique(ctx context.Context, data SaveTextbookRequest, excludeID *int64) (bool, error) {
@@ -444,35 +285,6 @@ func (r *SQLRepository) textbookExistsByUnique(ctx context.Context, data SaveTex
 	}
 	query += " LIMIT 1"
 	return rowExists(r.store.QueryRowContext(ctx, query, args...), "check textbook uniqueness")
-}
-
-func (r *SQLRepository) textbookVersionExistsByUnique(ctx context.Context, data SaveTextbookVersionRequest, excludeID *int64) (bool, error) {
-	query := "SELECT id FROM ah_textbook_version WHERE subject = ? AND name = ? AND revision_year = ?"
-	args := []any{data.Subject, data.Name, data.RevisionYear}
-	if excludeID != nil {
-		query += " AND id != ?"
-		args = append(args, *excludeID)
-	}
-	query += " LIMIT 1"
-	return rowExists(r.store.QueryRowContext(ctx, query, args...), "check textbook version uniqueness")
-}
-
-func (r *SQLRepository) teacherBookExistsByUnique(ctx context.Context, data SaveTeacherBookRequest, excludeID *int64) (bool, error) {
-	query := "SELECT id FROM ah_teacher_book WHERE subject = ? AND version = ? AND grade = ? AND semester = ?"
-	args := []any{data.Subject, data.Version, data.Grade, data.Semester}
-	if excludeID != nil {
-		query += " AND id != ?"
-		args = append(args, *excludeID)
-	}
-	query += " LIMIT 1"
-	return rowExists(r.store.QueryRowContext(ctx, query, args...), "check teacher book uniqueness")
-}
-
-func (r *SQLRepository) versionInUse(ctx context.Context, version string) (bool, error) {
-	if exists, err := rowExists(r.store.QueryRowContext(ctx, "SELECT id FROM ah_textbook WHERE version = ? LIMIT 1", version), "check textbook version usage"); err != nil || exists {
-		return exists, err
-	}
-	return rowExists(r.store.QueryRowContext(ctx, "SELECT id FROM ah_teacher_book WHERE version = ? LIMIT 1", version), "check teacher book version usage")
 }
 
 func (r *SQLRepository) ensureStore() error {
@@ -534,40 +346,48 @@ func scanUnit(s scanner) (*Unit, error) {
 	return &item, nil
 }
 
-func scanTextbookVersionRow(row scanner) (*TextbookVersion, error) {
-	item, err := scanTextbookVersion(row)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrTextbookVersionNotFound
+func decodeTextbookUnits(textbookID int64, raw []byte) ([]Unit, error) {
+	var payload []textbookUnitJSON
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return nil, fmt.Errorf("decode textbook units: %w", err)
 	}
-	return item, err
+	units := make([]Unit, 0, len(payload))
+	for index, item := range payload {
+		id := item.ID
+		if id == 0 {
+			id = int64(index + 1)
+		}
+		units = append(units, Unit{
+			ID:         id,
+			TextbookID: textbookID,
+			Name:       item.Name,
+			Content:    item.Content,
+		})
+	}
+	return units, nil
 }
 
-func scanTextbookVersion(s scanner) (*TextbookVersion, error) {
-	var item TextbookVersion
-	if err := s.Scan(&item.ID, &item.Subject, &item.Name, &item.RevisionYear, &item.IsEnabled, &item.CreateTime, &item.UpdateTime); err != nil {
-		return nil, err
+func encodeTextbookUnits(_ int64, units []Unit) []textbookUnitJSON {
+	payload := make([]textbookUnitJSON, 0, len(units))
+	for index, unit := range units {
+		payload = append(payload, textbookUnitJSON{
+			ID:        unit.ID,
+			SortOrder: index + 1,
+			Name:      unit.Name,
+			Content:   unit.Content,
+		})
 	}
-	return &item, nil
+	return payload
 }
 
-func scanTeacherBookRow(row scanner) (*TeacherBook, error) {
-	item, err := scanTeacherBook(row)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrTeacherBookNotFound
+func nextUnitID(units []Unit) int64 {
+	var maxID int64
+	for _, unit := range units {
+		if unit.ID > maxID {
+			maxID = unit.ID
+		}
 	}
-	return item, err
-}
-
-func scanTeacherBook(s scanner) (*TeacherBook, error) {
-	var item TeacherBook
-	var file sql.NullString
-	var indexFileID sql.NullString
-	if err := s.Scan(&item.ID, &item.Subject, &item.Version, &item.Grade, &item.Semester, &file, &indexFileID); err != nil {
-		return nil, err
-	}
-	item.File = stringPointer(file)
-	item.IndexFileID = stringPointer(indexFileID)
-	return &item, nil
+	return maxID + 1
 }
 
 func requireAffectedRow(result sql.Result, notFound error) error {
@@ -601,13 +421,6 @@ func rowExists(row scanner, operation string) (bool, error) {
 }
 
 func normalizeTextbook(data SaveTextbookRequest) SaveTextbookRequest {
-	data.Subject = strings.TrimSpace(data.Subject)
-	data.Version = strings.TrimSpace(data.Version)
-	data.Semester = strings.TrimSpace(data.Semester)
-	return data
-}
-
-func normalizeTeacherBook(data SaveTeacherBookRequest) SaveTeacherBookRequest {
 	data.Subject = strings.TrimSpace(data.Subject)
 	data.Version = strings.TrimSpace(data.Version)
 	data.Semester = strings.TrimSpace(data.Semester)

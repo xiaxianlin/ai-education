@@ -55,4 +55,68 @@ export const AuthApi = {
   async resetManagerPassword(id: string) {
     return apiClient.post<PasswordResponse>(`/manager/${id}/reset`);
   },
+
+  /**
+   * 查询教师
+   * GET /teacher/search
+   */
+  async searchTeachers(data?: TeacherSearchRequest): Promise<SearchResponse<Teacher>> {
+    return apiClient.get<SearchResponse<Teacher>>('/teacher/search', data);
+  },
+
+  /**
+   * 创建教师
+   * POST /teacher
+   */
+  async createTeacher(data: CreateTeacherRequest) {
+    return apiClient.post<PasswordResponse | Teacher>('/teacher', data);
+  },
+
+  /**
+   * 获取教师详情
+   * GET /teacher/{id}
+   */
+  async getTeacher(id: string) {
+    return apiClient.get<TeacherDetail>(`/teacher/${id}`);
+  },
+
+  /**
+   * 更新教师
+   * PATCH /teacher/{id}
+   */
+  async updateTeacher(id: string, data: UpdateTeacherRequest) {
+    return apiClient.patch(`/teacher/${id}`, data);
+  },
+
+  /**
+   * 删除教师
+   * DELETE /teacher/{id}
+   */
+  async deleteTeacher(id: string) {
+    return apiClient.delete(`/teacher/${id}`);
+  },
+
+  /**
+   * 重置教师密码
+   * POST /teacher/{id}/reset_password
+   */
+  async resetTeacherPassword(id: string) {
+    return apiClient.post<PasswordResponse>(`/teacher/${id}/reset_password`);
+  },
+
+  /**
+   * 查询教师认领申请
+   * GET /teacher-claims
+   */
+  async getTeacherClaims(data?: { status?: TeacherClaimStatus }): Promise<StudentTeacherClaim[]> {
+    return apiClient.get<StudentTeacherClaim[]>('/teacher-claims', data);
+  },
+
+  /**
+   * 更新教师认领申请
+   * PATCH /teacher-claims/{id}
+   */
+  async updateTeacherClaim(id: number, data: UpdateTeacherClaimRequest): Promise<StudentTeacherClaim> {
+    return apiClient.patch<StudentTeacherClaim>(`/teacher-claims/${id}`, data);
+  },
 };

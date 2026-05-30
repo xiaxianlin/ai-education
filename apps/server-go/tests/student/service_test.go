@@ -82,25 +82,6 @@ func TestAdminServiceCreateStudentNormalizesAndHashesPassword(t *testing.T) {
 	}
 }
 
-func TestAdminServiceRejectsDuplicateTextbookConfigs(t *testing.T) {
-	repo := &fakeAdminRepository{}
-	service := student.NewAdminServiceWithOptions(repo, fakePasswordHasher{}, nil, nil, nil)
-
-	err := service.SetTextbookConfigs(context.Background(), " student-1 ", student.SetStudentTextbookConfigsRequest{
-		Configs: []student.SaveStudentTextbookConfigRequest{
-			{TextbookID: 7},
-			{TextbookID: 7},
-			{TextbookID: 8},
-		},
-	})
-	if err != nil {
-		t.Fatalf("SetTextbookConfigs returned error: %v", err)
-	}
-	if repo.setConfigsStudentID != "student-1" || len(repo.setConfigsTextbookIDs) != 2 {
-		t.Fatalf("unexpected set configs: studentID=%q ids=%v", repo.setConfigsStudentID, repo.setConfigsTextbookIDs)
-	}
-}
-
 type fakeRepository struct {
 	profile *student.Profile
 
@@ -130,9 +111,7 @@ func (fakePasswordHasher) Hash(plain string) (string, error) {
 }
 
 type fakeAdminRepository struct {
-	created               student.CreateStudentRecord
-	setConfigsStudentID   string
-	setConfigsTextbookIDs []int64
+	created student.CreateStudentRecord
 }
 
 func (repo *fakeAdminRepository) GetAdminStudent(_ context.Context, studentID string) (*student.AdminStudent, error) {
@@ -161,32 +140,6 @@ func (repo *fakeAdminRepository) DeleteStudent(_ context.Context, _ string) erro
 }
 
 func (repo *fakeAdminRepository) ResetStudentPassword(_ context.Context, _ string, _ string, _ int64) error {
-	return nil
-}
-
-func (repo *fakeAdminRepository) ListUnusedTextbooks(_ context.Context, _ string) ([]student.Textbook, error) {
-	return nil, nil
-}
-
-func (repo *fakeAdminRepository) CreateStudentTextbookConfig(_ context.Context, studentID string, textbookID int64, _ int64) (*student.StudentTextbookConfig, error) {
-	return &student.StudentTextbookConfig{ID: 1, StudentID: studentID, TextbookID: textbookID}, nil
-}
-
-func (repo *fakeAdminRepository) UpdateStudentTextbookConfig(_ context.Context, studentID string, configID int64, textbookID int64, _ int64) (*student.StudentTextbookConfig, error) {
-	return &student.StudentTextbookConfig{ID: configID, StudentID: studentID, TextbookID: textbookID}, nil
-}
-
-func (repo *fakeAdminRepository) DeleteStudentTextbookConfig(_ context.Context, _ string, _ int64) (bool, error) {
-	return true, nil
-}
-
-func (repo *fakeAdminRepository) ListStudentTextbookConfigs(_ context.Context, _ string, req student.ListStudentTextbookConfigsRequest) (student.ListStudentTextbookConfigsResult, error) {
-	return student.ListStudentTextbookConfigsResult{Page: req.Page, PageSize: req.Size}, nil
-}
-
-func (repo *fakeAdminRepository) SetStudentTextbookConfigs(_ context.Context, studentID string, textbookIDs []int64, _ int64) error {
-	repo.setConfigsStudentID = studentID
-	repo.setConfigsTextbookIDs = textbookIDs
 	return nil
 }
 

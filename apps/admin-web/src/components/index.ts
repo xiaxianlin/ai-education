@@ -7,5 +7,4 @@ export * from './MarkdownEditor';
 export * from './PageHeader';
 export * from './StatusTag';
 export * from './SubjectGradeTabs';
-export * from './TextbookVersionSelect';
 export * from './UploadButton';

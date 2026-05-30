@@ -7,6 +7,7 @@ declare global {
     status?: number;
     keywords?: string;
     name?: string;
+    teacher_id?: string;
   }
 
   /**
@@ -16,6 +17,7 @@ declare global {
     name: string;
     phone: string;
     grade: number;
+    teacher_id?: string;
     status?: number;
   }
 }

@@ -26,6 +26,14 @@ export const StudentApi = {
   },
 
   /**
+   * 关联学生教师
+   * PATCH /student/{id}/teacher
+   */
+  async assignStudentTeacher(id: string, teacherId: string) {
+    return apiClient.patch(`/student/${id}/teacher`, { teacher_id: teacherId });
+  },
+
+  /**
    * 获取学生详情
    * GET /student/{id}
    */
@@ -48,52 +56,6 @@ export const StudentApi = {
    */
   async resetStudentPassword(id: string) {
     return apiClient.post<string>(`/student/${id}/reset_password`);
-  },
-
-  /**
-   * 获取学生教材配置列表
-   * GET /student/{id}/textbook-configs
-   */
-  async getStudentTextbookConfigs(
-    id: string,
-    params?: { page?: number; page_size?: number; subject?: string; grade?: number },
-  ) {
-    return apiClient.get<{ items: StudentTextbookConfig[]; total: number; page: number; page_size: number }>(
-      `/student/${id}/textbook-configs`,
-      params,
-    );
-  },
-
-  /**
-   * 创建学生教材配置
-   * POST /student/{id}/textbook-config
-   */
-  async createStudentTextbookConfig(id: string, config: SaveStudentTextbookConfigRequest) {
-    return apiClient.post<StudentTextbookConfig>(`/student/${id}/textbook-config`, config);
-  },
-
-  /**
-   * 更新学生教材配置
-   * PUT /student/{id}/textbook-config/{config_id}
-   */
-  async updateStudentTextbookConfig(id: string, configId: number, config: SaveStudentTextbookConfigRequest) {
-    return apiClient.put<StudentTextbookConfig>(`/student/${id}/textbook-config/${configId}`, config);
-  },
-
-  /**
-   * 删除学生教材配置
-   * DELETE /student/{id}/textbook-config/{config_id}
-   */
-  async deleteStudentTextbookConfig(id: string, configId: number) {
-    return apiClient.delete(`/student/${id}/textbook-config/${configId}`);
-  },
-
-  /**
-   * 批量设置学生教材配置
-   * POST /student/{id}/textbook-configs
-   */
-  async setStudentTextbookConfigs(id: string, configs: SaveStudentTextbookConfigRequest[]) {
-    return apiClient.post(`/student/${id}/textbook-configs`, { configs });
   },
 
   /**

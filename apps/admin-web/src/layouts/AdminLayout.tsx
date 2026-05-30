@@ -12,7 +12,6 @@ import {
   CircleUserRound,
   ClipboardList,
   FileQuestion,
-  GraduationCap,
   Home,
   LogOut,
   Moon,
@@ -48,8 +47,6 @@ const navGroups: NavGroup[] = [
     title: '教学资源',
     items: [
       { path: '/textbook', label: '教材管理', icon: <BookOpen className="size-4" /> },
-      { path: '/teacher_book', label: '教师用书', icon: <GraduationCap className="size-4" /> },
-      { path: '/textbook_version', label: '教材版本', icon: <ClipboardList className="size-4" /> },
       { path: '/ability', label: '能力管理', icon: <Brain className="size-4" /> },
     ],
   },

@@ -15,10 +15,7 @@ import (
 )
 
 var (
-	ErrDuplicateStudentPhone  = errors.New("student phone already exists")
-	ErrTextbookNotFound       = errors.New("textbook not found")
-	ErrTextbookConfigured     = errors.New("student textbook already configured")
-	ErrTextbookConfigNotFound = errors.New("student textbook config not found")
+	ErrDuplicateStudentPhone = errors.New("student phone already exists")
 )
 
 type AdminRepository interface {
@@ -29,12 +26,6 @@ type AdminRepository interface {
 	UpdateStudent(ctx context.Context, studentID string, record UpdateStudentRecord) error
 	DeleteStudent(ctx context.Context, studentID string) error
 	ResetStudentPassword(ctx context.Context, studentID string, passwordHash string, updateTime int64) error
-	ListUnusedTextbooks(ctx context.Context, studentID string) ([]Textbook, error)
-	CreateStudentTextbookConfig(ctx context.Context, studentID string, textbookID int64, now int64) (*StudentTextbookConfig, error)
-	UpdateStudentTextbookConfig(ctx context.Context, studentID string, configID int64, textbookID int64, now int64) (*StudentTextbookConfig, error)
-	DeleteStudentTextbookConfig(ctx context.Context, studentID string, configID int64) (bool, error)
-	ListStudentTextbookConfigs(ctx context.Context, studentID string, req ListStudentTextbookConfigsRequest) (ListStudentTextbookConfigsResult, error)
-	SetStudentTextbookConfigs(ctx context.Context, studentID string, textbookIDs []int64, now int64) error
 	ListStudentMastery(ctx context.Context, studentID string, subject string) ([]StudentMastery, error)
 	GetStudentMasterySummary(ctx context.Context, studentID string) (StudentMasterySummary, error)
 }
@@ -120,6 +111,7 @@ func (s *AdminService) CreateStudent(ctx context.Context, req SaveStudentRequest
 		Phone:        record.Phone,
 		PasswordHash: passwordHash,
 		Grade:        record.Grade,
+		TeacherID:    record.TeacherID,
 		Status:       record.Status,
 		CreateTime:   now,
 		UpdateTime:   now,
@@ -161,6 +153,7 @@ func (s *AdminService) UpdateStudent(ctx context.Context, studentID string, req 
 		Name:       record.Name,
 		Phone:      record.Phone,
 		Grade:      record.Grade,
+		TeacherID:  record.TeacherID,
 		Status:     record.Status,
 		UpdateTime: s.now(),
 	})
@@ -196,87 +189,6 @@ func (s *AdminService) ResetStudentPassword(ctx context.Context, studentID strin
 	return password, s.repo.ResetStudentPassword(ctx, studentID, passwordHash, s.now())
 }
 
-func (s *AdminService) ListUnusedTextbooks(ctx context.Context, studentID string) ([]Textbook, error) {
-	if err := s.ensureAdminRepository(); err != nil {
-		return nil, err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" {
-		return nil, ErrInvalidArgument
-	}
-	return s.repo.ListUnusedTextbooks(ctx, studentID)
-}
-
-func (s *AdminService) CreateTextbookConfig(ctx context.Context, studentID string, req SaveStudentTextbookConfigRequest) (*StudentTextbookConfig, error) {
-	if err := s.ensureAdminRepository(); err != nil {
-		return nil, err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" || req.TextbookID <= 0 {
-		return nil, ErrInvalidArgument
-	}
-	return s.repo.CreateStudentTextbookConfig(ctx, studentID, req.TextbookID, s.now())
-}
-
-func (s *AdminService) UpdateTextbookConfig(ctx context.Context, studentID string, configID int64, req SaveStudentTextbookConfigRequest) (*StudentTextbookConfig, error) {
-	if err := s.ensureAdminRepository(); err != nil {
-		return nil, err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" || configID <= 0 || req.TextbookID <= 0 {
-		return nil, ErrInvalidArgument
-	}
-	return s.repo.UpdateStudentTextbookConfig(ctx, studentID, configID, req.TextbookID, s.now())
-}
-
-func (s *AdminService) DeleteTextbookConfig(ctx context.Context, studentID string, configID int64) (bool, error) {
-	if err := s.ensureAdminRepository(); err != nil {
-		return false, err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" || configID <= 0 {
-		return false, ErrInvalidArgument
-	}
-	return s.repo.DeleteStudentTextbookConfig(ctx, studentID, configID)
-}
-
-func (s *AdminService) ListTextbookConfigs(ctx context.Context, studentID string, req ListStudentTextbookConfigsRequest) (ListStudentTextbookConfigsResult, error) {
-	if err := s.ensureAdminRepository(); err != nil {
-		return ListStudentTextbookConfigsResult{}, err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" {
-		return ListStudentTextbookConfigsResult{}, ErrInvalidArgument
-	}
-	req.Page = normalizePage(req.Page)
-	req.Size = normalizePageSize(req.Size)
-	req.Subject = strings.TrimSpace(req.Subject)
-	return s.repo.ListStudentTextbookConfigs(ctx, studentID, req)
-}
-
-func (s *AdminService) SetTextbookConfigs(ctx context.Context, studentID string, req SetStudentTextbookConfigsRequest) error {
-	if err := s.ensureAdminRepository(); err != nil {
-		return err
-	}
-	studentID = strings.TrimSpace(studentID)
-	if studentID == "" {
-		return ErrInvalidArgument
-	}
-	ids := make([]int64, 0, len(req.Configs))
-	seen := make(map[int64]struct{}, len(req.Configs))
-	for _, config := range req.Configs {
-		if config.TextbookID <= 0 {
-			return ErrInvalidArgument
-		}
-		if _, ok := seen[config.TextbookID]; ok {
-			continue
-		}
-		seen[config.TextbookID] = struct{}{}
-		ids = append(ids, config.TextbookID)
-	}
-	return s.repo.SetStudentTextbookConfigs(ctx, studentID, ids, s.now())
-}
-
 func (s *AdminService) ListMastery(ctx context.Context, studentID string, subject string) ([]StudentMastery, error) {
 	if err := s.ensureAdminRepository(); err != nil {
 		return nil, err
@@ -309,7 +221,14 @@ func (s *AdminService) normalizeStudentRecord(req SaveStudentRequest) (UpdateStu
 	if name == "" || phone == "" || req.Grade < 1 || req.Grade > 12 || (status != 0 && status != 1) {
 		return UpdateStudentRecord{}, ErrInvalidArgument
 	}
-	return UpdateStudentRecord{Name: name, Phone: phone, Grade: req.Grade, Status: status}, nil
+	var teacherID *string
+	if req.TeacherID != nil {
+		trimmed := strings.TrimSpace(*req.TeacherID)
+		if trimmed != "" {
+			teacherID = &trimmed
+		}
+	}
+	return UpdateStudentRecord{Name: name, Phone: phone, Grade: req.Grade, TeacherID: teacherID, Status: status}, nil
 }
 
 func (s *AdminService) ensureAdminRepository() error {
