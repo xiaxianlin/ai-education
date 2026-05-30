@@ -1,26 +1,21 @@
-import { Card, CardProps } from 'antd';
-import { ReactNode } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import type { ReactNode } from 'react';
 
-interface DetailCardProps extends CardProps {
+interface DetailCardProps {
   title: string;
   extra?: ReactNode;
   children: ReactNode;
+  className?: string;
 }
 
-/**
- * 通用详情卡片组件
- * 封装了常用的 Card 配置
- */
-export function DetailCard({ title, extra, children, ...props }: DetailCardProps) {
+export function DetailCard({ title, extra, children, className }: DetailCardProps) {
   return (
-    <Card
-      title={title}
-      extra={extra}
-      bordered={false}
-      style={{ marginBottom: 16 }}
-      {...props}
-    >
-      {children}
+    <Card className={className}>
+      <CardHeader className="flex-row items-center justify-between">
+        <CardTitle>{title}</CardTitle>
+        {extra}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
     </Card>
   );
 }

@@ -1,15 +1,16 @@
+import { Field, Select } from '@/components/ui';
 import { TextbookVersionApi } from '@/pages/TextbookVersion/api';
-import { ProFormSelect } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
 import { useMemo } from 'react';
 
 interface TextbookVersionSelectProps {
   name?: string;
   subject?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
-export function TextbookVersionSelect({ name = 'version', subject }: TextbookVersionSelectProps) {
-  // 根据科目获取版本列表
+export function TextbookVersionSelect({ subject, value, onChange }: TextbookVersionSelectProps) {
   const { data: versions, loading: versionsLoading } = useRequest(
     () => TextbookVersionApi.searchTextbookVersions({ subject }),
     {
@@ -18,31 +19,23 @@ export function TextbookVersionSelect({ name = 'version', subject }: TextbookVer
     },
   );
 
-  // 将版本列表转换为 valueEnum 格式，格式为 "版本名称(年份)"
-  const versionValueEnum = useMemo(() => {
-    if (!versions || versions.length === 0) {
-      return {};
-    }
-    return versions.reduce(
-      (prev, version) => {
-        const versionString = `${version.name}|${version.revision_year}`;
-        return { ...prev, [versionString]: versionString };
-      },
-      {} as Record<string, string>,
-    );
+  const options = useMemo(() => {
+    return (versions || []).map((version) => {
+      const versionString = `${version.name}|${version.revision_year}`;
+      return { label: versionString, value: versionString };
+    });
   }, [versions]);
 
   return (
-    <ProFormSelect
-      name={name}
-      label="版本"
-      placeholder="请选择版本"
-      rules={[{ required: true }]}
-      valueEnum={versionValueEnum}
-      fieldProps={{
-        loading: versionsLoading,
-        disabled: !subject || versionsLoading,
-      }}
-    />
+    <Field label="版本" required>
+      <Select value={value || ''} disabled={!subject || versionsLoading} onChange={(event) => onChange?.(event.target.value)}>
+        <option value="">{versionsLoading ? '加载中...' : '请选择版本'}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
+    </Field>
   );
 }

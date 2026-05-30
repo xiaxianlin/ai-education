@@ -1,4 +1,4 @@
-import { message } from 'antd';
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
 
 interface UseDeleteOptions {
@@ -28,11 +28,11 @@ export function useDelete<T = string>(
     {
       manual: true,
       onSuccess: () => {
-        message.success(successMessage);
+        toast.success(successMessage);
         onSuccess?.();
       },
       onError: (error: any) => {
-        message.error(error?.message || errorMessage);
+        toast.error(error?.message || errorMessage);
       },
     },
   );

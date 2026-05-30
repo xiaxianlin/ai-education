@@ -1,5 +1,5 @@
+import { toast } from '@/components/ui/toast';
 import { useLocalStorageState, useRequest } from 'ahooks';
-import { message } from 'antd';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
@@ -13,7 +13,7 @@ const useContainer = () => {
   const {
     loading,
     data: result,
-    runAsync: handleGenerate,
+    runAsync: runGenerate,
   } = useRequest(
     () => {
       const params = JSON.parse(inputJson);
@@ -30,9 +30,17 @@ const useContainer = () => {
     manual: true,
     ready: !!code,
     onError: (error: any) => {
-      message.error(error?.message || '获取指令失败');
+      toast.error(error?.message || '获取指令失败');
     },
   });
+
+  const handleGenerate = async () => {
+    try {
+      await runGenerate();
+    } catch (error: any) {
+      toast.error(error?.message || '生成题目失败，请检查参数 JSON');
+    }
+  };
 
   const handleShowPrompt = () => {
     setPromptModalVisible(true);

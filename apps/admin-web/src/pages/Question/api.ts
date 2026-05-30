@@ -115,4 +115,12 @@ export const QuestionApi = {
   async generateQuestion(code: string, params: Record<string, any>) {
     return apiClient.post<Record<string, any>>(`/question/generate/${code}`, { params });
   },
+
+  /**
+   * 生成题目素材
+   * POST /question/{id}/resources/generate
+   */
+  async generateQuestionResources(id: string) {
+    return apiClient.post(`/question/${id}/resources/generate`);
+  },
 };

@@ -1,12 +1,12 @@
-import { Tag } from 'antd';
+import { Badge, type BadgeVariant } from '@/components/ui';
 
 /**
  * 资源类型标签配置
  */
 export const RESOURCE_TYPE_CONFIG = {
-  image: { color: 'blue', text: '图片' },
-  audio: { color: 'green', text: '音频' },
-  video: { color: 'purple', text: '视频' },
+  image: { variant: 'secondary', text: '图片' },
+  audio: { variant: 'success', text: '音频' },
+  video: { variant: 'outline', text: '视频' },
 } as const;
 
 /**
@@ -14,15 +14,15 @@ export const RESOURCE_TYPE_CONFIG = {
  */
 export function renderResourceTypeTag(resourceType?: string) {
   if (!resourceType) {
-    return <Tag>无</Tag>;
+    return <Badge variant="outline">无</Badge>;
   }
 
   const config = RESOURCE_TYPE_CONFIG[resourceType as keyof typeof RESOURCE_TYPE_CONFIG];
   if (config) {
-    return <Tag color={config.color}>{config.text}</Tag>;
+    return <Badge variant={config.variant as BadgeVariant}>{config.text}</Badge>;
   }
 
-  return <Tag>{resourceType}</Tag>;
+  return <Badge variant="outline">{resourceType}</Badge>;
 }
 
 /**
@@ -30,19 +30,15 @@ export function renderResourceTypeTag(resourceType?: string) {
  */
 export function renderResourceStatusTag(hasResource: boolean, resourceType?: string) {
   if (!resourceType) {
-    return <Tag>-</Tag>;
+    return <Badge variant="outline">-</Badge>;
   }
 
-  return (
-    <Tag color={hasResource ? 'success' : 'warning'}>
-      {hasResource ? '已生成' : '未生成'}
-    </Tag>
-  );
+  return <Badge variant={hasResource ? 'success' : 'warning'}>{hasResource ? '已生成' : '未生成'}</Badge>;
 }
 
 /**
  * 渲染布尔值标签
  */
 export function renderBooleanTag(value: boolean, trueText = '是', falseText = '否') {
-  return <Tag color={value ? 'success' : 'default'}>{value ? trueText : falseText}</Tag>;
+  return <Badge variant={value ? 'success' : 'outline'}>{value ? trueText : falseText}</Badge>;
 }

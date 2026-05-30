@@ -1,14 +1,15 @@
-import { Modal, Tag, Typography } from 'antd';
-import { ReactNode } from 'react';
+import { Badge, type BadgeVariant } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
+import type { ReactNode } from 'react';
 
 /**
  * 素材状态配置
  */
 export const RESOURCE_STATUS_CONFIG = {
-  none: { label: '-', color: 'default' },
-  not_generated: { label: '未生成', color: 'red' },
-  partial: { label: '生成不足', color: 'orange' },
-  complete: { label: '已生成', color: 'green' },
+  none: { label: '-', variant: 'outline' },
+  not_generated: { label: '未生成', variant: 'destructive' },
+  partial: { label: '生成不足', variant: 'warning' },
+  complete: { label: '已生成', variant: 'success' },
 } as const;
 
 export type ResourceStatus = keyof typeof RESOURCE_STATUS_CONFIG;
@@ -20,11 +21,8 @@ export function hasResources(question: Question): boolean {
   const content = question.content || {};
   // 检查 content.resource
   const stemResource = content.resource;
-  // 检查选项资源 - 注意：目前 QuestionOption 类型没有 resource 属性，
-  // 只有 image_url 和 audio_url。如果需要检查，应检查这些字段。
-  // 此处先移除报错逻辑，保持与类型一致。
   const options = content.options || [];
-  const hasOptionResources = options.some((opt) => opt.image_url || opt.audio_url);
+  const hasOptionResources = options.some((opt) => !!opt.resource);
   return !!(stemResource || hasOptionResources);
 }
 
@@ -83,7 +81,7 @@ export function renderResourceStatus(question: Question): ReactNode {
   }
 
   const config = RESOURCE_STATUS_CONFIG[status];
-  return <Tag color={config.color}>{config.label}</Tag>;
+  return <Badge variant={config.variant as BadgeVariant}>{config.label}</Badge>;
 }
 
 /**
@@ -134,11 +132,8 @@ export function formatCorrectAnswer(correctAnswer: unknown, questionAnswer?: Ans
     }
   }
 
-  // 如果都没有，尝试从 questionAnswer 中获取
-  if (questionAnswer?.correct_answers) {
-    if (Array.isArray(questionAnswer.correct_answers)) {
-      return questionAnswer.correct_answers.join(', ');
-    }
+  if (questionAnswer?.correct_value !== undefined && questionAnswer.correct_value !== null) {
+    return formatCorrectAnswer(questionAnswer.correct_value);
   }
 
   return '-';
@@ -169,35 +164,7 @@ export function formatExplanation(analysis: unknown, defaultExplanation?: string
  */
 export function showAnswerModal(params: { studentAnswer: string; correctAnswer: string; explanation: string }): void {
   const { studentAnswer, correctAnswer, explanation } = params;
-
-  Modal.info({
-    title: '查看答案',
-    width: 600,
-    content: (
-      <div style={{ marginTop: 16 }}>
-        <div style={{ marginBottom: 16 }}>
-          <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-            学生答案：
-          </Typography.Text>
-          <Typography.Text>{studentAnswer}</Typography.Text>
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-            正确答案：
-          </Typography.Text>
-          <Tag color="success" style={{ fontSize: 14, padding: '4px 12px' }}>
-            {correctAnswer}
-          </Tag>
-        </div>
-        {explanation && explanation !== '-' && (
-          <div>
-            <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
-              解析：
-            </Typography.Text>
-            <Typography.Text>{explanation}</Typography.Text>
-          </div>
-        )}
-      </div>
-    ),
-  });
+  const answerText = `学生答案：${studentAnswer}\n正确答案：${correctAnswer}${explanation && explanation !== '-' ? `\n解析：${explanation}` : ''}`;
+  window.alert(answerText);
+  toast.info('已打开答案详情');
 }

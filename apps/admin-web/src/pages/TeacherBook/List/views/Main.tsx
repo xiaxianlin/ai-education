@@ -1,14 +1,17 @@
 import { SubjectGradeTabs } from '@/components';
-import { PageContainer } from '@ant-design/pro-components';
+import { PageShell } from '@/components/ui';
+import { useTeacherBookListModel } from '../models/page';
 import FormView from './Form';
 import TableView from './Table';
 
 export default function MainView() {
+  const { subject, grade, setSubject, setGrade } = useTeacherBookListModel();
+
   return (
-    <PageContainer title="教师用书管理">
-      <SubjectGradeTabs />
+    <PageShell title="教师用书管理" description="按学科和年级维护教师用书基础资料。">
+      <SubjectGradeTabs subject={subject} grade={grade} setSubject={setSubject} setGrade={setGrade} />
       <TableView />
       <FormView />
-    </PageContainer>
+    </PageShell>
   );
 }

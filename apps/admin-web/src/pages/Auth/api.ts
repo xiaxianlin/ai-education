@@ -21,7 +21,7 @@ export const AuthApi = {
    * POST /manager
    */
   async createManager(data: CreateManagerRequest) {
-    return apiClient.post<Manager>('/manager', data);
+    return apiClient.post<PasswordResponse>('/manager', data);
   },
 
   /**
@@ -53,6 +53,6 @@ export const AuthApi = {
    * POST /manager/{id}/reset
    */
   async resetManagerPassword(id: string) {
-    return apiClient.post<string>(`/manager/${id}/reset`);
+    return apiClient.post<PasswordResponse>(`/manager/${id}/reset`);
   },
 };

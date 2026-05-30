@@ -1,7 +1,7 @@
 import { useConfigs } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
+import { classNames } from '@/components/ui';
 import { GRADES } from '@ai-education/shared-web';
-import { Flex, Radio } from 'antd';
 
 interface SubjectGradeTabsProps {
   subject?: string;
@@ -9,43 +9,45 @@ interface SubjectGradeTabsProps {
   showGrade?: boolean;
   setSubject?: (subject: string) => void;
   setGrade?: (grade: number) => void;
-  subjects?: string[]; // 支持传入过滤后的科目列表
+  subjects?: string[];
 }
 
 export function SubjectGradeTabs({ showGrade = true, subjects: customSubjects, ...props }: SubjectGradeTabsProps) {
   const initialState = useInitialStateModel();
   const { subjects: defaultSubjects } = useConfigs();
-  
-  // 如果传入了自定义科目列表，使用自定义的；否则使用默认的
   const subjects = customSubjects ?? defaultSubjects;
-
   const activeSubject = props.subject ?? initialState.subject;
   const activeGrade = props.grade ?? initialState.grade;
   const onSubjectChange = props.setSubject ?? initialState.setSubject;
   const onGradeChange = props.setGrade ?? initialState.setGrade;
 
+  const getTabClass = (active: boolean) =>
+    classNames(
+      'inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors',
+      active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+    );
+
   return (
-    <Flex vertical gap={16} className="mb-4">
-      <Radio.Group
-        size="large"
-        buttonStyle="solid"
-        optionType="button"
-        value={activeSubject}
-        className="large-tab-item"
-        onChange={(e) => onSubjectChange(e.target.value)}
-        options={subjects.map((subject) => ({ value: subject, label: subject }))}
-      />
-      {showGrade && (
-        <Radio.Group
-          block
-          size="large"
-          buttonStyle="solid"
-          optionType="button"
-          value={activeGrade}
-          onChange={(e) => onGradeChange(e.target.value)}
-          options={Object.keys(GRADES).map((grade) => ({ value: Number(grade), label: GRADES[Number(grade)] }))}
-        />
-      )}
-    </Flex>
+    <div className="mb-4 grid gap-3">
+      <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted/40 p-1">
+        {subjects.map((subject) => (
+          <button key={subject} type="button" className={getTabClass(subject === activeSubject)} onClick={() => onSubjectChange(subject)}>
+            {subject}
+          </button>
+        ))}
+      </div>
+      {showGrade ? (
+        <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted/40 p-1">
+          {Object.keys(GRADES).map((grade) => {
+            const gradeValue = Number(grade);
+            return (
+              <button key={grade} type="button" className={getTabClass(gradeValue === activeGrade)} onClick={() => onGradeChange(gradeValue)}>
+                {GRADES[gradeValue]}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }

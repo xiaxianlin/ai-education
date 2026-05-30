@@ -1,6 +1,5 @@
 export * from './AudioPlayer';
 export * from './DeleteButton';
-export * from './DescriptionList';
 export * from './DetailCard';
 export * from './JsonEditor';
 export * from './JsonViewer';

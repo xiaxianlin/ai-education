@@ -1,24 +1,21 @@
-.layout {
-  height: 100vh;
+.login-page {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
   background: url('@/assets/auth/bg_01.png') 20% 20% no-repeat,
     url('@/assets/auth/bg_02.png') 20% 80% no-repeat,
     url('@/assets/auth/bg_03.png') 80% 20% no-repeat,
     url('@/assets/auth/bg_04.png') 90% 90% no-repeat;
-  background-color: #f0f3f7;
+  background-color: hsl(var(--muted));
+}
 
-  .container {
-    flex: none;
-    height: auto;
-    background: #fbfbf9;
-    box-shadow: -1px -1px 1px 1px #eee, 1px 1px 1px 1px #eee;
-    border-radius: 6px;
-    :global {
-      .ant-pro-form-login-container {
-        border-radius: 6px;
-      }
-    }
-  }
+.login-card {
+  width: min(100%, 420px);
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  padding: 32px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
 }

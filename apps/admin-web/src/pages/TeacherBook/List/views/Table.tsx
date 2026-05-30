@@ -1,14 +1,23 @@
-import { createActionColumn, useConfigs } from '@/hooks';
-import { PlusOutlined } from '@ant-design/icons';
-import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Tag } from 'antd';
-import { useMemo } from 'react';
+import { StatusTag } from '@/components';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DataTable,
+  type DataTableColumn,
+} from '@/components/ui';
+import { useRequest } from 'ahooks';
+import { Edit3, Eye, Plus } from 'lucide-react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
 import { TeacherBookApi } from '../../api';
 import { useTeacherBookListModel } from '../models/page';
 
 export default function TableView() {
-  const { subjectEnum, gradeEnum } = useConfigs();
   const {
     grade,
     subject,
@@ -16,52 +25,59 @@ export default function TableView() {
     formProps: { showForm },
   } = useTeacherBookListModel();
 
-  const columns = useMemo<ProColumns<TeacherBook>[]>(
-    () => [
-      { title: '版本', dataIndex: 'version' },
-      { title: '学期', dataIndex: 'semester' },
-      {
-        title: '文件上传',
-        dataIndex: 'name',
-        render: (_, record) => (record.file ? <Tag color="success">已上传</Tag> : <Tag>未上传</Tag>),
-      },
-      createActionColumn<TeacherBook>(
-        (record) => (
-          <>
-            <Link key="detail" to={`/teacher_book/detail/${record.id}`}>
-              <Button size="small" type="link">
-                详情
-              </Button>
-            </Link>
-            <Button size="small" key="edit" type="link" onClick={() => showForm(record)}>
-              编辑
+  const {
+    data = [],
+    loading,
+    refresh,
+  } = useRequest(() => TeacherBookApi.searchTeacherBooks(subject, grade), {
+    refreshDeps: [subject, grade],
+  });
+
+  useEffect(() => {
+    actionRef.current = { reload: refresh };
+  }, [actionRef, refresh]);
+
+  const columns: DataTableColumn<TeacherBook>[] = [
+    { key: 'version', title: '版本' },
+    { key: 'semester', title: '学期' },
+    {
+      key: 'file',
+      title: '文件上传',
+      render: (record) => <StatusTag status={!!record.file} trueText="已上传" falseText="未上传" />,
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      className: 'text-right',
+      render: (record) => (
+        <div className="flex justify-end gap-2">
+          <Link to={`/teacher_book/detail/${record.id}`}>
+            <Button variant="outline" size="sm" icon={<Eye className="size-4" />}>
+              详情
             </Button>
-          </>
-        ),
-        { width: 120 },
+          </Link>
+          <Button variant="outline" size="sm" icon={<Edit3 className="size-4" />} onClick={() => showForm(record)}>
+            编辑
+          </Button>
+        </div>
       ),
-    ],
-    [showForm, subjectEnum, gradeEnum],
-  );
+    },
+  ];
 
   return (
-    <ProTable<TeacherBook>
-      bordered
-      cardBordered
-      actionRef={actionRef}
-      rowKey="id"
-      columns={columns}
-      search={false}
-      headerTitle={
-        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => showForm()}>
+    <Card>
+      <CardHeader className="flex-row items-center justify-between">
+        <div>
+          <CardTitle>教师用书列表</CardTitle>
+          <CardDescription>{loading ? '加载中...' : `${data.length} 条记录`}</CardDescription>
+        </div>
+        <Button icon={<Plus className="size-4" />} onClick={() => showForm()}>
           新增教师用书
         </Button>
-      }
-      request={async () => {
-        const data = await TeacherBookApi.searchTeacherBooks(subject, grade);
-        return { data, success: true, total: data.length };
-      }}
-      pagination={false}
-    />
+      </CardHeader>
+      <CardContent>
+        <DataTable columns={columns} data={data} loading={loading} rowKey="id" />
+      </CardContent>
+    </Card>
   );
 }

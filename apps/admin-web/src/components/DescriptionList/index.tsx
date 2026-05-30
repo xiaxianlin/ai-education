@@ -1,5 +1,5 @@
-import { Descriptions, DescriptionsProps } from 'antd';
-import { ReactNode } from 'react';
+import { DescriptionList as UiDescriptionList } from '@/components/ui';
+import type { ReactNode } from 'react';
 
 interface DescriptionItem {
   label: string;
@@ -7,22 +7,11 @@ interface DescriptionItem {
   span?: number;
 }
 
-interface DescriptionListProps extends Omit<DescriptionsProps, 'items'> {
+interface DescriptionListProps {
   items: DescriptionItem[];
+  column?: number;
 }
 
-/**
- * 通用描述列表组件
- * 封装了 Descriptions 组件，简化使用
- */
-export function DescriptionList({ items, column = 2, ...props }: DescriptionListProps) {
-  return (
-    <Descriptions column={column} {...props}>
-      {items.map((item, index) => (
-        <Descriptions.Item key={index} label={item.label} span={item.span}>
-          {item.value || '-'}
-        </Descriptions.Item>
-      ))}
-    </Descriptions>
-  );
+export function DescriptionList({ items }: DescriptionListProps) {
+  return <UiDescriptionList items={items} />;
 }

@@ -31,6 +31,10 @@ declare global {
     status?: number;
     type?: ManagerType;
   }
+
+  interface PasswordResponse {
+    password: string;
+  }
 }
 
 export {};

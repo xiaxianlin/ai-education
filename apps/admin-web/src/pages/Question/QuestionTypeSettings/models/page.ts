@@ -1,5 +1,5 @@
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
-import { message } from 'antd';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
@@ -32,8 +32,11 @@ const useContainer = () => {
       manual: true,
       ready: !!code,
       onSuccess: () => {
-        message.success('Prompt 保存成功');
+        toast.success('Prompt 保存成功');
         refreshPrompt();
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || 'Prompt 保存失败');
       },
     },
   );
@@ -45,8 +48,11 @@ const useContainer = () => {
       manual: true,
       ready: !!code,
       onSuccess: () => {
-        message.success('Configs 保存成功');
+        toast.success('Configs 保存成功');
         refreshType();
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || 'Configs 保存失败');
       },
     },
   );

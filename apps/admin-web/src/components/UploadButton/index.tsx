@@ -1,22 +1,32 @@
-import { FC } from 'react';
-import { Button, ButtonProps, Upload } from 'antd';
+import { Button, type ButtonProps } from '@/components/ui';
+import { Upload } from 'lucide-react';
+import type { ChangeEvent, FC } from 'react';
 
-interface UploadButtonProps extends ButtonProps {
+interface UploadButtonProps extends Omit<ButtonProps, 'onChange'> {
   action: (data: FormData) => void;
   onSuccess?: () => void;
 }
-export const UploadButton: FC<UploadButtonProps> = ({ action, onSuccess, ...props }) => {
+
+export const UploadButton: FC<UploadButtonProps> = ({ action, onSuccess, children, ...props }) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    action(formData);
+    onSuccess?.();
+    event.target.value = '';
+  };
+
   return (
-    <Upload
-      fileList={[]}
-      beforeUpload={(file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        action(formData);
-        return false;
-      }}
-    >
-      <Button {...props} />
-    </Upload>
+    <label className="inline-flex">
+      <input type="file" className="sr-only" onChange={handleChange} />
+      <Button icon={<Upload className="size-4" />} {...props}>
+        {children || '上传'}
+      </Button>
+    </label>
   );
 };

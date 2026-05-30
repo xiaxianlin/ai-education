@@ -1,8 +1,8 @@
-import { message, Modal } from 'antd';
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
-import { createContainer } from 'unstated-next';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createContainer } from 'unstated-next';
 import { TextbookApi } from '../../api';
 
 const useContainer = () => {
@@ -20,56 +20,41 @@ const useContainer = () => {
   const { runAsync: deleteTextbook } = useRequest(TextbookApi.deleteTextbook, {
     manual: true,
     onSuccess: () => {
-      message.success('删除成功');
+      toast.success('删除成功');
       navigate('/textbook');
     },
   });
   const { loading: parsing, runAsync: parse } = useRequest(TextbookApi.parseTextbook, {
     manual: true,
     onSuccess: () => {
-      message.success('解析完成');
+      toast.success('解析完成');
       refresh();
     },
   });
 
-
-  const { loading: uploading, run: upload } = useRequest(
-    (data) => TextbookApi.uploadTextbook(textbook!.id, data),
-    {
-      manual: true,
-      onSuccess: () => {
-        message.success('上传成功');
-        refresh();
-      },
+  const { loading: uploading, run: upload } = useRequest((data) => TextbookApi.uploadTextbook(textbook!.id, data), {
+    manual: true,
+    onSuccess: () => {
+      toast.success('上传成功');
+      refresh();
     },
-  );
+  });
 
   const handleDelete = () => {
     if (!textbook) return;
-    Modal.confirm({
-      centered: true,
-      title: '删除确认',
-      content: `确定要删除该教材吗？`,
-      okType: 'danger',
-      onOk: () => {
-        deleteTextbook(textbook.id);
-      },
-    });
+    if (window.confirm('确定要删除该教材吗？')) {
+      deleteTextbook(textbook.id);
+    }
   };
-
 
   const handleParse = () => {
     if (!textbook) return;
-    Modal.confirm({
-      centered: true,
-      title: '解析教材',
-      content: textbook.is_parsed
-        ? `当前教材已经被解析过，再次解析会覆盖当前所有内容，确定要解析吗？`
-        : `确定要解析当前教材吗？`,
-      onOk: () => {
-        parse(textbook.id);
-      },
-    });
+    const content = textbook.is_parsed
+      ? '当前教材已经被解析过，再次解析会覆盖当前所有内容，确定要解析吗？'
+      : '确定要解析当前教材吗？';
+    if (window.confirm(content)) {
+      parse(textbook.id);
+    }
   };
 
   return {

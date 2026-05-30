@@ -1,52 +1,80 @@
 import { StatusTag } from '@/components';
+import { classNames } from '@/components/ui';
 import { formatDateTime } from '@ai-education/shared-web';
-import { ProColumns } from '@ant-design/pro-components';
-import { Flex } from 'antd';
+import type { ReactNode } from 'react';
 
-/**
- * 通用的时间列配置
- */
+export type TableColumn<T> = {
+  title: ReactNode;
+  dataIndex?: keyof T | string | string[];
+  key?: string;
+  width?: number | string;
+  render?: (value: unknown, record: T, index: number) => ReactNode;
+  renderText?: (value: unknown, record: T, index: number) => ReactNode;
+  hideInSearch?: boolean;
+  hideInTable?: boolean;
+  valueType?: string;
+  valueEnum?: Record<string | number, unknown>;
+  fixed?: string;
+  className?: string;
+};
+
+function readValue<T>(record: T, dataIndex?: keyof T | string | string[]) {
+  if (!dataIndex) {
+    return undefined;
+  }
+  const path = Array.isArray(dataIndex) ? dataIndex : [String(dataIndex)];
+  return path.reduce<unknown>((value, key) => {
+    if (value && typeof value === 'object') {
+      return (value as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, record as Record<string, unknown>);
+}
+
+export function renderColumnValue<T>(column: TableColumn<T>, record: T, index: number) {
+  const value = readValue(record, column.dataIndex);
+  if (column.render) {
+    return column.render(value, record, index);
+  }
+  if (column.renderText) {
+    return column.renderText(value, record, index);
+  }
+  return value == null || value === '' ? '-' : String(value);
+}
+
 export function createTimeColumn<T>(
   title: string,
   dataIndex: string | string[],
-  options?: Partial<ProColumns<T>>,
-): ProColumns<T> {
+  options?: Partial<TableColumn<T>>,
+): TableColumn<T> {
   return {
     title,
     dataIndex,
-    hideInSearch: true,
     width: 170,
-    renderText: (time) => (time ? formatDateTime(time) : '-'),
+    renderText: (time) => (typeof time === 'number' ? formatDateTime(time) : '-'),
     ...options,
   };
 }
 
-/**
- * 通用的状态列配置
- */
 export function createStatusColumn<T>(
   title: string = '状态',
   dataIndex: string | string[] = 'status',
-  options?: Partial<ProColumns<T>>,
-): ProColumns<T> {
+  options?: Partial<TableColumn<T>>,
+): TableColumn<T> {
   return {
     title,
     dataIndex,
-    hideInSearch: true,
     width: 80,
     render: (status) => <StatusTag status={status === 1} />,
     ...options,
   };
 }
 
-/**
- * 通用的状态搜索列配置
- */
 export function createStatusSearchColumn<T>(
   title: string = '状态',
   dataIndex: string | string[] = 'status',
-  options?: Partial<ProColumns<T>>,
-): ProColumns<T> {
+  options?: Partial<TableColumn<T>>,
+): TableColumn<T> {
   return {
     title,
     dataIndex,
@@ -60,25 +88,14 @@ export function createStatusSearchColumn<T>(
   };
 }
 
-/**
- * 通用的操作列配置
- */
 export function createActionColumn<T>(
-  render: (record: T) => React.ReactNode,
-  options?: Partial<ProColumns<T>>,
-): ProColumns<T> {
+  render: (record: T) => ReactNode,
+  options?: Partial<TableColumn<T>>,
+): TableColumn<T> {
   return {
     title: '操作',
-    valueType: 'option',
-    fixed: 'right',
     width: 80,
     ...options,
-    render: (_, record) => {
-      return (
-        <Flex gap={8} align="center">
-          {render(record)}
-        </Flex>
-      );
-    },
+    render: (_, record) => <div className={classNames('flex flex-wrap items-center gap-2')}>{render(record)}</div>,
   };
 }

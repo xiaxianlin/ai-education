@@ -1,6 +1,5 @@
+import { Badge, Card, CardContent, CardHeader, CardTitle, DescriptionList, Modal } from '@/components/ui';
 import { GRADES } from '@ai-education/shared-web';
-import { ProCard, ProDescriptions } from '@ant-design/pro-components';
-import { Drawer, Flex, Tag } from 'antd';
 import { useQuestionListModel } from '../models/page';
 
 export function DetailView() {
@@ -8,69 +7,78 @@ export function DetailView() {
 
   const content = (currentQuestion?.content || {}) as Record<string, any>;
   const stem = content.stem || '';
-  const stemText = typeof stem === 'string' ? stem : (stem as any)?.text || '';
+  const stemText = typeof stem === 'string' ? stem : String(stem || '');
   const gradeInfo = currentQuestion?.grade ? GRADES[currentQuestion.grade] : undefined;
 
   return (
-    <Drawer
-      title="题目详情"
-      placement="right"
-      width={720}
-      open={!!currentQuestion}
-      onClose={closeDetail}
-      destroyOnHidden
-    >
-      {currentQuestion && (
-        <Flex vertical gap={16}>
-          <ProCard title="基本信息">
-            <ProDescriptions column={2}>
-              <ProDescriptions.Item label="题目ID">{currentQuestion.id}</ProDescriptions.Item>
-              <ProDescriptions.Item label="科目">
-                <Tag color="blue">{currentQuestion.subject}</Tag>
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="年级">{gradeInfo || '-'}</ProDescriptions.Item>
-              <ProDescriptions.Item label="题型编码">{currentQuestion.question_type_code}</ProDescriptions.Item>
-              {currentQuestion.ability_code && (
-                <ProDescriptions.Item label="能力代码">
-                  <Tag color="cyan">{currentQuestion.ability_code}</Tag>
-                </ProDescriptions.Item>
-              )}
-              <ProDescriptions.Item label="创建时间">
-                {currentQuestion.create_time ? new Date(currentQuestion.create_time * 1000).toLocaleString() : '-'}
-              </ProDescriptions.Item>
-            </ProDescriptions>
-          </ProCard>
+    <Modal title="题目详情" open={!!currentQuestion} onClose={closeDetail}>
+      {currentQuestion ? (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>基本信息</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DescriptionList
+                items={[
+                  { label: '题目ID', value: <span className="break-all">{currentQuestion.id}</span> },
+                  { label: '科目', value: <Badge>{currentQuestion.subject}</Badge> },
+                  { label: '年级', value: gradeInfo || '-' },
+                  { label: '题型编码', value: currentQuestion.question_type_code },
+                  {
+                    label: '能力代码',
+                    value: currentQuestion.ability_code ? <Badge variant="outline">{currentQuestion.ability_code}</Badge> : '-',
+                  },
+                  {
+                    label: '创建时间',
+                    value: currentQuestion.create_time ? new Date(currentQuestion.create_time * 1000).toLocaleString() : '-',
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
 
-          <ProCard title="题干内容">
-            <div style={{ fontSize: '16px', lineHeight: '1.6' }}>{stemText || '-'}</div>
-          </ProCard>
+          <Card>
+            <CardHeader>
+              <CardTitle>题干内容</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-base leading-7 text-foreground">{stemText || '-'}</div>
+            </CardContent>
+          </Card>
 
-          <ProCard title="答案与解析">
-            <ProDescriptions column={1}>
-              <ProDescriptions.Item label="答案">
-                <pre style={{ margin: 0 }}>{JSON.stringify(currentQuestion.answer, null, 2)}</pre>
-              </ProDescriptions.Item>
-              <ProDescriptions.Item label="解析">{currentQuestion.explanation || '无解析'}</ProDescriptions.Item>
-            </ProDescriptions>
-          </ProCard>
+          <Card>
+            <CardHeader>
+              <CardTitle>答案与解析</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <div className="space-y-4 text-sm">
+              <div>
+                <div className="mb-2 font-medium text-foreground">答案</div>
+                <pre className="overflow-auto rounded-md bg-muted p-3 text-xs text-foreground">
+                  {JSON.stringify(currentQuestion.answer, null, 2)}
+                </pre>
+              </div>
+              <div>
+                <div className="mb-2 font-medium text-foreground">解析</div>
+                <div className="text-foreground">{currentQuestion.explanation || '无解析'}</div>
+              </div>
+            </div>
+            </CardContent>
+          </Card>
 
-          <ProCard title="原始数据">
-            <pre
-              style={{
-                padding: '16px',
-                backgroundColor: '#fafafa',
-                borderRadius: '4px',
-                overflow: 'auto',
-                fontSize: '12px',
-                lineHeight: '1.5',
-                margin: 0,
-              }}
-            >
+          <Card>
+            <CardHeader>
+              <CardTitle>原始数据</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <pre className="m-0 max-h-80 overflow-auto rounded-md bg-muted p-4 text-xs leading-6 text-foreground">
               {JSON.stringify(currentQuestion, null, 2)}
             </pre>
-          </ProCard>
-        </Flex>
-      )}
-    </Drawer>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+    </Modal>
   );
 }

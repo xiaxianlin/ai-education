@@ -1,5 +1,5 @@
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
-import { message, Modal } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { TeacherBookApi } from '../../api';
@@ -18,7 +18,7 @@ const useContainer = () => {
   const { runAsync: deleteTeacherBook } = useRequest(TeacherBookApi.deleteTeacherBook, {
     manual: true,
     onSuccess: () => {
-      message.success('删除成功');
+      toast.success('删除成功');
       navigate('/teacher_book');
     },
   });
@@ -28,7 +28,7 @@ const useContainer = () => {
     {
       manual: true,
       onSuccess: () => {
-        message.success('上传成功');
+        toast.success('上传成功');
         refresh();
       },
     },
@@ -36,15 +36,9 @@ const useContainer = () => {
 
   const handleDelete = () => {
     if (!teacherBook) return;
-    Modal.confirm({
-      centered: true,
-      title: '删除确认',
-      content: `确定要删除该教师用书吗？`,
-      okType: 'danger',
-      onOk: () => {
-        deleteTeacherBook(teacherBook.id);
-      },
-    });
+    if (window.confirm('确定要删除该教师用书吗？')) {
+      deleteTeacherBook(teacherBook.id);
+    }
   };
 
   return {

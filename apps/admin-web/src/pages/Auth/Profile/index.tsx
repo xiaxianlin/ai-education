@@ -1,148 +1,146 @@
 import { ManagerTypeText } from '@/constants/manager';
+import { toast } from '@/components/ui/toast';
 import { apiClient } from '@/lib/api';
 import { useInitialStateModel } from '@/models/initialState';
 import { validPassword } from '@/utils/validation';
-import { KeyOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Button, Card, Descriptions, Form, Input, message, Space, Tag } from 'antd';
+import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthApi } from '../api';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { clearState, manager } = useInitialStateModel();
+  const [values, setValues] = useState<ModifyPasswordRequest & { confirm?: string }>({});
+  const [error, setError] = useState('');
 
   const { runAsync: modifyPassword, loading: modifying } = useRequest(AuthApi.modifyPassword, {
     manual: true,
     ready: !!manager?.id,
     onSuccess: () => {
-      message.success('密码修改成功，请重新登录');
+      toast.success('密码修改成功，请重新登录');
       apiClient.removeToken();
       clearState();
       navigate('/login', { replace: true });
     },
+    onError: (err: any) => {
+      setError(err?.message || '密码修改失败');
+    },
   });
 
-  const [form] = Form.useForm();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+
+    if (values.password !== values.confirm) {
+      setError('两次输入的密码不一致');
+      return;
+    }
+
+    try {
+      await validPassword(values.origin || '');
+      await validPassword(values.password || '');
+      await modifyPassword({ origin: values.origin, password: values.password });
+    } catch (err: any) {
+      setError(typeof err === 'string' ? err : err?.message || '密码修改失败');
+    }
+  };
 
   return (
-    <PageContainer ghost header={{ title: '个人中心' }}>
-      <div className="flex flex-col gap-6 max-w-[800px]">
-        {/* 个人信息卡片 */}
-        <Card
-          title={
-            <Space>
-              <UserOutlined />
-              账号信息
-            </Space>
-          }
-          bordered={false}
-          className="shadow-sm"
-        >
-          <Descriptions column={1} labelStyle={{ width: 100 }}>
-            <Descriptions.Item label="账号名称">
-              <span className="font-medium text-lg text-[#1a1a1a]">{manager?.username}</span>
-            </Descriptions.Item>
-            <Descriptions.Item label="账号角色">
-              <Tag color="orange" className="px-3 py-0.5 rounded-full border-0 font-medium">
-                {manager?.type !== undefined ? ManagerTypeText[manager.type] : '-'}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="当前状态">
-              <Tag color="success" className="px-3 py-0.5 rounded-full border-0 font-medium">
-                正常
-              </Tag>
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
+    <main className="space-y-6 p-6">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-normal text-foreground">个人中心</h1>
+        <p className="mt-1 text-sm text-muted-foreground">查看账号信息并维护登录密码。</p>
+      </header>
 
-        {/* 修改密码卡片 */}
-        <Card
-          title={
-            <Space>
-              <SafetyCertificateOutlined />
-              安全设置
-            </Space>
-          }
-          bordered={false}
-          className="shadow-sm"
-        >
-          <div className="mb-6 flex items-start gap-4 p-4 bg-orange-50 rounded-lg border border-orange-100">
-            <KeyOutlined className="text-orange-500 text-lg mt-0.5" />
+      <div className="grid max-w-5xl gap-6 lg:grid-cols-[360px_1fr]">
+        <section className="rounded-lg border bg-background p-6 shadow-sm">
+          <div className="mb-5">
+            <h2 className="text-base font-semibold text-foreground">账号信息</h2>
+            <p className="mt-1 text-sm text-muted-foreground">当前登录管理员账号</p>
+          </div>
+          <dl className="space-y-4">
             <div>
-              <div className="font-medium text-orange-900">修改密码</div>
-              <div className="text-orange-700 text-sm mt-0.5">
-                为了保障您的账户安全，建议定期修改登录密码。修改成功后，系统将自动登出，请使用新密码重新登录。
-              </div>
+              <dt className="text-sm text-muted-foreground">账号名称</dt>
+              <dd className="mt-1 text-lg font-medium text-foreground">{manager?.username || '-'}</dd>
             </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">账号角色</dt>
+              <dd className="mt-2">
+                <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                  {manager?.type !== undefined ? ManagerTypeText[manager.type] : '-'}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-sm text-muted-foreground">当前状态</dt>
+              <dd className="mt-2">
+                <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  正常
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="rounded-lg border bg-background p-6 shadow-sm">
+          <div className="mb-6 rounded-md border border-amber-200 bg-amber-50 p-4">
+            <div className="font-medium text-amber-900">安全设置</div>
+            <p className="mt-1 text-sm text-amber-700">
+              为了保障您的账户安全，建议定期修改登录密码。修改成功后，系统将自动登出，请使用新密码重新登录。
+            </p>
           </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            size="large"
-            autoComplete="off"
-            onFinish={async (values) => {
-              await modifyPassword(values);
-            }}
-            className="max-w-[400px]"
-          >
-            <Form.Item
-              label="旧密码"
-              name="origin"
-              rules={[
-                { required: true, message: '请输入旧密码' },
-                () => ({ validator: (_, value) => validPassword(value) }),
-              ]}
-            >
-              <Input.Password prefix={<KeyOutlined className="text-gray-400" />} placeholder="请输入旧密码" />
-            </Form.Item>
+          <form className="max-w-md space-y-5" autoComplete="off" onSubmit={handleSubmit}>
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-foreground">旧密码</span>
+              <input
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                type="password"
+                value={values.origin || ''}
+                placeholder="请输入旧密码"
+                onChange={(event) => setValues((prev) => ({ ...prev, origin: event.target.value }))}
+              />
+            </label>
 
-            <Form.Item
-              label="新密码"
-              name="password"
-              rules={[
-                { required: true, message: '请输入新密码' },
-                () => ({ validator: (_, value) => validPassword(value) }),
-              ]}
-            >
-              <Input.Password
-                prefix={<SafetyCertificateOutlined className="text-gray-400" />}
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-foreground">新密码</span>
+              <input
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                type="password"
+                value={values.password || ''}
                 placeholder="请输入新密码"
+                onChange={(event) => setValues((prev) => ({ ...prev, password: event.target.value }))}
               />
-            </Form.Item>
+            </label>
 
-            <Form.Item
-              label="确认新密码"
-              name="confirm"
-              dependencies={['password']}
-              rules={[
-                { required: true, message: '请再次输入新密码' },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue('password') === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(new Error('两次输入的密码不一致'));
-                  },
-                }),
-              ]}
-            >
-              <Input.Password
-                prefix={<SafetyCertificateOutlined className="text-gray-400" />}
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-foreground">确认新密码</span>
+              <input
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                type="password"
+                value={values.confirm || ''}
                 placeholder="请再次输入新密码"
+                onChange={(event) => setValues((prev) => ({ ...prev, confirm: event.target.value }))}
               />
-            </Form.Item>
+            </label>
 
-            <Form.Item className="mb-0 mt-8">
-              <Button type="primary" htmlType="submit" loading={modifying} block>
-                立即修改
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
+            {error && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={modifying}
+              className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {modifying ? '修改中...' : '立即修改'}
+            </button>
+          </form>
+        </section>
       </div>
-    </PageContainer>
+    </main>
   );
 }

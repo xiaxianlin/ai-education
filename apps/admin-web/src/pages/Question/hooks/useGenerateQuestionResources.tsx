@@ -1,5 +1,5 @@
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
-import { message, Modal, Spin } from 'antd';
 import { useState } from 'react';
 import { QuestionApi } from '../api';
 
@@ -21,13 +21,13 @@ export function useGenerateQuestionResources(onSuccess?: () => void) {
       onSuccess: () => {
         setLoadingModalVisible(false);
         setGeneratingResourceId(null);
-        message.success('素材生成成功');
+        toast.success('素材生成成功');
         onSuccess?.();
       },
       onError: (error: any) => {
         setLoadingModalVisible(false);
         setGeneratingResourceId(null);
-        message.error(error?.message || '素材生成失败');
+        toast.error(error?.message || '素材生成失败');
         throw error;
       },
     },
@@ -51,19 +51,14 @@ export function useGenerateQuestionResources(onSuccess?: () => void) {
    * Loading 弹窗组件
    */
   const LoadingModal = () => (
-    <Modal
-      open={loadingModalVisible}
-      footer={null}
-      closable={false}
-      maskClosable={false}
-      centered
-      width={300}
-    >
-      <div style={{ textAlign: 'center', padding: '24px 0' }}>
-        <Spin size="large" />
-        <div style={{ marginTop: 16, color: '#666' }}>正在生成素材，请稍候...</div>
+    loadingModalVisible ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-[300px] rounded-lg border bg-white p-6 text-center shadow-lg">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
+          <div className="mt-4 text-sm text-slate-600">正在生成素材，请稍候...</div>
+        </div>
       </div>
-    </Modal>
+    ) : null
   );
 
   return {

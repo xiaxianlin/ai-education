@@ -1,141 +1,117 @@
+import { Badge, Card, CardContent, CardHeader, CardTitle, DataTable, EmptyState } from '@/components/ui';
 import { GRADES, SUBJECTS } from '@ai-education/shared-web';
-import { ProTable } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { Card, Col, Empty, Progress, Row, Space, Statistic, Tag } from 'antd';
 import { StudentApi } from '../../api';
 import { useStudentDetailModel } from '../models/page';
 
-// 掌握等级配置
-const MASTERY_LEVEL_CONFIG: Record<string, { label: string; color: string }> = {
-  unlearned: { label: '未掌握', color: 'error' },
-  beginner: { label: '初步掌握', color: 'warning' },
-  proficient: { label: '基本掌握', color: 'processing' },
-  mastered: { label: '熟练掌握', color: 'success' },
+const MASTERY_LEVEL_CONFIG: Record<string, { label: string; variant: 'destructive' | 'warning' | 'default' | 'success' }> = {
+  unlearned: { label: '未掌握', variant: 'destructive' },
+  beginner: { label: '初步掌握', variant: 'warning' },
+  proficient: { label: '基本掌握', variant: 'default' },
+  mastered: { label: '熟练掌握', variant: 'success' },
 };
-
 
 export function AbilityMastery() {
   const { student } = useStudentDetailModel();
 
-  // 获取能力掌握度列表
   const { data: masteryList, loading } = useRequest(() => StudentApi.getStudentMastery(student?.id || ''), {
     ready: !!student?.id,
   });
 
-  // 获取能力掌握度概览
   const { data: summary } = useRequest(() => StudentApi.getStudentMasterySummary(student?.id || ''), {
     ready: !!student?.id,
   });
 
-  const columns = [
-    {
-      title: '能力名称',
-      dataIndex: 'ability_name',
-      key: 'ability_name',
-      width: 200,
-    },
-    {
-      title: '科目',
-      dataIndex: 'subject',
-      key: 'subject',
-      width: 80,
-      render: (_: any, record: any) => (SUBJECTS as any)[record.subject] || record.subject,
-    },
-    {
-      title: '年级',
-      dataIndex: 'grade',
-      key: 'grade',
-      width: 80,
-      render: (_: any, record: any) => GRADES[record.grade] || record.grade,
-    },
-    {
-      title: '掌握度',
-      dataIndex: 'mastery_score',
-      key: 'mastery_score',
-      width: 200,
-      render: (_: any, record: any) => (
-        <Progress
-          percent={record.mastery_score}
-          size="small"
-          status={record.mastery_score >= 80 ? 'success' : record.mastery_score >= 60 ? 'normal' : 'exception'}
-          format={(percent) => `${percent?.toFixed(1)}%`}
-        />
-      ),
-    },
-    {
-      title: '等级',
-      dataIndex: 'mastery_level',
-      key: 'mastery_level',
-      width: 100,
-      render: (_: any, record: any) => {
-        const config = MASTERY_LEVEL_CONFIG[record.mastery_level] || { label: record.mastery_level, color: 'default' };
-        return <Tag color={config.color}>{config.label}</Tag>;
-      },
-    },
-    {
-      title: '练习次数',
-      key: 'practice_count',
-      width: 100,
-      render: (_: any, record: any) => (
-        <span>
-          <span style={{ color: '#52c41a' }}>{record.correct_count}</span>
-          {' / '}
-          <span style={{ color: '#ff4d4f' }}>{record.wrong_count}</span>
-        </span>
-      ),
-    },
-  ];
-
   return (
-    <Card title="能力分析" loading={loading}>
-      {/* 概览统计 */}
-      {summary && (
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={6}>
-            <Statistic title="已练习能力" value={summary.total_abilities} suffix="个" />
-          </Col>
-          <Col span={6}>
-            <Statistic
-              title="平均掌握度"
-              value={summary.avg_mastery_score}
-              suffix="%"
-              precision={1}
-              valueStyle={{
-                color: summary.avg_mastery_score >= 60 ? '#3f8600' : '#cf1322',
-              }}
-            />
-          </Col>
-          <Col span={12}>
-            <Space size="large">
-              {Object.entries(summary.level_distribution || {}).map(([level, count]) => {
-                const config = MASTERY_LEVEL_CONFIG[level] || { label: level, color: 'default' };
-                return (
-                  <Tag key={level} color={config.color}>
-                    {config.label}: {count}
-                  </Tag>
-                );
-              })}
-            </Space>
-          </Col>
-        </Row>
-      )}
+    <Card>
+      <CardHeader>
+        <CardTitle>能力分析</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {summary && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-md border bg-muted/20 p-4">
+              <div className="text-sm text-muted-foreground">已练习能力</div>
+              <div className="mt-2 text-2xl font-semibold text-foreground">{summary.total_abilities} 个</div>
+            </div>
+            <div className="rounded-md border bg-muted/20 p-4">
+              <div className="text-sm text-muted-foreground">平均掌握度</div>
+              <div
+                className={`mt-2 text-2xl font-semibold ${
+                  summary.avg_mastery_score >= 60 ? 'text-emerald-600' : 'text-destructive'
+                }`}
+              >
+                {summary.avg_mastery_score.toFixed(1)}%
+              </div>
+            </div>
+            <div className="rounded-md border bg-muted/20 p-4">
+              <div className="mb-3 text-sm text-muted-foreground">等级分布</div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(summary.level_distribution || {}).map(([level, count]) => {
+                  const config = MASTERY_LEVEL_CONFIG[level] || { label: level, variant: 'secondary' as const };
+                  return (
+                    <Badge key={level} variant={config.variant}>
+                      {config.label}: {count}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* 能力列表 */}
-      {masteryList && masteryList.length > 0 ? (
-        <ProTable
-          columns={columns}
-          dataSource={masteryList}
-          rowKey="id"
-          search={false}
-          toolBarRender={false}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-          }}
-        />
-      ) : (
-        <Empty description="暂无能力掌握度数据" />
-      )}
+        {masteryList && masteryList.length > 0 ? (
+          <DataTable
+            rowKey="id"
+            loading={loading}
+            data={masteryList}
+            columns={[
+              { key: 'ability_name', title: '能力名称', render: (record: any) => record.ability_name || '-' },
+              { key: 'subject', title: '科目', width: '90px', render: (record: any) => (SUBJECTS as any)[record.subject] || record.subject || '-' },
+              { key: 'grade', title: '年级', width: '90px', render: (record: any) => GRADES[record.grade] || record.grade || '-' },
+              {
+                key: 'mastery_score',
+                title: '掌握度',
+                render: (record: any) => {
+                  const score = Number(record.mastery_score || 0);
+                  const tone = score >= 80 ? 'bg-emerald-500' : score >= 60 ? 'bg-primary' : 'bg-destructive';
+                  return (
+                    <div className="min-w-40">
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div className={`h-full rounded-full ${tone}`} style={{ width: `${score}%` }} />
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">{score.toFixed(1)}%</div>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'mastery_level',
+                title: '等级',
+                width: '120px',
+                render: (record: any) => {
+                  const config = MASTERY_LEVEL_CONFIG[record.mastery_level] || { label: record.mastery_level, variant: 'secondary' as const };
+                  return <Badge variant={config.variant}>{config.label}</Badge>;
+                },
+              },
+              {
+                key: 'practice_count',
+                title: '练习次数',
+                width: '120px',
+                render: (record: any) => (
+                  <span>
+                    <span className="text-emerald-600">{record.correct_count}</span>
+                    {' / '}
+                    <span className="text-destructive">{record.wrong_count}</span>
+                  </span>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <EmptyState title={loading ? '加载中...' : '暂无能力掌握度数据'} />
+        )}
+      </CardContent>
     </Card>
   );
 }
