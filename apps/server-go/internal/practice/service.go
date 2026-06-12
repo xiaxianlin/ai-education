@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"ai-education/server-go/internal/ai"
+	"ai-education/server-go/internal/mastery"
 	"ai-education/server-go/internal/queue"
 )
 
@@ -23,11 +24,17 @@ type ReportGenerator interface {
 	GenerateReport(ctx ai.Context, req ai.GenerateReportRequest) (ai.PracticeReportDraft, error)
 }
 
+// MasteryUpdater 掌握度更新接口（由 mastery.Service 实现）
+type MasteryUpdater interface {
+	UpdateAfterPractice(ctx context.Context, studentID string, answers []mastery.AnswerMasteryInput) error
+}
+
 type Service struct {
 	repo            Repository
 	queue           Queue
 	evaluator       AnswerEvaluator
 	reportGenerator ReportGenerator
+	masteryUpdater  MasteryUpdater
 }
 
 func NewService(repo Repository, enqueuer Queue, evaluator AnswerEvaluator, reportGenerator ...ReportGenerator) *Service {
@@ -45,6 +52,14 @@ func NewService(repo Repository, enqueuer Queue, evaluator AnswerEvaluator, repo
 		svc.reportGenerator = reportGenerator[0]
 	}
 	return svc
+}
+
+// WithMasteryUpdater 注入掌握度更新器
+func (s *Service) WithMasteryUpdater(updater MasteryUpdater) *Service {
+	if updater != nil {
+		s.masteryUpdater = updater
+	}
+	return s
 }
 
 func (s *Service) Create(ctx context.Context, studentID string, req CreatePracticeRequest) (CreatePracticeResponse, error) {
@@ -232,7 +247,56 @@ func (s *Service) Complete(ctx context.Context, studentID string, sessionID stri
 		}
 	}
 
+	// 更新掌握度（失败不影响主流程）
+	if s.masteryUpdater != nil {
+		s.updateMasteryAfterComplete(ctx, studentID, sessionID, *session)
+	}
+
 	return created.ID, nil
+}
+
+// updateMasteryAfterComplete 练习完成后异步更新掌握度
+func (s *Service) updateMasteryAfterComplete(ctx context.Context, studentID string, sessionID string, session Practice) {
+	// 获取练习数据（含答案和题目信息）
+	data, err := s.repo.GetPracticeData(ctx, studentID, sessionID)
+	if err != nil {
+		log.Printf("WARN: [session_id=%s] 获取练习数据用于掌握度更新失败: %v", sessionID, err)
+		return
+	}
+
+	// 构建掌握度输入
+	var masteryInputs []mastery.AnswerMasteryInput
+	for _, ans := range data.Answers {
+		abilityCode := resolveAbilityCode(session, ans)
+		if abilityCode == "" {
+			continue
+		}
+		masteryInputs = append(masteryInputs, mastery.AnswerMasteryInput{
+			AbilityCode: abilityCode,
+			IsCorrect:   ans.Status == AnswerStatusCorrect,
+		})
+	}
+
+	if len(masteryInputs) == 0 {
+		return
+	}
+
+	if err := s.masteryUpdater.UpdateAfterPractice(ctx, studentID, masteryInputs); err != nil {
+		log.Printf("WARN: [session_id=%s] 更新掌握度失败: %v", sessionID, err)
+	}
+}
+
+// resolveAbilityCode 从练习会话或答案中解析能力点代码
+func resolveAbilityCode(session Practice, ans PracticeAnswer) string {
+	// 能力练习：直接使用会话的 ability_code
+	if session.PracticeType == PracticeTypeAbility && session.AbilityCode != "" {
+		return session.AbilityCode
+	}
+	// 单元练习：暂用会话的 ability_code（如果有），后续可通过题目关联能力点
+	if session.AbilityCode != "" {
+		return session.AbilityCode
+	}
+	return ""
 }
 
 func (s *Service) SubmitAnswer(ctx context.Context, studentID string, req SubmitAnswerRequest) (PracticeAnswer, error) {

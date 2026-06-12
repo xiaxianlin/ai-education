@@ -11,6 +11,7 @@ import (
 type Queryer interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
 type SQLRepository struct {
@@ -265,4 +266,61 @@ func stringPointer(value sql.NullString) *string {
 
 func round2(value float64) float64 {
 	return math.Round(value*100) / 100
+}
+
+// GetMastery 查询单条掌握度记录（用于累积计算时读取旧值）
+func (r *SQLRepository) GetMastery(ctx context.Context, studentID string, abilityCode string) (*Mastery, error) {
+	if err := r.ensureStore(); err != nil {
+		return nil, err
+	}
+	row := r.store.QueryRowContext(ctx,
+		"SELECT "+masteryColumns+" FROM ah_student_ability_mastery m WHERE m.student_id = ? AND m.ability_code = ?",
+		studentID, abilityCode,
+	)
+	item, err := scanMastery(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get mastery: %w", err)
+	}
+	return item, nil
+}
+
+// UpsertMastery 插入或更新掌握度记录
+func (r *SQLRepository) UpsertMastery(ctx context.Context, m *Mastery) error {
+	if err := r.ensureStore(); err != nil {
+		return err
+	}
+	_, err := r.store.ExecContext(ctx, `
+INSERT INTO ah_student_ability_mastery
+    (student_id, ability_code, mastery_score, mastery_level, correct_count, wrong_count, last_practice_time, update_time)
+VALUES (?, ?, ?, ?, ?, ?, ?, UNIX_TIMESTAMP())
+ON DUPLICATE KEY UPDATE
+    mastery_score = VALUES(mastery_score),
+    mastery_level = VALUES(mastery_level),
+    correct_count = VALUES(correct_count),
+    wrong_count = VALUES(wrong_count),
+    last_practice_time = VALUES(last_practice_time),
+    update_time = UNIX_TIMESTAMP()`,
+		m.StudentID, m.AbilityCode, m.MasteryScore, m.MasteryLevel,
+		m.CorrectCount, m.WrongCount, m.LastPracticeTime,
+	)
+	if err != nil {
+		return fmt.Errorf("upsert mastery: %w", err)
+	}
+	return nil
+}
+
+// BatchUpsertMastery 批量插入或更新掌握度记录
+func (r *SQLRepository) BatchUpsertMastery(ctx context.Context, masteries []*Mastery) error {
+	if err := r.ensureStore(); err != nil {
+		return err
+	}
+	for _, m := range masteries {
+		if err := r.UpsertMastery(ctx, m); err != nil {
+			return err
+		}
+	}
+	return nil
 }

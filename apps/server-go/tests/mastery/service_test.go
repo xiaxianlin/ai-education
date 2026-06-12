@@ -43,6 +43,18 @@ func (f *fakeRepository) GetPracticeStatistics(ctx context.Context, studentID st
 	return mastery.Statistics{TotalPractices: len(f.statisticsStarts)}, nil
 }
 
+func (f *fakeRepository) GetMastery(ctx context.Context, studentID string, abilityCode string) (*mastery.Mastery, error) {
+	return nil, nil
+}
+
+func (f *fakeRepository) UpsertMastery(ctx context.Context, m *mastery.Mastery) error {
+	return nil
+}
+
+func (f *fakeRepository) BatchUpsertMastery(ctx context.Context, masteries []*mastery.Mastery) error {
+	return nil
+}
+
 func TestServiceDelegatesMasteryListFilter(t *testing.T) {
 	repo := &fakeRepository{}
 	service := mastery.NewService(repo)

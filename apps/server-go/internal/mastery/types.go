@@ -54,3 +54,23 @@ type StatisticsSummary struct {
 	AllTime      Statistics `json:"all_time"`
 	Recent30Days Statistics `json:"recent_30_days"`
 }
+
+// AnswerMasteryInput 练习完成后用于更新掌握度的答案输入
+type AnswerMasteryInput struct {
+	AbilityCode string
+	IsCorrect   bool
+}
+
+// CalculateMasteryLevel 根据掌握度分数计算掌握等级
+func CalculateMasteryLevel(score float64) MasteryLevel {
+	switch {
+	case score >= 80:
+		return MasteryLevelMastered
+	case score >= 60:
+		return MasteryLevelProficient
+	case score >= 40:
+		return MasteryLevelBeginner
+	default:
+		return MasteryLevelUnlearned
+	}
+}

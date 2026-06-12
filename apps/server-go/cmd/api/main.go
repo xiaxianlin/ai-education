@@ -101,7 +101,8 @@ func buildHandler(cfg config.Config) http.Handler {
 		log.Print("queue mode: in-process dispatch (development)")
 	}
 
-	practiceService := practice.NewService(practiceRepo, enqueuer, aiProvider, aiProvider)
+	practiceService := practice.NewService(practiceRepo, enqueuer, aiProvider, aiProvider).
+		WithMasteryUpdater(masteryService)
 
 	// Register report.generate handler in in-process mode
 	if dispatchEnqueuer, ok := enqueuer.(*queue.DispatchEnqueuer); ok {
