@@ -1,10 +1,14 @@
 import { toast } from '@/components/ui/toast';
+import { parseReport, hasAIReportContent } from '@ai-education/shared-web';
+import type { ParsedReport } from '@ai-education/shared-web';
 import { QuestionApi } from '@/pages/Question/api';
 import { useRequest } from 'ahooks';
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { PracticeApi } from '../../api';
+
+export type { ParsedReport };
 
 const useContainer = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,6 +119,12 @@ const useContainer = () => {
       });
   };
 
+  // 解析后的报告（Model 层完成 JSON 解析）
+  const parsedReport = useMemo(() => parseReport(data?.report), [data?.report]);
+
+  // AI 报告是否可用
+  const hasAIReport = useMemo(() => hasAIReportContent(parsedReport), [parsedReport]);
+
   return {
     id,
     navigate,
@@ -124,6 +134,8 @@ const useContainer = () => {
     questions,
     answers: data?.answers || [],
     report: data?.report,
+    parsedReport,
+    hasAIReport,
     answersMap,
     selectedQuestion,
     handleViewQuestion,

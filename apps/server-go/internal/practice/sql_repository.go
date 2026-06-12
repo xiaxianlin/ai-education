@@ -623,6 +623,68 @@ INSERT INTO ah_practice_report (
 	return report, nil
 }
 
+func (repo *SQLRepository) UpdateReport(ctx context.Context, report PracticeReport) error {
+	if err := repo.ensureDB(); err != nil {
+		return err
+	}
+
+	knowledgeScores, err := marshalJSONDefault(report.KnowledgeScores, "{}")
+	if err != nil {
+		return err
+	}
+	questionDistribution, err := marshalJSONDefault(report.QuestionDistribution, "{}")
+	if err != nil {
+		return err
+	}
+	abilityBreakdown, err := marshalJSONDefault(report.AbilityBreakdown, "{}")
+	if err != nil {
+		return err
+	}
+	strengths, err := marshalJSONDefault(report.Strengths, "[]")
+	if err != nil {
+		return err
+	}
+	weaknesses, err := marshalJSONDefault(report.Weaknesses, "[]")
+	if err != nil {
+		return err
+	}
+	recommendations, err := marshalJSONDefault(report.Recommendations, "[]")
+	if err != nil {
+		return err
+	}
+
+	now := unixNow()
+	result, err := repo.db.ExecContext(ctx, `
+UPDATE ah_practice_report
+SET overall_score = ?, current_ability = ?, confidence = ?, ability_level = ?,
+    percentile = ?, knowledge_scores = ?, question_distribution = ?,
+    ability_breakdown = ?, learning_speed = ?, consistency = ?,
+    strengths = ?, weaknesses = ?, recommendations = ?, total_time = ?,
+    update_time = ?
+WHERE session_id = ?`,
+		report.OverallScore,
+		report.CurrentAbility,
+		report.Confidence,
+		report.AbilityLevel,
+		report.Percentile,
+		knowledgeScores,
+		questionDistribution,
+		abilityBreakdown,
+		report.LearningSpeed,
+		report.Consistency,
+		strengths,
+		weaknesses,
+		recommendations,
+		report.TotalTime,
+		now,
+		report.SessionID,
+	)
+	if err != nil {
+		return fmt.Errorf("update practice report: %w", err)
+	}
+	return requireRowsAffected(result)
+}
+
 func (repo *SQLRepository) ensureDB() error {
 	if repo == nil || repo.db == nil {
 		return ErrNotConfigured

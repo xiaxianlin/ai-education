@@ -335,6 +335,7 @@ declare global {
     confidence?: number; // 置信度
     ability_level?: string; // 能力等级
     percentile?: number; // 百分位排名
+    knowledge_scores?: string; // 知识点得分（JSON字符串）
     question_distribution?: string; // 题目来源分布（JSON字符串）
     ability_breakdown?: string; // 能力分解（JSON字符串）
     learning_speed?: number; // 学习速度

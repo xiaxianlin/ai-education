@@ -57,7 +57,7 @@ function ErrorView() {
  * 主视图组件
  */
 export function MainView() {
-  const { detail, loading, error, answerMap, statusInfo, isCompleted, isInProgress, handleBack, handleContinue } =
+  const { detail, report, loading, error, answerMap, statusInfo, isCompleted, isInProgress, handleBack, handleContinue } =
     usePracticeResultModel();
 
   // 加载状态
@@ -70,7 +70,7 @@ export function MainView() {
     return <ErrorView />;
   }
 
-  const { session, questions, report } = detail;
+  const { session, questions } = detail;
 
   return (
     <div className="min-h-screen bg-pattern -m-6 p-6 space-y-8 animate-springy">

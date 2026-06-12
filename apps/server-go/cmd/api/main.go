@@ -101,7 +101,17 @@ func buildHandler(cfg config.Config) http.Handler {
 		log.Print("queue mode: in-process dispatch (development)")
 	}
 
-	practiceService := practice.NewService(practiceRepo, enqueuer, aiProvider)
+	practiceService := practice.NewService(practiceRepo, enqueuer, aiProvider, aiProvider)
+
+	// Register report.generate handler in in-process mode
+	if dispatchEnqueuer, ok := enqueuer.(*queue.DispatchEnqueuer); ok {
+		mustRegister(queue.RegisterTypedHandler(
+			dispatchEnqueuer.Registry,
+			queue.TaskReportGenerate,
+			practice.NewReportGenerateHandler(practiceService),
+		))
+		log.Print("registered in-process handler: report.generate")
+	}
 	currentStudent := router.AuthCurrentStudentProvider(authService)
 
 	return router.New(router.Dependencies{

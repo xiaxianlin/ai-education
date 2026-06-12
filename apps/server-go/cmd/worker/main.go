@@ -64,12 +64,14 @@ func main() {
 	}))
 	log.Print("registered handler: answer.evaluate (placeholder)")
 
-	// report.generate — placeholder (to be implemented in P1-06)
-	mustRegister(queue.RegisterTypedHandler(registry, queue.TaskReportGenerate, func(ctx context.Context, payload queue.ReportGeneratePayload) error {
-		log.Printf("report.generate placeholder: session_id=%s student_id=%s", payload.SessionID, payload.StudentID)
-		return nil
-	}))
-	log.Print("registered handler: report.generate (placeholder)")
+	// report.generate — real handler with AI
+	reportService := practice.NewService(practiceRepo, nil, nil, aiProvider)
+	mustRegister(queue.RegisterTypedHandler(
+		registry,
+		queue.TaskReportGenerate,
+		practice.NewReportGenerateHandler(reportService),
+	))
+	log.Print("registered handler: report.generate (AI)")
 
 	// --- Worker ---
 	taskNames := registry.TaskNames()

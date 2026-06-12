@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log"
 
 	"ai-education/server-go/internal/ai"
 	"ai-education/server-go/internal/queue"
@@ -18,13 +19,18 @@ type AnswerEvaluator interface {
 	EvaluateAnswer(ctx ai.Context, req ai.EvaluateAnswerRequest) (ai.EvaluateAnswerResult, error)
 }
 
-type Service struct {
-	repo      Repository
-	queue     Queue
-	evaluator AnswerEvaluator
+type ReportGenerator interface {
+	GenerateReport(ctx ai.Context, req ai.GenerateReportRequest) (ai.PracticeReportDraft, error)
 }
 
-func NewService(repo Repository, enqueuer Queue, evaluator AnswerEvaluator) *Service {
+type Service struct {
+	repo            Repository
+	queue           Queue
+	evaluator       AnswerEvaluator
+	reportGenerator ReportGenerator
+}
+
+func NewService(repo Repository, enqueuer Queue, evaluator AnswerEvaluator, reportGenerator ...ReportGenerator) *Service {
 	if repo == nil {
 		repo = NewMemoryRepository()
 	}
@@ -34,7 +40,11 @@ func NewService(repo Repository, enqueuer Queue, evaluator AnswerEvaluator) *Ser
 	if evaluator == nil {
 		evaluator = NoopAnswerEvaluator{}
 	}
-	return &Service{repo: repo, queue: enqueuer, evaluator: evaluator}
+	svc := &Service{repo: repo, queue: enqueuer, evaluator: evaluator}
+	if len(reportGenerator) > 0 && reportGenerator[0] != nil {
+		svc.reportGenerator = reportGenerator[0]
+	}
+	return svc
 }
 
 func (s *Service) Create(ctx context.Context, studentID string, req CreatePracticeRequest) (CreatePracticeResponse, error) {
@@ -208,6 +218,20 @@ func (s *Service) Complete(ctx context.Context, studentID string, sessionID stri
 	if err != nil {
 		return 0, err
 	}
+
+	// 入队 AI 报告生成任务（失败不影响主流程）
+	if s.reportGenerator != nil && s.queue != nil {
+		task, taskErr := queue.NewReportGenerateTask(queue.ReportGeneratePayload{
+			SessionID: sessionID,
+			StudentID: studentID,
+		})
+		if taskErr != nil {
+			log.Printf("WARN: [session_id=%s] 构建 report.generate 任务失败: %v", sessionID, taskErr)
+		} else if _, enqueueErr := s.queue.Enqueue(ctx, task); enqueueErr != nil {
+			log.Printf("WARN: [session_id=%s] 入队 report.generate 任务失败: %v", sessionID, enqueueErr)
+		}
+	}
+
 	return created.ID, nil
 }
 
@@ -379,11 +403,19 @@ func buildReport(session Practice, now int64) PracticeReport {
 	if session.QuestionCount > 0 {
 		overallScore = float64(session.CorrectCount) / float64(session.QuestionCount) * 100
 	}
+	totalTime := 0
+	if session.EndTime != nil && session.StartTime > 0 {
+		totalTime = int(*session.EndTime - session.StartTime)
+		if totalTime < 0 {
+			totalTime = 0
+		}
+	}
 	return PracticeReport{
 		SessionID:            session.ID,
 		StudentID:            session.StudentID,
 		TotalQuestions:       session.QuestionCount,
 		CorrectQuestions:     session.CorrectCount,
+		TotalTime:            totalTime,
 		OverallScore:         overallScore,
 		KnowledgeScores:      JSONMap{},
 		QuestionDistribution: JSONMap{},
@@ -393,6 +425,94 @@ func buildReport(session Practice, now int64) PracticeReport {
 		Recommendations:      []string{},
 		CreateTime:           now,
 	}
+}
+
+// HandleReportGenerate 处理 AI 报告生成任务
+func (s *Service) HandleReportGenerate(ctx context.Context, payload queue.ReportGeneratePayload) error {
+	if payload.SessionID == "" {
+		return newValidationError("session_id 不能为空")
+	}
+	if payload.StudentID == "" {
+		return newValidationError("student_id 不能为空")
+	}
+	if s.reportGenerator == nil {
+		return fmt.Errorf("report generator not configured")
+	}
+
+	// 1. 获取练习会话并校验状态
+	session, err := s.repo.GetPracticeByID(ctx, payload.SessionID)
+	if err != nil {
+		return fmt.Errorf("获取练习失败: %w", err)
+	}
+	if session.StudentID != payload.StudentID {
+		return fmt.Errorf("学生 ID 不匹配: session=%s, payload=%s", session.StudentID, payload.StudentID)
+	}
+	if session.Status != PracticeStatusCompleted {
+		return fmt.Errorf("练习未完成，跳过报告生成: status=%d", session.Status)
+	}
+
+	// 2. 获取练习数据（含答案）
+	data, err := s.repo.GetPracticeData(ctx, payload.StudentID, payload.SessionID)
+	if err != nil {
+		return fmt.Errorf("获取练习数据失败: %w", err)
+	}
+
+	// 3. 收集答案结果用于 AI 分析
+	answerResults := make([]ai.EvaluateAnswerResult, 0, len(data.Answers))
+	for _, ans := range data.Answers {
+		result := ai.EvaluateAnswerResult{
+			IsCorrect: ans.Status == AnswerStatusCorrect,
+		}
+		if ans.Analysis != nil {
+			result.Analysis = *ans.Analysis
+		}
+		answerResults = append(answerResults, result)
+	}
+
+	totalTime := 0
+	if session.EndTime != nil && session.StartTime > 0 {
+		totalTime = int(*session.EndTime - session.StartTime)
+		if totalTime < 0 {
+			totalTime = 0
+		}
+	}
+
+	// 4. 调用 AI 生成报告
+	draft, err := s.reportGenerator.GenerateReport(ctx, ai.GenerateReportRequest{
+		SessionID:     payload.SessionID,
+		StudentID:     payload.StudentID,
+		Subject:       session.Subject,
+		Grade:         session.Grade,
+		PracticeType:  session.PracticeType,
+		Answers:       answerResults,
+		TotalTimeSecs: totalTime,
+	})
+	if err != nil {
+		return fmt.Errorf("AI 报告生成失败: %w", err)
+	}
+
+	// 5. 更新报告
+	report := PracticeReport{
+		SessionID:            payload.SessionID,
+		StudentID:            payload.StudentID,
+		TotalQuestions:       session.QuestionCount,
+		CorrectQuestions:     session.CorrectCount,
+		TotalTime:            totalTime,
+		OverallScore:         draft.OverallScore,
+		CurrentAbility:       draft.CurrentAbility,
+		Confidence:           draft.Confidence,
+		AbilityLevel:         draft.AbilityLevel,
+		Percentile:           draft.Percentile,
+		KnowledgeScores:      JSONMap(draft.KnowledgeScores),
+		QuestionDistribution: JSONMap(draft.QuestionDistribution),
+		AbilityBreakdown:     JSONMap(draft.AbilityBreakdown),
+		LearningSpeed:        draft.LearningSpeed,
+		Consistency:          draft.Consistency,
+		Strengths:            draft.Strengths,
+		Weaknesses:           draft.Weaknesses,
+		Recommendations:      draft.Recommendations,
+	}
+	return s.repo.UpdateReport(ctx, report)
 }
 
 func newSessionID() string {

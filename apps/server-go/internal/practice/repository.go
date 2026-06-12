@@ -20,6 +20,7 @@ type Repository interface {
 	GetAnswer(ctx context.Context, studentID string, sessionID string, questionID string) (*PracticeAnswer, error)
 	UpdateAnswer(ctx context.Context, answer PracticeAnswer) error
 	CreateReport(ctx context.Context, report PracticeReport) (PracticeReport, error)
+	UpdateReport(ctx context.Context, report PracticeReport) error
 }
 
 type MemoryRepository struct {
@@ -334,6 +335,20 @@ func (repo *MemoryRepository) CreateReport(ctx context.Context, report PracticeR
 	report.ID = repo.nextReportID
 	repo.reports[report.SessionID] = report
 	return report, nil
+}
+
+func (repo *MemoryRepository) UpdateReport(ctx context.Context, report PracticeReport) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	if _, ok := repo.reports[report.SessionID]; !ok {
+		return ErrNotFound
+	}
+	repo.reports[report.SessionID] = report
+	return nil
 }
 
 func (repo *MemoryRepository) SeedQuestion(question PracticeQuestion) {

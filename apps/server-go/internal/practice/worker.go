@@ -130,6 +130,18 @@ func defaultQuestionTypeCode(session *Practice) string {
 	return "choice"
 }
 
+// ReportGenerateHandler 定义 handler 所需的最小接口
+type ReportGenerateHandler interface {
+	HandleReportGenerate(ctx context.Context, payload queue.ReportGeneratePayload) error
+}
+
+// NewReportGenerateHandler 创建 report.generate handler
+func NewReportGenerateHandler(service ReportGenerateHandler) func(context.Context, queue.ReportGeneratePayload) error {
+	return func(ctx context.Context, payload queue.ReportGeneratePayload) error {
+		return service.HandleReportGenerate(ctx, payload)
+	}
+}
+
 func markPracticeGenerationFailed(ctx context.Context, store GenerationStatusStore, sessionID string, cause error) error {
 	if store == nil {
 		return cause

@@ -3,11 +3,12 @@
  */
 import { Card, CardContent } from "@/components/ui";
 import { formatDuration } from "@ai-education/shared-web";
-import { CheckCircle, Clock, TrendingUp, Trophy, XCircle } from "lucide-react";
+import { CheckCircle, Clock, Lightbulb, AlertTriangle, TrendingUp, Trophy, XCircle } from "lucide-react";
 import { FC } from "react";
+import type { ParsedReport } from "../models/page";
 
 interface ReportSummaryProps {
-  report: PracticeReport;
+  report: ParsedReport;
   slug?: string;
 }
 
@@ -98,7 +99,7 @@ export const ReportSummary: FC<ReportSummaryProps> = ({ report, slug }) => {
                 <div className="p-2 bg-primary rounded-lg mb-2 shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                   <Trophy className="h-5 w-5 text-white" />
                 </div>
-                <div className="text-xl font-black text-primary leading-none">{overall_score.toFixed(1)}</div>
+                <div className="text-xl font-black text-primary leading-none">{(overall_score ?? 0).toFixed(1)}</div>
                 <div className="text-[10px] font-bold text-primary/80 uppercase tracking-widest mt-1">总评分</div>
               </div>
 
@@ -147,6 +148,66 @@ export const ReportSummary: FC<ReportSummaryProps> = ({ report, slug }) => {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI 评价 — 优势 */}
+      {report.strengths.length > 0 && (
+        <Card className="border-none shadow-lg bg-green-50/80 backdrop-blur-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <h4 className="font-bold text-green-700">表现不错</h4>
+            </div>
+            <ul className="space-y-2">
+              {report.strengths.map((s, i) => (
+                <li key={i} className="text-sm text-green-700 flex items-start gap-2">
+                  <span className="text-green-500 mt-0.5">•</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI 评价 — 薄弱项 */}
+      {report.weaknesses.length > 0 && (
+        <Card className="border-none shadow-lg bg-orange-50/80 backdrop-blur-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              <h4 className="font-bold text-orange-700">需要加强</h4>
+            </div>
+            <ul className="space-y-2">
+              {report.weaknesses.map((w, i) => (
+                <li key={i} className="text-sm text-orange-700 flex items-start gap-2">
+                  <span className="text-orange-500 mt-0.5">•</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI 评价 — 学习建议 */}
+      {report.recommendations.length > 0 && (
+        <Card className="border-none shadow-lg bg-blue-50/80 backdrop-blur-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="h-5 w-5 text-blue-600" />
+              <h4 className="font-bold text-blue-700">学习建议</h4>
+            </div>
+            <ul className="space-y-2">
+              {report.recommendations.map((r, i) => (
+                <li key={i} className="text-sm text-blue-700 flex items-start gap-2">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}

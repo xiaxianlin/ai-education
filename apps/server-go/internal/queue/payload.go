@@ -66,5 +66,8 @@ func NewReportGenerateTask(payload ReportGeneratePayload, opts ...TaskOption) (T
 	if payload.SessionID == "" {
 		return Task{}, errors.New("report generate payload requires session_id")
 	}
+	if payload.StudentID == "" {
+		return Task{}, errors.New("report generate payload requires student_id")
+	}
 	return NewTask(TaskReportGenerate, payload, opts...)
 }
