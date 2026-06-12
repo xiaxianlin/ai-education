@@ -67,6 +67,7 @@ func TestRedisEnqueuerPreservesTaskID(t *testing.T) {
 
 	task, err := NewReportGenerateTask(ReportGeneratePayload{
 		SessionID: "session-xyz",
+		StudentID: "stu1",
 	}, WithTaskID("custom-id-123"))
 	if err != nil {
 		t.Fatalf("NewReportGenerateTask() error = %v", err)
@@ -196,6 +197,7 @@ func TestWorkerRequeuesOnHandlerError(t *testing.T) {
 	enq := NewRedisEnqueuer(client)
 	task, err := NewReportGenerateTask(ReportGeneratePayload{
 		SessionID: "session-retry",
+		StudentID: "stu1",
 	}, WithTaskID("retry-task-1"))
 	if err != nil {
 		t.Fatalf("NewReportGenerateTask() error = %v", err)
@@ -249,6 +251,7 @@ func TestWorkerDeadLetterAfterMaxRetries(t *testing.T) {
 	enq := NewRedisEnqueuer(client)
 	task, err := NewReportGenerateTask(ReportGeneratePayload{
 		SessionID: "session-dlq",
+		StudentID: "stu1",
 	}, WithTaskID("dlq-task-1"))
 	if err != nil {
 		t.Fatalf("NewReportGenerateTask() error = %v", err)

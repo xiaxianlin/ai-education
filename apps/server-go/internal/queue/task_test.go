@@ -30,6 +30,7 @@ func TestMemoryEnqueuerStoresTasks(t *testing.T) {
 	enqueuer := NewMemoryEnqueuer()
 	task, err := NewReportGenerateTask(ReportGeneratePayload{
 		SessionID: "session-1",
+		StudentID: "stu1",
 	}, WithTaskID("task-1"))
 	if err != nil {
 		t.Fatalf("NewReportGenerateTask() error = %v", err)
