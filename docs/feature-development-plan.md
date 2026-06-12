@@ -37,7 +37,7 @@ Phase 1 基础能力完善 (当前)  ──→  Phase 2 智能化升级  ──�
 | P1-04 | 客观题自动评判 | ✅ | P0 | — | — |
 | **P1-05** | **主观题 AI 评判** | 📋 | P1 | 3d | [📖 实施规格](./impl/phase1-P1-05-subjective-evaluation.md) |
 | **P1-06** | **练习报告 AI 生成与展示** | ✅ | P0 | 2d | [📖 实施规格](./impl/phase1-P1-06-report-generation.md) |
-| **P1-07** | **Redis 队列正式对接** | 📋 | P1 | 3d | [📖 实施规格](./impl/phase1-P1-07-redis-queue.md) |
+| **P1-07** | **Redis 队列正式对接** | ✅ | P1 | 3d | [📖 实施规格](./impl/phase1-P1-07-redis-queue.md) |
 | **P1-08** | **练习生成失败重试** | 📋 | P2 | 1d | [📖 实施规格](./impl/phase1-P1-08-retry-mechanism.md) |
 | **P1-09** | **练习废弃状态处理** | 📋 | P2 | 1d | [📖 实施规格](./impl/phase1-P1-09-abandoned-status.md) |
 
