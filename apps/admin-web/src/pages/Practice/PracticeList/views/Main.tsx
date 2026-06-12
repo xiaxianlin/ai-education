@@ -130,17 +130,16 @@ export default function MainView() {
       key: 'actions',
       title: '操作',
       width: '120px',
-      className: 'text-right',
       render: (record) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="link" onClick={() => navigate(`/practice/detail/${record.id}`)}>
+        <div className="flex justify-start gap-2">
+          <Button variant="link" size="xs" onClick={() => navigate(`/practice/detail/${record.id}`)}>
             详情
           </Button>
           <DeleteButton
             title="确定要删除这次练习吗？"
             description="删除后练习数据及报告将无法恢复。"
             onConfirm={() => handleDelete(record.id)}
-            buttonProps={{ size: 'sm' }}
+            buttonProps={{ size: 'xs' }}
           />
         </div>
       ),

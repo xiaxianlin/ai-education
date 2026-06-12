@@ -37,6 +37,14 @@ type BatchDeleteAbilityRequest struct {
 type SearchAbilityParams struct {
 	Subject *string
 	Grade   *int
+	Page    int
+	Size    int
+	Unpaged bool
+}
+
+type SearchAbilitiesResult struct {
+	Total int       `json:"total"`
+	Data  []Ability `json:"data"`
 }
 
 type CreateAbility struct {

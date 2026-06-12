@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS ah_textbook (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  teacher_id VARCHAR(64) NULL,
   subject VARCHAR(255) NOT NULL,
   version VARCHAR(255) NOT NULL,
   grade INT NOT NULL,
   semester VARCHAR(255) NOT NULL,
-  file VARCHAR(255) NULL,
-  index_file_id VARCHAR(255) NULL,
-  is_parsed INT NOT NULL DEFAULT 0
+  KEY idx_ah_textbook_teacher_id (teacher_id),
+  KEY idx_ah_textbook_subject_grade (subject, grade)
 );
 
 CREATE TABLE IF NOT EXISTS ah_unit (
@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS ah_textbook_version (
 
 CREATE TABLE IF NOT EXISTS ah_teacher_book (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  teacher_id VARCHAR(64) NULL,
   subject VARCHAR(255) NOT NULL,
   version VARCHAR(255) NOT NULL,
   grade INT NOT NULL,
   semester VARCHAR(255) NOT NULL,
-  file VARCHAR(255) NULL,
-  index_file_id VARCHAR(255) NULL,
+  KEY idx_ah_teacher_book_teacher_id (teacher_id),
   KEY idx_ah_teacher_book_subject_grade (subject, grade)
 );

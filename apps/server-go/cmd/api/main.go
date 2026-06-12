@@ -76,13 +76,32 @@ func buildHandler(cfg config.Config) http.Handler {
 	})
 
 	aiProvider := buildAIProvider(cfg)
-	workerRegistry := queue.NewRegistry()
-	mustRegister(queue.RegisterTypedHandler(
-		workerRegistry,
-		queue.TaskPracticeGenerate,
-		practice.NewPracticeGenerateHandler(practiceRepo, aiProvider),
-	))
-	practiceService := practice.NewService(practiceRepo, queue.NewDispatchEnqueuer(workerRegistry, true), aiProvider)
+
+	// Queue: use Redis when configured, otherwise fall back to in-process dispatch.
+	var enqueuer queue.Enqueuer
+	if cfg.Redis.URL != "" {
+		redisClient, redisErr := queue.NewRedisClient(cfg.Redis.URL)
+		if redisErr != nil {
+			log.Printf("redis connection failed, falling back to in-process queue: %v", redisErr)
+			redisClient = nil
+		}
+		if redisClient != nil {
+			enqueuer = queue.NewRedisEnqueuer(redisClient)
+			log.Printf("queue mode: redis (%s)", cfg.Redis.URL)
+		}
+	}
+	if enqueuer == nil {
+		workerRegistry := queue.NewRegistry()
+		mustRegister(queue.RegisterTypedHandler(
+			workerRegistry,
+			queue.TaskPracticeGenerate,
+			practice.NewPracticeGenerateHandler(practiceRepo, aiProvider),
+		))
+		enqueuer = queue.NewDispatchEnqueuer(workerRegistry, true)
+		log.Print("queue mode: in-process dispatch (development)")
+	}
+
+	practiceService := practice.NewService(practiceRepo, enqueuer, aiProvider)
 	currentStudent := router.AuthCurrentStudentProvider(authService)
 
 	return router.New(router.Dependencies{

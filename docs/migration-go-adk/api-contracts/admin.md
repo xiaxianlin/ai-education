@@ -44,7 +44,7 @@ x-access-token: <manager token>
 | mixed | `/textbook_version/*` | Pending Go migration | Agent 7 |
 | mixed | `/teacher_book/*` | Pending Go migration | Agent 7 |
 
-File upload and parsing can remain routed to Python during the first cutover.
+File upload and parsing can remain routed to Frozen legacy during the first cutover.
 
 ## Question
 

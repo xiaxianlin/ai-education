@@ -9,7 +9,7 @@ export function classNames(...values: ClassValue[]) {
 }
 
 export type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link';
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'icon';
 
 const buttonVariantClass: Record<ButtonVariant, string> = {
   default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
@@ -21,6 +21,7 @@ const buttonVariantClass: Record<ButtonVariant, string> = {
 };
 
 const buttonSizeClass: Record<ButtonSize, string> = {
+  xs: 'h-7 rounded-md px-2 text-xs',
   sm: 'h-8 rounded-md px-3 text-xs',
   md: 'h-9 rounded-md px-4 py-2',
   lg: 'h-10 rounded-md px-6',
@@ -129,7 +130,7 @@ export function Spinner({ label = '加载中...' }: { label?: string }) {
 
 export function EmptyState({ title = '暂无数据', description }: { title?: string; description?: string }) {
   return (
-    <div className="flex min-h-32 flex-col items-center justify-center rounded-lg border border-dashed border-border p-8 text-center">
+    <div className="flex min-h-24 flex-col items-center justify-center rounded-lg border border-dashed border-border p-6 text-center">
       <div className="text-sm font-medium text-foreground">{title}</div>
       {description ? <div className="mt-1 text-sm text-muted-foreground">{description}</div> : null}
     </div>
@@ -279,6 +280,10 @@ export function DataTable<T>({
   emptyText?: string;
 }) {
   const rows = data || [];
+  const orderedColumns = [
+    ...columns.filter((column) => column.key !== 'actions'),
+    ...columns.filter((column) => column.key === 'actions'),
+  ];
   const getKey = (record: T) => (typeof rowKey === 'function' ? rowKey(record) : String(record[rowKey]));
 
   if (loading) {
@@ -295,21 +300,38 @@ export function DataTable<T>({
         <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-muted/50 text-muted-foreground">
             <tr>
-              {columns.map((column) => (
-                <th key={column.key} style={{ width: column.width }} className={classNames('px-4 py-3 text-left font-medium', column.className)}>
+              {orderedColumns.map((column) => {
+                const isActionColumn = column.key === 'actions';
+                return (
+                <th
+                  key={column.key}
+                  style={{ width: isActionColumn ? '1%' : column.width }}
+                  className={classNames(
+                    'px-3 py-2 text-left font-medium',
+                    isActionColumn && 'whitespace-nowrap',
+                    column.className,
+                  )}
+                >
                   {column.title}
                 </th>
-              ))}
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {rows.map((record, index) => (
               <tr key={getKey(record)} className="border-t border-border transition-colors hover:bg-muted/40">
-                {columns.map((column) => (
-                  <td key={column.key} className={classNames('px-4 py-3 align-middle', column.className)}>
+                {orderedColumns.map((column) => {
+                  const isActionColumn = column.key === 'actions';
+                  return (
+                  <td
+                    key={column.key}
+                    className={classNames('px-3 py-2 align-middle', isActionColumn && 'whitespace-nowrap', column.className)}
+                  >
                     {column.render?.(record, index) ?? String((record as Record<string, unknown>)[column.key] ?? '-')}
                   </td>
-                ))}
+                  );
+                })}
               </tr>
             ))}
           </tbody>

@@ -9,7 +9,7 @@ type Repository interface {
 	UpdateTextbook(ctx context.Context, id int64, textbook SaveTextbookRequest) error
 	DeleteTextbook(ctx context.Context, id int64) error
 	GetTextbook(ctx context.Context, id int64) (*Textbook, error)
-	SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) ([]Textbook, error)
+	SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) (SearchTextbookResult, error)
 	ListTextbookUnits(ctx context.Context, textbookID int64) ([]Unit, error)
 
 	CreateUnit(ctx context.Context, unit SaveUnitRequest) (int64, error)
@@ -39,8 +39,8 @@ func (NotImplementedRepository) GetTextbook(ctx context.Context, id int64) (*Tex
 	return nil, ErrNotImplemented
 }
 
-func (NotImplementedRepository) SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) ([]Textbook, error) {
-	return nil, ErrNotImplemented
+func (NotImplementedRepository) SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) (SearchTextbookResult, error) {
+	return SearchTextbookResult{}, ErrNotImplemented
 }
 
 func (NotImplementedRepository) ListTextbookUnits(ctx context.Context, textbookID int64) ([]Unit, error) {

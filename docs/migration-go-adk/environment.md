@@ -1,6 +1,6 @@
 # Environment Variable Migration
 
-The Go server keeps the Python service variable names so both services can run from the same deployment environment during migration.
+The Go server keeps the Frozen legacy service variable names so both services can run from the same deployment environment during migration.
 
 Do not commit real `.env` files. Use `apps/server-go/.env.sample` as the Go template.
 
@@ -20,7 +20,7 @@ apps/server-go/.env
 | --- | --- | --- |
 | `SERVER_ADDR` | `:7891` | Go API listen address. Frontend dev proxies point to this port. |
 
-## Variables Kept Compatible with Python
+## Variables Kept Compatible with Frozen legacy
 
 ### Application
 
@@ -49,7 +49,7 @@ apps/server-go/.env
 | `DATABASE_POOL_TIMEOUT` | `Database.PoolTimeout` | `30` |
 | `DATABASE_POOL_RECYCLE` | `Database.PoolRecycle` | `3600` |
 
-Python currently uses SQLAlchemy URLs such as `mysql+asyncmy://...`. Go normalizes these URL forms before opening the MySQL driver:
+Frozen legacy currently uses legacy ORM URLs such as `mysql+asyncmy://...`. Go normalizes these URL forms before opening the MySQL driver:
 
 ```text
 mysql+asyncmy://user:pass@localhost:3306/ai_education

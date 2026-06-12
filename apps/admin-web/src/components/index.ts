@@ -6,5 +6,5 @@ export * from './JsonViewer';
 export * from './MarkdownEditor';
 export * from './PageHeader';
 export * from './StatusTag';
-export * from './SubjectGradeTabs';
+export * from './SubjectGradeFilter';
 export * from './UploadButton';

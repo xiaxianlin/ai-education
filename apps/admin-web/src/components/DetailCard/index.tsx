@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import { Card, CardContent, CardTitle } from '@/components/ui';
 import type { ReactNode } from 'react';
 
 interface DetailCardProps {
@@ -11,10 +11,10 @@ interface DetailCardProps {
 export function DetailCard({ title, extra, children, className }: DetailCardProps) {
   return (
     <Card className={className}>
-      <CardHeader className="flex-row items-center justify-between">
+      <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>{title}</CardTitle>
         {extra}
-      </CardHeader>
+      </div>
       <CardContent>{children}</CardContent>
     </Card>
   );

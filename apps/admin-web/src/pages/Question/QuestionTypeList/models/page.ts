@@ -8,7 +8,7 @@ import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const { subject, grade } = useInitialStateModel();
+  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
   const [type, setType] = useState<PracticeType>(PracticeType.UNIT_PRACTICE);
   const [unitRefreshKey, setUnitRefreshKey] = useState(0);
   const [abilityRefreshKey, setAbilityRefreshKey] = useState(0);
@@ -21,11 +21,11 @@ const useContainer = () => {
     }
   };
 
-  const { data: abilities } = useRequest(() => AbilityApi.searchAbilities({ subject, grade }), {
+  const { data: abilities } = useRequest(() => AbilityApi.searchAbilities({ subject, grade, size: 100 }), {
     refreshDeps: [subject, grade],
   });
   const abilityOptions = useMemo(
-    () => abilities?.map((ability) => ({ label: ability.name, value: ability.code })),
+    () => abilities?.data?.map((ability) => ({ label: ability.name, value: ability.code })),
     [abilities],
   );
 
@@ -53,6 +53,8 @@ const useContainer = () => {
     type,
     grade,
     subject,
+    setGrade,
+    setSubject,
     abilityOptions,
     unitRefreshKey,
     abilityRefreshKey,

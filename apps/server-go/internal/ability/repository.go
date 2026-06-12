@@ -20,7 +20,7 @@ type Repository interface {
 	BatchCreate(ctx context.Context, items []CreateAbility) ([]Ability, error)
 	Get(ctx context.Context, id int64) (*Ability, error)
 	FindByUnique(ctx context.Context, subject string, grade int, code string) (*Ability, error)
-	List(ctx context.Context, params SearchAbilityParams) ([]Ability, error)
+	List(ctx context.Context, params SearchAbilityParams) (SearchAbilitiesResult, error)
 	Update(ctx context.Context, id int64, patch UpdateAbilityPatch) error
 	Delete(ctx context.Context, id int64) error
 	BatchDelete(ctx context.Context, ids []int64) (int, error)
@@ -125,30 +125,28 @@ func (r *SQLRepository) FindByUnique(ctx context.Context, subject string, grade 
 	return item, nil
 }
 
-func (r *SQLRepository) List(ctx context.Context, params SearchAbilityParams) ([]Ability, error) {
+func (r *SQLRepository) List(ctx context.Context, params SearchAbilityParams) (SearchAbilitiesResult, error) {
 	if err := r.ensureStore(); err != nil {
-		return nil, err
+		return SearchAbilitiesResult{}, err
 	}
 
-	query := "SELECT " + abilityColumns + " FROM ah_ability"
-	args := make([]any, 0, 2)
-	conditions := make([]string, 0, 2)
-	if params.Subject != nil {
-		conditions = append(conditions, "subject = ?")
-		args = append(args, *params.Subject)
+	whereSQL, args := buildAbilitySearchWhere(params)
+	var total int
+	if err := r.store.QueryRowContext(ctx, "SELECT COUNT(id) FROM ah_ability"+whereSQL, args...).Scan(&total); err != nil {
+		return SearchAbilitiesResult{}, fmt.Errorf("count abilities: %w", err)
 	}
-	if params.Grade != nil {
-		conditions = append(conditions, "grade = ?")
-		args = append(args, *params.Grade)
-	}
-	if len(conditions) > 0 {
-		query += " WHERE " + strings.Join(conditions, " AND ")
-	}
-	query += " ORDER BY id"
 
-	rows, err := r.store.QueryContext(ctx, query, args...)
+	query := "SELECT " + abilityColumns + " FROM ah_ability" + whereSQL + " ORDER BY id"
+	listArgs := append([]any{}, args...)
+	if !params.Unpaged {
+		query += " LIMIT ? OFFSET ?"
+		offset := (params.Page - 1) * params.Size
+		listArgs = append(listArgs, params.Size, offset)
+	}
+
+	rows, err := r.store.QueryContext(ctx, query, listArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("list abilities: %w", err)
+		return SearchAbilitiesResult{}, fmt.Errorf("list abilities: %w", err)
 	}
 	defer rows.Close()
 
@@ -156,14 +154,14 @@ func (r *SQLRepository) List(ctx context.Context, params SearchAbilityParams) ([
 	for rows.Next() {
 		item, err := scanAbility(rows)
 		if err != nil {
-			return nil, err
+			return SearchAbilitiesResult{}, err
 		}
 		items = append(items, *item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate abilities: %w", err)
+		return SearchAbilitiesResult{}, fmt.Errorf("iterate abilities: %w", err)
 	}
-	return items, nil
+	return SearchAbilitiesResult{Total: total, Data: items}, nil
 }
 
 func (r *SQLRepository) Update(ctx context.Context, id int64, patch UpdateAbilityPatch) error {
@@ -362,6 +360,23 @@ func makePlaceholders(count int) string {
 		placeholders[i] = "?"
 	}
 	return strings.Join(placeholders, ", ")
+}
+
+func buildAbilitySearchWhere(params SearchAbilityParams) (string, []any) {
+	args := make([]any, 0, 2)
+	conditions := make([]string, 0, 2)
+	if params.Subject != nil {
+		conditions = append(conditions, "subject = ?")
+		args = append(args, *params.Subject)
+	}
+	if params.Grade != nil {
+		conditions = append(conditions, "grade = ?")
+		args = append(args, *params.Grade)
+	}
+	if len(conditions) == 0 {
+		return "", args
+	}
+	return " WHERE " + strings.Join(conditions, " AND "), args
 }
 
 func nullableStringValue(value *string) any {

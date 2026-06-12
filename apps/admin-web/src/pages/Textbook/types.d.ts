@@ -3,15 +3,21 @@ declare global {
    * 搜索教材请求
    */
   interface SearchTextbookRequest {
+    teacher_id?: string;
     version?: string;
     grade?: number;
     subject?: string;
+    semester?: string;
+    page?: number;
+    size?: number;
+    page_size?: number;
   }
 
   /**
    * 保存教材请求
    */
   interface SaveTextbookRequest {
+    teacher_id?: string;
     subject: string;
     version: string;
     grade: number;

@@ -45,3 +45,75 @@ func TestStudentAtomicsHandler(t *testing.T) {
 		t.Fatalf("handler returned %d items, want 1", len(items))
 	}
 }
+
+func TestSearchHandlerReturnsPaginatedResult(t *testing.T) {
+	repo := newFakeRepository()
+	repo.seed(ability.Ability{ID: 1, Subject: "数学", Grade: 4, Code: "calc", Name: "计算", Difficulty: 1, IsActive: 1})
+	repo.seed(ability.Ability{ID: 2, Subject: "数学", Grade: 4, Code: "shape", Name: "图形", Difficulty: 1, IsActive: 1})
+
+	mux := http.NewServeMux()
+	ability.RegisterAdminRoutes(mux, ability.NewService(repo))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/ability/search?subject=数学&grade=4&page=2&size=1", nil)
+	req.Header.Set(middleware.AccessTokenHeader, "admin-token")
+	rec := httptest.NewRecorder()
+
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	var envelope struct {
+		Status int `json:"status"`
+		Data   struct {
+			Total int               `json:"total"`
+			Data  []ability.Ability `json:"data"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("response JSON error: %v", err)
+	}
+	if envelope.Status != 0 {
+		t.Fatalf("envelope status = %d, want 0", envelope.Status)
+	}
+	if envelope.Data.Total != 2 || len(envelope.Data.Data) != 1 || envelope.Data.Data[0].Code != "shape" {
+		t.Fatalf("unexpected paginated data: %+v", envelope.Data)
+	}
+}
+
+func TestSearchHandlerDefaultsToAllAbilities(t *testing.T) {
+	repo := newFakeRepository()
+	repo.seed(ability.Ability{ID: 1, Subject: "数学", Grade: 4, Code: "calc", Name: "计算", Difficulty: 1, IsActive: 1})
+	repo.seed(ability.Ability{ID: 2, Subject: "英语", Grade: 1, Code: "reading", Name: "阅读", Difficulty: 1, IsActive: 1})
+
+	mux := http.NewServeMux()
+	ability.RegisterAdminRoutes(mux, ability.NewService(repo))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/ability/search?page=1&size=10", nil)
+	req.Header.Set(middleware.AccessTokenHeader, "admin-token")
+	rec := httptest.NewRecorder()
+
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	var envelope struct {
+		Status int `json:"status"`
+		Data   struct {
+			Total int               `json:"total"`
+			Data  []ability.Ability `json:"data"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
+		t.Fatalf("response JSON error: %v", err)
+	}
+	if envelope.Status != 0 {
+		t.Fatalf("envelope status = %d, want 0", envelope.Status)
+	}
+	if envelope.Data.Total != 2 || len(envelope.Data.Data) != 2 {
+		t.Fatalf("unexpected default search data: %+v", envelope.Data)
+	}
+}

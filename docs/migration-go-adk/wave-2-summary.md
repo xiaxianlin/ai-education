@@ -4,9 +4,9 @@ Wave 2 moved the Go backend from pure module skeletons toward real database comp
 
 ## Completed
 
-- DSN normalization accepts Python-style MySQL URLs such as `mysql+asyncmy://...` and native Go MySQL DSNs.
+- DSN normalization accepts Frozen legacy-style MySQL URLs such as `mysql+asyncmy://...` and native Go MySQL DSNs.
 - Auth SQL store boundary now covers manager/student lookup by username/phone/token and token persistence.
-- Auth JWT resolver supports HS256 payloads compatible with Python `{id, update_time, exp}` tokens.
+- Auth JWT resolver supports HS256 payloads compatible with Frozen legacy `{id, update_time, exp}` tokens.
 - Ability SQL repository implements the module repository interface with `database/sql`.
 - Practice SQL repository covers core session create/read/list/update behavior and basic answer/report access.
 - `practice.generate` worker placeholder is registered with explicit strategies for keeping generating or marking failed.
@@ -34,7 +34,7 @@ Not ready:
 ## Next Critical Path
 
 1. Add the MySQL driver dependency and wire DB open into `cmd/api`.
-2. Add Go bcrypt dependency and enable Python password hash verification.
+2. Add Go bcrypt dependency and enable Frozen legacy password hash verification.
 3. Mount only the student ability route behind SQL repository.
 4. Implement Student Profile with SQL repository.
 5. Implement practice generation persistence after Google ADK question generation lands.

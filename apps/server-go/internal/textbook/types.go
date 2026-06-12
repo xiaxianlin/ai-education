@@ -2,13 +2,12 @@ package textbook
 
 type Textbook struct {
 	ID          int64   `json:"id"`
+	TeacherID   *string `json:"teacher_id,omitempty"`
+	TeacherName *string `json:"teacher_name,omitempty"`
 	Subject     string  `json:"subject"`
 	Version     string  `json:"version"`
 	Grade       int     `json:"grade"`
 	Semester    string  `json:"semester"`
-	File        *string `json:"file,omitempty"`
-	IndexFileID *string `json:"index_file_id,omitempty"`
-	IsParsed    int     `json:"is_parsed"`
 }
 
 type Unit struct {
@@ -19,17 +18,26 @@ type Unit struct {
 }
 
 type SaveTextbookRequest struct {
-	Subject  string `json:"subject"`
-	Version  string `json:"version"`
-	Grade    int    `json:"grade"`
-	Semester string `json:"semester"`
+	TeacherID *string `json:"teacher_id,omitempty"`
+	Subject   string  `json:"subject"`
+	Version   string  `json:"version"`
+	Grade     int     `json:"grade"`
+	Semester  string  `json:"semester"`
 }
 
 type SearchTextbookRequest struct {
-	Subject  string `json:"subject,omitempty"`
-	Version  string `json:"version,omitempty"`
-	Grade    *int   `json:"grade,omitempty"`
-	Semester string `json:"semester,omitempty"`
+	TeacherID *string `json:"teacher_id,omitempty"`
+	Subject   string  `json:"subject,omitempty"`
+	Version   string  `json:"version,omitempty"`
+	Grade     *int    `json:"grade,omitempty"`
+	Semester  string  `json:"semester,omitempty"`
+	Page      int     `json:"page,omitempty"`
+	Size      int     `json:"size,omitempty"`
+}
+
+type SearchTextbookResult struct {
+	Total int        `json:"total"`
+	Data  []Textbook `json:"data"`
 }
 
 type SaveUnitRequest struct {

@@ -1,7 +1,6 @@
 import type { TableActionRef } from '@/components/ui';
 import { toast } from '@/components/ui/toast';
 import { useSimpleForm } from '@/hooks';
-import { useInitialStateModel } from '@/models/initialState';
 import { useMemoizedFn, useRequest } from 'ahooks';
 import { Key, useEffect, useRef, useState } from 'react';
 import { createContainer } from 'unstated-next';
@@ -9,7 +8,8 @@ import type { CreateAbilityRequest, UpdateAbilityRequest } from '../api';
 import { AbilityApi } from '../api';
 
 const useContainer = () => {
-  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
+  const [subject, setSubject] = useState('');
+  const [grade, setGrade] = useState<number | undefined>();
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -20,7 +20,7 @@ const useContainer = () => {
       if (item) {
         await AbilityApi.updateAbility(item.id, values as UpdateAbilityRequest);
       } else {
-        await AbilityApi.createAbility({ ...values, subject, grade } as CreateAbilityRequest);
+        await AbilityApi.createAbility(values as CreateAbilityRequest);
       }
     },
     onSubmit: () => actionRef.current?.reload(),
@@ -42,6 +42,11 @@ const useContainer = () => {
   );
 
   const handleExport = useMemoizedFn(async () => {
+    if (!subject || !grade) {
+      toast.error('请先选择学科和年级');
+      return;
+    }
+
     try {
       setExporting(true);
       const blob = await AbilityApi.exportAbilitiesByGrade({
@@ -67,6 +72,11 @@ const useContainer = () => {
 
   const { runAsync: importAbilities, loading: importing } = useRequest(
     async (file: File) => {
+      if (!subject || !grade) {
+        toast.error('请先选择学科和年级');
+        return;
+      }
+
       const result = await AbilityApi.importAbilitiesByGrade(file, {
         subject,
         grade,

@@ -98,12 +98,11 @@ export function TeacherClaimReviewView() {
       key: 'actions',
       title: '操作',
       width: '160px',
-      className: 'text-right',
       render: (claim) =>
         claim.status === 'pending' ? (
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-start gap-2">
             <Button
-              size="sm"
+              size="xs"
               disabled={updateLoading}
               loading={updateLoading && updatingClaimId === claim.id}
               onClick={() => handleUpdateClaim(claim, 'approved')}
@@ -112,7 +111,7 @@ export function TeacherClaimReviewView() {
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               disabled={updateLoading}
               onClick={() => handleUpdateClaim(claim, 'rejected')}
             >

@@ -29,6 +29,9 @@ export interface UpdateAbilityRequest {
 export interface SearchAbilityRequest {
   subject?: string;
   grade?: number;
+  page?: number;
+  size?: number;
+  page_size?: number;
 }
 
 /**
@@ -56,7 +59,7 @@ export const AbilityApi = {
    * GET /ability/search
    */
   async searchAbilities(params?: SearchAbilityRequest) {
-    return apiClient.get<Ability[]>('/ability/search', params);
+    return apiClient.get<SearchResponse<Ability>>('/ability/search', params);
   },
 
   /**

@@ -1,6 +1,6 @@
 # Wave 1 Summary
 
-Wave 1 used subagents to build independent Go migration slices without changing the Python service.
+Wave 1 used subagents to build independent Go migration slices without changing the Frozen legacy service.
 
 ## Completed Modules
 

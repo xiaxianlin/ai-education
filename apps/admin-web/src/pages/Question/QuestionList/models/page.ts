@@ -5,10 +5,12 @@ import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const { subject, grade } = useInitialStateModel();
+  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | undefined>();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [questionId, setQuestionId] = useState('');
+  const [questionName, setQuestionName] = useState('');
 
   const refresh = () => setRefreshKey((key) => key + 1);
 
@@ -57,6 +59,12 @@ const useContainer = () => {
   return {
     grade,
     subject,
+    setGrade,
+    setSubject,
+    questionId,
+    questionName,
+    setQuestionId,
+    setQuestionName,
     refreshKey,
     currentQuestion,
     ...formProps,

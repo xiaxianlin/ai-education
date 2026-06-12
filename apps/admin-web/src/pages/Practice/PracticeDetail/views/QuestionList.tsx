@@ -162,16 +162,15 @@ export function QuestionList() {
       key: 'actions',
       title: '操作',
       width: '160px',
-      className: 'text-right',
       render: (record) => {
         const answer = answersMap[record.id];
         const answerExists = hasAnswer(answer);
         return (
-          <div className="flex justify-end gap-2">
-            <Button variant="link" onClick={() => navigate(`/question/detail/${record.id}`)}>
+          <div className="flex justify-start gap-2">
+            <Button variant="link" size="xs" onClick={() => navigate(`/question/detail/${record.id}`)}>
               详情
             </Button>
-            <Button variant="link" onClick={() => handleViewQuestion(record)}>
+            <Button variant="link" size="xs" onClick={() => handleViewQuestion(record)}>
               预览
             </Button>
             <DeleteButton
@@ -179,7 +178,7 @@ export function QuestionList() {
               description="确定要重置该题目的答案记录吗？此操作将清空该题的答题数据，无法恢复。"
               buttonText="重置"
               onConfirm={() => handleResetAnswer(record.id)}
-              buttonProps={{ disabled: !answerExists, size: 'sm' }}
+              buttonProps={{ disabled: !answerExists, size: 'xs' }}
             />
           </div>
         );

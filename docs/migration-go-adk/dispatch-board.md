@@ -4,13 +4,13 @@ This board is the execution entry point for migration agents.
 
 ## Current Migration Phase
 
-Phase: Go runtime cutover in progress, Python service no longer on the default dev path
+Phase: Go runtime cutover in progress, Frozen legacy service no longer on the default dev path
 
 Primary objective:
 
 - Keep Go API and frontend services as the default runtime.
-- Continue migrating remaining Python-only admin/file/RAG flows behind Go interfaces.
-- Keep Python available only as explicitly named legacy commands.
+- Continue migrating remaining Frozen legacy-only admin/file/RAG flows behind Go interfaces.
+- Keep Frozen legacy available only as explicitly named legacy commands.
 
 ## Completed in Subagent Wave 1
 
@@ -28,7 +28,7 @@ Primary objective:
 | AI-002 | ADK adapter preparation | Complete without SDK dependency |
 | M-001 | Ability Module | Complete skeleton, pending DB repository |
 | M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
-| M-004 | Textbook Module | Complete skeleton, upload/parse remain Python |
+| M-004 | Textbook Module | Complete skeleton, upload/parse remain Frozen legacy |
 | M-005 | Question CRUD | Complete skeleton, AI generation endpoint remains ADK-owned |
 | M-006 | Mastery and Statistics | Complete skeleton, pending DB repository |
 | AI-001 | AI Interface Foundation | Complete no-op/stub provider interfaces |
@@ -59,14 +59,14 @@ Start here:
 
 - `apps/server-go/internal/db/`
 - `apps/server-go/internal/auth/`
-- `apps/server/shared/util/encrypt.py`
-- `apps/server/admin/auth/services/auth.py`
-- `apps/server/student/auth/services/auth.py`
+- `historical-backend/shared/util/encrypt.go`
+- `historical-backend/admin/auth/services/auth.go`
+- `historical-backend/student/auth/services/auth.go`
 
 Tasks:
 
 - Implement `auth.ManagerStore` and `auth.StudentStore` using the DB foundation.
-- Implement password compatibility with existing Python hashes.
+- Implement password compatibility with existing Frozen legacy hashes.
 - Implement token resolver compatible with existing stored tokens.
 - Replace placeholder check routes only after compatibility tests pass.
 
@@ -78,7 +78,7 @@ Done when:
 Notes:
 
 - SQL-backed manager/student store adapters are implemented.
-- HS256 JWT resolver matches the Python `{id, update_time, exp}` payload shape.
+- HS256 JWT resolver matches the Frozen legacy `{id, update_time, exp}` payload shape.
 - Bcrypt password verification still needs `golang.org/x/crypto/bcrypt`; current Go boundary intentionally does not accept bcrypt hashes without that dependency.
 
 ### Ticket R-000: DSN Normalization
@@ -96,8 +96,8 @@ Start here:
 
 Tasks:
 
-- Decide whether Go deployments use native Go MySQL DSN or Python-compatible `mysql+asyncmy://...` URLs.
-- If sharing Python `DATABASE_URL`, add a normalization helper before opening the SQL driver.
+- Decide whether Go deployments use native Go MySQL DSN or Frozen legacy-compatible `mysql+asyncmy://...` URLs.
+- If sharing Frozen legacy `DATABASE_URL`, add a normalization helper before opening the SQL driver.
 
 Done when:
 
@@ -114,7 +114,7 @@ Start here:
 
 - `apps/server-go/internal/ability/`
 - `apps/server-go/sql/ability.sql`
-- `apps/server/shared/core/database/ability.py`
+- `historical-backend/shared/core/database/ability.go`
 
 Tasks:
 
@@ -125,7 +125,7 @@ Tasks:
 Done when:
 
 - Student ability atomics can be served from Go with existing DB data.
-- Admin CRUD remains behind Python until mutation compatibility is reviewed.
+- Admin CRUD remains behind Frozen legacy until mutation compatibility is reviewed.
 
 First cutover candidate:
 
@@ -281,7 +281,7 @@ Why first:
 Done when:
 
 - `GET /api/student/ability/atomics` matches current frontend usage.
-- Admin CRUD matches Python behavior.
+- Admin CRUD matches Frozen legacy behavior.
 
 ### Ticket M-002: Student Profile
 

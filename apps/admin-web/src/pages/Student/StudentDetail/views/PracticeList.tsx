@@ -126,9 +126,8 @@ export function PracticeList() {
               key: 'actions',
               title: '操作',
               width: '90px',
-              className: 'text-right',
               render: (record) => (
-                <Button variant="link" size="sm" onClick={() => navigate(`/practice/detail/${record.id}`)}>
+                <Button variant="link" size="xs" onClick={() => navigate(`/practice/detail/${record.id}`)}>
                   详情
                 </Button>
               ),

@@ -160,19 +160,18 @@ export function ManagerTableView(props: ManagerTableViewProps) {
       key: 'actions',
       title: '操作',
       width: '320px',
-      className: 'text-right',
       render: (teacher) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="link" size="sm" onClick={() => handleOpenDetail(teacher)}>
+        <div className="flex justify-start gap-2">
+          <Button variant="link" size="xs" onClick={() => handleOpenDetail(teacher)}>
             详情
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleUpdateStatus(teacher)}>
+          <Button variant="ghost" size="xs" onClick={() => handleUpdateStatus(teacher)}>
             {teacher.status === 1 ? '停用' : '启用'}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleResetPassword(teacher)}>
+          <Button variant="ghost" size="xs" onClick={() => handleResetPassword(teacher)}>
             重置密码
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => handleDelete(teacher)}>
+          <Button variant="destructive" size="xs" onClick={() => handleDelete(teacher)}>
             删除
           </Button>
         </div>

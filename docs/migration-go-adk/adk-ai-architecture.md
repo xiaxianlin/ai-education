@@ -1,16 +1,16 @@
 # Google ADK AI Architecture
 
-The AI migration replaces scattered Python LangChain/LangGraph utilities with a Go-facing Google ADK boundary.
+The AI migration replaces scattered Frozen legacy legacy AI workflow utilities with a Go-facing Google ADK boundary.
 
-## Current Python Sources
+## Current Frozen legacy Sources
 
-- `apps/server/shared/question/generate.py`
-- `apps/server/shared/practice/answer.py`
-- `apps/server/shared/practice/report.py`
-- `apps/server/shared/util/ai.py`
-- `apps/server/shared/util/oss.py`
-- `apps/server/shared/util/rag.py`
-- `apps/server/prompt/*.md`
+- `historical-backend/shared/question/generate.go`
+- `historical-backend/shared/practice/answer.go`
+- `historical-backend/shared/practice/report.go`
+- `historical-backend/shared/util/ai.go`
+- `historical-backend/shared/util/oss.go`
+- `historical-backend/shared/util/rag.go`
+- `apps/server-go/prompt/*.md`
 
 ## Go Interfaces
 
@@ -69,7 +69,7 @@ the rest of the service continues to depend on package-local contracts.
 
 Implemented in `apps/server-go/internal/ai`:
 
-- `FilePromptLoader`: loads `apps/server/prompt/*.md`-style prompt files by safe
+- `FilePromptLoader`: loads `apps/server-go/prompt/*.md`-style prompt files by safe
   prompt code and rejects path traversal.
 - `RenderPrompt`: fills simple `{name}` placeholders while preserving escaped
   literal braces used in JSON examples.

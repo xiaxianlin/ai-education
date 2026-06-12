@@ -32,7 +32,8 @@ func NewSQLRepository(store QueryExecer) *SQLRepository {
 }
 
 const (
-	textbookColumns = "id, subject, version, grade, semester, file, index_file_id, is_parsed"
+	textbookColumns = "tb.id, tb.teacher_id, t.name AS teacher_name, tb.subject, tb.version, tb.grade, tb.semester"
+	textbookFrom    = "ah_textbook tb LEFT JOIN ah_teacher t ON t.id = tb.teacher_id"
 )
 
 type textbookUnitJSON struct {
@@ -58,8 +59,8 @@ func (r *SQLRepository) CreateTextbook(ctx context.Context, data SaveTextbookReq
 	}
 
 	result, err := r.store.ExecContext(ctx,
-		"INSERT INTO ah_textbook (subject, version, grade, semester, is_parsed) VALUES (?, ?, ?, ?, ?)",
-		data.Subject, data.Version, data.Grade, data.Semester, 0,
+		"INSERT INTO ah_textbook (teacher_id, subject, version, grade, semester) VALUES (?, ?, ?, ?, ?)",
+		nullableStringArg(data.TeacherID), data.Subject, data.Version, data.Grade, data.Semester,
 	)
 	if err != nil {
 		return 0, wrapDuplicateError("create textbook", err, ErrDuplicateTextbook)
@@ -82,8 +83,8 @@ func (r *SQLRepository) UpdateTextbook(ctx context.Context, id int64, data SaveT
 	}
 
 	result, err := r.store.ExecContext(ctx,
-		"UPDATE ah_textbook SET subject = ?, version = ?, grade = ?, semester = ? WHERE id = ?",
-		data.Subject, data.Version, data.Grade, data.Semester, id,
+		"UPDATE ah_textbook SET teacher_id = ?, subject = ?, version = ?, grade = ?, semester = ? WHERE id = ?",
+		nullableStringArg(data.TeacherID), data.Subject, data.Version, data.Grade, data.Semester, id,
 	)
 	if err != nil {
 		return wrapDuplicateError("update textbook", err, ErrDuplicateTextbook)
@@ -109,37 +110,58 @@ func (r *SQLRepository) GetTextbook(ctx context.Context, id int64) (*Textbook, e
 	if err := r.ensureStore(); err != nil {
 		return nil, err
 	}
-	return scanTextbookRow(r.store.QueryRowContext(ctx, "SELECT "+textbookColumns+" FROM ah_textbook WHERE id = ? LIMIT 1", id))
+	return scanTextbookRow(r.store.QueryRowContext(ctx, "SELECT "+textbookColumns+" FROM "+textbookFrom+" WHERE tb.id = ? LIMIT 1", id))
 }
 
-func (r *SQLRepository) SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) ([]Textbook, error) {
+func (r *SQLRepository) SearchTextbooks(ctx context.Context, filter SearchTextbookRequest) (SearchTextbookResult, error) {
 	if err := r.ensureStore(); err != nil {
-		return nil, err
+		return SearchTextbookResult{}, err
 	}
-	query := "SELECT " + textbookColumns + " FROM ah_textbook"
-	args := make([]any, 0, 4)
-	conditions := make([]string, 0, 4)
+	filter = normalizeSearchTextbook(filter)
+	whereSQL, args := buildTextbookSearchWhere(filter)
+
+	var total int
+	if err := r.store.QueryRowContext(ctx, "SELECT COUNT(tb.id) FROM ah_textbook tb"+whereSQL, args...).Scan(&total); err != nil {
+		return SearchTextbookResult{}, fmt.Errorf("count textbooks: %w", err)
+	}
+
+	query := "SELECT " + textbookColumns + " FROM " + textbookFrom + whereSQL + " ORDER BY tb.subject, tb.grade, tb.version, tb.semester, tb.id LIMIT ? OFFSET ?"
+	listArgs := append([]any{}, args...)
+	listArgs = append(listArgs, filter.Size, (filter.Page-1)*filter.Size)
+	items, err := queryTextbooks(ctx, r.store, query, listArgs...)
+	if err != nil {
+		return SearchTextbookResult{}, err
+	}
+	return SearchTextbookResult{Total: total, Data: items}, nil
+}
+
+func buildTextbookSearchWhere(filter SearchTextbookRequest) (string, []any) {
+	args := make([]any, 0, 5)
+	conditions := make([]string, 0, 5)
+	if filter.TeacherID != nil {
+		conditions = append(conditions, "tb.teacher_id = ?")
+		args = append(args, *filter.TeacherID)
+	}
 	if filter.Subject != "" {
-		conditions = append(conditions, "subject = ?")
+		conditions = append(conditions, "tb.subject = ?")
 		args = append(args, filter.Subject)
 	}
 	if filter.Version != "" {
-		conditions = append(conditions, "version = ?")
+		conditions = append(conditions, "tb.version = ?")
 		args = append(args, filter.Version)
 	}
 	if filter.Grade != nil {
-		conditions = append(conditions, "grade = ?")
+		conditions = append(conditions, "tb.grade = ?")
 		args = append(args, *filter.Grade)
 	}
 	if filter.Semester != "" {
-		conditions = append(conditions, "semester = ?")
+		conditions = append(conditions, "tb.semester = ?")
 		args = append(args, filter.Semester)
 	}
 	if len(conditions) > 0 {
-		query += " WHERE " + strings.Join(conditions, " AND ")
+		return " WHERE " + strings.Join(conditions, " AND "), args
 	}
-	query += " ORDER BY subject, grade, version, semester"
-	return queryTextbooks(ctx, r.store, query, args...)
+	return "", args
 }
 
 func (r *SQLRepository) ListTextbookUnits(ctx context.Context, textbookID int64) ([]Unit, error) {
@@ -277,8 +299,9 @@ func (r *SQLRepository) saveTextbookUnits(ctx context.Context, textbookID int64,
 }
 
 func (r *SQLRepository) textbookExistsByUnique(ctx context.Context, data SaveTextbookRequest, excludeID *int64) (bool, error) {
-	query := "SELECT id FROM ah_textbook WHERE subject = ? AND version = ? AND grade = ? AND semester = ?"
-	args := []any{data.Subject, data.Version, data.Grade, data.Semester}
+	query := "SELECT id FROM ah_textbook WHERE ((teacher_id IS NULL AND ? IS NULL) OR teacher_id = ?) AND subject = ? AND version = ? AND grade = ? AND semester = ?"
+	teacherID := nullableStringArg(data.TeacherID)
+	args := []any{teacherID, teacherID, data.Subject, data.Version, data.Grade, data.Semester}
 	if excludeID != nil {
 		query += " AND id != ?"
 		args = append(args, *excludeID)
@@ -328,13 +351,13 @@ func scanTextbookRow(row scanner) (*Textbook, error) {
 
 func scanTextbook(s scanner) (*Textbook, error) {
 	var item Textbook
-	var file sql.NullString
-	var indexFileID sql.NullString
-	if err := s.Scan(&item.ID, &item.Subject, &item.Version, &item.Grade, &item.Semester, &file, &indexFileID, &item.IsParsed); err != nil {
+	var teacherID sql.NullString
+	var teacherName sql.NullString
+	if err := s.Scan(&item.ID, &teacherID, &teacherName, &item.Subject, &item.Version, &item.Grade, &item.Semester); err != nil {
 		return nil, err
 	}
-	item.File = stringPointer(file)
-	item.IndexFileID = stringPointer(indexFileID)
+	item.TeacherID = stringPointer(teacherID)
+	item.TeacherName = stringPointer(teacherName)
 	return &item, nil
 }
 
@@ -421,10 +444,46 @@ func rowExists(row scanner, operation string) (bool, error) {
 }
 
 func normalizeTextbook(data SaveTextbookRequest) SaveTextbookRequest {
+	data.TeacherID = normalizeOptionalString(data.TeacherID)
 	data.Subject = strings.TrimSpace(data.Subject)
 	data.Version = strings.TrimSpace(data.Version)
 	data.Semester = strings.TrimSpace(data.Semester)
 	return data
+}
+
+func normalizeSearchTextbook(filter SearchTextbookRequest) SearchTextbookRequest {
+	filter.TeacherID = normalizeOptionalString(filter.TeacherID)
+	filter.Subject = strings.TrimSpace(filter.Subject)
+	filter.Version = strings.TrimSpace(filter.Version)
+	filter.Semester = strings.TrimSpace(filter.Semester)
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+	if filter.Size <= 0 {
+		filter.Size = 20
+	}
+	if filter.Size > 100 {
+		filter.Size = 100
+	}
+	return filter
+}
+
+func normalizeOptionalString(value *string) *string {
+	if value == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil
+	}
+	return &trimmed
+}
+
+func nullableStringArg(value *string) any {
+	if value == nil {
+		return nil
+	}
+	return *value
 }
 
 func stringPointer(value sql.NullString) *string {

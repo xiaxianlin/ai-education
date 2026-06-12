@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"ai-education/server-go/internal/response"
 )
@@ -106,9 +107,15 @@ func (h *Handler) GetTextbook(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) SearchTextbooks(w http.ResponseWriter, r *http.Request) {
 	filter := SearchTextbookRequest{
-		Subject:  r.URL.Query().Get("subject"),
-		Version:  r.URL.Query().Get("version"),
-		Semester: r.URL.Query().Get("semester"),
+		Subject:  strings.TrimSpace(r.URL.Query().Get("subject")),
+		Version:  strings.TrimSpace(r.URL.Query().Get("version")),
+		Semester: strings.TrimSpace(r.URL.Query().Get("semester")),
+		Page:     queryInt(firstNonEmpty(r.URL.Query().Get("page"), "1"), 1),
+		Size:     queryInt(firstNonEmpty(r.URL.Query().Get("size"), r.URL.Query().Get("page_size")), 20),
+	}
+
+	if teacherID := strings.TrimSpace(r.URL.Query().Get("teacher_id")); teacherID != "" {
+		filter.TeacherID = &teacherID
 	}
 
 	if gradeValue := r.URL.Query().Get("grade"); gradeValue != "" {
@@ -197,14 +204,6 @@ func (h *Handler) DeleteUnit(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, nil)
 }
 
-func (h *Handler) UploadTextbook(w http.ResponseWriter, r *http.Request) {
-	response.Error(w, http.StatusNotImplemented, "教材文件上传暂由 Python 服务处理")
-}
-
-func (h *Handler) ParseTextbook(w http.ResponseWriter, r *http.Request) {
-	response.Error(w, http.StatusNotImplemented, "教材解析暂由 Python 服务处理")
-}
-
 func (h *Handler) handleRepoError(w http.ResponseWriter, err error, message string) {
 	if errors.Is(err, ErrNotImplemented) {
 		response.Error(w, http.StatusNotImplemented, message)
@@ -221,6 +220,26 @@ func decodeJSON(r *http.Request, dst any) error {
 		return err
 	}
 	return nil
+}
+
+func queryInt(raw string, fallback int) int {
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return fallback
+	}
+	return value
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func pathInt64(r *http.Request, key string) (int64, error) {

@@ -75,7 +75,7 @@ func (r *fakeRepository) FindByUnique(_ context.Context, subject string, grade i
 	return nil, nil
 }
 
-func (r *fakeRepository) List(_ context.Context, params ability.SearchAbilityParams) ([]ability.Ability, error) {
+func (r *fakeRepository) List(_ context.Context, params ability.SearchAbilityParams) (ability.SearchAbilitiesResult, error) {
 	items := make([]ability.Ability, 0, len(r.abilities))
 	for _, item := range r.abilities {
 		if params.Subject != nil && item.Subject != *params.Subject {
@@ -86,7 +86,28 @@ func (r *fakeRepository) List(_ context.Context, params ability.SearchAbilityPar
 		}
 		items = append(items, item)
 	}
-	return items, nil
+	total := len(items)
+	if !params.Unpaged {
+		page := params.Page
+		if page <= 0 {
+			page = 1
+		}
+		size := params.Size
+		if size <= 0 {
+			size = 20
+		}
+		offset := (page - 1) * size
+		if offset >= len(items) {
+			items = []ability.Ability{}
+		} else {
+			end := offset + size
+			if end > len(items) {
+				end = len(items)
+			}
+			items = items[offset:end]
+		}
+	}
+	return ability.SearchAbilitiesResult{Total: total, Data: items}, nil
 }
 
 func (r *fakeRepository) Update(_ context.Context, id int64, patch ability.UpdateAbilityPatch) error {

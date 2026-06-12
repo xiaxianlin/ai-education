@@ -2,8 +2,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
   CardTitle,
   DataTable,
   Field,
@@ -63,6 +61,12 @@ export const UnitView = () => {
   };
 
   const columns: DataTableColumn<Unit>[] = [
+    {
+      key: 'index',
+      title: '单元序号',
+      width: '96px',
+      render: (_record, index) => index + 1,
+    },
     { key: 'name', title: '单元名称', width: '220px' },
     {
       key: 'content',
@@ -76,15 +80,14 @@ export const UnitView = () => {
     {
       key: 'actions',
       title: '操作',
-      className: 'text-right',
       render: (record) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" icon={<Edit3 className="size-4" />} onClick={() => showForm(record)}>
+        <div className="flex justify-start gap-2">
+          <Button variant="outline" size="xs" icon={<Edit3 className="size-4" />} onClick={() => showForm(record)}>
             编辑
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             className="text-destructive"
             icon={<Trash2 className="size-4" />}
             onClick={() => handleDelete(record)}
@@ -98,15 +101,14 @@ export const UnitView = () => {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <CardTitle>教材单元</CardTitle>
-          <CardDescription>{loading ? '加载中...' : `${data.length} 条记录`}</CardDescription>
         </div>
         <Button icon={<Plus className="size-4" />} onClick={() => showForm()}>
           添加单元
         </Button>
-      </CardHeader>
+      </div>
       <CardContent>
         <DataTable columns={columns} data={data} loading={loading} rowKey="id" />
       </CardContent>

@@ -30,6 +30,7 @@ type Task struct {
 	Queue       string          `json:"queue,omitempty"`
 	EnqueuedAt  time.Time       `json:"enqueued_at"`
 	ScheduledAt time.Time       `json:"scheduled_at,omitempty"`
+	RetryCount  int             `json:"retry_count,omitempty"`
 }
 
 type TaskOption func(*Task)

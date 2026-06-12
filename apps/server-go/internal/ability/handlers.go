@@ -99,13 +99,13 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	abilities, err := h.service.Search(r.Context(), params)
+	result, err := h.service.Search(r.Context(), params)
 	if err != nil {
 		writeAbilityError(w, err)
 		return
 	}
 
-	response.OK(w, abilities)
+	response.OK(w, result)
 }
 
 func (h *Handler) BySubject(w http.ResponseWriter, r *http.Request) {
@@ -115,14 +115,14 @@ func (h *Handler) BySubject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	abilities, err := h.service.Search(r.Context(), SearchAbilityParams{Subject: &subject})
+	result, err := h.service.Search(r.Context(), SearchAbilityParams{Subject: &subject, Unpaged: true})
 	if err != nil {
 		writeAbilityError(w, err)
 		return
 	}
 
 	grouped := make(map[string][]Ability)
-	for _, item := range abilities {
+	for _, item := range result.Data {
 		key := fmt.Sprintf("grade_%d", item.Grade)
 		grouped[key] = append(grouped[key], item)
 	}
@@ -250,7 +250,10 @@ func parsePathID(w http.ResponseWriter, r *http.Request) (int64, bool) {
 
 func parseSearchParams(r *http.Request) (SearchAbilityParams, error) {
 	query := r.URL.Query()
-	var params SearchAbilityParams
+	params := SearchAbilityParams{
+		Page: queryInt(query.Get("page"), 1),
+		Size: queryInt(firstNonEmpty(query.Get("size"), query.Get("page_size")), 20),
+	}
 
 	if rawSubject := query.Get("subject"); rawSubject != "" {
 		subject := rawSubject
@@ -266,6 +269,26 @@ func parseSearchParams(r *http.Request) (SearchAbilityParams, error) {
 	}
 
 	return params, nil
+}
+
+func queryInt(raw string, fallback int) int {
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return fallback
+	}
+	return value
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func parseRequiredIntQuery(rawValue string, name string) (int, error) {

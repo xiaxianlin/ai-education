@@ -1,18 +1,15 @@
 import { StatusTag } from '@/components';
 import {
-  Button,
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Button,
   DataTable,
   Rating,
   type DataTableColumn,
 } from '@/components/ui';
 import { useRequest } from 'ahooks';
-import { Download, Edit3, Plus, Trash2, Upload } from 'lucide-react';
-import { ChangeEvent, useEffect } from 'react';
+import { Edit3, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { AbilityApi } from '../api';
 import { useAbilityModel } from '../models/page';
@@ -20,32 +17,36 @@ import { useAbilityModel } from '../models/page';
 export default function AbilityListView() {
   const {
     formProps,
-    exporting,
-    importing,
     selectedRowKeys,
     setSelectedRowKeys,
     deleteAbility,
-    batchDeleteAbilities,
-    batchDeleteLoading,
-    handleExport,
-    importAbilities,
-    validateFile,
     subject,
     grade,
     actionRef,
   } = useAbilityModel();
+  const [page, setPage] = useState(1);
+  const [size] = useState(10);
 
   const {
-    data = [],
+    data,
     loading,
     refresh,
-  } = useRequest(() => AbilityApi.searchAbilities({ subject, grade }), {
-    refreshDeps: [subject, grade],
+  } = useRequest(() => AbilityApi.searchAbilities({ subject: subject || undefined, grade, page, size }), {
+    refreshDeps: [subject, grade, page, size],
   });
 
   useEffect(() => {
     actionRef.current = { reload: refresh };
   }, [actionRef, refresh]);
+
+  useEffect(() => {
+    setPage(1);
+    setSelectedRowKeys([]);
+  }, [subject, grade, setSelectedRowKeys]);
+
+  const rows = data?.data || [];
+  const total = data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / size));
 
   const handleDeleteWithConfirm = (id: number, name?: string) => {
     if (window.confirm(`确定要删除能力"${name || '该能力'}"吗？此操作无法恢复。`)) {
@@ -53,32 +54,7 @@ export default function AbilityListView() {
     }
   };
 
-  const handleBatchDeleteClick = () => {
-    if (selectedRowKeys.length === 0) return;
-
-    if (window.confirm(`确定要删除选中的 ${selectedRowKeys.length} 个能力吗？此操作无法恢复。`)) {
-      batchDeleteAbilities(selectedRowKeys as number[]);
-    }
-  };
-
-  const handleUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-
-    if (!validateFile(file)) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `导入操作将删除当前年级的所有现有能力数据。\n文件：${file.name}\n学科：${subject}\n年级：${grade}年级\n确定要继续导入吗？`,
-    );
-    if (confirmed) {
-      importAbilities(file);
-    }
-  };
-
-  const allSelected = data.length > 0 && data.every((record) => selectedRowKeys.includes(record.id));
+  const allSelected = rows.length > 0 && rows.every((record) => selectedRowKeys.includes(record.id));
   const toggleRecord = (record: Ability, checked: boolean) => {
     if (checked) {
       setSelectedRowKeys([...selectedRowKeys, record.id]);
@@ -94,7 +70,7 @@ export default function AbilityListView() {
         <input
           checked={allSelected}
           type="checkbox"
-          onChange={(event) => setSelectedRowKeys(event.target.checked ? data.map((record) => record.id) : [])}
+          onChange={(event) => setSelectedRowKeys(event.target.checked ? rows.map((record) => record.id) : [])}
         />
       ),
       width: '48px',
@@ -134,12 +110,11 @@ export default function AbilityListView() {
     {
       key: 'actions',
       title: '操作',
-      className: 'text-right',
       render: (record) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-start gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             icon={<Edit3 className="size-4" />}
             onClick={() => formProps.showForm(record)}
           >
@@ -147,7 +122,7 @@ export default function AbilityListView() {
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             className="text-destructive"
             icon={<Trash2 className="size-4" />}
             onClick={() => handleDeleteWithConfirm(record.id, record.name)}
@@ -161,38 +136,22 @@ export default function AbilityListView() {
 
   return (
     <Card>
-      <CardHeader className="flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <CardTitle>能力列表</CardTitle>
-          <CardDescription>{loading ? '加载中...' : `${data.length} 条记录`}</CardDescription>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" icon={<Download className="size-4" />} loading={exporting} onClick={handleExport}>
-            导出
-          </Button>
-          <label className="inline-flex">
-            <input accept=".json" className="sr-only" disabled={importing} type="file" onChange={handleUpload} />
-            <Button variant="outline" icon={<Upload className="size-4" />} loading={importing}>
-              导入
-            </Button>
-          </label>
-          <Button
-            variant="outline"
-            className="text-destructive"
-            icon={<Trash2 className="size-4" />}
-            disabled={selectedRowKeys.length === 0}
-            loading={batchDeleteLoading}
-            onClick={handleBatchDeleteClick}
-          >
-            批量删除 ({selectedRowKeys.length})
-          </Button>
-          <Button icon={<Plus className="size-4" />} onClick={() => formProps.showForm()}>
-            新增能力
-          </Button>
-        </div>
-      </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={data} loading={loading} rowKey="id" />
+        <DataTable columns={columns} data={rows} loading={loading} rowKey="id" />
+        <div className="mt-4 flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <div>共 {total} 条</div>
+          <div className="flex items-center gap-2">
+            <Button disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+              上一页
+            </Button>
+            <span>
+              第 {page} / {totalPages} 页
+            </span>
+            <Button disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
+              下一页
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

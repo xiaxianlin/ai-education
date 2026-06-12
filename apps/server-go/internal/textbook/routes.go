@@ -17,8 +17,6 @@ func RegisterRoutes(mux *http.ServeMux, repo Repository) {
 	mux.Handle("GET /api/admin/textbook/search", middleware.RequireToken(http.HandlerFunc(handler.SearchTextbooks)))
 	mux.Handle("GET /api/admin/textbook/{id}", middleware.RequireToken(http.HandlerFunc(handler.GetTextbook)))
 	mux.Handle("GET /api/admin/textbook/{id}/units", middleware.RequireToken(http.HandlerFunc(handler.ListTextbookUnits)))
-	mux.Handle("POST /api/admin/textbook/{id}/upload", middleware.RequireToken(http.HandlerFunc(handler.UploadTextbook)))
-	mux.Handle("POST /api/admin/textbook/{id}/parse", middleware.RequireToken(http.HandlerFunc(handler.ParseTextbook)))
 	mux.Handle("POST /api/admin/textbook/unit", middleware.RequireToken(http.HandlerFunc(handler.CreateUnit)))
 	mux.Handle("PATCH /api/admin/textbook/unit/{id}", middleware.RequireToken(http.HandlerFunc(handler.UpdateUnit)))
 	mux.Handle("DELETE /api/admin/textbook/unit/{id}", middleware.RequireToken(http.HandlerFunc(handler.DeleteUnit)))

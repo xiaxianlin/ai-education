@@ -5,7 +5,7 @@ Wave 3 moved the Go backend closer to default runtime readiness.
 ## Completed
 
 - Added Go MySQL driver dependency.
-- Added Go bcrypt dependency and enabled Python bcrypt password verification.
+- Added Go bcrypt dependency and enabled Frozen legacy bcrypt password verification.
 - `cmd/api` now attempts DB startup and mounts real routes when DB is available.
 - Go auth routes are wired when DB opens successfully.
 - Student ability atomics route is wired through SQL repository when DB opens successfully.

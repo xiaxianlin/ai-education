@@ -29,7 +29,7 @@ export default function MainView() {
 
   const totalStudents = studentData?.data?.length || 0;
   const activeStudents = studentData?.data?.filter((student: any) => student.status === 1).length || 0;
-  const totalTextbooks = textbookData?.length || 0;
+  const totalTextbooks = textbookData?.total || 0;
   const totalQuestions = questionData?.total || 0;
   const loading = studentLoading || textbookLoading || questionLoading;
 

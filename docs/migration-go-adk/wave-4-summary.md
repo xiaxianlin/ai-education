@@ -15,9 +15,9 @@ Wave 4 moves the Go backend beyond DB-backed reads into AI-backed practice gener
 ## Runtime Notes
 
 - `pnpm dev:server` remains pointed at `apps/server-go`.
-- Python server remains available only through explicitly named legacy scripts.
+- Frozen legacy server remains available only through explicitly named legacy scripts.
 - If ADK config is missing or invalid, generation tasks fail the practice with `generate_status=-1` instead of silently staying pending.
-- External Redis/Celery parity is not required for the default Go API path; the current Go API dispatches generation tasks in-process.
+- External Redis/queue worker parity is not required for the default Go API path; the current Go API dispatches generation tasks in-process.
 
 ## Verification
 
@@ -34,7 +34,7 @@ The test and build commands passed. The smoke check returned Go health OK and th
 
 ## Remaining Critical Path
 
-1. Migrate admin mutation routes that still depend on Python-only upload, parse, RAG, and OSS flows.
+1. Migrate admin mutation routes that still depend on Frozen legacy-only upload, parse, RAG, and OSS flows.
 2. Add ADK tools for RAG lookup, image generation, audio generation, OSS upload, and generated asset persistence.
 3. Replace in-process dispatch with a Redis-backed Go queue worker when deployment needs out-of-process background jobs.
 4. Run authenticated frontend smoke tests through admin and student web apps.

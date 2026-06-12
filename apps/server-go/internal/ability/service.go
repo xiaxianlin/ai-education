@@ -111,14 +111,14 @@ func (s *Service) Get(ctx context.Context, id int64) (*Ability, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *Service) Search(ctx context.Context, params SearchAbilityParams) ([]Ability, error) {
+func (s *Service) Search(ctx context.Context, params SearchAbilityParams) (SearchAbilitiesResult, error) {
 	if err := s.ensureRepository(); err != nil {
-		return nil, err
+		return SearchAbilitiesResult{}, err
 	}
 
 	normalized, err := normalizeSearchParams(params)
 	if err != nil {
-		return nil, err
+		return SearchAbilitiesResult{}, err
 	}
 	return s.repo.List(ctx, normalized)
 }
@@ -132,16 +132,17 @@ func (s *Service) StudentAtomics(ctx context.Context, subject string, grade int)
 		return nil, err
 	}
 
-	abilities, err := s.Search(ctx, SearchAbilityParams{
+	result, err := s.Search(ctx, SearchAbilityParams{
 		Subject: &subject,
 		Grade:   &grade,
+		Unpaged: true,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	activeAbilities := make([]Ability, 0, len(abilities))
-	for _, item := range abilities {
+	activeAbilities := make([]Ability, 0, len(result.Data))
+	for _, item := range result.Data {
 		if item.IsActive == 1 && item.Subject == subject {
 			activeAbilities = append(activeAbilities, item)
 		}
@@ -158,16 +159,17 @@ func (s *Service) ExportBySubjectGrade(ctx context.Context, subject string, grad
 		return nil, err
 	}
 
-	abilities, err := s.Search(ctx, SearchAbilityParams{
+	result, err := s.Search(ctx, SearchAbilityParams{
 		Subject: &subject,
 		Grade:   &grade,
+		Unpaged: true,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]CreateAbility, 0, len(abilities))
-	for _, item := range abilities {
+	items := make([]CreateAbility, 0, len(result.Data))
+	for _, item := range result.Data {
 		items = append(items, CreateAbility{
 			Subject:     item.Subject,
 			Grade:       item.Grade,
@@ -315,7 +317,7 @@ func normalizeUpdateRequest(req UpdateAbilityRequest) (UpdateAbilityPatch, error
 }
 
 func normalizeSearchParams(params SearchAbilityParams) (SearchAbilityParams, error) {
-	var normalized SearchAbilityParams
+	normalized := SearchAbilityParams{Unpaged: params.Unpaged}
 
 	if params.Subject != nil {
 		subject := strings.TrimSpace(*params.Subject)
@@ -333,6 +335,19 @@ func normalizeSearchParams(params SearchAbilityParams) (SearchAbilityParams, err
 		}
 		grade := *params.Grade
 		normalized.Grade = &grade
+	}
+	if !normalized.Unpaged {
+		normalized.Page = params.Page
+		normalized.Size = params.Size
+		if normalized.Page <= 0 {
+			normalized.Page = 1
+		}
+		if normalized.Size <= 0 {
+			normalized.Size = 20
+		}
+		if normalized.Size > 100 {
+			normalized.Size = 100
+		}
 	}
 
 	return normalized, nil

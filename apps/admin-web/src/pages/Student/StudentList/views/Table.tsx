@@ -92,13 +92,13 @@ export default function TableView() {
         <table className="w-full min-w-[920px] text-sm">
           <thead className="bg-muted/50 text-left text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 font-medium">姓名</th>
-              <th className="px-4 py-3 font-medium">手机号</th>
-              <th className="px-4 py-3 font-medium">年级</th>
-              <th className="px-4 py-3 font-medium">状态</th>
-              <th className="px-4 py-3 font-medium">创建时间</th>
-              <th className="px-4 py-3 font-medium">更新时间</th>
-              <th className="px-4 py-3 text-right font-medium">操作</th>
+              <th className="px-3 py-2 font-medium">姓名</th>
+              <th className="px-3 py-2 font-medium">手机号</th>
+              <th className="px-3 py-2 font-medium">年级</th>
+              <th className="px-3 py-2 font-medium">状态</th>
+              <th className="px-3 py-2 font-medium">创建时间</th>
+              <th className="px-3 py-2 font-medium">更新时间</th>
+              <th className="w-px whitespace-nowrap px-3 py-2 font-medium">操作</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +119,7 @@ export default function TableView() {
             {!loading &&
               students.map((student) => (
                 <tr key={student.id} className="border-t">
-                  <td className="px-4 py-3">
+                  <td className="w-px whitespace-nowrap px-3 py-2">
                     <button
                       type="button"
                       className="font-medium text-primary hover:underline"
@@ -128,22 +128,22 @@ export default function TableView() {
                       {student.name}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-foreground">{student.phone}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{student.grade ? GRADES[student.grade] : '-'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2 text-foreground">{student.phone}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{student.grade ? GRADES[student.grade] : '-'}</td>
+                  <td className="px-3 py-2">
                     <span
                       className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-medium ${statusClassMap[student.status] || statusClassMap[0]}`}
                     >
                       {student.status === 1 ? '启用' : '禁用'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatTime(student.create_time)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatTime(student.update_time)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-3 py-2 text-muted-foreground">{formatTime(student.create_time)}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{formatTime(student.update_time)}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex justify-start gap-2">
                       <button
                         type="button"
-                        className="rounded-md px-2 py-1 text-sm font-medium text-destructive hover:bg-destructive/10"
+                        className="h-7 rounded-md px-2 text-xs font-medium text-destructive hover:bg-destructive/10"
                         onClick={() => handleDelete(student)}
                       >
                         删除

@@ -45,12 +45,12 @@ func TestSQLRepositoryCreateFindListUpdateDelete(t *testing.T) {
 		t.Fatalf("FindByUnique returned unexpected ability: %+v", found)
 	}
 
-	items, err := repo.List(ctx, ability.SearchAbilityParams{Subject: stringPtr("数学"), Grade: intPtr(3)})
+	result, err := repo.List(ctx, ability.SearchAbilityParams{Subject: stringPtr("数学"), Grade: intPtr(3), Page: 1, Size: 20})
 	if err != nil {
 		t.Fatalf("List returned error: %v", err)
 	}
-	if len(items) != 1 || items[0].Code != "calc" {
-		t.Fatalf("List returned unexpected items: %+v", items)
+	if result.Total != 1 || len(result.Data) != 1 || result.Data[0].Code != "calc" {
+		t.Fatalf("List returned unexpected result: %+v", result)
 	}
 
 	newName := "口算能力"
@@ -187,6 +187,39 @@ func TestSQLRepositoryFindByUniqueMissingReturnsNil(t *testing.T) {
 	}
 }
 
+func TestSQLRepositoryListPagination(t *testing.T) {
+	db := openAbilityTestDB(t)
+	repo := ability.NewSQLRepository(db)
+	ctx := context.Background()
+
+	for _, item := range []ability.CreateAbility{
+		{Subject: "数学", Grade: 1, Code: "count", Name: "数数", Difficulty: 1},
+		{Subject: "数学", Grade: 1, Code: "shape", Name: "图形", Difficulty: 1},
+		{Subject: "数学", Grade: 1, Code: "compare", Name: "比较", Difficulty: 1},
+		{Subject: "英语", Grade: 1, Code: "word", Name: "单词", Difficulty: 1},
+	} {
+		if _, err := repo.Create(ctx, item); err != nil {
+			t.Fatalf("Create returned error: %v", err)
+		}
+	}
+
+	result, err := repo.List(ctx, ability.SearchAbilityParams{
+		Subject: stringPtr("数学"),
+		Grade:   intPtr(1),
+		Page:    2,
+		Size:    2,
+	})
+	if err != nil {
+		t.Fatalf("List returned error: %v", err)
+	}
+	if result.Total != 3 {
+		t.Fatalf("total = %d, want 3", result.Total)
+	}
+	if len(result.Data) != 1 || result.Data[0].Code != "compare" {
+		t.Fatalf("unexpected page data: %+v", result.Data)
+	}
+}
+
 var abilityDriverSeq uint64
 
 func openAbilityTestDB(t *testing.T) *sql.DB {
@@ -272,6 +305,7 @@ func (c *abilityTestConn) QueryContext(_ context.Context, query string, args []d
 
 	upperQuery := strings.ToUpper(query)
 	items := make([]ability.Ability, 0, len(c.store.items))
+	isCountQuery := strings.Contains(upperQuery, "COUNT(ID)")
 	switch {
 	case strings.Contains(upperQuery, "WHERE ID = ?"):
 		id := int64Arg(args, 0)
@@ -318,6 +352,22 @@ func (c *abilityTestConn) QueryContext(_ context.Context, query string, args []d
 	sort.Slice(items, func(i int, j int) bool {
 		return items[i].ID < items[j].ID
 	})
+	if isCountQuery {
+		return newAbilityCountRows(len(items)), nil
+	}
+	if strings.Contains(upperQuery, "LIMIT ? OFFSET ?") && len(args) >= 2 {
+		limit := intArg(args, len(args)-2)
+		offset := intArg(args, len(args)-1)
+		if offset >= len(items) {
+			items = []ability.Ability{}
+		} else {
+			end := offset + limit
+			if limit <= 0 || end > len(items) {
+				end = len(items)
+			}
+			items = items[offset:end]
+		}
+	}
 	return newAbilityRows(items), nil
 }
 
@@ -454,6 +504,32 @@ func (abilityTestTx) Rollback() error {
 type abilityRows struct {
 	items []ability.Ability
 	index int
+}
+
+type abilityCountRows struct {
+	value int64
+	read  bool
+}
+
+func newAbilityCountRows(value int) *abilityCountRows {
+	return &abilityCountRows{value: int64(value)}
+}
+
+func (r *abilityCountRows) Columns() []string {
+	return []string{"count"}
+}
+
+func (r *abilityCountRows) Close() error {
+	return nil
+}
+
+func (r *abilityCountRows) Next(dest []driver.Value) error {
+	if r.read {
+		return io.EOF
+	}
+	dest[0] = r.value
+	r.read = true
+	return nil
 }
 
 func newAbilityRows(items []ability.Ability) *abilityRows {

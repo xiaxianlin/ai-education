@@ -58,7 +58,7 @@ func TestStudentUnitsRoute(t *testing.T) {
 	}
 }
 
-func TestUploadRouteReturnsNotImplemented(t *testing.T) {
+func TestUploadRouteRemoved(t *testing.T) {
 	mux := http.NewServeMux()
 	textbook.RegisterRoutes(mux, fakeRepository{})
 
@@ -68,18 +68,7 @@ func TestUploadRouteReturnsNotImplemented(t *testing.T) {
 
 	mux.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	var envelope struct {
-		Status  int    `json:"status"`
-		Message string `json:"message"`
-	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
-		t.Fatalf("decode envelope: %v", err)
-	}
-	if envelope.Status != http.StatusNotImplemented {
-		t.Fatalf("status field = %d, want %d", envelope.Status, http.StatusNotImplemented)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
 	}
 }

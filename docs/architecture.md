@@ -10,21 +10,22 @@ The project uses a monorepo structure managed by **pnpm workspaces** and **Turbo
 - `packages/`: Contains shared logic, API clients, and type definitions used across multiple applications.
 - `infra/`: Infrastructure configuration including database migrations and server settings.
 
-## 2. Backend Architecture (FastAPI)
+## 2. Backend Architecture (Go)
 
 The backend follows a strict layered architecture as defined in [AGENTS.md](file:///Users/xiaxianlin/projects/ai-education/AGENTS.md).
 
 ### Layers
 
-1. **Route Layer (`route.py`)**: Thin entry points using FastAPI's `APIRouter`. Handles request parameters and dependency injection (e.g., `Database`).
-2. **Service Layer (`services/`)**: Contains core business logic, orchestrating database operations and external services.
-3. **Data Layer (`shared/core/database/`)**: Uses **SQLAlchemy 2.0** with an asynchronous engine. Models inherit from a shared `BaseModel`.
+1. **Handler Layer**: Thin HTTP entry points under each `internal/{module}` package. Handlers parse requests and write the shared response envelope.
+2. **Service Layer**: Contains core business logic, validation, and orchestration.
+3. **Repository Layer**: Encapsulates SQL access through `database/sql` and module-specific repository interfaces.
 
 ### Key Patterns
 
-- **Pydantic Schemas**: Strict data validation for all inputs and outputs.
-- **Dependency Injection**: Database sessions and authentication filters are injected via FastAPI's `Depends`.
-- **Global Error Handling**: Centralized exception handlers in `shared/core/exception.py`.
+- **Typed Request/Response Structs**: Module packages define request, response, and domain structs.
+- **Explicit Wiring**: `cmd/api` wires config, database, repositories, services, and routes.
+- **Shared Response Envelope**: Admin and student APIs return `{ status, message, data }`.
+- **Repository Interfaces**: Services depend on interfaces so module tests can use fakes.
 
 ## 3. Frontend Architecture (React)
 
@@ -45,21 +46,19 @@ Both Admin and Student webs follow a consistent pattern for separating logic fro
 
 The system integrates advanced AI capabilities for practice generation and evaluation.
 
-### LangGraph Workflows
+### AI Workflows
 
-Complex sequences (like generating an entire practice session) are orchestrated using **LangGraph**.
+AI generation and evaluation are isolated behind the Go AI package.
 
-- See [graph.py](file:///Users/xiaxianlin/projects/ai-education/apps/server/shared/generation/practice/graph.py) for the practice generation node graph.
+- `apps/server-go/internal/ai` contains provider adapters and task-specific AI boundaries.
+- Prompt files live under `apps/server-go/prompt`.
 
 ### Async Processing
 
-Long-running tasks are offloaded to **Celery** with **Redis** as the message broker.
-
-- **Celery Worker**: Defined in `worker.py`.
-- **Task Submission**: Managed via a unified `submit_task` interface in `shared/worker/celery.py`.
+Long-running generation flows are dispatched by the Go service and queue abstractions under `internal/queue`.
 
 ## 5. Shared Infrastructure
 
 - **API Client**: A centralized `ApiClient` in `shared-web` handles token injection and response wrapping.
-- **Logger**: Uses `loguru` with customized formatting and rotation.
-- **Settings**: Centralized configuration via `pydantic-settings` in `shared/core/settings.py`.
+- **Logger**: Uses the Go service logging setup.
+- **Settings**: Centralized configuration via `apps/server-go/internal/config`.

@@ -50,13 +50,12 @@ declare global {
    */
   interface Textbook {
     id: number;
+    teacher_id?: string;
+    teacher_name?: string;
     subject: string;
     version: string;
     grade: number;
     semester: string;
-    file?: string;
-    index_file_id?: string;
-    is_parsed?: number; // 0-未解析, 1-已解析
   }
 
   /**

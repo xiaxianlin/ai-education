@@ -1,10 +1,8 @@
-import { DeleteButton, SubjectGradeTabs } from '@/components';
+import { DeleteButton } from '@/components';
 import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   DataTable,
   type DataTableColumn,
 } from '@/components/ui';
@@ -40,39 +38,31 @@ export default function AbilityPracticeListView() {
       key: 'actions',
       title: '操作',
       width: '300px',
-      className: 'text-right',
       render: (record) => (
-        <div className="flex justify-end gap-2">
-          <Button variant="link" onClick={() => showForm(record)}>
+        <div className="flex justify-start gap-2">
+          <Button variant="link" size="xs" onClick={() => showForm(record)}>
             编辑
           </Button>
           <Link to={`/question_type/settings/prompt/${record.code}`}>
-            <Button variant="link">提示词</Button>
+            <Button variant="link" size="xs">提示词</Button>
           </Link>
           <Link to={`/question_type/settings/configs/${record.code}`}>
-            <Button variant="link">配置</Button>
+            <Button variant="link" size="xs">配置</Button>
           </Link>
           <Link to={`/question/generate/${record.code}`}>
-            <Button variant="link">生成</Button>
+            <Button variant="link" size="xs">生成</Button>
           </Link>
-          <DeleteButton onConfirm={() => handleDelete(record.id)} buttonProps={{ size: 'sm' }} />
+          <DeleteButton onConfirm={() => handleDelete(record.id)} buttonProps={{ size: 'xs' }} />
         </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-4">
-      <SubjectGradeTabs />
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>能力练习题型</CardTitle>
-          <Button onClick={() => showForm()}>新增题型</Button>
-        </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={data} rowKey="id" loading={loading} />
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardContent>
+        <DataTable columns={columns} data={data} rowKey="id" loading={loading} />
+      </CardContent>
+    </Card>
   );
 }

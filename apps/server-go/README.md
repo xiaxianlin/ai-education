@@ -1,14 +1,14 @@
-# AI Education Go Server
+# AI Education Server
 
-This is the migration target for `apps/server`.
+This is the Go backend for the ai-education monorepo.
 
 Current status:
 
-- Standard-library API skeleton is in place.
-- Response envelope is compatible with the Python service.
-- Route placeholders exist for `/api/admin` and `/api/student`.
-- Business modules should be migrated independently under `internal/{module}`.
-- The default monorepo server scripts now start this Go service, not the legacy Python service.
+- Admin and student routes are served from this application.
+- Response envelope is `{ status, message, data }`.
+- Business modules live under `internal/{module}`.
+- AI capabilities are exposed through `internal/ai`.
+- Monorepo server scripts start this service by default.
 
 ## Run
 
@@ -22,9 +22,9 @@ Environment:
 SERVER_ADDR=:7891
 ```
 
-The Go service starts on `7891` by default. The legacy Python service is no longer started by normal monorepo development scripts.
+The service starts on `7891` by default.
 
-Copy `.env.sample` to `.env` for local Go-only runs. The variable names intentionally match the Python service so deployment can share the same environment while routes are migrated.
+Copy `.env.sample` to `.env` for local runs.
 
 See `docs/migration-go-adk/environment.md` for the full variable map.
 
