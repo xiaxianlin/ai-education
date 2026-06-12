@@ -4,7 +4,7 @@ Cut over by route prefix, not by whole service.
 
 ## Gateway Rule
 
-The default during migration is Python. A route moves to Go only after its module acceptance gate passes.
+The default during migration is Frozen legacy. A route moves to Go only after its module acceptance gate passes.
 
 Example:
 
@@ -14,7 +14,7 @@ location /api/student/ability/ {
 }
 
 location /api/student/practice/ {
-    proxy_pass http://server-python;
+    proxy_pass http://server-legacy;
 }
 ```
 
@@ -29,5 +29,5 @@ location /api/student/practice/ {
 
 ## Rollback
 
-Rollback is a gateway route change back to Python. Do not run destructive DB migrations during phased cutover.
+Rollback is a gateway route change back to Frozen legacy. Do not run destructive DB migrations during phased cutover.
 

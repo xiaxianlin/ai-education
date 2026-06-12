@@ -4,16 +4,16 @@
 export enum ManagerType {
   /** 系统管理员 */
   SYSTEM = 0,
-  /** 超级管理员 */
+  /** 管理员 */
   ADMIN = 1,
-  /** 普通管理员 */
-  NORMAL = 2,
+  /** 老师 */
+  TEACHER = 2,
 }
 
 export const ManagerTypeMap: Record<ManagerType, string> = {
   [ManagerType.SYSTEM]: "系统管理员",
-  [ManagerType.ADMIN]: "超级管理员",
-  [ManagerType.NORMAL]: "普通管理员",
+  [ManagerType.ADMIN]: "管理员",
+  [ManagerType.TEACHER]: "老师",
 };
 
 export enum PracticeType {
@@ -90,4 +90,3 @@ export const STAGE_GRADES: Record<Stage, number[]> = {
   mid: [3, 4],
   high: [5, 6],
 };
-

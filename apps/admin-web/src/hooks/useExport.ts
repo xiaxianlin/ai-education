@@ -1,4 +1,4 @@
-import { message } from 'antd';
+import { toast } from '@/components/ui/toast';
 import { useState } from 'react';
 
 interface UseExportOptions {
@@ -49,7 +49,7 @@ export function useExport(
   const handleExport = async () => {
     try {
       setExporting(true);
-      message.loading({ content: loadingMessage, key: 'export', duration: 0 });
+      toast.loading({ content: loadingMessage, key: 'export' });
 
       // 调用导出服务
       const blob = await service();
@@ -72,11 +72,11 @@ export function useExport(
       // 释放 URL 对象
       URL.revokeObjectURL(url);
 
-      message.destroy('export');
-      message.success(successMessage);
+      toast.destroy('export');
+      toast.success(successMessage);
     } catch (error) {
-      message.destroy('export');
-      message.error(errorMessage + '：' + (error instanceof Error ? error.message : '未知错误'));
+      toast.destroy('export');
+      toast.error(errorMessage + '：' + (error instanceof Error ? error.message : '未知错误'));
     } finally {
       setExporting(false);
     }

@@ -1,22 +1,27 @@
 import { useDelete, useSimpleForm } from '@/hooks';
-
 import { useInitialStateModel } from '@/models/initialState';
-import { ActionType } from '@ant-design/pro-components';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const actionRef = useRef<ActionType>();
-  const { subject, grade } = useInitialStateModel();
+  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | undefined>();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [questionId, setQuestionId] = useState('');
+  const [questionName, setQuestionName] = useState('');
 
-  const { handleDelete } = useDelete(QuestionApi.deleteQuestion, {
-    onSuccess: () => actionRef.current?.reload?.(),
-  });
+  const refresh = () => setRefreshKey((key) => key + 1);
 
-  const formProps = useSimpleForm<any, Question>({
+  const formProps = useSimpleForm<
+    {
+      explanation?: string;
+      content_raw: string;
+      answer_raw: string;
+    },
+    Question
+  >({
     service: async (values, item) => {
       if (!item?.id) return;
 
@@ -36,7 +41,11 @@ const useContainer = () => {
         explanation: values.explanation,
       });
     },
-    onSubmit: () => actionRef.current?.reload?.(),
+    onSubmit: refresh,
+  });
+
+  const { handleDelete } = useDelete(QuestionApi.deleteQuestion, {
+    onSuccess: refresh,
   });
 
   const showDetail = (question: Question) => setCurrentQuestion(question);
@@ -44,13 +53,19 @@ const useContainer = () => {
   const closeDetail = () => setCurrentQuestion(undefined);
 
   useEffect(() => {
-    actionRef.current?.reload?.();
+    refresh();
   }, [subject, grade]);
 
   return {
     grade,
     subject,
-    actionRef,
+    setGrade,
+    setSubject,
+    questionId,
+    questionName,
+    setQuestionId,
+    setQuestionName,
+    refreshKey,
     currentQuestion,
     ...formProps,
     showDetail,

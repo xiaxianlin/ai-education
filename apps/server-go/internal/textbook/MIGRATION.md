@@ -30,3 +30,8 @@ Keep on Python initially:
 - textbook parsing
 - teacher book upload
 
+## Current Go Coverage
+
+- SQL repository covers textbook, unit, textbook version, and teacher book database CRUD.
+- Handler/routes tests cover student unit lookup and upload placeholders.
+- Repository tests cover textbook/unit persistence, duplicate textbook checks, version in-use deletion guard, and teacher book search.

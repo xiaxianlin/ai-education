@@ -30,9 +30,29 @@ Migrate student practice state machine and session data APIs.
 
 Always check `generate_status` before `status`.
 
+## Generation Persistence
+
+Python's active practice flow reads these tables after generation:
+
+- `ah_practice`: owns the session and state counters. Generation starts with
+  `generate_status = 0`; successful persistence sets `generate_status = 1`,
+  updates `question_count`, optionally records `generate_time`, and leaves
+  `status = 0` until the student begins.
+- `ah_question`: stores each AI-generated question (`question_type_code`,
+  `subject`, `grade`, `content`, `answer`, `difficulty`).
+- `ah_practice_answer`: stores the ordered session-question link. New generated
+  rows are created with `status = 0`, `time_spent = 0`, and no submitted answer.
+
+Go now exposes `Service.PersistGeneratedPractice` and
+`Repository.PersistGeneratedPractice` so a later AI adapter/worker can validate
+`[]ai.GeneratedQuestion`, fill missing question IDs/subject/grade from the
+session, write `ah_question` plus `ah_practice_answer`, and complete generation
+without touching HTTP routing.
+
 ## Known Gaps
 
 - Python `create_practice` route currently does not create a session.
 - Progress endpoint is referenced by frontend but not found in Python routes.
 - Answer evaluation needs a full implementation during migration.
-
+- Practice generation prompt selection/input assembly is still owned by the
+  future AI adapter worker; this cut only persists adapter output.

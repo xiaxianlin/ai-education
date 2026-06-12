@@ -1,158 +1,207 @@
-import React from 'react';
-import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, message, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  DataTable,
+  Input,
+  Select,
+  type DataTableColumn,
+  type TableActionRef,
+} from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { useRequest } from 'ahooks';
-import { ManagerTypeText } from '@/constants/manager';
-import { createTimeColumn, createActionColumn, createStatusColumn } from '@/hooks';
-import { StatusTag } from '@/components';
+import React from 'react';
 import { AuthApi } from '../../api';
+import { TeacherDetailView } from './TeacherDetailView';
 
 export interface ManagerTableViewProps {
-  actionRef: React.MutableRefObject<any>;
+  actionRef: React.MutableRefObject<TableActionRef | undefined>;
   onAddClick: () => void;
 }
 
+const formatTime = (value?: number) => {
+  if (!value) return '-';
+  return new Date(value * 1000).toLocaleString();
+};
+
+const statusTextMap: Record<number, string> = {
+  0: '停用',
+  1: '启用',
+};
+
+const statusVariantMap: Record<number, 'success' | 'destructive'> = {
+  0: 'destructive',
+  1: 'success',
+};
+
 export function ManagerTableView(props: ManagerTableViewProps) {
   const { actionRef, onAddClick } = props;
+  const [keyword, setKeyword] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('');
+  const [detailVisible, setDetailVisible] = React.useState(false);
+  const [currentTeacherId, setCurrentTeacherId] = React.useState('');
 
-  const { runAsync: remove } = useRequest((id: string) => AuthApi.deleteManager(id), {
+  const {
+    data: teachers,
+    loading,
+    refresh,
+  } = useRequest(async () => {
+    const result = await AuthApi.searchTeachers({
+      keywords: keyword.trim() || undefined,
+      status: statusFilter ? Number(statusFilter) : undefined,
+    });
+    return result;
+  }, {
+    refreshDeps: [keyword, statusFilter],
+  });
+
+  React.useEffect(() => {
+    actionRef.current = { reload: refresh };
+  }, [actionRef, refresh]);
+
+  const { runAsync: remove } = useRequest((id: string) => AuthApi.deleteTeacher(id), {
     manual: true,
     onSuccess: () => {
-      message.success('删除成功');
-      actionRef.current?.reload();
+      toast.success('删除成功');
+      refresh();
     },
     onError: (error: any) => {
-      message.error(error?.message || '删除失败');
+      toast.error(error?.message || '删除失败');
     },
   });
 
-  const { runAsync: updateStatus } = useRequest((id: string, status: number) => AuthApi.updateManager(id, { status }), {
+  const { runAsync: updateStatus } = useRequest((id: string, status: number) => AuthApi.updateTeacher(id, { status }), {
     manual: true,
     onSuccess: () => {
-      message.success('状态更新成功');
-      actionRef.current?.reload();
+      toast.success('状态更新成功');
+      refresh();
     },
     onError: (error: any) => {
-      message.error(error?.message || '状态更新失败');
+      toast.error(error?.message || '状态更新失败');
     },
   });
 
-  const { runAsync: resetPassword } = useRequest((id: string) => AuthApi.resetManagerPassword(id), {
+  const { runAsync: resetPassword } = useRequest((id: string) => AuthApi.resetTeacherPassword(id), {
     manual: true,
-    onSuccess: (passwd: any) => {
-      message.success('密码重置成功');
-      Modal.success({
-        title: '密码重置成功',
-        content: `新密码：${passwd.password}，请保存好密码`,
-      });
+    onSuccess: (passwd: PasswordResponse) => {
+      toast.success(`密码重置成功，新密码：${passwd.password}，请保存好密码`);
     },
     onError: (error: any) => {
-      message.error(error?.message || '密码重置失败');
+      toast.error(error?.message || '密码重置失败');
     },
   });
 
-  const handleDelete = (manager: Manager) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除账号 "${manager.username}" 吗？`,
-      okText: '确认',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: () => remove(manager.id),
-    });
+  const handleDelete = (teacher: Teacher) => {
+    if (window.confirm(`确定要删除教师 "${teacher.name || teacher.account}" 吗？`)) {
+      remove(teacher.id);
+    }
   };
 
-  const handleUpdateStatus = (manager: Manager) => {
-    Modal.confirm({
-      title: '状态变更',
-      content: `确定要${manager.status === 1 ? '停用' : '启用'}账号 "${manager.username}" 吗？`,
-      okText: '确认',
-      cancelText: '取消',
-      onOk: () => updateStatus(manager.id, manager.status === 1 ? 0 : 1),
-    });
+  const handleUpdateStatus = (teacher: Teacher) => {
+    if (window.confirm(`确定要${teacher.status === 1 ? '停用' : '启用'}教师 "${teacher.name || teacher.account}" 吗？`)) {
+      updateStatus(teacher.id, teacher.status === 1 ? 0 : 1);
+    }
   };
 
-  const handleResetPassword = (manager: Manager) => {
-    Modal.confirm({
-      title: '确认重置密码',
-      content: `确定要重置账号 "${manager.username}" 的密码吗？`,
-      okText: '确认',
-      cancelText: '取消',
-      onOk: () => resetPassword(manager.id),
-    });
+  const handleResetPassword = (teacher: Teacher) => {
+    if (window.confirm(`确定要重置教师 "${teacher.name || teacher.account}" 的密码吗？`)) {
+      resetPassword(teacher.id);
+    }
   };
 
-  const columns: ProColumns<Manager>[] = [
+  const handleOpenDetail = (teacher: Teacher) => {
+    setCurrentTeacherId(teacher.id);
+    setDetailVisible(true);
+  };
+
+  const columns: DataTableColumn<Teacher>[] = [
     {
-      title: '账号',
-      dataIndex: 'username',
-      width: 150,
+      key: 'account',
+      title: '教师账号',
+      render: (teacher) => <span className="font-medium text-foreground">{teacher.account}</span>,
     },
     {
-      title: '类型',
-      dataIndex: 'type',
-      width: 150,
-      valueType: 'select',
-      valueEnum: {
-        1: { text: ManagerTypeText[1] },
-        2: { text: ManagerTypeText[2] },
-      },
-      render: (_, record) => ManagerTypeText[record.type],
+      key: 'name',
+      title: '姓名',
+      render: (teacher) => teacher.name || '-',
     },
-    createStatusColumn<Manager>('状态', 'status', {
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        1: { text: '启用', status: 'Success' },
-        0: { text: '停用', status: 'Error' },
-      },
-      hideInSearch: false,
-      render: (_, record) => <StatusTag status={record.status === 1} />,
-    }),
-    createTimeColumn<Manager>('创建时间', 'create_time', { width: 180 }),
-    createTimeColumn<Manager>('更新时间', 'update_time', { width: 180 }),
-    createActionColumn<Manager>(
-      (record) => {
-        return record.type !== 0 ? (
-          <>
-            <Button size="small" type="link" danger onClick={() => handleDelete(record)}>
-              删除
-            </Button>
-            <Button size="small" type="link" onClick={() => handleUpdateStatus(record)}>
-              {record.status === 1 ? '停用' : '启用'}
-            </Button>
-            <Button size="small" type="link" onClick={() => handleResetPassword(record)}>
-              重置密码
-            </Button>
-          </>
-        ) : null;
-      },
-      { width: 220 },
-    ),
+    {
+      key: 'phone',
+      title: '手机号',
+      render: (teacher) => teacher.phone || '-',
+    },
+    {
+      key: 'subject',
+      title: '学科',
+      width: '100px',
+      render: (teacher) => (teacher.subject ? <Badge variant="outline">{teacher.subject}</Badge> : '-'),
+    },
+    {
+      key: 'school',
+      title: '学校',
+      render: (teacher) => teacher.school || '-',
+    },
+    {
+      key: 'status',
+      title: '状态',
+      width: '110px',
+      render: (teacher) => <Badge variant={statusVariantMap[teacher.status] || 'destructive'}>{statusTextMap[teacher.status] || '未知'}</Badge>,
+    },
+    {
+      key: 'create_time',
+      title: '创建时间',
+      width: '190px',
+      render: (teacher) => <span className="text-muted-foreground">{formatTime(teacher.create_time)}</span>,
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      width: '320px',
+      render: (teacher) => (
+        <div className="flex justify-start gap-2">
+          <Button variant="link" size="xs" onClick={() => handleOpenDetail(teacher)}>
+            详情
+          </Button>
+          <Button variant="ghost" size="xs" onClick={() => handleUpdateStatus(teacher)}>
+            {teacher.status === 1 ? '停用' : '启用'}
+          </Button>
+          <Button variant="ghost" size="xs" onClick={() => handleResetPassword(teacher)}>
+            重置密码
+          </Button>
+          <Button variant="destructive" size="xs" onClick={() => handleDelete(teacher)}>
+            删除
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
-    <ProTable<Manager>
-      bordered
-      cardBordered
-      rowKey="id"
-      actionRef={actionRef}
-      columns={columns}
-      request={async () => {
-        const data = await AuthApi.getAllManagers();
-        return {
-          data: data || [],
-          success: true,
-          total: data?.length || 0,
-        };
-      }}
-      search={{ labelWidth: 'auto', defaultFormItemsNumber: 3 }}
-      headerTitle={
-        <Button key="add" type="primary" icon={<PlusOutlined />} onClick={onAddClick}>
-          添加账号
-        </Button>
-      }
-    />
+    <>
+      <Card>
+        <CardHeader className="flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <CardTitle>教师列表</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">共 {teachers?.total || 0} 位教师</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input value={keyword} placeholder="搜索账号、姓名、手机号" onChange={(event) => setKeyword(event.target.value)} />
+            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="">全部状态</option>
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </Select>
+            <Button onClick={onAddClick}>添加教师</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable columns={columns} data={teachers?.data || []} loading={loading} rowKey="id" emptyText="暂无教师" />
+        </CardContent>
+      </Card>
+      <TeacherDetailView teacherId={currentTeacherId} open={detailVisible} onOpenChange={setDetailVisible} />
+    </>
   );
 }

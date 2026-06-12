@@ -1,21 +1,21 @@
-# Python to Go + Google ADK Migration
+# Frozen legacy to Go + Google ADK Migration
 
-This directory is the migration control room. It defines the work split, module ownership, compatibility rules, and acceptance criteria for moving the current Python FastAPI service in `apps/server` to a Go service in `apps/server-go`.
+This directory is the migration control room. It defines the work split, module ownership, compatibility rules, and acceptance criteria for moving the current Frozen legacy legacy HTTP service in `apps/server` to a Go service in `apps/server-go`.
 
 ## Migration Strategy
 
-Use dual services during migration:
+Use the Go service as the default development backend during migration:
 
-- Keep `apps/server` running as the source of truth for modules not yet migrated.
-- Introduce `apps/server-go` as the new Go API and worker service.
-- Move traffic route by route through the gateway after each module passes compatibility checks.
+- Start `apps/server-go` for normal development.
+- Keep `apps/server` as legacy reference code only.
+- Move feature coverage route by route inside the Go service after each module passes compatibility checks.
 
 The frontend contract should remain stable unless a contract gap is explicitly listed in `api-contracts/known-gaps.md`.
 
 ## Non-Negotiable Compatibility Rules
 
 - Response envelope stays `{ "status": 0, "message": "success", "data": T }`.
-- Business and auth errors still return HTTP 200 with non-zero `status`, matching the Python behavior.
+- Business and auth errors still return HTTP 200 with non-zero `status`, matching the Frozen legacy behavior.
 - Auth continues to use the `x-access-token` request header.
 - Existing `ah_*` MySQL tables remain compatible during migration.
 - Practice status checks must inspect `generate_status` before `status`.
@@ -74,8 +74,7 @@ A module can be routed to Go only when:
 
 - Endpoint list matches the contract.
 - Request and response fields match existing frontend usage.
-- DB writes are compatible with the existing Python service.
+- DB writes are compatible with the existing Frozen legacy service.
 - Unit or integration tests cover the migrated service behavior.
 - Manual frontend smoke test passes for the primary page.
 - Rollback route is documented.
-

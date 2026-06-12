@@ -10,7 +10,7 @@ Owns:
 
 Tasks:
 
-- Freeze current Python API contracts.
+- Freeze current Frozen legacy API contracts.
 - Record known frontend/backend mismatches.
 - Keep route migration status current.
 
@@ -145,7 +145,7 @@ Endpoints:
 - teacher book CRUD
 - `GET /api/student/textbook/{textbook_id}/units`
 
-File upload and parsing may remain on Python until explicitly migrated.
+File upload and parsing may remain on Frozen legacy until explicitly migrated.
 
 ## Agent 8: Question CRUD
 
@@ -233,8 +233,8 @@ Owns:
 
 Tasks:
 
-- Migrate `apps/server/shared/question/generate.py`.
-- Preserve prompt behavior from `apps/server/prompt/*.md`.
+- Migrate `historical-backend/shared/question/generate.go`.
+- Preserve prompt behavior from `apps/server-go/prompt/*.md`.
 - Return validated question JSON before database writes.
 
 ## Agent 14: Answer Evaluation Agent

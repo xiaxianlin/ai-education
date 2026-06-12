@@ -13,12 +13,8 @@ import QuestionTypeList from '@/pages/Question/QuestionTypeList';
 import QuestionTypeSettings from '@/pages/Question/QuestionTypeSettings';
 import StudentDetail from '@/pages/Student/StudentDetail';
 import StudentList from '@/pages/Student/StudentList';
-import StudentTextbookConfig from '@/pages/Student/TextbookConfig';
-import TeacherBookDetail from '@/pages/TeacherBook/Detail';
-import TeacherBookList from '@/pages/TeacherBook/List';
 import TextbookDetail from '@/pages/Textbook/Detail';
 import TextbookList from '@/pages/Textbook/List';
-import TextbookVersionList from '@/pages/TextbookVersion/List';
 import { Navigate, useRoutes } from 'react-router-dom';
 
 import { InitialStateModel } from '@/models/initialState';
@@ -43,9 +39,6 @@ export function Router() {
         { path: 'manager', element: <Manager /> },
         { path: 'textbook', element: <TextbookList /> },
         { path: 'textbook/detail/:id', element: <TextbookDetail /> },
-        { path: 'teacher_book', element: <TeacherBookList /> },
-        { path: 'teacher_book/detail/:id', element: <TeacherBookDetail /> },
-        { path: 'textbook_version', element: <TextbookVersionList /> },
         { path: 'question', element: <QuestionList /> },
         { path: 'question/generate/:code', element: <QuestionGenerate /> },
         { path: 'question_type', element: <QuestionTypeList /> },
@@ -58,7 +51,6 @@ export function Router() {
         // Student routes
         { path: 'student', element: <StudentList /> },
         { path: 'student/detail/:id', element: <StudentDetail /> },
-        { path: 'student/:id/textbook-config', element: <StudentTextbookConfig /> },
         { path: 'password', element: <ModifyPassword /> },
         { path: 'profile', element: <Profile /> },
         { path: '*', element: <NotFound /> },

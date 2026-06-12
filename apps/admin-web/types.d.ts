@@ -47,6 +47,13 @@ declare global {
     providers: string[];
     question_types: Record<string, Record<number, Record<string, string[]>>>;
   }
+
+  interface Stem {
+    text?: string;
+    resource?: QuestionResource;
+  }
+
+  interface SubQuestion extends QuestionContent {}
 }
 
 export {};

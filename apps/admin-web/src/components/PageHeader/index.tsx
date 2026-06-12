@@ -1,5 +1,5 @@
-import { Button } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Button } from '@/components/ui';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PageHeaderProps {
@@ -9,24 +9,19 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, onBack }: PageHeaderProps) {
   const navigate = useNavigate();
-  
+
   const handleBack = () => {
     if (onBack) {
       onBack();
-    } else {
-      navigate(-1);
+      return;
     }
+    navigate(-1);
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <Button
-        type="text"
-        icon={<ArrowLeftOutlined />}
-        onClick={handleBack}
-        style={{ padding: 0, height: 'auto' }}
-      />
-      <span>{title}</span>
+    <div className="flex items-center gap-2">
+      <Button variant="ghost" size="icon" icon={<ArrowLeft className="size-4" />} onClick={handleBack} />
+      <span className="font-semibold">{title}</span>
     </div>
   );
 }

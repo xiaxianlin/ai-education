@@ -44,7 +44,7 @@ x-access-token: <manager token>
 | mixed | `/textbook_version/*` | Pending Go migration | Agent 7 |
 | mixed | `/teacher_book/*` | Pending Go migration | Agent 7 |
 
-File upload and parsing can remain routed to Python during the first cutover.
+File upload and parsing can remain routed to Frozen legacy during the first cutover.
 
 ## Question
 
@@ -59,11 +59,27 @@ File upload and parsing can remain routed to Python during the first cutover.
 
 | Method | Path Prefix | Status | Owner |
 | --- | --- | --- | --- |
-| mixed | `/student/*` | Pending Go migration | Agent 5 + Agent 11 |
+| mixed | `/student/*` | Go handler/service/repository added for CRUD, search, textbook config, unused_textbooks, mastery list/summary; router cutover pending integration slot | Agent 5 + Agent 11 |
+
+Implemented in `apps/server-go/internal/student` without changing `cmd/api/router`:
+
+- `GET /student/search`
+- `POST /student`
+- `PUT /student/{id}`
+- `DELETE /student/{id}`
+- `POST /student/{id}/reset_password`
+- `GET /student/{id}`
+- `GET /student/{id}/unused_textbooks`
+- `POST /student/{id}/textbook-config`
+- `PUT /student/{id}/textbook-config/{config_id}`
+- `DELETE /student/{id}/textbook-config/{config_id}`
+- `GET /student/{id}/textbook-configs`
+- `POST /student/{id}/textbook-configs`
+- `GET /student/{id}/mastery`
+- `GET /student/{id}/mastery/summary`
 
 ## Practice Admin
 
 | Method | Path Prefix | Status | Owner |
 | --- | --- | --- | --- |
 | mixed | `/practice/*` | Pending Go migration | Agent 11 |
-

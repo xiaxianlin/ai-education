@@ -2,63 +2,62 @@ import { useDelete, useSimpleForm } from '@/hooks';
 import { useInitialStateModel } from '@/models/initialState';
 import { AbilityApi } from '@/pages/Ability/api';
 import { PracticeType } from '@ai-education/shared-web';
-import { ActionType } from '@ant-design/pro-components';
 import { useRequest } from 'ahooks';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { QuestionApi } from '../../api';
 
 const useContainer = () => {
-  const { subject, grade } = useInitialStateModel();
+  const { subject, grade, setSubject, setGrade } = useInitialStateModel();
   const [type, setType] = useState<PracticeType>(PracticeType.UNIT_PRACTICE);
-
-  const unitActionRef = useRef<ActionType>();
-  const abilityActionRef = useRef<ActionType>();
+  const [unitRefreshKey, setUnitRefreshKey] = useState(0);
+  const [abilityRefreshKey, setAbilityRefreshKey] = useState(0);
 
   const refresh = () => {
     if (type === PracticeType.UNIT_PRACTICE) {
-      unitActionRef.current?.reload?.();
+      setUnitRefreshKey((key) => key + 1);
     } else {
-      abilityActionRef.current?.reload?.();
+      setAbilityRefreshKey((key) => key + 1);
     }
   };
 
-  const { data: abilities } = useRequest(() => AbilityApi.searchAbilities({ subject, grade }), {
+  const { data: abilities } = useRequest(() => AbilityApi.searchAbilities({ subject, grade, size: 100 }), {
     refreshDeps: [subject, grade],
   });
   const abilityOptions = useMemo(
-    () => abilities?.map((ability) => ({ label: ability.name, value: ability.code })),
+    () => abilities?.data?.map((ability) => ({ label: ability.name, value: ability.code })),
     [abilities],
   );
 
   const formProps = useSimpleForm<QuestionTypeSaveRequest, QuestionType>({
     service: async (values, item) => {
-      if (item) {
-        values.id = item.id;
-      }
-      values.category = type;
-      values.subject = subject;
-      await QuestionApi.saveQuestionType(values);
+      await QuestionApi.saveQuestionType({
+        ...values,
+        id: item?.id,
+        category: type,
+        subject,
+      });
     },
     onSubmit: refresh,
   });
 
-  // 删除
   const { handleDelete } = useDelete(QuestionApi.deleteQuestionType, {
     onSuccess: refresh,
   });
 
   useEffect(() => {
-    abilityActionRef.current?.reload?.();
+    setAbilityRefreshKey((key) => key + 1);
   }, [subject, grade]);
 
   return {
     type,
     grade,
     subject,
+    setGrade,
+    setSubject,
     abilityOptions,
-    unitActionRef,
-    abilityActionRef,
+    unitRefreshKey,
+    abilityRefreshKey,
     ...formProps,
     setType,
     handleDelete,

@@ -1,76 +1,105 @@
 import { DeleteButton } from '@/components';
-import { createActionColumn } from '@/hooks';
-import { ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button } from 'antd';
+import { Button, Card, CardContent, DataTable, type DataTableColumn } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
+import { useRequest } from 'ahooks';
+import { useEffect, useState } from 'react';
 import { QuestionApi } from '../../api';
 import { useQuestionListModel } from '../models/page';
 
 export function ListView() {
-  const { actionRef, subject, grade, showForm, showDetail, handleDelete } = useQuestionListModel();
+  const { subject, grade, questionId, questionName, refreshKey, showForm, showDetail, handleDelete } = useQuestionListModel();
+  const [page, setPage] = useState(1);
+  const [size] = useState(20);
 
-  const columns: ProColumns<Question>[] = [
+  const { data, loading } = useRequest(
+    () =>
+      QuestionApi.searchQuestions({
+        page,
+        size,
+        subject,
+        grade,
+        id: questionId.trim() || undefined,
+        name: questionName.trim() || undefined,
+      }),
     {
-      title: '题目ID',
-      dataIndex: 'id',
-      width: 200,
-      copyable: true,
-      hideInTable: true,
+      refreshDeps: [page, size, subject, grade, questionId, questionName, refreshKey],
+      onError: (error: any) => toast.error(error?.message || '题目列表加载失败'),
     },
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [subject, grade, questionId, questionName]);
+
+  const rows = data?.data || [];
+  const total = data?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(total / size));
+
+  const getStemText = (question: Question) => {
+    const stem = question.content?.stem || '';
+    if (typeof stem === 'string') return stem;
+    return String(stem || '');
+  };
+
+  const columns: DataTableColumn<Question>[] = [
     {
-      title: '名称',
-      dataIndex: 'name',
-      width: 200,
-      hideInTable: true,
-    },
-    {
+      key: 'content',
       title: '内容',
-      ellipsis: true,
-      dataIndex: ['content', 'stem'],
-      width: 300,
+      render: (record) => (
+        <div className="max-w-[420px]">
+          <div className="truncate text-foreground">{getStemText(record) || '-'}</div>
+          <div className="mt-1 truncate text-xs text-muted-foreground">{record.id}</div>
+        </div>
+      ),
     },
     {
+      key: 'question_type',
       title: '题型名称',
-      dataIndex: ['question_type', 'name'],
-      width: 150,
+      width: '180px',
+      render: (record) => record.question_type?.name || '-',
     },
-    createActionColumn<Question>(
-      (record) => (
-        <>
-          <Button key="detail" type="link" onClick={() => showDetail(record)}>
+    {
+      key: 'actions',
+      title: '操作',
+      width: '180px',
+      render: (record) => (
+        <div className="flex justify-start gap-2">
+          <Button variant="link" size="xs" onClick={() => showDetail(record)}>
             详情
           </Button>
-          <Button key="edit" type="link" onClick={() => showForm(record)}>
+          <Button variant="link" size="xs" onClick={() => showForm(record)}>
             编辑
           </Button>
           <DeleteButton
-            key="delete"
             title="确定要删除这道题目吗？"
             onConfirm={() => handleDelete(record.id)}
-            buttonProps={{ type: 'link' }}
+            buttonProps={{ size: 'xs' }}
           />
-        </>
+        </div>
       ),
-      { width: 180 },
-    ),
+    },
   ];
 
   return (
-    <ProTable<Question>
-      actionRef={actionRef}
-      bordered
-      cardBordered
-      rowKey="id"
-      search={{
-        labelWidth: 'auto',
-        defaultCollapsed: false,
-      }}
-      columns={columns}
-      pagination={{ defaultPageSize: 20 }}
-      scroll={{ x: 'max-content' }}
-      request={async ({ current, pageSize, id, name }) => {
-        const res = await QuestionApi.searchQuestions({ page: current, size: pageSize, subject, grade, id, name });
-        return { data: res?.data || [], total: res?.total || 0, success: true };
-      }}
-    />
+    <Card>
+      <CardContent>
+        <DataTable columns={columns} data={rows} rowKey="id" loading={loading} />
+
+        <div className="mt-4 flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <div>共 {total} 条</div>
+          <div className="flex items-center gap-2">
+            <Button disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+              上一页
+            </Button>
+            <span>
+              第 {page} / {totalPages} 页
+            </span>
+            <Button disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
+              下一页
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

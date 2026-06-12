@@ -14,7 +14,7 @@ export const TextbookApi = {
    * GET /textbook/search
    */
   async searchTextbooks(params?: SearchTextbookRequest) {
-    return apiClient.get<Textbook[]>('/textbook/search', params);
+    return apiClient.get<SearchResponse<Textbook>>('/textbook/search', params);
   },
 
   /**
@@ -39,22 +39,6 @@ export const TextbookApi = {
    */
   async deleteTextbook(id: number) {
     return apiClient.delete(`/textbook/${id}`);
-  },
-
-  /**
-   * 解析教材
-   * POST /textbook/{id}/parse
-   */
-  async parseTextbook(id: number) {
-    return apiClient.post(`/textbook/${id}/parse`);
-  },
-
-  /**
-   * 上传教材文件
-   * POST /textbook/{id}/upload
-   */
-  async uploadTextbook(id: number, data: FormData) {
-    return apiClient.form(`/textbook/${id}/upload`, data);
   },
 
   /**

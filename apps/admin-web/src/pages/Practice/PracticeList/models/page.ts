@@ -1,5 +1,5 @@
-import { ActionType } from '@ant-design/pro-components';
-import { useRef, useState } from 'react';
+import { toast } from '@/components/ui/toast';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createContainer } from 'unstated-next';
 import { PracticeApi } from '../../api';
@@ -13,12 +13,14 @@ const PRACTICE_TYPES = [
 
 const useContainer = () => {
   const navigate = useNavigate();
-  const actionRef = useRef<ActionType>();
   const [practiceType, setPracticeType] = useState<string>('all');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = () => setRefreshKey((key) => key + 1);
 
   const handleTabChange = (key: string) => {
     setPracticeType(key);
-    actionRef.current?.reload();
+    refresh();
   };
 
   const handleViewDetail = (id: string) => {
@@ -28,17 +30,19 @@ const useContainer = () => {
   const handleDelete = async (id: string) => {
     try {
       await PracticeApi.deletePractice(id);
-      actionRef.current?.reload();
+      toast.success('删除成功');
+      refresh();
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(error?.message || '删除失败');
       return false;
     }
   };
 
   return {
     navigate,
-    actionRef,
     practiceType,
+    refreshKey,
     practiceTypes: PRACTICE_TYPES,
     handleTabChange,
     handleViewDetail,

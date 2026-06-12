@@ -1,6 +1,5 @@
 import { JsonEditor, MarkdownEditor } from '@/components';
-import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Spin } from 'antd';
+import { Button, Card, CardContent, CardHeader, CardTitle, PageShell } from '@/components/ui';
 import { useQuestionTypeSettingsModel } from '../models/page';
 
 export default function MainView() {
@@ -18,35 +17,36 @@ export default function MainView() {
   } = useQuestionTypeSettingsModel();
 
   return (
-    <PageContainer title={pageTitle}>
-      <Spin spinning={loading || saving}>
-        {/* Prompt 配置 */}
-        {type === 'prompt' && (
-          <Card
-            title="Prompt 配置"
-            extra={
-              <Button type="primary" onClick={savePrompt}>
-                保存
-              </Button>
-            }
-          >
-            <MarkdownEditor value={promptValue} onChange={setPromptValue} height="600px" maxHeight="800px" />
-          </Card>
-        )}
+    <PageShell title={pageTitle}>
+      {loading || saving ? <div className="rounded-md border bg-card p-4 text-sm text-muted-foreground">处理中...</div> : null}
 
-        {type === 'configs' && (
-          <Card
-            title="Configs 配置"
-            extra={
-              <Button type="primary" onClick={saveConfigs}>
-                保存
-              </Button>
-            }
-          >
+      {type === 'prompt' ? (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>Prompt 配置</CardTitle>
+            <Button onClick={savePrompt} disabled={saving}>
+              保存
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <MarkdownEditor value={promptValue} onChange={setPromptValue} height="600px" maxHeight="800px" />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {type === 'configs' ? (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>Configs 配置</CardTitle>
+            <Button onClick={saveConfigs} disabled={saving}>
+              保存
+            </Button>
+          </CardHeader>
+          <CardContent>
             <JsonEditor value={configsValue} onChange={setConfigsValue} height="400px" maxHeight="600px" />
-          </Card>
-        )}
-      </Spin>
-    </PageContainer>
+          </CardContent>
+        </Card>
+      ) : null}
+    </PageShell>
   );
 }

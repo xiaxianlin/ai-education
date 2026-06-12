@@ -8,7 +8,7 @@ Frontend calls:
 
 - `POST /api/student/practice/create`
 
-Current Python route returns `request.state.student` and does not create a practice session. The Go implementation must define the real contract:
+Current Frozen legacy route returns `request.state.student` and does not create a practice session. The Go implementation must define the real contract:
 
 ```json
 {
@@ -25,7 +25,7 @@ Frontend calls:
 
 - `GET /api/student/practice/progress/{session_id}`
 
-No current Python route was found. The Go implementation should return:
+No current Frozen legacy route was found. The Go implementation should return:
 
 ```json
 {
@@ -43,7 +43,7 @@ Frontend calls:
 
 - `POST /api/student/practice/answer/audio/asr`
 
-No current Python route was found. Keep this on Python only if an implementation exists elsewhere; otherwise implement as part of the Google ADK/audio workstream.
+No current Frozen legacy route was found. Keep this on Frozen legacy only if an implementation exists elsewhere; otherwise implement as part of the Google ADK/audio workstream.
 
 ## Mobile Answer Path
 
@@ -59,7 +59,7 @@ Go should standardize on `/practice/answer`. Mobile should be aligned or Go shou
 
 ## Answer Evaluation Placeholder
 
-`apps/server/shared/practice/answer.py` currently contains placeholder-like evaluation behavior and inconsistent dict/object access. The Go migration should implement answer evaluation from first principles:
+`historical-backend/shared/practice/answer.go` currently contains placeholder-like evaluation behavior and inconsistent dict/object access. The Go migration should implement answer evaluation from first principles:
 
 - local deterministic evaluation for objective question types
 - Google ADK evaluation for subjective/open/audio answers

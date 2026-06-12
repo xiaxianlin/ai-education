@@ -10,7 +10,7 @@ const isDev = process.env.NODE_ENV === 'development';
 const proxyConfig = {
   dev: {
     '/api': {
-      target: 'http://127.0.0.1:7890',
+      target: 'http://127.0.0.1:7891',
       changeOrigin: true,
     },
   },

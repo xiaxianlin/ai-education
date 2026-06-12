@@ -1,18 +1,19 @@
 import { useSimpleForm } from '@/hooks';
-import { useInitialStateModel } from '@/models/initialState';
-import { ActionType } from '@ant-design/pro-components';
-import { useEffect, useRef } from 'react';
+import type { TableActionRef } from '@/components/ui';
+import { useEffect, useRef, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { TextbookApi } from '../../api';
 
 const useContainer = () => {
-  const { subject, grade } = useInitialStateModel();
+  const [subject, setSubject] = useState('');
+  const [grade, setGrade] = useState<number | undefined>();
+  const [teacherId, setTeacherId] = useState('');
+  const [version, setVersion] = useState('');
+  const [semester, setSemester] = useState('');
 
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<TableActionRef>();
   const formProps = useSimpleForm<SaveTextbookRequest, Textbook>({
     service: async (values, item) => {
-      values.subject = subject;
-      values.grade = grade;
       if (item) {
         await TextbookApi.updateTextbook(item.id, values);
       } else {
@@ -24,9 +25,22 @@ const useContainer = () => {
 
   useEffect(() => {
     actionRef.current?.reload();
-  }, [subject, grade]);
+  }, [subject, grade, teacherId, version, semester]);
 
-  return { subject, grade, actionRef, formProps };
+  return {
+    subject,
+    grade,
+    teacherId,
+    version,
+    semester,
+    setSubject,
+    setGrade,
+    setTeacherId,
+    setVersion,
+    setSemester,
+    actionRef,
+    formProps,
+  };
 };
 
 export const TextbookListModel = createContainer(useContainer);

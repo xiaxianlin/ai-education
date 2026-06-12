@@ -4,19 +4,193 @@ This board is the execution entry point for migration agents.
 
 ## Current Migration Phase
 
-Phase: Foundation
+Phase: Go runtime cutover in progress, Frozen legacy service no longer on the default dev path
 
 Primary objective:
 
-- Keep Python service stable.
-- Build a compiling Go service skeleton.
-- Freeze contracts before moving traffic.
+- Keep Go API and frontend services as the default runtime.
+- Continue migrating remaining Frozen legacy-only admin/file/RAG flows behind Go interfaces.
+- Keep Frozen legacy available only as explicitly named legacy commands.
 
-## Ready to Assign Now
+## Completed in Subagent Wave 1
+
+| Ticket | Module | Status |
+| --- | --- | --- |
+| F-001 | Database Foundation | Complete |
+| F-002 | Queue Foundation | Complete |
+| F-003 | Auth Foundation | Complete skeleton, pending real store/hash/token implementation |
+| R-000 | DSN Normalization | Complete |
+| R-001 | Auth DB/token compatibility | Complete boundary, bcrypt dependency pending |
+| R-002 | Ability DB Repository | Complete, student atomics is first cutover candidate |
+| R-003 | Practice DB Repository and Worker Placeholder | Complete partial SQL repository and placeholder worker |
+| R-005 | MySQL driver + bcrypt + API route wiring | Complete |
+| M-002 | Student Profile SQL module | Complete and mounted when DB is available |
+| AI-002 | ADK adapter preparation | Complete without SDK dependency |
+| M-001 | Ability Module | Complete skeleton, pending DB repository |
+| M-003 | Practice Contract Fix | Complete in-memory skeleton and state machine |
+| M-004 | Textbook Module | Complete skeleton, upload/parse remain Frozen legacy |
+| M-005 | Question CRUD | Complete skeleton, AI generation endpoint remains ADK-owned |
+| M-006 | Mastery and Statistics | Complete skeleton, pending DB repository |
+| AI-001 | AI Interface Foundation | Complete no-op/stub provider interfaces |
+| ENV-001 | Environment variable migration | Complete config fields and sample template |
+| R-004 | Google ADK Adapter | Complete initial SDK-backed adapter |
+| R-006 | Textbook SQL Repository | Complete and mounted when DB is available |
+| R-007 | Mastery SQL Repository | Complete and mounted when DB is available |
+| R-008 | Practice Generation Persistence | Complete initial ADK generation to `ah_question`/`ah_practice_answer` |
+
+Verification:
+
+```bash
+cd apps/server-go
+GOCACHE=/private/tmp/ai-education-go-build-cache go test ./...
+```
+
+This passed after Wave 1 integration.
+
+## Ready to Assign Next
+
+### Ticket R-001: Real Auth Repository and Token Compatibility
+
+Agent: DB/Auth integration
+
+Status: Complete boundary, blocked from login cutover until bcrypt dependency is added
+
+Start here:
+
+- `apps/server-go/internal/db/`
+- `apps/server-go/internal/auth/`
+- `historical-backend/shared/util/encrypt.go`
+- `historical-backend/admin/auth/services/auth.go`
+- `historical-backend/student/auth/services/auth.go`
+
+Tasks:
+
+- Implement `auth.ManagerStore` and `auth.StudentStore` using the DB foundation.
+- Implement password compatibility with existing Frozen legacy hashes.
+- Implement token resolver compatible with existing stored tokens.
+- Replace placeholder check routes only after compatibility tests pass.
+
+Done when:
+
+- Admin and student login/check work against existing database rows.
+- Missing, invalid, disabled, and valid token cases are tested.
+
+Notes:
+
+- SQL-backed manager/student store adapters are implemented.
+- HS256 JWT resolver matches the Frozen legacy `{id, update_time, exp}` payload shape.
+- Bcrypt password verification still needs `golang.org/x/crypto/bcrypt`; current Go boundary intentionally does not accept bcrypt hashes without that dependency.
+
+### Ticket R-000: DSN Normalization
+
+Agent: DB integration
+
+Status: In progress in main thread
+Final status: Complete
+
+Start here:
+
+- `apps/server-go/internal/config/config.go`
+- `docs/migration-go-adk/environment.md`
+- `apps/server-go/.env.sample`
+
+Tasks:
+
+- Decide whether Go deployments use native Go MySQL DSN or Frozen legacy-compatible `mysql+asyncmy://...` URLs.
+- If sharing Frozen legacy `DATABASE_URL`, add a normalization helper before opening the SQL driver.
+
+Done when:
+
+- Local Go DB connection works from the documented `.env` format.
+- The chosen DSN format is reflected in `.env.sample` and DB migration docs.
+
+### Ticket R-002: Ability DB Repository
+
+Agent: Ability + DB integration
+
+Status: Complete
+
+Start here:
+
+- `apps/server-go/internal/ability/`
+- `apps/server-go/sql/ability.sql`
+- `historical-backend/shared/core/database/ability.go`
+
+Tasks:
+
+- Implement SQL-backed `ability.Repository`.
+- Preserve `subject + grade + code` uniqueness behavior.
+- Wire only `GET /api/student/ability/atomics` for first route cutover.
+
+Done when:
+
+- Student ability atomics can be served from Go with existing DB data.
+- Admin CRUD remains behind Frozen legacy until mutation compatibility is reviewed.
+
+First cutover candidate:
+
+- `GET /api/student/ability/atomics`
+
+### Ticket R-003: Practice DB Repository and Worker Handler
+
+Agent: Practice + Queue integration
+
+Status: Complete initial SQL repository and in-process generation dispatch
+
+Start here:
+
+- `apps/server-go/internal/practice/`
+- `apps/server-go/internal/queue/`
+- `apps/server-go/sql/practice.sql`
+
+Tasks:
+
+- SQL-backed `practice.Repository` covers sessions, answers, reports, generated question persistence.
+- `practice.generate` is registered in the Go API via in-process dispatch until an external queue backend is added.
+- Keep `generate_status` transition rules identical to the contract.
+
+Done when:
+
+- `POST /practice/create` persists a session and dispatches a generation task.
+- `GET /practice/progress/{session_id}` reflects DB state.
+- Generated questions are written to `ah_question`; answer placeholders are written to `ah_practice_answer`; practice updates `generate_status=1`.
+
+Notes:
+
+- Placeholder behavior remains available for worker-only tests.
+- API runtime now uses the real handler with ADK provider when AI config is present.
+
+### Ticket R-004: Google ADK Adapter
+
+Agent: AI integration
+
+Status: Complete initial SDK-backed adapter, tool integrations still pending
+
+Start here:
+
+- `apps/server-go/internal/ai/`
+- `docs/migration-go-adk/adk-ai-architecture.md`
+
+Tasks:
+
+- Added `google.golang.org/adk` SDK dependency.
+- Added ADK `llmagent` + `runner` adapter behind `internal/ai.Adapter`.
+- Added `ADKProvider` for question generation and report generation.
+- Objective answer evaluation remains local.
+- Schema validation runs before generated questions are persisted.
+
+Done when:
+
+- Question generation returns validated `[]GeneratedQuestion`.
+- Objective answer evaluation still stays local.
+
+## Historical Wave 1 Tickets
 
 ### Ticket F-001: Database Foundation
 
 Agent: Agent 2
+
+Status: Complete
 
 Start here:
 
@@ -41,6 +215,8 @@ Done when:
 
 Agent: Agent 3
 
+Status: Complete
+
 Start here:
 
 - `apps/server-go/internal/queue/MIGRATION.md`
@@ -61,6 +237,8 @@ Done when:
 ### Ticket F-003: Auth Middleware Integration
 
 Agent: Agent 1 + Agent 4/5
+
+Status: Skeleton complete, real middleware integration pending R-001
 
 Start here:
 
@@ -86,6 +264,8 @@ Done when:
 
 Agent: Agent 6
 
+Status: Skeleton complete, DB repository pending R-002
+
 Start here:
 
 - `apps/server-go/internal/ability/MIGRATION.md`
@@ -101,11 +281,13 @@ Why first:
 Done when:
 
 - `GET /api/student/ability/atomics` matches current frontend usage.
-- Admin CRUD matches Python behavior.
+- Admin CRUD matches Frozen legacy behavior.
 
 ### Ticket M-002: Student Profile
 
 Agent: Agent 5
+
+Status: Complete and mounted when DB is available
 
 Start here:
 
@@ -116,9 +298,17 @@ Done when:
 - Student login/check/profile/settings work through Go.
 - Student web can load `/home` after route cutover.
 
+Notes:
+
+- SQL repository, service, handlers, and route registration are implemented.
+- `cmd/api` wires profile routes when DB opens successfully.
+- Current student ID is resolved through the Go auth service.
+
 ### Ticket M-003: Practice Contract Fix
 
 Agent: Agent 10
+
+Status: In-memory skeleton complete, DB repository pending R-003
 
 Start here:
 
@@ -165,4 +355,3 @@ Run from `apps/server-go`:
 ```bash
 go test ./...
 ```
-

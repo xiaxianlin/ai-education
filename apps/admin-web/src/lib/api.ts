@@ -1,5 +1,5 @@
-import { message as AntdMessage } from 'antd';
-import { go, ApiClient } from '@ai-education/shared-web';
+import { ApiClient, go } from '@ai-education/shared-web';
+import { toast } from '@/components/ui/toast';
 
 export const apiClient = new ApiClient('/api/admin');
 
@@ -26,7 +26,7 @@ apiClient.addResponseInterceptor(
     if (process.env.NODE_ENV === 'development') {
       console.log(error.message);
     }
-    AntdMessage.error(error.message || '网络错误');
+    toast.error(error.message || '网络错误');
     return Promise.reject(error);
   },
 );

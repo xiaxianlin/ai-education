@@ -1,15 +1,15 @@
-import { useRef } from 'react';
-import { createContainer } from 'unstated-next';
-import { ActionType } from '@ant-design/pro-components';
+import type { TableActionRef } from '@/components/ui';
+import { toast } from '@/components/ui/toast';
 import { useSimpleForm } from '@/hooks';
 import { useRequest } from 'ahooks';
-import { message, Modal } from 'antd';
+import { useRef } from 'react';
+import { createContainer } from 'unstated-next';
 import { useTextbookDetailModel } from './page';
 import { TextbookApi } from '../../api';
 
 const useContainer = () => {
   const { id } = useTextbookDetailModel();
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<TableActionRef>();
   const formProps = useSimpleForm<CreateUnitRequest | UpdateUnitRequest, Unit>({
     service: async (values, item) => {
       if (item) {
@@ -24,21 +24,15 @@ const useContainer = () => {
   const { runAsync: deleteUnit } = useRequest(TextbookApi.deleteUnit, {
     manual: true,
     onSuccess: () => {
-      message.success('删除成功');
+      toast.success('删除成功');
       actionRef.current?.reload();
     },
   });
 
   const handleDelete = (unit: Unit) => {
-    Modal.confirm({
-      centered: true,
-      title: '删除确认',
-      content: `确定要删除单元 "${unit.name}" 吗？`,
-      okType: 'danger',
-      onOk: () => {
-        deleteUnit(unit.id);
-      },
-    });
+    if (window.confirm(`确定要删除单元 "${unit.name}" 吗？`)) {
+      deleteUnit(unit.id);
+    }
   };
 
   return {
