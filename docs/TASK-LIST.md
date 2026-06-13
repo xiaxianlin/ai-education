@@ -9,9 +9,9 @@
 
 ## 当前待执行任务（有且仅有一个）
 
-| 编号 | 任务名称 | 优先级 | 工期 | 实现方案 |
-|------|---------|--------|------|----------|
-| P1-05 | 主观题 AI 评判 | P1 | 3天 | [📖 方案](../docs/impl/phase1-P1-05-subjective-evaluation.md) |
+| 编号 | 任务名称 | 优先级 | 工期 | 前置依赖 | 实现方案 |
+|------|---------|--------|------|----------|----------|
+| P1-12 | 薄弱能力点展示 | P1 | 2天 | P1-11 ✅ | [📖 方案](../docs/impl/phase1-P1-12-weak-ability.md) |
 
 > **规则：待执行任务有且仅有一个。程序员完成后报告，架构师验收后再指定下一个。**
 
@@ -33,10 +33,10 @@
 | 1 | P1-06 | 练习报告 AI 生成与展示 | P0 | [方案](../docs/impl/phase1-P1-06-report-generation.md) | [报告](../docs/dev/P1-06-练习报告AI生成与展示.md) | — | ✅ 已提交 |
 | 2 | P1-11 | 掌握度自动更新 | P0 | [方案](../docs/impl/phase1-P1-11-mastery-update.md) | [报告](../docs/dev/P1-11-掌握度自动更新.md) | [审查](../docs/review/P1-11-掌握度自动更新-review.md) | ✅ 已提交 |
 | 3 | P1-07 | Redis 队列正式对接 | P1 | [方案](../docs/impl/phase1-P1-07-redis-queue.md) | [报告](../docs/dev/P1-07-Redis队列正式对接.md) | — | ✅ 已提交 |
-| 4 | P1-05 | 主观题 AI 评判 | P1 | [方案](../docs/impl/phase1-P1-05-subjective-evaluation.md) | — | — | 🔨 **待执行** |
+| 4 | P1-05 | 主观题 AI 评判 | P1 | [方案](../docs/impl/phase1-P1-05-subjective-evaluation.md) | [报告](../docs/dev/P1-05-主观题AI评判.md) | [审查](../docs/review/P1-05-主观题AI评判-review.md) | ✅ 已提交 |
 | 5 | P1-08 | 练习生成失败重试 | P2 | [方案](../docs/impl/phase1-P1-08-retry-mechanism.md) | — | — | 已出方案 |
 | 6 | P1-09 | 练习废弃状态处理 | P2 | [方案](../docs/impl/phase1-P1-09-abandoned-status.md) | — | — | 已出方案 |
-| 7 | P1-12 | 薄弱能力点展示 | P1 | [方案](../docs/impl/phase1-P1-12-weak-ability.md) | — | — | 已出方案 |
+| 7 | P1-12 | 薄弱能力点展示 | P1 | [方案](../docs/impl/phase1-P1-12-weak-ability.md) | — | — | 🔨 **待执行** |
 | 8 | P1-13 | 基础难度调整 | P2 | [方案](../docs/impl/phase1-P1-13-difficulty-adjust.md) | — | — | 已出方案 |
 | 9 | P1-19 | 题目管理完善 | P1 | [方案](../docs/impl/phase1-P1-19-question-management.md) | — | — | 已出方案 |
 | 10 | P1-20 | 学生练习数据查看 | P1 | [方案](../docs/impl/phase1-P1-20-student-data-view.md) | — | — | 已出方案 |
@@ -86,10 +86,7 @@ docs/review/P1-XX-功能名称-review.md         # 审查报告
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已提交 | 3 |
-| 📝 已出方案 | 14 |
+| ✅ 已提交 | 4 |
+| 📝 已出方案 | 13 |
 | 🔨 **待执行** | **1** |
-| 已执行 | 0 |
-| 已审查 | 0 |
-| 已修改 | 0 |
 | **合计** | **18** |
