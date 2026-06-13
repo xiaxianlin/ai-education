@@ -11,7 +11,7 @@
 
 | 编号 | 任务名称 | 优先级 | 工期 | 前置依赖 | 实现方案 |
 |------|---------|--------|------|----------|----------|
-| P1-12 | 薄弱能力点展示 | P1 | 2天 | P1-11 ✅ | [📖 方案](../docs/impl/phase1-P1-12-weak-ability.md) |
+| P1-19 | 题目管理完善 | P1 | 2天 | 无 | [📖 方案](../docs/impl/phase1-P1-19-question-management.md) |
 
 > **规则：待执行任务有且仅有一个。程序员完成后报告，架构师验收后再指定下一个。**
 
@@ -36,9 +36,9 @@
 | 4 | P1-05 | 主观题 AI 评判 | P1 | [方案](../docs/impl/phase1-P1-05-subjective-evaluation.md) | [报告](../docs/dev/P1-05-主观题AI评判.md) | [审查](../docs/review/P1-05-主观题AI评判-review.md) | ✅ 已提交 |
 | 5 | P1-08 | 练习生成失败重试 | P2 | [方案](../docs/impl/phase1-P1-08-retry-mechanism.md) | — | — | 已出方案 |
 | 6 | P1-09 | 练习废弃状态处理 | P2 | [方案](../docs/impl/phase1-P1-09-abandoned-status.md) | — | — | 已出方案 |
-| 7 | P1-12 | 薄弱能力点展示 | P1 | [方案](../docs/impl/phase1-P1-12-weak-ability.md) | — | — | 🔨 **待执行** |
+| 7 | P1-12 | 薄弱能力点展示 | P1 | [方案](../docs/impl/phase1-P1-12-weak-ability.md) | [报告](../docs/dev/P1-12-薄弱能力点展示.md) | [审查](../docs/review/P1-12-薄弱能力点展示-review.md) | ✅ 已提交 |
 | 8 | P1-13 | 基础难度调整 | P2 | [方案](../docs/impl/phase1-P1-13-difficulty-adjust.md) | — | — | 已出方案 |
-| 9 | P1-19 | 题目管理完善 | P1 | [方案](../docs/impl/phase1-P1-19-question-management.md) | — | — | 已出方案 |
+| 9 | P1-19 | 题目管理完善 | P1 | [方案](../docs/impl/phase1-P1-19-question-management.md) | — | — | 🔨 **待执行** |
 | 10 | P1-20 | 学生练习数据查看 | P1 | [方案](../docs/impl/phase1-P1-20-student-data-view.md) | — | — | 已出方案 |
 | 11 | P1-22 | 移动端登录 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 已出方案 |
 | 12 | P1-23 | 移动端能力练习 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 已出方案 |
@@ -86,7 +86,7 @@ docs/review/P1-XX-功能名称-review.md         # 审查报告
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已提交 | 4 |
-| 📝 已出方案 | 13 |
+| ✅ 已提交 | 5 |
+| 📝 已出方案 | 12 |
 | 🔨 **待执行** | **1** |
 | **合计** | **18** |
