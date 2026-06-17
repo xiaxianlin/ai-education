@@ -11,7 +11,7 @@
 
 | 编号 | 任务名称 | 优先级 | 工期 | 前置依赖 | 实现方案 |
 |------|---------|--------|------|----------|----------|
-| P1-09 | 练习废弃状态处理 | P2 | 1天 | 无 | [📖 方案](../docs/impl/phase1-P1-09-abandoned-status.md) |
+| P1-08 | 练习生成失败重试 | P2 | 1天 | 无 | [📖 方案](../docs/impl/phase1-P1-08-retry-mechanism.md) |
 
 > **规则：待执行任务有且仅有一个。程序员完成后报告，架构师验收后再指定下一个。**
 
@@ -34,8 +34,8 @@
 | 2 | P1-11 | 掌握度自动更新 | P0 | [方案](../docs/impl/phase1-P1-11-mastery-update.md) | [报告](../docs/dev/P1-11-掌握度自动更新.md) | [审查](../docs/review/P1-11-掌握度自动更新-review.md) | ✅ 已提交 |
 | 3 | P1-07 | Redis 队列正式对接 | P1 | [方案](../docs/impl/phase1-P1-07-redis-queue.md) | [报告](../docs/dev/P1-07-Redis队列正式对接.md) | — | ✅ 已提交 |
 | 4 | P1-05 | 主观题 AI 评判 | P1 | [方案](../docs/impl/phase1-P1-05-subjective-evaluation.md) | [报告](../docs/dev/P1-05-主观题AI评判.md) | [审查](../docs/review/P1-05-主观题AI评判-review.md) | ✅ 已提交 |
-| 5 | P1-08 | 练习生成失败重试 | P2 | [方案](../docs/impl/phase1-P1-08-retry-mechanism.md) | — | — | 已出方案 |
-| 6 | P1-09 | 练习废弃状态处理 | P2 | [方案](../docs/impl/phase1-P1-09-abandoned-status.md) | — | — | 🔨 **待执行** |
+| 5 | P1-08 | 练习生成失败重试 | P2 | [方案](../docs/impl/phase1-P1-08-retry-mechanism.md) | — | — | 🔨 **待执行** |
+| 6 | P1-09 | 练习废弃状态处理 | P2 | [方案](../docs/impl/phase1-P1-09-abandoned-status.md) | [报告](../docs/dev/P1-09-练习废弃状态处理.md) | [审查](../docs/review/P1-09-练习废弃状态处理-review.md) | ✅ 已提交 |
 | 7 | P1-12 | 薄弱能力点展示 | P1 | [方案](../docs/impl/phase1-P1-12-weak-ability.md) | [报告](../docs/dev/P1-12-薄弱能力点展示.md) | [审查](../docs/review/P1-12-薄弱能力点展示-review.md) | ✅ 已提交 |
 | 8 | P1-13 | 基础难度调整 | P2 | [方案](../docs/impl/phase1-P1-13-difficulty-adjust.md) | — | — | 已出方案 |
 | 9 | P1-19 | 题目管理完善 | P1 | [方案](../docs/impl/phase1-P1-19-question-management.md) | [报告](../docs/dev/P1-19-题目管理完善.md) | [审查](../docs/review/P1-19-题目管理完善-review.md) | ✅ 已提交 |
@@ -86,7 +86,7 @@ docs/review/P1-XX-功能名称-review.md         # 审查报告
 
 | 状态 | 数量 |
 |------|------|
-| ✅ 已提交 | 7 |
-| 📝 已出方案 | 10 |
+| ✅ 已提交 | 8 |
+| 📝 已出方案 | 9 |
 | 🔨 **待执行** | **1** |
 | **合计** | **18** |
