@@ -11,7 +11,7 @@
 
 | 编号 | 任务名称 | 优先级 | 工期 | 前置依赖 | 实现方案 |
 |------|---------|--------|------|----------|----------|
-| P1-23 | 移动端能力练习 | P1 | 2天 | P1-22 ✅ | [📖 方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) |
+| P1-24 | 移动端答题界面 | P1 | 2天 | P1-23 ✅ | [📖 方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) |
 
 > **规则：待执行任务有且仅有一个。程序员完成后报告，架构师验收后再指定下一个。**
 
@@ -41,8 +41,8 @@
 | 9 | P1-19 | 题目管理完善 | P1 | [方案](../docs/impl/phase1-P1-19-question-management.md) | [报告](../docs/dev/P1-19-题目管理完善.md) | [审查](../docs/review/P1-19-题目管理完善-review.md) | ✅ 已提交 |
 | 10 | P1-20 | 学生练习数据查看 | P1 | [方案](../docs/impl/phase1-P1-20-student-data-view.md) | [报告](../docs/dev/P1-20-学生练习数据查看.md) | [审查](../docs/review/P1-20-学生练习数据查看-review.md) | ✅ 已提交 |
 | 11 | P1-22 | 移动端登录 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | [报告](../docs/dev/P1-22-移动端登录.md) | [审查](../docs/review/P1-22-移动端登录-review.md) | ✅ 已提交 |
-| 12 | P1-23 | 移动端能力练习 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 🔨 **待执行** |
-| 13 | P1-24 | 移动端答题界面 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 已出方案 |
+| 12 | P1-23 | 移动端能力练习 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | [报告](../docs/dev/P1-23-移动端能力练习.md) | [审查](../docs/review/P1-23-移动端能力练习-review.md) | ✅ 已提交 |
+| 13 | P1-24 | 移动端答题界面 | P1 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 🔨 **待执行** |
 | 14 | P1-25 | 移动端练习记录 | P2 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 已出方案 |
 | 15 | P1-26 | 移动端个人中心 | P2 | [方案](../docs/impl/phase1-P1-22-to-P1-26-mobile.md) | — | — | 已出方案 |
 | 16 | P1-27 | 后端集成测试覆盖 | P1 | [方案](../docs/impl/phase1-P1-27-to-P1-29-quality.md) | — | — | 已出方案 |
@@ -87,6 +87,7 @@ docs/review/P1-XX-功能名称-review.md         # 审查报告
 | 状态 | 数量 |
 |------|------|
 | ✅ 已提交 | 11 |
-| 📝 已出方案 | 6 |
+| ✅ 已提交 | 12 |
+| 📝 已出方案 | 5 |
 | 🔨 **待执行** | **1** |
 | **合计** | **18** |
